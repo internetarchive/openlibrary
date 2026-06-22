@@ -54,11 +54,11 @@ logger = logging.getLogger("openlibrary.core")
 
 def _get_ol_base_url() -> str:
     # Anand Oct 2013
-    # Looks like the default value when called from script
-    if "[unknown]" in web.ctx.home:
-        return "https://openlibrary.org"
-    else:
-        return web.ctx.home
+    # Looks like the default value when called from script or from FastAPI (no web.ctx)
+    home = getattr(web.ctx, "home", None)
+    if home and "[unknown]" not in home:
+        return home
+    return "https://openlibrary.org"
 
 
 class Image:
@@ -80,7 +80,7 @@ class Image:
                 d["author"] = d["author"] and self._site.get(d["author"])
 
             return web.storage(d)
-        except (requests.exceptions.RequestException, OSError):
+        except requests.exceptions.RequestException, OSError:
             # coverstore is down
             return None
 
@@ -402,7 +402,7 @@ class Edition(Thing):
         isbn_or_asin: str,
         high_priority: bool = False,
         allow_import: bool = False,
-    ) -> "Edition | None":
+    ) -> Edition | None:
         """
         Attempts to fetch an edition by ISBN or ASIN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
@@ -430,8 +430,8 @@ class Edition(Thing):
             else:
                 query = {"type": "/type/edition", f"isbn_{len(book_id)}": book_id}
 
-            if matches := web.ctx.site.things(query):
-                return web.ctx.site.get(matches[0])
+            if matches := site.get().things(query):
+                return site.get().get(matches[0])
 
         # Attempt to fetch the book from the import_item table
         if allow_import:
@@ -464,7 +464,7 @@ class Edition(Thing):
         """
         Create a dummy work from an orphaned_edition.
         """
-        return web.ctx.site.new(
+        return site.get().new(
             "",
             {
                 "key": "",
@@ -589,13 +589,19 @@ class Work(Thing):
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
-            return {"want-to-read": 0, "currently-reading": 0, "already-read": 0}
+            return {
+                "want-to-read": 0,
+                "currently-reading": 0,
+                "already-read": 0,
+                "stopped-reading": 0,
+            }
         work_id = extract_numeric_id_from_olid(self.key)
         num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
         return {
             "want-to-read": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
             "already-read": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Already Read"], 0),
+            "stopped-reading": num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
     def get_rating_stats(self):
@@ -715,7 +721,7 @@ class Work(Thing):
         redirect_chain = []
         key = work_key
         while not resolved_key:
-            thing = web.ctx.site.get(key)
+            thing = site.get().get(key)
             redirect_chain.append(thing)
             if thing.type.key == "/type/redirect":
                 key = thing.location
@@ -770,7 +776,7 @@ class Work(Thing):
     def get_redirects(cls, day, batch_size=1000, batch=0):
         tomorrow = day + timedelta(days=1)
 
-        work_redirect_ids = web.ctx.site.things(
+        work_redirect_ids = site.get().things(
             {
                 "type": "/type/redirect",
                 "key~": "/works/*",
@@ -814,7 +820,7 @@ class Work(Thing):
                     f"[update-redirects] {current_date}, batch {batch + 1}: #{total}",
                 )
                 work_redirect_ids, has_more = cls.get_redirects(current_date, batch_size=batch_size, batch=batch)
-                work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+                work_redirect_batch = site.get().get_many(work_redirect_ids)
                 for work in work_redirect_batch:
                     total += 1
                     chain = Work.resolve_redirect_chain(work.key, test=test)
@@ -920,7 +926,7 @@ class User(Thing):
 
     def preferences(self):
         def query_store(_key):
-            return web.ctx.site.store.get(_key)
+            return site.get().store.get(_key)
 
         key = f"{self.key}/preferences"
 
@@ -932,7 +938,7 @@ class User(Thing):
         prefs.update(new_prefs)
         prefs["_rev"] = None
         prefs["type"] = "preferences"
-        web.ctx.site.store[key] = prefs
+        site.get().store[key] = prefs
 
     def is_usergroup_member(self, usergroup: str) -> bool:
         if not usergroup.startswith("/usergroup/"):
@@ -1001,7 +1007,7 @@ class User(Thing):
     )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit("/people/", maxsplit=1)[-1]
-        user = web.ctx.site.get(f"/people/{username}")
+        user = site.get().get(f"/people/{username}")
         itemname = user.get_account().get("internetarchive_itemname")
 
         return f"https://archive.org/services/img/{itemname}"
@@ -1130,7 +1136,7 @@ class UserGroup(Thing):
         """
         if not key.startswith("/usergroup/"):
             key = f"/usergroup/{key}"
-        return web.ctx.site.get(key)
+        return site.get().get(key)
 
     def add_user(self, userkey: str) -> None:
         """Administrative utility (designed to be used in conjunction with
@@ -1138,7 +1144,7 @@ class UserGroup(Thing):
 
         :param str userkey: e.g. /people/mekBot
         """
-        if not web.ctx.site.get(userkey):
+        if not site.get().get(userkey):
             raise KeyError("Invalid userkey")
 
         # Make sure userkey not already in group members:
@@ -1146,14 +1152,14 @@ class UserGroup(Thing):
         if not any(userkey == member["key"] for member in members):
             members.append({"key": userkey})
             self.members = members
-            web.ctx.site.save(
+            site.get().save(
                 self.dict(),
                 f"Adding {userkey} to {self.key}",
                 action="edit-usergroup-add-member",
             )
 
     def remove_user(self, userkey):
-        if not web.ctx.site.get(userkey):
+        if not site.get().get(userkey):
             raise KeyError("Invalid userkey")
 
         members = self.get("members", [])
@@ -1165,7 +1171,7 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(
+        site.get().save(
             self.dict(),
             f"Removing {userkey} from {self.key}",
             action="edit-usergroup-delete-member",
@@ -1216,7 +1222,7 @@ class Subject(web.storage):
         for w in self.works:
             cover_id = w.get("cover_id")
             if cover_id:
-                return Image(web.ctx.site, "b", cover_id)
+                return Image(site.get(), "b", cover_id)
 
 
 class Tag(Thing):
@@ -1243,7 +1249,7 @@ class Tag(Thing):
         q = {"type": "/type/tag", "slugs": cls.normalize(tag_name)}
         if tag_type:
             q["tag_type"] = tag_type
-        matches = list(web.ctx.site.things(q))
+        matches = list(site.get().things(q))
         return matches
 
     @classmethod
@@ -1254,16 +1260,16 @@ class Tag(Thing):
         comment="New Tag",
     ):
         """Creates a new Tag object."""
-        current_user = web.ctx.site.get_user()
+        current_user = site.get().get_user()
         patron = current_user.get_username() if current_user else "ImportBot"
-        key = web.ctx.site.new_key("/type/tag")
+        key = site.get().new_key("/type/tag")
         tag["key"] = key
 
         from openlibrary.accounts import RunAs
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(tag, comment=comment, action="create-tag")
+            t = site.get().save(tag, comment=comment, action="create-tag")
             return t
 
 

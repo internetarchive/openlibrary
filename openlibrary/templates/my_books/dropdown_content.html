@@ -2,7 +2,7 @@ $def with(user_lists, seed_key, work_key, edition_key, users_work_read_status, a
 
 $def reading_log_selections(work_key, edition_key, users_work_read_status):
   $ remove_btn_visibility = 'hidden' if not users_work_read_status else ''
-  $ btn_visibilities = [remove_btn_visibility, '', '', '']
+  $ btn_visibilities = [remove_btn_visibility, '', '', '', '']
 
   $ read_status = users_work_read_status or 1
   $ btn_visibilities[int(read_status)] = 'hidden'
@@ -23,6 +23,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="1"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $code: pass  # NOTE: Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
       <button class="nostyle-btn $(btn_visibilities[1])" type="submit" data-ol-link-track="ReadingLog|WantToRead">$_('Want to Read')</button>
     </form>
 
@@ -31,6 +32,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="2"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $code: pass  # NOTE: Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
       <button class="nostyle-btn $(btn_visibilities[2])" type="submit" data-ol-link-track="ReadingLog|CurrentlyReading">$_('Currently Reading')</button>
     </form>
 
@@ -39,7 +41,17 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="3"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $code: pass  # NOTE: Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
       <button class="nostyle-btn $(btn_visibilities[3])" type="submit" data-ol-link-track="ReadingLog|AlreadyRead">$_('Already Read')</button>
+    </form>
+
+    <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="add"/>
+      <input type="hidden" name="bookshelf_id" value="4"/>
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $code: pass  # NOTE: Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
+      <button class="nostyle-btn $(btn_visibilities[4])" type="submit" data-ol-link-track="ReadingLog|StoppedReading">$_('Stopped Reading')</button>
     </form>
   </div>
 

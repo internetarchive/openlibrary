@@ -18,12 +18,12 @@ logger = logging.getLogger("openlibrary.importer")
 
 
 @functools.cache
-def get_ol(servername=None):
+def get_ol(servername: str) -> OpenLibrary:
+    ol = OpenLibrary(servername)
     if os.getenv("LOCAL_DEV"):
-        ol = OpenLibrary(base_url="http://localhost:8080")
-        ol.login("admin", "admin123")
+        ol.login("openlibrary@example.com", "admin123")
     else:
-        ol = OpenLibrary(base_url=servername)
+        # Log in with RC file from OPENLIBRARY_RCFILE env var
         ol.autologin()
     return ol
 
@@ -38,7 +38,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
-            ol = get_ol(servername=servername)
+            ol = get_ol(servername)
             if item.data:
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
@@ -153,17 +153,20 @@ def import_all(args, **kwargs):
 
     servername = kwargs.get("servername")
     require_marc = False
+    configfile = kwargs.get("configfile")
+    sleep = int(os.getenv("OL_IMPORT_ALL_SLEEP", "60"))
+    processes = int(os.getenv("OL_IMPORT_ALL_PROCESSES", "8"))
 
     # Use multiprocessing to call do_import on each item
-    with multiprocessing.Pool(processes=8) as pool:
+    with multiprocessing.Pool(processes=processes, initializer=load_config, initargs=(configfile,)) as pool:
         while True:
             logger.info("find_pending START")
             items = ImportItem.find_pending()
             logger.info("find_pending END")
 
             if not items:
-                logger.info("No pending items found. sleeping for a minute.")
-                time.sleep(60)
+                logger.info(f"No pending items found. sleeping for {sleep} seconds before next attempt.")
+                time.sleep(sleep)
                 continue
 
             logger.info("starmap START")
@@ -193,7 +196,7 @@ def main():
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org")}
+    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org"), "configfile": configfile}
     for i in sys.argv[2:]:
         if i.startswith("--"):
             flags[i[2:]] = True

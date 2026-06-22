@@ -3,9 +3,11 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
+import './experiments.js';
 import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
+import { queueAction } from './utils';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -15,6 +17,26 @@ window.jQuery = jQuery;
 window.$ = jQuery;
 
 window.Promise = Promise;
+
+// Global listener for login intent buttons
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-login-intent');
+    if (btn) {
+        const action = btn.dataset.action;
+        const title = btn.dataset.title;
+        const type = btn.dataset.type || 'item';
+        const targetUrl = btn.dataset.resumeurl || (window.location.pathname + window.location.search);
+        if (action && title) {
+            queueAction(action, title, targetUrl, type);
+        }
+        if (btn.tagName !== 'A') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
+    }
+}, true);
 
 // Init the service worker first since it does caching
 initServiceWorker();
@@ -314,6 +336,12 @@ jQuery(function() {
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
+    const searchFilterBar = document.querySelector('.search-filter-row');
+    if (searchFilterBar) {
+        import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
+            .then((module) => module.initSearchFilterBar(searchFilterBar));
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
@@ -500,6 +528,12 @@ jQuery(function() {
             .then(module => module.initDismissibleBanners(banners));
     }
 
+    // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
+    if (document.querySelector('ol-banner[dismiss-id]')) {
+        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+            .then(module => module.initOlBannerDismissals());
+    }
+
     const returnForms = document.querySelectorAll('.return-form');
     if (returnForms.length) {
         import(/* webpackChunkName: "return-form" */ './return-form')
@@ -597,5 +631,12 @@ jQuery(function() {
     if (monthlyLoginStats) {
         import(/* webpackChunkName: "stats" */ './stats')
             .then(module => module.initUniqueLoginCounts(monthlyLoginStats));
+    }
+
+    // History page comparison
+    const pageHistory = document.querySelector('#pageHistory');
+    if (pageHistory) {
+        import(/* webpackChunkName: "history" */ './history')
+            .then(module => module.initHistory(pageHistory));
     }
 });

@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -15,7 +15,6 @@ import babel.numbers
 import genshi
 import genshi.filters
 import web
-from babel.core import Locale
 from bs4 import BeautifulSoup
 
 from infogami import config
@@ -24,6 +23,9 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
+if TYPE_CHECKING:
+    from babel.core import Locale
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -37,6 +39,7 @@ __all__ = [
     "days_since",
     "extract_year",
     "format_date",
+    "format_decimal",
     "json_encode",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
@@ -195,6 +198,16 @@ def commify(number, lang=None):
         return babel.numbers.format_decimal(int(number), locale=lang)
     except Exception:
         return str(number)
+
+
+def format_decimal(number, decimal_places=1, lang=None):
+    """Locale-aware decimal number formatting."""
+    try:
+        lang = lang or web.ctx.get("lang") or "en"
+        fmt = "#,##0." + "0" * decimal_places
+        return babel.numbers.format_decimal(number, format=fmt, locale=lang)
+    except Exception:
+        return str(round(number, decimal_places))
 
 
 def truncate(text: str, limit: int) -> str:

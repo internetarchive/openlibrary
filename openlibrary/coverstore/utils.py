@@ -5,18 +5,38 @@ import json
 import mimetypes
 import os
 import random
-import socket
+import re
 import string
 import traceback
 from io import IOBase as file
+from typing import Final
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
 
 import requests
 
-from openlibrary.coverstore import config, oldb
+COVERSTORE_USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+# Note: These domains need to also be kept insync with the IA squid proxy
+ALLOWED_COVER_URLS: Final = (
+    # e.g. https://archive.org/download/goody/page/title.jpg
+    # e.g. https://archive.org/download/goody/page/cover_w500_h500.jpg
+    r"^https?://archive.org/download/[^?#]+/page/(cover|title)(_w\d+)?(_h\d+)?(\.jpg)?$",
+    # e.g. https://archive.org/services/img/goody/full/pct:600/0/default.jpg
+    r"^https?://archive.org/services/img/[^?#]+/full/pct:\d+/0/(default)\.jpg$",
+    # e.g. https://covers.openlibrary.org/b/id/15082914-M.jpg
+    r"^https?://covers.openlibrary.org/b/[^/?#]+/[^/?#.]+(-[A-Z])?\.jpg$",
+    r"^https?://books.google.com/.*$",
+    r"^https?://commons.wikimedia.org/.*$",
+    r"^https?://m.media-amazon.com/.*$",
+)
 
-socket.setdefaulttimeout(10.0)
+
+session = requests.Session()
+session.headers.update({"User-Agent": COVERSTORE_USER_AGENT})
+
+
+def is_allowed_cover_url(url: str) -> bool:
+    return any(re.match(pattern, url) for pattern in ALLOWED_COVER_URLS)
 
 
 def safeint(value, default=None):
@@ -29,49 +49,65 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return default
 
 
 def get_ol_url():
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import config
+
     return config.ol_url.removesuffix("/")
 
 
 def ol_things(key: str, value: str) -> list[str]:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.query(key, value)
-    else:
-        query = {
-            "type": "/type/edition",
-            key: value,
-            "sort": "last_modified",
-            "limit": 10,
-        }
-        try:
-            d = {"query": json.dumps(query)}
-            result = download(get_ol_url() + "/api/things?" + real_urlencode(d))
-            result = json.loads(result)
-            return result["result"]
-        except OSError:
-            traceback.print_exc()
-            return []
+
+    query = {
+        "type": "/type/edition",
+        key: value,
+        "sort": "last_modified",
+        "limit": 10,
+    }
+    try:
+        resp = session.get(
+            f"{get_ol_url()}/api/things",
+            params={"query": json.dumps(query)},
+            timeout=10,
+        )
+        result = resp.json()
+        return result["result"]
+    except OSError:
+        traceback.print_exc()
+        return []
 
 
 def ol_get(olkey: str) -> dict | None:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.get(olkey)
-    else:
-        try:
-            return json.loads(download(get_ol_url() + olkey + ".json"))
-        except OSError:
-            return None
+
+    try:
+        return session.get(f"{get_ol_url()}/{olkey}.json", timeout=10).json()
+    except OSError:
+        return None
 
 
-USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+class DisallowedCoverUrl(Exception):
+    pass
 
 
-def download(url):
-    return requests.get(url, headers={"User-Agent": USER_AGENT}).content
+def download_external_image(url: str) -> bytes:
+    if not is_allowed_cover_url(url):
+        raise DisallowedCoverUrl(f"URL {url} is not an allowed cover URL")
+
+    return session.get(url, timeout=10).content
 
 
 def urldecode(url: str) -> tuple[str, dict[str, str]]:

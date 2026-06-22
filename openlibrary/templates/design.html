@@ -1,36 +1,52 @@
-$def with()
+$def with (components)
 $# /developers/design
+$# `components` maps each component tag name (e.g. "ol-chip") to its cleaned
+$# Custom Elements Manifest API, built in design.py. Passed to design/api_tables
+$# to render auto-generated API reference tables alongside the hand-written demos.
+$# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
 
 <div class="design-pattern-library">
-  <h1>$_("Web Component Library")</h1>
+  <h1>Web Component Library</h1>
 
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
       <ul class="design-pattern-nav__list">
-        <li><a href="#pagination">$_("Pagination")</a></li>
-        <li><a href="#popover">$_("Popover")</a></li>
+        <li><a href="#tooltip">Tooltip</a></li>
+        <li><a href="#pagination">Pagination</a></li>
+        <li><a href="#popover">Popover</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
-        <li><a href="#read-more">$_("Read More")</a></li>
-        <li><a href="#chip">$_("Chip")</a></li>
-        <li><a href="#button">$_("Button")</a></li>
-        <li><a href="#chip-group">$_("Chip Group")</a></li>
-        <li><a href="#markdown-editor">$_("Markdown Editor")</a></li>
+        <li><a href="#options-popover">Options Popover</a></li>
+        <li><a href="#dialog">Dialog</a></li>
+        <li><a href="#read-more">Read More</a></li>
+        <li>
+          <a href="#chip-group">Chip Group</a>
+          <ul class="design-pattern-nav__sublist">
+            <li><a href="#chip">Chip</a></li>
+          </ul>
+        </li>
+        <li><a href="#button">Button</a></li>
+        <li><a href="#toggle">Toggle</a></li>
+        <li><a href="#toast">Toast</a></li>
+        <li><a href="#banner">Banner</a></li>
+        <li><a href="#markdown-editor">Markdown Editor</a></li>
       </ul>
     </nav>
 
     <main class="design-pattern-main">
+      $:render_template("design/tooltip")
+
       <article class="design-pattern" id="pagination">
-        <h2 class="design-pattern__title">$_("Pagination")</h2>
-        <p class="design-pattern__description">$_("The ol-pagination component provides support for both event-based and URL-based navigation.")</p>
+        <h2 class="design-pattern__title">Pagination</h2>
+        <p class="design-pattern__description">The ol-pagination component provides support for both event-based and URL-based navigation.</p>
 
         <section class="example">
-          <h3 class="example__title">$_("Event-based")</h3>
-          <p>$:_("When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s.", update_page="<code>update:page</code>", event_detail="<code>event.detail</code>")</p>
+          <h3 class="example__title">Event-based</h3>
+          <p>When a page is clicked, the component fires an <code>update:page</code> event with the page number in <code>event.detail</code>.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-pagination
   total-pages="10"
   current-page="1"&gt;
@@ -38,7 +54,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <div class="example__output">
             <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
           </div>
-          <p>$_("Selected page:"): <strong id="demo-selected-page">1</strong></p>
+          <p>Selected page: <strong id="demo-selected-page">1</strong></p>
           <script>
             document.getElementById('demo-pagination').addEventListener('update:page', (e) => {
               document.getElementById('demo-selected-page').textContent = e.detail;
@@ -48,8 +64,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("URL-based Navigation")</h3>
-          <p>$_("When base-url is provided, pagination renders anchor tags for SEO-friendly links.")</p>
+          <h3 class="example__title">URL-based Navigation</h3>
+          <p>When base-url is provided, pagination renders anchor tags for SEO-friendly links.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-pagination
   total-pages="50"
   current-page="5"
@@ -59,74 +75,80 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("First page (no previous arrow)")</h3>
+          <h3 class="example__title">First page (no previous arrow)</h3>
           <div class="example__output">
             <ol-pagination total-pages="20" current-page="1"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("Middle page (both arrows visible)")</h3>
+          <h3 class="example__title">Middle page (both arrows visible)</h3>
           <div class="example__output">
             <ol-pagination total-pages="20" current-page="10"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("Last page (no next arrow)")</h3>
+          <h3 class="example__title">Last page (no next arrow)</h3>
           <div class="example__output">
             <ol-pagination total-pages="20" current-page="20"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("3 pages")</h3>
+          <h3 class="example__title">3 pages</h3>
           <div class="example__output">
             <ol-pagination total-pages="3" current-page="2"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("5 pages (no ellipsis needed)")</h3>
+          <h3 class="example__title">5 pages (no ellipsis needed)</h3>
           <div class="example__output">
             <ol-pagination total-pages="5" current-page="3"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("100 pages with ellipsis:")</h3>
+          <h3 class="example__title">100 pages with ellipsis:</h3>
           <div class="example__output">
             <ol-pagination total-pages="100" current-page="50"></ol-pagination>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Arrows mode")</h3>
-          <p>$_("When total pages is unknown, use arrows mode to show only previous/next navigation.")</p>
+          <h3 class="example__title">Arrows mode</h3>
+          <p>When total pages is unknown, use arrows mode to show only previous/next navigation.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-pagination
   mode="arrows"
   current-page="3"
   has-next-page&gt;
 &lt;/ol-pagination&gt;</code></pre>
 
-          <h3 class="example__title">$_("Arrows mode (has next page)")</h3>
+          <h3 class="example__title">Arrows mode (has next page)</h3>
           <div class="example__output">
             <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("Arrows mode (no next page)")</h3>
+          <h3 class="example__title">Arrows mode (no next page)</h3>
           <div class="example__output">
             <ol-pagination mode="arrows" current-page="3"></ol-pagination>
           </div>
 
-          <h3 class="example__title">$_("Arrows mode (first page, has next)")</h3>
+          <h3 class="example__title">Arrows mode (first page, has next)</h3>
           <div class="example__output">
             <ol-pagination mode="arrows" current-page="1" has-next-page></ol-pagination>
           </div>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-pagination"))
       </article>
 
-      $:render_template("design/popover")
+      $:render_template("design/popover", components.get("ol-popover"))
 
-      $:render_template("design/select-popover")
+      $:render_template("design/select-popover", components.get("ol-select-popover"))
+
+      $:render_template("design/options-popover")
+
+      $:render_template("design/dialog")
 
       <article class="design-pattern" id="read-more">
-        <h2 class="design-pattern__title">$_("Read More")</h2>
-        <p class="design-pattern__description">$_("The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.")</p>
+        <h2 class="design-pattern__title">Read More</h2>
+        <p class="design-pattern__description">The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.</p>
 
         <section class="example">
-          <h3 class="example__title">$_("Height-based truncation")</h3>
-          <p>$:_("Use %(max_height)s to limit content by pixel height.", max_height="<code>max-height</code>")</p>
+          <h3 class="example__title">Height-based truncation</h3>
+          <p>Use <code>max-height</code> to limit content by pixel height.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more max-height="80px"&gt;
   ...content...
 &lt;/ol-read-more&gt;</code></pre>
@@ -138,8 +160,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Line-based truncation")</h3>
-          <p>$:_("Use %(max_lines)s to limit content by number of lines.", max_lines="<code>max-lines</code>")</p>
+          <h3 class="example__title">Line-based truncation</h3>
+          <p>Use <code>max-lines</code> to limit content by number of lines.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more max-lines="3"&gt;
   ...content...
 &lt;/ol-read-more&gt;</code></pre>
@@ -151,24 +173,24 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Custom button text")</h3>
-          <p>$:_("Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example.", more_text="<code>more-text</code>", less_text="<code>less-text</code>")</p>
+          <h3 class="example__title">Custom button text</h3>
+          <p>Use <code>more-text</code> and <code>less-text</code> to customize the toggle button labels.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more
   max-lines="2"
-  more-text="$$_('Show more')"
-  less-text="$$_('Show less')"&gt;
+  more-text="Show more"
+  less-text="Show less"&gt;
   ...
 &lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
-            <ol-read-more max-lines="2" more-text="$_('Show more')" less-text="$_('Show less')">
+            <ol-read-more max-lines="2" more-text="Show more" less-text="Show less">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
             </ol-read-more>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Custom background color")</h3>
-          <p>$:_("Use %(background_color)s to match the gradient fade to your container background.", background_color="<code>background-color</code>")</p>
+          <h3 class="example__title">Custom background color</h3>
+          <p>Use <code>background-color</code> to match the gradient fade to your container background.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more
   max-lines="2"
   background-color="#cef"&gt;
@@ -182,8 +204,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Small label size")</h3>
-          <p>$:_("Use %(label_size)s for a smaller toggle button.", label_size='<code>label-size="small"</code>')</p>
+          <h3 class="example__title">Small label size</h3>
+          <p>Use <code>label-size="small"</code> for a smaller toggle button.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more
   max-lines="2"
   label-size="small"&gt;
@@ -197,97 +219,180 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Content shorter than limit (no button)")</h3>
-          <p>$_("When content fits within the limit, no toggle button is shown.")</p>
+          <h3 class="example__title">Content shorter than limit (no button)</h3>
+          <p>When content fits within the limit, no toggle button is shown.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-read-more max-lines="5"&gt;
   Short content
 &lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-lines="5">
-              <p>$_("This is short content that fits within 5 lines, so no button appears.")</p>
+              <p>This is short content that fits within 5 lines, so no button appears.</p>
             </ol-read-more>
           </div>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-read-more"))
+      </article>
+
+      <article class="design-pattern" id="chip-group">
+        <h2 class="design-pattern__title">Chip Group</h2>
+        <p class="design-pattern__description">The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.</p>
+
+        <section class="example">
+          <h3 class="example__title">Default (medium gap)</h3>
+          <p>Chips are spaced with an 8px gap by default.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip>Fiction</ol-chip>
+              <ol-chip>Science</ol-chip>
+              <ol-chip>History</ol-chip>
+              <ol-chip>Poetry</ol-chip>
+              <ol-chip>Drama</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Small gap</h3>
+          <p>Use <code>gap="small"</code> for tighter spacing (4px).</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group gap="small">
+              <ol-chip size="small">Fiction</ol-chip>
+              <ol-chip size="small">Science</ol-chip>
+              <ol-chip size="small">History</ol-chip>
+              <ol-chip size="small">Poetry</ol-chip>
+              <ol-chip size="small">Drama</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Large gap</h3>
+          <p>Use <code>gap="large"</code> for wider spacing (12px).</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group gap="large">
+              <ol-chip>Fiction</ol-chip>
+              <ol-chip>Science</ol-chip>
+              <ol-chip>History</ol-chip>
+              <ol-chip>Poetry</ol-chip>
+              <ol-chip>Drama</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Wrapping behavior</h3>
+          <p>Chips automatically wrap to the next line when they exceed the container width.</p>
+          <div class="example__output" style="max-width: 300px;">
+            <ol-chip-group>
+              <ol-chip>Fiction</ol-chip>
+              <ol-chip>Science</ol-chip>
+              <ol-chip>History</ol-chip>
+              <ol-chip>Poetry</ol-chip>
+              <ol-chip>Drama</ol-chip>
+              <ol-chip>Essays</ol-chip>
+              <ol-chip>Biography</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">With mixed chip states</h3>
+          <p>Chip groups work with any combination of chip sizes, states, and link chips.</p>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip href="/subjects/fiction" count="1,024">Fiction</ol-chip>
+              <ol-chip href="/subjects/history" count="76" selected>History</ol-chip>
+              <ol-chip href="/subjects/science" count="512">Science</ol-chip>
+              <ol-chip href="/subjects/poetry" count="33">Poetry</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        $:render_template("design/api_tables", components.get("ol-chip-group"))
       </article>
 
       <article class="design-pattern" id="chip">
-        <h2 class="design-pattern__title">$_("Chip")</h2>
-        <p class="design-pattern__description">$:_("The ol-chip component is a pill-shaped interactive element for filters, tags, and selections. It fires an %(event)s event on click.", event="<code>ol-chip-select</code>")</p>
+        <h2 class="design-pattern__title">Chip</h2>
+        <p class="design-pattern__description">The ol-chip component is a pill-shaped interactive element for filters, tags, and selections. It fires an <code>ol-chip-select</code> event on click.</p>
 
         <section class="example">
-          <h3 class="example__title">$_("Default (medium)")</h3>
-          <p>$_("Basic chips at the default medium size.")</p>
+          <h3 class="example__title">Default (medium)</h3>
+          <p>Basic chips at the default medium size.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip&gt;
   Fiction
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip>$_("Fiction")</ol-chip>
-            <ol-chip>$_("Science")</ol-chip>
-            <ol-chip>$_("History")</ol-chip>
+            <ol-chip>Fiction</ol-chip>
+            <ol-chip>Science</ol-chip>
+            <ol-chip>History</ol-chip>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Selected state")</h3>
-          <p>$_("A selected chip displays a checkmark icon and uses an active color scheme.")</p>
+          <h3 class="example__title">Selected state</h3>
+          <p>A selected chip displays a checkmark icon and uses an active color scheme.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip selected&gt;
   History
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip>$_("Fiction")</ol-chip>
-            <ol-chip selected>$_("History")</ol-chip>
-            <ol-chip>$_("Science")</ol-chip>
+            <ol-chip>Fiction</ol-chip>
+            <ol-chip selected>History</ol-chip>
+            <ol-chip>Science</ol-chip>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Small size")</h3>
-          <p>$:_("Use %(size)s for a compact chip.", size='<code>size="small"</code>')</p>
+          <h3 class="example__title">Small size</h3>
+          <p>Use <code>size="small"</code> for a compact chip.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip size="small"&gt;
   Poetry
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip size="small">$_("Poetry")</ol-chip>
-            <ol-chip size="small" selected>$_("Drama")</ol-chip>
-            <ol-chip size="small">$_("Essays")</ol-chip>
+            <ol-chip size="small">Poetry</ol-chip>
+            <ol-chip size="small" selected>Drama</ol-chip>
+            <ol-chip size="small">Essays</ol-chip>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("With count")</h3>
-          <p>$:_("Use %(count)s to display a number alongside the label.", count="<code>count</code>")</p>
+          <h3 class="example__title">With count</h3>
+          <p>Use <code>count</code> to display a number alongside the label.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip count="42"&gt;
   Fiction
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip count="1,024">$_("Fiction")</ol-chip>
-            <ol-chip count="76" selected>$_("History")</ol-chip>
+            <ol-chip count="1,024">Fiction</ol-chip>
+            <ol-chip count="76" selected>History</ol-chip>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("As a link")</h3>
-          <p>$:_("When %(href)s is provided, the chip renders as an anchor tag instead of a button.", href="<code>href</code>")</p>
+          <h3 class="example__title">As a link</h3>
+          <p>When <code>href</code> is provided, the chip renders as an anchor tag instead of a button.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip
   href="/subjects/fiction"
   count="76"&gt;
   Fiction
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
-            <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
+            <ol-chip href="/subjects/fiction" count="1,024">Fiction</ol-chip>
+            <ol-chip href="/subjects/history" count="76" selected>History</ol-chip>
           </div>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Interactive toggle")</h3>
-          <p>$:_("Clicking a chip fires an %(event)s event. Toggle the selected state by listening to the event.", event="<code>ol-chip-select</code>")</p>
+          <h3 class="example__title">Interactive toggle</h3>
+          <p>Clicking a chip fires an <code>ol-chip-select</code> event. Toggle the selected state by listening to the event.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip id="demo-chip"&gt;
   Toggle me
 &lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
-            <ol-chip id="demo-chip-1">$_("Toggle me")</ol-chip>
-            <ol-chip id="demo-chip-2" selected>$_("Toggle me too")</ol-chip>
+            <ol-chip id="demo-chip-1">Toggle me</ol-chip>
+            <ol-chip id="demo-chip-2" selected>Toggle me too</ol-chip>
           </div>
           <script>
             document.querySelectorAll('#demo-chip-1, #demo-chip-2').forEach(chip => {
@@ -297,96 +402,54 @@ $ _x = ctx.setdefault('cssfile', 'design')
             });
           </script>
         </section>
+
+        <section class="example">
+          <h3 class="example__title">Domain variants</h3>
+          <p>Use <code>variant</code> to color a chip by the kind of thing it represents (language, subject, genre, author, place, or a neutral facet). The chip maps the variant to a soft-tint palette internally.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language"&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="language">English</ol-chip>
+            <ol-chip variant="subject">Science Fiction</ol-chip>
+            <ol-chip variant="genre">Memoir</ol-chip>
+            <ol-chip variant="author">Ursula K. Le Guin</ol-chip>
+            <ol-chip variant="place">San Francisco</ol-chip>
+            <ol-chip variant="neutral">Read now</ol-chip>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Removable filter pills</h3>
+          <p>Combine <code>variant</code> with <code>selected</code> to make a removable, category-colored filter pill. The selected state adds a close icon; listen for <code>ol-chip-select</code> to remove the filter.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language" selected&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="neutral" size="small" selected>Read now</ol-chip>
+            <ol-chip variant="language" size="small" selected>English</ol-chip>
+            <ol-chip variant="language" size="small" selected>French</ol-chip>
+          </div>
+        </section>
+
+        $:render_template("design/api_tables", components.get("ol-chip"))
       </article>
 
-      $:render_template("design/button")
+      $:render_template("design/button", components.get("ol-button"))
 
-      <article class="design-pattern" id="chip-group">
-        <h2 class="design-pattern__title">$_("Chip Group")</h2>
-        <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
+      $:render_template("design/toggle")
 
-        <section class="example">
-          <h3 class="example__title">$_("Default (medium gap)")</h3>
-          <p>$_("Chips are spaced with an 8px gap by default.")</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group>
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
+      $:render_template("design/toast", components.get("ol-toast"))
 
-        <section class="example">
-          <h3 class="example__title">$_("Small gap")</h3>
-          <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group gap="small">
-              <ol-chip size="small">$_("Fiction")</ol-chip>
-              <ol-chip size="small">$_("Science")</ol-chip>
-              <ol-chip size="small">$_("History")</ol-chip>
-              <ol-chip size="small">$_("Poetry")</ol-chip>
-              <ol-chip size="small">$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("Large gap")</h3>
-          <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group gap="large">
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("Wrapping behavior")</h3>
-          <p>$_("Chips automatically wrap to the next line when they exceed the container width.")</p>
-          <div class="example__output" style="max-width: 300px;">
-            <ol-chip-group>
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-              <ol-chip>$_("Essays")</ol-chip>
-              <ol-chip>$_("Biography")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("With mixed chip states")</h3>
-          <p>$_("Chip groups work with any combination of chip sizes, states, and link chips.")</p>
-          <div class="example__output">
-            <ol-chip-group>
-              <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
-              <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
-              <ol-chip href="/subjects/science" count="512">$_("Science")</ol-chip>
-              <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-      </article>
+      $:render_template("design/banner", components.get("ol-banner"))
 
       <article class="design-pattern" id="markdown-editor">
-        <h2 class="design-pattern__title">$_("Markdown Editor")</h2>
-        <p class="design-pattern__description">$_("The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea. A 'View source' toolbar toggle is always available so editors can drop into a raw markdown textarea when WYSIWYG round-trips are awkward.")</p>
+        <h2 class="design-pattern__title">Markdown Editor</h2>
+        <p class="design-pattern__description">The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea. A 'View source' toolbar toggle is always available so editors can drop into a raw markdown textarea when WYSIWYG round-trips are awkward.</p>
 
         <section class="example">
-          <h3 class="example__title">$_("Basic usage")</h3>
-          <p>$:_("Provide a %(target_id)s pointing to an existing textarea. The editor reads initial content from the textarea and syncs changes back to it.", target_id="<code>target-id</code>")</p>
+          <h3 class="example__title">Basic usage</h3>
+          <p>Provide a <code>target-id</code> pointing to an existing textarea. The editor reads initial content from the textarea and syncs changes back to it.</p>
           <pre class="example__code"><code class="language-html">&lt;textarea id="my-input"&gt;
   **Hello** world
 &lt;/textarea&gt;
@@ -402,8 +465,8 @@ This is a second paragraph with a [link](https://openlibrary.org).</textarea>
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Mixed Markdown and HTML")</h3>
-          <p>$:_("Add the %(attr)s attribute to expose the HTML block button in the toolbar. HTML blocks appear with a preview and an Edit button to modify the source.", attr="<code>enable-html-block</code>")</p>
+          <h3 class="example__title">Mixed Markdown and HTML</h3>
+          <p>Add the <code>enable-html-block</code> attribute to expose the HTML block button in the toolbar. HTML blocks appear with a preview and an Edit button to modify the source.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
   target-id="my-input"
   enable-html-block&gt;
@@ -431,8 +494,8 @@ Want to create your own collection? Check out [these instructions](/help/faq/col
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Code blocks and inline code")</h3>
-          <p>$:_("Add the %(attr)s attribute to expose the inline code and code block buttons in the toolbar. Code support is off by default because only the wiki page renderer is guaranteed to render fenced code blocks.", attr="<code>enable-code</code>")</p>
+          <h3 class="example__title">Code blocks and inline code</h3>
+          <p>Add the <code>enable-code</code> attribute to expose the inline code and code block buttons in the toolbar. Code support is off by default because only the wiki page renderer is guaranteed to render fenced code blocks.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
   target-id="my-input"
   enable-code&gt;
@@ -455,8 +518,8 @@ The response includes `title`, `authors`, and a `description` field formatted as
         </section>
 
         <section class="example">
-          <h3 class="example__title">$_("Change event")</h3>
-          <p>$:_("The editor fires an %(event)s event on every change. The raw Markdown string is available in %(detail)s.", event="<code>ol-markdown-editor-change</code>", detail="<code>event.detail.value</code>")</p>
+          <h3 class="example__title">Change event</h3>
+          <p>The editor fires an <code>ol-markdown-editor-change</code> event on every change. The raw Markdown string is available in <code>event.detail.value</code>.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
   target-id="my-input"
   height="100px"&gt;
@@ -478,6 +541,8 @@ The response includes `title`, `authors`, and a `description` field formatted as
             });
           </script>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-markdown-editor"))
       </article>
     </main>
   </div>

@@ -134,7 +134,17 @@ def get_thing_id(key):
         return None
 
 
+# `count(table, ...)` interpolates `table` raw into the SQL. All current
+# callers pass a hard-coded literal ("edition_ref"), but limit the accepted
+# values explicitly so a future caller can't turn this into a SQL injection
+# sink by forwarding user input as the table name. Add to the set if a new
+# legitimate caller needs to count a different table.
+_COUNT_ALLOWED_TABLES = frozenset({"edition_ref"})
+
+
 def count(table, type, key, value):
+    if table not in _COUNT_ALLOWED_TABLES:
+        raise ValueError(f"Invalid table: {table!r}. Must be one of {sorted(_COUNT_ALLOWED_TABLES)}.")
     pid = get_property_id(type, key)
 
     value_id = get_thing_id(value)

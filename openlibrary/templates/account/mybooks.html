@@ -39,6 +39,8 @@ $def year_span(year, use_local_year=False):
   $ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
   $ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
   $ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
+  $ stopped_reading = ["stopped-reading", _('Stopped Reading'), readlog_url + "stopped-reading"]
+
 
   $# Render carousels
   $if owners_page:
@@ -47,6 +49,7 @@ $def year_span(year, use_local_year=False):
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
     $:(compact_carousel(already_read) or empty_carousel(already_read))
+    $:(compact_carousel(stopped_reading) or empty_carousel(stopped_reading))
     $:render_template("lists/showcase", lists, username)
   $else:
     <p>$_("This reader has chosen to make their Reading Log private.")</p>
@@ -115,6 +118,10 @@ $def empty_mobile_carousel(data):
         <li>
           $# Render carousel
           $:(mobile_carousel(already_read) or empty_mobile_carousel(already_read))
+        </li>
+        <li>
+          $# Render carousel
+          $:(mobile_carousel(stopped_reading) or empty_mobile_carousel(stopped_reading))
         </li>
         <li>
           <div class="carousel-section-header">

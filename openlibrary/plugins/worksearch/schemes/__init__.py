@@ -3,7 +3,6 @@ import typing
 from collections.abc import Callable
 from types import MappingProxyType
 
-import luqum.tree
 import web
 from luqum.exceptions import ParseError
 
@@ -14,6 +13,8 @@ from openlibrary.solr.query_utils import (
 )
 
 if typing.TYPE_CHECKING:
+    import luqum.tree
+
     from openlibrary.fastapi.models import SolrInternalsParams
 
 
@@ -133,7 +134,7 @@ class SearchScheme:
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
-        solr_internals_params: "SolrInternalsParams | None" = None,
+        solr_internals_params: SolrInternalsParams | None = None,
     ) -> list[tuple[str, str]]:
         return [("q", q)]
 

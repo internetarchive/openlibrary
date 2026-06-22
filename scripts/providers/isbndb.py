@@ -152,7 +152,7 @@ def load_state(path: str, logfile: str) -> tuple[list[str], int]:
             active_fname, offset = next(fin).strip().split(",")
             unfinished_filenames = filenames[filenames.index(active_fname) :]
             return unfinished_filenames, int(offset)
-    except (ValueError, OSError):
+    except ValueError, OSError:
         return filenames, 0
 
 

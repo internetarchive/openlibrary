@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from functools import cached_property
 from math import ceil
 from statistics import median
-from typing import Optional, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
@@ -17,18 +17,20 @@ from openlibrary.core.models import (
     ThingReferenceDict,
     WorkSeriesEdge,
 )
-from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
-from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
-from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.updater.edition import EditionSolrBuilder
+from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
 from openlibrary.solr.utils import SolrUpdateRequest
 from openlibrary.utils import normalize_subject_name, uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
 from openlibrary.utils.open_syllabus_project import get_total_by_olid
+
+if TYPE_CHECKING:
+    from openlibrary.core.ratings import WorkRatingsSummary
+    from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
+    from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -71,6 +73,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "key": wkey.replace("/books/", "/works/"),
                 "type": {"key": "/type/work"},
                 "title": work.get("title"),
+                "title_sort": work.get("title_sort"),
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
@@ -148,7 +151,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         return update, []
 
 
-def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> Optional["bp.IALiteMetadata"]:
+def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IALiteMetadata | None:
     """
     Get the collections and boxids of the provided IA id
 
@@ -250,7 +253,7 @@ def datetimestr_to_int(datestr):
     if datestr:
         try:
             t = h.parse_datetime(datestr)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             t = datetime.datetime.now()
     else:
         t = datetime.datetime.now()
@@ -273,7 +276,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         authors: list[dict],
         series: list[WorkSeriesEdge[SeriesDict]],
         data_provider: DataProvider,
-        ia_metadata: dict[str, Optional["bp.IALiteMetadata"]],
+        ia_metadata: dict[str, bp.IALiteMetadata | None],
         trending_data: dict,
     ):
         self._work = work
@@ -330,6 +333,20 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def subtitle(self) -> str | None:
         return self._work.get("subtitle")
+
+    @property
+    def title_sort(self) -> str | None:
+        """
+        Generates a formatted title string based on the ``title`` and
+        ``subtitle`` attributes with any leading article removed and
+        moved to the end of the string.
+
+        :return: A formatted title string or None if ``title`` is not set.
+        :rtype: str | None
+        """
+        if self.title:
+            return sort_title(self.title, self.subtitle)
+        return None
 
     @property
     def alternative_title(self) -> set[str]:

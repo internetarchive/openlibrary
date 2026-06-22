@@ -14,8 +14,9 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Note this won't work with uv pip, because uv makes a network request
-      - BEFORE_START=pip install -e /booklending_utils
+      # Dockerfile.olbase PYTHONPATH + booklending_utils .
+      # Keep in sync with Dockerfile.olbase + other compose files
+      - PYTHONPATH=/openlibrary:/booklending_utils
     volumes:
       - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem

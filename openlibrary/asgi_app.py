@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -179,6 +180,8 @@ def create_app() -> FastAPI | None:
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
+    app.add_middleware(ABTestingMiddleware)
+
     @app.middleware("http")
     async def add_fastapi_header(request: Request, call_next):
         """Middleware to add a header indicating the response came from FastAPI."""
@@ -215,9 +218,11 @@ def create_app() -> FastAPI | None:
     from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.lists import router as lists_router
+    from openlibrary.fastapi.merge_authors import router as merge_authors_router
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
     from openlibrary.fastapi.publishers import router as publishers_router
@@ -232,9 +237,11 @@ def create_app() -> FastAPI | None:
     app.include_router(books_router)
     app.include_router(cdn_router)
     app.include_router(checkins_router)
+    app.include_router(importapi_router)
     app.include_router(internal_router)
     app.include_router(languages_router)
     app.include_router(lists_router)
+    app.include_router(merge_authors_router)
     app.include_router(partials_router)
     app.include_router(public_my_books_router)
     app.include_router(publishers_router)

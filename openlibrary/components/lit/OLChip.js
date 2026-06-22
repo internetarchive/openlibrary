@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 
 /**
  * OLChip - A pill-shaped interactive chip web component
@@ -6,13 +7,20 @@ import { LitElement, html, css, nothing } from 'lit';
  * Supports two sizes, a selected state with a close icon,
  * click events, and optional link behavior via href.
  *
- * @property {Boolean} selected - Whether the chip is in a selected state
- * @property {String} size - Chip size: "small" or "medium" (default)
- * @property {String} href - When set, the chip renders as a link
- * @property {String} count - Optional count displayed to the right of the label
- * @property {String} accessibleLabel - Override aria-label on the inner interactive element
+ * @prop {Boolean} selected - Whether the chip is in a selected state
+ * @prop {String} size - Chip size: "small" or "medium" (default)
+ * @prop {String} variant - Domain category that tints the chip:
+ *   "language" | "subject" | "genre" | "author" | "place" | "neutral".
+ *   Omit for the default (white / solid-blue-when-selected) chip. The chip
+ *   maps the variant to a soft-tint palette internally (see colors.css); a
+ *   variant chip keeps its tint when `selected` and just gains a close icon.
+ * @prop {String} href - When set, the chip renders as a link
+ * @prop {String} count - Optional count displayed to the right of the label
+ * @prop {String} accessibleLabel - Override aria-label on the inner interactive element
  *
  * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
+ *
+ * @slot - The chip's label content
  *
  * @example
  * <ol-chip>Fiction</ol-chip>
@@ -21,12 +29,17 @@ import { LitElement, html, css, nothing } from 'lit';
  * <ol-chip selected>History</ol-chip>
  *
  * @example
+ * <!-- Removable, category-colored filter pill -->
+ * <ol-chip variant="language" selected>English</ol-chip>
+ *
+ * @example
  * <ol-chip size="small" count="76" href="/subjects/fiction">Fiction</ol-chip>
  */
-export class OLChip extends LitElement {
+export class OLChip extends FocusableHostMixin(LitElement) {
     static properties = {
         selected: { type: Boolean, reflect: true },
         size: { type: String, reflect: true },
+        variant: { type: String, reflect: true },
         href: { type: String },
         count: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
@@ -34,16 +47,25 @@ export class OLChip extends LitElement {
 
     static styles = css`
         :host {
-            --chip-padding-block: 6px;
-            --chip-padding-inline: 12px;
+            --chip-padding-block: var(--spacing-xs);
+            --chip-padding-inline: var(--spacing-md);
             --chip-icon-size: 14px;
-            --chip-icon-gap: 4px;
+            --chip-icon-gap: var(--spacing-2xs);
+
+            /* Color slots. Default = idle, unselected neutral chip; overridden
+               below by [selected] and by each domain [variant]. */
+            --_chip-bg: var(--white);
+            --_chip-fg: var(--dark-grey);
+            --_chip-border: var(--color-border-subtle);
+            --_chip-bg-hover: var(--lightest-grey);
+            --_chip-count-fg: #777;
+
             display: inline-block;
         }
 
         :host([size="small"]) {
-            --chip-padding-block: 4px;
-            --chip-padding-inline: 8px;
+            --chip-padding-block: var(--spacing-2xs);
+            --chip-padding-inline: var(--spacing-sm);
             --chip-icon-size: 12px;
         }
 
@@ -52,13 +74,13 @@ export class OLChip extends LitElement {
             display: inline-flex;
             align-items: center;
             padding: var(--chip-padding-block) var(--chip-padding-inline);
-            border: var(--border-width) solid var(--color-border-subtle);
+            border: var(--border-width) solid var(--_chip-border);
             border-radius: var(--border-radius-chip);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-chip);
-            background: var(--white);
-            color: var(--dark-grey);
+            background: var(--_chip-bg);
+            color: var(--_chip-fg);
             cursor: pointer;
             user-select: none;
             text-decoration: none;
@@ -66,7 +88,7 @@ export class OLChip extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .chip:hover {
-                background: var(--lightest-grey);
+                background: var(--_chip-bg-hover);
             }
         }
 
@@ -79,19 +101,76 @@ export class OLChip extends LitElement {
             box-shadow: var(--box-shadow-focus);
         }
 
-        /* Selected state */
-        :host([selected]) .chip {
-            padding-inline-start: calc(var(--chip-padding-inline) + var(--chip-icon-size) + var(--chip-icon-gap));
-            background: var(--primary-blue);
-            border-color: var(--primary-blue);
-            color: var(--white);
+        /* Default selected (no domain variant): solid primary-blue fill. */
+        :host([selected]:not([variant])) {
+            --_chip-bg: var(--primary-blue);
+            --_chip-fg: var(--white);
+            --_chip-border: var(--primary-blue);
+            --_chip-bg-hover: var(--primary-blue);
+            --_chip-count-fg: #c6e1f0;
         }
 
         @media (hover: hover) and (pointer: fine) {
-            :host([selected]) .chip:hover {
-                background: var(--primary-blue);
+            :host([selected]:not([variant])) .chip:hover {
                 filter: brightness(1.1);
             }
+        }
+
+        /* Selected chips reserve room for the leading close icon (all variants). */
+        :host([selected]) .chip {
+            padding-inline-start: calc(var(--chip-padding-inline) + var(--chip-icon-size) + var(--chip-icon-gap));
+        }
+
+        /* ── Domain variants: soft category-colored tint ──────────────────
+           The tint is identical whether or not the chip is selected; the
+           [selected] rule above only reserves space for the close icon, so a
+           selected variant chip reads as a removable, category-colored pill. */
+        :host([variant="language"]) {
+            --_chip-bg: var(--color-chip-language-bg);
+            --_chip-fg: var(--color-chip-language-fg);
+            --_chip-border: var(--color-chip-language-border);
+            --_chip-bg-hover: var(--color-chip-language-bg-hover);
+            --_chip-count-fg: var(--color-chip-language-fg);
+        }
+
+        :host([variant="subject"]) {
+            --_chip-bg: var(--color-chip-subject-bg);
+            --_chip-fg: var(--color-chip-subject-fg);
+            --_chip-border: var(--color-chip-subject-border);
+            --_chip-bg-hover: var(--color-chip-subject-bg-hover);
+            --_chip-count-fg: var(--color-chip-subject-fg);
+        }
+
+        :host([variant="genre"]) {
+            --_chip-bg: var(--color-chip-genre-bg);
+            --_chip-fg: var(--color-chip-genre-fg);
+            --_chip-border: var(--color-chip-genre-border);
+            --_chip-bg-hover: var(--color-chip-genre-bg-hover);
+            --_chip-count-fg: var(--color-chip-genre-fg);
+        }
+
+        :host([variant="author"]) {
+            --_chip-bg: var(--color-chip-author-bg);
+            --_chip-fg: var(--color-chip-author-fg);
+            --_chip-border: var(--color-chip-author-border);
+            --_chip-bg-hover: var(--color-chip-author-bg-hover);
+            --_chip-count-fg: var(--color-chip-author-fg);
+        }
+
+        :host([variant="place"]) {
+            --_chip-bg: var(--color-chip-place-bg);
+            --_chip-fg: var(--color-chip-place-fg);
+            --_chip-border: var(--color-chip-place-border);
+            --_chip-bg-hover: var(--color-chip-place-bg-hover);
+            --_chip-count-fg: var(--color-chip-place-fg);
+        }
+
+        :host([variant="neutral"]) {
+            --_chip-bg: var(--color-chip-neutral-bg);
+            --_chip-fg: var(--color-chip-neutral-fg);
+            --_chip-border: var(--color-chip-neutral-border);
+            --_chip-bg-hover: var(--color-chip-neutral-bg-hover);
+            --_chip-count-fg: var(--accessible-grey);
         }
 
         /* Small size */
@@ -116,14 +195,10 @@ export class OLChip extends LitElement {
 
         /* Count */
         .count {
-            margin-inline-start: 4px;
-            color: #777;
+            margin-inline-start: var(--spacing-2xs);
+            color: var(--_chip-count-fg);
             font-size: 0.85em;
             font-variant-numeric: tabular-nums;
-        }
-
-        :host([selected]) .count {
-            color: #c6e1f0;
         }
     `;
 
@@ -131,6 +206,7 @@ export class OLChip extends LitElement {
         super();
         this.selected = false;
         this.size = 'medium';
+        this.variant = null;
         this.href = null;
         this.count = null;
         this.accessibleLabel = null;
@@ -209,4 +285,6 @@ export class OLChip extends LitElement {
     }
 }
 
-customElements.define('ol-chip', OLChip);
+if (!customElements.get('ol-chip')) {
+    customElements.define('ol-chip', OLChip);
+}

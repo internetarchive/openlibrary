@@ -220,11 +220,11 @@ def get_dev_merged_status():
 @dataclass
 class DevMergedStatus:
     git_status: str
-    pr_statuses: "list[PRStatus]"
+    pr_statuses: list[PRStatus]
     footer: str
 
     @staticmethod
-    def from_output(output: str) -> "DevMergedStatus":
+    def from_output(output: str) -> DevMergedStatus:
         dev_merged_pieces = output.split("\n---\n")
         return DevMergedStatus(
             git_status=dev_merged_pieces[0],
@@ -233,7 +233,7 @@ class DevMergedStatus:
         )
 
     @staticmethod
-    def from_file() -> "DevMergedStatus | None":
+    def from_file() -> DevMergedStatus | None:
         """If we're on testing and the file exists, return staged PRs"""
         fp = Path("./_dev-merged_status.txt")
         if fp.exists() and (contents := fp.read_text()):
@@ -276,7 +276,7 @@ class PRStatus:
             return None
 
     @staticmethod
-    def from_output(output: str) -> "PRStatus":
+    def from_output(output: str) -> PRStatus:
         lines = output.strip().split("\n")
         return PRStatus(pull_line=lines[0], status=lines[-1], body="\n".join(lines[1:]))
 
@@ -332,7 +332,7 @@ class TestingPR:
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "TestingPR":
+    def from_dict(cls, d: dict) -> TestingPR:
         return cls(
             pr=d["pr"],
             commit=d["commit"],
@@ -361,14 +361,14 @@ class TestingState:
         }
 
     @classmethod
-    def from_dict(cls, d: dict) -> "TestingState":
+    def from_dict(cls, d: dict) -> TestingState:
         return cls(
             last_deploy_at=d.get("last_deploy_at", ""),
             prs=[TestingPR.from_dict(p) for p in d.get("prs", [])],
         )
 
 
-def _load_testing_state() -> "TestingState | None":
+def _load_testing_state() -> TestingState | None:
     """Returns TestingState if state file exists, None otherwise."""
     if TESTING_STATE_FILE.exists():
         data = json.loads(TESTING_STATE_FILE.read_text())
@@ -405,7 +405,7 @@ def _github_get(path: str) -> dict:
         return json.loads(resp.read())
 
 
-def _get_drift_info(state: TestingState) -> "tuple[dict, bool]":
+def _get_drift_info(state: TestingState) -> tuple[dict, bool]:
     """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
 
     Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
@@ -451,7 +451,7 @@ def _get_pr_info(pr_number: int) -> dict:
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
         }
-    except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
+    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
         return {
             "title": f"PR #{pr_number}",
             "head_sha": "",
@@ -479,7 +479,7 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             try:
                 cmp = _github_get(f"compare/{stored}...{head_sha}")
                 drift = cmp.get("ahead_by", -1)
-            except (urllib.error.URLError, ValueError, json.JSONDecodeError):
+            except urllib.error.URLError, ValueError, json.JSONDecodeError:
                 drift = -1
         user = gh.get("user") or {}
         assignee = gh.get("assignee") or {}
@@ -493,7 +493,7 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
         }
-    except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
+    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
         return {
             "head_sha": "",
             "drift": -1,
@@ -527,7 +527,7 @@ def _trigger_rebuild() -> bool:
     try:
         urllib.request.urlopen(url, timeout=10)
         return True
-    except (urllib.error.URLError, ValueError):
+    except urllib.error.URLError, ValueError:
         return False
 
 

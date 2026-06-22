@@ -9,10 +9,10 @@ import json
 import logging
 from collections import defaultdict
 from typing import Any, Literal
+from warnings import deprecated
 
 import qrcode
 import web
-from typing_extensions import deprecated
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -30,7 +30,6 @@ from openlibrary.core import helpers as h
 from openlibrary.core.admin import get_cached_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
-from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.core.models import (
@@ -133,15 +132,60 @@ class booknotes(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 
+@deprecated("migrated to fastapi")
 class work_bookshelves(delegate.page):
     path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
     @jsonapi
     def GET(self, work_id):
+        return json.dumps(self.get_bookshelves_summary(work_id))
+
+    @staticmethod
+    def get_bookshelves_summary(work_id):
         from openlibrary.core.models import Bookshelves
 
-        return json.dumps({"counts": Bookshelves.get_work_summary(work_id)})
+        return {"counts": Bookshelves.get_work_summary(str(work_id))}
+
+    @staticmethod
+    def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
+        from openlibrary.core.models import Bookshelves
+
+        if bookshelf_id is None:
+            return {"error": "Invalid bookshelf"}
+
+        work_id_str = str(work_id)
+        current_status = Bookshelves.get_users_read_status_of_work(username, work_id_str)
+
+        try:
+            bookshelf_id_val = int(bookshelf_id)
+            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
+            if bookshelf_id_val != -1 and bookshelf_id_val not in shelf_ids:
+                return {"error": "Invalid bookshelf"}
+        except TypeError, ValueError:
+            return {"error": "Invalid bookshelf"}
+
+        if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
+            from openlibrary.core.bookshelves_events import BookshelvesEvents
+
+            work_bookshelf = Bookshelves.remove(
+                username=username,
+                work_id=work_id_str,
+                bookshelf_id=str(current_status) if current_status else None,
+            )
+            BookshelvesEvents.delete_by_username_and_work(username, work_id_str)
+        else:
+            from openlibrary.utils import extract_numeric_id_from_olid
+
+            resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
+            work_bookshelf = Bookshelves.add(
+                username=username,
+                bookshelf_id=str(bookshelf_id_val),
+                work_id=work_id_str,
+                edition_id=resolved_edition_id,
+            )
+
+        return {"bookshelves_affected": work_bookshelf}
 
     def POST(self, work_id):
         """
@@ -158,8 +202,6 @@ class work_bookshelves(delegate.page):
         :rtype: json
         :return: a list of bookshelves_affected
         """
-        from openlibrary.core.models import Bookshelves
-
         user = accounts.get_current_user()
         i = web.input(
             edition_id=None,
@@ -174,36 +216,18 @@ class work_bookshelves(delegate.page):
             raise web.seeother("/account/login?redirect=%s" % key)
 
         username = user.key.split("/")[2]
-        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
-
-        try:
-            bookshelf_id = int(i.bookshelf_id)
-            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
-            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
-                raise ValueError
-        except (TypeError, ValueError):
-            return delegate.RawText(
-                json.dumps({"error": "Invalid bookshelf"}),
-                content_type="application/json",
-            )
-
-        if ((not i.dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
-            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
-            BookshelvesEvents.delete_by_username_and_work(username, work_id)
-
-        else:
-            edition_id = int(i.edition_id.split("/")[2][2:-1]) if i.edition_id else None
-            work_bookshelf = Bookshelves.add(
-                username=username,
-                bookshelf_id=bookshelf_id,
-                work_id=work_id,
-                edition_id=edition_id,
-            )
+        response = self.process_work_bookshelves(
+            username=username,
+            work_id=work_id,
+            bookshelf_id=i.bookshelf_id,
+            edition_id=i.edition_id,
+            dont_remove=i.dont_remove,
+        )
 
         if i.redir:
             raise web.seeother(key)
         return delegate.RawText(
-            json.dumps({"bookshelves_affected": work_bookshelf}),
+            json.dumps(response),
             content_type="application/json",
         )
 
@@ -336,6 +360,7 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
     return metadata
 
 
+@deprecated("migrated to fastapi")
 class patrons_follows_json(delegate.page):
     path = r"(/people/[^/]+)/follows"
     encoding = "json"
@@ -522,6 +547,7 @@ class create_qrcode(delegate.page):
             return delegate.RawText(buf.getvalue())
 
 
+@deprecated("migrated to fastapi")
 class bestbook_award(delegate.page):
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
@@ -585,6 +611,7 @@ class bestbook_award(delegate.page):
         return {"errors": ", ".join(errors)}
 
 
+@deprecated("migrated to fastapi")
 class bestbook_count(delegate.page):
     """API for award count"""
 
@@ -821,7 +848,7 @@ class unlink_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=1)
@@ -887,7 +914,7 @@ class link_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=2)

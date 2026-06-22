@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import csv
 import io
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from datetime import datetime
-from enum import Enum
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
+from warnings import deprecated
 
 import requests
 import web
@@ -44,18 +45,20 @@ from openlibrary.core.lending import (
     get_items_and_add_availability,
     s3_loan_api,
 )
-from openlibrary.core.models import SubjectType
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
-from openlibrary.plugins.openlibrary.pd import get_pd_options, get_pd_org
+from openlibrary.plugins.openlibrary.pd import get_pd_options
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
+    from openlibrary.core.models import SubjectType
     from openlibrary.plugins.upstream.models import User, Work
 
 logger = logging.getLogger("openlibrary.account")
@@ -63,9 +66,6 @@ logger = logging.getLogger("openlibrary.account")
 CONFIG_IA_DOMAIN: Final = config.get("ia_base_url", "https://archive.org")
 USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
-
-# XXX: These need to be cleaned up
-create_link_doc = accounts.create_link_doc
 
 
 def get_login_error(error_key):
@@ -94,15 +94,6 @@ def get_login_error(error_key):
     return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
 
 
-def is_safe_redirect(url: str) -> bool:
-    parsed = urlparse(url)
-    if parsed.netloc or parsed.scheme:
-        return False
-    if not re.match(r"^/[^/\\]", parsed.path):  # noqa: SIM103
-        return False
-    return True
-
-
 class availability(delegate.page):
     path = "/internal/fake/availability"
 
@@ -128,7 +119,12 @@ class xauth(delegate.page):
         service. This service is spoofable to return successful and
         unsuccessful login attempts depending on the provided GET parameters
         """
-        i = web.input(email="", op=None)
+        i = web.input(email="", op=None, password="")
+        # xauth() sends JSON body; web.input() only reads query params + form bodies
+        try:
+            body = json.loads(web.data() or "{}")
+        except json.JSONDecodeError, ValueError:
+            body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
             result = {
@@ -151,7 +147,53 @@ class xauth(delegate.page):
                 },
                 "version": 1,
             }
+        elif i.op == "issue_otp":
+            # Pretend to send an OTP email; accept any email in dev
+            result = {"success": True, "version": 1}
+        elif i.op == "redeem_otp":
+            # Accept "123456" as the dev OTP code
+            if body.get("password") == "123456":
+                result = {
+                    "success": True,
+                    "version": 1,
+                    "values": {
+                        "email": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    },
+                }
+            else:
+                result = {
+                    "success": False,
+                    "version": 1,
+                    "error": "invalid_otp",
+                }
         return delegate.RawText(json.dumps(result), content_type="application/json")
+
+
+class s3auth(delegate.page):
+    path = "/internal/fake/s3auth"
+
+    def GET(self):
+        """Fake S3 auth endpoint for local dev. Accepts the dummy keys
+        issued by the fake xauth so the OTP redeem flow can complete."""
+        auth = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+        # Fake keys are "foo:foo" — accept them
+        if "LOW foo:foo" in auth:
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        "authorized": True,
+                        "username": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    }
+                ),
+                content_type="application/json",
+            )
+        return delegate.RawText(json.dumps({"authorized": False}), content_type="application/json")
 
 
 class internal_audit(delegate.page):
@@ -335,59 +377,6 @@ class account_create(delegate.page):
 del delegate.pages["/account/register"]
 
 
-def _set_account_cookies(ol_account: OpenLibraryAccount, expires: int | str) -> None:
-    if ol_account.get_user().get_safe_mode() == "yes":
-        web.setcookie("sfw", "yes", expires=expires)
-    if "yrg_banner_pref" in ol_account.get_user().preferences():
-        web.setcookie(
-            ol_account.get_user().preferences()["yrg_banner_pref"],
-            "1",
-            expires=(3600 * 24 * 365),
-        )
-
-
-class PDRequestStatus(Enum):
-    REQUESTED = 0
-    EMAILED = 1
-    FULFILLED = 2
-
-
-def _update_account_on_pd_request(ol_account: OpenLibraryAccount) -> None:
-    pda = web.cookies().get("pda")
-    ol_account.get_user().save_preferences(
-        {
-            "rpd": PDRequestStatus.REQUESTED.value,
-            "pda": pda,
-        }
-    )
-
-
-def _notify_on_rpd_verification(ol_account, org):
-    if org:
-        org = "vtmas_disabilityresources" if org == "unqualified" else org
-        displayname = web.safestr(ol_account.displayname)
-        msg = render_template("email/account/pd_request", displayname=displayname, org=org)
-        web.sendmail(
-            config.from_address,
-            ol_account.email,
-            subject=msg.subject.strip(),
-            message=msg,
-        )
-        ol_account.get_user().save_preferences(
-            {
-                "rpd": PDRequestStatus.EMAILED.value,
-            }
-        )
-
-
-def _update_account_on_pd_fulfillment(ol_account: OpenLibraryAccount) -> None:
-    ol_account.get_user().save_preferences({"rpd": PDRequestStatus.FULFILLED.value})
-
-
-def _expire_pd_cookies():
-    web.setcookie("pda", "", expires=1)
-
-
 class account_login_json(delegate.page):
     encoding = "json"
     path = "/account/login"
@@ -474,6 +463,80 @@ class otp_service_redeem(delegate.page):
         return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
 
 
+def _set_login_cookies(
+    audit: dict,
+    ol_account: OpenLibraryAccount | None,
+    remember: bool = False,
+) -> None:
+    """Set all session cookies after a successful login (password or OTP)."""
+    expires = 3600 * 24 * 365 if remember else ""
+
+    def _setcookie(name, value):
+        web.setcookie(name, value, expires=expires if value else 1)
+
+    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+    _setcookie("pd", "1" if audit.get("special_access") else "")
+    if ol_account and (ol_user := ol_account.get_user()):
+        _setcookie("sfw", "yes" if ol_user.get_safe_mode() == "yes" else "")
+        if pref_key := ol_user.preferences().get("yrg_banner_pref"):
+            web.setcookie(pref_key, "1", expires=3600 * 24 * 365)
+
+
+class account_login_otp_issue(delegate.page):
+    path = "/account/login/otp/issue"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="")
+        if not i.email:
+            return delegate.RawText(json.dumps({"error": "missing_email"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.issue_otp(i.email, originating_ip=originating_ip)
+        if result.get("success"):
+            return delegate.RawText(json.dumps({"success": True}))
+        code = result.get("code", 200)
+        if code == 429:
+            web.ctx.status = "429 Too Many Requests"
+            return delegate.RawText(json.dumps({"error": "rate_limited"}))
+        return delegate.RawText(json.dumps({"error": result.get("error", "otp_issue_failed")}))
+
+
+class account_login_otp_redeem(delegate.page):
+    path = "/account/login/otp/redeem"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="", otp="", redirect="")
+        if not i.email or not i.otp:
+            return delegate.RawText(json.dumps({"error": "missing_fields"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
+        if not result.get("success"):
+            return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
+        s3 = result.get("values", {}).get("s3", {})
+        access = s3.get("access")
+        secret = s3.get("secret")
+        if not access or not secret:
+            return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
+        audit = audit_accounts(
+            None,
+            None,
+            require_link=True,
+            s3_access_key=access,
+            s3_secret_key=secret,
+        )
+        if error := audit.get("error"):
+            return delegate.RawText(json.dumps({"error": error}))
+        email = audit.get("ia_email") or audit.get("ol_email")
+        _set_login_cookies(audit, OpenLibraryAccount.get_by_email(email))
+        redirect = i.redirect
+        # Reject non-path redirects (open redirect prevention) and login loops
+        _blacklist = ["/account/login", "/account/create"]
+        if not redirect or not redirect.startswith("/") or redirect.startswith("//") or any(path in redirect for path in _blacklist):
+            redirect = "/account/books"
+        return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
+
+
 class account_login(delegate.page):
     """Account login.
 
@@ -492,9 +555,9 @@ class account_login(delegate.page):
         f.note = get_login_error(error_key)
         return render.login(f)
 
-    def perform_post_login_action(self, i, ol_account):
-        if i.action:
-            op, args = i.action.split(":")
+    def perform_post_login_action(self, action, ol_account):
+        if action:
+            op, args = (action.split(":", 1) + [""])[:2]
             if op == "follow" and args:
                 publisher = args
                 if publisher_account := OpenLibraryAccount.get_by_username(publisher):
@@ -532,60 +595,88 @@ class account_login(delegate.page):
             secret=None,
             action="",
         )
-        email = "" if (i.access and i.secret) else i.username
+        return self.login(
+            username=i.username,
+            connect=i.connect,
+            password=i.password,
+            remember=i.remember,
+            redirect=i.redirect,
+            test=i.test,
+            access=i.access,
+            secret=i.secret,
+            action=i.action,
+        )
+
+    def set_cookies(self, remember=False, **kwargs):
+        expires = 3600 * 24 * 365 if remember else ""
+        for k, v in kwargs.items():
+            web.setcookie(k, v, expires=expires if v else 1)
+
+    def login(
+        self,
+        username="",
+        connect=None,
+        password="",
+        remember=False,
+        redirect="/",
+        test=False,
+        access=None,
+        secret=None,
+        action="",
+    ):
+        email = "" if (access and secret) else username
         audit = audit_accounts(
             email,
-            i.password,
+            password,
             require_link=True,
-            s3_access_key=i.access or web.ctx.env.get("HTTP_X_S3_ACCESS"),
-            s3_secret_key=i.secret or web.ctx.env.get("HTTP_X_S3_SECRET"),
-            test=i.test,
+            s3_access_key=access or web.ctx.env.get("HTTP_X_S3_ACCESS"),
+            s3_secret_key=secret or web.ctx.env.get("HTTP_X_S3_SECRET"),
+            test=test,
         )
         if error := audit.get("error"):
-            return self.render_error(error, i)
+            return self.render_error(
+                error,
+                web.storage(
+                    username=username,
+                    password=password,
+                    remember=remember,
+                    redirect=redirect,
+                    access=access,
+                    secret=secret,
+                    action=action,
+                ),
+            )
         email = email or audit.get("ia_email") or audit.get("ol_email")
 
-        expires = 3600 * 24 * 365 if i.remember else ""
-        web.setcookie("pd", int(audit.get("special_access")) or "", expires=expires)
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
+        ol_account = OpenLibraryAccount.get_by_email(email)
+        _set_login_cookies(audit, ol_account, remember=remember)
 
-        if ol_account := OpenLibraryAccount.get_by_email(email):
-            _set_account_cookies(ol_account, expires)
-
-            if web.cookies().get("pda"):
-                _update_account_on_pd_request(ol_account)
-                _notify_on_rpd_verification(ol_account, get_pd_org(web.cookies().get("pda")))
-                _expire_pd_cookies()
-                add_flash_message(
-                    "info",
-                    _(
-                        "Thank you for registering an Open Library account and "
-                        "requesting special print disability access. You should receive "
-                        "an email detailing next steps in the process."
-                    ),
-                )
-
-            has_special_access = audit.get("special_access")
-            if (
-                has_special_access
-                and ol_account.get_user().preferences().get("pda", "")
-                and ol_account.get_user().preferences().get("rpd") != PDRequestStatus.FULFILLED.value
-            ):
-                _update_account_on_pd_fulfillment(ol_account)
+        if ol_account and web.cookies().get("pda"):
+            add_flash_message(
+                "info",
+                _(
+                    "Thank you for registering an Open Library account and "
+                    "requesting special print disability access. You should receive "
+                    "an email detailing next steps in the process."
+                ),
+            )
+            web.setcookie("pda", "", expires=1)
 
         blacklist = [
             "/account/login",
             "/account/create",
+            "/account/verify",
         ]
 
-        # Processing post login action
-        if flash_message := self.perform_post_login_action(i, ol_account):
+        if flash_message := self.perform_post_login_action(action, ol_account):
             add_flash_message("note", _(flash_message))
 
-        if not is_safe_redirect(i.redirect) or any(path in i.redirect for path in blacklist):
-            i.redirect = "/account/books"
+        if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
+            redirect = "/account/books"
+        else:
+            web.setcookie("pending_action", "", expires=-1)
         stats.increment("ol.account.xauth.login")
-        raise web.seeother(i.redirect)
+        raise web.seeother(redirect)
 
 
 class account_logout(delegate.page):
@@ -613,7 +704,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return
 
     @staticmethod
@@ -646,33 +737,25 @@ class account_validation(delegate.page):
         return delegate.RawText(json.dumps(errors), content_type="application/json")
 
 
-class account_email_verify(delegate.page):
-    path = "/account/email/verify/([0-9a-f]*)"
+class account_verify(delegate.page):
+    path = "/account/verify"
 
-    def GET(self, code):
-        if link := accounts.get_link(code):
-            username = link["username"]
-            email = link["email"]
-            link.delete()
-            return self.update_email(username, email)
-        else:
-            return self.bad_link()
-
-    def update_email(self, username, email):
-        if accounts.find(email=email):
-            title = _("Email address is already used.")
-            message = _("Your email address couldn't be updated. The specified email address is already used.")
-        else:
-            logger.info("updated email of %s to %s", username, email)
-            accounts.update_account(username=username, email=email, status="active")
-            title = _("Email verification successful.")
-            message = _("Your email address has been successfully verified and updated in your account.")
-        return render.message(title, message)
-
-    def bad_link(self):
-        title = _("Email address couldn't be verified.")
-        message = _("Your email address couldn't be verified. The verification link seems invalid.")
-        return render.message(title, message)
+    def GET(self):
+        i = web.input(t=None)
+        if not i.t:
+            raise web.seeother("/account/create")
+        r = InternetArchiveAccount.verify(token=i.t)
+        if "error" in r:
+            add_flash_message(
+                "error",
+                _("Verification failed. The link may be invalid or expired. Please try registering again."),
+            )
+            raise web.seeother("/account/create")
+        add_flash_message("success", _("Your email has been verified. You are now logged in."))
+        return account_login().login(
+            access=r["s3"]["access"],
+            secret=r["s3"]["secret"],
+        )
 
 
 class account_ia_email_forgot(delegate.page):
@@ -837,7 +920,7 @@ class PatronExport(ABC):
         return csv_output
 
     @staticmethod
-    def get_work_from_id(work_id: str) -> "Work":
+    def get_work_from_id(work_id: str) -> Work:
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
@@ -854,7 +937,7 @@ class PatronExport(ABC):
         return work
 
     @property
-    def user(self) -> "User":
+    def user(self) -> User:
         if not (result := accounts.get_current_user()):
             raise PatronExportException("Must be logged in to export data.")
         return result
@@ -905,12 +988,12 @@ class ReadingLogExport(PatronExport):
 
     def get_data(self) -> list:
         def get_subjects(
-            work: "Work",
+            work: Work,
             subject_type: SubjectType = "subject",
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
-        bookshelf_map = {1: "Want to Read", 2: "Currently Reading", 3: "Already Read"}
+        bookshelf_map = {1: "Want to Read", 2: "Currently Reading", 3: "Already Read", 4: "Stopped Reading"}
         username = self.user.key.split("/")[-1]
         books = Bookshelves.iterate_users_logged_books(username)
         result = []
@@ -1150,6 +1233,21 @@ class my_follows(delegate.page):
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 
+def get_account_loans_json(user: User) -> dict[str, Any]:
+    user.update_loan_status()
+    loans = borrow.get_loans(user)
+    return {"loans": loans}
+
+
+def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
+    username = user["key"].split("/")[-1]
+    mb = MyBooksTemplate(username, key="loan_history")
+    loan_history_data = dict(get_loan_history_data(page=page, mb=mb))
+    # Ensure all `docs` are `dicts`, as some are `Edition`s.
+    loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
+    return {"loans_history": loan_history_data}
+
+
 class account_loans(delegate.page):
     path = "/account/loans"
 
@@ -1166,6 +1264,7 @@ class account_loans(delegate.page):
         return mb.render(header_title=_("Loans"), template=template)
 
 
+@deprecated("migrated to fastapi")
 class account_loans_json(delegate.page):
     encoding = "json"
     path = "/account/loans"
@@ -1173,10 +1272,8 @@ class account_loans_json(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        user.update_loan_status()
-        loans = borrow.get_loans(user)
         web.header("Content-Type", "application/json")
-        return delegate.RawText(json.dumps({"loans": loans}))
+        return delegate.RawText(json.dumps(get_account_loans_json(user)))
 
 
 class account_loan_history(delegate.page):
@@ -1199,6 +1296,7 @@ class account_loan_history(delegate.page):
         return mb.render(header_title=_("Loan History"), template=template)
 
 
+@deprecated("migrated to fastapi")
 class account_loan_history_json(delegate.page):
     encoding = "json"
     path = "/account/loan-history"
@@ -1208,14 +1306,8 @@ class account_loan_history_json(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
-        username = user["key"].split("/")[-1]
-        mb = MyBooksTemplate(username, key="loan_history")
-        loan_history_data = get_loan_history_data(page=page, mb=mb)
-        # Ensure all `docs` are `dicts`, as some are `Edition`s.
-        loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
         web.header("Content-Type", "application/json")
-
-        return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
+        return delegate.RawText(json.dumps(get_account_loan_history_json(user, page)))
 
 
 class account_waitlist(delegate.page):
@@ -1360,7 +1452,7 @@ def process_goodreads_csv(i):
     return books, books_wo_isbns
 
 
-def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
+def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     Retrieve IA loan history data for page `page` of the patron's history.
 
@@ -1375,7 +1467,7 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     """
     if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = web.ctx.site.store.get(account._key).get("s3_keys")
+    s3_keys = site.get().store.get(account._key).get("s3_keys")
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
     loan_history = s3_loan_api(

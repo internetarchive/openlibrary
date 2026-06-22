@@ -182,7 +182,7 @@ $jsdef render_work_autocomplete_item(item):
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
+            <div class="formElement" id="roles" data-config="$json_encode({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
@@ -397,7 +397,7 @@ $jsdef render_work_autocomplete_item(item):
                 </span>
             </div>
             $ config = {'addnew': is_librarian, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
+            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$json_encode(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
@@ -429,7 +429,7 @@ $ config = ({
     $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
     $ 'Invalid ID format': _('Invalid ID format')
 $ })
-<fieldset class="major" id="identifiers" data-config="$dumps(config)">
+<fieldset class="major" id="identifiers" data-config="$json_encode(config)">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -451,7 +451,7 @@ $ })
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications" data-config="$dumps({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
+<fieldset class="major" id="classifications" data-config="$json_encode({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
