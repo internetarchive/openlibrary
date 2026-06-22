@@ -137,6 +137,15 @@ class TestHomeTemplates:
         assert "About the Project" in html
 
 
+class Test_get_ia_carousel_books:
+    def test_skips_missing_books(self, monkeypatch):
+        book = web.storage(key="/books/OL1M")
+        monkeypatch.setattr(home.lending, "get_available", lambda **kwargs: [book, None, "error"])
+        monkeypatch.setattr(home, "format_book_data", lambda book, fetch_availability: {"key": book.key})
+
+        assert home.get_ia_carousel_books() == [{"key": "/books/OL1M"}]
+
+
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):
         mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
