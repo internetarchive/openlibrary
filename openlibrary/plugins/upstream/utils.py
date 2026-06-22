@@ -488,7 +488,7 @@ def get_changes(query: dict[str, str | int], revision: int | None = None) -> lis
 
 
 @public
-def get_history(page: "Work | Author | Edition") -> Storage:
+def get_history(page: Work | Author | Edition) -> Storage:
     h = Storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
         h.recent = get_changes({"key": page.key, "limit": 5}, revision=page.revision)
@@ -513,7 +513,7 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: "Work") -> Thing | None:
+def get_recent_author(doc: Work) -> Thing | None:
     versions = get_changes_v1({"key": doc.key, "limit": 1, "offset": 0}, revision=doc.revision)
     if versions:
         return versions[0].author

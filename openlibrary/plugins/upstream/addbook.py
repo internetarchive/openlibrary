@@ -109,7 +109,7 @@ def new_doc(type_: Literal["/type/list"], **data) -> List: ...
 def new_doc(type_: Literal["/type/series"], **data) -> Series: ...
 
 
-def new_doc(type_: str, **data) -> "Author | Edition | Work | List | Series":
+def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
     """
     Create an new OL doc item.
     :param str type_: object type e.g. /type/edition
