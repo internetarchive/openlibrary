@@ -2,8 +2,9 @@
 set -euo pipefail
 
 # Solr startup wrapper for local dev
-# Compares OL schema file to Solr's core schema file, deletes core if different
-# Then runs solr-precreate which creates new core or uses existing
+# Compares OL schema file to Solr's core schema file; exits with a clear error
+# message if they differ (Solr 10 does not support automatic core migration).
+# Then runs solr-precreate which creates new core or uses existing.
 # Only runs in dev mode (LOCAL_DEV=true)
 
 PREFIX="[ol-local-solr-start]"
@@ -28,28 +29,13 @@ fi
 if [ -f "$OL_SCHEMA_FILE" ] && [ -f "$SOLR_SCHEMA_FILE" ]; then
     # If the schema files differ
     if ! diff -q "$OL_SCHEMA_FILE" "$SOLR_SCHEMA_FILE" >/dev/null 2>&1; then
-        echo "${PREFIX} Schema files has been updated. Attempting to resolve by deleting and recreating Solr core..."
-
-        # Start Solr in background (on tmp port 8989)
-        TMP_SOLR_PORT=8989
-        solr start -p $TMP_SOLR_PORT
-        # Wait for solr core to be ready for searching
-        until curl -s -o /dev/null -w "%{http_code}" "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -q "200"; do
-            sleep 1;
-        done
-
-        TOTAL_SOLR_DOCS=$(curl -s "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -oE '"numFound":[0-9]+' | grep -oE '[0-9]+')
-        echo "${PREFIX} Current Solr core has $TOTAL_SOLR_DOCS documents"
-
-        # If there are more than 10000 documents, error and exit instead of deleting core
-        if [ "$TOTAL_SOLR_DOCS" -gt 10000 ]; then
-            echo "${PREFIX} ERROR: Solr core has more than 10000 documents. Refusing to delete core to prevent data loss."
-            solr stop -p $TMP_SOLR_PORT
-            exit 1
-        fi
-
-        solr delete -c "$CORE_NAME" --solr-url "http://localhost:$TMP_SOLR_PORT"
-        solr stop -p $TMP_SOLR_PORT
+        echo "${PREFIX} ERROR: managed-schema.xml has changed since the Solr core was created."
+        echo "${PREFIX} Solr 10 does not support automatic core migration."
+        echo "${PREFIX} To apply the new schema, delete the Solr data volume and restart:"
+        echo "${PREFIX}   docker compose down -v && docker compose up -d"
+        echo "${PREFIX} WARNING: this deletes your local Solr index. Safe in local dev;"
+        echo "${PREFIX} the index will be rebuilt on next startup via 'make reindex-solr'."
+        exit 1
     fi
 fi
 
