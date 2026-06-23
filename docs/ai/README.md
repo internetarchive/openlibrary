@@ -178,6 +178,7 @@ Deep-dive references for major system domains. Each covers production architectu
 
 - [Solr](solr/index.md) — search index, solr-updater, schema, search endpoints, facets
 - [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
+- [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
 
 ## Key File Locations
 
