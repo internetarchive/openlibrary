@@ -73,11 +73,14 @@ get_from_archive_bulk() → MarcBinary → read_edition() → add_book.load()
 | Validation gate, required fields, `not-differentiable` | [validation.md](validation.md) |
 | Adding a new source adapter, identifier registration | [adding-sources.md](adding-sources.md) |
 | Debugging, known limitations | [debugging.md](debugging.md) |
+| MARC8 → Unicode pipeline, NFC normalization, pymarc internals | [marc-encoding.md](marc-encoding.md) |
+| `add_book.load()` internals: matching, scoring, author resolution | [add-book-internals.md](add-book-internals.md) |
 
 ## Open Issues and Active PRs
 
 | PR / Issue | Status | What |
 |------------|--------|------|
+| [#13017](https://github.com/internetarchive/openlibrary/pull/13017) | Open, CI green | NFC normalization in `marc_binary.py` `BinaryDataField.translate()` |
 | [#12947](https://github.com/internetarchive/openlibrary/pull/12947) | Ready to merge | `itan_technologies` identifier |
 | [#447 (bots)](https://github.com/internetarchive/openlibrary-bots/pull/447) | CI infra failures (not our code) | ITAN source adapter |
 | [#12657](https://github.com/internetarchive/openlibrary/pull/12657) | Open | `batchName` param for `/import/batch/new` |
