@@ -13,11 +13,11 @@ from unicodedata import normalize
 
 import httpx
 import web
+
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
-
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability, add_availability_async
