@@ -27,8 +27,17 @@ follow when building a focusable component, and the phased plan to harden it.
 |---|---|---|---|
 | Wraps **one** native focusable in its **own shadow** (`ol-toggle`, `ol-chip`) | `FocusableHostMixin` | No | Yes |
 | Wrapper whose focusable is a **slotted / light-DOM** child (`ol-select-popover`) | Plain `LitElement`; the trigger *is* the focusable | No | No |
-| **Composite** with many focusables (`ol-segmented-control`, `ol-pagination`) | Roving tabindex (one `tabindex=0`, rest `-1`, arrows move) | per-item | No |
+| **Composite** that owns its selection (`ol-segmented-control`) | Roving tabindex (one `tabindex=0`, rest `-1`, arrows move) | per-item | No |
+| **Navigation** list of links (`ol-pagination`) | Every item is its own tab stop; arrows are a *convenience* that moves focus (not roving) | n/a (natural) | No |
 | Renders its control into **light DOM** (`ol-button`) | Nothing special — naturally discoverable | n/a | n/a |
+
+Both arrow-navigation cases share one tested helper, `getNextIndex()` in
+`utils/keyboard-nav.js` (Arrow/Home/End → destination index, with `orientation`
++ `wrap` + disabled-skipping). Roving vs. multi-stop is the *host's* choice
+(whether it renders `tabindex="-1"` on inactive items); the helper only computes
+where to move. Pagination is deliberately **not** roving — it's a `role=
+"navigation"` list of links, and single-tab-stop would stop users Tabbing
+directly to a page.
 
 The mixin sets `delegatesFocus` only — **never** a host `tabindex` (that would
 double-stop). The inner native focusable is tabbable on its own, and the traps
@@ -77,8 +86,10 @@ The traps in `OlDialog` (`_handleKeyDown` keydown trap) and `OlPopover`
 - [x] **P3** Slim `FocusableHostMixin` to `delegatesFocus`-only (drop host
       `tabindex`; the deep walker now finds the inner focusable directly). Also
       fixes the native-tab double-stop for mixin components used outside dialogs.
-- [ ] **P4** Reusable roving-tabindex controller; migrate `OlSegmentedControl` +
-      `OlPagination`.
+- [x] **P4** Shared arrow-key nav helper `getNextIndex()` (`keyboard-nav.js`);
+      `OlSegmentedControl` (roving) + `OlPagination` (multi-stop nav) migrated
+      onto it. Re-scoped from "make both roving" — pagination stays multi-stop
+      navigation by design.
 - [ ] **P5** Enhancements (feature-detected): `inert` background guard,
       `:focus-visible` audit.
 - [ ] **P6** Docs polish + regression guard (fail if a mixin component carries a

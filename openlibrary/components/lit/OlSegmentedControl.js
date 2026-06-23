@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { getNextIndex } from './utils/keyboard-nav.js';
 
 /**
  * OlSegmentedControl - A single-select control styled like ol-button.
@@ -415,25 +416,16 @@ export class OlSegmentedControl extends LitElement {
     // Standard radio-group keyboard model: arrows move selection (and focus)
     // to the previous/next enabled option, wrapping; Home/End jump to the ends.
     _onKeydown(e) {
-        const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
-        if (!keys.includes(e.key)) return;
+        const target = getNextIndex(e.key, {
+            count: this._options.length,
+            current: this._activeIndex,
+            isDisabled: (i) => this._options[i].disabled,
+            orientation: 'both',
+            wrap: true,
+        });
+        if (target === -1) return;
         e.preventDefault();
-
-        const enabled = this._options.filter((o) => !o.disabled);
-        if (enabled.length === 0) return;
-
-        let target;
-        if (e.key === 'Home') {
-            target = enabled[0];
-        } else if (e.key === 'End') {
-            target = enabled[enabled.length - 1];
-        } else {
-            const step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
-            const current = enabled.findIndex((o) => o.value === this.value);
-            const base = current === -1 ? 0 : current;
-            target = enabled[(base + step + enabled.length) % enabled.length];
-        }
-        this._select(target.value, { focus: true });
+        this._select(this._options[target].value, { focus: true });
     }
 
     render() {

@@ -5311,6 +5311,50 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/keyboard-nav.js",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getNextIndex",
+          "parameters": [
+            {
+              "name": "key",
+              "description": "`KeyboardEvent.key`.",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "{ count, current, isDisabled = () => false, orientation = 'both', wrap = true }"
+            },
+            {
+              "name": "opts",
+              "type": {
+                "text": "@param {number} opts.count - Total number of items.\n * @param {number} opts.current - Index currently active/focused (`-1` if none).\n * @param {(i: number) => boolean} [opts.isDisabled] - Items to skip.\n * @param {'horizontal'|'vertical'|'both'} [opts.orientation='both'] - Which\n *   arrow axes navigate. Off-axis arrows are ignored (return `-1`).\n * @param {boolean} [opts.wrap=true] - Wrap around past the first/last item.\n * "
+              }
+            }
+          ],
+          "description": "Destination index for an arrow-key navigation keypress.",
+          "return": {
+            "type": {
+              "text": "number"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getNextIndex",
+          "declaration": {
+            "name": "getNextIndex",
+            "module": "openlibrary/components/lit/utils/keyboard-nav.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/utils/scroll-lock.js",
       "declarations": [
         {
