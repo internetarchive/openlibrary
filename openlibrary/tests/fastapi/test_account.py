@@ -95,6 +95,7 @@ def test_login_deletes_pending_action_cookie_on_valid_redirect(fastapi_client):
         mock_audit.return_value = {"ol_username": "testuser"}
         mock_gen_code.return_value = "token"
 
+        # Case 1: Valid redirect -> deletes preserve intent cookie
         response = fastapi_client.post(
             "/account/login",
             data={"username": "testuser", "password": "password", "redirect": "/books"},
@@ -103,9 +104,11 @@ def test_login_deletes_pending_action_cookie_on_valid_redirect(fastapi_client):
         assert response.status_code == 303
         assert response.headers["Location"] == "/books"
 
+        # Check if the set-cookie header deletes "pending_action"
         set_cookies = [val for key, val in response.headers.multi_items() if key.lower() == "set-cookie"]
         assert any("pending_action=" in header for header in set_cookies)
 
+        # Case 2: Invalid/unsafe redirect -> does not delete cookie, redirects to home /
         response = fastapi_client.post(
             "/account/login",
             data={

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import os
+from contextlib import contextmanager
 from typing import Annotated
 from urllib.parse import unquote, urlparse
 
@@ -38,7 +39,7 @@ SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 # Legacy production config sets this value outside the repo.
 _ia_sync_secret = os.getenv("IA_SYNC_SECRET")
 if _ia_sync_secret:
-    config.ia_sync_secret = _ia_sync_secret
+    config.ia_sync_secret = _ia_sync_secret  # type: ignore[attr-defined]
 
 
 class AnonymizeResponse(BaseModel):
@@ -49,6 +50,34 @@ class AnonymizeResponse(BaseModel):
     bookshelves_count: int = Field(description="Number of bookshelf entries anonymized")
     merge_request_count: int = Field(description="Number of merge requests updated")
     bestbooks_count: int = Field(description="Number of bestbook entries anonymized")
+
+
+@contextmanager
+def _web_ctx_from_site():
+    """
+    Temporarily configure web.ctx.site and web.ctx.conn for legacy code
+    (e.g. RunAs, OpenLibraryAccount.get_by_link) that accesses them
+    directly.  In FastAPI handlers the ``site`` ContextVar is set by
+    middleware but ``web.ctx`` is not.
+    """
+    s = site.get()
+    _old_site = getattr(web.ctx, "site", None)
+    _old_conn = getattr(web.ctx, "conn", None)
+    _had_site = hasattr(web.ctx, "site")
+    _had_conn = hasattr(web.ctx, "conn")
+    web.ctx.site = s
+    web.ctx.conn = s._conn
+    try:
+        yield
+    finally:
+        if _had_site:
+            web.ctx.site = _old_site
+        else:
+            web.ctx.pop("site", None)
+        if _had_conn:
+            web.ctx.conn = _old_conn
+        else:
+            web.ctx.pop("conn", None)
 
 
 def _safe_redirect(url: str, default: str = "/") -> str:
@@ -383,32 +412,21 @@ async def anonymize_account(
     if "error" in xauthn_response:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
-    s = site.get()
-    _old_site = getattr(web.ctx, "site", None)
-    _old_conn = getattr(web.ctx, "conn", None)
-    _had_site = hasattr(web.ctx, "site")
-    _had_conn = hasattr(web.ctx, "conn")
-    web.ctx.site = s
-    web.ctx.conn = s._conn
-    try:
+    with _web_ctx_from_site():
         ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get("itemname", ""))
         if not ol_account:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
         try:
+            # RunAs is needed because anonymize() writes to infobase
+            # (removes from usergroups, deletes profile, clears store entries)
+            # using web.ctx.conn, which requires the target user's auth token.
+            # This endpoint authenticates via HMAC+S3, not a user session, so
+            # there is no auth token on the connection without RunAs.
             with RunAs(ol_account.username):
                 result = ol_account.anonymize(test=test_mode)
         except Exception as e:  # noqa: BLE001
             logger.error(e)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
-    finally:
-        if _had_site:
-            web.ctx.site = _old_site
-        else:
-            web.ctx.pop("site", None)
-        if _had_conn:
-            web.ctx.conn = _old_conn
-        else:
-            web.ctx.pop("conn", None)
 
     return AnonymizeResponse(**result)
