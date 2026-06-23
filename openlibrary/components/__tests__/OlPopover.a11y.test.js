@@ -18,7 +18,7 @@ expect.extend(toHaveNoViolations);
 
 const AXE_COMPONENT_CONFIG = {
     rules: {
-        'region': { enabled: false },
+        region: { enabled: false },
         'landmark-one-main': { enabled: false },
         'page-has-heading-one': { enabled: false },
     },
@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe('OlPopover a11y', () => {
-    test('closed state — trigger button has no violations', async () => {
+    test('closed state — trigger button has no violations', async() => {
         // Closed: Lit renders only the trigger slot. The host element itself
         // is inline-flex; the trigger is slotted light DOM.
         document.body.innerHTML = `
@@ -43,7 +43,7 @@ describe('OlPopover a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('open state — dialog panel has no violations', async () => {
+    test('open state — dialog panel has no violations', async() => {
         // Open: Lit renders the panel as role="dialog" aria-modal="true" with
         // an accessible name forwarded from the host's aria-label attribute.
         // Focus sentinels are aria-hidden to keep them invisible to AT.
@@ -69,7 +69,7 @@ describe('OlPopover a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('open state — dialog without aria-label fails (catches missing accessible name)', async () => {
+    test('open state — dialog without aria-label fails (catches missing accessible name)', async() => {
         // Regression guard: a dialog with no accessible name is a WCAG 4.1.2 violation.
         // This test confirms jest-axe catches it so we know the rule is active.
         document.body.innerHTML = `

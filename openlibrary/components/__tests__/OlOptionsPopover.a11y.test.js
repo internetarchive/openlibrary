@@ -12,7 +12,7 @@ expect.extend(toHaveNoViolations);
 
 const AXE_COMPONENT_CONFIG = {
     rules: {
-        'region': { enabled: false },
+        region: { enabled: false },
         'landmark-one-main': { enabled: false },
         'page-has-heading-one': { enabled: false },
     },
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('OlOptionsPopover a11y', () => {
-    test('closed state — default trigger button has no violations', async () => {
+    test('closed state — default trigger button has no violations', async() => {
         // Closed: renders a <button> with visible label text and chevron icon.
         // aria-haspopup="dialog" and aria-expanded="false" are set by OlPopover
         // on the slotted trigger after firstUpdated().
@@ -39,7 +39,7 @@ describe('OlOptionsPopover a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('open state — radiogroup panel has no violations', async () => {
+    test('open state — radiogroup panel has no violations', async() => {
         // Open: renders a dialog containing a radiogroup.
         // Each option is an <input type="radio"> inside a <label> — correct
         // association per WCAG 1.3.1. The radiogroup has aria-label.
@@ -78,7 +78,7 @@ describe('OlOptionsPopover a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('open state — radio without label fails (regression guard)', async () => {
+    test('open state — radio without label fails (regression guard)', async() => {
         // Confirms axe catches unlabeled radio inputs — guards against
         // a future refactor that removes the <label> wrapper.
         document.body.innerHTML = `

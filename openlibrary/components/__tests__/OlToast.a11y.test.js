@@ -12,7 +12,7 @@ expect.extend(toHaveNoViolations);
 
 const AXE_COMPONENT_CONFIG = {
     rules: {
-        'region': { enabled: false },
+        region: { enabled: false },
         'landmark-one-main': { enabled: false },
         'page-has-heading-one': { enabled: false },
     },
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('OlToast a11y', () => {
-    test('info toast (default) — role=status, aria-live=polite, no violations', async () => {
+    test('info toast (default) — role=status, aria-live=polite, no violations', async() => {
         document.body.innerHTML = `
             <div
                 role="status"
@@ -42,7 +42,7 @@ describe('OlToast a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('success toast — role=status, aria-live=polite, no violations', async () => {
+    test('success toast — role=status, aria-live=polite, no violations', async() => {
         document.body.innerHTML = `
             <div role="status" aria-live="polite">
                 <span aria-hidden="true"><!-- success icon --></span>
@@ -58,7 +58,7 @@ describe('OlToast a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('error toast — role=alert, aria-live=assertive, no violations', async () => {
+    test('error toast — role=alert, aria-live=assertive, no violations', async() => {
         // Errors use role="alert" + assertive to interrupt screen readers immediately.
         document.body.innerHTML = `
             <div role="alert" aria-live="assertive">
@@ -75,7 +75,7 @@ describe('OlToast a11y', () => {
         expect(results).toHaveNoViolations();
     });
 
-    test('close button without aria-label fails (regression guard)', async () => {
+    test('close button without aria-label fails (regression guard)', async() => {
         // Guards against the labelClose prop being dropped or defaulting to empty.
         document.body.innerHTML = `
             <div role="status" aria-live="polite">
