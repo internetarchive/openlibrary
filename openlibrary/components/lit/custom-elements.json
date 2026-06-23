@@ -3088,6 +3088,10 @@
               "name": "_harvestOptions"
             },
             {
+              "kind": "method",
+              "name": "_measure"
+            },
+            {
               "kind": "field",
               "name": "_activeIndex",
               "readonly": true
@@ -3111,6 +3115,15 @@
               "parameters": [
                 {
                   "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_renderGhost",
+              "parameters": [
+                {
+                  "name": "option"
                 }
               ]
             },

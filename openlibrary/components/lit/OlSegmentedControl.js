@@ -58,6 +58,13 @@ export class OlSegmentedControl extends LitElement {
         :host {
             display: inline-flex;
             vertical-align: middle;
+
+            --pill-radius: var(--border-radius-button);
+
+            /* A crisp ease-out (no overshoot) for the slide — the pill should
+               feel like it snaps to the new segment, not bounce. */
+            --slide-duration: 0.25s;
+            --slide-ease: cubic-bezier(0.32, 0.72, 0, 1);
         }
 
         :host([full-width]) {
@@ -71,8 +78,21 @@ export class OlSegmentedControl extends LitElement {
         }
 
         /* A light-grey inset track. The selected segment floats inside it as a
-           white pill, so the track padding sets the gap around that pill. */
+           white pill, so the track padding sets the gap around that pill.
+
+           Two stacked layers ride inside the track, both built from the same
+           option list so they line up pixel-for-pixel:
+             • .layer--base   — the real radio buttons, painted in the dimmed
+               (inactive) colour. They own all interaction and a11y.
+             • .layer--active — an aria-hidden duplicate painted in the active
+               (dark) colour, clipped to just the selected segment.
+           Sliding the clip-path of the active layer makes a segment's colour
+           flip exactly where the pill's edge crosses it, so the colour change
+           travels *with* the pill instead of toggling instantly. The white pill
+           itself is a separate .pill element (clip-path would eat its shadow). */
         .track {
+            position: relative;
+            isolation: isolate;
             display: inline-flex;
             box-sizing: border-box;
             height: var(--control-height-medium);
@@ -84,6 +104,79 @@ export class OlSegmentedControl extends LitElement {
         :host([full-width]) .track {
             display: flex;
             width: 100%;
+        }
+
+        .layer {
+            display: inline-flex;
+        }
+
+        /* The interactive layer sits above the pill so its text reads on top of
+           the white fill; the active (clipped) layer sits above both. It's a
+           flex item of the track, so align-items: stretch already sizes it to
+           the track's content height — its segments fill that via height: 100%. */
+        .layer--base {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+        }
+
+        :host([full-width]) .layer--base {
+            flex: 1;
+        }
+
+        .layer--active {
+            position: absolute;
+            z-index: 2;
+            inset: var(--spacing-3xs);
+            display: flex;
+            pointer-events: none;
+            /* clip-path (revealing only the selected segment's slice of the
+               dark-text layer) is set directly by _measure() so its changes
+               trigger the transition — an inherited var() change would not. */
+            visibility: hidden;
+        }
+
+        .segment--ghost {
+            color: var(--dark-grey);
+        }
+
+        /* The sliding white pill — carries the raised look the selected segment
+           used to draw itself. translateX + width walk it to the active
+           segment; its shadow can't be clipped, hence its own element. */
+        .pill {
+            position: absolute;
+            z-index: 0;
+            top: var(--spacing-3xs);
+            bottom: var(--spacing-3xs);
+            left: var(--spacing-3xs);
+            /* width + translateX are set directly by _measure() (see above). */
+            width: 0;
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--pill-radius);
+            background-color: var(--white);
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
+            visibility: hidden;
+        }
+
+        /* Both are hidden until _measure() has placed them (avoids a flash of
+           an unpositioned pill on first paint). */
+        .track.is-ready .pill,
+        .track.is-ready .layer--active {
+            visibility: visible;
+        }
+
+        /* Transitions are enabled one frame after the initial placement so the
+           pill appears in position instead of sliding in from the left. */
+        .track.is-animated .pill {
+            transition:
+                transform var(--slide-duration) var(--slide-ease),
+                width var(--slide-duration) var(--slide-ease);
+        }
+
+        .track.is-animated .layer--active {
+            transition: clip-path var(--slide-duration) var(--slide-ease);
         }
 
         .segment {
@@ -139,16 +232,10 @@ export class OlSegmentedControl extends LitElement {
             transform: scale(0.97);
         }
 
-        /* Selected segment: a raised white pill matching the secondary button
-           variant (white fill, subtle border, raised-control shadow). */
-        .segment[aria-checked="true"] {
-            border-color: var(--color-border-subtle);
-            background-color: var(--white);
-            color: var(--dark-grey);
-            box-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
-        }
+        /* The selected segment's raised-white-pill look now lives on the
+           floating .pill, and its dark text on the clipped .layer--active — so
+           the interactive base button stays dimmed and transparent even when
+           selected (its text reads through from the active layer above). */
 
         .segment:disabled {
             opacity: 0.45;
@@ -197,6 +284,13 @@ export class OlSegmentedControl extends LitElement {
             .segment:active:not(:disabled) {
                 transform: none;
             }
+
+            /* The pill and active layer still jump straight to the selected
+               segment (positioned by JS) — just without the slide. */
+            .track.is-animated .pill,
+            .track.is-animated .layer--active {
+                transition: none;
+            }
         }
     `;
 
@@ -242,6 +336,54 @@ export class OlSegmentedControl extends LitElement {
             const firstEnabled = this._options.find((o) => !o.disabled);
             this.value = firstEnabled ? firstEnabled.value : null;
         }
+    }
+
+    firstUpdated() {
+        this._track = this.renderRoot.querySelector('.track');
+        // Place the pill/active layer, reveal them, then enable transitions one
+        // frame later so the first placement doesn't animate from the origin.
+        this._measure();
+        this._track.classList.add('is-ready');
+        requestAnimationFrame(() => this._track?.classList.add('is-animated'));
+        // Re-measure on any reflow: size/full-width changes, late web-font
+        // metrics, or the container resizing around a full-width control.
+        this._resizeObserver = new ResizeObserver(() => this._measure());
+        this._resizeObserver.observe(this._track);
+    }
+
+    updated(changed) {
+        // Selection moved — walk the pill and clip to the new segment.
+        if (changed.has('value')) this._measure();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._resizeObserver?.disconnect();
+    }
+
+    // Move the pill (translateX + width) and the active layer's clip window onto
+    // the selected segment. The geometry is set directly on each element (not via
+    // an inherited custom property) so the changes actually trigger their CSS
+    // transitions. Measured relative to the base layer, so the values are
+    // independent of the track's padding and of where the control sits on the page.
+    _measure() {
+        const track = this._track;
+        if (!track) return;
+        const base = track.querySelector('.layer--base');
+        const activeBtn = track.querySelector('.segment[aria-checked="true"]');
+        const pill = track.querySelector('.pill');
+        const activeLayer = track.querySelector('.layer--active');
+        if (!base || !activeBtn || !pill || !activeLayer) return;
+
+        const baseRect = base.getBoundingClientRect();
+        const btnRect = activeBtn.getBoundingClientRect();
+        const x = btnRect.left - baseRect.left;
+        const w = btnRect.width;
+        const right = baseRect.width - x - w;
+
+        pill.style.transform = `translateX(${x}px)`;
+        pill.style.width = `${w}px`;
+        activeLayer.style.clipPath = `inset(0 ${right}px 0 ${x}px round var(--pill-radius))`;
     }
 
     // Index of the option that owns the roving tabindex / arrow-key focus.
@@ -293,6 +435,8 @@ export class OlSegmentedControl extends LitElement {
 
     render() {
         const activeIndex = this._activeIndex;
+        // The active layer mirrors the base layer one-for-one so the two stay
+        // pixel-aligned — the clip can then split a label's colour mid-glyph.
         return html`
             <div
                 class="track"
@@ -300,8 +444,23 @@ export class OlSegmentedControl extends LitElement {
                 aria-label=${this.accessibleLabel || nothing}
                 @keydown=${this._onKeydown}
             >
-                ${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}
+                <div class="pill" aria-hidden="true"></div>
+                <div class="layer layer--base">
+                    ${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}
+                </div>
+                <div class="layer layer--active" aria-hidden="true">
+                    ${this._options.map((option) => this._renderGhost(option))}
+                </div>
             </div>
+        `;
+    }
+
+    // The active-layer twin of a segment: same box (so widths match the real
+    // button exactly) but a plain, non-interactive span in the active colour.
+    _renderGhost(option) {
+        return html`
+            <span class="segment segment--ghost" aria-hidden="true"
+            >${option.isMarkup ? unsafeHTML(option.content) : option.content}</span>
         `;
     }
 
