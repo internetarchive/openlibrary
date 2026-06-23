@@ -1242,6 +1242,10 @@ msgstr ""
 msgid "There is nothing to see here yet."
 msgstr ""
 
+#: account/ia_thirdparty_logins.html
+msgid "Sign in with a third-party account"
+msgstr ""
+
 #: account/import.html
 msgid "Import from Goodreads"
 msgstr ""
@@ -7724,6 +7728,10 @@ msgstr ""
 
 #: BookPreview.html
 msgid "Preview Book"
+msgstr ""
+
+#: BookPreview.html
+msgid "Book preview"
 msgstr ""
 
 #: DisplayCode.html
