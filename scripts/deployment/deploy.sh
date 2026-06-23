@@ -640,12 +640,6 @@ prune_docker () {
     return 0
 }
 
-clone_booklending_utils() {
-    :
-    #HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $HOSTNAMES ::: /opt/booklending_utils
-}
-
 recreate_services() {
     echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
@@ -692,9 +686,6 @@ deploy_wizard() {
     until check_olbase_image_up_to_date; do
         read -p "Once built, press Enter to continue..."
     done
-    echo ""
-
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
     read -p "[Now] Run openlibrary deploy? [Y/n]..." answer
