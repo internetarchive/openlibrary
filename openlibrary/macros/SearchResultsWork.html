@@ -123,9 +123,9 @@ $code:
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
         <span class="resultStats">
-          $ ratings_count = doc.get('ratings_count', None)
+          $ ratings_count = doc.get('ratings_count') or 0
           $ ratings_avg = doc.get('ratings_average', None)
-          $ want_to_read_count = doc.get('want_to_read_count', None)
+          $ want_to_read_count = doc.get('want_to_read_count') or 0
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if show_librarian_extras and doc.get('trending_z_score') is not None:
             $:macros.TrendingBadge(doc)

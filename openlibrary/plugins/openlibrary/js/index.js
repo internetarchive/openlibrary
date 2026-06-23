@@ -632,4 +632,11 @@ jQuery(function() {
         import(/* webpackChunkName: "stats" */ './stats')
             .then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
+
+    // History page comparison
+    const pageHistory = document.querySelector('#pageHistory');
+    if (pageHistory) {
+        import(/* webpackChunkName: "history" */ './history')
+            .then(module => module.initHistory(pageHistory));
+    }
 });

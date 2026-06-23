@@ -4,7 +4,11 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 10
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
+
+> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+
+> 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -55,7 +59,7 @@ npm run watch               # Dev mode with hot reload
 |---|---|
 | App entry | `openlibrary/code.py` |
 | FastAPI | `openlibrary/asgi_app.py` |
-| Route handlers | `openlibrary/plugins/*/code.py` |
+| Route handlers | `openlibrary/plugins/*/code.py` (legacy web.py) · **FastAPI routers** (preferred): `openlibrary/fastapi/*.py` |
 | Templates | `openlibrary/templates/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
@@ -95,7 +99,7 @@ curl "http://localhost:18080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies
 ### FastAPI and web.py Interaction
 
 Open Library runs two web servers in parallel:
-- **web.py** (port 8080) — Legacy Infogami app
+- **web.py** (port 8080) — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI
 - **FastAPI** (port 18080) — New async endpoints via nginx proxy
 
 When testing:
