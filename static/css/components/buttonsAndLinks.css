@@ -90,7 +90,7 @@ button.addAnother {
   border: none;
   vertical-align: middle;
   cursor: pointer;
-  background-image: url(/images/icons/icon_add.png);
+  background-image: url(/static/images/icons/icon_add.png);
   background-position: 0 0;
   background-color: transparent;
   display: none;
