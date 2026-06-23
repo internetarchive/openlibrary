@@ -3081,8 +3081,6 @@ msgid ""
 "<code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the "
 "spamwords list."
 msgstr ""
-"예를 들어 <code>t.co</code> 도메인이 포함된 편집을 막으려면 스팸 단어 목록에 "
-"<code>(|https://|http://)t\\.co</code>를 추가하세요."
 
 #: admin/spamwords.html
 msgid "Spam Domains"
@@ -8008,10 +8006,6 @@ msgid
 "to-read\">want to read</a>, and have <a href=\"%(username)s/books"
 "/stopped-reading\">stopped reading</a>!"
 msgstr ""
-"<a href=\"%(username)s/books/currently-reading\">읽는 중</a>, <a "
-"href=\"%(username)s/books/already-read\">읽은 책</a>, <a "
-"href=\"%(username)s/books/want-to-read\">읽고 싶은 책</a>, <a"
-"<a href=\"%(username)s/books/stopped-reading\">읽다 만 책</a>을 공개적으로 공유하고 있습니다."
 
 
 #: type/user/view.html
@@ -8035,10 +8029,6 @@ msgid ""
 "read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
 "reading\">stopped reading</a>!"
 msgstr ""
-"%(user)s이(가) <a href=\"%(username)s/books/currently-reading\">읽는 중</a>, "
-"<a href=\"%(username)s/books/already-read\">읽은 책</a>, <a "
-"href=\"%(username)s/books/want-to-read\">읽고 싶은 책</a>, <a"
-"<a href=\"%(username)s/books/stopped-reading\">읽다 만 책</a>입니다!."
 
 #: type/user/view.html
 msgid "My Lists"

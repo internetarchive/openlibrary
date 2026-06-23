@@ -1103,6 +1103,7 @@ def setup_template_globals():
             "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
+            "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
             "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
             "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
             "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
