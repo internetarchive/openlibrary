@@ -17,19 +17,19 @@ Deep reference for `openlibrary/catalog/add_book/`. This covers the orchestratio
 ```
 normalize_import_record(rec)
   → ISBN normalization, author dedup, source_records cleanup
-  
+
 validate_record(rec)
   → required fields check
   → IA source_records bypass ALL validation
-  
+
 build_pool(rec)
   → collect candidate existing editions by ISBN, LCCN, OCLC, source_records (ia: only)
   → "pool" = list of (edition_key, edition_object) pairs
-  
+
 find_match(rec, pool)
   → for each candidate: threshold_match(rec, candidate)
   → returns first match or None
-  
+
 if match found:
     update_edition_with_rec_data(edition, rec)   ← merges new fields into existing
 else:
