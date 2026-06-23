@@ -3949,14 +3949,6 @@ msgid ""
 msgstr ""
 
 #: books/edit/edition.html
-msgid "Select this language"
-msgstr ""
-
-#: books/edit/edition.html
-msgid "Remove this language"
-msgstr ""
-
-#: books/edit/edition.html
 msgid "Remove this work"
 msgstr ""
 
@@ -4070,6 +4062,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
+msgstr ""
+
+#: books/edit/edition.html
+msgid "Search for a language"
 msgstr ""
 
 #: books/edit/edition.html
@@ -4659,36 +4655,6 @@ msgstr ""
 
 #: design/autocomplete.html
 msgid "The component can be initialized with an existing selection."
-msgstr ""
-
-#: design/language_edit.html
-msgid "Language Edit component"
-msgstr ""
-
-#: design/language_edit.html
-msgid ""
-"The ol-language-edit component provides inline editing of languages on "
-"edition pages with a popover interface."
-msgstr ""
-
-#: design/language_edit.html
-msgid "Single language"
-msgstr ""
-
-#: design/language_edit.html
-msgid ""
-"Hover over the language text to reveal the edit pencil. Click it to open "
-"the editing popover."
-msgstr ""
-
-#: design/language_edit.html
-msgid "Multiple languages"
-msgstr ""
-
-#: design/language_edit.html
-msgid ""
-"Editions can have multiple languages. The component displays them comma-"
-"separated."
 msgstr ""
 
 #: design/pagination.html
