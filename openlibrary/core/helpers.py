@@ -337,6 +337,46 @@ def extract_year(input: str, int_only: bool = True) -> str:
     return ""
 
 
+_AUTHOR_EXCLUSIONS: frozenset[str] | None = None
+
+
+def get_author_exclusions() -> frozenset[str]:
+    """Returns the set of excluded author OLIDs from config.
+
+    Reads ``author_exclusions`` from openlibrary.yml (a list of bare OLIDs
+    such as ``["OL123A", "OL456A"]``).  Initialized once per process since
+    config is static per-deploy; a restart is required to pick up changes.
+    """
+    global _AUTHOR_EXCLUSIONS
+    if _AUTHOR_EXCLUSIONS is None:
+        _AUTHOR_EXCLUSIONS = frozenset(config.get("author_exclusions") or [])
+    return _AUTHOR_EXCLUSIONS
+
+
+def is_exclusion(thing) -> bool:
+    """Returns True if *thing* should be excluded from public view.
+
+    A thing is excluded when it is an author whose OLID is in the
+    ``author_exclusions`` config list, or when it is a book/work whose
+    first resolvable author is in that list.
+    """
+    if not thing or not thing.key:
+        return False
+    try:
+        _, _type, key = thing.key.split("/")
+    except ValueError:
+        return False
+    exclusions = get_author_exclusions()
+    if _type == "authors":
+        return key in exclusions
+    elif _type in ("books", "works"):
+        for a in thing.get("authors") or []:
+            akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
+            if akey:
+                return akey.split("/")[-1] in exclusions
+    return False
+
+
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)
