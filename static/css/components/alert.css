@@ -1,10 +1,7 @@
 @import url(../tokens/colors.css);
 
-:root {
-  --z-index-panel: 1000;
-}
-
 .filter-panel {
+  --z-index-panel: 1000;
   position: fixed;
   top: 45px;
   right: 0;
