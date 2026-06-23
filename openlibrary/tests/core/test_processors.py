@@ -145,7 +145,7 @@ def _make_thing(site, key, type_key, extra=None):
 
 def test_is_exclusion_author_excluded(monkeypatch):
     """An author whose OLID is in author_exclusions returns True."""
-    monkeypatch.setattr(processors, "_exclusion_cache", None)
+    monkeypatch.setattr(processors, "_AUTHOR_EXCLUSIONS", None)
     monkeypatch.setattr(processors.config, "get", lambda key, *a, **kw: ["OL99A"] if key == "author_exclusions" else None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL99A", "/type/author", {"name": "Test Author"})
@@ -154,7 +154,7 @@ def test_is_exclusion_author_excluded(monkeypatch):
 
 def test_is_exclusion_author_not_excluded(monkeypatch):
     """An author not in author_exclusions returns False."""
-    monkeypatch.setattr(processors, "_exclusion_cache", None)
+    monkeypatch.setattr(processors, "_AUTHOR_EXCLUSIONS", None)
     monkeypatch.setattr(processors.config, "get", lambda key, *a, **kw: [] if key == "author_exclusions" else None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL1A", "/type/author", {"name": "Safe Author"})
@@ -163,7 +163,7 @@ def test_is_exclusion_author_not_excluded(monkeypatch):
 
 def test_is_exclusion_empty_config_returns_false(monkeypatch):
     """When author_exclusions is absent from config, nothing is excluded."""
-    monkeypatch.setattr(processors, "_exclusion_cache", None)
+    monkeypatch.setattr(processors, "_AUTHOR_EXCLUSIONS", None)
     monkeypatch.setattr(processors.config, "get", lambda key, *a, **kw: None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL99A", "/type/author", {"name": "Test Author"})
@@ -172,14 +172,14 @@ def test_is_exclusion_empty_config_returns_false(monkeypatch):
 
 def test_is_exclusion_none_returns_false(monkeypatch):
     """is_exclusion(None) returns False without raising."""
-    monkeypatch.setattr(processors, "_exclusion_cache", None)
+    monkeypatch.setattr(processors, "_AUTHOR_EXCLUSIONS", None)
     monkeypatch.setattr(processors.config, "get", lambda key, *a, **kw: [])
     assert processors.is_exclusion(None) is False
 
 
 def test_get_author_exclusions_caches(monkeypatch):
     """_get_author_exclusions returns the same frozenset on repeated calls."""
-    monkeypatch.setattr(processors, "_exclusion_cache", None)
+    monkeypatch.setattr(processors, "_AUTHOR_EXCLUSIONS", None)
     call_count = {"n": 0}
 
     def fake_get(key, *a, **kw):

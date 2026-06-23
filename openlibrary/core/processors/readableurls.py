@@ -3,7 +3,6 @@
 import logging
 import os
 import re
-import time
 import urllib
 from urllib.parse import quote_plus
 
@@ -15,23 +14,20 @@ from openlibrary.core import helpers as h
 
 logger = logging.getLogger("openlibrary.readableurls")
 
-_EXCLUSION_CACHE_TTL = 86400  # 1 day
-_exclusion_cache: tuple[float, frozenset[str]] | None = None
+_AUTHOR_EXCLUSIONS: frozenset[str] | None = None
 
 
 def _get_author_exclusions() -> frozenset[str]:
-    """Returns the set of excluded author OLIDs from config, cached for 1 day.
+    """Returns the set of excluded author OLIDs from config.
 
     Reads ``author_exclusions`` from openlibrary.yml (a list of bare OLIDs
-    such as ``["OL123A", "OL456A"]``).  The list defaults to empty so the
-    site behaves normally when the key is absent.
+    such as ``["OL123A", "OL456A"]``).  Initialized once per process since
+    config is static per-deploy; a restart is required to pick up changes.
     """
-    global _exclusion_cache
-    now = time.time()
-    if _exclusion_cache is None or now - _exclusion_cache[0] > _EXCLUSION_CACHE_TTL:
-        exclusions: list[str] = config.get("author_exclusions") or []
-        _exclusion_cache = (now, frozenset(exclusions))
-    return _exclusion_cache[1]
+    global _AUTHOR_EXCLUSIONS
+    if _AUTHOR_EXCLUSIONS is None:
+        _AUTHOR_EXCLUSIONS = frozenset(config.get("author_exclusions") or [])
+    return _AUTHOR_EXCLUSIONS
 
 
 def is_exclusion(thing) -> bool:
