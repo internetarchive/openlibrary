@@ -1,7 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -71,7 +70,18 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-export class OlSelectPopover extends FocusableHostMixin(LitElement) {
+// NOT a FocusableHostMixin host. Unlike its siblings (ol-toggle, ol-chip,
+// ol-options-popover), whose focusable element lives in their *shadow* root,
+// this component's focusable is its trigger — and the default trigger is an
+// <ol-button> injected into *light* DOM (so the global ol-button.css applies;
+// see _createDefaultTrigger). A focus trap that walks slotted content
+// (e.g. ol-dialog's) already discovers that trigger button on its own. Adding
+// the mixin's host tabindex would enroll the host as a *second* tab stop for
+// the same control, and the mixin's delegatesFocus would forward host.focus()
+// to the first focusable in *this* shadow root (the filter input — hidden
+// while the popover is closed), a no-op that strands focus on the prior
+// element. So the host stays a plain wrapper; the trigger is the focusable.
+export class OlSelectPopover extends LitElement {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -319,16 +329,6 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         // re-homes the item between the selected/suggestions groups (which
         // destroys its DOM node, so its focus is lost).
         this._restoreFocusToValue = null;
-    }
-
-    /**
-     * Send focus to the default-trigger button rather than the first
-     * focusable in shadow order.
-     */
-    get _focusTarget() {
-        return this.shadowRoot?.querySelector('.default-trigger')
-            ?? this.querySelector('[slot="trigger"]')
-            ?? null;
     }
 
     updated(changedProperties) {

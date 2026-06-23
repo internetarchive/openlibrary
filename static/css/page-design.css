@@ -244,6 +244,17 @@ pre.example__code code[class*="language-"] {
   background-origin: content-box;
 }
 
+/* A single toggle above the alignment rows shows/hides the dashed guide lines.
+   Toggling it off drops the guide backgrounds so the controls can be eyeballed
+   on their own. */
+.control-alignment__guides-toggle {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.control-alignment--guides-hidden .control-row {
+  background-image: none;
+}
+
 .control-row--small {
   --control-target-height: var(--control-height-small);
 }

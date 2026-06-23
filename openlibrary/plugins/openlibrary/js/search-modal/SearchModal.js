@@ -722,7 +722,6 @@ export class SearchModal extends LitElement {
             padding: 0 var(--spacing-md);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 500;
             line-height: var(--line-height-control);
             text-align: center;
             white-space: nowrap;

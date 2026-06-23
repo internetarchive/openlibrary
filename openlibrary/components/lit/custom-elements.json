@@ -3326,21 +3326,6 @@
               "description": "Search icon for the filter input"
             },
             {
-              "kind": "field",
-              "name": "_focusTarget",
-              "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order.",
-              "return": {
-                "type": {
-                  "text": "HTMLElement|null"
-                }
-              },
-              "readonly": true,
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
-            },
-            {
               "kind": "method",
               "name": "_createDefaultTrigger"
             },
@@ -3582,32 +3567,6 @@
                 "text": "null"
               },
               "default": "null"
-            },
-            {
-              "kind": "field",
-              "name": "shadowRootOptions",
-              "type": {
-                "text": "object"
-              },
-              "static": true,
-              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "focus",
-              "parameters": [
-                {
-                  "name": "options"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
             }
           ],
           "events": [
@@ -3728,12 +3687,6 @@
               },
               "default": "''",
               "fieldName": "_query"
-            }
-          ],
-          "mixins": [
-            {
-              "name": "FocusableHostMixin",
-              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
             }
           ],
           "superclass": {
@@ -5175,6 +5128,43 @@
         },
         {
           "kind": "function",
+          "name": "getTabbableElements",
+          "parameters": [
+            {
+              "name": "root",
+              "description": "Subtree to search.",
+              "type": {
+                "text": "Element|ShadowRoot"
+              }
+            }
+          ],
+          "description": "Collect tabbable elements under `root`, in depth-first DOM order, piercing\nshadow roots and expanding slots — i.e. the real Tab order the user sees,\nwhich `querySelectorAll` alone can't produce because it stops at shadow\nboundaries (see getFocusableFromSlot, which only goes one slot deep).\n\nThis is the discovery backbone for the manual focus trap: it works on any\nshadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can\nfocus the *real* inner element directly rather than a host whose\n`host.focus()` might delegate to a hidden element (a silent no-op).\n\nTraversal rules:\n - A `<slot>` contributes its flattened assigned elements, in slot order.\n - An element matching FOCUSABLE_SELECTOR is a **leaf tab stop**:\n   recorded, and *not* descended into. A composite that owns its own\n   keyboard nav (roving tabindex, arrow keys) must therefore expose exactly\n   one Tab stop (its single `tabindex=\"0\"`); we don't enumerate its items.\n - A non-matching element with an open `shadowRoot` is descended into (the\n   shadow tree, whose `<slot>`s pull in light children at their position).\n - A non-matching element without a shadow root has its light children\n   walked.\n - Hidden/disabled subtrees (see isFocusable) are skipped entirely.\n - Closed shadow roots (e.g. `<video controls>`) are opaque and skipped.",
+          "return": {
+            "type": {
+              "text": "HTMLElement[]"
+            }
+          }
+        },
+        {
+          "kind": "function",
+          "name": "getTabbableFromSlot",
+          "parameters": [
+            {
+              "name": "slot",
+              "type": {
+                "text": "HTMLSlotElement|null"
+              }
+            }
+          ],
+          "description": "Like getTabbableElements but seeded from a `<slot>`'s assigned\n(light-DOM) content — for a focus trap that walks a component's named slots\n(header/body/footer) rather than one subtree. Each assigned element is\nvisited with the same depth-first, shadow-piercing rules, so a custom element\nsitting in slotted content contributes its real inner focusable rather than\nbeing missed (the gap in getFocusableFromSlot, which only scans one\nshadow level deep via `querySelectorAll`).",
+          "return": {
+            "type": {
+              "text": "HTMLElement[]"
+            }
+          }
+        },
+        {
+          "kind": "function",
           "name": "findFocusableIndex",
           "parameters": [
             {
@@ -5235,6 +5225,22 @@
         },
         {
           "kind": "js",
+          "name": "getTabbableElements",
+          "declaration": {
+            "name": "getTabbableElements",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getTabbableFromSlot",
+          "declaration": {
+            "name": "getTabbableFromSlot",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
           "name": "findFocusableIndex",
           "declaration": {
             "name": "findFocusableIndex",
@@ -5249,7 +5255,7 @@
       "declarations": [
         {
           "kind": "mixin",
-          "description": "FocusableHostMixin — makes a LitElement custom element behave as a single\nfocusable leaf in the document tab order, even when its actual focusable\nelement lives in its shadow DOM.\n\nWhy this exists\n---------------\nA consumer-level component (e.g. <ol-chip>, <ol-options-popover>) usually\nrenders a <button> inside its shadow root. Two things then go wrong by\ndefault for any outer focus trap that doesn't pierce shadow DOM:\n\n  1. `querySelectorAll('button, [tabindex]…')` on light DOM doesn't find\n     the shadow button — the component is invisible to the trap.\n  2. Calling `host.focus()` focuses the *host*, not the inner button, so\n     the focus ring lands on nothing visible.\n\nThis mixin fixes both at once:\n\n  - Sets `tabindex=\"0\"` on the host in connectedCallback (only if the\n    consumer hasn't set one). The host now matches the standard focusable\n    selector and outer traps discover it.\n  - Uses `delegatesFocus: true` on the shadow root, so the browser\n    forwards `host.focus()` to the first focusable inside the shadow root\n    AND `:focus-visible` fires correctly on the inner element (this is the\n    reason a manual focus() override is not enough — `:focus-visible` is a\n    UA heuristic, not a CSS pseudo-class we can opt into).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
+          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s\nshadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as\nif the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/focus-tabbing.md.\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover>), or\ncomposites that route focus themselves (roving tabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
           "name": "FocusableHostMixin",
           "members": [
             {

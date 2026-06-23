@@ -3,6 +3,8 @@ import {
     findFocusableIndex,
     getDeepActiveElement,
     getFocusableFromSlot,
+    getTabbableElements,
+    getTabbableFromSlot,
     isFocusable,
 } from '../../../openlibrary/components/lit/utils/focus-utils.js';
 
@@ -116,6 +118,177 @@ describe('getDeepActiveElement', () => {
         // document.activeElement points to the shadow host; the deep helper
         // must drill through to the inner button.
         expect(getDeepActiveElement()).toBe(inner);
+    });
+});
+
+describe('getTabbableElements', () => {
+    // Helper: a host element with an open shadow root whose innerHTML is `html`.
+    function hostWithShadow(html) {
+        const host = document.createElement('div');
+        const root = host.attachShadow({ mode: 'open' });
+        root.innerHTML = html;
+        document.body.appendChild(host);
+        return host;
+    }
+
+    test('returns nothing for a null root', () => {
+        expect(getTabbableElements(null)).toEqual([]);
+    });
+
+    test('collects focusable light-DOM children in document order', () => {
+        const root = document.createElement('div');
+        root.innerHTML = '<button>a</button><span>x</span><a href="#">b</a><input>';
+        document.body.appendChild(root);
+
+        expect(getTabbableElements(root).map(el => el.tagName)).toEqual([
+            'BUTTON', 'A', 'INPUT',
+        ]);
+    });
+
+    test('pierces a nested shadow root — the gap getFocusableFromSlot misses', () => {
+        // A wrapper whose only focusable lives inside a child custom element's
+        // shadow root. querySelectorAll (and thus getFocusableFromSlot) can't
+        // see it; the deep walker can.
+        const wrapper = document.createElement('div');
+        document.body.appendChild(wrapper);
+        const host = document.createElement('div');
+        wrapper.appendChild(host);
+        const root = host.attachShadow({ mode: 'open' });
+        root.innerHTML = '<button class="inner">deep</button>';
+
+        // Characterize the shallow util's blind spot…
+        expect(wrapper.querySelectorAll(FOCUSABLE_SELECTOR).length).toBe(0);
+        // …and prove the deep walker finds it.
+        const found = getTabbableElements(wrapper);
+        expect(found).toHaveLength(1);
+        expect(found[0]).toBe(root.querySelector('.inner'));
+    });
+
+    test('treats a focusable host as a single leaf stop and does not descend (today\'s mixin shape)', () => {
+        // A custom-element host carrying tabindex (FocusableHostMixin today) is
+        // one tab stop; we must not also enumerate its inner button.
+        const host = hostWithShadow('<button class="inner">x</button>');
+        host.setAttribute('tabindex', '0');
+
+        const found = getTabbableElements(document.body);
+        expect(found).toEqual([host]);
+        expect(found).not.toContain(host.shadowRoot.querySelector('.inner'));
+    });
+
+    test('descends into a delegatesFocus-style host with no host tabindex (target shape)', () => {
+        // After the mixin is slimmed to delegatesFocus-only (no host tabindex),
+        // the walker should find and return the real inner element directly —
+        // so the trap never relies on host.focus() delegation.
+        const host = hostWithShadow('<button class="inner">x</button>');
+
+        const found = getTabbableElements(document.body);
+        expect(found).toEqual([host.shadowRoot.querySelector('.inner')]);
+    });
+
+    test('records both a focusable container and its nested light-DOM focusable', () => {
+        // A role="button" row (tabindex="0") with a nested remove button — like
+        // the recent-search rows. Native Tab order stops on both, so the walker
+        // must record the row AND descend to its button (the shadow-boundary
+        // leaf rule only applies to elements that have a shadow root).
+        const root = document.createElement('div');
+        root.innerHTML =
+            '<div class="row" role="button" tabindex="0">' +
+            '  <span>label</span><button class="remove">x</button>' +
+            '</div>';
+        document.body.appendChild(root);
+
+        expect(getTabbableElements(root).map(el => el.className)).toEqual(['row', 'remove']);
+    });
+
+    test('exposes exactly one stop for a roving-tabindex composite', () => {
+        const host = hostWithShadow(
+            '<button tabindex="0" class="active">1</button>' +
+            '<button tabindex="-1">2</button>' +
+            '<button tabindex="-1">3</button>',
+        );
+
+        const found = getTabbableElements(document.body);
+        expect(found).toEqual([host.shadowRoot.querySelector('.active')]);
+    });
+
+    test('finds a light-DOM trigger inside a wrapper custom element (the ol-select-popover shape)', () => {
+        // Wrapper with no shadow root and no host tabindex; its focusable is a
+        // light-DOM child (an injected trigger button).
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = '<button class="trigger">Language</button>';
+        document.body.appendChild(wrapper);
+
+        const found = getTabbableElements(document.body);
+        expect(found).toEqual([wrapper.querySelector('.trigger')]);
+    });
+
+    test('expands a slot to its assigned light-DOM elements, in slot order', () => {
+        // A host that projects its light children through a <slot> in its
+        // shadow root — the walker should surface the projected buttons.
+        const host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+            '<button class="before">before</button><slot></slot><button class="after">after</button>';
+        host.innerHTML = '<button class="slotted">slotted</button>';
+        document.body.appendChild(host);
+
+        expect(getTabbableElements(document.body).map(el => el.className)).toEqual([
+            'before', 'slotted', 'after',
+        ]);
+    });
+
+    test('skips hidden and disabled elements and their subtrees', () => {
+        const root = document.createElement('div');
+        root.innerHTML =
+            '<button class="ok">ok</button>' +
+            '<button class="dis" disabled>nope</button>' +
+            '<div class="hiddenWrap"><button class="buried">buried</button></div>';
+        document.body.appendChild(root);
+
+        // Mark the wrapper as not rendered via the standard API the helper reads.
+        root.querySelector('.hiddenWrap').checkVisibility = () => false;
+        root.querySelector('.ok').checkVisibility = () => true;
+        root.querySelector('.dis').checkVisibility = () => true;
+
+        const found = getTabbableElements(root);
+        expect(found.map(el => el.className)).toEqual(['ok']);
+    });
+});
+
+describe('getTabbableFromSlot', () => {
+    test('returns [] when the slot is null', () => {
+        expect(getTabbableFromSlot(null)).toEqual([]);
+    });
+
+    test('collects direct and descendant focusables from assigned elements, in order', () => {
+        const button = document.createElement('button');
+        const wrapper = document.createElement('div');
+        const inner = document.createElement('input');
+        wrapper.appendChild(inner);
+        const slot = { assignedElements: () => [button, wrapper] };
+
+        expect(getTabbableFromSlot(slot)).toEqual([button, inner]);
+    });
+
+    test('pierces an assigned custom element\'s shadow root — the getFocusableFromSlot gap', () => {
+        // An assigned element whose only focusable lives in its shadow root.
+        const host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML = '<button class="deep">x</button>';
+        const slot = { assignedElements: () => [host] };
+
+        // The shallow helper misses it…
+        expect(getFocusableFromSlot(slot)).toEqual([]);
+        // …the deep one finds the real inner control.
+        expect(getTabbableFromSlot(slot)).toEqual([host.shadowRoot.querySelector('.deep')]);
+    });
+
+    test('drops hidden/disabled assigned elements', () => {
+        const ok = document.createElement('button');
+        ok.checkVisibility = () => true;
+        const hidden = document.createElement('button');
+        hidden.checkVisibility = () => false;
+        const slot = { assignedElements: () => [ok, hidden] };
+
+        expect(getTabbableFromSlot(slot)).toEqual([ok]);
     });
 });
 

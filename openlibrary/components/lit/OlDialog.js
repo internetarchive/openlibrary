@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
+import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
@@ -561,7 +561,7 @@ export class OlDialog extends LitElement {
         const focusable = [];
 
         const headerSlot = this.renderRoot?.querySelector('slot[name="header"]');
-        const headerSlotted = getFocusableFromSlot(headerSlot);
+        const headerSlotted = getTabbableFromSlot(headerSlot);
         if (headerSlotted.length > 0) {
             focusable.push(...headerSlotted);
         } else {
@@ -572,10 +572,10 @@ export class OlDialog extends LitElement {
         }
 
         const bodySlot = this.renderRoot?.querySelector('slot:not([name])');
-        focusable.push(...getFocusableFromSlot(bodySlot));
+        focusable.push(...getTabbableFromSlot(bodySlot));
 
         const footerSlot = this.renderRoot?.querySelector('slot[name="footer"]');
-        focusable.push(...getFocusableFromSlot(footerSlot));
+        focusable.push(...getTabbableFromSlot(footerSlot));
 
         return focusable;
     }

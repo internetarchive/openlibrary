@@ -1,10 +1,9 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
+import { getTabbableFromSlot } from './utils/focus-utils.js';
 
 let _idCounter = 0;
-
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * A reusable popover component that anchors to a trigger element.
@@ -289,6 +288,18 @@ export class OlPopover extends LitElement {
                         @click="${this._onBackdropClick}"
                     ></div>
                 ` : nothing}
+                <!-- Sentinels wrap the panel (rather than nesting inside it) so
+                     that Tab from the freshly-focused panel lands on the first
+                     real control. If the start sentinel sat inside the panel,
+                     the first forward Tab would hit it and wrap backward to the
+                     last element. They're only reached by genuine wrap-around. -->
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="start"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
@@ -304,27 +315,20 @@ export class OlPopover extends LitElement {
                     `}"
                     @transitionend="${this._onTransitionEnd}"
                 >
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="start"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                     ${this._mobile ? html`
                         <div class="tray-handle" aria-hidden="true">
                             <div class="tray-handle-bar"></div>
                         </div>
                     ` : nothing}
                     <slot></slot>
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="end"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                 </div>
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="end"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
             ` : nothing}
         `;
     }
@@ -470,14 +474,10 @@ export class OlPopover extends LitElement {
     // ── Focus trap ──────────────────────────────────────────────
 
     _getFocusableElements() {
-        const slot = this.shadowRoot?.querySelector('.panel slot:not([name])');
-        if (!slot) return [];
-        const elements = [];
-        for (const node of slot.assignedElements({ flatten: true })) {
-            if (node.matches?.(FOCUSABLE)) elements.push(node);
-            elements.push(...node.querySelectorAll(FOCUSABLE));
-        }
-        return elements;
+        // Deep, shadow-piercing collection of the panel's slotted content, so a
+        // custom element in the panel contributes its real inner focusable (a
+        // plain querySelectorAll would stop at its shadow boundary).
+        return getTabbableFromSlot(this.shadowRoot?.querySelector('.panel slot:not([name])'));
     }
 
     _onSentinelFocus(e) {

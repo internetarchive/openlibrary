@@ -176,11 +176,23 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             border-radius: var(--border-radius-button);
             /* Raised look borrowed from ol-button[variant="secondary"]: a subtle
                drop shadow at rest, plus an inset specular top edge that fades in
-               on hover (see the hover rules below). */
+               on hover (see the hover rules below). Held in a var so the
+               focus-visible rule can re-add the focus ring on top without
+               duplicating (or drifting from) the resting shadow. */
             --_toggle-inset-highlight: transparent;
-            box-shadow:
+            --_toggle-raised-shadow:
                 var(--box-shadow-raised),
                 inset 0 1px 0 var(--_toggle-inset-highlight);
+            box-shadow: var(--_toggle-raised-shadow);
+        }
+
+        /* The base .toggle:focus-visible ring is a single box-shadow, but the
+           button variant's own box-shadow rule above outranks it on specificity
+           (:host([variant="button"]) .toggle), so the ring never showed. Re-add
+           it here at higher specificity, layering the focus ring on top of the
+           raised shadow so the lift survives focus too. */
+        :host([variant="button"]) .toggle:focus-visible {
+            box-shadow: var(--box-shadow-focus), var(--_toggle-raised-shadow);
         }
 
         /* Button + checked: soft blue tint fill (matching the selected row in

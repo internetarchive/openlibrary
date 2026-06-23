@@ -558,6 +558,10 @@ The response includes `title`, `authors`, and a `description` field formatted as
 
         <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination is shown in the medium row as-is — it is not height-locked to the tokens, so this check is a way to eyeball whether it still reads as aligned.</p>
 
+        <div class="control-alignment__guides-toggle">
+          <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines"></ol-toggle>
+        </div>
+
         <section class="example">
           <h3 class="example__title">Small</h3>
           <div class="example__output control-row control-row--small">
@@ -632,6 +636,16 @@ The response includes `title`, `authors`, and a `description` field formatted as
             </span>
           </div>
         </section>
+
+        <script>
+          (function () {
+            const article = document.getElementById('control-alignment');
+            const toggle = document.getElementById('control-alignment-guides');
+            toggle.addEventListener('ol-toggle-change', function (e) {
+              article.classList.toggle('control-alignment--guides-hidden', !e.detail.checked);
+            });
+          })();
+        </script>
       </article>
     </main>
   </div>

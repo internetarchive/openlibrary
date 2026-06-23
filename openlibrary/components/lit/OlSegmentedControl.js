@@ -136,7 +136,11 @@ export class OlSegmentedControl extends LitElement {
             visibility: hidden;
         }
 
-        .segment--ghost {
+        /* The selected segment's text. Doubled class (.segment.segment--ghost)
+           so this beats the later, equal-specificity ".segment" color rule —
+           otherwise the cascade resolves the ghost to --accessible-grey and the
+           selected segment looks dimmed instead of full-strength #333. */
+        .segment.segment--ghost {
             color: var(--dark-grey);
         }
 
@@ -196,7 +200,6 @@ export class OlSegmentedControl extends LitElement {
             color: var(--accessible-grey);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 500;
             line-height: var(--line-height-control);
             white-space: nowrap;
             cursor: pointer;
