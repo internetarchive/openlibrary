@@ -52,7 +52,7 @@
   border-radius: var(--border-radius-card);
   text-decoration: none;
   color: var(--dark-grey);
-  font-size: var(--font-size-label-medium);
+  font-size: var(--font-size-label-large);
   white-space: nowrap;
   transition: background-color 0.15s;
 }
@@ -211,15 +211,42 @@ pre.example__code code[class*="language-"] {
    equal heights read as aligned top/bottom edges. */
 .control-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
+  flex-wrap: nowrap;
+  gap: 16px;
   align-items: flex-start;
+  overflow-x: auto;
+  /* Two dashed guide lines at the top and bottom of the exact target token
+     height, top-aligned with the cells. A control that overshoots or
+     undershoots the zone reads as misaligned at a glance. Each line is a
+     horizontally-repeating gradient (dash, gap) drawn 1px tall.
+     background-attachment: local keeps the lines pinned to the controls when
+     the row scrolls horizontally; background-origin: content-box starts them at
+     the content edge so the top line aligns with the controls' top edge. */
+  background-image:
+    repeating-linear-gradient(to right, var(--mid-grey) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(to right, var(--mid-grey) 0 4px, transparent 4px 8px);
+  background-size: 100% 1px, 100% 1px;
+  background-position: left top, left calc(var(--control-target-height) - 1px);
+  background-repeat: no-repeat;
+  background-attachment: local;
+  background-origin: content-box;
+}
+
+.control-row--small {
+  --control-target-height: var(--control-height-small);
+}
+
+.control-row--medium {
+  --control-target-height: var(--control-height-medium);
+}
+
+.control-row--large {
+  --control-target-height: var(--control-height-large);
 }
 
 .control-row__cell {
   display: inline-flex;
-  outline: 1px dashed var(--color-border-subtle);
-  outline-offset: 2px;
+  flex: none;
 }
 
 /* A bare native input, height-locked to the same control-height tokens so it

@@ -4184,7 +4184,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OlToggle - A switch/toggle web component.\n\nRenders a sliding switch followed by a bold label and an optional greyed\nsublabel. The whole control is a single `role=\"switch\"` button, so the\nentire surface is clickable and Enter/Space activate it.\n\nUnlike `ol-chip` (which leaves selection state to its listener), a toggle\nowns its on/off state: clicking flips `checked` and fires\n`ol-toggle-change` with the new value.",
+          "description": "OlToggle - A switch/toggle web component.\n\nRenders a sliding switch followed by a label and an optional greyed\nsublabel. The whole control is a single `role=\"switch\"` button, so the\nentire surface is clickable and Enter/Space activate it.\n\nUnlike `ol-chip` (which leaves selection state to its listener), a toggle\nowns its on/off state: clicking flips `checked` and fires\n`ol-toggle-change` with the new value.",
           "name": "OlToggle",
           "slots": [
             {
@@ -4229,7 +4229,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "description": "Omit for the default (plain) toggle, or \"button\" for a bordered, raised container styled like ol-button[variant=\"secondary\"] (subtle drop shadow, inset specular edge on hover) that fills with a soft blue tint when checked.",
               "attribute": "variant",
               "reflects": true
             },
@@ -4241,7 +4241,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Primary (bold) label text.",
+              "description": "Primary label text.",
               "attribute": "label"
             },
             {
@@ -4342,7 +4342,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "description": "Omit for the default (plain) toggle, or \"button\" for a bordered, raised container styled like ol-button[variant=\"secondary\"] (subtle drop shadow, inset specular edge on hover) that fills with a soft blue tint when checked.",
               "fieldName": "variant"
             },
             {
@@ -4351,7 +4351,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Primary (bold) label text.",
+              "description": "Primary label text.",
               "fieldName": "label"
             },
             {

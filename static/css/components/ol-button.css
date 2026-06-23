@@ -77,9 +77,17 @@ ol-button > button {
   border-radius: var(--border-radius-button);
   background-color: var(--white);
   color: var(--dark-grey);
+  /* Strength of the specular top edge. Full on light fills (secondary); the
+     dark-filled variants (primary/destructive) dial it down — see below. */
+  --control-highlight-strength: 35%;
   box-shadow:
     var(--box-shadow-raised),
-    inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
   cursor: pointer;
   user-select: none;
   /* Hover color changes are instant (see docs/ai/design.md); only the
@@ -119,8 +127,10 @@ ol-button[variant="primary"] > button {
   background-color: var(--primary-blue);
   border-color: var(--primary-blue);
   color: var(--white);
-  /* Tone the specular highlight to the blue fill instead of pure white. */
+  /* Tone the specular highlight to the blue fill instead of pure white, and
+     soften it — the white edge reads much louder on a dark fill than on white. */
   --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
 }
 
 /* Secondary is the default (already set above). Explicit selector for clarity. */
@@ -137,6 +147,9 @@ ol-button[variant="destructive"] > button {
   background-color: transparent;
   border-color: var(--red);
   color: var(--red);
+  /* Softer specular edge, matching primary — most visible once the red fill
+     comes in on hover. */
+  --control-highlight-strength: 18%;
 }
 
 /* Hover (only fires post-hydration because pointer-events is none on
@@ -254,10 +267,9 @@ ol-button > button > .ol-btn-chevron {
 }
 
 ol-button[aria-haspopup] > button > .ol-btn-chevron {
-  --chevron: url(
-    data:image/svg + xml,
-    %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="black"stroke-width="2.5"stroke-linecap="round"stroke-linejoin="round"%3E%3Cpathd="m6 9 6 6 6-6"/%3E%3C/svg%3E
-  );
+  /* Quoted + URL-encoded so the CSS formatter can't split the data URI on its
+     spaces (an unquoted url() gets tokenized and mangled). */
+  --chevron: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m6%209%206%206%206-6'/%3E%3C/svg%3E");
 
   display: inline-block;
   width: 16px;

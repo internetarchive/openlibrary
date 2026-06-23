@@ -2,11 +2,11 @@ $def with()
 
 <article class="design-pattern" id="toggle">
   <h2 class="design-pattern__title">$_("Toggle")</h2>
-  <p class="design-pattern__description">$:_("The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s.", tag="<code>ol-toggle</code>", role='<code>role="switch"</code>', checked="<code>checked</code>", event="<code>ol-toggle-change</code>")</p>
+  <p class="design-pattern__description">$:_("The %(tag)s component is a switch with a label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s.", tag="<code>ol-toggle</code>", role='<code>role="switch"</code>', checked="<code>checked</code>", event="<code>ol-toggle-change</code>")</p>
 
   <section class="example">
     <h3 class="example__title">$_("Default")</h3>
-    <p>$:_("A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s.", label="<code>label</code>", sublabel="<code>sublabel</code>")</p>
+    <p>$:_("A plain toggle: just the switch, a %(label)s, and an optional greyed %(sublabel)s.", label="<code>label</code>", sublabel="<code>sublabel</code>")</p>
     <pre class="example__code"><code class="language-html">&lt;ol-toggle label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
       <ol-toggle label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
@@ -15,13 +15,13 @@ $def with()
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Card variant")</h3>
-    <p>$:_("Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s.", variant='<code>variant="card"</code>', chip="<code>ol-chip</code>")</p>
-    <pre class="example__code"><code class="language-html">&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
-&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M" checked&gt;&lt;/ol-toggle&gt;</code></pre>
+    <h3 class="example__title">$_("Button variant")</h3>
+    <p>$:_("Use %(variant)s for a bordered, raised container styled like %(button)s — a subtle drop shadow, with an inset specular top edge that lights up on hover. When checked, it fills with a soft blue tint, matching a selected row in %(select)s.", variant='<code>variant="button"</code>', button='<code>ol-button variant="secondary"</code>', select="<code>ol-select-popover</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle variant="button" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
+&lt;ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked&gt;&lt;/ol-toggle&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
-      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
-      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M" checked></ol-toggle>
+      <ol-toggle variant="button" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
+      <ol-toggle variant="button" label="$_('Readable Only')" sublabel="4.6M" checked></ol-toggle>
     </div>
   </section>
 
@@ -40,17 +40,17 @@ $def with()
     <h3 class="example__title">$_("Disabled")</h3>
     <p>$:_("Add %(disabled)s to block interaction.", disabled="<code>disabled</code>")</p>
     <pre class="example__code"><code class="language-html">&lt;ol-toggle label="Readable Only" sublabel="4.6M" disabled&gt;&lt;/ol-toggle&gt;
-&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M" checked disabled&gt;&lt;/ol-toggle&gt;</code></pre>
+&lt;ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked disabled&gt;&lt;/ol-toggle&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
       <ol-toggle label="$_('Readable Only')" sublabel="4.6M" disabled></ol-toggle>
-      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M" checked disabled></ol-toggle>
+      <ol-toggle variant="button" label="$_('Readable Only')" sublabel="4.6M" checked disabled></ol-toggle>
     </div>
   </section>
 
   <section class="example">
     <h3 class="example__title">$_("Change event")</h3>
     <p>$:_("Toggling fires %(event)s with the new state in %(detail)s.", event="<code>ol-toggle-change</code>", detail="<code>event.detail.checked</code>")</p>
-    <pre class="example__code"><code class="language-html">&lt;ol-toggle id="demo-toggle" variant="card" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle id="demo-toggle" variant="button" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
 
 &lt;script&gt;
   toggle.addEventListener('ol-toggle-change', (e) =&gt; {
@@ -58,7 +58,7 @@ $def with()
   });
 &lt;/script&gt;</code></pre>
     <div class="example__output">
-      <ol-toggle id="demo-toggle" variant="card" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
+      <ol-toggle id="demo-toggle" variant="button" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
       <p>$_("Checked:") <strong id="demo-toggle-state">false</strong></p>
     </div>
     <script>
