@@ -203,7 +203,7 @@ module.exports = [
 
   // Configuration for test files
   {
-    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js"],
+    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js", "openlibrary/components/__tests__/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.es2021,
