@@ -4,6 +4,11 @@ Domain reference for Open Library's tag system. Covers the two-tier tag architec
 
 **Status as of June 2026:** The Tag object infrastructure (created by Jayden, GSoC 2023) is live in production. The controlled vocabulary project (`Open-Book-Genome-Project/tags`) is in Phase 1-2. OL integration (Phase 3) has not started.
 
+**See also:**
+- [Dev Setup](dev-setup.md) — local install, test commands, CLI usage, data contract rules
+- [Debugging Guide](debugging.md) — CI failures, classification bugs, backfill script issues
+- [Known Issues](known-issues.md) — data quality gaps, architectural limitations, open questions
+
 ---
 
 ## Background: Two Tag Systems in Production
