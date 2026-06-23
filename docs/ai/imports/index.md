@@ -322,9 +322,44 @@ for i, rec in enumerate(ITANProvider().iter_ol_records()):
 "
 ```
 
-## Roadmap: BookWorm
+## Roadmap
 
-[#12655](https://github.com/internetarchive/openlibrary/issues/12655) is the epic for modernizing the import pipeline. Implementation lives at [ArchiveLabs/openlibrary-bookworm](https://github.com/ArchiveLabs/openlibrary-bookworm). **Not yet live — reference material only.**
+### Near-term priorities (sequenced)
+
+These are the agreed next steps, in order. Each unblocks the next.
+
+1. **Dev e2e testability** — wire `import_all` / `manage-imports.py` into the Docker Compose dev setup so the full batch→queue→process→edition loop can be exercised locally without hitting prod. Currently tracked in [#7236](https://github.com/internetarchive/openlibrary/issues/7236). **This unblocks reliable iteration on everything below.**
+
+2. **Error reporting** — `do_import()` in `manage-imports.py` currently collapses all failures to `"internal-error"`. Propagate the specific error code from the import API response (or exception type) through to `item.set_status("failed", error=specific_code)`. You cannot measure reliability improvements without this.
+
+3. **openlibrary-client batch submit** — add `ol batch submit file.jsonl --source <slug> --batch-name <name>` to the CLI so partners and scripts can submit without writing custom POST logic.
+
+4. **Feed registry** — rather than writing a new `DataProvider` subclass per partner, define a config-driven registry (YAML or DB rows) where each row is a source. Onboarding a new micro-publisher goes from "write adapter + PR" to "add a row." Four connector types cover all current and planned sources:
+
+   | Connector | Use cases |
+   |-----------|-----------|
+   | `opds2` | Cita Press, any publisher with a modern catalog feed |
+   | `jsonl_url` | ITAN, flat-file dumps |
+   | `marc_bulk` | BWB monthly, IA scanning partners |
+   | `api` | Amazon (enrichment-only), Google Books |
+
+   Registry row fields: connector type, URL/config, trust level, polling cadence, cover-import flag, rate limit.
+
+5. **Trust tiers** — replace the current admin-or-`needs_review` binary with per-source trust levels. Non-admin community accounts: cap at ~1000 records/day, route to `needs_review`. Trusted partners: auto-approve. This is the prerequisite for community batch submissions.
+
+6. **Community batch submissions** — once trust tiers exist, open `/import/batch/new` to any logged-in account. Gated on #5.
+
+7. **BWB covers** — the monthly BWB MARC bulk job does not currently import covers. MARC field 856 may carry a cover URL; verify against actual BWB MARC files before designing. If present, extract and POST to `covers.openlibrary.org/b/upload` as part of the monthly job.
+
+8. **Amazon enrichment (not import)** — OL already fetches Amazon data for the book providers panel. Use that data to fill missing covers, descriptions, and subjects on existing OL pages that have an ASIN — flagged as Amazon-sourced. New record creation from Amazon is out of scope until there is a trust/TOS conversation with Amazon.
+
+9. **AI-assisted enrichment** — use AI to enrich high-demand book pages (descriptions, subjects, excerpts) where data is thin. Requires a design conversation first: what claims is the model allowed to make, how is AI-generated content attributed and flagged, what does human review look like, what quality signals indicate it is working. **Do not start implementing without that design conversation.**
+
+---
+
+### BookWorm (longer-term architecture)
+
+[#12655](https://github.com/internetarchive/openlibrary/issues/12655) is the epic for fully modernizing the import pipeline. Implementation lives at [ArchiveLabs/openlibrary-bookworm](https://github.com/ArchiveLabs/openlibrary-bookworm). **Not yet live — reference material only.**
 
 Three layers:
 
@@ -336,7 +371,7 @@ Three layers:
 - `GET  /v1/imports/batch/{id}` — batch status
 - `POST /v1/lookup/isbn/{isbn}` — Amazon/Google Books metadata lookup (async)
 
-Auth via API keys scoped to `import_source.name`. The `import_source.trust_level` field (`'pending'` | `'review'`) replaces the current admin-or-`needs_review` binary — solving the trusted-partner fast-path problem.
+Auth via API keys scoped to `import_source.name`. The `import_source.trust_level` field (`'pending'` | `'review'`) replaces the current admin-or-`needs_review` binary.
 
 **3. BWB OPDS real-time bot** — replaces the monthly CSV dump with a ~10-minute polling cron against BWB's OPDS feed, submitting new records to BookWorm. Runs in an `ol-imports-cron` Docker container on `ol-home0`.
 
@@ -344,6 +379,8 @@ Auth via API keys scoped to `import_source.name`. The `import_source.trust_level
 - Phase 1: provision DB + BookWorm skeleton + trust registry + wire `/import/batch/new` UI to BookWorm
 - Phase 2: migrate AffiliateServer lookups to BookWorm, build BWB OPDS bot
 - Phase 3: update ImportBot to read from `openlibrary_imports`, deprecate `POST /api/import` for external callers
+
+The near-term priorities above (feed registry, trust tiers, community submissions) can be shipped as incremental improvements to the current system before BookWorm is ready, or deferred to BookWorm. That decision has not been made.
 
 ---
 
