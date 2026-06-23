@@ -442,8 +442,12 @@ msgstr ""
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
 #: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+<<<<<<< HEAD
 >>>>>>> 12d2883d1 (adding backend solr processing)
 #: type/tag/form.html
+=======
+#: type/series/edit.html type/tag/form.html
+>>>>>>> e45530f97 ([pre-commit.ci] auto fixes from pre-commit.com hooks)
 msgid "Cancel"
 msgstr ""
 
@@ -755,7 +759,7 @@ msgstr ""
 msgid "Disable"
 msgstr ""
 
-#: lists/lists.html status.html type/list/edit.html
+#: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -1799,7 +1803,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html type/list/edit.html
+#: account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -5541,6 +5545,7 @@ msgid "Description:"
 msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html
 msgid "Create new list"
 msgstr ""
 
@@ -6333,10 +6338,6 @@ msgid "Filter"
 msgstr ""
 
 #: site/alert.html
-msgid "filter icon"
-msgstr ""
-
-#: site/alert.html
 msgid "Search Filters"
 msgstr ""
 
@@ -6860,61 +6861,61 @@ msgstr ""
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Create a series"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Edit Series"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Edit List"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Move..."
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "List Name"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Series Name"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Add another book"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Create new series"
 msgstr ""
 
