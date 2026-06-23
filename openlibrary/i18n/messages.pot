@@ -8602,6 +8602,10 @@ msgid "Italian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
+msgid "Korean"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Portuguese"
 msgstr ""
 
