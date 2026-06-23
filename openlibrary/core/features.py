@@ -25,25 +25,21 @@ from pydantic_settings import BaseSettings
 _LEGACY_FLAG_MAP = {
     "enabled": True,
     "disabled": False,
-    "yes": True,
-    "no": False,
-    "true": True,
-    "false": False,
 }
 
 
 class Features(BaseSettings):
-    model_config = {"extra": "ignore", "env_prefix": "OL_FEATURE_"}
+    model_config = {"extra": "ignore"}
 
-    debug: bool = False
-    dev: bool = False
-    lists: bool = True
-    publishers: bool = False
-    recentchanges_v2: bool = False
-    stats: bool = True
-    stats_header: bool = True
-    superfast: bool = False
-    undo: bool = True
+    debug: bool
+    dev: bool
+    lists: bool
+    publishers: bool
+    recentchanges_v2: bool
+    stats: bool
+    stats_header: bool
+    superfast: bool
+    undo: bool
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> Features:

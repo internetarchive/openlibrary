@@ -64,6 +64,8 @@ features:
         usergroup: /usergroup/librarians
     publishers: enabled
     recentchanges_v2: enabled
+    stats: enabled
+    stats-header: enabled
     superfast: enabled
     undo: enabled
 
