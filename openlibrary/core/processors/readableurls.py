@@ -3,23 +3,59 @@
 import logging
 import os
 import re
+import time
 import urllib
 from urllib.parse import quote_plus
 
 import web
 
+from infogami import config
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
 
 logger = logging.getLogger("openlibrary.readableurls")
 
-try:
-    from booklending_utils.openlibrary import is_exclusion
-except ImportError:
+_EXCLUSION_CACHE_TTL = 86400  # 1 day
+_exclusion_cache: tuple[float, frozenset[str]] | None = None
 
-    def is_exclusion(obj):
-        """Processor for determining whether records require exclusion"""
+
+def _get_author_exclusions() -> frozenset[str]:
+    """Returns the set of excluded author OLIDs from config, cached for 1 day.
+
+    Reads ``author_exclusions`` from openlibrary.yml (a list of bare OLIDs
+    such as ``["OL123A", "OL456A"]``).  The list defaults to empty so the
+    site behaves normally when the key is absent.
+    """
+    global _exclusion_cache
+    now = time.time()
+    if _exclusion_cache is None or now - _exclusion_cache[0] > _EXCLUSION_CACHE_TTL:
+        exclusions: list[str] = config.get("author_exclusions") or []
+        _exclusion_cache = (now, frozenset(exclusions))
+    return _exclusion_cache[1]
+
+
+def is_exclusion(thing) -> bool:
+    """Returns True if *thing* should be excluded from public view.
+
+    A thing is excluded when it is an author whose OLID is in the
+    ``author_exclusions`` config list, or when it is a book/work whose
+    first resolvable author is in that list.
+    """
+    if not thing or not thing.key:
         return False
+    try:
+        _, _type, key = thing.key.split("/")
+    except ValueError:
+        return False
+    exclusions = _get_author_exclusions()
+    if _type == "authors":
+        return key in exclusions
+    elif _type in ("books", "works"):
+        for a in thing.get("authors") or []:
+            akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
+            if akey:
+                return akey.split("/")[-1] in exclusions
+    return False
 
 
 class ReadableUrlProcessor:
