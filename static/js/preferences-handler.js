@@ -1,6 +1,20 @@
-import { setGlobalPreferences, updateAllCarousels } from './preferences.js';
+import { getGlobalPreferences, setGlobalPreferences, updateAllCarousels } from './preferences.js';
+
+function initFilterPanelFromPreferences() {
+    const prefs = getGlobalPreferences();
+    const modeSelect = document.getElementById('global-mode-select');
+    const langSelect = document.getElementById('language-select');
+    const dateStart = document.getElementById('global-date-start');
+    const dateEnd = document.getElementById('global-date-end');
+    if (modeSelect) modeSelect.value = prefs.mode || 'all';
+    if (langSelect) langSelect.value = prefs.language || 'all';
+    if (dateStart) dateStart.value = (prefs.date && prefs.date[0]) || 1900;
+    if (dateEnd) dateEnd.value = (prefs.date && prefs.date[1]) || 2025;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
+    initFilterPanelFromPreferences();
+
     document.getElementById('save-preferences-btn').addEventListener('click', () => {
         const startYear = parseInt(document.getElementById('global-date-start').value) || 1900;
         const endYear = parseInt(document.getElementById('global-date-end').value) || 2025;

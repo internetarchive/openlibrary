@@ -853,22 +853,23 @@ class account_preferences(delegate.page):
     encoding = "json"
 
     def POST(self):
-        logger.info("Received preferences update request")
         try:
-            raw_data = web.data()
-            logger.info("Raw request data: %s", raw_data)
-            d = json.loads(raw_data)
-            logger.info("Parsed preferences data: %s", d)
+            d = json.loads(web.data())
         except Exception as e:
             logger.error("Failed to process preferences update: %s", str(e))
             return delegate.RawText(
                 json.dumps({"error": "Failed to process request"}),
                 content_type="application/json",
             )
+        raw_date = d.get("date", [1900, 2025])
+        if isinstance(raw_date, list) and len(raw_date) == 2 and all(isinstance(v, int) for v in raw_date):
+            date = [max(1800, min(2025, raw_date[0])), max(1800, min(2025, raw_date[1]))]
+        else:
+            date = [1900, 2025]
         prefs = {
             "mode": d.get("mode", "all"),
-            "language": d.get("language", "en"),
-            "date": d.get("date", [1900, 2025]),
+            "language": d.get("language", "all"),
+            "date": date,
         }
 
         # Transform to backend format
