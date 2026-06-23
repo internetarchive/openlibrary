@@ -223,10 +223,22 @@ pre.example__code code[class*="language-"] {
      the row scrolls horizontally; background-origin: content-box starts them at
      the content edge so the top line aligns with the controls' top edge. */
   background-image:
-    repeating-linear-gradient(to right, var(--mid-grey) 0 4px, transparent 4px 8px),
-    repeating-linear-gradient(to right, var(--mid-grey) 0 4px, transparent 4px 8px);
-  background-size: 100% 1px, 100% 1px;
-  background-position: left top, left calc(var(--control-target-height) - 1px);
+    repeating-linear-gradient(
+      to right,
+      var(--mid-grey) 0 4px,
+      transparent 4px 8px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--mid-grey) 0 4px,
+      transparent 4px 8px
+    );
+  background-size:
+    100% 1px,
+    100% 1px;
+  background-position:
+    left top,
+    left calc(var(--control-target-height) - 1px);
   background-repeat: no-repeat;
   background-attachment: local;
   background-origin: content-box;
