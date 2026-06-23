@@ -126,6 +126,7 @@
 .search-result-item__preview-covers {
   display: flex;
   align-items: center;
+  isolation: isolate;
 }
 
 .search-result-item__preview-covers img {
@@ -308,7 +309,7 @@
 
 .listDelete a span {
   margin-right: var(--spacing-inline-sm);
-  background-image: url(/images/back_list-trash.png);
+  background-image: url(/static/images/back_list-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   height: 28px;
