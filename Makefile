@@ -51,7 +51,7 @@ lit-components:
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
 
 i18n:
-	python ./scripts/i18n-messages compile
+	uv run python ./scripts/i18n-messages compile
 
 git:
 	git submodule init
@@ -76,19 +76,16 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	python -m ruff check .
+	uv run --extra test ruff check .
 
 PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
 
 test-py:
-	pytest $(PYTEST_ARGS)
-
-test-py-uv:
-	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
+	uv run --extra test pytest $(PYTEST_ARGS)
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
-	python ./scripts/i18n-messages validate de es fr hr it ja zh
+	uv run python ./scripts/i18n-messages validate de es fr hr it ja zh
 
 test:
 	make test-py && npm run test && make test-i18n
