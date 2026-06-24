@@ -16,7 +16,6 @@ import genshi
 import genshi.filters
 import web
 from bs4 import BeautifulSoup
-
 from infogami import config
 from infogami.infobase.client import Nothing
 
@@ -337,43 +336,38 @@ def extract_year(input: str, int_only: bool = True) -> str:
     return ""
 
 
-_AUTHOR_EXCLUSIONS: frozenset[str] | None = None
-
-
+@functools.cache
 def get_author_exclusions() -> frozenset[str]:
-    """Returns the set of excluded author OLIDs from config.
+    """Returns the set of excluded author keys from config.
 
-    Reads ``author_exclusions`` from openlibrary.yml (a list of bare OLIDs
-    such as ``["OL123A", "OL456A"]``).  Initialized once per process since
+    Reads ``author_exclusions`` from openlibrary.yml (a list of full author keys
+    such as ``["/authors/OL123A"]``).  Initialized once per process since
     config is static per-deploy; a restart is required to pick up changes.
     """
-    global _AUTHOR_EXCLUSIONS
-    if _AUTHOR_EXCLUSIONS is None:
-        _AUTHOR_EXCLUSIONS = frozenset(config.get("author_exclusions") or [])
-    return _AUTHOR_EXCLUSIONS
+    return frozenset(config.get("author_exclusions") or [])
 
 
 def is_exclusion(thing) -> bool:
     """Returns True if *thing* should be excluded from public view.
 
-    A thing is excluded when it is an author whose OLID is in the
+    A thing is excluded when it is an author whose key is in the
     ``author_exclusions`` config list, or when it is a book/work whose
     first resolvable author is in that list.
     """
     if not thing or not thing.key:
         return False
     try:
-        _, _type, key = thing.key.split("/")
+        _, _type, _ = thing.key.split("/")
     except ValueError:
         return False
     exclusions = get_author_exclusions()
     if _type == "authors":
-        return key in exclusions
+        return thing.key in exclusions
     elif _type in ("books", "works"):
         for a in thing.get("authors") or []:
             akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
             if akey:
-                return akey.split("/")[-1] in exclusions
+                return akey in exclusions
     return False
 
 

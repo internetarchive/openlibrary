@@ -1,8 +1,8 @@
 import re
 
 import web
-
 from infogami.infobase import client, common
+
 from openlibrary.core import helpers
 from openlibrary.core.processors import readableurls as processors
 
@@ -145,9 +145,9 @@ def _make_thing(site, key, type_key, extra=None):
 
 
 def test_is_exclusion_author_excluded(monkeypatch):
-    """An author whose OLID is in author_exclusions returns True."""
-    monkeypatch.setattr(helpers, "_AUTHOR_EXCLUSIONS", None)
-    monkeypatch.setattr(helpers.config, "get", lambda key, *a, **kw: ["OL99A"] if key == "author_exclusions" else None)
+    """An author whose key is in author_exclusions returns True."""
+    helpers.get_author_exclusions.cache_clear()
+    monkeypatch.setattr(helpers.config, "get", lambda key, *a, **kw: ["/authors/OL99A"] if key == "author_exclusions" else None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL99A", "/type/author", {"name": "Test Author"})
     assert processors.is_exclusion(author) is True
@@ -155,7 +155,7 @@ def test_is_exclusion_author_excluded(monkeypatch):
 
 def test_is_exclusion_author_not_excluded(monkeypatch):
     """An author not in author_exclusions returns False."""
-    monkeypatch.setattr(helpers, "_AUTHOR_EXCLUSIONS", None)
+    helpers.get_author_exclusions.cache_clear()
     monkeypatch.setattr(helpers.config, "get", lambda key, *a, **kw: [] if key == "author_exclusions" else None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL1A", "/type/author", {"name": "Safe Author"})
@@ -164,29 +164,27 @@ def test_is_exclusion_author_not_excluded(monkeypatch):
 
 def test_is_exclusion_empty_config_returns_false(monkeypatch):
     """When author_exclusions is absent from config, nothing is excluded."""
-    monkeypatch.setattr(helpers, "_AUTHOR_EXCLUSIONS", None)
+    helpers.get_author_exclusions.cache_clear()
     monkeypatch.setattr(helpers.config, "get", lambda key, *a, **kw: None)
     site = MockSite()
     author = _make_thing(site, "/authors/OL99A", "/type/author", {"name": "Test Author"})
     assert processors.is_exclusion(author) is False
 
 
-def test_is_exclusion_none_returns_false(monkeypatch):
+def test_is_exclusion_none_returns_false():
     """is_exclusion(None) returns False without raising."""
-    monkeypatch.setattr(helpers, "_AUTHOR_EXCLUSIONS", None)
-    monkeypatch.setattr(helpers.config, "get", lambda key, *a, **kw: [])
     assert processors.is_exclusion(None) is False
 
 
 def test_get_author_exclusions_caches(monkeypatch):
     """get_author_exclusions returns the same frozenset on repeated calls."""
-    monkeypatch.setattr(helpers, "_AUTHOR_EXCLUSIONS", None)
+    helpers.get_author_exclusions.cache_clear()
     call_count = {"n": 0}
 
     def fake_get(key, *a, **kw):
         if key == "author_exclusions":
             call_count["n"] += 1
-            return ["OL1A", "OL2A"]
+            return ["/authors/OL1A", "/authors/OL2A"]
         return None
 
     monkeypatch.setattr(helpers.config, "get", fake_get)
