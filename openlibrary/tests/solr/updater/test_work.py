@@ -528,3 +528,50 @@ class Test_Sort_Editions_Ocaids:
         )
 
         assert sorted(wsb.ia_collection) == sorted(["americanlibraries", "blah"])
+
+
+class FakeDataProviderWithCovers(FakeDataProvider):
+    """FakeDataProvider that returns controllable cover dimensions."""
+
+    def __init__(self, docs=None, cover_dimensions: dict[int, tuple[int, int] | None] | None = None):
+        super().__init__(docs)
+        self._cover_dimensions = cover_dimensions or {}
+
+    def get_cover_dimensions(self, cover_id: int) -> tuple[int, int] | None:
+        return self._cover_dimensions.get(cover_id)
+
+
+class TestWorkSolrBuilderCoverDimensions:
+    def test_cover_width_and_height_none_when_no_cover(self):
+        """Work with no covers field → cover_i is None → dimensions are None."""
+        wsb = make_work_solr_builder(work=make_work())
+        assert wsb.cover_i is None
+        assert wsb.cover_width is None
+        assert wsb.cover_height is None
+
+    def test_cover_width_and_height_none_when_cover_not_in_db(self):
+        """Work has a cover id but coverstore returns None (not in DB)."""
+        work = make_work(covers=[42])
+        dp = FakeDataProviderWithCovers(cover_dimensions={})
+        wsb = make_work_solr_builder(work=work, data_provider=dp)
+        assert wsb.cover_i == 42
+        assert wsb.cover_width is None
+        assert wsb.cover_height is None
+
+    def test_cover_width_and_height_from_data_provider(self):
+        """Work has a cover id and coverstore returns valid dimensions."""
+        work = make_work(covers=[99])
+        dp = FakeDataProviderWithCovers(cover_dimensions={99: (800, 1200)})
+        wsb = make_work_solr_builder(work=work, data_provider=dp)
+        assert wsb.cover_i == 99
+        assert wsb.cover_width == 800
+        assert wsb.cover_height == 1200
+
+    def test_sentinel_cover_id_minus_one_skipped(self):
+        """cover id -1 is the sentinel for 'no cover'; it must be skipped."""
+        work = make_work(covers=[-1, 77])
+        dp = FakeDataProviderWithCovers(cover_dimensions={77: (400, 600)})
+        wsb = make_work_solr_builder(work=work, data_provider=dp)
+        assert wsb.cover_i == 77
+        assert wsb.cover_width == 400
+        assert wsb.cover_height == 600
