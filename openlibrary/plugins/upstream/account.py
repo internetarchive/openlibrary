@@ -11,9 +11,10 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -22,7 +23,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -131,7 +131,7 @@ class xauth(delegate.page):
             result = {
                 "success": True,
                 "version": 1,
-                "values": {"auth_token": "dev_placeholder_token"},
+                "values": {"token": "dev_placeholder_token"},
             }
         elif i.op == "info":
             result = {
@@ -158,7 +158,7 @@ class xauth(delegate.page):
                         "email": "openlibrary@example.org",
                         "itemname": "@openlibrary",
                         "screenname": "openlibrary",
-                        "auth_token": "dev_placeholder_token",
+                        "token": "dev_placeholder_token",
                     },
                 }
             else:
@@ -182,7 +182,7 @@ class xauth(delegate.page):
                     "email": "openlibrary@example.org",
                     "itemname": "@openlibrary",
                     "screenname": "openlibrary",
-                    "auth_token": "dev_placeholder_token",
+                    "token": "dev_placeholder_token",
                 },
             }
         return delegate.RawText(json.dumps(result), content_type="application/json")
@@ -536,10 +536,12 @@ class account_login_otp_redeem(delegate.page):
         result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
         if not result.get("success"):
             return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
-        # redeem_otp no longer returns S3 keys (xauthn breaking change, issue #12942).
-        # issue_key now requires the auth_token from the preceding auth step.
-        auth_token = result.get("values", {}).get("auth_token")
-        s3_keys = InternetArchiveAccount.issue_s3_key(email=i.email, auth_token=auth_token)
+        values = result.get("values", {})
+        # Graceful migration: use S3 keys if redeem_otp returned them directly (current
+        # xauthn behavior); fall through to issue_key once #12942 is deployed to prod.
+        if not (s3_keys := values.get("s3")):
+            token = values.get("token")
+            s3_keys = InternetArchiveAccount.issue_s3_key(email=i.email, token=token)
         if not s3_keys:
             return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
         access = s3_keys["access"]

@@ -106,7 +106,7 @@ def test_get(mock_web, mock_site):
 
 @mock.patch.object(InternetArchiveAccount, "xauth")
 def test_verify_success(mock_xauth):
-    # activate response includes auth_token; issue_key is called with it
+    # activate response includes token; issue_key is called with it
     mock_xauth.side_effect = [
         {
             "success": True,
@@ -114,7 +114,7 @@ def test_verify_success(mock_xauth):
                 "email": "test@example.com",
                 "itemname": "@test",
                 "screenname": "test",
-                "auth_token": "tok_abc123",
+                "token": "tok_abc123",
             },
         },
         {"s3": {"access": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI"}, "ttl": 3600},
@@ -124,9 +124,9 @@ def test_verify_success(mock_xauth):
     assert result["email"] == "test@example.com"
     assert result["s3"]["access"] == "AKIAIOSFODNN7EXAMPLE"
     assert result["s3"]["secret"] == "wJalrXUtnFEMI"
-    # Confirm auth_token from activate was forwarded to issue_key
+    # Confirm token from activate was forwarded to issue_key
     issue_key_call = mock_xauth.call_args_list[1]
-    assert issue_key_call.kwargs.get("auth_token") == "tok_abc123"
+    assert issue_key_call.kwargs.get("token") == "tok_abc123"
 
 
 @mock.patch.object(InternetArchiveAccount, "xauth")
