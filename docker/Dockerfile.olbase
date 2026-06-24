@@ -75,11 +75,8 @@ ENV PYTHONPATH=/openlibrary
 ENV PATH="/openlibrary/.venv/bin:${PATH}"
 # Pre-compile .pyc during uv sync for faster cold starts
 ENV UV_COMPILE_BYTECODE=1
-USER root
 # Create venv and install all dependency packages from the lockfile (skip the root project)
-RUN uv sync --frozen --no-install-project && chown -R openlibrary:openlibrary .venv
-
-USER openlibrary
+RUN uv sync --frozen --no-install-project
 
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci --no-audit

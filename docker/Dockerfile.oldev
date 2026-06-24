@@ -9,10 +9,8 @@ ARG HTTPS_PROXY
 WORKDIR /openlibrary
 
 COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
-USER root
 # .venv already exists from olbase; just install the extra test dependencies
-RUN uv sync --frozen --no-install-project --extra test && chown -R openlibrary:openlibrary .venv
-USER openlibrary
+RUN uv sync --frozen --no-install-project --extra test
 
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm install --no-audit

@@ -48,5 +48,6 @@ RUN if [ -n "$APT_MIRROR" ]; \
 
 # Install monitoring dependencies via uv (managed in pyproject.toml under [project.optional-dependencies] monitoring group)
 COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
+USER openlibrary
 # .venv already exists from olbase; just install the extra monitoring dependencies
-RUN uv sync --frozen --no-install-project --extra monitoring && chown -R openlibrary:openlibrary .venv
+RUN uv sync --frozen --no-install-project --extra monitoring

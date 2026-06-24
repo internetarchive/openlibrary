@@ -6,10 +6,11 @@ ARG NO_PROXY
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
-USER root
-COPY pyproject.toml uv.lock ./
+USER openlibrary
+COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
 # .venv already exists from olbase; just install the extra test dependencies
-RUN uv sync --frozen --no-install-project --extra test && chown -R openlibrary:openlibrary .venv
+RUN uv sync --frozen --no-install-project --extra test
+USER root
 
 WORKDIR /openlibrary/scripts/solr_builder
 
