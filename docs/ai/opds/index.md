@@ -29,7 +29,7 @@ reader.archive.org          openlibrary.org/opds (reverse proxy)
 
 **`openlibrary.org/opds` is a reverse proxy** to `opds.openlibrary.org` — not a separate system. Any request to `openlibrary.org/opds/search?query=tolkien` is handled by the FastAPI service.
 
-The Python library `ArchiveLabs/pyopds2_openlibrary` is the intermediary: it calls `openlibrary.org`'s search and book APIs and assembles OPDS 2.0 catalog JSON. The service (`opds.openlibrary.org`) wraps it with routing, caching, and error handling.
+Two Python libraries form the stack. `ArchiveLabs/pyopds2` defines the OPDS 2.0 data model (`Catalog`, `DataProvider`, `DataProviderRecord`, `Link`, `Metadata`, `Publication`). `ArchiveLabs/pyopds2_openlibrary` extends those abstractions with OL-specific logic — it subclasses `DataProvider` and `DataProviderRecord`, calls `openlibrary.org`'s search and book APIs, and assembles OPDS 2.0 catalog dicts. The service (`opds.openlibrary.org`) wraps the library with routing, caching, and error handling.
 
 ---
 
@@ -37,8 +37,9 @@ The Python library `ArchiveLabs/pyopds2_openlibrary` is the intermediary: it cal
 
 | Repo | Purpose |
 |------|---------|
+| `ArchiveLabs/pyopds2` | Base OPDS 2.0 library — data model types (`Catalog`, `DataProvider`, `DataProviderRecord`, `Link`, `Metadata`, `Publication`) |
+| `ArchiveLabs/pyopds2_openlibrary` | OL-specific implementation — extends `pyopds2`; adds OL API calls, httpx connection pool, retry logic |
 | `ArchiveLabs/opds.openlibrary.org` | The HTTP service — FastAPI app deployed at opds.openlibrary.org |
-| `ArchiveLabs/pyopds2_openlibrary` | Python library — calls OL APIs, emits OPDS 2.0 catalog dicts |
 | `internetarchive/openlibrary` | OL backend — provides `/search.json`, `/books/{olid}.json`, etc. |
 
 ---
