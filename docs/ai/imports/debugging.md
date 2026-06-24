@@ -27,9 +27,45 @@ The `ol import --provider ...` command described in `pm/workflows/import_workflo
 
 Adding a new identifier type to `identifiers.yml` requires a PR merge followed by the weekly OL deploy cycle. Until the deploy, any `identifiers` key in submitted records that references the new type is **silently dropped** — no error, no warning. Design implication: either (a) block batch submission until after the identifier PR deploys, or (b) submit records without the `identifiers` field and run an update pass afterward.
 
-### Local dev ImportBot does not run
+### Running ImportBot locally (fixed in PR #12999)
 
-`scripts/manage-imports.py` (ImportBot) is not wired into the Docker Compose dev setup. Records submitted to `/import/batch/new` locally will queue but never be processed. To test the full queue→process loop, either call `add_book.load()` directly in tests or test against a staging environment. Tracked in [#7236](https://github.com/internetarchive/openlibrary/issues/7236).
+ImportBot (`scripts/manage-imports.py`) is now included in `compose.near-prod.yaml`. To run the full queue→process loop locally:
+
+```bash
+# Start web stack plus importbot
+COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" \
+  docker compose up -d web infobase db memcached home importbot
+
+# Windows: use semicolons in COMPOSE_FILE
+# COMPOSE_FILE="compose.yaml;compose.override.yaml;compose.near-prod.yaml"
+```
+
+The `importbot` service sets `LOCAL_DEV=true` which makes `manage-imports.py` log in as
+`openlibrary@example.com` / `admin123` (the seeded dev account). It polls the `import_item`
+table every 15 seconds (`OL_IMPORT_ALL_SLEEP=15`) with a single worker process
+(`OL_IMPORT_ALL_PROCESSES=1`) to avoid SQLite lock contention.
+
+Key env vars for the importbot service (all have defaults in `compose.near-prod.yaml`):
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `LOCAL_DEV` | `true` | Login as dev account instead of using `.rcfile` |
+| `OL_IMPORT_ALL_SLEEP` | `15` (local) / `60` (prod default) | Seconds between polls when queue is empty |
+| `OL_IMPORT_ALL_PROCESSES` | `1` (local) / `8` (prod default) | Worker pool size — keep at 1 locally to avoid db lock issues |
+
+To submit a record and watch it process:
+
+```bash
+# 1. Submit to the batch queue (must be logged in)
+curl -s -X POST "http://localhost:8080/import/batch/new" \
+  --cookie "session=..." \
+  -F 'batch=@records.jsonl'
+
+# 2. Watch importbot pick it up
+docker compose logs -f importbot
+```
+
+Previously tracked as [#7236](https://github.com/internetarchive/openlibrary/issues/7236).
 
 ---
 
