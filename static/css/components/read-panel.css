@@ -66,10 +66,10 @@
   position: relative;
   top: 2px;
 
-  /* Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color */
+  /* Setting pseudo-element content to search icon; mask is used to allow for a 'fill' color */
   content: "";
-  -webkit-mask: url(/static/images/icons/open-book.svg);
-  mask: url(/static/images/icons/open-book.svg);
+  -webkit-mask: url(/static/images/icons/icon_search-inside.svg);
+  mask: url(/static/images/icons/icon_search-inside.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
   background-color: var(--primary-blue);
@@ -285,4 +285,50 @@ ul.ebook-download-options li {
   }
   /* stylelint-enable selector-max-specificity */
   /* stylelint-enable max-nesting-depth */
+}
+
+/* Map icon for standalone Check WorldCat button (outside .dropper-menu) */
+.btn-notice .btn-icon.map,
+.read-options .btn-icon.map,
+.cta-button-group .btn-icon.map {
+  background-image: url(/static/images/icons/icon_map.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+/* Book-open icon for Borrow/Read buttons */
+.btn-notice .btn-icon.book-open,
+.read-options .btn-icon.book-open {
+  -webkit-mask: url(/static/images/icons/open-book.svg);
+  mask: url(/static/images/icons/open-book.svg);
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  background-color: var(--white);
+}
+
+/* Cart icon for Buy button */
+.btn-icon.cart {
+  -webkit-mask: url(/static/images/icons/icon_cart.svg);
+  mask: url(/static/images/icons/icon_cart.svg);
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  background-color: var(--white);
+}
+
+/* Buy popover: full-width trigger button */
+.buy-popover {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-stack-xs);
+}
+
+/* Buy options popover content */
+.buy-options {
+  padding: var(--spacing-inset-sm);
+  min-width: 220px;
+}
+
+.buy-options .affiliate-links-section {
+  display: block;
 }

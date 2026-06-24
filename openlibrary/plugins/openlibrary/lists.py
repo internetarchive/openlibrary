@@ -1,5 +1,7 @@
 """Lists implementation."""
 
+from __future__ import annotations
+
 import json
 import random
 from collections.abc import Generator

@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None, book_title='')
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, worldcat_url=None, book_title='')
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -19,19 +19,22 @@ $else:
   $ analytics_action = "Read"
 
 $ user = get_current_user()
-$ data_attr = get_preserve_intent_attrs(label, book_title, "book", "/books/%s" % edition_key) if (action == 'borrow') else ""
+$ data_attr = get_preserve_intent_attrs(label, book_title, "book") if (action == 'borrow') else ""
 $ login_class = "js-login-intent" if (data_attr and not user) else ""
 
-$ menu_items = [listen, edition_key]
+$ menu_items = [listen, worldcat_url]
 $ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
 $if any(menu_items) and not is_carousel:
   <div class="cta-dropper cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) cta-btn--w-icon $(login_class)"
         $:analytics_attr(analytics_action)
         $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
-        >$label</a>
+        >
+      <span class="btn-icon book-open"></span>
+      <span class="btn-label">$label</span>
+    </a>
     <details class="cta-btn cta-btn--available">
       <summary></summary>
       <ul class="dropper-menu">
@@ -45,19 +48,28 @@ $if any(menu_items) and not is_carousel:
               <span class="btn-label">$_("Listen")</span>
             </a>
           </li>
-        $if edition_key:
+        $if worldcat_url:
           <li>
-            $:macros.LocateButton(edition_key, icon=True)
+            <a href="$worldcat_url"
+              target="_blank" rel="noopener noreferrer"
+              data-ol-link-track="CTAClick|CheckWorldcat"
+              class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon map"></span>
+              <span class="btn-label">$_("Check WorldCat")</span>
+            </a>
           </li>
       </ul>
     </details>
   </div>
 $else:
   <div class="cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) cta-btn--w-icon $(login_class)"
         $:analytics_attr(analytics_action)
         $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
-        >$label</a>
+        >
+      <span class="btn-icon book-open"></span>
+      <span class="btn-label">$label</span>
+    </a>
   </div>

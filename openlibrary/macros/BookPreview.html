@@ -9,7 +9,7 @@ $if ocaid:
       data-book-preview
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
-      $:analytics href="#bookPreview">$(_('Preview Only') if show_only else _('Preview'))</a>
+      $:analytics href="#bookPreview">$_('Search Inside Preview')</a>
   </div>
 
 $if render_once('book-preview-floater'):

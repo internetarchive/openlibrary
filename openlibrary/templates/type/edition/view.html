@@ -195,7 +195,9 @@ $ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, isbn_13
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
+$ worldcat_url = ("https://worldcat.org/oclc/" + str(oclc_number)) if oclc_number else (("https://worldcat.org/isbn/" + str(isbn_13 or isbn_10)) if (isbn_13 or isbn_10) else "")
+$ _avail = (edition.availability or {}) if hasattr(edition, 'availability') else {}
+$ _show_unavailable_toast = not bool(edition.get('ocaid') or _avail.get('is_readable') or _avail.get('status') == 'open' or _avail.get('is_lendable') or _avail.get('is_previewable'))
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
@@ -207,7 +209,9 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
+      $if _show_unavailable_toast:
+        $:render_template("site/banner", announcement=_('This book is not currently available on Open Library. <a href="#related-work-carousel">Browse similar titles available now.</a>'), cookie_name="unavailable-notice-" + edition.key.split('/')[-1], cookie_duration_days=7)
+      $:macros.databarWork(edition or work, worldcat_url, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -307,18 +311,6 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
           </div>
       </div>
 
-      <div class="Tools">
-        <div class="panel mobile-vendor">
-          <div class="btn-notice">
-            $:worldcat_link
-
-            <div class="cta-section">
-              <p class="cta-section-title">$_('Buy this book')</p>
-              $:affiliate_links
-            </div>
-          </div>
-        </div>
-      </div>
 
       $ seen = set()
       $if previews and any([len(e.languages) for e in previews]):

@@ -1,5 +1,7 @@
 """Plugin to provide admin interface."""
 
+from __future__ import annotations
+
 import functools
 import json
 import logging

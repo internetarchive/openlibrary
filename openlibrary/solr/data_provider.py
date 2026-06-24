@@ -6,6 +6,8 @@ data required for solr.
 Multiple data providers are supported, each is good for different use case.
 """
 
+from __future__ import annotations
+
 import asyncio
 import itertools
 import logging

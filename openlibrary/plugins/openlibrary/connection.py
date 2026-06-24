@@ -1,5 +1,7 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
+from __future__ import annotations
+
 import datetime
 import functools
 import json

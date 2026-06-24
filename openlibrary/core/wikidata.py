@@ -5,6 +5,8 @@ The purpose of this file is to:
 3. Make the results easy to access from other files
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from dataclasses import dataclass

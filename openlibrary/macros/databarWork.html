@@ -1,6 +1,11 @@
-$def with (page, worldcat_links, affiliate_links, editions_page=False, render_times={})
+$def with (page, worldcat_url, affiliate_links, editions_page=False, render_times={})
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+
+$# Buy button is primary (blue) only when no digital access and a WorldCat URL exists
+$ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
+$ _has_digital = bool(page.get('ocaid') or availability.get('is_readable') or availability.get('status') == 'open' or availability.get('is_lendable') or availability.get('is_previewable'))
+$ buy_is_primary = editions_page and not _has_digital and bool(worldcat_url)
 
 <div class="Tools">
   <div id="read">
@@ -36,8 +41,19 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $# if edition availability status is error
         $ render_times['databarWork: LoanStatus'] = time()
         $ expensive_check = page.get('availability', {}).get('status') in ['error']
-        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget)
+        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget, worldcat_url=worldcat_url)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
+
+        $if editions_page:
+          <ol-popover class="buy-popover" aria-label="$_('Buy this book')">
+            <button slot="trigger" type="button" class="cta-btn $('cta-btn--available' if buy_is_primary else '') cta-btn--w-icon cta-btn--buy">
+              <span class="btn-icon cart"></span>
+              <span class="btn-label">$_("Buy")</span>
+            </button>
+            <div class="buy-options">
+              $:affiliate_links
+            </div>
+          </ol-popover>
 
         <hr>
         $ share_url = request.home + (edition or work).key
@@ -59,21 +75,9 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
-          $ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
           $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
             $:book_provider.render_download_options(page)
           $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
-      </div>
-    </div>
-
-    <div class="panel desktop-vendor">
-      <div class="btn-notice">
-        $:worldcat_links
-
-        <div class="cta-section">
-          <p class="cta-section-title">$_('Buy this book')</p>
-          $:affiliate_links
-        </div>
       </div>
     </div>
   </div>

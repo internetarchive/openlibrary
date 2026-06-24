@@ -106,7 +106,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):  # noqa: PLR0912, PLR0915
+    def POST(self, key):  # noqa: PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -123,9 +123,6 @@ class borrow(delegate.page):
             raise web.notfound()
 
         from openlibrary.book_providers import get_book_provider
-
-        if action == "locate":
-            raise web.seeother(edition.get_worldcat_url())
 
         # Direct to the first web book if at least one is available.
         if (

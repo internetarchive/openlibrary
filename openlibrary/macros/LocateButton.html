@@ -1,14 +1,14 @@
-$def with(edition_key, icon=False)
+$def with(worldcat_url=None)
 
-$ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or '')
-
-$if icon:
-  <a class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-    data-ol-link-track="CTAClick|Locate">
-
-    <span class="btn-icon map"></span>
-    <span class="btn-label">$_("Locate")</span>
-  </a>
-$else:
-  <a class="cta-btn cta-btn--available cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-    data-ol-link-track="CTAClick|Locate">$_('Locate')</a>
+<div class="cta-button-group">
+  $if worldcat_url:
+    <a class="cta-btn cta-btn--w-icon"
+       href="$worldcat_url"
+       target="_blank" rel="noopener noreferrer"
+       data-ol-link-track="CTAClick|CheckWorldcat">
+      <span class="btn-icon map"></span>
+      <span class="btn-label">$_("Check WorldCat")</span>
+    </a>
+  $else:
+    <span class="cta-btn cta-btn--no-pointer" aria-disabled="true">$_("Not Available")</span>
+</div>
