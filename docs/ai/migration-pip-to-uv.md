@@ -167,6 +167,20 @@ The fix is a named volume mounted **before** the bind mount:
 ```
 Docker merges overlapping mounts, so the more specific path (`.venv`) stays as a persistent Docker volume with container-built deps, while the bind mount supplies everything else. This is a standard Python-in-Docker pattern: the named volume preserves the container-architected `.venv` despite the source-tree bind mount.
 
+### Bytecode Compilation Removed
+
+The initial migration included `ENV UV_COMPILE_BYTECODE=1` to pre-compile `.pyc` files during `uv sync`, expecting faster cold starts. Benchmarking showed:
+
+| Metric | With bytecode | Without bytecode | Δ |
+|---|---|---|---|
+| olbase image size | 2.93 GB | 2.88 GB | **-50 MB** |
+| oldev image size | 3.12 GB | 3.05 GB | **-70 MB** |
+| uv sync build time | 15.5s | 13.7s | **-1.8s** |
+| `docker compose up -d --wait` | 21.9s avg | 28.9s avg | — (noise ±6s) |
+| Web response time after up | 1.7–7.9s | 1.6–3.1s | — (noise) |
+
+The bytecode compilation added **50-70 MB** and **~1.8s build time** with **no measurable startup benefit** — container startup was dominated by DB/Solr warmup, not Python import speed. Removed as pure overhead.
+
 ## CI Changes
 
 GitHub Actions no longer has a pip fallback. The install step is now:

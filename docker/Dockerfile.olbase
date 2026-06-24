@@ -73,8 +73,6 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ENV PYTHONPATH=/openlibrary
 # Services use bare python/exec, so .venv must be on PATH
 ENV PATH="/openlibrary/.venv/bin:${PATH}"
-# Pre-compile .pyc during uv sync for faster cold starts
-ENV UV_COMPILE_BYTECODE=1
 # Create venv and install all dependency packages from the lockfile (skip the root project)
 RUN uv sync --frozen --no-install-project
 
