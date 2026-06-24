@@ -63,7 +63,8 @@ get_from_archive_bulk() → MarcBinary → read_edition() → add_book.load()
 | `openlibrary/schemata/import.schema.json` | Canonical JSON schema (`additionalProperties: false`). `OLImportRecord` mirrors it exactly. |
 | `openlibrary-bots/sources/itan/provider.py` | Example concrete `JSONLProvider` for ITAN Global Publishing |
 | `openlibrary-bots/sources/itan/record.py` | Example concrete `DataProviderRecord` for ITAN |
-| `scripts/manage-imports.py` | ImportBot: processes pending batch items in an 8-worker multiprocessing pool; not wired into Docker dev |
+| `scripts/manage-imports.py` | ImportBot: processes pending batch items in a configurable multiprocessing pool; runnable locally via `compose.near-prod.yaml` (PR #12999) |
+| `compose.near-prod.yaml` | Near-prod compose override — adds `importbot` service and Solr replication; use with `COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml"` |
 
 ## Sub-docs
 
@@ -89,7 +90,7 @@ get_from_archive_bulk() → MarcBinary → read_edition() → add_book.load()
 | [#12091](https://github.com/internetarchive/openlibrary/issues/12091) | Open | ITAN import request |
 | [#12655](https://github.com/internetarchive/openlibrary/issues/12655) | Open, not ready for action | Epic: BookWorm — modernize import pipeline |
 | [#10756](https://github.com/internetarchive/openlibrary/issues/10756) | Open, proposal posted | `not-differentiable` for pre-ISBN IA items; proposed `IABook` validator |
-| [#7236](https://github.com/internetarchive/openlibrary/issues/7236) | Open | Local dev ImportBot doesn't run |
+| [#7236](https://github.com/internetarchive/openlibrary/issues/7236) | Fixed in PR #12999 | Local dev ImportBot now runnable via `compose.near-prod.yaml` |
 | [#8542](https://github.com/internetarchive/openlibrary/issues/8542) | Open | Batch import documentation gap |
 
 **Identifier PR before adapter PR**: #12947 must merge and deploy before the ITAN adapter PR (#447) can submit a batch. `itan_technologies` keys are silently dropped until the identifier is registered.
