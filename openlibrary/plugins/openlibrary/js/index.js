@@ -1,3 +1,4 @@
+import initSentry from './sentry';
 import 'jquery';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -37,6 +38,8 @@ document.addEventListener('click', function(e) {
         }
     }
 }, true);
+
+initSentry();
 
 // Init the service worker first since it does caching
 initServiceWorker();

@@ -177,8 +177,14 @@ sentry:
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
     traces_sample_rate: 1.0
-    profiles_sample_rate: 0.001
+    profiles_sample_rate: 0.05
     environment: 'local'
+
+    frontend:
+        dsn: 'https://examplePublicKey@o0.ingest.sentry.io/1'
+        # Inherits same rates from above
+        # In JS, this controls error sample rate
+        sample_rate: 0.01
 
 sentry_cron_jobs:
     enabled: false
