@@ -8,6 +8,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { mode as searchMode } from '../SearchUtils.js';
+import { trackEvent } from '../ol.analytics.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
@@ -1429,14 +1430,14 @@ export class SearchModal extends LitElement {
 
     // ── Event handlers ───────────────────────────────────────────────────
 
-    // Send a Matomo event through OL's wrapper. The modal renders in Shadow
-    // DOM, so Matomo's selector-based click triggers can't see its controls —
-    // we emit events manually instead. Guarded so a missing analytics CDN can't
-    // break an interaction. Labels carry only the *shape* of the interaction
-    // (counts, positions, types) — never the query text the patron typed.
+    // Send a Matomo event. The modal renders in Shadow DOM, so Matomo's
+    // selector-based click triggers can't see its controls — we emit events
+    // manually via trackEvent(), which pushes onto Matomo's `_paq` queue.
+    // Guarded internally so a missing analytics script can't break an
+    // interaction. Labels carry only the *shape* of the interaction (counts,
+    // positions, types) — never the query text the patron typed.
     _track(action, label) {
-        if (!window.archive_analytics) return;
-        window.archive_analytics.ol_send_event_ping({ category: 'SearchModal', action, label });
+        trackEvent('SearchModal', action, label);
     }
 
     _onDialogOpened() {
