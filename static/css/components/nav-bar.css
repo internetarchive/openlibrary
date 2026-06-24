@@ -124,7 +124,9 @@
 @media (hover: hover) and (pointer: fine) {
   /* stylelint-disable max-nesting-depth */
   .nav-bar-wrapper .nav-bar.work-menu li:hover {
-    background-color: var(--header-nav-hover-color); /* hsl(207, 83%, 33%) — passes 4.5:1 with white */
+    background-color: var(
+      --header-nav-hover-color
+    ); /* hsl(207, 83%, 33%) — passes 4.5:1 with white */
   }
 
   .nav-bar-wrapper .nav-bar.work-menu li:hover a {
@@ -133,7 +135,9 @@
 }
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected {
-  background-color: var(--primary-blue); /* hsl(202, 96%, 37%) — passes 4.5:1 with white */
+  background-color: var(
+    --primary-blue
+  ); /* hsl(202, 96%, 37%) — passes 4.5:1 with white */
 }
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected a {
