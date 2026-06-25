@@ -193,6 +193,17 @@ export function initSearchFilterBar(container) {
         availabilityEl.addEventListener('ol-toggle-change', (e) => {
             const value = e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY;
             writeStoredAvailability(value);
+            // Track the toggle via OL's Matomo wrapper. ol-toggle uses Shadow
+            // DOM, so Matomo's selector-based click triggers can't see the
+            // inner button — we listen to the composed `ol-toggle-change` event
+            // and send the event manually instead. Fire before navigateWithParams
+            // unloads the page, and guard in case the analytics CDN didn't load.
+            if (window.archive_analytics) {
+                window.archive_analytics.ol_send_event_ping({
+                    category: 'SearchFilter',
+                    action: e.detail.checked ? 'AvailabilityOn' : 'AvailabilityOff',
+                });
+            }
             const mapped = AVAILABILITY_TO_PARAMS[value] || {};
             navigateWithParams((params) => {
                 AVAILABILITY_PARAM_KEYS.forEach((key) => params.delete(key));

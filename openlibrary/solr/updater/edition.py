@@ -13,6 +13,7 @@ from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
 
 if TYPE_CHECKING:
+    from openlibrary.solr.data_provider import DataProvider
     from openlibrary.solr.updater.work import WorkSolrBuilder
 
 logger = logging.getLogger("openlibrary.solr")
@@ -115,10 +116,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         edition: dict,
         solr_work: WorkSolrBuilder | None = None,
         ia_metadata: bp.IALiteMetadata | None = None,
+        data_provider: DataProvider | None = None,
     ):
         self._edition = edition
         self._solr_work = solr_work
         self._ia_metadata = ia_metadata
+        self._data_provider = data_provider
         self._providers = list(bp.get_book_providers(edition))
         self._best_provider = self._providers[0] if self._providers else None
 
@@ -187,12 +190,26 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             result.append(f"{olid} | {chapter.get('label', '')} | {title} | {chapter.get('pagenum', '')}")
         return result
 
-    @property
+    @cached_property
     def cover_i(self) -> int | None:
         return next(
             (cover_id for cover_id in self._edition.get("covers", []) if cover_id != -1),
             None,
         )
+
+    @cached_property
+    def _cover_dimensions(self) -> tuple[int, int] | None:
+        if not self.cover_i or not self._data_provider:
+            return None
+        return self._data_provider.get_cover_dimensions(self.cover_i)
+
+    @property
+    def cover_width(self) -> int | None:
+        return self._cover_dimensions[0] if self._cover_dimensions else None
+
+    @property
+    def cover_height(self) -> int | None:
+        return self._cover_dimensions[1] if self._cover_dimensions else None
 
     @property
     def lexile(self) -> int | None:
@@ -354,6 +371,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "alternative_title": list(self.alternative_title),
                 "chapter": self.chapter,
                 "cover_i": self.cover_i,
+                "cover_width": self.cover_width,
+                "cover_height": self.cover_height,
                 "language": self.language,
                 # Duplicate the author data from the work
                 **(
