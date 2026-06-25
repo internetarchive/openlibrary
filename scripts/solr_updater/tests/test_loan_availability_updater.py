@@ -3,11 +3,14 @@
 import datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from scripts.solr_updater.loan_availability_updater import (
     build_eviction_updates,
     build_solr_updates,
     find_start_uid,
     ia_until_to_solr_date,
+    main,
     process_changes,
     query_solr_uid,
     read_state,
@@ -243,3 +246,137 @@ def test_find_start_uid_converges():
     assert call_count <= 41  # 1 initial probe + up to 40 binary-search iterations
     # uid=150_000 is the exact 14-day boundary (500_000 * (20-14)/20 = 150_000)
     assert 100_000 < uid < 200_000
+
+
+# ---------------------------------------------------------------------------
+# main() — daemon error-handling integration tests
+#
+# Strategy: pre-seed the state file so read_state() returns 99 (skipping the
+# startup init path), then control lending.get_loan_changes to return one
+# batch then raise SystemExit to terminate the infinite loop.  The state file
+# content after the test reveals whether write_state was called.
+# ---------------------------------------------------------------------------
+
+_RETURN_ROW = {
+    "identifier": "bookabc",
+    "uid": 100,
+    "event_type": "return",
+    "extra": "{}",
+}
+_RESOLVE_RESULT = MagicMock()
+_RESOLVE_RESULT.docs = [{"key": "/works/OL1W", "ia": ["bookabc"]}]
+_EMPTY_RESULT = MagicMock()
+_EMPTY_RESULT.docs = []
+_EVICT_RESULT = MagicMock()
+_EVICT_RESULT.docs = [{"key": "/works/OL99W"}]
+
+
+def _select_side_effect(*args, **kwargs):
+    """Route Solr select calls to the right fixture by query content."""
+    query = kwargs.get("query", "") or (args[0] if args else "")
+    if "loan_uid" in query:
+        return _EMPTY_RESULT
+    if "ia:" in query:
+        return _RESOLVE_RESULT
+    # ebook_becomes_available range query → evictions (empty unless overridden)
+    return _EMPTY_RESULT
+
+
+def _run_main_one_iteration(tmp_path, solr_mock, lending_mock, first_batch_rows):
+    """Run main() through exactly one event-processing iteration."""
+    state_file = tmp_path / "state"
+    state_file.write_text("99")  # pre-seed so we skip startup init
+
+    lending_mock.get_loan_changes.side_effect = [
+        {"status": "OK", "rows": first_batch_rows, "latest_uid": 100},
+        SystemExit(0),  # stop the loop on the second iteration
+    ]
+
+    with pytest.raises(SystemExit):
+        main("fake_config.yml", state_file=str(state_file), poll_interval=0)
+
+    return state_file
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.time")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_calls_update_not_update_in_place(mock_config, mock_infogami, mock_lending, mock_sentry, mock_time_mod, mock_get_solr, tmp_path):
+    """The daemon must call update(), never update_in_place(), at all Solr write sites."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+
+    _run_main_one_iteration(tmp_path, solr, mock_lending, [_RETURN_ROW])
+
+    # update() must have been called at least once (updates + commit)
+    assert solr.update.called, "update() was never called"
+    # update_in_place() must not be called from the daemon
+    solr.update_in_place.assert_not_called()
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.time")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_update_failure_does_not_advance_state(mock_config, mock_infogami, mock_lending, mock_sentry, mock_time_mod, mock_get_solr, tmp_path):
+    """If the Solr update call raises, the state file must NOT be advanced."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+    # First update() call (the actual docs update) raises — simulates Solr down
+    solr.update.side_effect = RuntimeError("Solr unreachable")
+
+    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [_RETURN_ROW])
+
+    # State must still be 99 — the failed update prevented state advancement
+    assert state_file.read_text().strip() == "99", "write_state was called even though the Solr update failed"
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.time")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_eviction_failure_is_non_fatal(mock_config, mock_infogami, mock_lending, mock_sentry, mock_time_mod, mock_get_solr, tmp_path):
+    """Eviction update failure must not prevent state advancement.
+
+    Main updates already committed successfully; eviction is a safety net
+    that retries automatically next cycle.
+    """
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+
+    # Route select to return an eviction candidate so we actually hit the eviction path
+    def select_side_effect_with_eviction(*args, **kwargs):
+        query = kwargs.get("query", "") or (args[0] if args else "")
+        if "loan_uid" in query:
+            return _EMPTY_RESULT
+        if "ia:" in query:
+            return _RESOLVE_RESULT
+        # ebook_becomes_available range → one expired loan to evict
+        return _EVICT_RESULT
+
+    solr.select.side_effect = select_side_effect_with_eviction
+
+    update_call_count = [0]
+
+    def update_side_effect(docs, commit=False):
+        update_call_count[0] += 1
+        if update_call_count[0] == 2:
+            # Second call is the eviction update — make it fail
+            raise RuntimeError("transient Solr error")
+        # First call (main updates) and third call (commit) succeed
+
+    solr.update.side_effect = update_side_effect
+
+    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [_RETURN_ROW])
+
+    # State must be advanced to 100 despite the eviction failure
+    assert state_file.read_text().strip() == "100", "write_state was NOT called even though only eviction (non-fatal) failed"

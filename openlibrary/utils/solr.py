@@ -128,6 +128,41 @@ class Solr:
         ).json()
         return resp
 
+    async def update_async(
+        self,
+        request: list[dict],
+        commit: bool = False,
+        _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
+    ) -> None:
+        """Post atomic update documents to Solr without requireInPlace.
+
+        Works for ALL field types (string, date, numeric). Raises on any
+        non-successful HTTP response or non-zero Solr responseHeader.status.
+        Use this instead of update_in_place_async when the update payload
+        contains string or date fields.
+        """
+        if request:
+            resp = await self.async_session.post(
+                f"{self.base_url}/update?wt=json",
+                json=request,
+                timeout=_timeout,
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            if body.get("responseHeader", {}).get("status") != 0:
+                raise RuntimeError(f"Solr update error: {body}")
+
+        if commit:
+            resp = await self.async_session.post(
+                f"{self.base_url}/update?wt=json",
+                json={"commit": {}},
+                timeout=_timeout,
+            )
+            resp.raise_for_status()
+            body = resp.json()
+            if body.get("responseHeader", {}).get("status") != 0:
+                raise RuntimeError(f"Solr commit error: {body}")
+
     async def select_async(
         self,
         query,
@@ -189,6 +224,7 @@ class Solr:
     get = async_bridge.wrap(get_async)
     get_many = async_bridge.wrap(get_many_async)
     update_in_place = async_bridge.wrap(update_in_place_async)
+    update = async_bridge.wrap(update_async)
     select = async_bridge.wrap(select_async)
 
     async def raw_request(
