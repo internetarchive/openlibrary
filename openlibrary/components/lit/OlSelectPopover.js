@@ -340,6 +340,16 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (changedProperties.has('label') || changedProperties.has('selected')) {
             this._updateDefaultTriggerLabel();
         }
+        // Keep the form value in step with a programmatic `selected` change
+        // (a documented, reflected property). The user-click path already
+        // syncs synchronously in _emitChange — needed there so a change handler
+        // that submits the form right away sees the new value — but a bare
+        // `el.selected = [...]` only goes through here, so without this the
+        // enclosing <form> would submit the stale value. Mirrors OlToggle /
+        // OlSegmentedControl.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
         // Restore focus to the checkbox of an item that just moved between
         // the selected/suggestions groups (see _onItemToggle). Lit binds the
         // checkbox value via `.value=` (the JS property, not the attribute),
@@ -440,10 +450,24 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _updateDefaultTriggerLabel() {
         const btn = this._defaultTrigger;
         if (!btn || !this._defaultTriggerText) return;
-        const count = (this.selected || []).length;
+        const selected = this.selected || [];
+        const count = selected.length;
         this._defaultTriggerText.textContent = count > 0
             ? `${this.label} (${count})`
             : this.label;
+        // The visible text collapses the selection to a "(n)" count, which
+        // hides *which* values are chosen from a screen reader. Give the
+        // button an aria-label naming them. (On work_search.html the
+        // server-side facet chips also surface the selection, but in
+        // SearchModal this trigger is the only place it appears.)
+        if (count > 0) {
+            const labels = selected
+                .map(v => (this.items || []).find(it => it.value === v)?.label ?? v)
+                .join(', ');
+            btn.setAttribute('aria-label', `${this.label}: ${labels}`);
+        } else {
+            btn.removeAttribute('aria-label');
+        }
     }
 
     _renderPanel() {

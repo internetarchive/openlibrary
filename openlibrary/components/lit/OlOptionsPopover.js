@@ -268,6 +268,18 @@ export class OlOptionsPopover extends FormAssociatedMixin(FocusableHostMixin(Lit
         this._syncFormValue();
     }
 
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        // Keep the form value in step with a programmatic `selected` change
+        // (a documented, reflected property). The roving-selection path syncs
+        // synchronously in _selectValue; a bare `el.selected = 'x'` only goes
+        // through here, so without this the enclosing <form> would submit the
+        // stale value. Mirrors OlToggle / OlSegmentedControl.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
+    }
+
     // ── Form participation (FormAssociatedMixin) ─────────────────────────
     // A single-select: submits the selected value under `name`, or nothing
     // when there is no selection.
