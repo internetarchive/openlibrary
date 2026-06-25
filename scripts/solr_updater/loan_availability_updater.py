@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 import infogami
+
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
@@ -202,7 +203,7 @@ def build_eviction_updates() -> list[dict]:
     ]
 
 
-def main(
+def main(  # noqa: PLR0915
     ol_config: str,
     state_file: str = "loan-availability-update.state",
     poll_interval: int = POLL_INTERVAL,
@@ -276,7 +277,12 @@ def main(
                     new_uid,
                 )
                 if not dry_run:
-                    get_solr().update_in_place(updates, commit=False)
+                    try:
+                        get_solr().update(updates, commit=False)
+                    except Exception:
+                        logger.exception("Solr update failed; state not advanced")
+                        time.sleep(poll_interval)
+                        continue
                 did_updates = True
 
             last_uid = new_uid
@@ -290,12 +296,16 @@ def main(
         if evictions:
             logger.info("Evicting %d expired loans from Solr", len(evictions))
             if not dry_run:
-                get_solr().update_in_place(evictions, commit=False)
+                try:
+                    get_solr().update(evictions, commit=False)
+                except Exception:
+                    logger.exception("Solr eviction update failed; evictions skipped this cycle")
+                    evictions = []
             did_updates = True
 
         if did_updates and not dry_run:
             try:
-                get_solr().update_in_place([], commit=True)
+                get_solr().update([], commit=True)
             except Exception:
                 logger.exception("Solr commit failed; state not advanced")
                 time.sleep(poll_interval)
