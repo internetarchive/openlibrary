@@ -953,6 +953,7 @@ class link_ia_ol(delegate.page):
             web.ctx.site.save(data, "Associate OCAID with record", action="edit-edition-ocaid")
 
 
+@deprecated("migrated to fastapi")
 class monthly_logins(delegate.page):
     path = "/api/monthly_logins"
     encoding = "json"
