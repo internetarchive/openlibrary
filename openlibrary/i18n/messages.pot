@@ -756,10 +756,10 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html
-#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/search_modal_i18n.html search/work_search_selected_facets.html
-#: status.html
+#: SearchAuthorSuggestion.html books/add.html books/edit.html
+#: books/edit/edition.html openlibrary/plugins/worksearch/code.py
+#: search/advancedsearch.html search/search_modal_i18n.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1079,6 +1079,14 @@ msgstr ""
 msgid "Filter by language"
 msgstr ""
 
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
+#, python-format
+msgid "%(count)s hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
+
 #: work_search.html
 msgid "The search engine returned an error."
 msgstr ""
@@ -1104,13 +1112,15 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html
-#: search/subjects.html work_search.html
-#, python-format
-msgid "%(count)s hit"
-msgid_plural "%(count)s hits"
-msgstr[0] ""
-msgstr[1] ""
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html work_search.html
+msgid "Authors"
+msgstr ""
+
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py work_search.html
+msgid "Books"
+msgstr ""
 
 #: work_search.html
 #, python-format
@@ -3099,11 +3109,6 @@ msgstr ""
 msgid "None found"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
-msgid "Authors"
-msgstr ""
-
 #: authors/index.html
 msgid "Search for an Author"
 msgstr ""
@@ -3814,11 +3819,6 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
-
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "Books"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
