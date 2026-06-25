@@ -13,15 +13,12 @@ from openlibrary.core.features import Features
 
 def _full_config(**overrides: str) -> str:
     values = {
-        "debug": "false",
-        "dev": "false",
         "lists": "true",
         "publishers": "false",
         "recentchanges_v2": "false",
         "stats": "true",
         "stats-header": "true",
         "superfast": "false",
-        "undo": "true",
     }
     values.update(overrides)
     lines = ["features:"]
@@ -39,7 +36,7 @@ def _write_test_config(tmp_path: Path, body: str | None = None) -> Path:
 
 @pytest.fixture(autouse=True)
 def _reset_features_to_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.delenv("OL_FEATURES_YAML_PATH", raising=False)
+    monkeypatch.delenv("OL_CONFIG", raising=False)
     _write_test_config(tmp_path)
 
 
@@ -50,29 +47,23 @@ class TestConstructor:
 
     def test_kwargs_only(self):
         f = Features(
-            debug=False,
-            dev=False,
             lists=True,
             publishers=False,
             recentchanges_v2=False,
             stats=True,
             stats_header=True,
             superfast=False,
-            undo=True,
         )
         assert f.stats is True
 
     def test_extra_fields_are_ignored(self):
         f = Features(
-            debug=False,
-            dev=False,
             lists=True,
             publishers=False,
             recentchanges_v2=False,
             stats=True,
             stats_header=True,
             superfast=False,
-            undo=True,
             nonexistent=True,
         )
         assert f.stats is True
@@ -86,8 +77,10 @@ class TestFromYaml:
         f = Features.from_yaml(tmp_path / "openlibrary.yml")
         assert f.stats is True
         assert f.stats_header is True
-        assert f.debug is False
-        assert f.undo is True
+        assert f.lists is True
+        assert f.publishers is False
+        assert f.recentchanges_v2 is False
+        assert f.superfast is False
 
     def test_missing_field_raises(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"
