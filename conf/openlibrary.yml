@@ -161,6 +161,7 @@ ia_ol_xauth_s3:
     s3_secret: XXX
 
 ia_loan_api_url: http://mockservices:8090/services/loans/loan/
+ia_s3_loan_url: http://mockservices:8090/services/loans/loan/
 ia_xauth_api_url: http://mockservices:8090/services/xauthn/
 ia_s3_auth_url: http://mockservices:8090/services/s3auth/
 otp_seed: dev-otp-seed-for-e2e-testing
