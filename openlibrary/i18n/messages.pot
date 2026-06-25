@@ -4636,19 +4636,6 @@ msgstr ""
 #: design/toggle.html
 #, python-format
 msgid ""
-"The %(tag)s component is a switch with a label and an optional greyed "
-"sublabel. The whole control is one %(role)s button, so the entire surface"
-" is clickable and Enter/Space activate it. It owns its on/off state: "
-"clicking flips %(checked)s and fires %(event)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Default"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid ""
 "A plain toggle: just the switch, a %(label)s, and an optional greyed "
 "%(sublabel)s."
 msgstr ""
