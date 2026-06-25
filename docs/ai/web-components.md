@@ -170,7 +170,11 @@ html`
 - Arrow keys + Home / End for composite widgets (lists, pagination, tabs).
 - Escape dismisses overlays and popups.
 - Visible `:focus-visible` indicators on all interactive elements.
-- Trap focus inside modals.
+- Trap focus inside **modal** surfaces only (and inert the background + set
+  `aria-modal` — native `<dialog>.showModal()` does all three, see `ol-dialog`).
+  A **non-modal** popover/menu/picker must let Tab leave: close on Tab-out, don't
+  trap, don't claim `aria-modal` (see `ol-popover`). Why this matters across
+  shadow boundaries: [web-component-boundaries.md](web-component-boundaries.md#aria-across-roots).
 
 ```js
 // Escape to close — clean up listeners properly
@@ -201,6 +205,10 @@ button:focus-visible {
 ```
 
 ## Shadow DOM vs Light DOM
+
+> The decision below is one facet of a larger contract — shadow boundaries break
+> four platform systems (focus, CSS, forms, id-based ARIA). See
+> [web-component-boundaries.md](web-component-boundaries.md) for the full picture.
 
 - **Shadow DOM** (Lit's default) for JS-instantiated or deeply interactive widgets — toasts, dialogs, popovers. They can't FOUC (they don't exist at first paint), and they benefit from real slots and private internals.
 - **Light DOM** (`createRenderRoot() { return this }`) for server-rendered page chrome where first-paint fidelity and progressive enhancement matter — buttons, banners. Styles live in a file under `static/css/components/`, imported by `static/css/ol-components.css` (render-blocking, site-wide). Style the tag itself for the pre-hydration phase and flip to component-rendered structure via a `hydrated` attribute — see `ol-button.css` / `OLButton.js` for the reference pattern.
@@ -265,14 +273,23 @@ If you need to drive a Lit component from page JS that webpack bundles (e.g., th
 
 Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `openlibrary/components/lit/utils/focus-utils.js` and `FocusableHostMixin` exist to handle the cases below — reach for them rather than rolling your own.
 
+**Pick the focus pattern by the component's shape:**
+
+| Component shape | Pattern | Host `tabindex` | `delegatesFocus` |
+|---|---|---|---|
+| Wraps **one** native focusable in its **own shadow** (`ol-toggle`, `ol-chip`) | `FocusableHostMixin` | No | Yes |
+| Focusable is a **slotted / light-DOM** child (`ol-select-popover`) | plain `LitElement`; the trigger *is* the focusable | No | No |
+| **Composite** that owns its selection (`ol-segmented-control`) | roving tabindex (one `tabindex=0`, rest `-1`, arrows move) | per-item | No |
+| **Navigation** list of links (`ol-pagination`) | every item is its own tab stop; arrows just move focus | natural | No |
+| Renders its control into **light DOM** (`ol-button`) | nothing special — naturally discoverable | n/a | n/a |
+
+Rule of thumb: **delegate only when there is exactly one place focus can go.** If the component routes focus, or its focusable lives outside its own shadow, don't use `FocusableHostMixin`.
+
 ### Make custom elements visible to outer focus traps
 
-A custom element whose only focusable content is a `<button>` inside its shadow root is **invisible** to a focus trap that calls `querySelectorAll(FOCUSABLE_SELECTOR)` on light DOM. Two problems compound:
+A custom element whose only focusable content is a `<button>` inside its shadow root is **invisible** to a focus trap that calls `querySelectorAll(FOCUSABLE_SELECTOR)` on light DOM, and calling `host.focus()` focuses the *host*, not the inner button.
 
-1. The trap's selector can't see into the shadow root, so the element is skipped entirely.
-2. Calling `host.focus()` focuses the *host*, not the inner button — `:focus-visible` lands on nothing.
-
-Apply `FocusableHostMixin` (`openlibrary/components/lit/utils/focusable-host-mixin.js`) to fix both at once. It sets `tabindex="0"` on the host (so traps discover it) and `delegatesFocus: true` on the shadow root (so `host.focus()` forwards to the first focusable inside and `:focus-visible` fires correctly). Override `_focusTarget` if the desired target isn't the first focusable in DOM order.
+For a component wrapping **one** focusable in its own shadow root, apply `FocusableHostMixin` (`openlibrary/components/lit/utils/focusable-host-mixin.js`). It sets `delegatesFocus: true` on the shadow root — so `host.focus()` forwards to the first focusable inside and `:focus-visible` fires correctly on it. **It does not (and must not) set a host `tabindex`:** the inner native focusable is already in the tab order, and a host `tabindex` combined with `delegatesFocus` produces a double tab stop (host, then inner). Outer traps find the inner focusable through the shadow-piercing walker (`getTabbableElements` / `getTabbableFromSlot` in `focus-utils.js`), not via the host. Override `_focusTarget` if the desired target isn't the first focusable in DOM order.
 
 ```js
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
@@ -319,6 +336,43 @@ updated(changedProperties) {
 ```
 
 See `OlSelectPopover._onItemToggle` for the reference implementation.
+
+## Form participation (FormAssociatedMixin)
+
+A control rendered in shadow DOM submits **nothing** with the enclosing `<form>`
+by default — the form never sees its value. Make any control-shaped component a
+form-associated custom element (FACE) with `FormAssociatedMixin`
+(`utils/form-associated-mixin.js`), which wraps `ElementInternals`. Broadly
+supported on our browser floor (Safari 16.4+).
+
+The mixin provides `static formAssociated`, attaches internals, adds a reflected
+`name`, delegates the standard form-control getters (`form`, `labels`,
+`validity`, `checkValidity()`, …), and wires `formResetCallback` /
+`formDisabledCallback`. The consumer supplies three things:
+
+1. `get formValue()` — what to submit: a **string** (single value, under
+   `name`), a **`FormData`** (multiple repeated entries, for a multi-select —
+   you own the keys), a `File`, or `null` to contribute nothing.
+2. A `this._syncFormValue()` call whenever that value changes — typically
+   `firstUpdated()` (initial) + `updated()` (changes), or in the change handler.
+3. Optionally `formReset()` — restore the default on `<form>.reset()` (capture
+   the default once in `connectedCallback`).
+
+```js
+export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
+    get formValue() { return this.checked ? this.value : null; } // unchecked → nothing
+    formReset() { this.checked = this._defaultChecked; }
+    firstUpdated() { this._syncFormValue(); }
+    updated(c) { if (c.has('checked') || c.has('value')) this._syncFormValue(); }
+}
+```
+
+Reference implementations: `ol-toggle` (checkbox-shaped), `ol-segmented-control`
+(radio group, always submits), `ol-options-popover` (single-select),
+`ol-select-popover` (multi-select via `FormData`). Compose the mixin *outside*
+`FocusableHostMixin` when both apply. See
+[web-component-boundaries.md](web-component-boundaries.md) for why this is one of
+the four systems that breaks at a shadow boundary.
 
 ## ARIA on lists
 

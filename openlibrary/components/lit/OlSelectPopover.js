@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -21,6 +22,9 @@ let _idCounter = 0;
  *     attribute (`items='[{"value":"en","label":"English"}]'`) or property.
  * @prop {Array} selected - Array of selected `value`s. Reflects to attribute
  *     as JSON.
+ * @prop {String} name - Form field name. When set, each selected value submits
+ *     with the enclosing `<form>` as a repeated `name` entry (see
+ *     FormAssociatedMixin).
  * @prop {String} label - Default trigger button text (e.g. "Language").
  * @prop {Number} searchThreshold - Show the filter input when `items.length`
  *     exceeds this value. Default `8`. Use `0` to always show, a large number
@@ -81,7 +85,7 @@ let _idCounter = 0;
 // to the first focusable in *this* shadow root (the filter input — hidden
 // while the popover is closed), a no-op that strands focus on the prior
 // element. So the host stays a plain wrapper; the trigger is the focusable.
-export class OlSelectPopover extends LitElement {
+export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -395,6 +399,28 @@ export class OlSelectPopover extends LitElement {
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
         }
+        // Capture the authored default selection for <form>.reset().
+        if (this._defaultSelected === undefined) this._defaultSelected = [...(this.selected || [])];
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A multi-select submits one `name` entry per selected value (mirroring a
+    // native <select multiple>), via a FormData; nothing when empty.
+    get formValue() {
+        const values = this.selected || [];
+        if (values.length === 0 || !this.name) return null;
+        const data = new FormData();
+        for (const value of values) data.append(this.name, value);
+        return data;
+    }
+
+    formReset() {
+        this.selected = [...this._defaultSelected];
+        this._updateDefaultTriggerLabel();
     }
 
     _createDefaultTrigger() {
@@ -629,6 +655,7 @@ export class OlSelectPopover extends LitElement {
 
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
+        this._syncFormValue();
         this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
             bubbles: true, composed: true,
             detail: { selected: nextSelected, added, removed },

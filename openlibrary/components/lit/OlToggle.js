@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 
 /**
  * OlToggle - A switch/toggle web component.
@@ -16,6 +17,9 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *
  * @property {Boolean} checked - On/off state. Default false.
  * @property {Boolean} disabled - Disables interaction. Default false.
+ * @property {String} name - Form field name. When set and the toggle is
+ *   checked, it submits with the enclosing `<form>` (see FormAssociatedMixin).
+ * @property {String} value - Value submitted when checked. Default "on".
  * @property {String} variant - Omit for the default (plain) toggle, or
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
@@ -43,7 +47,7 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *   <strong>Dark mode</strong>
  * </ol-toggle>
  */
-export class OlToggle extends FocusableHostMixin(LitElement) {
+export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
     static properties = {
         checked: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
@@ -51,6 +55,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         label: { type: String },
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
+        value: { type: String },
     };
 
     static styles = css`
@@ -236,6 +241,33 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         this.label = null;
         this.sublabel = null;
         this.accessibleLabel = null;
+        this.value = 'on';
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // Capture the authored default for <form>.reset(). Runs after the
+        // attribute→property upgrade, so `checked` reflects the markup.
+        if (this._defaultChecked === undefined) this._defaultChecked = this.checked;
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A switch behaves like a checkbox: it submits its `value` only when on,
+    // and contributes nothing when off.
+    get formValue() {
+        return this.checked ? this.value : null;
+    }
+
+    formReset() {
+        this.checked = this._defaultChecked;
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    updated(changed) {
+        if (changed.has('checked') || changed.has('value')) this._syncFormValue();
     }
 
     _handleClick() {

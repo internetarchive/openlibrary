@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { getNextIndex } from './utils/keyboard-nav.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 
 /**
  * OlSegmentedControl - A single-select control styled like ol-button.
@@ -22,6 +23,7 @@ import { getNextIndex } from './utils/keyboard-nav.js';
  * @element ol-segmented-control
  *
  * @prop {String}  value           - The selected option's value. Reflected; defaults to the first enabled option.
+ * @prop {String}  name            - Form field name. When set, the selected `value` submits with the enclosing `<form>` (see FormAssociatedMixin).
  * @prop {String}  size            - "small" | "medium" | "large". Default: "medium"
  * @prop {Boolean} disabled        - Disables the whole control.
  * @prop {Boolean} fullWidth       - Stretch to fill the container; options share the width equally.
@@ -45,7 +47,7 @@ import { getNextIndex } from './utils/keyboard-nav.js';
  *     <ol-segment value="list" label="List"><svg ...></svg></ol-segment>
  *   </ol-segmented-control>
  */
-export class OlSegmentedControl extends LitElement {
+export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     static properties = {
         value: { type: String, reflect: true },
         size: { type: String, reflect: true },
@@ -311,6 +313,20 @@ export class OlSegmentedControl extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         this._harvestOptions();
+        // Capture the resolved default selection for <form>.reset() (after
+        // _harvestOptions has normalized an unset/invalid value).
+        if (this._defaultValue === undefined) this._defaultValue = this.value;
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A segmented control is a radio group: it always has a selection, so it
+    // always submits the selected option's value under `name`.
+    get formValue() {
+        return this.value ?? null;
+    }
+
+    formReset() {
+        this.value = this._defaultValue;
     }
 
     // Read the declarative <ol-segment> children into a plain options array.
@@ -353,11 +369,15 @@ export class OlSegmentedControl extends LitElement {
         // metrics, or the container resizing around a full-width control.
         this._resizeObserver = new ResizeObserver(() => this._measure());
         this._resizeObserver.observe(this._track);
+        this._syncFormValue();
     }
 
     updated(changed) {
         // Selection moved — walk the pill and clip to the new segment.
-        if (changed.has('value')) this._measure();
+        if (changed.has('value')) {
+            this._measure();
+            this._syncFormValue();
+        }
     }
 
     disconnectedCallback() {

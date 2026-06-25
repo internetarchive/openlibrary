@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
+import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
@@ -370,7 +370,12 @@ export class OlDialog extends LitElement {
         const dialog = this.dialog;
         if (!dialog || dialog.open) return;
 
-        this._previouslyFocusedElement = document.activeElement;
+        // Deep active element, not document.activeElement — if the trigger that
+        // opened this dialog lives in another component's shadow root,
+        // document.activeElement is the outer host and restoring focus to it on
+        // close would strand focus on the wrong control. See the same capture in
+        // OlPopover._show().
+        this._previouslyFocusedElement = getDeepActiveElement();
 
         this.dispatchEvent(new CustomEvent('ol-open', {
             bubbles: true,
@@ -416,13 +421,21 @@ export class OlDialog extends LitElement {
                 return;
             }
 
-            const firstFocusable = this.querySelector(FOCUSABLE_SELECTOR);
+            const closeButton = this.renderRoot?.querySelector('.close-button');
+
+            // Land initial focus on the same element the Tab trap treats as the
+            // first stop, using its shadow-piercing list so a slotted custom
+            // element whose real focusable lives in its shadow root (e.g.
+            // <ol-toggle>) is found — a light-DOM querySelector(FOCUSABLE_SELECTOR)
+            // would miss it and strand focus elsewhere. Skip the synthetic close
+            // button so focus still prefers real content over the X; we fall back
+            // to it below only when there's nothing else to focus.
+            const firstFocusable = this._getFocusableElements().find((el) => el !== closeButton);
             if (firstFocusable) {
                 firstFocusable.focus();
                 return;
             }
 
-            const closeButton = this.renderRoot?.querySelector('.close-button');
             if (closeButton && !this.withoutHeader && !this._hasHeaderContent) {
                 closeButton.focus();
                 return;
