@@ -167,6 +167,24 @@ def get_active_availability(param: dict) -> str:
 
 
 @public
+def doc_matches_reading_prefs(doc: dict, availability: str, languages: list[str]) -> bool:
+    """Whether a resolved Solr work/edition doc satisfies the reader's
+    availability + language preference.
+
+    Used to apply the global reading preference as a *per-page view filter* on
+    DB-backed list pages, which aren't Solr-indexed by membership and so can't
+    push these filters into the query (see type/list/view_body.html). 'readable'
+    availability == ebook_access in {borrowable, public} (matching the toggle's
+    `ebook_access:[borrowable TO *]`); an empty `languages` matches any language;
+    a doc with no resolved fields (e.g. an unresolved edition seed) fails an
+    active filter rather than slipping through unfiltered.
+    """
+    if languages and not (set(doc.get("language") or []) & set(languages)):
+        return False
+    return availability == "all" or doc.get("ebook_access") in ("borrowable", "public")
+
+
+@public
 def get_availability_label(value: str) -> str:
     """Translated label for an availability value, used in the search-results
     document title. Keep in sync with the label text in AVAILABILITY_OPTIONS

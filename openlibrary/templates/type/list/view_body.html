@@ -87,12 +87,41 @@ $def seed_attrs(seed):
             $:format(list.description)
             <div class="clearfix"></div>
 
+        $# Current reading-filter state, derived from the URL the same way /search
+        $# and author pages do. The filter bar below is auto-wired by the shared
+        $# SearchFilterBar.js (index.js binds any .search-filter-row): it inherits
+        $# the global availability + language preference, navigates this list URL
+        $# with the filter params, and honors the scope-local `filters=off` escape.
+        $ list_req = input(language=[])
+        $ active_availability = get_active_availability(list_req)
+        $ selected_languages = [lang for lang in (list_req.language if isinstance(list_req.language, list) else [list_req.language]) if lang]
+        $ filter_active = active_availability != 'all' or bool(selected_languages)
+
         <div class="search-results-stats">
             $if not list.key.startswith('/series/'):
                 $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
             $ layout = get_remembered_layout()
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
+
+        $# Reading-preference filter bar — same control as /search + author pages.
+        $# Shown when there's more than one item to act on, or whenever a filter is
+        $# active so it can always be cleared.
+        $if filter_active or len(list.seeds) > 1:
+            <div class="search-filter-row" id="search-filter-row">
+              <ol-toggle
+                variant="card"
+                label="$_('Readable Only')"
+                accessible-label="$_('Filter by availability')"
+                $cond(active_availability != 'all', 'checked')
+              ></ol-toggle>
+              <ol-select-popover
+                label="$_('Language')"
+                placeholder="$_('Search languages…')"
+                unselected-heading="$_('Languages')"
+                aria-label="$_('Filter by language')"
+              ></ol-select-popover>
+            </div>
 
         $ series_display_limit = 100
         $if list.key.startswith('/series/') and len(list.seeds) >= series_display_limit:
@@ -118,7 +147,28 @@ $def seed_attrs(seed):
         $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
         $ work_key_to_solr_edition = {key: work_doc['editions']['docs'][0] for key, work_doc in solr_works.items() if work_doc and work_doc.get('editions', {}).get('docs', [])}
         $ availabilities = get_availabilities([work_key_to_solr_edition.get(seed.key) or solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
-        $for seed in seeds:
+
+        $# Apply the reading prefs as a per-page view filter. Lists aren't Solr-indexed
+        $# by membership, so we can't push these into the seed query (Phase 4) — we
+        $# filter the current page's resolved book docs. Non-book seeds and unresolved
+        $# items drop out while a filter is active. The status line + scope-local
+        $# "Show all" below make this visible and reversible.
+        $if filter_active:
+            $ visible_seeds = [s for s in seeds if s.type in ['edition', 'work'] and doc_matches_reading_prefs(solr_works.get(s.key) or {}, active_availability, selected_languages)]
+        $else:
+            $ visible_seeds = seeds
+
+        $if filter_active:
+            $ show_all_url = changequery(has_fulltext=None, public_scan=None, print_disabled=None, language=None, page=None, filters='off')
+            <p class="search-filter-status collapse">
+                $if not visible_seeds:
+                    $_('No items on this page match the current filters.')
+                $else:
+                    $ungettext('Showing %(shown)s item that matches the current filters.', 'Showing %(shown)s items that match the current filters.', len(visible_seeds), shown=commify(len(visible_seeds)))
+                <a href="$show_all_url">$_('Show all items')</a>
+            </p>
+
+        $for seed in visible_seeds:
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
                 $ av = availabilities.get(work_key_to_solr_edition[seed.key]['key']) if seed.key in work_key_to_solr_edition else availabilities.get(seed.key)

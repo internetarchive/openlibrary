@@ -5,6 +5,7 @@ import web
 from openlibrary.plugins.worksearch.code import (
     _get_readable_count,
     _prepare_solr_query_params,
+    doc_matches_reading_prefs,
     get_doc,
     process_facet,
     works_by_author,
@@ -264,3 +265,32 @@ def test_works_by_author_default_scope_injects_no_filters():
     ):
         works_by_author("OL1A")
     assert mock_query.call_args.kwargs["param"] == {"q": "*:*"}
+
+
+class TestDocMatchesReadingPrefs:
+    """The per-page view-filter predicate used on DB-backed list pages."""
+
+    def test_no_prefs_matches_everything(self):
+        assert doc_matches_reading_prefs({}, "all", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "no_ebook"}, "all", []) is True
+
+    def test_readable_requires_borrowable_or_public(self):
+        assert doc_matches_reading_prefs({"ebook_access": "public"}, "readable", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "borrowable"}, "readable", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "printdisabled"}, "readable", []) is False
+        assert doc_matches_reading_prefs({"ebook_access": "no_ebook"}, "readable", []) is False
+
+    def test_language_intersection(self):
+        assert doc_matches_reading_prefs({"language": ["eng", "fre"]}, "all", ["fre"]) is True
+        assert doc_matches_reading_prefs({"language": ["eng"]}, "all", ["spa"]) is False
+
+    def test_both_prefs_must_hold(self):
+        doc = {"ebook_access": "public", "language": ["spa"]}
+        assert doc_matches_reading_prefs(doc, "readable", ["spa"]) is True
+        assert doc_matches_reading_prefs(doc, "readable", ["eng"]) is False
+
+    def test_empty_doc_fails_active_filter(self):
+        """An unresolved seed (no Solr fields) is excluded rather than slipping
+        through an active filter unfiltered."""
+        assert doc_matches_reading_prefs({}, "readable", []) is False
+        assert doc_matches_reading_prefs({}, "all", ["eng"]) is False

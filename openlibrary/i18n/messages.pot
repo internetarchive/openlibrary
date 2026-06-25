@@ -1023,30 +1023,32 @@ msgid "Solr Editions"
 msgstr ""
 
 #: design/toggle.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html type/author/view.html work_search.html
+#: search/availability_i18n.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: type/author/view.html work_search.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
-#: type/author/view.html type/edition/view.html type/work/view.html
-#: work_search.html
+#: type/author/view.html type/edition/view.html type/list/view_body.html
+#: type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: search/search_modal_i18n.html type/author/view.html work_search.html
+#: search/search_modal_i18n.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "Search languages…"
 msgstr ""
 
 #: books/edit/edition.html languages/index.html search/search_modal_i18n.html
-#: type/author/view.html work_search.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Languages"
 msgstr ""
 
-#: type/author/view.html work_search.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -7391,6 +7393,21 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid "Learn more."
+msgstr ""
+
+#: type/list/view_body.html
+msgid "No items on this page match the current filters."
+msgstr ""
+
+#: type/list/view_body.html
+#, python-format
+msgid "Showing %(shown)s item that matches the current filters."
+msgid_plural "Showing %(shown)s items that match the current filters."
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/list/view_body.html
+msgid "Show all items"
 msgstr ""
 
 #: type/list/view_body.html
