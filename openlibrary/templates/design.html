@@ -7,7 +7,7 @@ $# `icons` is the sorted list of icon names in the sprite (design.py load_icons)
 $# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-markup.min.js"></script>
 
@@ -17,6 +17,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
       <ul class="design-pattern-nav__list">
+        <li><a href="#tooltip">Tooltip</a></li>
         <li><a href="#pagination">Pagination</a></li>
         <li><a href="#popover">Popover</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
@@ -39,6 +40,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
     </nav>
 
     <main class="design-pattern-main">
+      $:render_template("design/tooltip")
+
       <article class="design-pattern" id="pagination">
         <h2 class="design-pattern__title">Pagination</h2>
         <p class="design-pattern__description">The ol-pagination component provides support for both event-based and URL-based navigation.</p>

@@ -13,6 +13,7 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.request_context import site
 
 from . import db
 
@@ -100,7 +101,7 @@ class Bookshelves(db.CommonExtras):
         # get all patrons with public reading logs
         return [
             p
-            for p in web.ctx.site.get_many([f"/people/{r.username}/preferences" for r in results])
+            for p in site.get().get_many([f"/people/{r.username}/preferences" for r in results])
             if p.dict().get("notifications", {}).get("public_readlog") == "yes"
         ]
 
@@ -248,7 +249,7 @@ class Bookshelves(db.CommonExtras):
         return linked_docs
 
     @classmethod
-    def add_storage_items_for_redirects(cls, reading_log_keys, solr_docs: list[web.Storage]):
+    async def add_storage_items_for_redirects(cls, reading_log_keys, solr_docs: list[web.Storage]):
         """
         Use reading_log_keys to fill in missing redirected items in the
         the solr_docs query results.
@@ -260,7 +261,7 @@ class Bookshelves(db.CommonExtras):
         dummy works, albeit with the correct work_id.
         """
 
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query_async
 
         fetched_keys = {doc["key"] for doc in solr_docs}
         missing_keys = {work for (work, _) in reading_log_keys} - fetched_keys
@@ -285,7 +286,7 @@ class Bookshelves(db.CommonExtras):
         if not edition_keys_to_query:
             return
 
-        solr_resp = run_solr_query(
+        solr_resp = await run_solr_query_async(
             scheme=WorkSearchScheme(),
             param={"q": "*:*"},
             rows=len(edition_keys_to_query),
@@ -310,7 +311,7 @@ class Bookshelves(db.CommonExtras):
     def add_storage_items_for_deletes(cls, reading_log_keys, solr_docs: list[web.Storage]):
         missing = {w for w, e in reading_log_keys} - {doc["key"] for doc in solr_docs}
         # Get them from the DB
-        missing_docs = web.ctx.site.get_many(list(missing))
+        missing_docs = site.get().get_many(list(missing))
 
         # Push some dummy books
         for doc in missing_docs:
@@ -336,7 +337,7 @@ class Bookshelves(db.CommonExtras):
                 )
 
     @classmethod
-    def get_users_logged_books(
+    async def get_users_logged_books(
         cls,
         username: str,
         bookshelf_id: int = 0,
@@ -361,7 +362,7 @@ class Bookshelves(db.CommonExtras):
         :param q: an optional query string to filter the results.
         """
         from openlibrary.core.models import LoggedBooksData
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query_async
 
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
@@ -405,7 +406,7 @@ class Bookshelves(db.CommonExtras):
 
             return solr_docs
 
-        def get_filtered_reading_log_books(
+        async def get_filtered_reading_log_books(
             q: str,
             query_params: dict[str, str | int | None],
             filter_book_limit: int,
@@ -436,7 +437,7 @@ class Bookshelves(db.CommonExtras):
             # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
             filter_query = "key:(%s)" % " OR ".join('"%s"' % key for key in work_to_edition_keys)
 
-            solr_resp = run_solr_query(
+            solr_resp = await run_solr_query_async(
                 scheme=WorkSearchScheme(),
                 param={"q": q or "*:*"},
                 offset=query_params["offset"],
@@ -451,7 +452,7 @@ class Bookshelves(db.CommonExtras):
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
-            edition_data = get_solr().get_many(
+            edition_data = await get_solr().get_many_async(
                 [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
                 fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
@@ -472,7 +473,7 @@ class Bookshelves(db.CommonExtras):
                 docs=solr_docs,
             )
 
-        def get_sorted_reading_log_books(
+        async def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
             sort: Literal["created asc", "created desc"],
             checkin_year: int | None,
@@ -516,12 +517,12 @@ class Bookshelves(db.CommonExtras):
                 for i in reading_log_books
             ]
 
-            solr_docs = get_solr().get_many(
+            solr_docs = await get_solr().get_many_async(
                 [key for key in flatten(reading_log_keys) if key],
                 fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
 
-            cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            await cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
             if len(solr_docs) < len(reading_log_keys):
                 cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
 
@@ -540,14 +541,14 @@ class Bookshelves(db.CommonExtras):
 
         if q or fq:
             # checkin_year ignored :(
-            return get_filtered_reading_log_books(
+            return await get_filtered_reading_log_books(
                 q=q,
                 query_params=query_params,
                 filter_book_limit=FILTER_BOOK_LIMIT,
                 fq=fq,
             )
         else:
-            return get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
+            return await get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:

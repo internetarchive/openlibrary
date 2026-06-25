@@ -20,17 +20,11 @@ Testing Amazon API:
   ol-home0% `docker exec -it openlibrary-affiliate-server-1 bash`
   openlibrary@ol-home0:/openlibrary$ `python`
 
-```
+```py
 import web
-import infogami
-from openlibrary.config import load_config
+from scripts.affiliate_server import load_config
 load_config('/olsystem/etc/openlibrary.yml')
-infogami._setup()
-from infogami import config;
-from openlibrary.core.vendors import AmazonAPI
-args=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
-web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=config.get('http_proxy'))
-products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
+web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 ```
 """
 
@@ -48,7 +42,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Final
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import requests
 import web
 
@@ -638,8 +631,8 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+    # Should be auto-loaded in by setup_requests()
     http_proxy_url = config.get("http_proxy")
-    http_proxy_creds = config.get("http_proxy_creds")
 
     stats.client = stats.create_stats_client(cfg=config)
 
@@ -661,18 +654,17 @@ def load_config(configfile):
         legacy_cfg.get("id"),
     ]
 
-    if all(creators_args):
+    if all(legacy_args):
+        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
+        logger.info("AmazonAPI (legacy PA-API) Initialized")
+    elif all(creators_args):
         web.amazon_api = AmazonCreatorsAPI(
             *creators_args,
             version=creators_version,
             throttling=0.9,
             proxy_url=http_proxy_url,
-            proxy_creds=http_proxy_creds,
         )
         logger.info("AmazonCreatorsAPI Initialized")
-    elif all(legacy_args):
-        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
-        logger.info("AmazonAPI (legacy PA-API) Initialized")
     else:
         raise RuntimeError(f"{configfile} is missing required amazon_creators_api or amazon_api keys.")
 

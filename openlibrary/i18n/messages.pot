@@ -321,11 +321,24 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
+msgstr ""
+
+#: history.html
+msgid "Rev"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -350,12 +363,18 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
-msgid "Compare"
+msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
-msgid "See Diff"
+msgid "B"
 msgstr ""
 
 #: history.html lib/history.html
@@ -364,11 +383,20 @@ msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "Compare this version..."
+msgid "Changes"
 msgstr ""
 
 #: history.html
-msgid "...to this version"
+msgid "Compare this revision with the current version"
+msgstr ""
+
+#: history.html
+msgid "vs current"
+msgstr ""
+
+#: history.html
+#, python-format
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
@@ -936,8 +964,10 @@ msgstr ""
 
 #: trending.html
 #, python-format
-msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgid "Logged %(count)i time %(time_unit)s"
+msgid_plural "Logged %(count)i times %(time_unit)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: verify_human.html
 msgid "Human Verification"
@@ -7692,11 +7722,9 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
-msgid "When you buy books using these links the Internet Archive may earn a"
-msgstr ""
-
-#: AffiliateLinks.html.jinja
-msgid "small commission"
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
 #: AffiliateLinksLoadingIndicator.html
@@ -8120,14 +8148,6 @@ msgstr ""
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "rating"
-msgstr ""
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "ratings"
-msgstr ""
-
 #. Shows the count of readers who added this book to their "Want to read"
 #. shelf, displayed on search result pages. %(want_to_read_count)s is a
 #. formatted integer (may include commas as thousands separators). Example:
@@ -8139,8 +8159,10 @@ msgstr ""
 
 #: StarRatingsComponent.html
 #, python-format
-msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgid "%(average)s (%(count)s rating)"
+msgid_plural "%(average)s (%(count)s ratings)"
+msgstr[0] ""
+msgstr[1] ""
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -8354,6 +8376,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Korean"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
