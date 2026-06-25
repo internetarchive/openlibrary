@@ -16,7 +16,7 @@
  * in native sequential navigation. Our manual focus traps (OlDialog/OlPopover)
  * find the inner focusable via the shadow-piercing walker in focus-utils.js
  * (`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to
- * be discoverable either. See docs/ai/focus-tabbing.md.
+ * be discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).
  *
  * NOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain
  * LitElement — the trigger is the focusable, e.g. <ol-select-popover>), or

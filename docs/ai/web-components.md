@@ -2,6 +2,19 @@
 
 Guidelines for building Lit web components in Open Library. Components live in `openlibrary/components/lit/` and are registered in `openlibrary/components/lit/index.js`.
 
+## The shadow-boundary contract
+
+The browser flattens the shadow tree for exactly two things — sequential Tab order and the accessibility *reading* tree — so basic tabbing and screen-reader traversal cross a shadow boundary for free. **Every other platform system that assumes one flat tree breaks at the boundary.** Four do, and any component meant to live across light/shadow/nested usage needs an answer for each:
+
+| System (assumes one flat tree) | What breaks at a shadow boundary | Our answer |
+|---|---|---|
+| **Sequential focus / Tab order** | `querySelectorAll`/`TreeWalker`/`activeElement` stop at the boundary; a focus trap can't see in or tell what's really focused | Shadow-piercing helpers + `FocusableHostMixin` — see [Focus and Shadow DOM](#focus-and-shadow-dom) |
+| **CSS cascade** | Page CSS can't reach in; component CSS can't leak out (mostly the point) | Shadow by default + design tokens (they inherit through) + `::part`; light DOM only by the rule in [Shadow DOM vs Light DOM](#shadow-dom-vs-light-dom) |
+| **Form participation** | A control rendered in shadow DOM submits **nothing** with the enclosing `<form>` | `FormAssociatedMixin` — see [Form participation](#form-participation-formassociatedmixin) |
+| **Cross-root ARIA (IDREFs)** | `aria-labelledby`/`-describedby`/`-controls`/`-activedescendant` and `<label for>` can't resolve an id in another root | Keep the relationship in one root; never claim `aria-modal` without a real trap — see [ARIA across roots](#aria-across-roots) |
+
+If you remember one thing: **focus and reading order are free; styling, forms, and id-based ARIA are not.**
+
 ## When to Build a Component
 
 Not every interactive element needs a web component.
@@ -174,7 +187,7 @@ html`
   `aria-modal` — native `<dialog>.showModal()` does all three, see `ol-dialog`).
   A **non-modal** popover/menu/picker must let Tab leave: close on Tab-out, don't
   trap, don't claim `aria-modal` (see `ol-popover`). Why this matters across
-  shadow boundaries: [web-component-boundaries.md](web-component-boundaries.md#aria-across-roots).
+  shadow boundaries: [ARIA across roots](#aria-across-roots).
 
 ```js
 // Escape to close — clean up listeners properly
@@ -206,12 +219,12 @@ button:focus-visible {
 
 ## Shadow DOM vs Light DOM
 
-> The decision below is one facet of a larger contract — shadow boundaries break
-> four platform systems (focus, CSS, forms, id-based ARIA). See
-> [web-component-boundaries.md](web-component-boundaries.md) for the full picture.
+One facet of [the shadow-boundary contract](#the-shadow-boundary-contract). **Default to shadow DOM** (Lit's default). Reach for **light DOM** (`createRenderRoot() { return this }`) deliberately, per component, only when one of these holds:
 
-- **Shadow DOM** (Lit's default) for JS-instantiated or deeply interactive widgets — toasts, dialogs, popovers. They can't FOUC (they don't exist at first paint), and they benefit from real slots and private internals.
-- **Light DOM** (`createRenderRoot() { return this }`) for server-rendered page chrome where first-paint fidelity and progressive enhancement matter — buttons, banners. Styles live in a file under `static/css/components/`, imported by `static/css/ol-components.css` (render-blocking, site-wide). Style the tag itself for the pre-hydration phase and flip to component-rendered structure via a `hydrated` attribute — see `ol-button.css` / `OLButton.js` for the reference pattern.
+- **Progressive enhancement / first-paint fidelity** — server-rendered page chrome that must look right before hydration (`ol-button`, `ol-banner`). Style the tag itself for the pre-hydration phase and flip to component-rendered structure via a `hydrated` attribute. Its CSS lives in `static/css/components/<tag>.css`, imported by `static/css/ol-components.css` (render-blocking, site-wide) — see `ol-button.css` / `OLButton.js` for the reference pattern.
+- **Must live inside global page CSS** — a leaf that has to be styled by the surrounding stylesheet (e.g. a default trigger that reuses `ol-button.css`, as `ol-select-popover` injects).
+
+Otherwise stay in shadow DOM: you keep style encapsulation, real `<slot>` composition, and private internals, and you can't FOUC. Theme through tokens + `::part`, never by expecting outside CSS to reach in.
 
 ## Styling
 
@@ -273,6 +286,13 @@ If you need to drive a Lit component from page JS that webpack bundles (e.g., th
 
 Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `openlibrary/components/lit/utils/focus-utils.js` and `FocusableHostMixin` exist to handle the cases below — reach for them rather than rolling your own.
 
+> Browser floor for the Lit layer is **evergreen ~Safari 15.4+** (we rely on `delegatesFocus` and native `<dialog>.showModal()`); `package.json`'s browserslist still claims Safari 11.1, stale for this layer. The focus backbone is pure-JS and works below the floor; modern APIs are enhancement, never load-bearing.
+
+Two hard problems sit under everything here:
+
+1. **Discovery.** `querySelectorAll`/`TreeWalker`/`parentElement` stop at shadow boundaries, and `document.activeElement` only returns the outermost host. A focus trap must walk depth-first, pierce every `shadowRoot`, expand every `<slot>` via `assignedElements()`, and recurse `activeElement.shadowRoot.activeElement` to find what's really focused.
+2. **Delegation.** `delegatesFocus: true` forwards `host.focus()` to the first focusable in the shadow root in DOM order. If that target is hidden it's a silent no-op; combine it with a host `tabindex` and you get two tab stops for one control. Both of our shipped focus bugs were one of these.
+
 **Pick the focus pattern by the component's shape:**
 
 | Component shape | Pattern | Host `tabindex` | `delegatesFocus` |
@@ -284,6 +304,17 @@ Shadow DOM breaks the assumptions most focus-management code makes. The helpers 
 | Renders its control into **light DOM** (`ol-button`) | nothing special — naturally discoverable | n/a | n/a |
 
 Rule of thumb: **delegate only when there is exactly one place focus can go.** If the component routes focus, or its focusable lives outside its own shadow, don't use `FocusableHostMixin`.
+
+### The discovery backbone — `focus-utils.js`
+
+`getTabbableElements(root)` / `getTabbableFromSlot(slot)` return tabbable elements in true DOM order, piercing shadow and expanding slots. The traps in `OlDialog` (keydown trap) and `OlPopover` (sentinel trap) build their focusable lists from these. Walker rules:
+
+- A `<slot>` contributes its flattened assigned elements, in slot order.
+- An element matching `FOCUSABLE_SELECTOR` **and not** `tabindex="-1"` is a tab stop. The explicit `-1` check matters: the selector matches native controls like `button` regardless of tabindex, and skipping `-1` is what keeps a roving composite to one stop.
+- **Descent / leaf rule (mirrors native sequential focus):** a tab stop that has a `shadowRoot` is a self-contained widget → leaf, don't descend. Anything else is descended into, so a `role="button" tabindex="0"` row *and* its nested light-DOM button both count.
+- Hidden/disabled subtrees (`isFocusable`, via `checkVisibility` with a fallback) are skipped. Closed shadow roots (`<video controls>`) are opaque.
+
+Both arrow-navigation patterns (roving and multi-stop) share one tested helper, `getNextIndex()` in `utils/keyboard-nav.js` (Arrow/Home/End → destination index, with `orientation` + `wrap` + disabled-skipping). Roving vs. multi-stop is the *host's* choice (whether it renders `tabindex="-1"` on inactive items); the helper only computes where to move. Pagination is deliberately **not** roving — it's a `role="navigation"` list of links, and a single tab stop would stop users Tabbing directly to a page.
 
 ### Make custom elements visible to outer focus traps
 
@@ -337,6 +368,11 @@ updated(changedProperties) {
 
 See `OlSelectPopover._onItemToggle` for the reference implementation.
 
+### Testing focus
+
+- jsdom **does** support `attachShadow`, slotting, and shadow `activeElement` traversal, so the walker and utilities are unit-tested faithfully (`tests/unit/js/focusUtils.test.js`).
+- Real Lit components aren't instantiated in jest (tests use a `MockBase`), and jsdom has no `delegatesFocus`/`showModal`/layout. Verify full tab cycles deterministically: invoke the real handler (`{key:'Tab',shiftKey,preventDefault}`) and assert `getDeepActiveElement()`. **Always test Shift+Tab too** — reverse-only traps are invisible forward.
+
 ## Form participation (FormAssociatedMixin)
 
 A control rendered in shadow DOM submits **nothing** with the enclosing `<form>`
@@ -371,8 +407,16 @@ Reference implementations: `ol-toggle` (checkbox-shaped), `ol-segmented-control`
 (radio group, always submits), `ol-options-popover` (single-select),
 `ol-select-popover` (multi-select via `FormData`). Compose the mixin *outside*
 `FocusableHostMixin` when both apply. See
-[web-component-boundaries.md](web-component-boundaries.md) for why this is one of
-the four systems that breaks at a shadow boundary.
+[the shadow-boundary contract](#the-shadow-boundary-contract) for why this is one
+of the four systems that breaks at a shadow boundary.
+
+## ARIA across roots
+
+Element ids are scoped to their shadow root, so any **id-reference** ARIA attribute silently fails to resolve across a boundary, in both directions. This is the least-solved of the four boundary systems today.
+
+- **Keep an ARIA relationship within a single tree.** If a control and the thing it labels/controls/owns must reference each other, render them in the same root (or slot the related content into light DOM so it stays in the light tree). This is why a combobox/listbox is usually one component, not composed from separately-shadowed parts.
+- **Don't claim `aria-modal="true"` unless it's true.** It tells assistive tech the rest of the page is inert. Set it only on a surface that actually traps focus *and* inerts the background (native `<dialog>.showModal()` does both — see `ol-dialog`). A non-modal popover/menu/picker whose page stays interactive must **not** set it, and should let Tab leave (close-on-Tab-out) rather than trap — `ol-popover` is the reference.
+- **Prefer same-root or element-reflection over string ids.** Where a cross-root link is unavoidable, element-reference APIs (e.g. `ariaActiveDescendantElement`) beat string ids where supported. The `attachShadow({ referenceTarget })` proposal (Interop 2026) is the real fix; centralise id wiring (as `ol-popover` does in `_syncTriggerAria`) so adoption is a single-site change later.
 
 ## ARIA on lists
 

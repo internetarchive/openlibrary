@@ -50,7 +50,7 @@ describe('FocusableHostMixin', () => {
     test('does NOT add a host tabindex (avoids the delegatesFocus double tab stop)', () => {
         // The inner native focusable is tabbable on its own, and our focus
         // traps find it via the shadow-piercing walker — so the host must not
-        // be a second tab stop. See docs/ai/focus-tabbing.md.
+        // be a second tab stop. See docs/ai/web-components.md (Focus and Shadow DOM).
         const el = document.createElement('mixin-test-default');
         document.body.appendChild(el);
 
