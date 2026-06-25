@@ -1022,33 +1022,36 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: design/toggle.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html type/author/view.html type/list/view_body.html
-#: work_search.html
+#: account/reading_log.html design/toggle.html
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: type/author/view.html type/list/view_body.html work_search.html
+#: account/reading_log.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
-#: type/author/view.html type/edition/view.html type/list/view_body.html
-#: type/work/view.html work_search.html
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py
+#: search/search_modal_i18n.html type/author/view.html type/edition/view.html
+#: type/list/view_body.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
-#: search/search_modal_i18n.html type/author/view.html type/list/view_body.html
-#: work_search.html
+#: account/reading_log.html search/search_modal_i18n.html type/author/view.html
+#: type/list/view_body.html work_search.html
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html search/search_modal_i18n.html
-#: type/author/view.html type/list/view_body.html work_search.html
+#: account/reading_log.html books/edit/edition.html languages/index.html
+#: search/search_modal_i18n.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "Languages"
 msgstr ""
 
-#: type/author/view.html type/list/view_body.html work_search.html
+#: account/reading_log.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -1750,17 +1753,21 @@ msgid "Books added by people %(username)s follows"
 msgstr ""
 
 #: account/reading_log.html
+msgid "No books on this shelf match the current filters."
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid "Showing %(shown)s of %(total)s books."
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid "Show all %(count)s books"
+msgstr ""
+
+#: account/reading_log.html
 msgid "Search your reading log"
-msgstr ""
-
-#: account/reading_log.html
-#, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: account/reading_log.html
-#, python-format
-msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
 msgstr ""
 
 #: account/reading_log.html

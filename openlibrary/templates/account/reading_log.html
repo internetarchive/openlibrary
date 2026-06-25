@@ -1,4 +1,4 @@
-$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything')
+$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything', availability='all', languages=[])
 
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
@@ -36,29 +36,64 @@ $add_metatag(property="og:image", content=meta_photo_url)
 
   $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
 
-  $if len(docs) > 0:
+  $ filter_active = availability != 'all' or bool(languages)
+
+  $# Availability + language filter bar — same control as /search and author pages,
+  $# auto-wired by SearchFilterBar.js (index.js binds any .search-filter-row). It
+  $# inherits the global reading preference and navigates this shelf URL with the
+  $# filter params. The reading log is Solr-backed (get_works applies fq), so counts
+  $# and pagination stay accurate.
+  $def filter_bar():
+    <div class="search-filter-row" id="search-filter-row">
+      <ol-toggle variant="card" label="$_('Readable Only')" accessible-label="$_('Filter by availability')" $cond(availability != 'all', 'checked')></ol-toggle>
+      <ol-select-popover label="$_('Language')" placeholder="$_('Search languages…')" unselected-heading="$_('Languages')" aria-label="$_('Filter by language')"></ol-select-popover>
+    </div>
+
+  $# Loud + reversible: state how many books match and offer a scope-local "Show
+  $# all" that clears the filters for this shelf (filters=off) without touching the
+  $# stored global preference.
+  $def filter_status():
+    $if filter_active:
+      $ show_all_url = changequery(has_fulltext=None, public_scan=None, print_disabled=None, language=None, mode=None, page=None, q=None, filters='off')
+      <p class="search-filter-status collapse">
+        $if doc_count == 0:
+          $_('No books on this shelf match the current filters.')
+        $else:
+          $_('Showing %(shown)s of %(total)s books.', shown=commify(doc_count), total=commify(shelf_count))
+        <a href="$show_all_url">$_('Show all %(count)s books', count=commify(shelf_count))</a>
+      </p>
+
+  $# Show the search + filter controls when there are results, or when a query/
+  $# filter is active — so the bar and escape stay reachable even when the filter
+  $# returns nothing. A truly empty shelf falls through to the onboarding message.
+  $if len(docs) > 0 or filter_active or q:
     $if key in readlog_keys:
       <form method="GET" class="olform pagesearchbox">
-        $if mode != 'everything':
-          <input type="hidden" name="mode" value="$mode"/>
+        $# Preserve the active filters + sort across a search-within submit.
+        $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort']:
+          $if query_param(k):
+            <input type="hidden" name="$k" value="$query_param(k)"/>
+        $for lang in languages:
+          <input type="hidden" name="language" value="$lang"/>
         $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
 
     <div class="search-results-stats">
-      $if q or mode != 'everything':
+      $if q:
         $ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))
       $else:
         $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
 
       $ layout = get_remembered_layout()
       $:render_template("search/layout_options.html", selected_layout=layout)
-
-      $if mode == "everything" and doc_count > 1:
-        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-      $elif mode != "everything":
-        <span>$:_('— Show <a href="%(url)s">everything</a> in this shelf?', url=changequery(mode='everything'))</span>
     </div>
 
+    $if key in readlog_keys and (shelf_count > 1 or filter_active):
+      $:filter_bar()
+    $:filter_status()
+
+  $if len(docs) > 0:
+    $ layout = get_remembered_layout()
     $if not checkin_year:
       $:macros.OlPagination(int(current_page), ceil(doc_count / results_per_page))
     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
@@ -82,19 +117,22 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $:macros.OlPagination(int(current_page), ceil(doc_count / results_per_page))
   $else:
     <ul class="list-books">
-      $if q or mode != 'everything':
+      $if q:
         $ query = query_param('q')
         <div class="center">
           <hr>
           <div class="red">$_("No results found in this shelf") </div>
           <hr>
-          $if q:
-            <div>
-              <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
-            </div>
+          <div>
+            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
+          </div>
         </div>
       $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>
+      $elif filter_active:
+        $# A filter that hides every book is announced by filter_status() above
+        $# (the "No books match — Show all" line), so nothing more is needed here.
+        <span></span>
       $elif key in readlog_keys:
         <p>$_("You haven't added any books to this shelf yet.")</p>
         <p>$:_('<a href="/search">Search for a book</a> to add to your reading log. <a href="/help/faq/reading-log">Learn more</a> about the reading log.')</p>

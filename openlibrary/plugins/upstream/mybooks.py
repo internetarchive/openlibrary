@@ -29,6 +29,10 @@ from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
+from openlibrary.plugins.worksearch.code import (
+    AVAILABILITY_TO_PARAMS,
+    get_active_availability,
+)
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -41,6 +45,25 @@ if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Work
 
 RESULTS_PER_PAGE: Final = 25
+
+
+def reading_pref_fq(availability: str, languages: list[str]) -> list[str]:
+    """Solr filter-queries for the reading log's availability + language filter
+    bar, expressed exactly as /search does so the global reading preference means
+    the same thing everywhere. Reuses AVAILABILITY_TO_PARAMS (the shared
+    availability vocab) and the same ebook_access/language rewrites the search
+    scheme applies. Returns [] for the unfiltered default."""
+    fq: list[str] = []
+    params = AVAILABILITY_TO_PARAMS.get(availability, {})
+    if params.get("has_fulltext") == "true":
+        fq.append(f"ebook_access:[{get_fulltext_min()} TO *]")
+    if params.get("public_scan") == "true":
+        fq.append("ebook_access:public")
+    elif params.get("public_scan") == "false":
+        fq.append("-ebook_access:public")
+    if languages:
+        fq.append("language:(%s)" % " OR ".join(languages))
+    return fq
 
 
 class avatar(delegate.page):
@@ -267,16 +290,23 @@ class mybooks_readinglog(delegate.page):
             q="",
             results_per_page=RESULTS_PER_PAGE,
             mode="everything",
+            language=[],
         )
         # Limit reading log filtering to queries of 3+ characters
         # because filtering the reading log can be computationally expensive.
         if len(i.q) < 3:
             i.q = ""
 
-        # Construct fq parameter for ebooks filtering
-        fq = None
-        if i.mode == "ebooks":
-            fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
+        # Reading-preference filter (availability + language), shared with /search
+        # and author pages via the filter bar. `get_active_availability` collapses
+        # the has_fulltext/public_scan params into one value the same way /search
+        # does; the legacy ?mode=ebooks link maps to the readable availability.
+        availability = get_active_availability(i)
+        languages = i.language if isinstance(i.language, list) else [i.language]
+        languages = [lang for lang in languages if lang]
+        if availability == "all" and i.mode == "ebooks":
+            availability = "readable"
+        fq = reading_pref_fq(availability, languages) or None
 
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
@@ -311,6 +341,8 @@ class mybooks_readinglog(delegate.page):
             include_ratings=include_ratings,
             q=i.q,
             mode=i.mode,
+            availability=availability,
+            languages=languages,
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
