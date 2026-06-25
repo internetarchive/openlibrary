@@ -12,7 +12,7 @@ export default function initSentry() {
         tracesSampleRate: config.tracesSampleRate,
         integrations: [
             Sentry.browserTracingIntegration({
-                // Use the server's normalised route name (e.g. "/type/edition") so browser
+                // Use the server's normalized route name (e.g. "^/books/[^/]*$") so browser
                 // pageload spans group the same way as the server-side transactions.
                 beforeStartSpan: (options) => ({
                     ...options,
@@ -20,8 +20,13 @@ export default function initSentry() {
                 }),
             }),
         ],
-        // Performance monitoring only — drop all error events
-        beforeSend: () => null,
+        beforeSend(event) {
+            // Apply the same normalized name to error events so they group consistently too.
+            if (config.transactionName) {
+                event.transaction = config.transactionName;
+            }
+            return event;
+        },
         // Inject sentry-trace/baggage headers on same-origin requests for distributed tracing
         tracePropagationTargets: [/^\//],
     });

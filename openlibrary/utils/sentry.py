@@ -130,13 +130,19 @@ class Sentry:
             return {}
         config = {} | self.config | self.config["frontend"]
         del config["frontend"]
-        return {
+        result: dict = {
             "dsn": config.get("dsn"),
             "environment": config.get("environment"),
             "tracesSampleRate": config.get("traces_sample_rate", 0.0),
             "sampleRate": config.get("sample_rate", 0.0),
             "release": get_software_version(),
         }
+        # The Hub-based processor (WebPySentryProcessor) stashes the normalized route name on
+        # web.ctx so it's reachable here without fighting sentry_sdk 2.x scope threading.
+        if route_name := getattr(web.ctx, "sentry_route_name", None):
+            result["transactionName"] = route_name
+
+        return result
 
     def get_traceparent(self) -> str | None:
         """Return sentry-trace header value for the active transaction (for meta tag injection)."""
@@ -186,6 +192,7 @@ class WebPySentryProcessor:
             )
 
             with hub.start_transaction(transaction):
+                web.ctx.sentry_route_name = route_name
                 try:
                     return handler()
                 finally:
