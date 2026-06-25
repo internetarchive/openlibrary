@@ -166,9 +166,12 @@
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
     <!-- Near-realtime loan availability, updated by loan_availability_updater -->
-    <field name="ebook_availability" type="string" multiValued="false" docValues="true"/>
-    <field name="ebook_becomes_available" type="pdate" multiValued="false" docValues="true"/>
-    <field name="loan_uid" type="plong" multiValued="false" docValues="true"/>
+    <!-- stored="false" + indexed="false": required for update.partial.requireInPlace to work. -->
+    <!-- Solr in-place updates require docValues=true, stored=false, indexed=false. -->
+    <!-- Filtering via fq=ebook_availability:available still works through docValues. -->
+    <field name="ebook_availability" type="string" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="ebook_becomes_available" type="pdate" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="loan_uid" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Reading Levels -->
     <field name="lexile" type="pint" multiValued="true"/>
