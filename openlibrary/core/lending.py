@@ -19,12 +19,14 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
+from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
+    site,
 )
 
 from . import helpers as h
@@ -41,13 +43,6 @@ logger = logging.getLogger(__name__)
 
 S3_LOAN_URL = "https://%s/services/loans/loan/"
 
-# When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
-# Once the loan fulfillment inside Digital Editions the book status server will know
-# the loan has occurred.  We allow this timeout so that we don't delete the OL loan
-# record before fulfillment because we can't find it in the book status server.
-# $$$ If a user borrows an ACS4 book and immediately returns book loan will show as
-#     "not yet downloaded" for the duration of the timeout.
-#     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
 
 # How long bookreader loans should last
@@ -120,7 +115,6 @@ def compose_ia_url(
     query=None,
     sorts=None,
     advanced: bool = True,
-    rate_limit_exempt: bool = True,
     safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
@@ -182,7 +176,8 @@ def compose_ia_url(
         ("page", page),
         ("output", "json"),
     ]
-    if rate_limit_exempt:
+    if not get_ol_env().LOCAL_DEV:
+        # This flag is only available on prod
         params.append(("service", "metadata__unlimited"))
     if not sorts or not isinstance(sorts, list):
         sorts = [""]
@@ -305,7 +300,7 @@ async def get_available_async(
         for item in items:
             if item.get("openlibrary_work"):
                 results[item["openlibrary_work"]] = item["openlibrary_edition"]
-        books = web.ctx.site.get_many([f"/books/{olid}" for olid in results.values()])
+        books = site.get().get_many([f"/books/{olid}" for olid in results.values()])
         books = await add_availability_async(books)
         return books
     except Exception:  # TODO: Narrow exception scope
@@ -581,7 +576,7 @@ def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
     ocaid_availability = get_availability("identifier", ocaids)
-    editions = web.ctx.site.get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
+    editions = site.get().get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
 
     # Attach availability
     for edition in editions:
@@ -630,7 +625,7 @@ def get_loan(identifier: str, user_key: str | None = None):
         else:
             account = OpenLibraryAccount.get_by_key(user_key)
 
-    d = web.ctx.site.store.get("loan-" + identifier)
+    d = site.get().store.get("loan-" + identifier)
     if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
         loan = Loan(d)
         if loan.is_expired():
@@ -665,7 +660,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
+    loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
     loans = [Loan(d) for d in loandata]
     if account and account.itemname:
         loans += _get_ia_loans_of_user(account.itemname)
@@ -794,7 +789,7 @@ class EBookRecord(dict):
     @staticmethod
     def find(identifier: str) -> EBookRecord:
         key = "ebooks/" + identifier
-        d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
+        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
 
     def update(self, **kwargs):
@@ -806,7 +801,7 @@ class EBookRecord(dict):
             return
 
         dict.update(self, **kwargs)
-        web.ctx.site.store[self["_key"]] = self
+        site.get().store[self["_key"]] = self
 
 
 class Loan(dict):
@@ -908,7 +903,7 @@ class Loan(dict):
         if self.get("stored_at") == "ia":
             return
 
-        web.ctx.site.store[self["_key"]] = self
+        site.get().store[self["_key"]] = self
 
         # Inform listers that a loan is created/updated
         eventer.trigger("loan-created", self)
@@ -939,7 +934,7 @@ class Loan(dict):
             if account and account.itemname:
                 ia_lending_api.delete_loan(self["ocaid"], account.itemname)
         else:
-            web.ctx.site.store.delete(self["_key"])
+            site.get().store.delete(self["_key"])
 
         sync_loan(self["ocaid"])
         # Inform listers that a loan is completed
@@ -948,7 +943,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier: str) -> str | None:
     """Returns the OL book key for given IA identifier."""
-    if keys := web.ctx.site.things({"type": "/type/edition", "ocaid": identifier}):
+    if keys := site.get().things({"type": "/type/edition", "ocaid": identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
@@ -959,33 +954,8 @@ def userkey2userid(user_key: str) -> str:
     return "ol:" + username
 
 
-def get_resource_id(identifier: str, resource_type: str) -> str | None:
-    """Returns the resource_id for an identifier for the specified resource_type.
-
-    The resource_id is found by looking at external_identifiers field in the
-    metadata of the item.
-    """
-    if resource_type == "bookreader":
-        return "bookreader:" + identifier
-
-    metadata = ia.get_metadata(identifier)
-    external_identifiers = metadata.get("external-identifier", [])
-
-    for eid in external_identifiers:
-        # Ignore bad external identifiers
-        if eid.count(":") < 2:
-            continue
-
-        # The external identifiers will be of the format
-        # acs:epub:<resource_id> or acs:pdf:<resource_id>
-        _acs, rtype, resource_id = eid.split(":", 2)
-        if rtype == resource_type:
-            return resource_id
-    return None
-
-
 def update_loan_status(identifier):
-    """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
+    """Update the loan status in OL. Used to check for early returns."""
     loan = get_loan(identifier)
 
     # if the loan is from ia, it is already updated when getting the loan

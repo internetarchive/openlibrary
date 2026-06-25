@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any, Final
 import web
 from psycopg2.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
-from web.db import ResultSet
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
@@ -24,6 +23,8 @@ logger = logging.getLogger("openlibrary.imports")
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
 if TYPE_CHECKING:
+    from web.db import ResultSet
+
     from openlibrary.core.models import Edition
 
 
@@ -39,7 +40,7 @@ class Batch(web.storage):
         self.items_skipped: set = set()
 
     @staticmethod
-    def find(name: str, create: bool = False) -> "Batch":  # type: ignore[return]
+    def find(name: str, create: bool = False) -> Batch:  # type: ignore[return]
         result = db.query("SELECT * FROM import_batch where name=$name", vars=locals())
         if result:
             return Batch(result[0])
@@ -47,7 +48,7 @@ class Batch(web.storage):
             return Batch.new(name)
 
     @staticmethod
-    def new(name: str, submitter: str | None = None) -> "Batch":
+    def new(name: str, submitter: str | None = None) -> Batch:
         db.insert("import_batch", name=name, submitter=submitter)
         return Batch.find(name=name)
 
@@ -157,7 +158,7 @@ class ImportItem(web.storage):
         return db.query(query, vars={"ia_ids": ia_ids})
 
     @staticmethod
-    def import_first_staged(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> "Edition | None":
+    def import_first_staged(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> Edition | None:
         """
         Import the first staged item in import_item matching the ia_id identifiers.
 
@@ -186,7 +187,7 @@ class ImportItem(web.storage):
 
         return None
 
-    def single_import(self) -> "Edition | None":
+    def single_import(self) -> Edition | None:
         """Import the item using load(), swallow errors, update status, and return the Edition if any."""
         try:
             # Avoids a circular import issue.
@@ -382,9 +383,23 @@ class Stats:
             else cls._get_books_imported_per_day
         )()
 
+    # web.db's `order=` kwarg is not parameterized; restrict to a fixed set
+    # so this stays robust even if a future caller forwards user input as the
+    # `order` argument (the bug shape fixed for /merges in PR #12460).
+    _ALLOWED_ORDERS: Final = {
+        None: None,
+        "import_time desc": "import_time desc",
+        "import_time asc": "import_time asc",
+        "added_time desc": "added_time desc",
+        "added_time asc": "added_time asc",
+    }
+
     @staticmethod
     def get_items(date=None, order=None, limit=None):
         """Returns all rows with given added date."""
+        if order not in Stats._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(Stats._ALLOWED_ORDERS)}.")
+        order = Stats._ALLOWED_ORDERS[order]
         where = "added_time::date = $date" if date else "1 = 1"
         try:
             return db.select("import_item", where=where, order=order, limit=limit, vars=locals())

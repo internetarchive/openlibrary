@@ -67,6 +67,21 @@ div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
+/* Availability + language filter popovers below the search input. */
+.search-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: var(--spacing-md) 0;
+}
+
+/* On the search page, enlarge the in-page search box to match the header
+   search bar. */
+.search-page .searchbox {
+  height: 47px;
+  border-radius: 6px;
+}
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
 div#editHistory {
@@ -203,6 +218,31 @@ tr.table-row.selected {
 
 textarea.toc-editor {
   white-space: pre;
+}
+
+#select-classification {
+  max-width: 300px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media only screen and (max-width: 768px) {
+  /* --width-breakpoint-tablet */
+  table.classifications.identifiers tr {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--lightest-grey);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  table.classifications.identifiers td:first-child {
+    width: 100%;
+    text-align: left !important;
+    font-weight: bold;
+    color: var(--grey-555);
+    margin-bottom: 4px;
+  }
 }
 
 @import "components/ol-message.css";

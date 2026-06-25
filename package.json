@@ -9,11 +9,13 @@
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "env NODE_ENV=development npx webpack --config webpack.config.css.js --watch --progress",
     "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
+    "watch:lit-manifest": "npx cem analyze --watch",
     "build-assets": "make js && make css && make components && make lit-components",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
     "build-assets:js": "make js",
     "build-assets:lit-components": "make lit-components",
+    "build-assets:lit-manifest": "npx cem analyze",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint .",
@@ -23,16 +25,16 @@
     "lint-fix:css": "stylelint --fix \"static/**/*.css\" \"openlibrary/**/*.css\"",
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
-    "test:js": "jest",
-    "storybook": "cd stories && npm install --no-audit && npx storybook dev -p 6006",
-    "build-storybook": "cd stories && npm install --no-audit && npx storybook build"
+    "test:js": "jest"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.3",
+    "@custom-elements-manifest/analyzer": "^0.11.0",
     "@ericblade/quagga2": "^1.7.4",
     "@eslint/js": "^9.39.4",
+    "@internetarchive/elements": "^0.2.5",
     "@tiptap/core": "^3.20.4",
     "@tiptap/extension-image": "^3.22.1",
     "@tiptap/extension-placeholder": "^3.20.4",
@@ -40,7 +42,7 @@
     "@tiptap/starter-kit": "^3.20.4",
     "@vitejs/plugin-legacy": "^8.0.1",
     "@vitejs/plugin-vue": "^6.0.6",
-    "babel-loader": "^9.1.3",
+    "babel-loader": "^10.0.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
@@ -58,8 +60,8 @@
     "glob": "^7.2.3",
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
-    "jest": "^30.0.5",
-    "jest-environment-jsdom": "^30.0.5",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.14.2",
@@ -80,8 +82,8 @@
     "svgo": "4",
     "tesseract.js": "^4.1.4",
     "tiptap-markdown": "^0.9.0",
-    "vite": "^8.0.3",
-    "vue": "^3.5.13",
+    "vite": "^8.0.5",
+    "vue": "^3.5.34",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.5.0",
     "webpack": "^5.106.2",
@@ -120,7 +122,7 @@
   "overrides": {
     "@ericblade/quagga2": {
       "form-data": "4.0.5",
-      "qs": "6.15.1"
+      "qs": "6.15.2"
     }
   },
   "browserslist": [
@@ -130,5 +132,6 @@
     "Safari >= 11.1",
     "iOS >= 11.3",
     "Android >= 5"
-  ]
+  ],
+  "customElements": "openlibrary/components/lit/custom-elements.json"
 }

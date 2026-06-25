@@ -193,7 +193,7 @@ def import_ocaids(ocaids: list[str], batch_size=5_000):
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = importer.Batch.find(batch_name) or importer.Batch.new(batch_name)
 
-    for items in batched(ocaids, batch_size):
+    for items in batched(ocaids, batch_size, strict=False):
         batch.add_items(items)
 
 

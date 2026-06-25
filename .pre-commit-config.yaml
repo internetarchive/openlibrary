@@ -4,7 +4,7 @@
 
 # Learn more about this config here: https://pre-commit.com/
 default_language_version:
-  python: python3.12
+  python: python3.14
 
 ci:
   submodules: true
@@ -41,50 +41,23 @@ repos:
         args: ["--skip", "*.mjs"]
         exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
 
+  - repo: https://github.com/djlint/djLint
+    rev: v1.38.1
+    hooks:
+      - id: djlint-reformat-jinja
+      - id: djlint-jinja
+
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.25
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.16
     hooks:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
-        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
-        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
-        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
-        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
-        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
-        # so the leading | on each line works correctly as an alternation operator.
-        exclude: |
-          (?x)^(
-            openlibrary/accounts/model\.py
-            |openlibrary/core/models\.py
-            |openlibrary/plugins/openlibrary/api\.py
-            |openlibrary/plugins/openlibrary/code\.py
-            |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/worksearch/code\.py
-            |openlibrary/plugins/worksearch/schemes/works\.py
-          )$
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
-    hooks:
-      - id: black  # See pyproject.toml for args
-        # Complement to ruff-format above: black runs ONLY on files in active open PRs
-        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
-        files: |
-          (?x)^(
-            openlibrary/accounts/model\.py
-            |openlibrary/core/models\.py
-            |openlibrary/plugins/openlibrary/api\.py
-            |openlibrary/plugins/openlibrary/code\.py
-            |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/worksearch/code\.py
-            |openlibrary/plugins/worksearch/schemes/works\.py
-          )$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.19.0
@@ -92,7 +65,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.2
+    rev: v2.1.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -115,7 +88,7 @@ repos:
         args: [--fix]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.9.1
+    rev: v10.4.1
     hooks:
       - id: eslint
         types: [file]
@@ -137,17 +110,18 @@ repos:
       name: Generate POT
       description: This hook generates the .pot file for internationalization.
       entry: python ./scripts/i18n-messages extract --skip-untracked
-      types_or: [python, html]
+      types_or: [python, html, jinja]
       language: python
       pass_filenames: false
       # Dependencies must be manually updated to match versions in requirements.txt
       additional_dependencies:
-        - Babel==2.12.1
-        - multipart==0.2.4
-        - "git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382"
-        - fastapi==0.119.0 # annoyingly, these three needed to be added when we started using contextvars in i18n files
-        - simplejson==3.19.1
-        - requests==2.32.4
+        - Babel==2.18.0
+        - Jinja2==3.1.6
+        - multipart==1.3.1
+        - "git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f"
+        - fastapi==0.136.1 # annoyingly, these three needed to be added when we started using contextvars in i18n files
+        - simplejson==3.20.2
+        - requests==2.34.0
 
   - repo: local
     hooks:
@@ -160,7 +134,7 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
+    rev: 4.2.1
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]

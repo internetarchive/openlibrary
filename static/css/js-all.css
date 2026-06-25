@@ -27,7 +27,7 @@
 /* openlibrary/plugins/openlibrary/js/subjects.js */
 .coverEbook {
   cursor: pointer;
-  z-index: var(--z-index-level-6);
+  z-index: var(--z-index-dropdown);
 }
 
 .coverEbook img {

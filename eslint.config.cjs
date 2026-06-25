@@ -36,7 +36,6 @@ module.exports = [
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
-      "stories/.storybook/main.js",
     ],
     languageOptions: {
       sourceType: "script",
@@ -59,21 +58,6 @@ module.exports = [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Storybook preview files (ES modules)
-  {
-    files: ["stories/.storybook/preview.js"],
-    languageOptions: {
-      sourceType: "module",
-      ecmaVersion: "latest",
       globals: {
         ...globals.node,
       },
@@ -228,22 +212,4 @@ module.exports = [
       },
     },
   },
-
-// TEMPORARY EXEMPTIONS: Turn off new formatting rules for files locked in active PRs
-  {
-    files: [
-      "openlibrary/components/lit/OLChip.js",
-      "openlibrary/plugins/openlibrary/js/SearchBar.js",
-      "openlibrary/plugins/openlibrary/js/add-book.js",
-      "openlibrary/plugins/openlibrary/js/carousel/Carousel.js",
-      "openlibrary/plugins/openlibrary/js/dialog.js",
-      "openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/ReadingLogForms.js",
-      "openlibrary/plugins/openlibrary/js/service-worker-init.js"
-    ],
-    rules: {
-      "semi": "off",
-      "space-before-function-paren": "off",
-      "comma-spacing": "off"
-    }
-  }
 ];

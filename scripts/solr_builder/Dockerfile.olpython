@@ -16,7 +16,8 @@ RUN uv pip install \
     # For real-time profiling
     cprofilev \
     # Faster python
-    Cython==3.0.6
+    setuptools \
+    Cython==3.2.5
 
 # Build cython files
 COPY . /openlibrary

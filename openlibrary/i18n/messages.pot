@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
@@ -36,7 +36,7 @@ msgid "or"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: design/popover.html my_books/check_ins/check_in_prompt.html
+#: my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -258,10 +258,6 @@ msgid "Not yet imported"
 msgstr ""
 
 #: design.html
-msgid "Web Component Library"
-msgstr ""
-
-#: design.html
 msgid "Tokens"
 msgstr ""
 
@@ -275,31 +271,6 @@ msgstr ""
 
 #: design.html
 msgid "Components"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
-#: type/work/view.html
-msgid "Pagination"
-msgstr ""
-
-#: design.html
-msgid "Popover"
-msgstr ""
-
-#: design.html type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: design.html
-msgid "Chip"
-msgstr ""
-
-#: design.html
-msgid "Chip Group"
-msgstr ""
-
-#: design.html
-msgid "Markdown Editor"
 msgstr ""
 
 #: design.html
@@ -422,364 +393,6 @@ msgstr ""
 msgid "Headings"
 msgstr ""
 
-#: design.html
-msgid ""
-"The ol-pagination component provides support for both event-based and "
-"URL-based navigation."
-msgstr ""
-
-#: design.html
-msgid "Event-based"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"When a page is clicked, the component fires an %(update_page)s event with"
-" the page number in %(event_detail)s."
-msgstr ""
-
-#: design.html
-msgid "Selected page:"
-msgstr ""
-
-#: design.html
-msgid "URL-based Navigation"
-msgstr ""
-
-#: design.html
-msgid ""
-"When base-url is provided, pagination renders anchor tags for SEO-"
-"friendly links."
-msgstr ""
-
-#: design.html
-msgid "First page (no previous arrow)"
-msgstr ""
-
-#: design.html
-msgid "Middle page (both arrows visible)"
-msgstr ""
-
-#: design.html
-msgid "Last page (no next arrow)"
-msgstr ""
-
-#: design.html
-msgid "3 pages"
-msgstr ""
-
-#: design.html
-msgid "5 pages (no ellipsis needed)"
-msgstr ""
-
-#: design.html
-msgid "100 pages with ellipsis:"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode"
-msgstr ""
-
-#: design.html
-msgid ""
-"When total pages is unknown, use arrows mode to show only previous/next "
-"navigation."
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (has next page)"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (no next page)"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (first page, has next)"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-read-more component provides expandable/collapsible content with "
-"two truncation modes: height-based and line-based."
-msgstr ""
-
-#: design.html
-msgid "Height-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
-
-#: design.html
-msgid "Line-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
-
-#: design.html
-msgid "Custom button text"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(more_text)s and %(less_text)s to customize the toggle button "
-"labels. We'll use the i18n strings for this example."
-msgstr ""
-
-#: SearchResultsWork.html design.html
-msgid "Show more"
-msgstr ""
-
-#: SearchResultsWork.html design.html
-msgid "Show less"
-msgstr ""
-
-#: design.html
-msgid "Custom background color"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(background_color)s to match the gradient fade to your container "
-"background."
-msgstr ""
-
-#: design.html
-msgid "Small label size"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
-
-#: design.html
-msgid "Content shorter than limit (no button)"
-msgstr ""
-
-#: design.html
-msgid "When content fits within the limit, no toggle button is shown."
-msgstr ""
-
-#: design.html
-msgid "This is short content that fits within 5 lines, so no button appears."
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"The ol-chip component is a pill-shaped interactive element for filters, "
-"tags, and selections. It fires an %(event)s event on click."
-msgstr ""
-
-#: design.html
-msgid "Default (medium)"
-msgstr ""
-
-#: design.html
-msgid "Basic chips at the default medium size."
-msgstr ""
-
-#: design.html
-msgid "Fiction"
-msgstr ""
-
-#: design.html openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr ""
-
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: design.html lib/history.html openlibrary/plugins/openlibrary/home.py
-msgid "History"
-msgstr ""
-
-#: design.html
-msgid "Selected state"
-msgstr ""
-
-#: design.html
-msgid "A selected chip displays a checkmark icon and uses an active color scheme."
-msgstr ""
-
-#: design.html
-msgid "Small size"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(size)s for a compact chip."
-msgstr ""
-
-#: design.html
-msgid "Poetry"
-msgstr ""
-
-#: design.html
-msgid "Drama"
-msgstr ""
-
-#: design.html
-msgid "Essays"
-msgstr ""
-
-#: design.html
-msgid "With count"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(count)s to display a number alongside the label."
-msgstr ""
-
-#: design.html
-msgid "As a link"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"When %(href)s is provided, the chip renders as an anchor tag instead of a"
-" button."
-msgstr ""
-
-#: design.html
-msgid "Interactive toggle"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Clicking a chip fires an %(event)s event. Toggle the selected state by "
-"listening to the event."
-msgstr ""
-
-#: design.html
-msgid "Toggle me"
-msgstr ""
-
-#: design.html
-msgid "Toggle me too"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-chip-group component is a flex-wrap container that provides "
-"consistent spacing for groups of chips."
-msgstr ""
-
-#: design.html
-msgid "Default (medium gap)"
-msgstr ""
-
-#: design.html
-msgid "Chips are spaced with an 8px gap by default."
-msgstr ""
-
-#: design.html
-msgid "Small gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for tighter spacing (4px)."
-msgstr ""
-
-#: design.html
-msgid "Large gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for wider spacing (12px)."
-msgstr ""
-
-#: design.html
-msgid "Wrapping behavior"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chips automatically wrap to the next line when they exceed the container "
-"width."
-msgstr ""
-
-#: design.html
-msgid "Biography"
-msgstr ""
-
-#: design.html
-msgid "With mixed chip states"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chip groups work with any combination of chip sizes, states, and link "
-"chips."
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that"
-" outputs Markdown. It syncs its content to a hidden target textarea. A "
-"'View source' toolbar toggle is always available so editors can drop into"
-" a raw markdown textarea when WYSIWYG round-trips are awkward."
-msgstr ""
-
-#: design.html
-msgid "Basic usage"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Provide a %(target_id)s pointing to an existing textarea. The editor "
-"reads initial content from the textarea and syncs changes back to it."
-msgstr ""
-
-#: design.html
-msgid "Mixed Markdown and HTML"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Add the %(attr)s attribute to expose the HTML block button in the "
-"toolbar. HTML blocks appear with a preview and an Edit button to modify "
-"the source."
-msgstr ""
-
-#: design.html
-msgid "Code blocks and inline code"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Add the %(attr)s attribute to expose the inline code and code block "
-"buttons in the toolbar. Code support is off by default because only the "
-"wiki page renderer is guaranteed to render fenced code blocks."
-msgstr ""
-
-#: design.html
-msgid "Change event"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"The editor fires an %(event)s event on every change. The raw Markdown "
-"string is available in %(detail)s."
-msgstr ""
-
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -844,11 +457,24 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
+msgstr ""
+
+#: history.html
+msgid "Rev"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -873,12 +499,18 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
-msgid "Compare"
+msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
-msgid "See Diff"
+msgid "B"
 msgstr ""
 
 #: history.html lib/history.html
@@ -887,11 +519,20 @@ msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "Compare this version..."
+msgid "Changes"
 msgstr ""
 
 #: history.html
-msgid "...to this version"
+msgid "Compare this revision with the current version"
+msgstr ""
+
+#: history.html
+msgid "vs current"
+msgstr ""
+
+#: history.html
+#, python-format
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
@@ -1245,15 +886,16 @@ msgstr ""
 msgid "PR"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html status.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: status.html
 msgid "Author"
 msgstr ""
 
@@ -1416,11 +1058,17 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
+#. Label for the reading log shelf for books the user plans to read in the
+#. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
+#. Display name for the "currently-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user is actively reading
+#. (bookshelf ID 2). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
@@ -1433,6 +1081,18 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
+#. Display name for the "stopped-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user stopped reading before
+#. finishing (bookshelf ID 4). Used as a button label and shelf name.
+#. Label for the reading log shelf for books the user stopped reading
+#. (bookshelf ID 4). Used as a button label and shelf name.
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
+msgid "Stopped Reading"
+msgstr ""
+
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
@@ -1440,8 +1100,10 @@ msgstr ""
 
 #: trending.html
 #, python-format
-msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgid "Logged %(count)i time %(time_unit)s"
+msgid_plural "Logged %(count)i times %(time_unit)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: verify_human.html
 msgid "Human Verification"
@@ -1518,20 +1180,39 @@ msgstr ""
 msgid "Keywords"
 msgstr ""
 
-#: RecentChanges.html recentchanges/index.html work_search.html
-msgid "Everything"
-msgstr ""
-
-#: work_search.html
-msgid "Ebooks"
-msgstr ""
-
 #: work_search.html
 msgid "This is only visible to super librarians."
 msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
+msgstr ""
+
+#: design/toggle.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html work_search.html
+msgid "Readable Only"
+msgstr ""
+
+#: work_search.html
+msgid "Filter by availability"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
+#: type/edition/view.html type/work/view.html work_search.html
+msgid "Language"
+msgstr ""
+
+#: search/search_modal_i18n.html work_search.html
+msgid "Search languages…"
+msgstr ""
+
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html
+#: work_search.html
+msgid "Languages"
+msgstr ""
+
+#: work_search.html
+msgid "Filter by language"
 msgstr ""
 
 #: work_search.html
@@ -1590,7 +1271,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html lib/nav_head.html type/tag/index.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -1958,6 +1639,10 @@ msgstr ""
 msgid "My Loans"
 msgstr ""
 
+#. Display name for the "already-read" reading log shelf used in page headings
+#. and breadcrumbs.
+#. Label for the reading log shelf for books the user has finished reading
+#. (bookshelf ID 3). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
@@ -2106,7 +1791,7 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html design/popover.html
+#: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
 msgstr ""
 
@@ -2135,8 +1820,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Patrons with reading logs set to public may be "
-"followed."
+"stopped reading, or have already read. Patrons with reading logs set to "
+"public may be followed."
 msgstr ""
 
 #: account/privacy.html admin/people/view.html
@@ -2179,6 +1864,18 @@ msgstr ""
 msgid ""
 "%(username)s wants to read %(total)d books. Join %(username)s on "
 "OpenLibrary.org and share the books that you'll soon be reading!"
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid "Books %(username)s stopped reading"
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid ""
+"%(username)s stopped reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org to share your own reading updates!"
 msgstr ""
 
 #: account/reading_log.html
@@ -2258,6 +1955,8 @@ msgid ""
 "their book updates will appear here."
 msgstr ""
 
+#. Display name for the "want-to-read" reading log shelf used in page headings
+#. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
 msgstr ""
@@ -2310,6 +2009,14 @@ msgstr ""
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
+msgstr ""
+
+#: account/readinglog_stats.html
+msgid "Works by Decade Published"
+msgstr ""
+
+#: account/readinglog_stats.html
+msgid "Works by Century Published"
 msgstr ""
 
 #: account/readinglog_stats.html
@@ -2421,7 +2128,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html design/popover.html type/edition/modal_links.html
+#: account/view.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -3438,19 +3145,6 @@ msgstr ""
 msgid "activate account"
 msgstr ""
 
-#: admin/people/view.html
-#, python-format
-msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Activation link expired"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Resend activation link"
-msgstr ""
-
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
 msgstr ""
@@ -3552,7 +3246,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html type/local_id/view.html
+#: search/publishers.html search/search_modal_i18n.html search/searchbox.html
+#: type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -4042,16 +3737,6 @@ msgid "There isn't a DAISY file available for "
 msgstr ""
 
 #: books/daisy.html
-msgid "This DAISY file is protected."
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"It can only be opened on a specialized device with a key issued by the "
-"Library of Congress."
-msgstr ""
-
-#: books/daisy.html
 #, python-format
 msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
@@ -4067,15 +3752,6 @@ msgid ""
 "The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"There are two types of DAISYs on Open Library: <i>open</i> and "
-"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
-"different devices. Protected DAISYs like this one can only be opened "
-"using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
-"Congress NLS program</a>."
 msgstr ""
 
 #: books/daisy.html
@@ -4281,19 +3957,36 @@ msgstr ""
 msgid "Books"
 msgstr ""
 
+#. Page title for the "Want to Read" shelf page.
+#. Example: "Want to Read (17)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
+#. Page title for the "Currently Reading" shelf page.
+#. Example: "Currently Reading (42)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
+#. Page title for the "Already Read" shelf page.
+#. Example: "Already Read (203)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
+msgstr ""
+
+#. Page title for the "Stopped Reading" shelf page.
+#. Example: "Stopped Reading (8)". %(count)d is the number of books on this
+#. shelf.
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Stopped Reading (%(count)d)"
 msgstr ""
 
 #: books/mybooks_breadcrumb_select.html
@@ -4509,10 +4202,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
-
-#: books/edit/edition.html languages/index.html
-msgid "Languages"
 msgstr ""
 
 #: books/edit/edition.html
@@ -5076,62 +4765,82 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: design/popover.html
-msgid "Popover component"
+#: design/toggle.html
+msgid "Toggle"
 msgstr ""
 
-#: design/popover.html
-msgid ""
-"The ol-popover component provides a reusable animated popover panel "
-"anchored to a trigger element. It animates from the trigger using "
-"transform-origin, closes on Escape or outside click, and respects "
-"prefers-reduced-motion."
-msgstr ""
-
-#: design/popover.html
-msgid "Menu popover"
-msgstr ""
-
-#: design/popover.html
-msgid ""
-"Popovers animate from the trigger using transform-origin. Click the "
-"button to see the scale + fade entrance."
-msgstr ""
-
-#: design/popover.html
-msgid "Options"
-msgstr ""
-
-#: design/popover.html
-msgid "Duplicate"
-msgstr ""
-
-#: design/popover.html
-msgid "Archive"
-msgstr ""
-
-#: design/popover.html
-msgid "Move"
-msgstr ""
-
-#: design/popover.html
-msgid "Placement options"
-msgstr ""
-
-#: design/popover.html
+#: design/toggle.html
 #, python-format
 msgid ""
-"Use %(placement)s to control where the popover appears. The "
-"%(transform_origin)s automatically matches so the animation always "
-"expands from the trigger."
+"The %(tag)s component is a switch with a bold label and an optional "
+"greyed sublabel. The whole control is one %(role)s button, so the entire "
+"surface is clickable and Enter/Space activate it. It owns its on/off "
+"state: clicking flips %(checked)s and fires %(event)s."
 msgstr ""
 
-#: design/popover.html
-msgid "bottom-start"
+#: design/toggle.html
+msgid "Default"
 msgstr ""
 
-#: design/popover.html
-msgid "top-center"
+#: design/toggle.html
+#, python-format
+msgid ""
+"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
+" %(sublabel)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Card variant"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Use %(variant)s for a bordered container. When checked, it fills with a "
+"solid primary-blue background and white text — the same treatment as a "
+"selected %(chip)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Custom label content"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Put content in the default slot to customize the label instead of using "
+"%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
+" has an accessible name."
+msgstr ""
+
+#: design/toggle.html
+msgid "Dark mode"
+msgstr ""
+
+#: design/toggle.html
+msgid "easier on the eyes"
+msgstr ""
+
+#: design/toggle.html
+msgid "Disabled"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Add %(disabled)s to block interaction."
+msgstr ""
+
+#: design/toggle.html
+msgid "Change event"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Toggling fires %(event)s with the new state in %(detail)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Checked:"
 msgstr ""
 
 #: email/case_created.html
@@ -5167,7 +4876,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html home/about.html search/work_search_facets.html
+#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -5466,6 +5175,11 @@ msgstr ""
 
 #: lib/header_dropdown.html
 msgid "New!"
+msgstr ""
+
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
+msgid "History"
 msgstr ""
 
 #: lib/history.html
@@ -5804,18 +5518,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Text"
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html
-msgid "Subject"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Advanced"
 msgstr ""
 
 #: lib/nav_head.html
@@ -6354,6 +6056,16 @@ msgstr ""
 msgid "Create new list"
 msgstr ""
 
+#: my_books/dropdown_content.html
+msgid "saving..."
+msgstr ""
+
+#: my_books/dropdown_content.html
+msgid ""
+"Removing this book from your shelves will delete your check-ins for this "
+"work.  Continue?"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -6442,6 +6154,14 @@ msgstr ""
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to delete check-in. Please try again in a few moments."
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to submit check-in. Please try again in a few moments."
 msgstr ""
 
 #: my_books/check_ins/check_in_prompt.html
@@ -6634,6 +6354,10 @@ msgstr ""
 msgid "By Bots"
 msgstr ""
 
+#: RecentChanges.html recentchanges/index.html
+msgid "Everything"
+msgstr ""
+
 #: recentchanges/render.html
 msgid "Admin view"
 msgstr ""
@@ -6749,6 +6473,10 @@ msgid "ISBN"
 msgstr ""
 
 #: search/advancedsearch.html
+msgid "Subject"
+msgstr ""
+
+#: search/advancedsearch.html
 msgid "Place"
 msgstr ""
 
@@ -6783,6 +6511,18 @@ msgstr ""
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "All books"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Free to read now"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Borrow online"
 msgstr ""
 
 #: search/inside.html
@@ -6839,6 +6579,87 @@ msgstr ""
 
 #: search/publishers.html
 msgid "Publishers Search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search Open Library"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search books and authors…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Close search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Clear search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "See all results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Clear all"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search filters"
+msgstr ""
+
+#: search/search_modal_i18n.html type/work/editions_datatable.html
+msgid "Availability"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Searching…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "No results found"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "Showing %s of %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Top results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Untitled"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Readable"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "In %s"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Recent searches"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "Remove \"%s\" from recent searches"
 msgstr ""
 
 #: search/snippets.html
@@ -7000,19 +6821,7 @@ msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr ""
 
 #: search/work_search_selected_facets.html
-msgid "Written in"
-msgstr ""
-
-#: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "eBook"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBook"
 msgstr ""
 
 #: search/work_search_selected_facets.html
@@ -7350,6 +7159,14 @@ msgstr ""
 msgid "Review"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "reviewing"
+msgstr ""
+
+#: type/edition/modal_links.html
+msgid "adding notes to"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -7362,6 +7179,10 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7394,11 +7215,6 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py type/edition/view.html
-#: type/work/view.html
-msgid "Language"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7463,6 +7279,11 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
+msgstr ""
+
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html
+#: type/work/view.html
+msgid "Pagination"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7888,6 +7709,10 @@ msgid "Tag Body"
 msgstr ""
 
 #: type/tag/view.html
+msgid "URL Slugs"
+msgstr ""
+
+#: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
 msgstr ""
@@ -7946,8 +7771,9 @@ msgstr ""
 msgid ""
 "You are publicly sharing the books you are <a href=\"%(username)s/books"
 "/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
-"/already-read\">have already read</a>, and <a href=\"%(username)s/books"
-"/want-to-read\">want to read</a>."
+"/already-read\">have already read</a>, <a href=\"%(username)s/books/want-"
+"to-read\">want to read</a>, and have <a href=\"%(username)s/books"
+"/stopped-reading\">stopped reading</a>!"
 msgstr ""
 
 #: type/user/view.html
@@ -7967,8 +7793,9 @@ msgstr ""
 msgid ""
 "Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
 "reading\">currently reading</a>, <a href=\"%(username)s/books/already-"
-"read\">have already read</a>, and <a href=\"%(username)s/books/want-to-"
-"read\">want to read</a>!"
+"read\">have already read</a>, <a href=\"%(username)s/books/want-to-"
+"read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
+"reading\">stopped reading</a>!"
 msgstr ""
 
 #: type/user/view.html
@@ -8018,10 +7845,6 @@ msgid "Edition"
 msgstr ""
 
 #: type/work/editions_datatable.html
-msgid "Availability"
-msgstr ""
-
-#: type/work/editions_datatable.html
 msgid "No editions available"
 msgstr ""
 
@@ -8029,12 +7852,12 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
-#: AffiliateLinks.html
+#: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
-#: AffiliateLinks.html
+#: AffiliateLinks.html.jinja
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
@@ -8248,10 +8071,12 @@ msgid "Go to next page"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Go to page {page}"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Page {page}, current page"
 msgstr ""
 
@@ -8367,6 +8192,14 @@ msgid "Book %(position)s"
 msgstr ""
 
 #: SearchResultsWork.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Show less"
+msgstr ""
+
+#: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""
@@ -8428,17 +8261,33 @@ msgid "QR Code"
 msgstr ""
 
 #: StarRatings.html
+msgid "leaving a 1 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 2 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 3 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 4 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 5 star review for"
+msgstr ""
+
+#: StarRatings.html
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "rating"
-msgstr ""
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "ratings"
-msgstr ""
-
+#. Shows the count of readers who added this book to their "Want to read"
+#. shelf, displayed on search result pages. %(want_to_read_count)s is a
+#. formatted integer (may include commas as thousands separators). Example:
+#. "2,389 Want to read".
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
@@ -8446,19 +8295,36 @@ msgstr ""
 
 #: StarRatingsComponent.html
 #, python-format
-msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgid "%(average)s (%(count)s rating)"
+msgid_plural "%(average)s (%(count)s ratings)"
+msgstr[0] ""
+msgstr[1] ""
 
+#. Short label displayed next to the count of readers who want to read this
+#. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
 msgstr ""
 
+#. Short label displayed next to the count of readers currently reading this
+#. book, shown in the stats bar on a book page. Example: "1,247 Currently
+#. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
 msgstr ""
 
+#. Short label displayed next to the count of readers who have finished this
+#. book, shown in the stats bar on a book page. Example: "15,420 Have read".
+#. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
+msgstr ""
+
+#. Short label displayed next to the count of readers who stopped reading this
+#. book before finishing, shown in the stats bar on a book page. Example: "348
+#. Stopped reading".
+#: StarRatingsStats.html
+msgid "Stopped reading"
 msgstr ""
 
 #: SubjectTags.html
@@ -8649,6 +8515,10 @@ msgid "Italian"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
+msgid "Korean"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
 msgid "Portuguese"
 msgstr ""
 
@@ -8718,6 +8588,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
@@ -8899,33 +8773,13 @@ msgid "An Internet Archive account already exists with this email"
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email address is already used."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
 msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
+"Verification failed. The link may be invalid or expired. Please try "
+"registering again."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email verification successful."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email address couldn't be verified."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
+msgid "Your email has been verified. You are now logged in."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -8994,6 +8848,14 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid ""
+"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py

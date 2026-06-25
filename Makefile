@@ -42,6 +42,8 @@ components:
 	mv $(BUILD)/components_new $(BUILD)/components
 
 lit-components:
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new
 	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
 	mkdir -p $(BUILD)/lit-components
@@ -67,20 +69,22 @@ distclean:
 reindex-solr:
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
 	curl -C - -L "https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db" -o $(OSP_DUMP_LOCATION)
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	parallel -j4 python ./scripts/solr_builder/solr_builder/index_subjects.py ::: subject person place time
 
 lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
+PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+
 test-py:
-	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+	pytest $(PYTEST_ARGS)
+
+test-py-uv:
+	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate

@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 
 let _idCounter = 0;
 
@@ -125,16 +126,16 @@ export class OlPopover extends LitElement {
             z-index: 999;
             background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
         }
 
         .backdrop[data-state="entering"],
         .backdrop[data-state="open"] {
             opacity: 1;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: auto;
         }
 
@@ -147,8 +148,8 @@ export class OlPopover extends LitElement {
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
             transition:
                 opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
@@ -255,11 +256,10 @@ export class OlPopover extends LitElement {
         this._transformOrigin = 'top left';
         this._animState = 'closed';
         this._mobile = false;
+        this._scrollLocked = false;
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -357,7 +357,8 @@ export class OlPopover extends LitElement {
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (this._mobile) {
-            this._lockBodyScroll();
+            lockBodyScroll();
+            this._scrollLocked = true;
         }
 
         // On desktop, render panel off-screen first so we can measure it.
@@ -441,7 +442,7 @@ export class OlPopover extends LitElement {
      */
     _cleanup() {
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
         this._restoreFocus();
     }
 
@@ -669,13 +670,34 @@ export class OlPopover extends LitElement {
         const handle = this.shadowRoot.querySelector('.tray-handle');
         const panel = this.shadowRoot.querySelector('.panel');
         const touch = e.touches[0];
+        const path = e.composedPath();
 
         this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
         this._lastDragY = 0;
-        this._isHandleDrag = !!(handle && e.composedPath().includes(handle));
-        this._touchScrollTop = panel?.scrollTop ?? 0;
+        this._isHandleDrag = !!(handle && path.includes(handle));
+        // Read scroll position from the actual scroll container under the touch,
+        // not the panel — consumers like ol-select-popover scroll an inner
+        // element, so panel.scrollTop stays 0 and would wrongly read as
+        // "scrolled to top", triggering swipe-to-dismiss mid-list.
+        this._touchScrollTop = this._scrollableInPath(path, panel)?.scrollTop ?? 0;
+    }
+
+    /**
+     * Walk the touch's composed path (which includes slotted light-DOM content)
+     * up to and including the panel, returning the first vertically scrollable
+     * element. Falls back to the panel itself.
+     */
+    _scrollableInPath(path, panel) {
+        for (const el of path) {
+            if (el instanceof HTMLElement && el.scrollHeight > el.clientHeight) {
+                const overflowY = getComputedStyle(el).overflowY;
+                if (overflowY === 'auto' || overflowY === 'scroll') return el;
+            }
+            if (el === panel) break;
+        }
+        return panel;
     }
 
     _onTouchMove(e) {
@@ -741,6 +763,10 @@ export class OlPopover extends LitElement {
                 this._clearDragStyles();
                 this._animState = 'closed';
                 this._cleanup();
+                // Sync the `open` property so the trigger toggles correctly on
+                // the next tap. _animState is already 'closed', so the _hide()
+                // this triggers early-returns without re-animating.
+                this.open = false;
                 this.dispatchEvent(new CustomEvent('ol-popover-close', {
                     bubbles: true, composed: true,
                     detail: { reason: 'swipe' },
@@ -789,33 +815,12 @@ export class OlPopover extends LitElement {
 
     // ── Body scroll lock ────────────────────────────────────────
 
-    _lockBodyScroll() {
-        // If another popover already holds the lock, don't trample its saved styles.
-        if (document.body.style.position === 'fixed') return;
-
-        this._savedScrollY = window.scrollY;
-        this._savedBodyStyle = {
-            position: document.body.style.position,
-            top: document.body.style.top,
-            left: document.body.style.left,
-            right: document.body.style.right,
-            width: document.body.style.width,
-            overflow: document.body.style.overflow,
-        };
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${this._savedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-    }
-
-    _unlockBodyScroll() {
-        if (!this._savedBodyStyle) return;
-        Object.assign(document.body.style, this._savedBodyStyle);
-        window.scrollTo(0, this._savedScrollY);
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
+    /** Releases the body scroll lock if this popover holds one. Idempotent. */
+    _releaseScrollLock() {
+        if (this._scrollLocked) {
+            unlockBodyScroll();
+            this._scrollLocked = false;
+        }
     }
 
     // ── Listener management ─────────────────────────────────────
@@ -837,8 +842,10 @@ export class OlPopover extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
     }
 }
 
-customElements.define('ol-popover', OlPopover);
+if (!customElements.get('ol-popover')) {
+    customElements.define('ol-popover', OlPopover);
+}

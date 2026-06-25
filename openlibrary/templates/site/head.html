@@ -25,32 +25,11 @@ $def with (title)
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
     <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
-    $# CSS Custom Properties (design tokens) - loaded separately for caching
+    $# Loaded separately from page-*.css so they cache once and serve every page from cache.
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
+    <link href="$static_url('build/css/ol-components.css')" rel="stylesheet" type="text/css" />
     $ style = 'build/css/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
-
-    <!-- TODO: Move these pre-hydration web component styles into a dedicated CSS file -->
-    <style>
-      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content. The min-height is set to match the default height of the component. */
-      ol-read-more {
-        min-height: 121px;
-        visibility: hidden;
-        overflow: hidden;
-      }
-      ol-read-more[label-size="small"] {
-        min-height: 107px;
-      }
-
-      /* Reserve height for ol-chip before Lit hydrates to prevent layout shift */
-      ol-chip:not(:defined) {
-        display: inline-block;
-        height: 30px;
-      }
-      ol-chip[size="small"]:not(:defined) {
-        height: 24px;
-      }
-    </style>
 
     <noscript>
       <style>
@@ -68,11 +47,16 @@ $def with (title)
         }
       </style>
     </noscript>
+
+    <script>
+      window.OL_EXPERIMENTS = $:json_encode(ctx.get("experiments", {}));
+    </script>
+
  <script>
  $if not is_bot() and not ctx.get('disable_analytics'):
    // Dimension 1 (visit-scoped): "Days Since Registration" — ID must match Matomo admin config (issue #12144)
    var _paq = window._paq = window._paq || [];
-   _paq.push(['setCustomDimension', 1, $:dumps(get_days_registered(ctx.user))]);
+   _paq.push(['setCustomDimension', 1, $:json_encode(get_days_registered(ctx.user))]);
 
    var _mtm = window._mtm = window._mtm || [];
    _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});

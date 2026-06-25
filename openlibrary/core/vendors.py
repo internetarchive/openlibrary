@@ -5,6 +5,7 @@ import re
 import time
 from types import MappingProxyType
 from typing import Any, Literal, TypedDict
+from urllib.parse import quote
 
 import httpx
 import requests
@@ -307,6 +308,34 @@ def is_dvd(book) -> bool:
     return "dvd" in [product_group, physical_format]
 
 
+def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | None:
+    """Return an Amazon affiliate URL for a book, handling 979-prefix ISBNs.
+
+    Amazon's /dp/<ASIN>/ route only accepts ISBN-10 or a real ASIN.
+    For 979-prefix ISBN-13s, isbn_13_to_isbn_10() returns None because no
+    ISBN-10 equivalent exists (per @hornc: Amazon assigns an arbitrary ASIN
+    that cannot be derived programmatically).  In that case we fall back to
+    an Amazon search URL (per @mekarpeles).  We gate on isbn_13_to_isbn_10()
+    not a raw startswith('979') check so that ISBN structural knowledge stays
+    inside isbn utils (per @cdrini).  This fixes issue #6572.
+
+    Args:
+        isbn: ISBN-13 string (canonical, digits only), or None.
+        asin: Pre-resolved ASIN (e.g. from edition identifiers or ISBN-10),
+              or None.  Takes priority over isbn conversion.
+        tag:  Amazon affiliate tag.
+
+    Returns:
+        A fully-formed Amazon URL, or None if neither isbn nor asin provided.
+    """
+    effective_asin = asin or (isbn and isbn_13_to_isbn_10(isbn))
+    if effective_asin:
+        return f"https://www.amazon.com/dp/{quote(effective_asin)}/?tag={tag}"
+    if isbn:
+        return f"https://www.amazon.com/s?k={quote(isbn)}&i=stripbooks&tag={tag}"
+    return None
+
+
 class AmazonCreatorsAPI:
     """
     Amazon Creators API wrapper — replacement for AmazonAPI (PA-API 5.0).
@@ -338,7 +367,6 @@ class AmazonCreatorsAPI:
         country: str = "US",
         throttling: float = 0.9,
         proxy_url: str = "",
-        proxy_creds: str = "",
     ) -> None:
         """
         :param str credential_id: Creators API key / credential ID (OAuth 2.0)
@@ -377,6 +405,15 @@ class AmazonCreatorsAPI:
         # Inject proxy into underlying SDK rest client, mirroring the PA-API approach.
         # Required for ol-home0 which has no direct internet access. See #10310.
         if proxy_url:
+            proxy_creds = None
+            if "@" in proxy_url:
+                # need to parse the url and pull out the proxy creds
+                m = re.match(r"^(?P<scheme>https?://)(?P<creds>[^/@]+)@(?P<rest>.*)$", proxy_url)
+                if not m:
+                    raise ValueError("Invalid proxy URL")
+                proxy_creds = m.group("creds")
+                proxy_url = m.group("scheme") + m.group("rest")
+
             try:
                 from creatorsapi_python_sdk.configuration import (
                     Configuration as CreatorsConfig,
@@ -388,13 +425,14 @@ class AmazonCreatorsAPI:
 
                 configuration = CreatorsConfig()
                 configuration.proxy = proxy_url
-                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
+                if proxy_creds:
+                    configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
                 rest_client = CreatorsRESTClient(configuration=configuration)
                 # _api_client is the ApiClient instance stored directly on
                 # AmazonCreatorsApi; replace its rest_client to route all
                 # outbound HTTP through the proxy.
                 self.api._api_client.rest_client = rest_client
-            except (ImportError, AttributeError):
+            except ImportError, AttributeError:
                 logger.warning(
                     "AmazonCreatorsAPI: could not inject proxy — falling back to environment-level proxy (HTTPS_PROXY)",
                     exc_info=True,
@@ -607,7 +645,7 @@ def _get_amazon_metadata(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-    timeout: float = 4.0,
+    timeout: float = 10.0,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.

@@ -13,6 +13,7 @@ from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
 
 if TYPE_CHECKING:
+    from openlibrary.solr.data_provider import DataProvider
     from openlibrary.solr.updater.work import WorkSolrBuilder
 
 logger = logging.getLogger("openlibrary.solr")
@@ -94,16 +95,33 @@ def is_sine_nomine(pub: str) -> bool:
     return re_not_az.sub("", pub).lower() == "sn"
 
 
+ARTICLE_PATTERN = re.compile(
+    "^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)",
+    flags=re.IGNORECASE,
+)
+
+
+def sort_title(title: str, subtitle: str | None) -> str:
+    """Move leading articles to the end of the title for sorting purposes."""
+    if subtitle:
+        title = title + ": " + subtitle
+    if match := ARTICLE_PATTERN.match(title):
+        return f"{match.group(2)}, {match.group(1).strip()}"
+    return title
+
+
 class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
         edition: dict,
-        solr_work: "WorkSolrBuilder | None" = None,
+        solr_work: WorkSolrBuilder | None = None,
         ia_metadata: bp.IALiteMetadata | None = None,
+        data_provider: DataProvider | None = None,
     ):
         self._edition = edition
         self._solr_work = solr_work
         self._ia_metadata = ia_metadata
+        self._data_provider = data_provider
         self._providers = list(bp.get_book_providers(edition))
         self._best_provider = self._providers[0] if self._providers else None
 
@@ -123,6 +141,20 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     @property
     def subtitle(self) -> str | None:
         return self._edition.get("subtitle")
+
+    @property
+    def title_sort(self) -> str | None:
+        """
+        Generates a formatted title string based on the ``title`` and
+        ``subtitle`` attributes with any leading article removed and
+        moved to the end of the string.
+
+        :return: A formatted title string or None if ``title`` is not set.
+        :rtype: str | None
+        """
+        if self.title:
+            return sort_title(self.title, self.subtitle)
+        return None
 
     @property
     def alternative_title(self) -> set[str]:
@@ -158,19 +190,33 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             result.append(f"{olid} | {chapter.get('label', '')} | {title} | {chapter.get('pagenum', '')}")
         return result
 
-    @property
+    @cached_property
     def cover_i(self) -> int | None:
         return next(
             (cover_id for cover_id in self._edition.get("covers", []) if cover_id != -1),
             None,
         )
 
+    @cached_property
+    def _cover_dimensions(self) -> tuple[int, int] | None:
+        if not self.cover_i or not self._data_provider:
+            return None
+        return self._data_provider.get_cover_dimensions(self.cover_i)
+
+    @property
+    def cover_width(self) -> int | None:
+        return self._cover_dimensions[0] if self._cover_dimensions else None
+
+    @property
+    def cover_height(self) -> int | None:
+        return self._cover_dimensions[1] if self._cover_dimensions else None
+
     @property
     def lexile(self) -> int | None:
         lexile_str = self._edition.get("lexile")
         try:
             return int(lexile_str) if lexile_str else None
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
     @property
@@ -192,7 +238,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         number_of_pages_str = self._edition.get("number_of_pages")
         try:
             return int(number_of_pages_str) if number_of_pages_str else None
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
     @property
@@ -325,6 +371,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "alternative_title": list(self.alternative_title),
                 "chapter": self.chapter,
                 "cover_i": self.cover_i,
+                "cover_width": self.cover_width,
+                "cover_height": self.cover_height,
                 "language": self.language,
                 # Duplicate the author data from the work
                 **(

@@ -30,6 +30,7 @@ import uuid
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import copy
+from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
@@ -62,6 +63,7 @@ from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_ac
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
@@ -88,6 +90,25 @@ ALLOWED_COVER_HOSTS: Final = (
     "covers.openlibrary.org",
     "m.media-amazon.com",
 )
+
+
+# Matches decimal (&#1059;) and hex (&#x41B;) HTML numeric character references only.
+# Named entities like &amp; are intentionally excluded to avoid false positives in
+# titles that legitimately contain "&" (e.g. "Tom & Jerry").
+_HTML_NUMERIC_ENTITY_RE = re.compile(r"&#(?:[0-9]{1,6}|x[0-9a-fA-F]{1,6});")
+
+
+def _unescape_html_entities(s: str) -> str:
+    """Unescape HTML entities in s, but only when a numeric/hex entity is present.
+
+    The guard (_HTML_NUMERIC_ENTITY_RE) fires on decimal (&#1059;) and hex
+    (&#x41B;) entities only — bare & and named entities (&amp;) do not trigger
+    it, so strings with only those pass through unchanged.  However, once the
+    guard fires, html.unescape() decodes ALL entities in the string, including
+    any named ones that happen to be present alongside the numeric ones.
+    Example: '&#1059; &amp; bar' -> '\\u0423 & bar'.
+    """
+    return html_unescape(s) if _HTML_NUMERIC_ENTITY_RE.search(s) else s
 
 
 type_map = {
@@ -207,9 +228,9 @@ def find_matching_work(e):
     seen = set()
     for a in e["authors"]:
         q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
-        work_keys = list(web.ctx.site.things(q))
+        work_keys = list(site.get().things(q))
         for wkey in work_keys:
-            w = web.ctx.site.get(wkey)
+            w = site.get().get(wkey)
             if wkey in seen:
                 continue
             seen.add(wkey)
@@ -237,7 +258,7 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
         new_author = "key" not in a
         if new_author:
             if save:
-                a["key"] = web.ctx.site.new_key("/type/author")
+                a["key"] = site.get().new_key("/type/author")
             else:
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
@@ -280,7 +301,7 @@ def new_work(edition: dict, rec: dict, cover_id: int | None = None, save: bool =
         w["description"] = {"type": "/type/text", "value": rec["description"]}
 
     if save:
-        w["key"] = web.ctx.site.new_key("/type/work")
+        w["key"] = site.get().new_key("/type/work")
     else:
         w["key"] = f"/works/__new__{uuid.uuid4()}"
 
@@ -381,7 +402,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
     data = {"error": "No qualifying edition"}
     if edition_id:
-        ed = web.ctx.site.get(f"/books/{edition_id}")
+        ed = site.get().get(f"/books/{edition_id}")
         if ed.ocaid:
             work = ed.works[0] if ed.get("works") else None
             if work and work.key:
@@ -525,7 +546,7 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
 
     q = {"type": "/type/edition", key: value}
 
-    ekeys = list(web.ctx.site.things(q))
+    ekeys = list(site.get().things(q))
     return ekeys
 
 
@@ -544,7 +565,7 @@ def find_threshold_match(rec: dict, edition_pool: dict[str, list[str]]) -> str |
             thing = None
             while not thing or is_redirect(thing):
                 seen.add(edition_key)
-                thing = web.ctx.site.get(edition_key)
+                thing = site.get().get(edition_key)
                 if thing is None:
                     break
                 if is_redirect(thing):
@@ -575,7 +596,7 @@ def check_cover_url_host(cover_url: str | None, allowed_cover_hosts: Iterable[st
 def load_data(  # noqa: PLR0912, PLR0915
     rec: dict,
     account_key: str | None = None,
-    existing_edition: "Edition | None" = None,
+    existing_edition: Edition | None = None,
     save: bool = True,
 ):
     """
@@ -634,7 +655,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     edition_key = edition.get("key")
     if not edition_key:
         if save:
-            edition_key = web.ctx.site.new_key("/type/edition")
+            edition_key = site.get().new_key("/type/edition")
         else:
             edition_key = f"/books/__new__{uuid.uuid4()}"
 
@@ -676,7 +697,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if not work_key and "authors" in edition:
         work_key = find_matching_work(edition)
     if work_key:
-        work = web.ctx.site.get(work_key)
+        work = site.get().get(work_key)
         work_state = "matched"
         need_update = False
         for k in subject_fields:
@@ -708,7 +729,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if save:
         comment = "overwrite existing edition" if existing_edition else "import new book"
         action = "edit-book" if existing_edition else "add-book"
-        web.ctx.site.save_many(edits, comment=comment, action=action)
+        site.get().save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:
@@ -748,6 +769,33 @@ def normalize_import_record(rec: dict) -> None:
     publication_year = get_publication_year(rec.get("publish_date"))
     if publication_year and published_in_future_year(publication_year):
         del rec["publish_date"]
+
+    # Unescape HTML numeric/hex character references introduced by some import
+    # sources (e.g. BetterWorldBooks).  Must run before subtitle split so that
+    # a colon buried inside an entity sequence doesn't produce a spurious split.
+    _EDITION_TEXT_FIELDS = (
+        "title",
+        "subtitle",
+        "full_title",
+        "by_statement",
+        "edition_name",
+        "description",
+        "pagination",
+        "first_sentence",
+        "notes",
+        "copyright_date",
+    )
+    for field in _EDITION_TEXT_FIELDS:
+        value = rec.get(field)
+        if isinstance(value, str):
+            rec[field] = _unescape_html_entities(value)
+        elif isinstance(value, dict) and isinstance(value.get("value"), str):
+            # Some fields (e.g. description) are stored as {"type": "/type/text", "value": "..."}
+            value["value"] = _unescape_html_entities(value["value"])
+    for author in rec.get("authors", []):
+        for field in ("name", "personal_name", "bio", "title", "death_date"):
+            if isinstance(author.get(field), str):
+                author[field] = _unescape_html_entities(author[field])
 
     # Split subtitle if required and not already present
     if ":" in rec.get("title", "") and not rec.get("subtitle"):
@@ -813,7 +861,7 @@ def find_match(rec: dict, edition_pool: dict) -> str | None:
     return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
 
 
-def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "Edition", save: bool) -> bool:
+def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: Edition, save: bool) -> bool:
     """
     Enrich the Edition by adding certain fields present in rec but absent
     in edition.
@@ -896,7 +944,7 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
     return need_edition_save
 
 
-def update_work_with_rec_data(rec: dict, edition: "Edition", work: dict[str, Any], need_work_save: bool) -> bool:
+def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any], need_work_save: bool) -> bool:
     """
     Enrich the Work by adding certain fields present in rec but absent
     in work.
@@ -933,7 +981,7 @@ def update_work_with_rec_data(rec: dict, edition: "Edition", work: dict[str, Any
     return need_work_save
 
 
-def should_overwrite_promise_item(edition: "Edition", from_marc_record: bool = False) -> bool:
+def should_overwrite_promise_item(edition: Edition, from_marc_record: bool = False) -> bool:
     """
     Returns True for revision 1 promise items with MARC data available.
 
@@ -986,14 +1034,14 @@ def load(
     # We have an edition match at this point
     need_work_save = need_edition_save = False
     work: dict[str, Any]
-    existing_edition: Edition = web.ctx.site.get(match)
+    existing_edition: Edition = site.get().get(match)
 
     # check for, and resolve, author redirects
     for a in existing_edition.authors:
         while is_redirect(a):
             if a in existing_edition.authors:
                 existing_edition.authors.remove(a)
-            a = web.ctx.site.get(a.location)
+            a = site.get().get(a.location)
             if not is_redirect(a):
                 existing_edition.authors.append(a)
 
@@ -1039,7 +1087,7 @@ def load(
 
     if save:
         if edits:
-            web.ctx.site.save_many(edits, comment="import existing book", action="edit-book")
+            site.get().save_many(edits, comment="import existing book", action="edit-book")
         if "ocaid" in rec:
             update_ia_metadata_for_ol_edition(match.split("/")[-1])
 

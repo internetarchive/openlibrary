@@ -9,6 +9,7 @@ import secrets
 import string
 import time
 import uuid
+from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
 import requests
@@ -25,6 +26,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.utils.request_context import site
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -42,7 +44,7 @@ class OLAuthenticationError(Exception):
 
 
 def append_random_suffix(text: str, limit: int = 9999) -> str:
-    return f'{text}{random.randint(0, limit)}'
+    return f"{text}{random.randint(0, limit)}"
 
 
 def valid_email(email: str) -> bool:
@@ -51,13 +53,8 @@ def valid_email(email: str) -> bool:
 
 def sendmail(to: str, msg, cc=None) -> None:
     cc = cc or []
-    if config.get('dummy_sendmail'):
-        message = (
-            f"To: {to}\n"
-            f"From:{config.from_address}\n"
-            f"Subject: {msg.subject}\n"
-            f"\n{web.safestr(msg)}"
-        )
+    if config.get("dummy_sendmail"):
+        message = f"To: {to}\nFrom:{config.from_address}\nSubject: {msg.subject}\n\n{web.safestr(msg)}"
 
         print("sending email", message, file=web.debug)
     else:
@@ -72,27 +69,20 @@ def sendmail(to: str, msg, cc=None) -> None:
 
 def verify_hash(secret_key, text, hash) -> bool:
     """Verifies if the hash is generated"""
-    salt = hash.split('$', 1)[0]
+    salt = hash.split("$", 1)[0]
     return generate_hash(secret_key, text, salt) == hash
 
 
 def generate_hash(secret_key, text, salt=None) -> str:
     if not isinstance(secret_key, bytes):
-        secret_key = secret_key.encode('utf-8')
-    salt = (
-        salt
-        or hmac.HMAC(
-            secret_key, str(random.random()).encode('utf-8'), hashlib.md5
-        ).hexdigest()[:5]
-    )
-    hash = hmac.HMAC(
-        secret_key, (salt + web.safestr(text)).encode('utf-8'), hashlib.md5
-    ).hexdigest()
-    return f'{salt}${hash}'
+        secret_key = secret_key.encode("utf-8")
+    salt = salt or hmac.HMAC(secret_key, str(random.random()).encode("utf-8"), hashlib.md5).hexdigest()[:5]
+    hash = hmac.HMAC(secret_key, (salt + web.safestr(text)).encode("utf-8"), hashlib.md5).hexdigest()
+    return f"{salt}${hash}"
 
 
 def get_secret_key():
-    return config.infobase['secret_key']
+    return config.infobase["secret_key"]
 
 
 def create_verification_cookie_value() -> str:
@@ -169,10 +159,10 @@ def verify_session_cookie(cookie_value: str) -> bool:
     """
     if not cookie_value:
         return False
-    if not cookie_value.startswith('/people/'):
+    if not cookie_value.startswith("/people/"):
         return True  # Unknown format — don't invalidate
     try:
-        data, signature = cookie_value.rsplit(',', 1)
+        data, signature = cookie_value.rsplit(",", 1)
     except ValueError:
         return False
     return verify_hash(get_secret_key(), data, signature)
@@ -195,20 +185,6 @@ def generate_login_code_for_user(username: str) -> str:
 
 def generate_uuid() -> str:
     return str(uuid.uuid4()).replace("-", "")
-
-
-def send_verification_email(username: str, email: str) -> None:
-    """Sends account verification email."""
-    key = f"account/{username}/verify"
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/verify/" + doc['code']
-    msg = render_template(
-        "email/account/verify", username=username, email=email, password=None, link=link
-    )
-    sendmail(email, msg)
 
 
 def create_link_doc(key: str, username: str, email: str) -> dict:
@@ -234,21 +210,21 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
 
 
 def clear_cookies() -> None:
-    web.setcookie('pd', "", expires=-1)
-    web.setcookie('sfw', "", expires=-1)
+    web.setcookie("pd", "", expires=-1)
+    web.setcookie("sfw", "", expires=-1)
 
 
 class Link(web.storage):
     def get_expiration_time(self) -> datetime.datetime:
-        d = self['expires_on'].split(".")[0]
+        d = self["expires_on"].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_creation_time(self) -> datetime.datetime:
-        d = self['created_on'].split(".")[0]
+        d = self["created_on"].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def delete(self) -> None:
-        del web.ctx.site.store[self['_key']]
+        del site.get().store[self["_key"]]
 
 
 class Account(web.storage):
@@ -281,39 +257,36 @@ class Account(web.storage):
             return self.username
 
     def creation_time(self) -> datetime.datetime:
-        d = self['created_on'].split(".")[0]
+        d = self["created_on"].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
-        return web.ctx.site.recentchanges(q)
+        return site.get().recentchanges(q)
 
     def verify_password(self, password) -> bool:
         return verify_hash(get_secret_key(), password, self.enc_password)
 
     def update_password(self, new_password) -> None:
-        web.ctx.site.update_account(self.username, password=new_password)
+        site.get().update_account(self.username, password=new_password)
 
     def update_email(self, email) -> None:
-        web.ctx.site.update_account(self.username, email=email)
-
-    def send_verification_email(self) -> None:
-        send_verification_email(self.username, self.email)
+        site.get().update_account(self.username, email=email)
 
     def activate(self) -> None:
-        web.ctx.site.activate_account(username=self.username)
+        site.get().activate_account(username=self.username)
 
     def block(self) -> None:
         """Blocks this account."""
-        web.ctx.site.update_account(self.username, status="blocked")
+        site.get().update_account(self.username, status="blocked")
 
     def unblock(self) -> None:
         """Unblocks this account."""
-        web.ctx.site.update_account(self.username, status="active")
+        site.get().update_account(self.username, status="active")
 
     def is_blocked(self) -> bool:
         """Tests if this account is blocked."""
-        return getattr(self, 'status', '') == "blocked"
+        return getattr(self, "status", "") == "blocked"
 
     def login(self, password):
         """Tries to login with the given password and returns the status.
@@ -331,21 +304,18 @@ class Account(web.storage):
         if self.is_blocked():
             return "account_blocked"
         try:
-            web.ctx.site.login(self.username, password)
+            site.get().login(self.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
             return code
         else:
-            self['last_login'] = datetime.datetime.utcnow().isoformat()
+            self["last_login"] = datetime.datetime.utcnow().isoformat()
             self._save()
             return "ok"
 
     @classmethod
     def generate_random_password(cls, n: int = 12) -> str:
-        return ''.join(
-            random.SystemRandom().choice(string.ascii_uppercase + string.digits)
-            for _ in range(n)
-        )
+        return "".join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(n))
 
     def generate_login_code(self) -> str:
         """Returns a string that can be set as login cookie to log in as this user."""
@@ -353,7 +323,7 @@ class Account(web.storage):
 
     def _save(self) -> None:
         """Saves this account in store."""
-        web.ctx.site.store[self._key] = self
+        site.get().store[self._key] = self
 
     @property
     def last_login(self) -> datetime.datetime:
@@ -365,7 +335,7 @@ class Account(web.storage):
         t = self.get("last_login")
         return t and helpers.parse_datetime(t)
 
-    def get_user(self) -> 'User':
+    def get_user(self) -> User:
         """A user is where preferences are attached to an account. An
         "Account" is outside of infogami in a separate table and is
         used to store private user information.
@@ -374,32 +344,30 @@ class Account(web.storage):
         :returns: Not an Account obj, but a /people/xxx User
         """
         key = "/people/" + self.username
-        return web.ctx.site.get(key)
+        return site.get().get(key)
 
     def get_creation_info(self) -> dict:
         key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
+        doc = site.get().get(key)
         return doc.get_creation_info()
 
     def get_activation_link(self) -> Link | bool:
         key = f"account/{self.username}/verify"
-        if doc := web.ctx.site.store.get(key):
+        if doc := site.get().store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self) -> Link | bool:
         key = f"account/{self.username}/password"
-        if doc := web.ctx.site.store.get(key):
+        if doc := site.get().store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_links(self) -> list[Link]:
         """Returns all the verification links present in the database."""
-        return web.ctx.site.store.values(
-            type="account-link", name="username", value=self.username
-        )
+        return site.get().store.values(type="account-link", name="username", value=self.username)
 
     def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
@@ -412,14 +380,14 @@ class Account(web.storage):
         tags = self.get_tags()
         if tag not in tags:
             tags.append(tag)
-        self['tags'] = tags
+        self["tags"] = tags
         self._save()
 
     def remove_tag(self, tag) -> None:
         tags = self.get_tags()
         if tag in tags:
             tags.remove(tag)
-        self['tags'] = tags
+        self["tags"] = tags
         self._save()
 
     def set_bot_flag(self, flag) -> None:
@@ -438,49 +406,33 @@ class Account(web.storage):
                 grp.remove_user(patron.key)
 
             # Clear patron's profile page:
-            data = {'key': patron.key, 'type': '/type/delete'}
+            data = {"key": patron.key, "type": "/type/delete"}
             patron.set_data(data, "delete-profile")
 
             # Remove account information from store:
-            del web.ctx.site.store[f'account/{username}']
-            del web.ctx.site.store[f'account/{username}/verify']
-            del web.ctx.site.store[f'account/{username}/password']
-            del web.ctx.site.store[f'account-email/{email}']
-            del web.ctx.site.store[f'account-email/{email.lower()}']
+            del site.get().store[f"account/{username}"]
+            del site.get().store[f"account/{username}/verify"]
+            del site.get().store[f"account/{username}/password"]
+            del site.get().store[f"account-email/{email}"]
+            del site.get().store[f"account-email/{email.lower()}"]
             # Delete preferences:
-            del web.ctx.site.store[f'/people/{username}/preferences']
+            del site.get().store[f"/people/{username}/preferences"]
 
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
-        uuid = (
-            self.get_activation_link()['code']
-            if self.get_activation_link()
-            else generate_uuid()
-        )
-        new_username = f'anonymous-{uuid}'
-        results = {'new_username': new_username}
+        uuid = self.get_activation_link()["code"] if self.get_activation_link() else generate_uuid()
+        new_username = f"anonymous-{uuid}"
+        results = {"new_username": new_username}
 
         # Delete all of the patron's book notes:
-        results['booknotes_count'] = Booknotes.delete_all_by_username(
-            self.username, _test=test
-        )
+        results["booknotes_count"] = Booknotes.delete_all_by_username(self.username, _test=test)
 
         # Anonymize patron's username in OL DB tables:
-        results['ratings_count'] = Ratings.update_username(
-            self.username, new_username, _test=test
-        )
-        results['observations_count'] = Observations.update_username(
-            self.username, new_username, _test=test
-        )
-        results['bookshelves_count'] = Bookshelves.update_username(
-            self.username, new_username, _test=test
-        )
-        results['merge_request_count'] = CommunityEditsQueue.update_submitter_name(
-            self.username, new_username, _test=test
-        )
-        results['bestbooks_count'] = Bestbook.update_username(
-            self.username, new_username, _test=test
-        )
+        results["ratings_count"] = Ratings.update_username(self.username, new_username, _test=test)
+        results["observations_count"] = Observations.update_username(self.username, new_username, _test=test)
+        results["bookshelves_count"] = Bookshelves.update_username(self.username, new_username, _test=test)
+        results["merge_request_count"] = CommunityEditsQueue.update_submitter_name(self.username, new_username, _test=test)
+        results["bestbooks_count"] = Bestbook.update_username(self.username, new_username, _test=test)
 
         return results
 
@@ -489,16 +441,22 @@ class Account(web.storage):
         """Retrieves the Archive.org itemname which links Open Library and
         Internet Archive accounts
         """
-        return getattr(self, 'internetarchive_itemname', None)
+        return getattr(self, "internetarchive_itemname", None)
 
     def get_linked_ia_account(self):
         if self.itemname:
-            act = InternetArchiveAccount.xauth('info', itemname=self.itemname)
-            if 'values' in act and 'email' in act['values']:
-                return InternetArchiveAccount.get(email=act['values']['email'])
+            act = InternetArchiveAccount.xauth("info", itemname=self.itemname)
+            if "values" in act and "email" in act["values"]:
+                return InternetArchiveAccount.get(email=act["values"]["email"])
 
     def render_link(self) -> str:
         return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
+
+
+class PDRequestStatus(Enum):
+    REQUESTED = 0
+    EMAILED = 1
+    FULFILLED = 2
 
 
 class OpenLibraryAccount(Account):
@@ -525,9 +483,9 @@ class OpenLibraryAccount(Account):
                             an available username.
         """
         if cls.get_by_email(email):
-            raise ValueError('email_registered')
+            raise ValueError("email_registered")
 
-        username = username[1:] if username[0] == '@' else username
+        username = username[1:] if username[0] == "@" else username
         displayname = displayname or username
 
         # tests whether a user w/ this username exists
@@ -536,7 +494,7 @@ class OpenLibraryAccount(Account):
         attempt = 0
         while _user:
             if attempt >= retries:
-                ve = ValueError('username_registered')
+                ve = ValueError("username_registered")
                 ve.value = username
                 raise ve
 
@@ -546,27 +504,27 @@ class OpenLibraryAccount(Account):
         username = new_username
         if test:
             return cls(
-                itemname=f'@{username}',
+                itemname=f"@{username}",
                 email=email,
                 username=username,
                 displayname=displayname,
                 test=True,
             )
         try:
-            web.ctx.site.register(
+            site.get().register(
                 username=username,
                 email=email,
                 password=password,
                 displayname=displayname,
             )
         except ClientException:
-            raise ValueError('something_went_wrong')
+            raise ValueError("something_went_wrong")
 
         if verified:
             key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
-            web.ctx.site.store[key] = doc
-            web.ctx.site.activate_account(username=username)
+            site.get().store[key] = doc
+            site.get().activate_account(username=username)
 
         ol_account = cls.get_by_email(email)
 
@@ -574,7 +532,7 @@ class OpenLibraryAccount(Account):
         from openlibrary.accounts import RunAs
 
         with RunAs(username):
-            ol_account.get_user().save_preferences({'public_readlog': 'yes'})
+            ol_account.get_user().save_preferences({"public_readlog": "yes"})
 
         return ol_account
 
@@ -582,42 +540,38 @@ class OpenLibraryAccount(Account):
     def get_or_raise(
         cls,
         value: str,
-        field: Literal['link', 'email', 'username', 'key'],
-    ) -> 'OpenLibraryAccount':
+        field: Literal["link", "email", "username", "key"],
+    ) -> OpenLibraryAccount:
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
         account = None
-        if field == 'username':
+        if field == "username":
             account = cls.get_by_username(value)
-        elif field == 'email':
+        elif field == "email":
             account = cls.get_by_email(value)
-        elif field == 'link':
+        elif field == "link":
             account = cls.get_by_link(value)
-        elif field == 'key':
+        elif field == "key":
             account = cls.get_by_key(value)
         if not account:
-            raise ValueError('Unable to get Open Library account')
+            raise ValueError("Unable to get Open Library account")
         return account
 
     @classmethod
-    def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
-        username = key.rsplit('/', maxsplit=1)[-1]
+    def get_by_key(cls, key: str) -> OpenLibraryAccount | None:
+        username = key.rsplit("/", maxsplit=1)[-1]
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(cls, username: str) -> 'OpenLibraryAccount | None':
+    def get_by_username(cls, username: str) -> OpenLibraryAccount | None:
         """Retrieves and OpenLibraryAccount by username if it exists or"""
-        match = web.ctx.site.store.values(
-            type="account", name="username", value=username, limit=1
-        )
+        match = site.get().store.values(type="account", name="username", value=username, limit=1)
 
         if len(match):
             return cls(match[0])
 
-        lower_match = web.ctx.site.store.values(
-            type="account", name="lusername", value=username, limit=1
-        )
+        lower_match = site.get().store.values(type="account", name="lusername", value=username, limit=1)
 
         if len(lower_match):
             return cls(lower_match[0])
@@ -625,17 +579,15 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link: str) -> 'OpenLibraryAccount | None':
+    def get_by_link(cls, link: str) -> OpenLibraryAccount | None:
         """
         :rtype: OpenLibraryAccount or None
         """
-        ol_accounts = web.ctx.site.store.values(
-            type="account", name="internetarchive_itemname", value=link
-        )
+        ol_accounts = site.get().store.values(type="account", name="internetarchive_itemname", value=link)
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(cls, email: str) -> 'OpenLibraryAccount | None':
+    def get_by_email(cls, email: str) -> OpenLibraryAccount | None:
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make
@@ -646,56 +598,88 @@ class OpenLibraryAccount(Account):
         if that fails.
         """
         email = email.strip()
-        email_doc = web.ctx.site.store.get(
-            "account-email/" + email
-        ) or web.ctx.site.store.get("account-email/" + email.lower())
-        if email_doc and 'username' in email_doc:
-            doc = web.ctx.site.store.get("account/" + email_doc['username'])
+        email_doc = site.get().store.get("account-email/" + email) or site.get().store.get("account-email/" + email.lower())
+        if email_doc and "username" in email_doc:
+            doc = site.get().store.get("account/" + email_doc["username"])
             return cls(doc) if doc else None
         return None
 
     @property
     def verified(self) -> bool:
-        return getattr(self, 'status', '') != 'pending'
+        return getattr(self, "status", "") != "pending"
 
     @property
     def blocked(self) -> bool:
-        return getattr(self, 'status', '') == 'blocked'
+        return getattr(self, "status", "") == "blocked"
 
     def unlink(self) -> None:
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        _ol_account = web.ctx.site.store.get(self._key)
-        _ol_account['internetarchive_itemname'] = None
-        web.ctx.site.store[self._key] = _ol_account
+        _ol_account = site.get().store.get(self._key)
+        _ol_account["internetarchive_itemname"] = None
+        site.get().store[self._key] = _ol_account
         self.internetarchive_itemname = None
-        stats.increment('ol.account.xauth.unlinked')
+        stats.increment("ol.account.xauth.unlinked")
 
     def link(self, itemname) -> None:
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        itemname = itemname if itemname.startswith('@') else f'@{itemname}'
+        itemname = itemname if itemname.startswith("@") else f"@{itemname}"
 
-        _ol_account = web.ctx.site.store.get(self._key)
-        _ol_account['internetarchive_itemname'] = itemname
-        web.ctx.site.store[self._key] = _ol_account
+        _ol_account = site.get().store.get(self._key)
+        _ol_account["internetarchive_itemname"] = itemname
+        site.get().store[self._key] = _ol_account
         self.internetarchive_itemname = itemname
-        stats.increment('ol.account.xauth.linked')
+        stats.increment("ol.account.xauth.linked")
 
     def save_s3_keys(self, s3_keys: dict) -> None:
-        _ol_account = web.ctx.site.store.get(self._key)
-        _ol_account['s3_keys'] = s3_keys
-        web.ctx.site.store[self._key] = _ol_account
+        _ol_account = site.get().store.get(self._key)
+        _ol_account["s3_keys"] = s3_keys
+        site.get().store[self._key] = _ol_account
         self.s3_keys = s3_keys
 
     def update_last_login(self):
-        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account = site.get().store.get(self._key)
         last_login = datetime.datetime.utcnow().isoformat()
-        _ol_account['last_login'] = last_login
-        web.ctx.site.store[self._key] = _ol_account
+        _ol_account["last_login"] = last_login
+        site.get().store[self._key] = _ol_account
         self.last_login = last_login
+
+    @property
+    def pd_authority(self):
+        """Return patron's requested Print Disability Authority"""
+        return self.get_user().preferences().get("pda")
+
+    @property
+    def pd_status(self):
+        rpd = self.get_user().preferences().get("rpd")
+        return PDRequestStatus(int(rpd)) if rpd is not None else None
+
+    def update_pd(self, pda=None, rpd=None):
+        prefs = {}
+        u = self.get_user()
+        if pda and self.pd_authority != pda:
+            prefs["pda"] = pda
+        if rpd is not None and self.pd_status != PDRequestStatus(int(rpd)):
+            prefs["rpd"] = rpd
+        if prefs:
+            u.save_preferences(prefs)
+
+    def send_pd_email(self):
+        if org := self.pd_authority:
+            if org == "unqualified":
+                org = "vtmas_disabilityresources"
+            displayname = web.safestr(self.displayname)
+            msg = render_template("email/account/pd_request", displayname=displayname, org=org)
+            web.sendmail(
+                config.from_address,
+                self.email,
+                subject=msg.subject.strip(),
+                message=msg,
+            )
+            self.update_pd(rpd=PDRequestStatus.EMAILED.value)
 
     @classmethod
     def authenticate(cls, email: str, password: str, test: bool = False) -> str:
@@ -705,7 +689,7 @@ class OpenLibraryAccount(Account):
         if ol_account.is_blocked():
             return "account_blocked"
         try:
-            web.ctx.site.login(ol_account.username, password)
+            site.get().login(ol_account.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
             return code
@@ -745,28 +729,28 @@ class InternetArchiveAccount(web.storage):
             username.
         """
         email = email.strip().lower()
-        screenname = screenname[1:] if screenname[0] == '@' else screenname
+        screenname = screenname[1:] if screenname[0] == "@" else screenname
         notifications = notifications or []
 
         if cls.get(email=email):
-            raise OLAuthenticationError('email_registered')
+            raise OLAuthenticationError("email_registered")
 
         if not screenname:
-            raise OLAuthenticationError('missing_fields')
+            raise OLAuthenticationError("missing_fields")
 
         _screenname = screenname
         attempt = 0
         while True:
             try:
                 response = cls.xauth(
-                    'create',
+                    "create",
                     email=email,
                     password=password,
                     screenname=_screenname,
                     notifications=notifications,
                     test=test,
                     verified=verified,
-                    service='openlibrary',
+                    service="openlibrary",
                 )
             except requests.HTTPError as err:
                 status_code = err.response.status_code
@@ -774,42 +758,51 @@ class InternetArchiveAccount(web.storage):
                     raise OLAuthenticationError("request_timeout")
                 raise OLAuthenticationError("undefined_error")
 
-            if response.get('success'):
+            if response.get("success"):
                 ia_account = cls.get(email=email)
                 if test:
                     ia_account.test = True
                 return ia_account
 
             # Response has returned "failure" with reasons in "values"
-            failures = response.get('values', {})
-            if 'screenname' not in failures:
+            failures = response.get("values", {})
+            if "screenname" not in failures:
                 for field in failures:
                     # raise the first error if multiple
                     # e.g. bad_email, bad_password
-                    error = OLAuthenticationError(f'bad_{field}')
+                    error = OLAuthenticationError(f"bad_{field}")
                     error.response = response
                     raise error
             elif attempt < retries:
                 _screenname = append_random_suffix(screenname)
                 attempt += 1
             else:
-                e = OLAuthenticationError('username_registered')
+                e = OLAuthenticationError("username_registered")
                 e.value = _screenname
                 raise e
 
     @classmethod
-    def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
+    def xauth(
+        cls,
+        op,
+        test=None,
+        s3_key=None,
+        s3_secret=None,
+        xauth_url=None,
+        headers=None,
+        **data,
+    ):
         """
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
         """
         from openlibrary.core import lending
 
         url = xauth_url or lending.config_ia_xauth_api_url
-        params = {'op': op}
+        params = {"op": op}
         data.update(
             {
-                'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
-                'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret'),
+                "access": s3_key or lending.config_ia_ol_xauth_s3.get("s3_key"),
+                "secret": s3_secret or lending.config_ia_ol_xauth_s3.get("s3_secret"),
             }
         )
 
@@ -820,13 +813,13 @@ class InternetArchiveAccount(web.storage):
         # performing an account `create` xauthn operation and the
         # `service` parameter is present, we need to rename `service`
         # as `activation-type` so it is forwarded correctly to xauth:
-        if op == 'create' and 'service' in data:
-            data['activation-type'] = data.pop('service')
+        if op == "create" and "service" in data:
+            data["activation-type"] = data.pop("service")
 
         if test:
-            params['developer'] = test
+            params["developer"] = test
 
-        response = requests.post(url, params=params, json=data)
+        response = requests.post(url, params=params, json=data, headers=headers or {})
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -837,7 +830,7 @@ class InternetArchiveAccount(web.storage):
             # the server is down or something :P)
             return response.json()
         except ValueError:
-            return {'error': response.text, 'code': response.status_code}
+            return {"error": response.text, "code": response.status_code}
 
     @classmethod
     def s3auth(cls, access_key: str, secret_key: str):
@@ -847,29 +840,25 @@ class InternetArchiveAccount(web.storage):
         url = lending.config_ia_s3_auth_url
 
         if not isinstance(url, str):
-            raise TypeError(
-                f"Expected 'url' to be a string, got {type(url).__name__} instead"
-            )
+            raise TypeError(f"Expected 'url' to be a string, got {type(url).__name__} instead")
 
         try:
             response = requests.get(
                 url,
                 headers={
-                    'Content-Type': 'application/json',
-                    'authorization': f'LOW {access_key}:{secret_key}',
+                    "Content-Type": "application/json",
+                    "authorization": f"LOW {access_key}:{secret_key}",
                 },
             )
             response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:
-            return {'error': e.response.text, 'code': e.response.status_code}
+            return {"error": e.response.text, "code": e.response.status_code}
         except JSONDecodeError as e:
-            return {'error': str(e), 'code': response.status_code}
+            return {"error": str(e), "code": response.status_code}
 
     @classmethod
-    def get(
-        cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None
-    ):
+    def get(cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None):
         email = email.strip().lower()
         response = cls.xauth(
             email=email,
@@ -879,22 +868,62 @@ class InternetArchiveAccount(web.storage):
             s3_secret=s3_secret,
             xauth_url=xauth_url,
         )
-        if 'success' in response:
-            values = response.get('values', {})
+        if "success" in response:
+            values = response.get("values", {})
             return values if _json else cls(**values)
 
     @classmethod
     def authenticate(cls, email, password, test=False):
         email = email.strip().lower()
-        response = cls.xauth('authenticate', test=test, email=email, password=password)
-        if not response.get('success'):
-            reason = response['values'].get('reason')
-            if reason == 'account_not_verified':
-                response['values']['reason'] = 'ia_account_not_verified'
+        response = cls.xauth("authenticate", test=test, email=email, password=password)
+        if not response.get("success"):
+            reason = response["values"].get("reason")
+            if reason == "account_not_verified":
+                response["values"]["reason"] = "ia_account_not_verified"
         return response
 
+    @classmethod
+    def issue_otp(cls, email, service="ol", originating_ip=None):
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
+        return cls.xauth(
+            "issue_otp",
+            email=email.strip().lower(),
+            service=service,
+            headers=headers,
+        )
 
-def audit_accounts(
+    @classmethod
+    def redeem_otp(cls, email, otp, originating_ip=None):
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
+        return cls.xauth(
+            "redeem_otp",
+            email=email.strip().lower(),
+            password=otp,
+            headers=headers,
+        )
+
+    @classmethod
+    def verify(cls, token, welcome_email=True, test=False):
+        """
+        Verifies (activates) an Internet Archive account using a one-time token sent to the user's email.
+
+        See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn#activate
+        """
+        payload = {"token": token, "welcome-email": welcome_email}
+
+        response = cls.xauth(op="activate", test=test, **payload)
+
+        if not response.get("success"):
+            reason = response.get("values", {}).get("reason") or response.get("error")
+            return {
+                "error": reason or "activation_failed",
+                "code": response.get("code", 409),
+            }
+
+        return response.get("values", response)
+
+
+def audit_accounts(  # noqa: PLR0912
     email,
     password,
     require_link=False,
@@ -922,29 +951,26 @@ def audit_accounts(
 
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
-        if not r.get('authorized', False):
-            return {'error': 'invalid_s3keys'}
+        if not r.get("authorized", False):
+            return {"error": "invalid_s3keys"}
         ia_login = {
-            'success': True,
-            'values': {'access': s3_access_key, 'secret': s3_secret_key},
+            "success": True,
+            "values": {"access": s3_access_key, "secret": s3_secret_key},
         }
-        email = r['username']
+        email = r["username"]
     else:
         if not valid_email(email):
-            return {'error': 'invalid_email'}
+            return {"error": "invalid_email"}
         ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if 'values' in ia_login and any(
-        ia_login['values'].get('reason') == err
-        for err in ['account_blocked', 'account_locked']
-    ):
-        return {'error': 'account_locked'}
+    if "values" in ia_login and any(ia_login["values"].get("reason") == err for err in ["account_blocked", "account_locked"]):
+        return {"error": "account_locked"}
 
-    if not ia_login.get('success'):
+    if not ia_login.get("success"):
         # Prioritize returning other errors over `account_not_found`
-        if ia_login['values'].get('reason') != "account_not_found":
-            return {'error': ia_login['values'].get('reason')}
-        return {'error': 'account_not_found'}
+        if ia_login["values"].get("reason") != "account_not_found":
+            return {"error": ia_login["values"].get("reason")}
+        return {"error": "account_not_found"}
 
     else:
         ia_account = InternetArchiveAccount.get(email=email, test=test)
@@ -973,10 +999,10 @@ def audit_accounts(
             # been linked to a different Internet Archive account.
             if ol_account and ol_account.itemname:
                 logger.error(
-                    'IA <-> OL itemname mismatch',
+                    "IA <-> OL itemname mismatch",
                     extra={
-                        'ol_itemname': ol_account.itemname,
-                        'ia_itemname': ia_account.itemname,
+                        "ol_itemname": ol_account.itemname,
+                        "ia_itemname": ia_account.itemname,
                     },
                 )
                 ol_account.unlink()
@@ -1004,10 +1030,10 @@ def audit_accounts(
                     test=test,
                 )
             except ValueError:
-                return {'error': 'max_retries_exceeded'}
+                return {"error": "max_retries_exceeded"}
 
             ol_account.link(ia_account.itemname)
-            stats.increment('ol.account.xauth.ia-auto-created-ol')
+            stats.increment("ol.account.xauth.ia-auto-created-ol")
 
         # So long as there's either a linked OL account, or an unlinked OL account with
         # the same email, set them as linked (and let the finalize logic link them, if
@@ -1015,49 +1041,61 @@ def audit_accounts(
         else:
             if not ol_account.itemname:
                 ol_account.link(ia_account.itemname)
-                stats.increment('ol.account.xauth.auto-linked')
+                stats.increment("ol.account.xauth.auto-linked")
             if not ol_account.verified:
                 # The IA account is activated (verifying the integrity of their email),
                 # so we make a judgement call to safely activate them.
                 ol_account.activate()
             if ol_account.blocked:
-                return {'error': 'account_blocked'}
+                return {"error": "account_blocked"}
 
     if require_link:
         ol_account = OpenLibraryAccount.get_by_link(ia_account.itemname)
         if ol_account and not ol_account.itemname:
-            return {'error': 'accounts_not_connected'}
+            return {"error": "accounts_not_connected"}
 
-    if 'values' in ia_login:
+    if "values" in ia_login:
         s3_keys = {
-            'access': ia_login['values'].pop('access'),
-            'secret': ia_login['values'].pop('secret'),
+            "access": ia_login["values"].pop("access"),
+            "secret": ia_login["values"].pop("secret"),
         }
         ol_account.save_s3_keys(s3_keys)
 
-    # When a user logs in with OL credentials, the web.ctx.site.login() is called with
+    # Handle Print Disability Processing
+    has_special_access = getattr(ia_account, "has_disability_access", False)
+    if pda := web.cookies().get("pda"):
+        if has_special_access:
+            ol_account.update_pd(pda, PDRequestStatus.FULFILLED.value)
+        else:
+            ol_account.update_pd(pda, PDRequestStatus.REQUESTED.value)
+        if ol_account.pd_status == PDRequestStatus.REQUESTED:
+            ol_account.send_pd_email()
+    elif ol_account.pd_authority and has_special_access and ol_account.pd_status != PDRequestStatus.FULFILLED:
+        ol_account.update_pd(rpd=PDRequestStatus.FULFILLED.value)
+
+    # When a user logs in with OL credentials, the site.get().login() is called with
     # their OL user credentials, which internally sets an auth_token enabling the
-    # user's session.  The web.ctx.site.login method requires OL credentials which are
+    # user's session.  The site.get().login method requires OL credentials which are
     # not present in the case where a user logs in with their IA credentials. As a
     # result, when users login with their valid IA credentials, the following kludge
     # allows us to fetch the OL account linked to their IA account, bypass this
-    # web.ctx.site.login method (which requires OL credentials), and directly set an
+    # site.get().login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()
     return {
-        'authenticated': True,
-        'special_access': getattr(ia_account, 'has_disability_access', False),
-        'ia_email': ia_account.email,
-        'ol_email': ol_account.email,
-        'ia_username': ia_account.screenname,
-        'ol_username': ol_account.username,
-        'link': ol_account.itemname,
+        "authenticated": True,
+        "special_access": has_special_access,
+        "ia_email": ia_account.email,
+        "ol_email": ol_account.email,
+        "ia_username": ia_account.screenname,
+        "ol_username": ol_account.username,
+        "link": ol_account.itemname,
     }
 
 
 @public
 def get_internet_archive_id(key: str) -> str | None:
-    username = key.rsplit('/', maxsplit=1)[-1]
+    username = key.rsplit("/", maxsplit=1)[-1]
     ol_account = OpenLibraryAccount.get_by_username(username)
     return ol_account.itemname if ol_account else None

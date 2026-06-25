@@ -1,7 +1,6 @@
 import logging
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
-import web
 from pydantic import TypeAdapter, ValidationError
 
 from openlibrary.catalog.utils import (
@@ -12,6 +11,7 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core.helpers import extract_year
 from openlibrary.utils import extract_numeric_id_from_olid, uniq
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -141,7 +141,7 @@ def do_flip(author: AuthorImportDict) -> None:
         author["personal_name"] = name
 
 
-def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Author":
+def pick_from_matches(author: AuthorImportDict, match: list[Author]) -> Author:
     """
     Finds the best match for author from a list of OL authors records, match.
 
@@ -162,23 +162,23 @@ def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Autho
     return min(maybe, key=key_int)
 
 
-def find_author(author: AuthorImportDict) -> list["Author"]:
+def find_author(author: AuthorImportDict) -> list[Author]:
     """
     Searches OL for an author by a range of queries.
     """
 
-    def has_dates(author: "dict | Author | AuthorImportDict") -> bool:
+    def has_dates(author: dict | Author | AuthorImportDict) -> bool:
         return "birth_date" in author or "death_date" in author
 
     def walk_redirects(obj, seen):
         seen.add(obj["key"])
         while obj["type"]["key"] == "/type/redirect":
             assert obj["location"] != obj["key"]
-            obj = web.ctx.site.get(obj["location"])
+            obj = site.get().get(obj["location"])
             seen.add(obj["key"])
         return obj
 
-    def get_redirected_authors(authors: list["Author"]):
+    def get_redirected_authors(authors: list[Author]):
         keys = [a.type.key for a in authors]
         if any(k != "/type/author" for k in keys):
             seen: set[str] = set()
@@ -187,7 +187,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("key")) and (record := web.ctx.site.get(key)):
+    if (key := author.get("key")) and (record := site.get().get(key)):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([record])
 
@@ -199,8 +199,8 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
         for identifier, val in remote_ids.items():
             queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                matched_authors.extend(get_redirected_authors(list(web.ctx.site.get_many(reply))))
+            if reply := list(site.get().things(query)):
+                matched_authors.extend(get_redirected_authors(list(site.get().get_many(reply))))
         matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
         # The match is whichever one has the most identifiers in common
         if matched_authors:
@@ -232,8 +232,8 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
             },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
         ]
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                things += get_redirected_authors(list(web.ctx.site.get_many(reply)))
+            if reply := list(site.get().things(query)):
+                things += get_redirected_authors(list(site.get().get_many(reply)))
                 break
     match = []
     seen = set()
@@ -256,7 +256,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
     return [pick_from_matches(author, match)]
 
 
-def find_entity(author: AuthorImportDict) -> "Author | None":
+def find_entity(author: AuthorImportDict) -> Author | None:
     """
     Looks for an existing Author record in OL
     and returns it if found.
@@ -294,7 +294,7 @@ def remove_author_honorifics(name: str) -> str:
     return name
 
 
-def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> "Author | dict[str, Any]":
+def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
