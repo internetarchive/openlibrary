@@ -302,7 +302,7 @@ BORROW_UID = 100_001
 BORROW_UNTIL = (datetime.datetime.utcnow() + datetime.timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def test_borrow() -> None:
+def run_borrow() -> None:
     banner("Step 3 — Borrow event → ebook_availability = unavailable")
 
     fake_rows = [
@@ -348,7 +348,7 @@ def test_borrow() -> None:
 RETURN_UID = 100_002
 
 
-def test_return() -> None:
+def run_return() -> None:
     banner("Step 4 — Return event → ebook_availability = available, becomes_available cleared")
 
     fake_rows = [
@@ -392,7 +392,7 @@ def test_return() -> None:
 BROWSE_UID = 200_001
 
 
-def test_eviction() -> None:
+def run_eviction() -> None:
     banner("Step 5 — Eviction: ebook_becomes_available in the past → auto-clear")
 
     # Seed Work B as currently borrowed, with ebook_becomes_available in the PAST
@@ -456,7 +456,7 @@ def test_eviction() -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-def test_state_recovery() -> None:
+def run_state_recovery() -> None:
     banner("Step 6 — State recovery: query max loan_uid for restart resume")
 
     # The updater calls query_solr_uid() on restart; it reads the highest loan_uid
@@ -629,10 +629,10 @@ def main() -> None:
     check_solr()
     verify_schema()
     seed_works()
-    test_borrow()
-    test_return()
-    test_eviction()
-    test_state_recovery()
+    run_borrow()
+    run_return()
+    run_eviction()
+    run_state_recovery()
     demo_queries()
     report_gaps()
 
