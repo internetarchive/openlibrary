@@ -28,6 +28,7 @@ The updater logic (process_changes → build_solr_updates → Solr atomic update
 is reproduced inline at a level a reviewer can follow without reading the source.
 """
 
+import contextlib
 import datetime
 import json
 import sys
@@ -39,11 +40,12 @@ SOLR = "http://localhost:8984/solr/openlibrary"
 
 PASS = "✓"
 FAIL = "✗"
-SKIP = "–"
+SKIP = "-"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def ok(msg: str) -> None:
     print(f"  {PASS}  {msg}")
@@ -101,6 +103,7 @@ def past_utc(hours: int = 2) -> str:
 # Step 0 — Verify Solr is up
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def check_solr() -> None:
     banner("Step 0 — Connecting to Solr")
     for attempt in range(15):
@@ -110,20 +113,23 @@ def check_solr() -> None:
                 d = r.json()
                 ok(f"Solr responding — status={d.get('status')}")
                 return
-        except Exception:
+        except requests.ConnectionError, requests.Timeout, ValueError:
             pass
         print(f"  … waiting for Solr (attempt {attempt + 1}/15)")
         time.sleep(3)
-    fail(f"Solr not reachable at {SOLR} after 45 s.  Is the container running?\n"
-         "    docker run -d --name ol-test-solr -p 8984:8983 \\\n"
-         '      -v "$(pwd)/conf/solr:/opt/solr/server/solr/configsets/olconfig:ro" \\\n'
-         '      -e "SOLR_MODULES=analysis-extras" \\\n'
-         "      solr:10.0.0 solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig")
+    fail(
+        f"Solr not reachable at {SOLR} after 45 s.  Is the container running?\n"
+        "    docker run -d --name ol-test-solr -p 8984:8983 \\\n"
+        '      -v "$(pwd)/conf/solr:/opt/solr/server/solr/configsets/olconfig:ro" \\\n'
+        '      -e "SOLR_MODULES=analysis-extras" \\\n'
+        "      solr:10.0.0 solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig"
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Step 1 — Verify schema has our new fields
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def verify_schema() -> None:
     banner("Step 1 — Verify schema fields")
@@ -136,8 +142,7 @@ def verify_schema() -> None:
     field_map = {f["name"]: f for f in all_fields["fields"]}
     for name, expected in fields.items():
         if name not in field_map:
-            fail(f"Field '{name}' is MISSING from the schema.  "
-                 f"Are you running Solr from the PR branch?")
+            fail(f"Field '{name}' is MISSING from the schema.  Are you running Solr from the PR branch?")
         f = field_map[name]
         type_ok = f.get("type") == expected["type"]
         dv_ok = f.get("docValues") is True
@@ -200,9 +205,10 @@ def seed_works() -> None:
 # Updater logic (reproduced inline — mirrors loan_availability_updater.py)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _process_changes(rows: list) -> dict:
     """Reduce batch to latest event per identifier (mirrors process_changes)."""
-    latest = {}
+    latest: dict[str, dict] = {}
     for row in rows:
         ident = row["identifier"]
         uid = row["uid"]
@@ -210,10 +216,8 @@ def _process_changes(rows: list) -> dict:
             continue
         until = None
         if row["event_type"] in ("borrow", "browse", "renew_borrow", "renew_browse"):
-            try:
+            with contextlib.suppress(ValueError, TypeError, KeyError):
                 until = json.loads(row.get("extra") or "{}").get("until")
-            except Exception:
-                pass
         latest[ident] = {"event_type": row["event_type"], "uid": uid, "until": until}
     return latest
 
@@ -248,12 +252,14 @@ def _build_updates(id_state: dict, id_to_work: dict) -> list:
                 u["ebook_becomes_available"] = {"set": solr_until}
             updates.append(u)
         elif state["event_type"] in ENDED:
-            updates.append({
-                "key": work_key,
-                "ebook_availability": {"set": "available"},
-                "ebook_becomes_available": {"set": None},
-                "loan_uid": {"set": state["uid"]},
-            })
+            updates.append(
+                {
+                    "key": work_key,
+                    "ebook_availability": {"set": "available"},
+                    "ebook_becomes_available": {"set": None},
+                    "loan_uid": {"set": state["uid"]},
+                }
+            )
     return updates
 
 
@@ -442,13 +448,13 @@ def test_eviction() -> None:
     if doc.get("ebook_availability") == "available" and doc.get("ebook_becomes_available") is None:
         ok("Work B evicted → ebook_availability=available, ebook_becomes_available=None")
     else:
-        fail(f"Eviction incomplete: avail={doc.get('ebook_availability')!r}, "
-             f"becomes={doc.get('ebook_becomes_available')!r}")
+        fail(f"Eviction incomplete: avail={doc.get('ebook_availability')!r}, becomes={doc.get('ebook_becomes_available')!r}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Step 6 — State recovery via loan_uid
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def test_state_recovery() -> None:
     banner("Step 6 — State recovery: query max loan_uid for restart resume")
@@ -467,7 +473,7 @@ def test_state_recovery() -> None:
         fail("No docs with loan_uid found — state recovery will binary-search every restart")
 
     max_uid = docs[0]["loan_uid"]
-    print(f"\n  Docs with loan_uid (sorted desc):")
+    print("\n  Docs with loan_uid (sorted desc):")
     for d in docs:
         print(f"    {d['key']}: loan_uid={d['loan_uid']}")
 
@@ -483,24 +489,24 @@ def test_state_recovery() -> None:
 # Step 7 — Example filter queries (what a search consumer would use)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def demo_queries() -> None:
     banner("Step 7 — Example filter queries for search consumers")
 
     # Re-seed Work A as available and Work B as unavailable for clear demo
     updates = [
         {"key": WORK_A, "ebook_availability": {"set": "available"}, "loan_uid": {"set": RETURN_UID}},
-        {"key": WORK_B, "ebook_availability": {"set": "unavailable"}, "loan_uid": {"set": BROWSE_UID},
-         "ebook_becomes_available": {"set": future_utc(1)}},
+        {"key": WORK_B, "ebook_availability": {"set": "unavailable"}, "loan_uid": {"set": BROWSE_UID}, "ebook_becomes_available": {"set": future_utc(1)}},
     ]
     solr_post("update", updates)
     commit()
 
     queries = [
-        ("Available only",           "ebook_availability:available"),
-        ("Unavailable only",         "ebook_availability:unavailable"),
-        ("Has availability status",  "ebook_availability:[* TO *]"),
+        ("Available only", "ebook_availability:available"),
+        ("Unavailable only", "ebook_availability:unavailable"),
+        ("Has availability status", "ebook_availability:[* TO *]"),
         ("Loan expires within 1 hr", f"ebook_becomes_available:[* TO {future_utc(1)}]"),
-        ("Eviction candidates",      "ebook_becomes_available:[* TO NOW]"),
+        ("Eviction candidates", "ebook_becomes_available:[* TO NOW]"),
     ]
 
     print()
@@ -540,40 +546,60 @@ def demo_queries() -> None:
 # Step 8 — Report gaps / limitations
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def report_gaps() -> None:
     banner("Step 8 — Known gaps (not failures — areas requiring follow-up work)")
     gaps = [
-        ("🚨 CRITICAL: update_in_place() is wrong for string/date fields",
-         "loan_availability_updater.py calls get_solr().update_in_place() which posts "
-         "update?update.partial.requireInPlace=true. Solr 10 only supports in-place updates "
-         "for numeric point fields (pint, pfloat, plong, pdouble). String fields "
-         "(ebook_availability) and date fields (ebook_becomes_available) are NOT supported — "
-         "Solr returns HTTP 400 'Can not satisfy requireInPlace'. The updater never raises on "
-         "that 400; it silently advances the state file with NO data written to Solr. "
-         "Fix: replace update_in_place() with a regular atomic update (POST /update without "
-         "requireInPlace). Regular atomic updates work for all field types. Performance is "
-         "slightly lower (Solr fetches stored fields + re-indexes) but correct and acceptable."),
-        ("🚨 CRITICAL: schema needs indexed=false on new fields",
-         "managed-schema.xml did not include indexed=false on the three new fields. "
-         "requireInPlace additionally requires indexed=false (we added it), but even "
-         "without that constraint, indexed=true on ebook_availability would mean Solr "
-         "maintains an inverted index entry for every value — wasted work for an operational "
-         "field that only needs docValues filtering/faceting. Fix applied in this branch."),
-        ("Search consumer", "openlibrary/plugins/worksearch/code.py still calls services/availability "
-         "on every request. ebook_availability in Solr is not yet consulted by any search code path."),
-        ("Edition-level fields", "Loan state is written to work docs (resolve_work_keys maps ia → work key). "
-         "Edition docs do not have ebook_availability. A borrow of any edition marks the entire "
-         "work unavailable — may be too coarse when multiple editions exist."),
-        ("Solr schema update path", "A full re-index wipes ebook_availability, loan_uid etc. The updater "
-         "needs --reset to rebuild from the last 14 days. There is no auto-trigger for this."),
-        ("S3 credentials", "lending.get_loan_changes() needs ia_ol_metadata_write_s3 keys (or a "
-         "dedicated config key). The config path is not documented in the PR."),
-        ("docker-compose service", "There is no solr_updater or loan_availability_updater service "
-         "entry in compose.yaml. The daemon will not start automatically in dev or prod."),
-        ("Search API", "No OL search API parameter (e.g. ?availability=available) exposes "
-         "ebook_availability to end-users yet. The field is facetable but there is no route."),
-        ("E2e / integration test", "All 20 existing tests use mocks (no real Solr). "
-         "This script is the only end-to-end test."),
+        (
+            "🚨 CRITICAL: update_in_place() is wrong for string/date fields",
+            "loan_availability_updater.py calls get_solr().update_in_place() which posts "
+            "update?update.partial.requireInPlace=true. Solr 10 only supports in-place updates "
+            "for numeric point fields (pint, pfloat, plong, pdouble). String fields "
+            "(ebook_availability) and date fields (ebook_becomes_available) are NOT supported — "
+            "Solr returns HTTP 400 'Can not satisfy requireInPlace'. The updater never raises on "
+            "that 400; it silently advances the state file with NO data written to Solr. "
+            "Fix: replace update_in_place() with a regular atomic update (POST /update without "
+            "requireInPlace). Regular atomic updates work for all field types. Performance is "
+            "slightly lower (Solr fetches stored fields + re-indexes) but correct and acceptable.",
+        ),
+        (
+            "🚨 CRITICAL: schema needs indexed=false on new fields",
+            "managed-schema.xml did not include indexed=false on the three new fields. "
+            "requireInPlace additionally requires indexed=false (we added it), but even "
+            "without that constraint, indexed=true on ebook_availability would mean Solr "
+            "maintains an inverted index entry for every value — wasted work for an operational "
+            "field that only needs docValues filtering/faceting. Fix applied in this branch.",
+        ),
+        (
+            "Search consumer",
+            "openlibrary/plugins/worksearch/code.py still calls services/availability "
+            "on every request. ebook_availability in Solr is not yet consulted by any search code path.",
+        ),
+        (
+            "Edition-level fields",
+            "Loan state is written to work docs (resolve_work_keys maps ia → work key). "
+            "Edition docs do not have ebook_availability. A borrow of any edition marks the entire "
+            "work unavailable — may be too coarse when multiple editions exist.",
+        ),
+        (
+            "Solr schema update path",
+            "A full re-index wipes ebook_availability, loan_uid etc. The updater "
+            "needs --reset to rebuild from the last 14 days. There is no auto-trigger for this.",
+        ),
+        (
+            "S3 credentials",
+            "lending.get_loan_changes() needs ia_ol_metadata_write_s3 keys (or a dedicated config key). The config path is not documented in the PR.",
+        ),
+        (
+            "docker-compose service",
+            "There is no solr_updater or loan_availability_updater service entry in compose.yaml. The daemon will not start automatically in dev or prod.",
+        ),
+        (
+            "Search API",
+            "No OL search API parameter (e.g. ?availability=available) exposes "
+            "ebook_availability to end-users yet. The field is facetable but there is no route.",
+        ),
+        ("E2e / integration test", "All 20 existing tests use mocks (no real Solr). This script is the only end-to-end test."),
     ]
     for title, detail in gaps:
         print(f"\n  ⚠  {title}")
@@ -592,6 +618,7 @@ def report_gaps() -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     print("=" * 60)
