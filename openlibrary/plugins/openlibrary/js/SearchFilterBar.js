@@ -137,12 +137,15 @@ function initFiltersDisclosure(row) {
         setOpen(toggle.getAttribute('aria-expanded') !== 'true');
     });
 
-    // Escape collapses the panel and returns focus to the trigger.
+    // Escape collapses the panel and returns focus to the trigger — but not when
+    // it originated inside the language popover, which handles its own
+    // Escape-to-close (its keydown bubbles up to this row too, and we'd otherwise
+    // collapse the whole panel and steal focus on the same keypress).
     row.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            setOpen(false);
-            toggle.focus();
-        }
+        if (e.key !== 'Escape') return;
+        if (e.target.closest && e.target.closest('ol-select-popover')) return;
+        setOpen(false);
+        toggle.focus();
     });
 }
 

@@ -62,7 +62,10 @@ def reading_pref_fq(availability: str, languages: list[str]) -> list[str]:
     elif params.get("public_scan") == "false":
         fq.append("-ebook_access:public")
     if languages:
-        fq.append("language:(%s)" % " OR ".join(languages))
+        # Quote each value exactly as the search scheme does (code.py), so a
+        # language param with a space/special char can't break or inject the fq.
+        or_clause = " OR ".join(f'"{lang}"' for lang in languages)
+        fq.append(f"language:({or_clause})")
     return fq
 
 
