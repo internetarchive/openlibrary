@@ -6914,6 +6914,11 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
+msgid "Showing %(shown)s of %(total)s works."
+msgstr ""
+
+#: type/author/view.html
+#, python-format
 msgid "Show all %(count)s works"
 msgstr ""
 

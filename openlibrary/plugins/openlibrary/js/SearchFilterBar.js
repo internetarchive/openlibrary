@@ -1,12 +1,14 @@
 /**
- * Wires the availability toggle + language filter popover on the search results
- * page (openlibrary/templates/work_search.html). They render empty from the
- * template; this module seeds them with the current selection, navigates to an
- * updated /search URL when a filter changes, and keeps the durable reading
- * preference (availability + language) in localStorage so the header search
- * modal, the search-page filters, and other listing surfaces stay in sync.
+ * Wires the availability toggle + language filter popover on any listing surface
+ * that renders a `.search-filter-row` — the /search results page
+ * (openlibrary/templates/work_search.html) and author pages
+ * (type/author/view.html) today. They render empty from the template; this
+ * module seeds them with the current selection, navigates the current page to an
+ * updated URL when a filter changes, and keeps the durable reading preference
+ * (availability + language) in localStorage so the header search modal, the
+ * search-page filters, and other listing surfaces stay in sync.
  *
- * Persistence model — URL is the source of truth on /search:
+ * Persistence model — URL is the source of truth for the page:
  *
  *  - On init, if the URL carries any filter param (availability params or
  *    `language`), the stored preference is mirrored from the URL. This way the modal
@@ -15,10 +17,16 @@
  *    param) the next time it opens.
  *
  *  - On init, if the URL carries NO filter params and the stored preference has
- *    a non-default value, we replace-navigate to /search with those sticky
- *    filters applied. This handles arriving at /search from a search box
- *    submit on another page or from `?q=foo` typed straight into the address
- *    bar — the user gets the filters they last set, including on a prior visit.
+ *    a non-default value, we replace-navigate the current page with those sticky
+ *    filters applied. This handles arriving from a search box submit on another
+ *    page or from a bare URL — the user gets the filters they last set, including
+ *    on a prior visit. The bar's own controls then render the inherited state
+ *    visibly, which is what makes the cross-surface stickiness safe.
+ *
+ *  - The `filters=off` URL sentinel is a *scope-local* opt-out: a surface's
+ *    "Show all" escape hatch uses it to show the full set on that page without
+ *    inheriting OR clobbering the stored preference, so the global pref still
+ *    applies elsewhere. Any explicit control change drops the sentinel.
  *
  * The full language catalogue is fetched lazily on first popover open.
  */
@@ -100,6 +108,10 @@ function navigateWithParams(mutate) {
     const params = new URLSearchParams(window.location.search);
     mutate(params);
     params.delete('page');
+    // An explicit filter change re-establishes intent, so drop any scope-local
+    // `filters=off` sentinel — the resulting URL becomes the source of truth and
+    // is mirrored back into the stored preference on the next load.
+    params.delete('filters');
     window.location.assign(`${window.location.pathname}?${params.toString()}`);
 }
 
@@ -110,16 +122,29 @@ function navigateWithParams(mutate) {
 export function initSearchFilterBar(container) {
     const currentParams = new URLSearchParams(window.location.search);
 
+    // Scope-local "Show all": a surface's empty/filtered-state escape hatch
+    // navigates here with `filters=off` to mean "show the full set on THIS page
+    // without changing my stored reading preference." Honor it by neither
+    // inheriting the stored pref onto this URL nor mirroring this (deliberately
+    // unfiltered) URL back over the stored pref — the global preference is left
+    // intact so it still applies on /search and other listing surfaces. Any
+    // explicit control change drops the sentinel (see navigateWithParams),
+    // returning the page to normal URL-is-source-of-truth behavior.
+    const scopeLocalUnfiltered = currentParams.get('filters') === 'off';
+
     // Sticky-filter handoff: if the URL has no filter params, apply whatever
     // the modal/popovers last stored. Returns true when it triggered a
     // replace-navigation; bail out so we don't bind handlers on a page that's
     // about to unload.
-    if (maybeApplyStickyFilters(currentParams)) return;
+    if (!scopeLocalUnfiltered && maybeApplyStickyFilters(currentParams)) return;
 
     // URL is now the source of truth — mirror it into the stored preference so
     // the modal sees the same filters next time it opens. Has to run *before* the
-    // popovers are seeded so a stale stored value doesn't leak into them.
-    syncStoredPrefFromUrl(currentParams);
+    // popovers are seeded so a stale stored value doesn't leak into them. Skipped
+    // under `filters=off` so a scope-local "Show all" doesn't clobber the pref.
+    if (!scopeLocalUnfiltered) {
+        syncStoredPrefFromUrl(currentParams);
+    }
 
     const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
@@ -169,19 +194,6 @@ export function initSearchFilterBar(container) {
                 params.delete('language');
                 e.detail.selected.forEach((code) => params.append('language', code));
             });
-        });
-    }
-
-    // Empty-state escape hatch ("Show all N works"): the link already clears the
-    // filter params from the URL, but the stored global preference would be
-    // re-inherited on reload and zero the page again. Wipe the stored preference
-    // here so "show all" actually sticks; the link's own href then navigates to
-    // the unfiltered page.
-    const clearLink = document.querySelector('.js-clear-reading-prefs');
-    if (clearLink) {
-        clearLink.addEventListener('click', () => {
-            writeStoredAvailability(DEFAULT_AVAILABILITY);
-            writeStoredLanguages([]);
         });
     }
 }

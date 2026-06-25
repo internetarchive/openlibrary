@@ -76,6 +76,18 @@ div.siteSearch.darker {
   margin: var(--spacing-md) 0;
 }
 
+/* "Showing X of N works — Show all" line, shown whenever a filter is narrowing
+   the result set (any reduction, not only zero matches). */
+.search-filter-status {
+  margin: var(--spacing-sm) 0;
+  font-size: var(--font-size-body-medium);
+  color: var(--grey-555);
+}
+
+.search-filter-status a {
+  margin-left: var(--spacing-xs);
+}
+
 /* On the search page, enlarge the in-page search box to match the header
    search bar. */
 .search-page .searchbox {
