@@ -78,6 +78,7 @@ config_http_request_timeout = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
 config_fts_context = None
+config_ia_s3_loan_url = None  # S3-based loan endpoint; falls back to S3_LOAN_URL % bookreader_host
 
 
 def setup(config):
@@ -88,11 +89,12 @@ def setup(config):
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
-    global config_ia_domain, config_fts_context
+    global config_ia_domain, config_fts_context, config_ia_s3_loan_url
 
     config_bookreader_host = config.get("bookreader_host", "archive.org")
     config_ia_domain = config.get("ia_base_url", "https://archive.org")
     config_ia_loan_api_url = config.get("ia_loan_api_url")
+    config_ia_s3_loan_url = config.get("ia_s3_loan_url")
     config_ia_availability_api_v2_url = cast(str, config.get("ia_availability_api_v2_url"))
     config_ia_xauth_api_url = config.get("ia_xauth_api_url")
     config_ia_access_secret = config.get("ia_access_secret")
@@ -197,7 +199,7 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
-    url = S3_LOAN_URL % config_bookreader_host
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     timeout = 2 if os.getenv("LOCAL_DEV") else 5
     try:
         response = httpx.post(url + params, data=s3_keys, timeout=timeout)
@@ -231,7 +233,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
     """
     fields = {"identifier": ocaid, "action": action}
     params = "?" + "&".join([f"{k}={v}" for (k, v) in fields.items() if v])
-    url = S3_LOAN_URL % config_bookreader_host
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
 
     data = s3_keys | kwargs
 
