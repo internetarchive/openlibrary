@@ -29,6 +29,7 @@
 @import "components/buttonCta.css";
 @import "components/footer.css";
 @import "components/language.css";
+@import "components/alert.css";
 
 .ol-page-signup {
   display: flex;

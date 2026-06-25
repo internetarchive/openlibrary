@@ -850,6 +850,52 @@ class account_notifications(delegate.page):
         web.seeother("/account")
 
 
+# Add a POST redirect for prefs from global filter
+class account_preferences(delegate.page):
+    path = "/account/preferences"
+    encoding = "json"
+
+    def POST(self):
+        try:
+            d = json.loads(web.data())
+        except Exception as e:
+            logger.error("Failed to process preferences update: %s", str(e))
+            return delegate.RawText(
+                json.dumps({"error": "Failed to process request"}),
+                content_type="application/json",
+            )
+        raw_date = d.get("date", [1900, 2025])
+        if isinstance(raw_date, list) and len(raw_date) == 2 and all(isinstance(v, int) for v in raw_date):
+            date = [max(1800, min(2025, raw_date[0])), max(1800, min(2025, raw_date[1]))]
+        else:
+            date = [1900, 2025]
+        prefs = {
+            "mode": d.get("mode", "all"),
+            "language": d.get("language", "all"),
+            "date": date,
+        }
+
+        # Transform to backend format
+        backend_prefs = {
+            "formats": ("has_fulltext" if prefs["mode"] == "fulltext" else "ebook_access" if prefs["mode"] == "preview" else None),
+            "first_publish_year": prefs["date"],
+        }
+        if prefs["language"] != "all":
+            backend_prefs["languages"] = [prefs["language"]]
+        expires = 3600 * 24 * 365
+        web.setcookie("ol_mode", prefs["mode"], expires=expires)
+        web.setcookie("ol_lang", prefs["language"], expires=expires)
+        web.setcookie("ol_date", ",".join(map(str, prefs["date"])), expires=expires)
+
+        if d.get("redirect", True):
+            raise web.seeother("/account")
+        else:
+            return delegate.RawText(
+                json.dumps({"status": "ok", "backend_prefs": backend_prefs}),
+                content_type="application/json",
+            )
+
+
 class account_lists(delegate.page):
     path = "/account/lists"
 

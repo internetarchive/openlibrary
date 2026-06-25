@@ -2,6 +2,7 @@
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.css';
 import { buildPartialsUrl } from  '../utils.js';
+import { getGlobalPreferences, mapPreferencesToBackend } from '../../../../../static/js/preferences.js';
 
 /**
  * @typedef {Object} CarouselConfig
@@ -133,20 +134,35 @@ export class Carousel {
                 }
             });
 
-            document.addEventListener('filter', (ev) => {
-                loadMore.extraParams = {published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}`};
-
-                // Reset the page count - the result set is now 'new'
+            const handleGlobalFilterChange = (backendParams) => {
+                loadMore.extraParams = backendParams;
                 if (loadMore.pageMode === 'page') {
                     loadMore.page = 1;
                 } else {
                     loadMore.page = 0;
                 }
                 loadMore.allDone = false;
-
                 this.clearCarousel();
                 this.fetchPartials();
+            };
+
+            document.addEventListener('global-preferences-changed', (ev) => {
+                const backendParams = mapPreferencesToBackend(ev.detail);
+                handleGlobalFilterChange(backendParams);
             });
+
+            // On initial load, fetch with global preferences
+            const initialPrefs = getGlobalPreferences();
+            const defaultPrefs = { mode: 'all', language: 'all', date: [1900, 2025] };
+            const initialBackendParams = mapPreferencesToBackend(initialPrefs);
+            const defaultBackendParams = mapPreferencesToBackend(defaultPrefs);
+            // Only reload if preferences differ from defaults or carousel is empty
+            if (
+                JSON.stringify(initialBackendParams) !== JSON.stringify(defaultBackendParams)
+                    || this.slick.$slides.length === 0
+            ) {
+                handleGlobalFilterChange(initialBackendParams);
+            }
         }
     }
 

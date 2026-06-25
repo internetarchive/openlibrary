@@ -348,3 +348,262 @@ class TestAccountLoginRedirect:
         for call in mock_web.setcookie.call_args_list:
             assert call[0][0] != "pending_action"
         mock_web.seeother.assert_called_with("/account/books")
+
+
+class TestAccountPreferences:
+    """Test the account_preferences endpoint"""
+
+    def test_valid_preferences_redirect(self):
+        """Test valid preferences update with redirect=True (default) triggers seeother"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "fulltext",
+            "language": "es",
+            "date": [2000, 2020],
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+            mock.patch(
+                "openlibrary.plugins.upstream.account.web.seeother",
+                side_effect=Exception("redirect"),
+            ),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+
+            with pytest.raises(Exception, match="redirect"):
+                handler.POST()
+
+            # Verify cookies were set before redirect
+            assert mock_data.called
+
+    def test_valid_preferences_json_response(self):
+        """Test valid preferences update with redirect=False returning JSON"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "preview",
+            "language": "fr",
+            "date": [1999, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            # Should return JSON with backend_prefs
+            result = json.loads(response.rawtext)
+            assert result["status"] == "ok"
+            assert result["backend_prefs"]["formats"] == "ebook_access"
+            assert result["backend_prefs"]["languages"] == ["fr"]
+
+    def test_mode_transformation_fulltext(self):
+        """Test mode='fulltext' transforms to formats='has_fulltext'"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "fulltext",
+            "language": "all",
+            "date": [1900, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["backend_prefs"]["formats"] == "has_fulltext"
+
+    def test_mode_transformation_preview(self):
+        """Test mode='preview' transforms to formats='ebook_access'"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "preview",
+            "language": "all",
+            "date": [1900, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["backend_prefs"]["formats"] == "ebook_access"
+
+    def test_mode_transformation_all(self):
+        """Test mode='all' transforms to formats=None"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "all",
+            "language": "all",
+            "date": [1900, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["backend_prefs"]["formats"] is None
+
+    def test_language_all_omitted_from_backend_prefs(self):
+        """Test that language='all' is omitted from backend_prefs"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "all",
+            "language": "all",
+            "date": [1900, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert "languages" not in result["backend_prefs"]
+
+    def test_language_specific_wrapped_in_list(self):
+        """Test that specific language is wrapped in a list"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "all",
+            "language": "de",
+            "date": [1900, 2025],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["backend_prefs"]["languages"] == ["de"]
+
+    def test_invalid_json(self):
+        """Test handling of invalid JSON"""
+        import json
+        from unittest import mock
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = b"invalid json {"
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert "error" in result
+
+    def test_missing_fields_use_defaults(self):
+        """Test that missing fields use default values"""
+        import json
+        from unittest import mock
+
+        prefs = {"mode": "fulltext", "redirect": False}  # Missing language and date
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["status"] == "ok"
+            # Verify defaults were used
+            assert result["backend_prefs"]["first_publish_year"] == [1900, 2025]
+
+    def test_date_range_passthrough(self):
+        """Test that date range is passed through directly"""
+        import json
+        from unittest import mock
+
+        date_range = [2010, 2023]
+        prefs = {
+            "mode": "all",
+            "language": "all",
+            "date": date_range,
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie"),
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            response = handler.POST()
+
+            result = json.loads(response.rawtext)
+            assert result["backend_prefs"]["first_publish_year"] == date_range
+
+    def test_cookies_expire_in_one_year(self):
+        """Test that cookies are set with 1-year expiration"""
+        import json
+        from unittest import mock
+
+        prefs = {
+            "mode": "fulltext",
+            "language": "en",
+            "date": [2000, 2020],
+            "redirect": False,
+        }
+
+        with (
+            mock.patch("openlibrary.plugins.upstream.account.web.data") as mock_data,
+            mock.patch("openlibrary.plugins.upstream.account.web.setcookie") as mock_setcookie,
+        ):
+            mock_data.return_value = json.dumps(prefs).encode()
+            handler = account.account_preferences()
+            handler.POST()
+
+            # Verify expires time is 1 year (3600 * 24 * 365)
+            calls = mock_setcookie.call_args_list
+            for call in calls:
+                assert "expires" in call.kwargs
+                assert call.kwargs["expires"] == 3600 * 24 * 365

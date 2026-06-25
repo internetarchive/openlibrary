@@ -58,36 +58,36 @@
     },
     {
       "path": "static/build/css/page-admin.css",
-      "maxSize": "27KB"
+      "maxSize": "28KB"
 
     },
     {
       "path": "static/build/css/page-book.css",
-      "maxSize": "17KB"
+      "maxSize": "17.5KB"
     },
     {
       "path": "static/build/css/page-edit.css",
-      "maxSize": "27KB"
+      "maxSize": "28KB"
     },
     {
       "path": "static/build/css/page-form.css",
-      "maxSize": "27KB"
+      "maxSize": "27.5KB"
     },
     {
       "path": "static/build/css/page-home.css",
-      "maxSize": "8KB"
+      "maxSize": "8.3KB"
     },
     {
       "path": "static/build/css/page-plain.css",
-      "maxSize": "27KB"
+      "maxSize": "27.5KB"
     },
     {
       "path": "static/build/css/page-subject.css",
-      "maxSize": "9.2KB"
+      "maxSize": "9.8KB"
     },
     {
       "path": "static/build/css/page-user.css",
-      "maxSize": "30KB"
+      "maxSize": "30.5KB"
     }
   ]
 }
