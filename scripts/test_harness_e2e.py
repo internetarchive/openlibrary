@@ -551,26 +551,6 @@ def report_gaps() -> None:
     banner("Step 8 — Known gaps (not failures — areas requiring follow-up work)")
     gaps = [
         (
-            "🚨 CRITICAL: update_in_place() is wrong for string/date fields",
-            "loan_availability_updater.py calls get_solr().update_in_place() which posts "
-            "update?update.partial.requireInPlace=true. Solr 10 only supports in-place updates "
-            "for numeric point fields (pint, pfloat, plong, pdouble). String fields "
-            "(ebook_availability) and date fields (ebook_becomes_available) are NOT supported — "
-            "Solr returns HTTP 400 'Can not satisfy requireInPlace'. The updater never raises on "
-            "that 400; it silently advances the state file with NO data written to Solr. "
-            "Fix: replace update_in_place() with a regular atomic update (POST /update without "
-            "requireInPlace). Regular atomic updates work for all field types. Performance is "
-            "slightly lower (Solr fetches stored fields + re-indexes) but correct and acceptable.",
-        ),
-        (
-            "🚨 CRITICAL: schema needs indexed=false on new fields",
-            "managed-schema.xml did not include indexed=false on the three new fields. "
-            "requireInPlace additionally requires indexed=false (we added it), but even "
-            "without that constraint, indexed=true on ebook_availability would mean Solr "
-            "maintains an inverted index entry for every value — wasted work for an operational "
-            "field that only needs docValues filtering/faceting. Fix applied in this branch.",
-        ),
-        (
             "Search consumer",
             "openlibrary/plugins/worksearch/code.py still calls services/availability "
             "on every request. ebook_availability in Solr is not yet consulted by any search code path.",
@@ -639,10 +619,12 @@ def main() -> None:
     banner("Summary")
     print("  All assertions passed.  The Solr schema is correct and the")
     print("  atomic update pattern (process_changes → build_solr_updates →")
-    print("  Solr /update?update.partial.requireInPlace=true) works as expected.")
+    print("  Solr.update → POST /update?wt=json) works end-to-end.")
     print()
-    print("  See Step 8 for follow-up work required before this PR is")
-    print("  production-complete.")
+    print("  Schema fields: indexed=false, docValues=true (correct).")
+    print("  Daemon uses Solr.update(), not update_in_place() (fixed).")
+    print()
+    print("  See Step 8 for remaining follow-up work before production deploy.")
     print()
 
 
