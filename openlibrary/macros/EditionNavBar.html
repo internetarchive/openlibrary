@@ -1,42 +1,63 @@
-$def with (reader_observations, edition_count=1, show_observations=False, desktop_only=False)
+$def with (reader_observations, edition_count=1, show_observations=False, desktop_only=False, lending_state=None)
 
 $ total_reviews = reader_observations.get('total_respondents', 0)
 
+$if lending_state in ['preview_only', 'checkedout', 'waitlist', 'locate']:
+    $ display_for_banner = 'desktop-only' if desktop_only else 'mobile-only'
+    <div class="$display_for_banner nav-bar-banner">
+        <ol-banner dismissible>
+            $if lending_state in ['preview_only', 'locate']:
+                $:_("This book is currently unavailable on Open Library, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel" data-ol-link-track="OpenRelatedBooks|BannerClick">', link_end='</a>')
+            $else:
+                $:_("This book is not immediately available, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel" data-ol-link-track="OpenRelatedBooks|BannerClick">', link_end='</a>')
+        </ol-banner>
+    </div>
+
 $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
 <span class="nav-bar-wrapper sticky $display_for">
-  $if not desktop_only:
-    <button class="nav-arrow-left" title="$_('Go to previous section')">
-      <img src="/static/images/nav-arrow.svg" alt="">
-    </button>
-  <ul class="nav-bar work-menu">
-    <li class="selected">
-      <a href="#overview$('-mobile' if not desktop_only else '')" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
-    </li>
-    <li>
-      <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
-        $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
-      </a>
-    </li>
-    <li>
-      <a href="#details" data-ol-link-track="BookPageNav|Details">$_("Details")</a>
-    </li>
-    <li>
-      <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
-        $if total_reviews > 0:
-          $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
-        $else:
-          $_('Reviews')
-      </a>
-    </li>
-    <li>
-      <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">$_("Lists")</a>
-    </li>
-    <li>
-      <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">$_("Related Books")</a>
-    </li>
-  </ul>
-  $if not desktop_only:
-    <button class="nav-arrow-right" title="$_('Go to next section')">
-      <img src="/static/images/nav-arrow.svg" alt="">
-    </button>
+    $if not desktop_only:
+        <button class="nav-arrow-left" title="$_('Go to previous section')">
+            <img src="/static/images/nav-arrow.svg" alt="">
+        </button>
+
+    <ul class="nav-bar work-menu">
+        <li class="selected">
+            <a href="#overview$('-mobile' if not desktop_only else '')" data-ol-link-track="BookPageNav|Overview">
+                $_("Overview")
+            </a>
+        </li>
+        <li>
+            <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
+                $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
+            </a>
+        </li>
+        <li>
+            <a href="#details" data-ol-link-track="BookPageNav|Details">
+                $_("Details")
+            </a>
+        </li>
+        <li>
+            <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
+                $if total_reviews > 0:
+                    $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
+                $else:
+                    $_('Reviews')
+            </a>
+        </li>
+        <li>
+            <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">
+                $_("Lists")
+            </a>
+        </li>
+        <li>
+            <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">
+                $_("Related Books")
+            </a>
+        </li>
+    </ul>
+
+    $if not desktop_only:
+        <button class="nav-arrow-right" title="$_('Go to next section')">
+            <img src="/static/images/nav-arrow.svg" alt="">
+        </button>
 </span>

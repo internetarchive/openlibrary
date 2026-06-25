@@ -309,3 +309,7 @@ div.editionTools p {
     padding-top: 1em;
   }
 }
+
+.related-books .carousel-container {
+  margin: 0 !important;
+}

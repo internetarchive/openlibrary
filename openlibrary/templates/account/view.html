@@ -18,9 +18,9 @@ $var title: $header_title
     $if ctx.user:
       $ pending_action_msg = mb.get_pending_action_banner()
       $if pending_action_msg:
-        <div id="pending-action-container" class="pending-action-container">
-          $:render_template('site/banner', pending_action_msg, 'pending_action', cookie_duration_days=1)
-        </div>
+        <ol-banner dismissible id="pending-action-container" class="pending-action-container">
+          $:pending_action_msg
+        </ol-banner>
         <script>
           document.addEventListener("DOMContentLoaded", function() {
               var container = document.getElementById('pending-action-container');
