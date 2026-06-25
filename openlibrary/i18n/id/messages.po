@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: irennanicole1@gmail.com\n"
-"POT-Creation-Date: 2024-05-01 18:58-0400\n"
+"POT-Creation-Date: 2026-04-28 18:58-0400\n"
 "PO-Revision-Date: 2023-12-29 07:07-0800\n"
 "Last-Translator: Irenna Lumbuun <irennanicole1@gmail.com>\n"
 "Language: id\n"
@@ -19,1473 +19,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#: openlibrary/core/bookshelves.py
-msgid "[Record deleted]"
-msgstr "[Catatan dihapus]"
-
-#: merge_request_table/table_header.html openlibrary/core/edits.py
-msgid "Declined"
-msgstr "Ditolak"
-
-#: admin/imports_by_date.html openlibrary/core/edits.py
-msgid "Pending"
-msgstr "Tertunda"
-
-#: merge_request_table/table_header.html openlibrary/core/edits.py
-msgid "Merged"
-msgstr "Digabung"
-
-#: openlibrary/core/edits.py
-msgid "Unknown"
-msgstr "Tidak diketahui"
-
-#: AffiliateLinks.html
-#, python-format
-msgid "Look for this edition for sale at %(store)s"
-msgstr "Cari edisi ini untuk dijual di %(store)s"
-
-#: AffiliateLinks.html
-#, fuzzy
-msgid "Fetching prices"
-msgstr "Pengaturan & Privasi"
-
-#: AffiliateLinks.html
-msgid "Better World Books"
-msgstr "Better World Books"
-
-#: AffiliateLinks.html
-msgid " - includes shipping"
-msgstr " - termasuk ongkir"
-
-#: AffiliateLinks.html
-msgid "Amazon"
-msgstr "Amazon"
-
-#: AffiliateLinks.html
-msgid "Bookshop.org"
-msgstr "Bookshop.org"
-
-#: AffiliateLinks.html home/about.html
-msgid "More"
-msgstr "Lebih banyak"
-
-#: AffiliateLinks.html
-msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr "Saat Anda membeli buku menggunakan tautan ini, Internet Archive mungkin mendapatkan <a class=\"nostyle\" href=\"/help/faq/about#selling\">komisi kecil</a>."
-
-#: BatchImportNavigation.html batch_import.html
-msgid "New Batch Import"
-msgstr "Impor Batch Baru"
-
-#: BatchImportNavigation.html
-msgid "Pending Imports"
-msgstr "Impor Tertunda"
-
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
-#: account/notes.html account/observations.html
-msgid "Unknown author"
-msgstr "Penulis tidak diketahui"
-
-#: BookByline.html
-#, python-format
-msgid "%(n)s other"
-msgid_plural "%(n)s others"
-msgstr[0] ""
-
-#: BookByline.html type/list/embed.html
-#, python-format
-msgid "by %(name)s"
-msgstr "oleh %(name)s"
-
-#: BookByline.html
-msgid "by an <em>unknown author</em>"
-msgstr "oleh <em>penulis tidak diketahui</em>"
-
-#: BookPreview.html
-#, fuzzy
-msgid "Preview Only"
-msgstr "Pratinjau"
-
-#: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html import_preview.html
-msgid "Preview"
-msgstr "Pratinjau"
-
-#: BookPreview.html
-msgid "Preview Book"
-msgstr "Pratinjau Buku"
-
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/history.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
-msgid "Close"
-msgstr "Tutup"
-
-#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
-#: search/inside.html search/snippets.html
-msgid "Search Inside"
-msgstr "Cari di Dalam"
-
-#: CreateListModal.html my_books/dropdown_content.html
-msgid "Create a new list"
-msgstr "Buat daftar baru"
-
-#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
-msgid "Name:"
-msgstr "Nama:"
-
-#: CreateListModal.html my_books/dropdown_content.html
-#: type/permission/edit.html type/usergroup/edit.html
-msgid "Description:"
-msgstr "Deskripsi:"
-
-#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
-msgid "Create new list"
-msgstr "Buat daftar baru"
-
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/tag/form.html
-msgid "Cancel"
-msgstr "Batal"
-
-#: DisplayCode.html
-msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr "Template di situs web sekarang dinonaktifkan. Mengeditnya tidak akan berpengaruh pada situs web langsung."
-
-#: DonateModal.html
-#, fuzzy
-msgid "Donate this book to the <a href=\"https://archive.org\">Internet Archive</a> library."
-msgstr "Silakan masukan email untuk <a href=\"https://archive.org\">Internet Archive</a> dan kata sandi untuk mengakses akun Open Library Anda."
-
-#: DonateModal.html
-msgid "Hooray! You've discovered a title that's missing from our <a href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr "Hore! Anda menemukan judul yang tidak ada di <a href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library\">perpustakaan</a> kami. Bisakah Anda membantu menyumbangkan salinan?"
-
-#: DonateModal.html
-msgid "If you own this book, you can<a href=\"https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our address below."
-msgstr "Jika Anda memiliki buku ini, Anda bisa <a href=\"https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE\">mengirimkannya</a> ke alamat kami di bawah."
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr "Anda juga bisa membeli buku ini dari penjual dan mengirimkannya ke alamat kami:"
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr "Manfaat donasi"
-
-#: DonateModal.html
-msgid "When you donate a physical book to the Internet Archive, your book will enjoy:"
-msgstr "Saat Anda mendonasikan buku fisik ke Internet Archive, buku Anda akan mendapatkan:"
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr "Info donasi"
-
-#: DonateModal.html
-msgid "Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
-msgstr "Digitalisasi <a target=\"_blank\" href=\"https://archive.org/scanning\">kualitas tinggi</a> yang indah"
-
-#: DonateModal.html
-msgid "Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/\">archival preservation</a>"
-msgstr "<a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/\">Pelestarian arsip</a> jangka panjang"
-
-#: DonateModal.html
-msgid "Free <a href=\"https://controlleddigitallending.org/\">controlled digital library access</a> by the <a href=\"https://en.wikipedia.org/wiki/Print_disability\">print-disabled</a> public"
-msgstr "Akses <a href=\"https://controlleddigitallending.org/\">perpustakaan digital terkendali</a> gratis oleh publik <a href=\"https://en.wikipedia.org/wiki/Print_disability\">penyandang disabilitas cetak</a>"
-
-#: DonateModal.html
-msgid "Open Library is a project of the <a href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-profit"
-msgstr "Open Library adalah proyek dari <a href=\"https://archive.org/about\">Internet Archive</a>, sebuah non-profit 501(c)(3)"
-
-#: EditButtons.html admin/ip/view.html admin/people/edits.html
-msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr "Silakan, tinggalkan catatan singkat tentang apa yang Anda ubah: <span class=\"small gray\">(Opsional, tapi sangat berguna!)</span>"
-
-#: EditButtons.html books/add.html type/tag/form.html
-msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr "Dengan menyimpan perubahan pada wiki ini, Anda setuju bahwa kontribusi Anda diberikan secara bebas ke dunia di bawah <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"Tautan ke Creative Commons ini akan terbuka di jendela baru\">CC0</a>. Hore!"
-
-#: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html admin/spamwords.html covers/manage.html
-msgid "Save"
-msgstr "Simpan"
-
-#: EditionNavBar.html
-msgid "Go to previous section"
-msgstr "Pergi ke bagian sebelumnya"
-
-#: EditionNavBar.html
-msgid "Overview"
-msgstr "Ikhtisar"
-
-#: EditionNavBar.html
-#, python-format
-msgid "View %(count)s Edition"
-msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-
-#: EditionNavBar.html search/layout_options.html site/stats.html
-msgid "Details"
-msgstr "Detail"
-
-#: EditionNavBar.html
-#, python-format
-msgid "%(reviews)s Review"
-msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-
-#: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-msgid "Reviews"
-msgstr "Ulasan"
-
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/user/view.html
-#: type/work/view.html
-msgid "Lists"
-msgstr "Daftar"
-
-#: EditionNavBar.html
-msgid "Related Books"
-msgstr "Buku Terkait"
-
-#: EditionNavBar.html
-msgid "Go to next section"
-msgstr "Pergi ke bagian berikutnya"
-
-#: Follow.html lists/list_follow.html
-msgid "Follow"
-msgstr "Ikuti"
-
-#: Follow.html
-msgid "Unfollow"
-msgstr "Berhenti mengikuti"
-
-#: Follow.html
-msgid "Failed to update followers. Please try again in a few moments."
-msgstr "Gagal memperbarui pengikut. Silakan coba lagi dalam beberapa saat."
-
-#: FormatExpiry.html
-msgid "Expires"
-msgstr "Kedaluwarsa"
-
-#: FulltextSearchSuggestion.html
-msgid "Checking for Search Inside matches"
-msgstr "Memeriksa kecocokan Search Inside"
-
-#: FulltextSearchSuggestion.html
-msgid "Search Inside Icon"
-msgstr "Ikon Search Inside"
-
-#: FulltextSearchSuggestion.html
-msgid "search inside icon"
-msgstr "ikon cari di dalam"
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "%(book_count)s books found with matching passages"
-msgstr "%(book_count)s buku ditemukan dengan bagian yang cocok"
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "See all %(results_count)s Search Inside Matches"
-msgstr "Lihat semua %(results_count)s Kecocokan Search Inside"
-
-#: FulltextSearchSuggestion.html
-msgid "right chevron"
-msgstr "panah kanan"
-
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
-#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
-#: lists/preview.html lists/snippet.html lists/widget.html
-#: my_books/dropdown_content.html type/work/editions.html
-#, python-format
-msgid "Cover of: %(title)s"
-msgstr "Sampul dari: %(title)s"
-
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
-msgid "❝"
-msgstr "❝"
-
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
-msgid "❞"
-msgstr "❞"
-
-#: FulltextSuggestionSnippet.html
-#, python-format
-msgid "Page: %(page)s"
-msgstr "Halaman: %(page)s"
-
-#: IABook.html
-#, fuzzy, python-format
-msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
-
-#: LoadingIndicator.html
-msgid "Loading indicator"
-msgstr "Indikator memuat"
-
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/read_button.html books/edit/edition.html trending.html
-#: type/list/embed.html widget.html
-msgid "Read"
-msgstr "Baca"
-
-#: LoanStatus.html
-msgid "You are <strong>next</strong> on the waiting list"
-msgstr "Anda adalah <strong>berikutnya</strong> dalam daftar tunggu"
-
-#: LoanStatus.html
-#, python-format
-msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr "Anda adalah <strong>#%(spot)d</strong> dari %(wlsize)d dalam daftar tunggu."
-
-#: LoanStatus.html
-msgid "Leave waiting list"
-msgstr "Keluar dari daftar tunggu"
-
-#: LoanStatus.html widget.html
-msgid "Join Waitlist"
-msgstr "Bergabung dengan daftar tunggu"
-
-#: LoanStatus.html
-#, python-format
-msgid "Readers in line: %(count)s"
-msgstr "Pembaca dalam antrian: %(count)s"
-
-#: LoanStatus.html
-msgid "You'll be next in line."
-msgstr "Anda akan menjadi berikutnya dalam antrian."
-
-#: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
-msgstr "Buku ini sedang dipinjam, silakan periksa kembali nanti."
-
-#: LoanStatus.html
-msgid "Checked Out"
-msgstr "Dipinjam"
-
-#: LocateButton.html
-msgid "Locate"
-msgstr "Temukan"
-
-#: ManageLoansButtons.html admin/loans_table.html
-#, python-format
-msgid "Borrowed %(date)s"
-msgstr "Dipinjam %(date)s"
-
-#: ManageLoansButtons.html
-#, python-format
-msgid "There is one person waiting for this book."
-msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-
-#: ManageLoansButtons.html account/loans.html
-msgid "Not yet downloaded."
-msgstr "Belum diunduh."
-
-#: ManageLoansButtons.html account/loans.html
-msgid "Download Now"
-msgstr "Unduh Sekarang"
-
-#: ManageWaitlistButton.html
-#, python-format
-msgid "Waiting for %d day"
-msgid_plural "Waiting for %d days"
-msgstr[0] "Waktu tunggu %d hari"
-
-#: ManageWaitlistButton.html account/loans.html
-#, python-format
-msgid "There is one person ahead of you in the waiting list."
-msgid_plural "There are %(count)d people ahead of you in the waiting list."
-msgstr[0] ""
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "You have less than an hour to borrow it."
-msgstr "Anda memiliki kurang dari satu jam untuk meminjamnya."
-
-#: ManageWaitlistButton.html
-#, fuzzy, python-format
-msgid "You have %(count)d more hour to borrow it."
-msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "Borrow Now"
-msgstr "Pinjam Sekarang"
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "Leave the waiting list?"
-msgstr "Keluar dari daftar tunggu?"
-
-#: NotInLibrary.html
-msgid "Not in Library"
-msgstr "Tidak Ada di Perpustakaan"
-
-#: NotesModal.html
-msgid "My Book Notes"
-msgstr "Catatan Buku Saya"
-
-#: NotesModal.html
-msgid "My private notes about this edition:"
-msgstr "Catatan pribadi saya tentang edisi ini:"
-
-#: NotesModal.html account/notes.html
-msgid "Delete Note"
-msgstr "Hapus Catatan"
-
-#: NotesModal.html account/notes.html
-msgid "Save Note"
-msgstr "Simpan Catatan"
-
-#: OLID.html
-#, python-format
-msgid "by  %(authors)s"
-msgstr "oleh %(authors)s"
-
-#: ObservationsModal.html
-msgid "My Book Review"
-msgstr "Ulasan Buku Saya"
-
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr "Pertama"
-
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
-msgstr "Sebelumnya"
-
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
-msgstr "Berikutnya"
-
-#: Profile.html
-#, fuzzy
-msgid "Component"
-msgstr "Komentar"
-
-#: Profile.html type/author/view.html
-msgid "Time"
-msgstr "Waktu"
-
-#: ProlificAuthors.html
-msgid "Prolific Authors"
-msgstr "Penulis Produktif"
-
-#: ProlificAuthors.html
-msgid "who have written the most books on this subject"
-msgstr "yang telah menulis paling banyak buku tentang topik ini"
-
-#: ProlificAuthors.html publishers/view.html
-msgid "See more books by, and learn about, this author"
-msgstr "Lihat lebih banyak buku oleh, dan pelajari tentang, penulis ini"
-
-#: ProlificAuthors.html account/loans.html authors/index.html
-#: lists/list_follow.html lists/showcase.html publishers/view.html
-#: search/authors.html search/publishers.html search/subjects.html
-#, python-format
-msgid "%(count)d book"
-msgid_plural "%(count)d books"
-msgstr[0] ""
-
-#: PublishingHistory.html publishers/view.html
-msgid "Publishing History"
-msgstr "Sejarah Penerbitan"
-
-#: PublishingHistory.html
-msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr "Ini adalah grafik untuk menampilkan sejarah penerbitan edisi karya tentang topik ini. Di sepanjang sumbu X adalah waktu, dan di sumbu y adalah jumlah edisi yang diterbitkan. <a href=\"#subjectRelated\">Klik di sini untuk melewati grafik</a>."
-
-#: PublishingHistory.html publishers/view.html
-msgid "Reset chart"
-msgstr "Reset grafik"
-
-#: PublishingHistory.html publishers/view.html
-msgid "or continue zooming in."
-msgstr "atau lanjutkan memperbesar."
-
-#: PublishingHistory.html
-msgid "This graph charts editions published on this subject."
-msgstr "Grafik ini menampilkan edisi yang diterbitkan tentang topik ini."
-
-#: PublishingHistory.html publishers/view.html
-msgid "Editions Published"
-msgstr "Edisi Diterbitkan"
-
-#: PublishingHistory.html admin/imports.html publishers/view.html
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr "Anda perlu mengaktifkan JavaScript untuk melihat grafik yang keren ini!"
-
-#: PublishingHistory.html publishers/view.html
-msgid "Year of Publication"
-msgstr "Tahun Penerbitan"
-
-#: RawQueryCarousel.html
-msgid "Loading carousel"
-msgstr "Memuat korsel"
-
-#: RawQueryCarousel.html
-msgid "Failed to fetch carousel."
-msgstr "Gagal mengambil korsel."
-
-#: RawQueryCarousel.html
-msgid "Retry?"
-msgstr "Coba lagi?"
-
-#: RawQueryCarousel.html
-msgid "No books match the current filters."
-msgstr "Tidak ada buku yang cocok dengan filter saat ini."
-
-#: RawQueryCarousel.html
-msgid "Retry without filters?"
-msgstr "Coba lagi tanpa filter?"
-
-#: RawQueryCarousel.html
-msgid "Search collection"
-msgstr "Cari koleksi"
-
-#: ReadButton.html
-msgid "Special Access"
-msgstr "Akses Khusus"
-
-#: ReadButton.html
-msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr "Akses ebook khusus dari Internet Archive untuk pelindung dengan disabilitas cetak yang memenuhi syarat"
-
-#: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
-msgid "Borrow"
-msgstr "Pinjam"
-
-#: ReadButton.html
-msgid "Borrow ebook from Internet Archive"
-msgstr "Pinjam ebook dari Internet Archive"
-
-#: ReadButton.html
-msgid "Read ebook from Internet Archive"
-msgstr "Baca ebook dari Internet Archive"
-
-#: ReadButton.html
-msgid "Listen"
-msgstr "Dengarkan"
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "When"
-msgstr "Kapan"
-
-#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
-#: recentchanges/updated_records.html
-msgid "What"
-msgstr "Apa"
-
-#: RecentChanges.html admin/history.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html history.html
-#: recentchanges/render.html
-msgid "Who"
-msgstr "Siapa"
-
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "Comment"
-msgstr "Komentar"
-
-#: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
-msgid "Review what's changed from the previous revision"
-msgstr "Tinjau apa yang berubah dari revisi sebelumnya"
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/memory/index.html recentchanges/default/path.html
-#: recentchanges/updated_records.html
-msgid "diff"
-msgstr "diff"
-
-#: RecentChanges.html admin/ip/view.html admin/people/edits.html
-#: recentchanges/render.html
-msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr "Saat Anda melihat angka di sini, itulah alamat IP editor anonim"
-
-#: RecentChanges.html
-msgid "View MARC"
-msgstr "Lihat MARC"
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
-msgid "Older"
-msgstr "Lebih lama"
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
-msgid "Newer"
-msgstr "Lebih baru"
-
-#: RecentChanges.html recentchanges/index.html
-msgid "By Humans"
-msgstr "Oleh Manusia"
-
-#: RecentChanges.html recentchanges/index.html
-msgid "By Bots"
-msgstr "Oleh Bot"
-
-#: RecentChanges.html recentchanges/index.html work_search.html
-msgid "Everything"
-msgstr "Semua"
-
-#: RecentChangesAdmin.html
-msgid "Path"
-msgstr "Jalur"
-
-#: RecentChangesAdmin.html batch_import_pending_view.html
-#: batch_import_view.html
-msgid "Comments"
-msgstr "Komentar"
-
-#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
-msgid "Actions"
-msgstr "Tindakan"
-
-#: RecentChangesAdmin.html
-msgid "view"
-msgstr "lihat"
-
-#: RecentChangesAdmin.html
-msgid "edit"
-msgstr "edit"
-
-#: RecentChangesAdmin.html RecentChangesUsers.html
-msgid "No edit history available."
-msgstr "Tidak ada riwayat pengeditan."
-
-#: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
-msgid "Recent Activity"
-msgstr "Aktivitas Terbaru"
-
-#: RecentChangesUsers.html type/user/view.html
-msgid "No edits. Yet."
-msgstr "Belum ada pengeditan."
-
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
-#: subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr "Subjek"
-
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
-#: type/author/view.html type/list/view_body.html
-msgid "Places"
-msgstr "Tempat"
-
-#: RelatedSubjects.html SubjectTags.html admin/menu.html
-#: admin/people/index.html admin/people/view.html
-#: openlibrary/plugins/worksearch/code.py type/author/view.html
-#: type/list/view_body.html
-msgid "People"
-msgstr "Orang"
-
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
-#: type/list/view_body.html
-msgid "Times"
-msgstr "Waktu"
-
-#: RelatedSubjects.html
-msgid "Related..."
-msgstr "Terkait..."
-
-#: RelatedSubjects.html publishers/view.html
-msgid "None found."
-msgstr "Tidak ditemukan."
-
-#: ReturnForm.html
-msgid "Really return this book?"
-msgstr "Benar-benar kembalikan buku ini?"
-
-#: ReturnForm.html
-msgid "Return book"
-msgstr "Kembalikan buku"
-
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "Books"
-msgstr "Buku"
-
-#: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
-msgid "Authors"
-msgstr "Penulis"
-
-#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
-#: search/advancedsearch.html
-msgid "Advanced Search"
-msgstr "Pencarian Lanjutan"
-
-#: SearchResultsWork.html
-#, fuzzy
-msgid "added to"
-msgstr "Ditambah"
-
-#: SearchResultsWork.html design.html
-msgid "Show more"
-msgstr "Tampilkan lebih banyak"
-
-#: SearchResultsWork.html design.html
-msgid "Show less"
-msgstr "Tampilkan lebih sedikit"
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr "Sampul edisi %(id)s"
-
-#: SearchResultsWork.html type/work/editions.html
-#, python-format
-msgid "First published in %(year)s"
-msgstr "Pertama diterbitkan pada %(year)s"
-
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-
-#: SearchResultsWork.html
-#, fuzzy, python-format
-msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
-msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-
-#: SearchResultsWork.html TrendingBadge.html
-msgid "This is only visible to librarians."
-msgstr "Ini hanya terlihat oleh pustakawan."
-
-#: SearchResultsWork.html
-msgid "Work Title"
-msgstr "Judul Karya"
-
-#: SearchResultsWork.html type/edition/admin_bar.html
-msgid "Orphaned Edition"
-msgstr "Edisi Yatim"
-
-#: ShareModal.html
-#, python-format
-msgid "Share on %(share_link)s"
-msgstr "Bagikan di %(share_link)s"
-
-#: ShareModal.html
-msgid "Embed this book in your website"
-msgstr "Sematkan buku ini di situs web Anda"
-
-#: ShareModal.html
-msgid "Embed icon"
-msgstr "Ikon sematkan"
-
-#: ShareModal.html
-msgid "Embed"
-msgstr "Sematkan"
-
-#: ShareModal.html
-msgid "Copy url to clipboard"
-msgstr "Salin url ke clipboard"
-
-#: ShareModal.html
-msgid "Copy URL icon"
-msgstr "Ikon salin URL"
-
-#: ShareModal.html
-msgid "Copy URL"
-msgstr "Salin URL"
-
-#: ShareModal.html
-msgid "Open QR code"
-msgstr "Buka kode QR"
-
-#: ShareModal.html
-msgid "QR code icon"
-msgstr "Ikon kode QR"
-
-#: ShareModal.html
-msgid "QR Code"
-msgstr "Kode QR"
-
-#: StarRatings.html
-msgid "Clear my rating"
-msgstr "Hapus rating saya"
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "rating"
-msgstr "rating"
-
-#: StarRatingsByline.html StarRatingsComponent.html
-#, fuzzy
-msgid "ratings"
-msgstr "Pengaturan"
-
-#: StarRatingsByline.html
-#, python-format
-msgid "%(want_to_read_count)s Want to read"
-msgstr "%(want_to_read_count)s Ingin membaca"
-
-#: StarRatingsComponent.html
-#, python-format
-msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-
-#: StarRatingsStats.html
-msgid "Want to read"
-msgstr "Ingin membaca"
-
-#: StarRatingsStats.html
-msgid "Currently reading"
-msgstr "Sedang dibaca"
-
-#: StarRatingsStats.html
-msgid "Have read"
-msgstr "Sudah dibaca"
-
-#: Subnavigation.html
-msgid "Developer Center (Home)"
-msgstr "Pusat Pengembang (Beranda)"
-
-#: Subnavigation.html
-msgid "Web API"
-msgstr "Web API"
-
-#: Subnavigation.html
-msgid "Client Library"
-msgstr "Pustaka Klien"
-
-#: Subnavigation.html
-msgid "Data Dumps"
-msgstr "Unduhan Data"
-
-#: Subnavigation.html book_providers/standard_ebooks_download_options.html
-msgid "Source Code"
-msgstr "Kode Sumber"
-
-#: Subnavigation.html
-msgid "Report an Issue"
-msgstr "Laporkan Masalah"
-
-#: Subnavigation.html
-msgid "Licensing"
-msgstr "Lisensi"
-
-#: Subnavigation.html
-msgid "Welcome"
-msgstr "Selamat datang"
-
-#: Subnavigation.html
-msgid "Searching Open Library"
-msgstr "Mencari di Open Library"
-
-#: Subnavigation.html
-msgid "Reading Books"
-msgstr "Membaca Buku"
-
-#: Subnavigation.html
-msgid "Adding & Editing Books"
-msgstr "Menambahkan & Mengedit Buku"
-
-#: Subnavigation.html
-msgid "Using Subjects"
-msgstr "Menggunakan Subjek"
-
-#: Subnavigation.html
-msgid "Open Library F.A.Q."
-msgstr "Open Library F.A.Q."
-
-#: TableOfContents.html
-#, python-format
-msgid "Page %s"
-msgstr "Halaman %s"
-
-#: TrendingBadge.html
-#, python-format
-msgid "Trending: %(score).2f"
-msgstr "Tren: %(score).2f"
-
-#: TypeChanger.html
-msgid "Page Type"
-msgstr "Jenis Halaman"
-
-#: TypeChanger.html
-msgid "Huh?"
-msgstr "Hah?"
-
-#: TypeChanger.html
-msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr "Setiap bagian dari Open Library didefinisikan oleh jenis konten yang ditampilkannya, biasanya berdasarkan definisi konten (misalnya Penulis, Edisi, Karya) tetapi kadang-kadang berdasarkan penggunaan konten (misalnya macro, template, rawtext). Mengubah ini untuk halaman yang ada akan mengubah tampilannya dan kolom data yang tersedia untuk mengedit kontennya."
-
-#: TypeChanger.html
-msgid "Please use caution changing Page Type!"
-msgstr "Harap berhati-hati mengubah Jenis Halaman!"
-
-#: TypeChanger.html
-msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr "(Solusi termudah: Jika Anda tidak yakin apakah ini perlu diubah, jangan ubah.)"
-
-#: UserEditRow.html type/work/editions.html
-msgid "Add another"
-msgstr "Tambahkan lainnya"
-
-#: WorkInfo.html
-msgid "No link to Wikipedia in your language"
-msgstr "Tidak ada tautan Wikipedia dalam bahasa Anda"
-
-#: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr "Periksa perpustakaan terdekat"
-
-#: WorldcatLink.html
-msgid "Check WorldCat for an edition near you"
-msgstr "Periksa WorldCat untuk edisi di dekat Anda"
-
-#: WorldcatLink.html
-msgid "WorldCat"
-msgstr "WorldCat"
-
-#: databarDiff.html databarEdit.html
-msgid "View the editing history of this page"
-msgstr "Lihat riwayat pengeditan halaman ini"
-
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
-msgid "History"
-msgstr "Riwayat"
-
-#: databarDiff.html
-msgid "View this page (exit Comparison view)"
-msgstr "Lihat halaman ini (keluar dari tampilan Perbandingan)"
-
-#: account.html databarDiff.html
-msgid "View"
-msgstr "Lihat"
-
-#: databarEdit.html
-msgid "View this page (exit Edit mode)"
-msgstr "Lihat halaman ini (keluar dari mode Edit)"
-
-#: databarHistory.html databarView.html
-#, python-format
-msgid "Last edited by %(author_link)s"
-msgstr "Terakhir diedit oleh %(author_link)s"
-
-#: databarHistory.html databarView.html
-msgid "Last edited anonymously"
-msgstr "Terakhir diedit secara anonim"
-
-#: databarHistory.html databarView.html type/edition/compact_title.html
-msgid "Edit this page"
-msgstr "Edit halaman ini"
-
-#: account.html databarHistory.html databarTemplate.html databarView.html
-#: my_books/check_ins/check_in_prompt.html
-#: reading_goals/reading_goal_progress.html subjects.html
-#: type/edition/compact_title.html type/user/view.html
-msgid "Edit"
-msgstr "Sunting"
-
-#: databarTemplate.html databarView.html
-msgid "View this template's edit history"
-msgstr "Lihat riwayat pengeditan template ini"
-
-#: databarTemplate.html
-msgid "Edit this template"
-msgstr "Edit template ini"
-
-#: databarWork.html lib/nav_head.html
-msgid "Browse"
-msgstr "Jelajahi"
-
-#: databarWork.html
-#, python-format
-msgid "View Volume %(num)d"
-msgstr "Lihat Volume %(num)d"
-
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
-msgstr "Beli buku ini"
-
-#: openlibrary/plugins/openlibrary/api.py
-msgid "Search Results"
-msgstr "Hasil Pencarian"
-
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
-msgid "Open Library"
-msgstr "Open Library"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
-msgid "Trending Books"
-msgstr "Buku Tren"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Classic Books"
-msgstr "Buku Klasik"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Romance"
-msgstr "Roman"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Kids"
-msgstr "Anak-anak"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-msgid "Thrillers"
-msgstr "Thriller"
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Textbooks"
-msgstr "Buku Teks"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Arabic"
-msgstr "Arab"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Czech"
-msgstr "Ceko"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "German"
-msgstr "Jerman"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "English"
-msgstr "Inggris"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Spanish"
-msgstr "Spanyol"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "French"
-msgstr "Prancis"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Hindi"
-msgstr "Hindi"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Croatian"
-msgstr "Kroasia"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Italian"
-msgstr "Italia"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Portuguese"
-msgstr "Portugis"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Romanian"
-msgstr "Rumania"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Sardinian"
-msgstr "Sardinia"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Telugu"
-msgstr "Telugu"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Ukrainian"
-msgstr "Ukraina"
-
-#: openlibrary/plugins/openlibrary/code.py
-msgid "Chinese"
-msgstr "Tionghoa"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Art"
-msgstr "Seni"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science Fiction"
-msgstr "Fiksi Ilmiah"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Fantasy"
-msgstr "Fantasi"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Biographies"
-msgstr "Biografi"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Recipes"
-msgstr "Resep"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Children"
-msgstr "Anak-anak"
-
-#: openlibrary/plugins/openlibrary/home.py
-#, fuzzy
-msgid "Medicine"
-msgstr "Diubah"
-
-#: openlibrary/plugins/openlibrary/home.py
-#, fuzzy
-msgid "Religion"
-msgstr "Revisi"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Mystery and Detective Stories"
-msgstr "Cerita Misteri dan Detektif"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Plays"
-msgstr "Drama"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Music"
-msgstr "Musik"
-
-#: openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr "Sains"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "At least 1 subject"
-msgstr "Minimal 1 subjek"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "At least 1 author"
-msgstr "Minimal 1 penulis"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "At least 1 edition"
-msgstr "Minimal 1 edisi"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has work (orphaned)"
-msgstr "Memiliki karya (yatim)"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has publication year"
-msgstr "Memiliki tahun publikasi"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has cover"
-msgstr "Memiliki sampul"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has language"
-msgstr "Memiliki bahasa"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has publisher"
-msgstr "Memiliki penerbit"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "At least 2 editions"
-msgstr "Minimal 2 edisi"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has dewey decimal"
-msgstr "Memiliki desimal Dewey"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has LoC classification"
-msgstr "Memiliki klasifikasi LoC"
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has number of pages"
-msgstr "Memiliki jumlah halaman"
-
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr "Apakah Anda yakin ingin menghapus <strong>%(title)s</strong> dari daftar Anda?"
-
-#: books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/openlibrary/lists.py
-#, python-format
-msgid "Lists (%(count)d)"
-msgstr "Daftar (%(count)d)"
-
-#: openlibrary/plugins/openlibrary/partials.py
-msgid "This work does not appear on any lists."
-msgstr "Karya ini tidak muncul dalam daftar mana pun."
-
-#: openlibrary/plugins/openlibrary/pd.py
-msgid "I don't have one yet"
-msgstr "Saya belum punya"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "The email address you entered is invalid"
-msgstr "Alamat email yang Anda masukkan tidak valid"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "This account has been blocked"
-msgstr "Akun ini telah diblokir"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "This account has been locked"
-msgstr "Akun ini telah dikunci"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "No account was found with this email. Please try again"
-msgstr "Tidak ada akun yang ditemukan dengan email ini. Silakan coba lagi"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "The password you entered is incorrect. Please try again"
-msgstr "Kata sandi yang Anda masukkan salah. Silakan coba lagi"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Wrong password. Please try again"
-msgstr "Kata sandi salah. Silakan coba lagi"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Please verify your Open Library account before logging in"
-msgstr "Harap verifikasi akun Open Library Anda sebelum masuk"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Please verify your Internet Archive account before logging in"
-msgstr "Harap verifikasi akun Internet Archive Anda sebelum masuk"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Please fill out all fields and try again"
-msgstr "Harap isi semua kolom dan coba lagi"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "This email is already registered"
-msgstr "Email ini sudah terdaftar"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "This username is already registered"
-msgstr "Nama pengguna ini sudah terdaftar"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "A problem occurred and we were unable to log you in."
-msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr "Login dicoba dengan kredensial Internet Archive S3 yang tidak valid."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr "Server mengalami lalu lintas yang sangat tinggi, silakan coba lagi nanti atau email openlibrary@archive.org untuk bantuan."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email provider not recognized."
-msgstr "Penyedia email tidak dikenal."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Password requirements not met."
-msgstr "Persyaratan kata sandi tidak terpenuhi."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "A problem occurred and we were unable to log you in"
-msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr "Percobaan masuk atau registrasi mengalami kesalahan tak terduga, silakan coba lagi atau hubungi info@archive.org"
-
-#: openlibrary/plugins/upstream/account.py
-#, python-format
-msgid "Request failed with error code: %(error_code)s"
-msgstr "Permintaan gagal dengan kode kesalahan: %(error_code)s"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr "Terima kasih telah mendaftarkan akun Open Library dan meminta akses disabilitas cetak khusus. Anda akan menerima email yang menjelaskan langkah berikutnya dalam proses ini."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Username unavailable"
-msgstr "Nama pengguna tidak tersedia"
-
-#: openlibrary/plugins/upstream/account.py
-#: openlibrary/plugins/upstream/forms.py
-msgid "Email already registered"
-msgstr "Email sudah terdaftar"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "An Internet Archive account already exists with this email"
-msgstr "Akun Internet Archive sudah ada dengan email ini"
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email address is already used."
-msgstr "Alamat email sudah digunakan."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Your email address couldn't be updated. The specified email address is already used."
-msgstr "Alamat email anda tidak dapat diperbarui. Alamat email telah digunakan."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email verification successful."
-msgstr "Email verifikasi berhasil."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Your email address has been successfully verified and updated in your account."
-msgstr "Alamat email Anda telah berhasil diverifikasi dan diperbarui di akun Anda."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email address couldn't be verified."
-msgstr "Alamat email tidak dapat diverifikasi."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Your email address couldn't be verified. The verification link seems invalid."
-msgstr "Alamat email Anda tidak dapat diverifikasi. Tautan verifikasi tampaknya tidak valid."
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Notification preferences have been updated successfully."
-msgstr "Preferensi notifikasi telah berhasil diperbarui."
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
-msgid "Imports and Exports"
-msgstr "Impor dan Ekspor"
-
-#: admin/people/view.html books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/upstream/account.py type/user/view.html
-msgid "Loans"
-msgstr "Pinjaman"
-
-#: account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
-msgid "Loan History"
-msgstr "Riwayat Pinjaman"
-
-#: openlibrary/plugins/upstream/borrow.py
-msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr "Akun Anda telah mencapai batas peminjaman. Silakan coba lagi nanti atau hubungi info@archive.org."
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Username"
-msgstr "Nama pengguna"
-
-#: account/email/forgot-ia.html login.html
-#: openlibrary/plugins/upstream/forms.py
-msgid "Password"
-msgstr "Kata Sandi"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "No user registered with this email address"
-msgstr "Tidak ada pengguna yang terdaftar dengan alamat email ini"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Disposable email not permitted"
-msgstr "Email sekali pakai tidak diizinkan"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Your email provider is not recognized."
-msgstr "Penyedia email Anda tidak dikenal."
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Username already used"
-msgstr "Nama pengguna sudah digunakan"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Must be between 3 and 20 letters and numbers"
-msgstr "Harus antara 3 dan 20 huruf dan angka"
-
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be between 3 and 20 characters"
-msgstr "Harus antara 3 dan 20 karakter"
-
-#: account/create.html openlibrary/plugins/upstream/forms.py
-msgid "Must be a valid email address"
-msgstr "Harus berupa alamat email yang valid"
-
-#: login.html openlibrary/plugins/upstream/forms.py
-msgid "Email"
-msgstr "Email"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Screen Name"
-msgstr "Nama Layar"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Public and cannot be changed later."
-msgstr "Publik dan tidak dapat diubah nanti."
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Invalid password"
-msgstr "Kata sandi tidak valid"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Your email address"
-msgstr "Alamat email Anda"
-
-#: openlibrary/plugins/upstream/forms.py
-msgid "Choose a password"
-msgstr "Pilih kata sandi"
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#: type/edition/modal_links.html
-msgid "Notes"
-msgstr "Catatan"
-
-#: account/sidebar.html books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "My Feed"
-msgstr "Feed Saya"
-
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
-#: my_books/dropdown_content.html my_books/primary_action.html
-#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
-msgid "Already Read"
-msgstr "Sudah Dibaca"
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Currently Reading (%(count)d)"
-msgstr "Sedang Dibaca (%(count)d)"
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, python-format
-msgid "Want to Read (%(count)d)"
-msgstr "Ingin Dibaca (%(count)d)"
-
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#, fuzzy, python-format
-msgid "Already Read (%(count)d)"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "eBook?"
-msgstr "eBook?"
-
-#: openlibrary/plugins/worksearch/code.py type/edition/view.html
-#: type/work/view.html
-msgid "Language"
-msgstr "Bahasa"
-
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html
-msgid "Author"
-msgstr "Penulis"
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "First published"
-msgstr "Pertama diterbitkan"
-
-#: openlibrary/plugins/worksearch/code.py publishers/view.html
-#: search/advancedsearch.html type/edition/view.html type/work/view.html
-msgid "Publisher"
-msgstr "Penerbit"
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
-msgstr "eBook Klasik"
-
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
 msgid "Settings"
@@ -1495,9 +28,20 @@ msgstr "Pengaturan"
 msgid "Settings & Privacy"
 msgstr "Pengaturan & Privasi"
 
-#: account.html
+#: account.html databarDiff.html
+msgid "View"
+msgstr "Lihat"
+
+#: account.html status.html
 msgid "or"
 msgstr "atau"
+
+#: account.html databarHistory.html databarTemplate.html databarView.html
+#: my_books/check_ins/check_in_prompt.html
+#: reading_goals/reading_goal_progress.html subjects.html
+#: type/edition/compact_title.html type/user/view.html
+msgid "Edit"
+msgstr "Sunting"
 
 #: account.html
 msgid "Your Profile Page"
@@ -1551,6 +95,10 @@ msgstr "Pemindai Barcode (Beta)"
 #: batch_import.html
 msgid "Batch Imports"
 msgstr "Impor Batch"
+
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
+msgstr "Impor Batch Baru"
 
 #: batch_import.html
 msgid "Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea."
@@ -1643,6 +191,11 @@ msgstr "Status"
 msgid "Submitter"
 msgstr "Pengaju"
 
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Comments"
+msgstr "Komentar"
+
 #: batch_import_view.html
 msgid "Batch Import Status"
 msgstr "Status Impor Batch"
@@ -1700,148 +253,6 @@ msgstr "Kunci OL"
 msgid "Not yet imported"
 msgstr "Belum diimpor"
 
-#: design.html
-msgid "Design Pattern Library"
-msgstr "Perpustakaan Pola Desain"
-
-#: design.html
-msgid "Colors"
-msgstr "Warna"
-
-#: design.html
-msgid "Background"
-msgstr "Latar Belakang"
-
-#: design.html
-msgid "Primary Call To Action"
-msgstr "Ajakan Bertindak Utama"
-
-#: design.html
-msgid "Link (unclicked)"
-msgstr "Tautan (belum diklik)"
-
-#: design.html
-msgid "Link (clicked)"
-msgstr "Tautan (sudah diklik)"
-
-#: design.html
-msgid "Pagination component"
-msgstr "Komponen paginasi"
-
-#: design.html
-msgid "The ol-pagination component provides support for both event-based and URL-based navigation."
-msgstr "Komponen ol-pagination mendukung navigasi berbasis event maupun berbasis URL."
-
-#: design.html
-msgid "Event-based"
-msgstr "Berbasis event"
-
-#: design.html
-#, python-format
-msgid "When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s."
-msgstr "Saat halaman diklik, komponen mengirimkan event %(update_page)s dengan nomor halaman di %(event_detail)s."
-
-#: design.html
-msgid "Selected page:"
-msgstr "Halaman dipilih:"
-
-#: design.html
-msgid "URL-based Navigation"
-msgstr "Navigasi Berbasis URL"
-
-#: design.html
-msgid "When base-url is provided, pagination renders anchor tags for SEO-friendly links."
-msgstr "Saat base-url diberikan, paginasi merender tag anchor untuk tautan ramah SEO."
-
-#: design.html
-msgid "First page (no previous arrow)"
-msgstr "Halaman pertama (tidak ada panah sebelumnya)"
-
-#: design.html
-msgid "Middle page (both arrows visible)"
-msgstr "Halaman tengah (kedua panah terlihat)"
-
-#: design.html
-msgid "Last page (no next arrow)"
-msgstr "Halaman terakhir (tidak ada panah berikutnya)"
-
-#: design.html
-msgid "3 pages"
-msgstr "3 halaman"
-
-#: design.html
-msgid "5 pages (no ellipsis needed)"
-msgstr "5 halaman (tidak perlu elipsis)"
-
-#: design.html
-msgid "100 pages with ellipsis:"
-msgstr "100 halaman dengan elipsis:"
-
-#: design.html
-msgid "Read More component"
-msgstr "Komponen Baca Lebih Lanjut"
-
-#: design.html
-msgid "The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based."
-msgstr "Komponen ol-read-more menyediakan konten yang dapat diperluas/dilipat dengan dua mode pemotongan: berbasis tinggi dan berbasis baris."
-
-#: design.html
-msgid "Height-based truncation"
-msgstr "Pemotongan berbasis tinggi"
-
-#: design.html
-#, python-format
-msgid "Use %(max_height)s to limit content by pixel height."
-msgstr "Gunakan %(max_height)s untuk membatasi konten berdasarkan tinggi piksel."
-
-#: design.html
-msgid "Line-based truncation"
-msgstr "Pemotongan berbasis baris"
-
-#: design.html
-#, python-format
-msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr "Gunakan %(max_lines)s untuk membatasi konten berdasarkan jumlah baris."
-
-#: design.html
-msgid "Custom button text"
-msgstr "Teks tombol kustom"
-
-#: design.html
-#, python-format
-msgid "Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example."
-msgstr "Gunakan %(more_text)s dan %(less_text)s untuk menyesuaikan label tombol toggle. Kami akan menggunakan string i18n untuk contoh ini."
-
-#: design.html
-msgid "Custom background color"
-msgstr "Warna latar belakang kustom"
-
-#: design.html
-#, python-format
-msgid "Use %(background_color)s to match the gradient fade to your container background."
-msgstr "Gunakan %(background_color)s untuk mencocokkan gradien dengan latar belakang kontainer Anda."
-
-#: design.html
-msgid "Small label size"
-msgstr "Ukuran label kecil"
-
-#: design.html
-#, python-format
-msgid "Use %(label_size)s for a smaller toggle button."
-msgstr "Gunakan %(label_size)s untuk tombol toggle yang lebih kecil."
-
-#: design.html
-msgid "Content shorter than limit (no button)"
-msgstr "Konten lebih pendek dari batas (tanpa tombol)"
-
-#: design.html
-msgid "When content fits within the limit, no toggle button is shown."
-msgstr "Saat konten muat dalam batas, tidak ada tombol toggle yang ditampilkan."
-
-#: design.html
-msgid "This is short content that fits within 5 lines, so no button appears."
-msgstr "Ini adalah konten pendek yang muat dalam 5 baris, jadi tidak ada tombol yang muncul."
-
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -1864,7 +275,7 @@ msgstr "oleh Anonymous"
 msgid "history"
 msgstr "riwayat"
 
-#: diff.html
+#: diff.html status.html
 msgid "Added"
 msgstr "Ditambah"
 
@@ -1900,6 +311,11 @@ msgstr "Batal, lalu kembali."
 msgid "YAML Representation:"
 msgstr "Representasi YAML:"
 
+#: BookPreview.html book_providers/read_button.html books/edit/edition.html
+#: editpage.html import_preview.html
+msgid "Preview"
+msgstr "Pratinjau"
+
 #: history.html
 msgid "History of edits to"
 msgstr "Riwayat penyuntingan untuk"
@@ -1907,6 +323,24 @@ msgstr "Riwayat penyuntingan untuk"
 #: history.html
 msgid "Revision"
 msgstr "Revisi"
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
+msgid "When"
+msgstr "Kapan"
+
+#: RecentChanges.html admin/history.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html history.html
+#: recentchanges/render.html
+msgid "Who"
+msgstr "Siapa"
+
+#: RecentChanges.html RecentChangesUsers.html admin/history.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
+msgid "Comment"
+msgstr "Komentar"
 
 #: history.html
 msgid "Diff"
@@ -1932,10 +366,6 @@ msgstr "Bandingkan versi ini..."
 #: history.html
 msgid "...to this version"
 msgstr "...dengan versi ini"
-
-#: books/daisy.html history.html
-msgid "Back"
-msgstr "Kembali"
 
 #: import_preview.html
 #, fuzzy
@@ -2001,6 +431,14 @@ msgstr "Buku ini disediakan oleh %(book_provider)s, Penyedia Buku Tepercaya Open
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr "Dalam %(time)s detik, Anda akan secara otomatis dialihkan ke: %(url)s"
 
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html interstitial.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html type/tag/form.html
+msgid "Cancel"
+msgstr "Batal"
+
 #: interstitial.html
 msgid "Continue without waiting"
 msgstr "Lanjutkan tanpa menunggu"
@@ -2055,9 +493,18 @@ msgstr "Jika Anda ingin mendaftarkan akun OpenLibrary baru, Anda perlu <a href=\
 msgid "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access your Open Library account."
 msgstr "Silakan masukan email untuk <a href=\"https://archive.org\">Internet Archive</a> dan kata sandi untuk mengakses akun Open Library Anda."
 
+#: login.html openlibrary/plugins/upstream/forms.py
+msgid "Email"
+msgstr "Email"
+
 #: login.html
 msgid "Forgot your Internet Archive email?"
 msgstr "Lupa email yang Anda gunakan untuk Internet Archive?"
+
+#: account/email/forgot-ia.html login.html
+#: openlibrary/plugins/upstream/forms.py
+msgid "Password"
+msgstr "Kata Sandi"
 
 #: login.html
 msgid "Forgot your Password?"
@@ -2095,6 +542,13 @@ msgstr "Buku baru ditambahkan."
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
 msgstr "Terima kasih telah meningkatkan katalog Open Library!"
+
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
+msgid "Close"
+msgstr "Tutup"
 
 #: notfound.html
 #, python-format
@@ -2208,6 +662,10 @@ msgstr "LEADER:"
 msgid "Download Link"
 msgstr "Tautan Unduhan"
 
+#: showmarc.html type/tag/index.html
+msgid "Next"
+msgstr "Berikutnya"
+
 #: status.html
 msgid "Open Library server status"
 msgstr "Status server Open Library"
@@ -2217,16 +675,130 @@ msgid "Server status"
 msgstr "Status server"
 
 #: status.html
-msgid "System information"
-msgstr "Informasi sistem"
+msgid "Testing Environment"
+msgstr "Lingkungan Pengujian"
 
 #: status.html
-msgid "Features enabled"
-msgstr "Fitur yang diaktifkan"
+msgid "Deploy triggered!"
+msgstr "Deploy dipicu!"
 
 #: status.html
-msgid "Staged"
-msgstr "Bertahap"
+#, fuzzy
+msgid "View Jenkins progress"
+msgstr "Sedang berlangsung..."
+
+#: status.html
+msgid "GitHub status refreshed."
+msgstr "Status GitHub diperbarui."
+
+#: status.html
+msgid "PR numbers or URLs, space/comma separated"
+msgstr "Nomor atau URL PR, dipisahkan spasi/koma"
+
+#: status.html
+msgid "Add PR(s)"
+msgstr "Tambahkan PR"
+
+#: status.html
+#, fuzzy
+msgid "PR"
+msgstr "Pratinjau"
+
+#: books/add.html books/edit.html books/edit/edition.html
+#: search/advancedsearch.html status.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr "Judul"
+
+#: books/add.html books/edit.html books/edit/edition.html
+#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: status.html
+msgid "Author"
+msgstr "Penulis"
+
+#: status.html
+msgid "Assignee"
+msgstr "Penugasan"
+
+#: status.html
+#, fuzzy
+msgid "Pinned Commit"
+msgstr "Komentar"
+
+#: status.html
+#, fuzzy
+msgid "Branch HEAD"
+msgstr "ID Batch:"
+
+#: status.html
+#, fuzzy
+msgid "Drift"
+msgstr "Sunting"
+
+#: status.html
+#, fuzzy
+msgid "Enabled"
+msgstr "Email"
+
+#: status.html
+#, fuzzy
+msgid "up to date"
+msgstr "Perbarui"
+
+#: status.html
+#, fuzzy
+msgid "unknown"
+msgstr "Tidak diketahui"
+
+#: status.html
+msgid "1 commit behind"
+msgstr "1 commit di belakang"
+
+#: status.html
+#, fuzzy, python-format
+msgid "%(count)s commits behind"
+msgstr ""
+
+#: admin/solr.html status.html
+msgid "Update"
+msgstr "Perbarui"
+
+#: status.html
+#, fuzzy
+msgid "Enable"
+msgstr "Contoh"
+
+#: status.html
+msgid "Disable"
+msgstr "Nonaktifkan"
+
+#: lists/lists.html status.html type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr "Hapus"
+
+#: status.html
+#, fuzzy
+msgid "Selected PRs"
+msgstr "Halaman dipilih:"
+
+#: status.html
+#, fuzzy
+msgid "Refresh"
+msgstr "Perujuk"
+
+#: status.html
+#, fuzzy
+msgid "Deploy"
+msgstr "Balas"
+
+#: status.html
+msgid "No PRs in testing set."
+msgstr "Tidak ada PR dalam set pengujian."
+
+#: status.html
+msgid "Last Build Result"
+msgstr "Hasil Build Terakhir"
 
 #: status.html
 msgid "View PRs on GitHub"
@@ -2241,6 +813,14 @@ msgstr "Tidak berubah"
 #: type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr "Nama"
+
+#: status.html
+msgid "System information"
+msgstr "Informasi sistem"
+
+#: status.html
+msgid "Features enabled"
+msgstr "Fitur yang diaktifkan"
 
 #: subjects.html
 msgid "Edit tag for this subject"
@@ -2294,6 +874,10 @@ msgstr "Tahun ini"
 msgid "All Time"
 msgstr "Sepanjang Waktu"
 
+#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+msgid "Trending Books"
+msgstr "Buku Tren"
+
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
 msgstr "Lihat apa yang ditambahkan pembaca dari komunitas ke rak buku mereka"
@@ -2302,16 +886,41 @@ msgstr "Lihat apa yang ditambahkan pembaca dari komunitas ke rak buku mereka"
 msgid "Earliest trending data is from October 2017"
 msgstr "Data tren paling awal berasal dari Oktober 2017"
 
+#. Label for the reading log shelf for books the user plans to read in the
+#. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr "Ingin Dibaca"
 
+#. Display name for the "currently-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user is actively reading
+#. (bookshelf ID 2). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr "Sedang Dibaca"
+
+#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
+#: book_providers/read_button.html books/edit/edition.html trending.html
+#: type/list/embed.html widget.html
+msgid "Read"
+msgstr "Baca"
+
+#. Display name for the "stopped-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user stopped reading before
+#. finishing (bookshelf ID 4). Used as a button label and shelf name.
+#. Label for the reading log shelf for books the user stopped reading
+#. (bookshelf ID 4). Used as a button label and shelf name.
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
+#, fuzzy
+msgid "Stopped Reading"
+msgstr "Trending"
 
 #: trending.html
 #, python-format
@@ -2322,6 +931,29 @@ msgstr "Seseorang menandai sebagai %(shelf)s %(k_hours_ago)s"
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
 msgstr "Dicatat %(count)i kali %(time_unit)s"
+
+#: verify_human.html
+#, fuzzy
+msgid "Human Verification"
+msgstr "Verifikasi Email Gagal"
+
+#: verify_human.html
+msgid "Please verify you are human to continue."
+msgstr "Mohon verifikasi bahwa Anda manusia untuk melanjutkan."
+
+#: verify_human.html
+msgid "Verify you are human"
+msgstr "Verifikasi bahwa Anda manusia"
+
+#: verify_human.html
+#, fuzzy
+msgid "Verification failed. Please try again."
+msgstr "Kata sandi salah. Silakan coba lagi"
+
+#: verify_human.html
+#, fuzzy
+msgid "Verifying..."
+msgstr "Mengedit..."
 
 #: viewpage.html
 msgid "Revert to this revision?"
@@ -2341,10 +973,18 @@ msgstr "Baca \"%(title)s\""
 msgid "Borrow \"%(title)s\""
 msgstr "Pinjam \"%(title)s\""
 
+#: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
+msgid "Borrow"
+msgstr "Pinjam"
+
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
 msgstr "Bergabung ke daftar tunggu untuk \"%(title)s\""
+
+#: LoanStatus.html widget.html
+msgid "Join Waitlist"
+msgstr "Bergabung dengan daftar tunggu"
 
 #: widget.html
 #, python-format
@@ -2356,9 +996,9 @@ msgid "Learn More"
 msgstr "Pelajari Lebih Lanjut"
 
 #: widget.html
-#, python-format
-msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr "di <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
+#, fuzzy, python-format
+msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
+msgstr "di <a target=\"_blank\" href=\"%(link)s\" rel=\"noopener noreferrer\">openlibrary.org</a>"
 
 #: work_search.html
 msgid "Search Books"
@@ -2369,16 +1009,43 @@ msgid "Keywords"
 msgstr "Kata kunci"
 
 #: work_search.html
-msgid "Ebooks"
-msgstr "Buku elektronik"
-
-#: work_search.html
 msgid "This is only visible to super librarians."
 msgstr "Ini hanya terlihat oleh super pustakawan."
 
 #: work_search.html
 msgid "Solr Editions"
 msgstr "Edisi Solr"
+
+#: design/toggle.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html work_search.html
+#, fuzzy
+msgid "Readable Only"
+msgstr "Pratinjau"
+
+#: work_search.html
+#, fuzzy
+msgid "Filter by availability"
+msgstr "Filter hasil berdasarkan ketersediaan ebook"
+
+#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
+#: type/edition/view.html type/work/view.html work_search.html
+msgid "Language"
+msgstr "Bahasa"
+
+#: search/search_modal_i18n.html work_search.html
+#, fuzzy
+msgid "Search languages…"
+msgstr "Pilih bahasa ini"
+
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html
+#: work_search.html
+msgid "Languages"
+msgstr "Bahasa"
+
+#: work_search.html
+#, fuzzy
+msgid "Filter by language"
+msgstr "Bahasa"
 
 #: work_search.html
 msgid "The search engine returned an error."
@@ -2433,7 +1100,7 @@ msgstr "Ingin bergabung dengan kami?"
 msgid "Role:"
 msgstr "Peran:"
 
-#: about/index.html lib/nav_head.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr "Semua"
 
@@ -2473,6 +1140,14 @@ msgstr "Kepustakawanan"
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
 msgstr "Jika Anda menjadi relawan dengan Open Library dan ingin tercantum sebagai bagian dari tim, lengkapi <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formulir informasi tim Open Library</a>."
 
+#: account/create.html openlibrary/plugins/upstream/forms.py
+msgid "Must be a valid email address"
+msgstr "Harus berupa alamat email yang valid"
+
+#: account/create.html openlibrary/plugins/upstream/forms.py
+msgid "Must be between 3 and 20 characters"
+msgstr "Harus antara 3 dan 20 karakter"
+
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
 msgstr "Nama pengguna hanya boleh berisi angka, huruf, - atau _"
@@ -2510,8 +1185,9 @@ msgid "I want to receive news, announcements, and resources from the <a href=\"h
 msgstr "Saya ingin menerima berita, pengumuman, dan sumber daya dari <a href=\"https://archive.org/\">Internet Archive</a>, nirlaba yang mengelola Open Library."
 
 #: account/create.html
-msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">special print disability access</a> through a qualifying program."
-msgstr "Saya ingin mendaftar* untuk <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">akses disabilitas cetak khusus</a> melalui program yang memenuhi syarat."
+#, fuzzy
+msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
+msgstr "Saya ingin mendaftar* untuk <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">akses disabilitas cetak khusus</a> melalui program yang memenuhi syarat."
 
 #: account/create.html
 msgid "Select qualifying program"
@@ -2526,8 +1202,9 @@ msgid "Sign Up with Email"
 msgstr "Daftar dengan Email"
 
 #: account/create.html
-msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Terms of Service</a>."
-msgstr "Dengan mendaftar, Anda menyetujui <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Syarat Layanan</a> Internet Archive."
+#, fuzzy
+msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
+msgstr "Dengan mendaftar, Anda menyetujui <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Syarat Layanan</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -2671,6 +1348,14 @@ msgid "There is %(count)d person waiting for this book."
 msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 
+#: ManageLoansButtons.html account/loans.html
+msgid "Not yet downloaded."
+msgstr "Belum diunduh."
+
+#: ManageLoansButtons.html account/loans.html
+msgid "Download Now"
+msgstr "Unduh Sekarang"
+
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
 msgstr "Kembalikan melalui<br/>Adobe Digital Editions"
@@ -2691,6 +1376,18 @@ msgstr "Tinggalkan Daftar Tunggu"
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
 msgstr "Apakah Anda yakin ingin meninggalkan daftar tunggu dari<br/><strong>TITLE</strong>?"
 
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/list_follow.html lists/showcase.html publishers/view.html
+#: search/authors.html search/publishers.html search/subjects.html
+#, python-format
+msgid "%(count)d book"
+msgid_plural "%(count)d books"
+msgstr[0] ""
+
+#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
+msgid "Actions"
+msgstr "Tindakan"
+
 #: account/loans.html
 #, python-format
 msgid "Waiting for 1 day"
@@ -2701,11 +1398,29 @@ msgstr[0] ""
 msgid "You are the next person to receive this book."
 msgstr "Anda adalah orang berikutnya yang akan menerima buku ini."
 
+#: ManageWaitlistButton.html account/loans.html
+#, python-format
+msgid "There is one person ahead of you in the waiting list."
+msgid_plural "There are %(count)d people ahead of you in the waiting list."
+msgstr[0] ""
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "You have less than an hour to borrow it."
+msgstr "Anda memiliki kurang dari satu jam untuk meminjamnya."
+
 #: account/loans.html
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
 msgstr[0] ""
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "Borrow Now"
+msgstr "Pinjam Sekarang"
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "Leave the waiting list?"
+msgstr "Keluar dari daftar tunggu?"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
@@ -2727,6 +1442,16 @@ msgstr "Tidak ada buku di rak ini"
 msgid "My Loans"
 msgstr "Pinjaman Saya"
 
+#. Display name for the "already-read" reading log shelf used in page headings
+#. and breadcrumbs.
+#. Label for the reading log shelf for books the user has finished reading
+#. (bookshelf ID 3). Used as a button label and shelf name.
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+msgid "Already Read"
+msgstr "Sudah Dibaca"
+
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
 msgstr "Pembaca ini memilih untuk membuat Log Membaca mereka bersifat pribadi."
@@ -2747,6 +1472,11 @@ msgstr "Statistik Saya"
 #: account/mybooks.html account/sidebar.html account/topmenu.html
 msgid "My Reading Stats"
 msgstr "Statistik Membaca Saya"
+
+#: account/mybooks.html account/sidebar.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Loan History"
+msgstr "Riwayat Pinjaman"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Notes"
@@ -2785,6 +1515,11 @@ msgstr "Kirim ulang email verifikasi"
 msgid "Thanks!"
 msgstr "Terima kasih!"
 
+#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
+#: account/notes.html account/observations.html
+msgid "Unknown author"
+msgstr "Penulis tidak diketahui"
+
 #: account/notes.html
 msgid "My notes for an edition of "
 msgstr "Catatan saya untuk edisi dari "
@@ -2806,6 +1541,14 @@ msgstr "Penerbit tidak diketahui"
 #, python-format
 msgid "in %(language)s"
 msgstr "dalam %(language)s"
+
+#: NotesModal.html account/notes.html
+msgid "Delete Note"
+msgstr "Hapus Catatan"
+
+#: NotesModal.html account/notes.html
+msgid "Save Note"
+msgstr "Simpan Catatan"
 
 #: account/notes.html
 msgid "No notes found."
@@ -2835,6 +1578,16 @@ msgstr "Tidak, terima kasih"
 msgid "Yes! Please!"
 msgstr "Ya! Tolong!"
 
+#: EditButtons.html account/notifications.html account/privacy.html
+#: admin/block.html admin/spamwords.html covers/manage.html
+msgid "Save"
+msgstr "Simpan"
+
+#: EditionNavBar.html account/observations.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+msgid "Reviews"
+msgstr "Ulasan"
+
 #: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
 msgstr "Hapus"
@@ -2860,7 +1613,8 @@ msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> pu
 msgstr "Apakah Anda ingin membuat <a href=\"/account/books\">Log Membaca</a> Anda publik?"
 
 #: account/privacy.html
-msgid "This will enable others to see what books you want to read, are reading, or have already read. Patrons with reading logs set to public may be followed."
+#, fuzzy
+msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
 msgstr "Ini akan memungkinkan orang lain melihat buku apa yang ingin Anda baca, sedang Anda baca, atau sudah Anda baca. Pengguna dengan log membaca yang diatur ke publik dapat diikuti."
 
 #: account/privacy.html admin/people/view.html
@@ -2900,6 +1654,16 @@ msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibr
 msgstr "%(username)s ingin membaca %(total)d buku. Bergabunglah dengan %(username)s di OpenLibrary.org dan bagikan buku yang akan segera Anda baca!"
 
 #: account/reading_log.html
+#, fuzzy, python-format
+msgid "Books %(username)s stopped reading"
+msgstr "Buku yang sedang dibaca %(username)s"
+
+#: account/reading_log.html
+#, fuzzy, python-format
+msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
+msgstr "%(username)s ingin membaca %(total)d buku. Bergabunglah dengan %(username)s di OpenLibrary.org dan bagikan buku yang akan segera Anda baca!"
+
+#: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
 msgstr "Buku yang telah dibaca %(username)s di tahun %(year)d"
@@ -2933,17 +1697,15 @@ msgstr "Buku yang ditambahkan oleh orang yang diikuti %(username)s"
 msgid "Search your reading log"
 msgstr "Cari log membaca Anda"
 
-#: account/reading_log.html search/sort_options.html
-msgid "Sorting by"
-msgstr "Urutkan berdasarkan"
+#: account/reading_log.html type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
+msgstr "— Tampilkan <a href=\"%(url)s\">hanya ebook</a>?"
 
 #: account/reading_log.html
-msgid "Date Added (newest)"
-msgstr "Tanggal Ditambahkan (terbaru)"
-
-#: account/reading_log.html
-msgid "Date Added (oldest)"
-msgstr "Tanggal Ditambahkan (terlama)"
+#, fuzzy, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
+msgstr "— Tampilkan <a href=\"%(url)s\">semua</a> oleh penulis ini?"
 
 #: account/reading_log.html
 msgid "No results found in this shelf"
@@ -2970,6 +1732,8 @@ msgstr "<a href=\"/search\">Cari buku</a> untuk ditambahkan ke log membaca Anda.
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
 msgstr "Tidak ada buku terbaru di feed Anda. Saat Anda mengikuti akun publik, pembaruan buku mereka akan muncul di sini."
 
+#. Display name for the "want-to-read" reading log shelf used in page headings
+#. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
 msgstr "Ingin Dibaca"
@@ -3017,6 +1781,16 @@ msgid "Work Stats"
 msgstr "Statistik Karya"
 
 #: account/readinglog_stats.html
+#, fuzzy
+msgid "Works by Decade Published"
+msgstr "Karya Berdasarkan Periode Waktu"
+
+#: account/readinglog_stats.html
+#, fuzzy
+msgid "Works by Century Published"
+msgstr "Pertama Diterbitkan"
+
+#: account/readinglog_stats.html
 msgid "Works by Subject"
 msgstr "Karya Berdasarkan Subjek"
 
@@ -3040,6 +1814,11 @@ msgstr "Karya yang cocok"
 msgid "Click on a bar to see matching works"
 msgstr "Klik pada batang untuk melihat karya yang cocok"
 
+#: account/sidebar.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/mybooks.py
+msgid "My Feed"
+msgstr "Feed Saya"
+
 #: account/sidebar.html
 #, python-format
 msgid "%(year)d Reading Goal"
@@ -3058,11 +1837,18 @@ msgstr "Log Membaca"
 msgid "My lists"
 msgstr "Daftar saya"
 
+#: EditionNavBar.html SearchNavigation.html account/sidebar.html
+#: lib/nav_head.html lists/home.html recentchanges/index.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
+msgid "Lists"
+msgstr "Daftar"
+
 #: account/sidebar.html type/user/view.html
 msgid "See All"
 msgstr "Lihat Semua"
 
-#: account/sidebar.html type/list/edit.html
+#: account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr "Buat daftar"
 
@@ -3202,6 +1988,43 @@ msgstr "Selesai."
 msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
 msgstr "Kami telah mengirim email ke %(email)s dengan pengingat nama pengguna Anda dan instruksi untuk membantu Anda mereset kata sandi Open Library. Harap periksa kotak masuk Anda untuk pesan dari kami."
 
+#: account/security/check_email.html
+msgid "Account Security Check — 2026-04-28T18Z"
+msgstr "Pemeriksaan Keamanan Akun — 2026-04-28T18Z"
+
+#: account/security/check_email.html
+msgid "Account Security Check"
+msgstr "Pemeriksaan Keamanan Akun"
+
+#: account/security/check_email.html
+msgid "Incident date: 2026-04-28T18Z"
+msgstr "Tanggal insiden: 2026-04-28T18Z"
+
+#: account/security/check_email.html
+msgid "Check whether your Open Library account was in a set of accounts requiring attention."
+msgstr "Periksa apakah akun Open Library Anda termasuk dalam kumpulan akun yang memerlukan perhatian."
+
+#: account/security/check_email.html
+msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
+msgstr "Silakan <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">masuk</a> untuk memeriksa apakah akun Anda terpengaruh."
+
+#: account/security/check_email.html
+#, fuzzy
+msgid "Your account is in the affected set."
+msgstr "Akun belum diaktifkan."
+
+#: account/security/check_email.html
+msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
+msgstr "Akun Anda ditemukan dalam daftar akun yang terpengaruh. Harap tinjau komunikasi terbaru dari Open Library dan pertimbangkan untuk memperbarui kata sandi Anda."
+
+#: account/security/check_email.html
+msgid "Your account is <em>not</em> in the affected set."
+msgstr "Akun Anda <em>tidak</em> berada dalam kumpulan yang terpengaruh."
+
+#: account/security/check_email.html
+msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
+msgstr "Akun Anda <em>tidak</em> ditemukan dalam daftar akun yang terpengaruh. Tidak diperlukan tindakan apa pun."
+
 #: account/verify/activated.html
 msgid "Account already activated"
 msgstr "Akun sudah diaktifkan"
@@ -3270,6 +2093,11 @@ msgstr "Blokir alamat IP"
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
 msgstr "Alamat IP %(address)s telah ditambahkan ke area teks. Harap klik Simpan untuk memblokir IP tersebut."
 
+#: admin/block.html
+#, fuzzy
+msgid "Blocked IP Addresses"
+msgstr "Blokir alamat IP"
+
 #: admin/graphs.html
 msgid "Performance Graphs"
 msgstr "Grafik Kinerja"
@@ -3326,6 +2154,10 @@ msgstr "Kirim"
 #: admin/imports.html
 msgid "New Books Imported Per Day"
 msgstr "Buku Baru Diimpor Per Hari"
+
+#: PublishingHistory.html admin/imports.html publishers/view.html
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr "Anda perlu mengaktifkan JavaScript untuk melihat grafik yang keren ini!"
 
 #: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
 #: site/stats.html
@@ -3396,6 +2228,10 @@ msgstr "Ditemukan"
 #: admin/imports_by_date.html
 msgid "Failed"
 msgstr "Gagal"
+
+#: admin/imports_by_date.html openlibrary/core/edits.py
+msgid "Pending"
+msgstr "Tertunda"
 
 #: admin/imports_by_date.html
 msgid "Items"
@@ -3582,6 +2418,12 @@ msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
 msgstr[0] ""
 
+#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
+#: recentchanges/updated_records.html
+msgid "What"
+msgstr "Apa"
+
 #: admin/loans_table.html
 #, fuzzy, python-format
 msgid "Waiting since %(date)s"
@@ -3592,9 +2434,21 @@ msgstr ""
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr "#%(num_position)d dari %(num_waitlist)d orang yang menunggu buku ini"
 
+#: ManageLoansButtons.html admin/loans_table.html
+#, python-format
+msgid "Borrowed %(date)s"
+msgstr "Dipinjam %(date)s"
+
 #: admin/menu.html
 msgid "Admin Center"
 msgstr "Pusat Admin"
+
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html
+#: openlibrary/plugins/worksearch/code.py type/author/view.html
+#: type/list/view_body.html
+msgid "People"
+msgstr "Orang"
 
 #: admin/menu.html
 msgid "PD Access Requests"
@@ -3711,10 +2565,6 @@ msgstr "Masukkan kunci untuk diindeks ulang di Solr"
 msgid "Write one entry per line"
 msgstr "Tulis satu entri per baris"
 
-#: admin/solr.html
-msgid "Update"
-msgstr "Perbarui"
-
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
 msgstr "[Pusat Admin] Kata Spam"
@@ -3777,6 +2627,11 @@ msgstr ""
 #: admin/sync.html
 msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
 msgstr "Memperbarui edisi di archive.org dengan menulis nilai identifier openlibrary_edition dan openlibrary_work terbarunya"
+
+#: admin/sync.html
+#, fuzzy
+msgid "TODO"
+msgstr "Hari ini"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
@@ -3911,45 +2766,23 @@ msgstr "Blokir %(ip)s"
 msgid "Please select the changesets to revert."
 msgstr "Harap pilih changeset yang akan dikembalikan."
 
+#: RecentChanges.html admin/ip/view.html admin/people/edits.html
+#: recentchanges/render.html
+msgid "When you see numbers here, that's the IP address of the anonymous editor"
+msgstr "Saat Anda melihat angka di sini, itulah alamat IP editor anonim"
+
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
 msgstr "Dikembalikan oleh %(revert_author)s"
 
+#: EditButtons.html admin/ip/view.html admin/people/edits.html
+msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
+msgstr "Silakan, tinggalkan catatan singkat tentang apa yang Anda ubah: <span class=\"small gray\">(Opsional, tapi sangat berguna!)</span>"
+
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
 msgstr "Spam dikembalikan"
-
-#: admin/memory/index.html
-msgid "Memory Status"
-msgstr "Status Memori"
-
-#: admin/memory/index.html
-msgid "type"
-msgstr "tipe"
-
-#: admin/memory/index.html
-#, fuzzy
-msgid "count"
-msgstr "Komentar"
-
-#: admin/memory/index.html
-msgid "mark"
-msgstr "tandai"
-
-#: admin/memory/index.html
-#, fuzzy
-msgid "Prev"
-msgstr "Pratinjau"
-
-#: admin/memory/object.html
-#, fuzzy
-msgid "Referents"
-msgstr "Perbedaan"
-
-#: admin/memory/object.html
-msgid "Referrers"
-msgstr "Perujuk"
 
 #: admin/people/edits.html
 #, python-format
@@ -4045,18 +2878,9 @@ msgstr "buka blokir akun ini"
 msgid "activate account"
 msgstr "Nonaktifkan akun"
 
-#: admin/people/view.html
-#, python-format
-msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
-msgstr "Tautan aktivasi kedaluwarsa pada <span class=\"time\">%(date)s.</span>"
-
-#: admin/people/view.html
-msgid "Activation link expired"
-msgstr "Tautan aktivasi kedaluwarsa"
-
-#: admin/people/view.html
-msgid "Resend activation link"
-msgstr "Kirim ulang tautan aktivasi"
+#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
+msgid "Name:"
+msgstr "Nama:"
 
 #: admin/people/view.html
 msgid "view profile"
@@ -4111,6 +2935,11 @@ msgstr "Uji Coba"
 msgid "Anonymize Account"
 msgstr "Anonimkan Akun"
 
+#: admin/people/view.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/account.py type/user/view.html
+msgid "Loans"
+msgstr "Pinjaman"
+
 #: admin/people/view.html
 msgid "Account not activated yet."
 msgstr "Akun belum diaktifkan."
@@ -4142,13 +2971,19 @@ msgstr "Kelola Pengaturan Notifikasi"
 msgid "None found"
 msgstr "Tidak ditemukan"
 
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html
+msgid "Authors"
+msgstr "Penulis"
+
 #: authors/index.html
 msgid "Search for an Author"
 msgstr "Cari Penulis"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html type/local_id/view.html
+#: search/publishers.html search/search_modal_i18n.html search/searchbox.html
+#: type/local_id/view.html
 msgid "Search"
 msgstr "Cari"
 
@@ -4369,6 +3204,10 @@ msgstr "Kobo (kepub)"
 msgid "View the source code for this Standard Ebook at GitHub"
 msgstr "Lihat kode sumber untuk Standard Ebook ini di GitHub"
 
+#: Subnavigation.html book_providers/standard_ebooks_download_options.html
+msgid "Source Code"
+msgstr "Kode Sumber"
+
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
 msgstr "Lebih banyak di Standard Ebooks"
@@ -4446,12 +3285,6 @@ msgstr "Tambahkan buku ke Open Library"
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr "Kami memerlukan kumpulan field minimum untuk membuat catatan baru. Ini adalah field-field tersebut."
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
-msgid "Title"
-msgstr "Judul"
-
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr "Gunakan <b><i>Judul: Subjudul</i></b> untuk menambahkan subjudul."
@@ -4469,7 +3302,7 @@ msgstr "Seperti, \"Agatha Christie\" atau \"Jean-Paul Sartre.\" Kami juga akan m
 msgid "Who is the publisher?"
 msgstr "Siapa penerbitnya?"
 
-#: books/add.html books/edit/edition.html books/edit/excerpts.html
+#: books/add.html books/edit/edition.html
 msgid "For example:"
 msgstr "Misalnya:"
 
@@ -4534,6 +3367,16 @@ msgid "Only fill this out if this is a web book"
 msgstr "Isi ini hanya jika ini adalah buku web"
 
 #: books/add.html
+#, fuzzy, python-format
+msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+
+#: books/add.html
+#, fuzzy
+msgid "This link to Creative Commons will open in a new window"
+msgstr "Dapatkan petunjuk di Wikipedia di jendela baru"
+
+#: books/add.html
 msgid "Add this book now"
 msgstr "Tambahkan buku ini sekarang"
 
@@ -4541,7 +3384,7 @@ msgstr "Tambahkan buku ini sekarang"
 msgid "Add a new author"
 msgstr "Tambahkan penulis baru"
 
-#: books/author-autocomplete.html
+#: books/author-autocomplete.html books/series-autocomplete.html
 msgid "Create a new record for"
 msgstr "Buat catatan baru untuk"
 
@@ -4570,6 +3413,13 @@ msgstr "Daripada membuat catatan duplikat, harap klik hasil yang menurut Anda pa
 msgid "Select this book"
 msgstr "Pilih buku ini"
 
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
@@ -4593,20 +3443,16 @@ msgid " by %(name)s"
 msgstr " oleh %(name)s"
 
 #: books/daisy.html
+msgid "Back"
+msgstr "Kembali"
+
+#: books/daisy.html
 msgid "Open Library Home"
 msgstr "Beranda Open Library"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
 msgstr "Tidak tersedia file DAISY untuk "
-
-#: books/daisy.html
-msgid "This DAISY file is protected."
-msgstr "File DAISY ini dilindungi."
-
-#: books/daisy.html
-msgid "It can only be opened on a specialized device with a key issued by the Library of Congress."
-msgstr "Hanya dapat dibuka pada perangkat khusus dengan kunci yang diterbitkan oleh Library of Congress."
 
 #: books/daisy.html
 #, python-format
@@ -4620,10 +3466,6 @@ msgstr "Buku untuk orang yang tidak membaca cetakan?"
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
 msgstr "<a href=\"//archive.org\">Internet Archive</a> dengan bangga mendistribusikan lebih dari 1 juta buku secara gratis dalam format bernama DAISY, yang dirancang bagi mereka yang merasa sulit menggunakan media cetak biasa. "
-
-#: books/daisy.html
-msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs like this one can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr "Ada dua jenis DAISY di Open Library: <i>terbuka</i> dan <i>dilindungi</i>. DAISY terbuka dapat dibaca oleh siapa saja di seluruh dunia di berbagai perangkat. DAISY yang dilindungi seperti ini hanya dapat dibuka menggunakan kunci yang diterbitkan oleh <a href=\"http://www.loc.gov/nls/\">program Library of Congress NLS</a>."
 
 #: books/daisy.html
 msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
@@ -4669,7 +3511,7 @@ msgstr "Selain<a href=\"/subjects/accessible_book\" title=\"Subjek: Buku yang da
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
 msgstr "Mencari judul tertentu? Cara terbaik untuk menemukannya adalah<a href=\"/search\"> mencarinya</a>."
 
-#: books/daisy.html lib/history.html
+#: books/daisy.html lib/exports.html
 msgid "Need help?"
 msgstr "Butuh bantuan?"
 
@@ -4699,7 +3541,8 @@ msgstr "Kami sudah mengetahui tentang <b>edisi %(year)s %(publisher)s</b> dari <
 msgid "Editing..."
 msgstr "Mengedit..."
 
-#: books/edit.html type/author/edit.html type/template/edit.html
+#: books/edit.html type/author/edit.html type/tag/form.html
+#: type/template/edit.html
 msgid "Delete Record"
 msgstr "Hapus Catatan"
 
@@ -4716,8 +3559,9 @@ msgid "This Work"
 msgstr "Karya Ini"
 
 #: books/edit.html
-msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
-msgstr "Anda dapat mencari berdasarkan nama penulis (seperti <em>j k rowling</em>) atau ID Open Library (seperti <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
+#, fuzzy
+msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
+msgstr "Anda dapat mencari berdasarkan nama penulis (seperti <em>j k rowling</em>) atau ID Open Library (seperti <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -4731,6 +3575,23 @@ msgstr "Tambahkan Kutipan"
 msgid "Links"
 msgstr "Tautan"
 
+#: books/edit.html
+#, fuzzy
+msgid "Work Series"
+msgstr "Penggabungan Karya"
+
+#: books/edit.html
+msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
+msgstr "Seri saat ini masih dalam beta, dan bagian ini hanya terlihat oleh super librarian dan admin, seperti Anda! Namun, seri apa pun yang Anda tetapkan akan terlihat oleh semua orang. Mohon laporkan masalah apa pun di Slack atau GitHub."
+
+#: books/edit.html
+msgid "Is this work part of a larger series?"
+msgstr "Apakah karya ini merupakan bagian dari seri yang lebih besar?"
+
+#: books/edit.html
+msgid "E.g. Harry Potter, The Sword of Truth"
+msgstr "Mis. Harry Potter, The Sword of Truth"
+
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
 msgstr "Identifier Karya"
@@ -4742,6 +3603,14 @@ msgstr "Apakah Anda mengetahui identifier untuk karya ini?"
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr "Identifier ini berlaku untuk semua edisi karya ini, misalnya identifier karya Wikidata. Untuk identifier khusus edisi, seperti ISBN atau LCCN, pergi ke tab edisi."
+
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
+#, python-format
+msgid "Cover of: %(title)s"
+msgstr "Sampul dari: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
@@ -4757,6 +3626,83 @@ msgstr "Tanggal terbit tidak diketahui, %(publisher)s"
 #, python-format
 msgid "in %(languagelist)s"
 msgstr "dalam %(languagelist)s"
+
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py
+msgid "Books"
+msgstr "Buku"
+
+#. Page title for the "Want to Read" shelf page.
+#. Example: "Want to Read (17)". %(count)d is the number of books on this
+#. shelf.
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr "Ingin Dibaca (%(count)d)"
+
+#. Page title for the "Currently Reading" shelf page.
+#. Example: "Currently Reading (42)". %(count)d is the number of books on this
+#. shelf.
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr "Sedang Dibaca (%(count)d)"
+
+#. Page title for the "Already Read" shelf page.
+#. Example: "Already Read (203)". %(count)d is the number of books on this
+#. shelf.
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, fuzzy, python-format
+msgid "Already Read (%(count)d)"
+msgstr ""
+
+#. Page title for the "Stopped Reading" shelf page.
+#. Example: "Stopped Reading (8)". %(count)d is the number of books on this
+#. shelf.
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, fuzzy, python-format
+msgid "Stopped Reading (%(count)d)"
+msgstr "Sedang Dibaca (%(count)d)"
+
+#: books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Lists (%(count)d)"
+msgstr "Daftar (%(count)d)"
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: type/edition/modal_links.html
+msgid "Notes"
+msgstr "Catatan"
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Imports and Exports"
+msgstr "Impor dan Ekspor"
+
+#: books/series-autocomplete.html
+#, fuzzy
+msgid "Add a new series"
+msgstr "Tambahkan peran baru"
+
+#: books/series-autocomplete.html
+#, fuzzy
+msgid "Series name"
+msgstr "Nama pengguna"
+
+#: books/series-autocomplete.html
+#, fuzzy
+msgid "Series position"
+msgstr "Izin"
+
+#: books/series-autocomplete.html
+#, fuzzy
+msgid "Remove this series"
+msgstr "Hapus item ini?"
+
+#: books/series-autocomplete.html
+#, fuzzy
+msgid "Add another series?"
+msgstr "Tambahkan gambar lain"
 
 #: books/edit/about.html
 msgid "Select this subject"
@@ -4839,6 +3785,10 @@ msgid "Usually distinguished by different or smaller type."
 msgstr "Biasanya dibedakan dengan tipe yang berbeda atau lebih kecil."
 
 #: books/edit/edition.html
+msgid "For example: <i>envisioning the next 50 years</i>"
+msgstr "Misalnya: <i>membayangkan 50 tahun ke depan</i>"
+
+#: books/edit/edition.html
 msgid "Publishing Info"
 msgstr "Info Penerbitan"
 
@@ -4855,6 +3805,11 @@ msgid "City, Country please."
 msgstr "Kota, Negara tolong."
 
 #: books/edit/edition.html
+#, fuzzy
+msgid "For example: <i>New York, USA; Sydney, Australia</i>"
+msgstr "Misalnya: <i>ulasan New York Times</i>"
+
+#: books/edit/edition.html
 msgid "What is the copyright date?"
 msgstr "Apa tanggal hak cipta?"
 
@@ -4867,12 +3822,20 @@ msgid "Edition Name (if applicable):"
 msgstr "Nama Edisi (jika berlaku):"
 
 #: books/edit/edition.html
+msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
+msgstr "Misalnya: <i>Edisi seratus tahun</i>; <i>Edisi pertama</i>"
+
+#: books/edit/edition.html
 msgid "Series Name (if applicable)"
 msgstr "Nama Seri (jika berlaku)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
 msgstr "Nama seri penerbit."
+
+#: books/edit/edition.html
+msgid "For example: <i>The Story of Civilization, Part III</i>"
+msgstr "Misalnya: <i>The Story of Civilization, Part III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
@@ -4909,10 +3872,6 @@ msgstr "Pernyataan Oleh:"
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
 msgstr "Misalnya: <em>diedit oleh David Anderson</em>"
-
-#: books/edit/edition.html languages/index.html
-msgid "Languages"
-msgstr "Bahasa"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
@@ -4967,6 +3926,11 @@ msgid "Anything about the book that may be of interest."
 msgstr "Hal apa pun tentang buku yang mungkin menarik."
 
 #: books/edit/edition.html
+#, fuzzy
+msgid "A Plume Book"
+msgstr "Jelajahi Buku"
+
+#: books/edit/edition.html
 msgid "Is it known by any other titles?"
 msgstr "Apakah dikenal dengan judul lain?"
 
@@ -4987,8 +3951,9 @@ msgid "Sometimes editions can be associated with the wrong work. You can correct
 msgstr "Terkadang edisi dapat dikaitkan dengan karya yang salah. Anda dapat mengoreksinya di sini."
 
 #: books/edit/edition.html
-msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
-msgstr "Anda dapat mencari berdasarkan judul atau ID Open Library (seperti <a href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
+#, fuzzy
+msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
+msgstr "Anda dapat mencari berdasarkan judul atau ID Open Library (seperti <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -5195,6 +4160,11 @@ msgid "Page number?"
 msgstr "Nomor halaman?"
 
 #: books/edit/excerpts.html
+#, fuzzy
+msgid "For example: <i>23, xi or 433-434</i>"
+msgstr "Misalnya: <i>xii, 346p.</i>"
+
+#: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
 msgstr "Kutipan ini adalah kalimat pertama buku."
 
@@ -5270,7 +4240,7 @@ msgstr "Hapus tautan ini"
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr "\"Baik\" berarti tidak ada tautan spam. Jaga agar tetap relevan dengan buku. Situs yang tidak relevan dapat dihapus. Spam terang-terangan akan dihapus tanpa ampun."
 
-#: bulk_search/bulk_search.html
+#: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr "Pencarian Massal (beta)"
 
@@ -5413,8 +4383,8 @@ msgid "Manage"
 msgstr "Kelola"
 
 #: covers/external_image.html
-#, python-format
-msgid "Or, use a cover from %s"
+#, fuzzy, python-format
+msgid "Or, use an image from %s"
 msgstr "Atau, gunakan sampul dari %s"
 
 #: covers/manage.html
@@ -5441,6 +4411,79 @@ msgstr "Tambahkan gambar lain"
 msgid "Finished"
 msgstr "Selesai"
 
+#: design/toggle.html
+msgid "Toggle"
+msgstr "Beralih"
+
+#: design/toggle.html
+#, python-format
+msgid "The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s."
+msgstr "Komponen %(tag)s adalah sakelar dengan label tebal dan sublabel abu-abu opsional. Seluruh kontrol adalah satu tombol %(role)s, sehingga seluruh permukaan dapat diklik dan Enter/Spasi mengaktifkannya. Ia memiliki status hidup/matinya sendiri: mengklik akan membalik %(checked)s dan memicu %(event)s."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Default"
+msgstr "Hasil"
+
+#: design/toggle.html
+#, python-format
+msgid "A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s."
+msgstr "Toggle sederhana: hanya sakelar, %(label)s tebal, dan %(sublabel)s abu-abu opsional."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Card variant"
+msgstr "Kroasia"
+
+#: design/toggle.html
+#, python-format
+msgid "Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s."
+msgstr "Gunakan %(variant)s untuk wadah berbatas. Saat dicentang, wadah terisi dengan latar belakang biru utama dan teks putih — perlakuan yang sama dengan %(chip)s yang dipilih."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Custom label content"
+msgstr "Teks tombol kustom"
+
+#: design/toggle.html
+#, python-format
+msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
+msgstr "Masukkan konten ke slot default untuk menyesuaikan label, bukan menggunakan %(label)s / %(sublabel)s. Sediakan %(accessible_label)s agar sakelar masih memiliki nama yang dapat diakses."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Dark mode"
+msgstr "Pelajari Lebih Lanjut"
+
+#: design/toggle.html
+msgid "easier on the eyes"
+msgstr "lebih nyaman di mata"
+
+#: design/toggle.html
+#, fuzzy
+msgid "Disabled"
+msgstr "Diubah"
+
+#: design/toggle.html
+#, python-format
+msgid "Add %(disabled)s to block interaction."
+msgstr "Tambahkan %(disabled)s untuk memblokir interaksi."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Change event"
+msgstr "Tidak berubah"
+
+#: design/toggle.html
+#, python-format
+msgid "Toggling fires %(event)s with the new state in %(detail)s."
+msgstr "Peralihan memicu %(event)s dengan status baru di %(detail)s."
+
+#: design/toggle.html
+#, fuzzy
+msgid "Checked:"
+msgstr "Sudah dipinjam"
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr "Terkirim!"
@@ -5457,18 +4500,6 @@ msgstr "Mungkin butuh waktu sedikit untuk kami membacanya karena kami menerima b
 msgid "Qualifying for Print Disability Special Access"
 msgstr "Memenuhi Syarat untuk Akses Khusus Disabilitas Cetak"
 
-#: history/comment.html
-msgid "Imported from"
-msgstr "Diimpor dari"
-
-#: history/comment.html
-msgid "Found a matching"
-msgstr "Ditemukan yang cocok"
-
-#: history/comment.html
-msgid "Edited without comment."
-msgstr "Diedit tanpa komentar."
-
 #: history/sources.html
 #, fuzzy
 msgid "record"
@@ -5481,6 +4512,10 @@ msgstr "Tentang Proyek"
 #: home/about.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 msgstr "Open Library adalah katalog perpustakaan terbuka yang dapat diedit, membangun halaman web untuk setiap buku yang pernah diterbitkan."
+
+#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
+msgid "More"
+msgstr "Lebih banyak"
 
 #: home/about.html
 msgid "Just like Wikipedia, you can contribute new information or corrections to the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love books, why not help build a library?"
@@ -5504,18 +4539,44 @@ msgstr[0] ""
 msgid "Welcome to Open Library"
 msgstr "Selamat Datang di Open Library"
 
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr "Buku Klasik"
+
 #: home/index.html
 msgid "Recently Returned"
 msgstr "Baru Dikembalikan"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr "Roman"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Kids"
+msgstr "Anak-anak"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr "Thriller"
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr "Buku Teks"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
 msgstr "Authors Alliance & MIT Press"
 
+#: home/index.html
+msgid "Books in Local Environment"
+msgstr "Buku di Lingkungan Lokal"
+
 #: home/loans.html
-#, python-format
-msgid "You can still <a href=\"/borrow\">borrow</a> one more book until you've hit the limit!"
-msgid_plural "You can still <a href=\"/borrow\">borrow</a> %(count)d more books until you've hit the limit!"
+#, fuzzy, python-format
+msgid "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one more book until you've hit the limit!"
+msgid_plural "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> %(count)d more books until you've hit the limit!"
 msgstr[0] ""
 
 #: home/loans.html
@@ -5690,6 +4751,38 @@ msgstr "Dokumen ini terakhir diedit oleh"
 msgid "This doc was last edited anonymously"
 msgstr "Dokumen ini terakhir diedit secara anonim"
 
+#: lib/exports.html
+msgid "Download catalog record:"
+msgstr "Unduh catatan katalog:"
+
+#: lib/exports.html
+msgid "RDF"
+msgstr "RDF"
+
+#: lib/exports.html type/list/exports.html
+msgid "JSON"
+msgstr "JSON"
+
+#: lib/exports.html
+msgid "OPDS"
+msgstr "OPDS"
+
+#: lib/exports.html
+msgid "Cite this on Wikipedia"
+msgstr "Kutip ini di Wikipedia"
+
+#: lib/exports.html
+msgid "Wikipedia citation"
+msgstr "Kutipan Wikipedia"
+
+#: lib/exports.html
+msgid "Copy and paste this code into your Wikipedia page."
+msgstr "Salin dan tempel kode ini ke halaman Wikipedia Anda."
+
+#: lib/exports.html
+msgid "Get instructions at Wikipedia in a new window"
+msgstr "Dapatkan petunjuk di Wikipedia di jendela baru"
+
 #: lib/header_dropdown.html
 msgid "My account"
 msgstr "Akun saya"
@@ -5707,6 +4800,11 @@ msgstr "Menu"
 msgid "New!"
 msgstr "Baru!"
 
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
+msgid "History"
+msgstr "Riwayat"
+
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
@@ -5717,38 +4815,6 @@ msgstr "Dibuat %(date)s"
 msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
-
-#: lib/history.html
-msgid "Download catalog record:"
-msgstr "Unduh catatan katalog:"
-
-#: lib/history.html
-msgid "RDF"
-msgstr "RDF"
-
-#: lib/history.html type/list/exports.html
-msgid "JSON"
-msgstr "JSON"
-
-#: lib/history.html
-msgid "OPDS"
-msgstr "OPDS"
-
-#: lib/history.html
-msgid "Cite this on Wikipedia"
-msgstr "Kutip ini di Wikipedia"
-
-#: lib/history.html
-msgid "Wikipedia citation"
-msgstr "Kutipan Wikipedia"
-
-#: lib/history.html
-msgid "Copy and paste this code into your Wikipedia page."
-msgstr "Salin dan tempel kode ini ke halaman Wikipedia Anda."
-
-#: lib/history.html
-msgid "Get instructions at Wikipedia in a new window"
-msgstr "Dapatkan petunjuk di Wikipedia di jendela baru"
 
 #: lib/history.html
 msgid "an anonymous user"
@@ -5808,6 +4874,10 @@ msgstr "Jelaskan tentang apa buku ini"
 msgid "Just a sentence or two is good."
 msgstr "Hanya satu atau dua kalimat sudah cukup."
 
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
+msgid "Open Library"
+msgstr "Open Library"
+
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr "Visi"
@@ -5864,6 +4934,12 @@ msgstr "Jelajahi penulis"
 msgid "Explore subjects"
 msgstr "Jelajahi subjek"
 
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
+#: subjects/notfound.html type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr "Subjek"
+
 #: lib/nav_foot.html
 msgid "Explore collections"
 msgstr "Jelajahi koleksi"
@@ -5871,6 +4947,11 @@ msgstr "Jelajahi koleksi"
 #: lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
 msgstr "Koleksi"
+
+#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
+#: search/advancedsearch.html
+msgid "Advanced Search"
+msgstr "Pencarian Lanjutan"
 
 #: lib/nav_foot.html
 msgid "Navigate to top of this page"
@@ -5949,12 +5030,27 @@ msgid "Bluesky"
 msgstr "Bluesky"
 
 #: lib/nav_foot.html
+#, fuzzy
+msgid "Open Library on Bluesky"
+msgstr "Beranda Open Library"
+
+#: lib/nav_foot.html
 msgid "Twitter"
 msgstr "Twitter"
 
 #: lib/nav_foot.html
+#, fuzzy
+msgid "Open Library on Twitter"
+msgstr "Beranda Open Library"
+
+#: lib/nav_foot.html
 msgid "GitHub"
 msgstr "GitHub"
+
+#: lib/nav_foot.html
+#, fuzzy
+msgid "Open Library on GitHub"
+msgstr "Logo Open Library"
 
 #: lib/nav_foot.html site/alert.html
 msgid "Change Website Language"
@@ -6021,6 +5117,10 @@ msgstr "Portal Pustakawan"
 msgid "My Open Library"
 msgstr "Open Library Saya"
 
+#: databarWork.html lib/nav_head.html
+msgid "Browse"
+msgstr "Jelajahi"
+
 #: lib/nav_head.html
 msgid "Contribute"
 msgstr "Berkontribusi"
@@ -6032,18 +5132,6 @@ msgstr "Sumber Daya"
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
 msgstr "Open Library Internet Archive: Satu halaman untuk setiap buku"
-
-#: lib/nav_head.html
-msgid "Text"
-msgstr "Teks"
-
-#: lib/nav_head.html search/advancedsearch.html
-msgid "Subject"
-msgstr "Subjek"
-
-#: lib/nav_head.html
-msgid "Advanced"
-msgstr "Lanjutan"
 
 #: lib/nav_head.html
 msgid "Search by barcode"
@@ -6176,6 +5264,10 @@ msgstr "Terakhir diubah %(date)s"
 msgid "No description."
 msgstr "Tidak ada deskripsi."
 
+#: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
+msgid "Recent Activity"
+msgstr "Aktivitas Terbaru"
+
 #: lists/list_follow.html
 msgid "Cover of book"
 msgstr "Sampul buku"
@@ -6195,6 +5287,10 @@ msgstr "Pengguna ini belum mengaktifkan fitur mengikuti"
 #: lists/list_follow.html
 msgid "🔒︎"
 msgstr "🔒︎"
+
+#: Follow.html lists/list_follow.html
+msgid "Follow"
+msgstr "Ikuti"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -6252,10 +5348,6 @@ msgstr "Apakah Anda yakin ingin menghapus daftar ini?"
 #: lists/lists.html
 msgid "Remove this seed?"
 msgstr "Hapus item ini?"
-
-#: lists/lists.html type/list/edit.html
-msgid "Remove"
-msgstr "Hapus"
 
 #: lists/lists.html
 #, python-format
@@ -6433,6 +5525,14 @@ msgstr "Status ▾"
 msgid "Request Status"
 msgstr "Status Permintaan"
 
+#: merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Merged"
+msgstr "Digabung"
+
+#: merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Declined"
+msgstr "Ditolak"
+
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
 msgstr "Pengirim ▾"
@@ -6544,6 +5644,29 @@ msgstr "Masuk"
 msgid "Use this Work"
 msgstr "Gunakan Karya Ini"
 
+#: CreateListModal.html my_books/dropdown_content.html
+msgid "Create a new list"
+msgstr "Buat daftar baru"
+
+#: CreateListModal.html my_books/dropdown_content.html
+#: type/permission/edit.html type/usergroup/edit.html
+msgid "Description:"
+msgstr "Deskripsi:"
+
+#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html
+msgid "Create new list"
+msgstr "Buat daftar baru"
+
+#: my_books/dropdown_content.html
+#, fuzzy
+msgid "saving..."
+msgstr "Memuat..."
+
+#: my_books/dropdown_content.html
+msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
+msgstr "Menghapus buku ini dari rak Anda akan menghapus check-in Anda untuk karya ini. Lanjutkan?"
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr "Tambahkan ke Daftar"
@@ -6633,6 +5756,16 @@ msgid "Delete Event"
 msgstr "Hapus Acara"
 
 #: my_books/check_ins/check_in_prompt.html
+#, fuzzy
+msgid "Failed to delete check-in. Please try again in a few moments."
+msgstr "Gagal mengirimkan komentar. Silakan coba lagi dalam beberapa saat."
+
+#: my_books/check_ins/check_in_prompt.html
+#, fuzzy
+msgid "Failed to submit check-in. Please try again in a few moments."
+msgstr "Gagal mengirimkan komentar. Silakan coba lagi dalam beberapa saat."
+
+#: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
 msgstr "Dibaca <time class=\"check-in-date\">%(date)s</time>"
@@ -6691,7 +5824,12 @@ msgstr "Coba sesuatu yang lain?"
 msgid "Publisher: %(name)s"
 msgstr "Penerbit: %(name)s"
 
-#: publishers/view.html
+#: openlibrary/plugins/worksearch/code.py publishers/view.html
+#: search/advancedsearch.html type/edition/view.html type/work/view.html
+msgid "Publisher"
+msgstr "Penerbit"
+
+#: SearchResultsWork.html publishers/view.html
 #, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
@@ -6702,13 +5840,33 @@ msgstr[0] ""
 msgid "0 ebooks"
 msgstr ""
 
+#: PublishingHistory.html publishers/view.html
+msgid "Publishing History"
+msgstr "Sejarah Penerbitan"
+
 #: publishers/view.html
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr "Ini adalah grafik untuk menunjukkan kapan penerbit ini menerbitkan buku. Sepanjang sumbu X adalah waktu, dan pada sumbu y adalah jumlah edisi yang diterbitkan. <a href=\"#subjectRelated\">Klik di sini untuk melewati grafik</a>."
 
+#: PublishingHistory.html publishers/view.html
+msgid "Reset chart"
+msgstr "Reset grafik"
+
+#: PublishingHistory.html publishers/view.html
+msgid "or continue zooming in."
+msgstr "atau lanjutkan memperbesar."
+
 #: publishers/view.html
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
 msgstr "Grafik ini menampilkan edisi dari penerbit ini dari waktu ke waktu. Klik untuk melihat satu tahun, atau seret untuk rentang waktu."
+
+#: PublishingHistory.html publishers/view.html
+msgid "Editions Published"
+msgstr "Edisi Diterbitkan"
+
+#: PublishingHistory.html publishers/view.html
+msgid "Year of Publication"
+msgstr "Tahun Penerbitan"
 
 #: publishers/view.html
 msgid "Common Subjects"
@@ -6718,6 +5876,14 @@ msgstr "Subjek Umum"
 #, python-format
 msgid "Search for books published by %(publisher)s"
 msgstr "Cari buku yang diterbitkan oleh %(publisher)s"
+
+#: RelatedSubjects.html publishers/view.html
+msgid "None found."
+msgstr "Tidak ditemukan."
+
+#: ProlificAuthors.html publishers/view.html
+msgid "See more books by, and learn about, this author"
+msgstr "Lihat lebih banyak buku oleh, dan pelajari tentang, penulis ini"
 
 #: publishers/view.html
 msgid "published most by this publisher"
@@ -6774,13 +5940,40 @@ msgstr "Penggabungan Karya"
 msgid "Books Added"
 msgstr "Buku Ditambahkan"
 
+#: RecentChanges.html recentchanges/index.html
+msgid "By Humans"
+msgstr "Oleh Manusia"
+
+#: RecentChanges.html recentchanges/index.html
+msgid "By Bots"
+msgstr "Oleh Bot"
+
+#: RecentChanges.html recentchanges/index.html
+msgid "Everything"
+msgstr "Semua"
+
 #: recentchanges/render.html
 msgid "Admin view"
 msgstr "Tampilan admin"
 
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/render.html
+msgid "Older"
+msgstr "Lebih lama"
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/render.html
+msgid "Newer"
+msgstr "Lebih baru"
+
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
 msgstr "Tinjau apa yang berubah dari revisi sebelumnya"
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/default/path.html recentchanges/updated_records.html
+msgid "diff"
+msgstr "diff"
 
 #: recentchanges/add-book/path.html recentchanges/default/path.html
 #: recentchanges/edit-book/path.html recentchanges/merge/path.html
@@ -6790,6 +5983,10 @@ msgstr "perluas"
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
 msgstr "membuka akun Open Library baru!"
+
+#: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
+msgid "Review what's changed from the previous revision"
+msgstr "Tinjau apa yang berubah dari revisi sebelumnya"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html
 #: recentchanges/undo/view.html
@@ -6866,6 +6063,10 @@ msgid "ISBN"
 msgstr "ISBN"
 
 #: search/advancedsearch.html
+msgid "Subject"
+msgstr "Subjek"
+
+#: search/advancedsearch.html
 msgid "Place"
 msgstr "Tempat"
 
@@ -6902,10 +6103,29 @@ msgstr "Gabungkan penulis"
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr "Tidak ada <strong>penulis</strong> yang langsung cocok dengan pencarian Anda"
 
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#, fuzzy
+msgid "All books"
+msgstr "Muat Buku"
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Free to read now"
+msgstr "Gratis dibaca sekarang"
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#, fuzzy
+msgid "Borrow online"
+msgstr "Pinjam Sekarang"
+
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
 msgstr "Cari Open Library untuk %s"
+
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html search/snippets.html
+msgid "Search Inside"
+msgstr "Cari di Dalam"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
@@ -6922,6 +6142,10 @@ msgstr[0] ""
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
+
+#: EditionNavBar.html search/layout_options.html site/stats.html
+msgid "Details"
+msgstr "Detail"
 
 #: search/layout_options.html
 msgid "Grid"
@@ -6947,6 +6171,100 @@ msgstr "Tidak ada <strong>daftar</strong> yang langsung cocok dengan pencarian A
 #: search/publishers.html
 msgid "Publishers Search"
 msgstr "Pencarian Penerbit"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Search Open Library"
+msgstr "Mencari di Open Library"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Search books and authors…"
+msgstr "Cari Penulis"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Close search"
+msgstr "Pencarian Penerbit"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Clear search"
+msgstr "Pencarian Penerbit"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "See all results"
+msgstr "Hasil Pencarian"
+
+#: search/search_modal_i18n.html
+#, fuzzy, python-format
+msgid "See all %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, fuzzy, python-format
+msgid "See all %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Clear all"
+msgstr "Lihat semua"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Search filters"
+msgstr "Facet pencarian"
+
+#: search/search_modal_i18n.html type/work/editions_datatable.html
+msgid "Availability"
+msgstr "Ketersediaan"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Searching…"
+msgstr "Cari"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "No results found"
+msgstr "Tidak ada hasil ditemukan."
+
+#: search/search_modal_i18n.html
+#, fuzzy, python-format
+msgid "Showing %s of %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Top results"
+msgstr "Hasil"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Untitled"
+msgstr "Judul"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Readable"
+msgstr "Baca Lebih Sedikit"
+
+#: search/search_modal_i18n.html
+#, fuzzy, python-format
+msgid "In %s"
+msgstr "Perbedaan pada %s"
+
+#: search/search_modal_i18n.html
+#, fuzzy
+msgid "Recent searches"
+msgstr "Perubahan Terbaru"
+
+#: search/search_modal_i18n.html
+#, fuzzy, python-format
+msgid "Remove \"%s\" from recent searches"
+msgstr ""
 
 #: search/snippets.html
 #, python-format
@@ -6995,6 +6313,14 @@ msgid "Ebook Edition Count"
 msgstr "Jumlah Edisi Ebook"
 
 #: search/sort_options.html
+msgid "Date Added (newest)"
+msgstr "Tanggal Ditambahkan (terbaru)"
+
+#: search/sort_options.html
+msgid "Date Added (oldest)"
+msgstr "Tanggal Ditambahkan (terlama)"
+
+#: search/sort_options.html
 msgid "Most Editions"
 msgstr "Paling Banyak Edisi"
 
@@ -7017,6 +6343,10 @@ msgstr "Semua"
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
 msgstr "Judul Karya (beta: Hanya Pustakawan)"
+
+#: search/sort_options.html
+msgid "Sorting by"
+msgstr "Urutkan berdasarkan"
 
 #: search/sort_options.html
 msgid "Shuffle"
@@ -7067,11 +6397,8 @@ msgid "Merge duplicates"
 msgstr "Gabungkan duplikat"
 
 #: search/work_search_facets.html
-msgid "more"
-msgstr "lebih banyak"
-
-#: search/work_search_facets.html
-msgid "less"
+#, fuzzy
+msgid "Less"
 msgstr "lebih sedikit"
 
 #: search/work_search_facets.html
@@ -7100,41 +6427,17 @@ msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr "Fokuskan hasil Anda menggunakan <a href=\"/search/howto\">filter</a> ini"
 
 #: search/work_search_selected_facets.html
-msgid "eBook"
-msgstr "eBook"
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBook"
-msgstr "eBook Klasik"
-
-#: search/work_search_selected_facets.html
-msgid "Search facets"
-msgstr "Facet pencarian"
-
-#: search/work_search_selected_facets.html
-msgid "Explore Classic eBooks"
-msgstr "Jelajahi eBook Klasik"
+msgid "Published by"
+msgstr "Diterbitkan oleh"
 
 #: search/work_search_selected_facets.html
 msgid "Only Classic eBooks"
 msgstr "Hanya eBook Klasik"
 
 #: search/work_search_selected_facets.html
-#, python-format
-msgid "Explore books about %(subject)s"
-msgstr "Jelajahi buku tentang %(subject)s"
-
-#: search/work_search_selected_facets.html
-msgid "Written in"
-msgstr "Ditulis dalam"
-
-#: search/work_search_selected_facets.html
-msgid "Published by"
-msgstr "Diterbitkan oleh"
-
-#: search/work_search_selected_facets.html
-msgid "Click to remove this facet"
-msgstr "Klik untuk menghapus facet ini"
+#, fuzzy
+msgid "Classic eBooks hidden"
+msgstr "eBook Klasik"
 
 #: search/work_search_selected_facets.html
 #, python-format
@@ -7150,7 +6453,7 @@ msgstr "Lupa email yang Anda gunakan untuk Internet Archive?"
 msgid "It looks like you're offline."
 msgstr "Sepertinya Anda sedang offline."
 
-#: site/neck.html
+#: site/head.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
 msgstr "Open Library adalah katalog perpustakaan terbuka yang dapat diedit, membangun halaman web untuk setiap buku yang pernah diterbitkan. Baca, pinjam, dan temukan lebih dari 3 juta buku secara gratis."
 
@@ -7359,13 +6662,17 @@ msgstr "Cari buku %(author)s"
 
 #: type/author/view.html
 #, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr "— Tampilkan <a href=\"%(url)s\">hanya ebook</a>?"
-
-#: type/author/view.html
-#, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr "— Tampilkan <a href=\"%(url)s\">semua</a> oleh penulis ini?"
+
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/author/view.html type/list/view_body.html
+msgid "Places"
+msgstr "Tempat"
+
+#: Profile.html type/author/view.html
+msgid "Time"
+msgstr "Waktu"
 
 #: type/author/view.html
 msgid "OLID"
@@ -7427,9 +6734,27 @@ msgstr "Sinkronkan ID Archive.org"
 msgid "View Book on Archive.org"
 msgstr "Lihat Buku di Archive.org"
 
+#: SearchResultsWork.html type/edition/admin_bar.html
+msgid "Orphaned Edition"
+msgstr "Edisi Yatim"
+
+#: databarHistory.html databarView.html type/edition/compact_title.html
+msgid "Edit this page"
+msgstr "Edit halaman ini"
+
 #: type/edition/modal_links.html
 msgid "Review"
 msgstr "Ulasan"
+
+#: type/edition/modal_links.html
+#, fuzzy
+msgid "reviewing"
+msgstr "Ulasan"
+
+#: type/edition/modal_links.html
+#, fuzzy
+msgid "adding notes to"
+msgstr "Tambahkan penulis lain?"
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
@@ -7439,6 +6764,11 @@ msgstr "Edisi dari"
 #, python-format
 msgid "First published in %s"
 msgstr "Pertama kali diterbitkan pada %s"
+
+#: type/edition/title_and_author.html
+#, fuzzy, python-format
+msgid "Book %s"
+msgstr ""
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7480,6 +6810,10 @@ msgstr "Halaman"
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
 msgstr "ISBN"
+
+#: databarWork.html type/edition/view.html type/work/view.html
+msgid "Buy this book"
+msgstr "Beli buku ini"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
@@ -7533,7 +6867,8 @@ msgstr "Tautan Eksternal"
 msgid "Format"
 msgstr "Format"
 
-#: type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
 msgstr "Penomoran Halaman"
 
@@ -7588,8 +6923,9 @@ msgid "Loading Lists"
 msgstr "Memuat Daftar"
 
 #: type/language/view.html
-msgid "deprecated"
-msgstr "usang"
+#, fuzzy, python-format
+msgid "%(language)s [deprecated]"
+msgstr "dalam %(language)s"
 
 #: type/language/view.html
 msgid "languages"
@@ -7609,38 +6945,67 @@ msgstr ""
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr "Coba <a href=\"%(href)s\">cari buku yang dapat dibaca dalam %(language)s</a>?"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+#, fuzzy
+msgid "Create a series"
+msgstr "Buat daftar"
+
+#: type/list/edit.html type/series/edit.html
+#, fuzzy, python-format
+msgid "Editing series: %(list_name)s"
+msgstr "Mengedit daftar: %(list_name)s"
+
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
 msgstr "Mengedit daftar: %(list_name)s"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+#, fuzzy
+msgid "Edit Series"
+msgstr "Seri"
+
+#: type/list/edit.html type/series/edit.html
 msgid "Edit List"
 msgstr "Edit Daftar"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Move..."
 msgstr "Pindah..."
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
 msgstr "Cari buku"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Position (optional), e.g. 1, 2, 1-7"
+msgstr "Posisi (opsional), mis. 1, 2, 1-7"
+
+#: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
 msgstr "Catatan (opsional)"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "List Name"
 msgstr "Nama Daftar"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+#, fuzzy
+msgid "Series Name"
+msgstr "Nama pengguna"
+
+#: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
 msgstr "Deskripsi (opsional)"
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Add another book"
 msgstr "Tambahkan buku lain"
+
+#: type/list/edit.html type/series/edit.html
+#, fuzzy
+msgid "Create new series"
+msgstr "Buat daftar baru"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
@@ -7665,6 +7030,11 @@ msgstr "Pinjam buku"
 #: type/list/embed.html
 msgid "Protected DAISY"
 msgstr "DAISY Terlindungi"
+
+#: BookByline.html type/list/embed.html
+#, python-format
+msgid "by %(name)s"
+msgstr "oleh %(name)s"
 
 #: type/list/exports.html
 msgid "BibTex"
@@ -7742,12 +7112,18 @@ msgid "You are about to remove the last item in the list. That will delete the w
 msgstr "Anda akan menghapus item terakhir dalam daftar. Itu akan menghapus seluruh daftar. Apakah Anda yakin ingin melanjutkan?"
 
 #: type/list/view_body.html
+#, python-format
+msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
+msgstr "Seri ini berisi %(limit)d karya atau lebih. Saat ini, hanya %(limit)d karya pertama yang ditampilkan."
+
+#: type/list/view_body.html
 msgid "There are no items on this list."
 msgstr "Tidak ada item dalam daftar ini."
 
 #: type/list/view_body.html
-msgid "<a href=\"/search\" target=\"_blank\">Search for book, subjects, or authors</a> to add to your list."
-msgstr "<a href=\"/search\" target=\"_blank\">Cari buku, subjek, atau penulis</a> untuk ditambahkan ke daftar Anda."
+#, fuzzy
+msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Cari buku, subjek, atau penulis</a> untuk ditambahkan ke daftar Anda."
 
 #: type/list/view_body.html
 msgid "Learn more."
@@ -7760,6 +7136,11 @@ msgstr "Metadata Daftar"
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
 msgstr "Diturunkan dari metadata item"
+
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/list/view_body.html
+msgid "Times"
+msgstr "Waktu"
 
 #: type/local_id/view.html
 msgid "Local IDs"
@@ -7827,13 +7208,53 @@ msgstr "Tambahkan tag ke Open Library"
 msgid "We require a minimum set of fields to create a new collection tag."
 msgstr "Kami memerlukan set bidang minimum untuk membuat tag koleksi baru."
 
+#: EditButtons.html type/tag/form.html
+#, fuzzy
+msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
+msgstr ""
+
 #: type/tag/form.html
 msgid "Add this tag now"
 msgstr "Tambahkan tag ini sekarang"
 
+#: type/tag/index.html
+#, fuzzy
+msgid "Tags"
+msgstr "Tag:"
+
+#: type/tag/index.html
+msgid "Tags curated by Open Library librarians."
+msgstr "Tag yang dikurasi oleh pustakawan Open Library."
+
+#: type/tag/index.html
+#, fuzzy
+msgid "View subject page"
+msgstr "Lihat halaman subjek untuk %(name)s."
+
+#: type/tag/index.html
+msgid "Previous"
+msgstr "Sebelumnya"
+
+#: type/tag/index.html
+#, fuzzy
+msgid "No tags found."
+msgstr "Tidak ditemukan."
+
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
 msgstr "Nama Tag"
+
+#: type/tag/tag_form_inputs.html
+msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
+msgstr "Nama tampilan yang mudah dibaca (mis. \"Ilmu Komputer\", \"Fiksi Horor\")"
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag Slugs"
+msgstr "Slug Tag"
+
+#: type/tag/tag_form_inputs.html
+msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
+msgstr "Slug URL yang dipisahkan koma yang memetakan ke tag ini (diisi otomatis dari nama). Mis. \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
@@ -7863,6 +7284,10 @@ msgstr "Deskripsi"
 #: type/tag/view.html
 msgid "Tag Body"
 msgstr "Isi Tag"
+
+#: type/tag/view.html
+msgid "URL Slugs"
+msgstr "Slug URL"
 
 #: type/tag/view.html
 #, python-format
@@ -7921,9 +7346,9 @@ msgid "admin page"
 msgstr "halaman admin"
 
 #: type/user/view.html
-#, python-format
-msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</a>."
-msgstr "Anda berbagi secara publik buku-buku yang sedang Anda <a href=\"%(username)s/books/currently-reading\">baca saat ini</a>, <a href=\"%(username)s/books/already-read\">sudah dibaca</a>, dan <a href=\"%(username)s/books/want-to-read\">ingin dibaca</a>."
+#, fuzzy, python-format
+msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
+msgstr ""
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -7938,23 +7363,36 @@ msgid "Manage your privacy settings"
 msgstr "Kelola pengaturan privasi Anda"
 
 #: type/user/view.html
-#, python-format
-msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</a>!"
-msgstr "Berikut adalah buku-buku yang sedang <a href=\"%(username)s/books/currently-reading\">dibaca</a>, <a href=\"%(username)s/books/already-read\">sudah dibaca</a>, dan <a href=\"%(username)s/books/want-to-read\">ingin dibaca</a> oleh %(user)s!"
+#, fuzzy, python-format
+msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
+msgstr ""
 
 #: type/user/view.html
 msgid "My Lists"
 msgstr "Daftar Saya"
+
+#: RecentChangesUsers.html type/user/view.html
+msgid "No edits. Yet."
+msgstr "Belum ada pengeditan."
 
 #: type/usergroup/edit.html
 #, fuzzy
 msgid "Members:"
 msgstr "Ingat Saya"
 
+#: SearchResultsWork.html type/work/editions.html
+#, python-format
+msgid "First published in %(year)s"
+msgstr "Pertama diterbitkan pada %(year)s"
+
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
 msgstr "Tambahkan edisi lain dari %(work)s"
+
+#: UserEditRow.html type/work/editions.html
+msgid "Add another"
+msgstr "Tambahkan lainnya"
 
 #: type/work/editions.html
 msgid "Title missing"
@@ -7976,16 +7414,1012 @@ msgid "Edition"
 msgstr "Edisi"
 
 #: type/work/editions_datatable.html
-msgid "Availability"
-msgstr "Ketersediaan"
-
-#: type/work/editions_datatable.html
 msgid "No editions available"
 msgstr "Tidak ada edisi tersedia"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
 msgstr "Tambahkan edisi lain?"
+
+#: AffiliateLinks.html.jinja
+#, python-format
+msgid "Look for this edition for sale at %(store)s"
+msgstr "Cari edisi ini untuk dijual di %(store)s"
+
+#: AffiliateLinks.html.jinja
+#, fuzzy
+msgid "When you buy books using these links the Internet Archive may earn a"
+msgstr "Saat Anda membeli buku menggunakan tautan ini, Internet Archive mungkin mendapatkan <a class=\"nostyle\" href=\"/help/faq/about#selling\">komisi kecil</a>."
+
+#: AffiliateLinks.html.jinja
+msgid "small commission"
+msgstr "komisi kecil"
+
+#: AffiliateLinksLoadingIndicator.html
+#, fuzzy
+msgid "Fetching prices"
+msgstr "Pengaturan & Privasi"
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
+msgstr "Impor Tertunda"
+
+#: BookByline.html
+#, python-format
+msgid "%(n)s other"
+msgid_plural "%(n)s others"
+msgstr[0] ""
+
+#: BookByline.html
+msgid "by an <em>unknown author</em>"
+msgstr "oleh <em>penulis tidak diketahui</em>"
+
+#: BookPreview.html
+#, fuzzy
+msgid "Preview Only"
+msgstr "Pratinjau"
+
+#: BookPreview.html
+msgid "Preview Book"
+msgstr "Pratinjau Buku"
+
+#: DisplayCode.html
+msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
+msgstr "Template di situs web sekarang dinonaktifkan. Mengeditnya tidak akan berpengaruh pada situs web langsung."
+
+#: EditionNavBar.html
+msgid "Go to previous section"
+msgstr "Pergi ke bagian sebelumnya"
+
+#: EditionNavBar.html
+msgid "Overview"
+msgstr "Ikhtisar"
+
+#: EditionNavBar.html
+#, python-format
+msgid "View %(count)s Edition"
+msgid_plural "View %(count)s Editions"
+msgstr[0] ""
+
+#: EditionNavBar.html
+#, python-format
+msgid "%(reviews)s Review"
+msgid_plural "%(reviews)s Reviews"
+msgstr[0] ""
+
+#: EditionNavBar.html
+msgid "Related Books"
+msgstr "Buku Terkait"
+
+#: EditionNavBar.html
+msgid "Go to next section"
+msgstr "Pergi ke bagian berikutnya"
+
+#: Follow.html
+msgid "Unfollow"
+msgstr "Berhenti mengikuti"
+
+#: Follow.html
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr "Gagal memperbarui pengikut. Silakan coba lagi dalam beberapa saat."
+
+#: FormatExpiry.html
+msgid "Expires"
+msgstr "Kedaluwarsa"
+
+#: FulltextSearchSuggestion.html
+msgid "Checking for Search Inside matches"
+msgstr "Memeriksa kecocokan Search Inside"
+
+#: FulltextSearchSuggestion.html
+msgid "Search Inside Icon"
+msgstr "Ikon Search Inside"
+
+#: FulltextSearchSuggestion.html
+msgid "search inside icon"
+msgstr "ikon cari di dalam"
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "%(book_count)s books found with matching passages"
+msgstr "%(book_count)s buku ditemukan dengan bagian yang cocok"
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "See all %(results_count)s Search Inside Matches"
+msgstr "Lihat semua %(results_count)s Kecocokan Search Inside"
+
+#: FulltextSearchSuggestion.html
+msgid "right chevron"
+msgstr "panah kanan"
+
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
+msgid "❝"
+msgstr "❝"
+
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
+msgid "❞"
+msgstr "❞"
+
+#: FulltextSuggestionSnippet.html
+#, python-format
+msgid "Page: %(page)s"
+msgstr "Halaman: %(page)s"
+
+#: IABook.html
+#, fuzzy, python-format
+msgid "Borrowed from Internet Archive: %(title)s"
+msgstr ""
+
+#: LoadingIndicator.html
+msgid "Loading indicator"
+msgstr "Indikator memuat"
+
+#: LoanStatus.html
+msgid "You are <strong>next</strong> on the waiting list"
+msgstr "Anda adalah <strong>berikutnya</strong> dalam daftar tunggu"
+
+#: LoanStatus.html
+#, python-format
+msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr "Anda adalah <strong>#%(spot)d</strong> dari %(wlsize)d dalam daftar tunggu."
+
+#: LoanStatus.html
+msgid "Leave waiting list"
+msgstr "Keluar dari daftar tunggu"
+
+#: LoanStatus.html
+#, python-format
+msgid "Readers in line: %(count)s"
+msgstr "Pembaca dalam antrian: %(count)s"
+
+#: LoanStatus.html
+msgid "You'll be next in line."
+msgstr "Anda akan menjadi berikutnya dalam antrian."
+
+#: LoanStatus.html
+msgid "This book is currently checked out, please check back later."
+msgstr "Buku ini sedang dipinjam, silakan periksa kembali nanti."
+
+#: LoanStatus.html
+msgid "Checked Out"
+msgstr "Dipinjam"
+
+#: LocateButton.html
+msgid "Locate"
+msgstr "Temukan"
+
+#: ManageLoansButtons.html
+#, python-format
+msgid "There is one person waiting for this book."
+msgid_plural "There are %(n)s people waiting for this book."
+msgstr[0] ""
+
+#: ManageWaitlistButton.html
+#, python-format
+msgid "Waiting for %d day"
+msgid_plural "Waiting for %d days"
+msgstr[0] "Waktu tunggu %d hari"
+
+#: ManageWaitlistButton.html
+#, fuzzy, python-format
+msgid "You have %(count)d more hour to borrow it."
+msgid_plural "You have %(count)d more hours to borrow it."
+msgstr[0] ""
+
+#: NotInLibrary.html
+msgid "Not in Library"
+msgstr "Tidak Ada di Perpustakaan"
+
+#: NotesModal.html
+msgid "My Book Notes"
+msgstr "Catatan Buku Saya"
+
+#: NotesModal.html
+msgid "My private notes about this edition:"
+msgstr "Catatan pribadi saya tentang edisi ini:"
+
+#: OLID.html
+#, python-format
+msgid "by  %(authors)s"
+msgstr "oleh %(authors)s"
+
+#: ObservationsModal.html
+msgid "My Book Review"
+msgstr "Ulasan Buku Saya"
+
+#: OlPagination.html OlPaginationArrows.html
+#, fuzzy
+msgid "Go to previous page"
+msgstr "Pergi ke bagian sebelumnya"
+
+#: OlPagination.html OlPaginationArrows.html
+#, fuzzy
+msgid "Go to next page"
+msgstr "Pergi ke bagian berikutnya"
+
+#: OlPagination.html
+#, fuzzy, python-brace-format
+msgid "Go to page {page}"
+msgstr "Halaman %(page)s"
+
+#: OlPagination.html
+#, python-brace-format
+msgid "Page {page}, current page"
+msgstr "Halaman {page}, halaman saat ini"
+
+#: Profile.html
+#, fuzzy
+msgid "Component"
+msgstr "Komentar"
+
+#: ProlificAuthors.html
+msgid "Prolific Authors"
+msgstr "Penulis Produktif"
+
+#: ProlificAuthors.html
+msgid "who have written the most books on this subject"
+msgstr "yang telah menulis paling banyak buku tentang topik ini"
+
+#: PublishingHistory.html
+msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
+msgstr "Ini adalah grafik untuk menampilkan sejarah penerbitan edisi karya tentang topik ini. Di sepanjang sumbu X adalah waktu, dan di sumbu y adalah jumlah edisi yang diterbitkan. <a href=\"#subjectRelated\">Klik di sini untuk melewati grafik</a>."
+
+#: PublishingHistory.html
+msgid "This graph charts editions published on this subject."
+msgstr "Grafik ini menampilkan edisi yang diterbitkan tentang topik ini."
+
+#: RawQueryCarousel.html
+msgid "Loading carousel"
+msgstr "Memuat korsel"
+
+#: RawQueryCarousel.html
+msgid "Failed to fetch carousel."
+msgstr "Gagal mengambil korsel."
+
+#: RawQueryCarousel.html
+msgid "Retry?"
+msgstr "Coba lagi?"
+
+#: RawQueryCarousel.html
+msgid "No books match the current filters."
+msgstr "Tidak ada buku yang cocok dengan filter saat ini."
+
+#: RawQueryCarousel.html
+msgid "Retry without filters?"
+msgstr "Coba lagi tanpa filter?"
+
+#: RawQueryCarousel.html
+msgid "Search collection"
+msgstr "Cari koleksi"
+
+#: ReadButton.html
+msgid "Special Access"
+msgstr "Akses Khusus"
+
+#: ReadButton.html
+msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
+msgstr "Akses ebook khusus dari Internet Archive untuk pelindung dengan disabilitas cetak yang memenuhi syarat"
+
+#: ReadButton.html
+msgid "Borrow ebook from Internet Archive"
+msgstr "Pinjam ebook dari Internet Archive"
+
+#: ReadButton.html
+msgid "Read ebook from Internet Archive"
+msgstr "Baca ebook dari Internet Archive"
+
+#: ReadButton.html
+msgid "Listen"
+msgstr "Dengarkan"
+
+#: RecentChanges.html
+msgid "View MARC"
+msgstr "Lihat MARC"
+
+#: RecentChangesAdmin.html
+msgid "Path"
+msgstr "Jalur"
+
+#: RecentChangesAdmin.html
+msgid "view"
+msgstr "lihat"
+
+#: RecentChangesAdmin.html
+msgid "edit"
+msgstr "edit"
+
+#: RecentChangesAdmin.html RecentChangesUsers.html
+msgid "No edit history available."
+msgstr "Tidak ada riwayat pengeditan."
+
+#: RelatedSubjects.html
+msgid "Related..."
+msgstr "Terkait..."
+
+#: ReturnForm.html
+msgid "Really return this book?"
+msgstr "Benar-benar kembalikan buku ini?"
+
+#: ReturnForm.html
+msgid "Return book"
+msgstr "Kembalikan buku"
+
+#: SearchResultsWork.html
+#, fuzzy
+msgid "added to"
+msgstr "Ditambah"
+
+#: SearchResultsWork.html
+#, fuzzy, python-format
+msgid "Book %(position)s"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Show more"
+msgstr "Tampilkan lebih banyak"
+
+#: SearchResultsWork.html
+msgid "Show less"
+msgstr "Tampilkan lebih sedikit"
+
+#: SearchResultsWork.html
+#, python-format
+msgid "Cover of edition %(id)s"
+msgstr "Sampul edisi %(id)s"
+
+#: SearchResultsWork.html
+#, fuzzy, python-format
+msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
+msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
+msgstr[0] ""
+
+#: SearchResultsWork.html TrendingBadge.html
+msgid "This is only visible to librarians."
+msgstr "Ini hanya terlihat oleh pustakawan."
+
+#: SearchResultsWork.html
+msgid "Work Title"
+msgstr "Judul Karya"
+
+#: ShareModal.html
+#, python-format
+msgid "Share on %(share_link)s"
+msgstr "Bagikan di %(share_link)s"
+
+#: ShareModal.html
+msgid "Embed this book in your website"
+msgstr "Sematkan buku ini di situs web Anda"
+
+#: ShareModal.html
+msgid "Embed icon"
+msgstr "Ikon sematkan"
+
+#: ShareModal.html
+msgid "Embed"
+msgstr "Sematkan"
+
+#: ShareModal.html
+msgid "Copy url to clipboard"
+msgstr "Salin url ke clipboard"
+
+#: ShareModal.html
+msgid "Copy URL icon"
+msgstr "Ikon salin URL"
+
+#: ShareModal.html
+msgid "Copy URL"
+msgstr "Salin URL"
+
+#: ShareModal.html
+msgid "Open QR code"
+msgstr "Buka kode QR"
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr "Ikon kode QR"
+
+#: ShareModal.html
+msgid "QR Code"
+msgstr "Kode QR"
+
+#: StarRatings.html
+msgid "leaving a 1 star review for"
+msgstr "memberikan ulasan 1 bintang untuk"
+
+#: StarRatings.html
+msgid "leaving a 2 star review for"
+msgstr "memberikan ulasan 2 bintang untuk"
+
+#: StarRatings.html
+msgid "leaving a 3 star review for"
+msgstr "memberikan ulasan 3 bintang untuk"
+
+#: StarRatings.html
+msgid "leaving a 4 star review for"
+msgstr "memberikan ulasan 4 bintang untuk"
+
+#: StarRatings.html
+msgid "leaving a 5 star review for"
+msgstr "memberikan ulasan 5 bintang untuk"
+
+#: StarRatings.html
+msgid "Clear my rating"
+msgstr "Hapus rating saya"
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr "rating"
+
+#: StarRatingsByline.html StarRatingsComponent.html
+#, fuzzy
+msgid "ratings"
+msgstr "Pengaturan"
+
+#. Shows the count of readers who added this book to their "Want to read"
+#. shelf, displayed on search result pages. %(want_to_read_count)s is a
+#. formatted integer (may include commas as thousands separators). Example:
+#. "2,389 Want to read".
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr "%(want_to_read_count)s Ingin membaca"
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+
+#. Short label displayed next to the count of readers who want to read this
+#. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
+#: StarRatingsStats.html
+msgid "Want to read"
+msgstr "Ingin membaca"
+
+#. Short label displayed next to the count of readers currently reading this
+#. book, shown in the stats bar on a book page. Example: "1,247 Currently
+#. reading".
+#: StarRatingsStats.html
+msgid "Currently reading"
+msgstr "Sedang dibaca"
+
+#. Short label displayed next to the count of readers who have finished this
+#. book, shown in the stats bar on a book page. Example: "15,420 Have read".
+#. This refers to the same shelf as the "Already Read" button.
+#: StarRatingsStats.html
+msgid "Have read"
+msgstr "Sudah dibaca"
+
+#. Short label displayed next to the count of readers who stopped reading this
+#. book before finishing, shown in the stats bar on a book page. Example: "348
+#. Stopped reading".
+#: StarRatingsStats.html
+#, fuzzy
+msgid "Stopped reading"
+msgstr "Trending"
+
+#: SubjectTags.html
+#, fuzzy
+msgid "Manage Subjects"
+msgstr "Menggunakan Subjek"
+
+#: Subnavigation.html
+msgid "Developer Center (Home)"
+msgstr "Pusat Pengembang (Beranda)"
+
+#: Subnavigation.html
+msgid "Web API"
+msgstr "Web API"
+
+#: Subnavigation.html
+msgid "Client Library"
+msgstr "Pustaka Klien"
+
+#: Subnavigation.html
+msgid "Data Dumps"
+msgstr "Unduhan Data"
+
+#: Subnavigation.html
+msgid "Report an Issue"
+msgstr "Laporkan Masalah"
+
+#: Subnavigation.html
+msgid "Licensing"
+msgstr "Lisensi"
+
+#: Subnavigation.html
+msgid "Welcome"
+msgstr "Selamat datang"
+
+#: Subnavigation.html
+msgid "Searching Open Library"
+msgstr "Mencari di Open Library"
+
+#: Subnavigation.html
+msgid "Reading Books"
+msgstr "Membaca Buku"
+
+#: Subnavigation.html
+msgid "Adding & Editing Books"
+msgstr "Menambahkan & Mengedit Buku"
+
+#: Subnavigation.html
+msgid "Using Subjects"
+msgstr "Menggunakan Subjek"
+
+#: Subnavigation.html
+msgid "Open Library F.A.Q."
+msgstr "Open Library F.A.Q."
+
+#: TableOfContents.html
+#, python-format
+msgid "Page %s"
+msgstr "Halaman %s"
+
+#: TrendingBadge.html
+#, python-format
+msgid "Trending: %(score).2f"
+msgstr "Tren: %(score).2f"
+
+#: TypeChanger.html
+msgid "Page Type"
+msgstr "Jenis Halaman"
+
+#: TypeChanger.html
+msgid "Huh?"
+msgstr "Hah?"
+
+#: TypeChanger.html
+msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
+msgstr "Setiap bagian dari Open Library didefinisikan oleh jenis konten yang ditampilkannya, biasanya berdasarkan definisi konten (misalnya Penulis, Edisi, Karya) tetapi kadang-kadang berdasarkan penggunaan konten (misalnya macro, template, rawtext). Mengubah ini untuk halaman yang ada akan mengubah tampilannya dan kolom data yang tersedia untuk mengedit kontennya."
+
+#: TypeChanger.html
+msgid "Please use caution changing Page Type!"
+msgstr "Harap berhati-hati mengubah Jenis Halaman!"
+
+#: TypeChanger.html
+msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
+msgstr "(Solusi termudah: Jika Anda tidak yakin apakah ini perlu diubah, jangan ubah.)"
+
+#: WorkInfo.html
+msgid "No link to Wikipedia in your language"
+msgstr "Tidak ada tautan Wikipedia dalam bahasa Anda"
+
+#: WorldcatLink.html
+msgid "Check nearby libraries"
+msgstr "Periksa perpustakaan terdekat"
+
+#: WorldcatLink.html
+msgid "Check WorldCat for an edition near you"
+msgstr "Periksa WorldCat untuk edisi di dekat Anda"
+
+#: WorldcatLink.html
+msgid "WorldCat"
+msgstr "WorldCat"
+
+#: databarDiff.html databarEdit.html
+msgid "View the editing history of this page"
+msgstr "Lihat riwayat pengeditan halaman ini"
+
+#: databarDiff.html
+msgid "View this page (exit Comparison view)"
+msgstr "Lihat halaman ini (keluar dari tampilan Perbandingan)"
+
+#: databarEdit.html
+msgid "View this page (exit Edit mode)"
+msgstr "Lihat halaman ini (keluar dari mode Edit)"
+
+#: databarHistory.html databarView.html
+#, python-format
+msgid "Last edited by %(author_link)s"
+msgstr "Terakhir diedit oleh %(author_link)s"
+
+#: databarHistory.html databarView.html
+msgid "Last edited anonymously"
+msgstr "Terakhir diedit secara anonim"
+
+#: databarTemplate.html databarView.html
+msgid "View this template's edit history"
+msgstr "Lihat riwayat pengeditan template ini"
+
+#: databarTemplate.html
+msgid "Edit this template"
+msgstr "Edit template ini"
+
+#: databarWork.html
+#, python-format
+msgid "View Volume %(num)d"
+msgstr "Lihat Volume %(num)d"
+
+#: openlibrary/core/bookshelves.py
+msgid "[Record deleted]"
+msgstr "[Catatan dihapus]"
+
+#: openlibrary/core/edits.py
+msgid "Unknown"
+msgstr "Tidak diketahui"
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Search Results"
+msgstr "Hasil Pencarian"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Arabic"
+msgstr "Arab"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Czech"
+msgstr "Ceko"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "German"
+msgstr "Jerman"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "English"
+msgstr "Inggris"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Spanish"
+msgstr "Spanyol"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "French"
+msgstr "Prancis"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Hindi"
+msgstr "Hindi"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Croatian"
+msgstr "Kroasia"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Italian"
+msgstr "Italia"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Portuguese"
+msgstr "Portugis"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Romanian"
+msgstr "Rumania"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Sardinian"
+msgstr "Sardinia"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Telugu"
+msgstr "Telugu"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Ukrainian"
+msgstr "Ukraina"
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Chinese"
+msgstr "Tionghoa"
+
+#: openlibrary/plugins/openlibrary/code.py
+#, fuzzy
+msgid "Filipino"
+msgstr "gagal"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr "Seni"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr "Fiksi Ilmiah"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr "Fantasi"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr "Biografi"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr "Resep"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr "Anak-anak"
+
+#: openlibrary/plugins/openlibrary/home.py
+#, fuzzy
+msgid "Medicine"
+msgstr "Diubah"
+
+#: openlibrary/plugins/openlibrary/home.py
+#, fuzzy
+msgid "Religion"
+msgstr "Revisi"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr "Cerita Misteri dan Detektif"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr "Drama"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr "Musik"
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr "Sains"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 subject"
+msgstr "Minimal 1 subjek"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 author"
+msgstr "Minimal 1 penulis"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 edition"
+msgstr "Minimal 1 edisi"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has work (orphaned)"
+msgstr "Memiliki karya (yatim)"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publication year"
+msgstr "Memiliki tahun publikasi"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has cover"
+msgstr "Memiliki sampul"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has language"
+msgstr "Memiliki bahasa"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publisher"
+msgstr "Memiliki penerbit"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 2 editions"
+msgstr "Minimal 2 edisi"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has dewey decimal"
+msgstr "Memiliki desimal Dewey"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has LoC classification"
+msgstr "Memiliki klasifikasi LoC"
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has number of pages"
+msgstr "Memiliki jumlah halaman"
+
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr "Apakah Anda yakin ingin menghapus <strong>%(title)s</strong> dari daftar Anda?"
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr "Better World Books"
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid " - includes shipping"
+msgstr " - termasuk ongkir"
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
+msgstr "Amazon"
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Bookshop.org"
+msgstr "Bookshop.org"
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "This work does not appear on any lists."
+msgstr "Karya ini tidak muncul dalam daftar mana pun."
+
+#: openlibrary/plugins/openlibrary/pd.py
+msgid "I don't have one yet"
+msgstr "Saya belum punya"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The email address you entered is invalid"
+msgstr "Alamat email yang Anda masukkan tidak valid"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been blocked"
+msgstr "Akun ini telah diblokir"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been locked"
+msgstr "Akun ini telah dikunci"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "No account was found with this email. Please try again"
+msgstr "Tidak ada akun yang ditemukan dengan email ini. Silakan coba lagi"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The password you entered is incorrect. Please try again"
+msgstr "Kata sandi yang Anda masukkan salah. Silakan coba lagi"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Wrong password. Please try again"
+msgstr "Kata sandi salah. Silakan coba lagi"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Open Library account before logging in"
+msgstr "Harap verifikasi akun Open Library Anda sebelum masuk"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Internet Archive account before logging in"
+msgstr "Harap verifikasi akun Internet Archive Anda sebelum masuk"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please fill out all fields and try again"
+msgstr "Harap isi semua kolom dan coba lagi"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This email is already registered"
+msgstr "Email ini sudah terdaftar"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This username is already registered"
+msgstr "Nama pengguna ini sudah terdaftar"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in."
+msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Login attempted with invalid Internet Archive s3 credentials."
+msgstr "Login dicoba dengan kredensial Internet Archive S3 yang tidak valid."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
+msgstr "Server mengalami lalu lintas yang sangat tinggi, silakan coba lagi nanti atau email openlibrary@archive.org untuk bantuan."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email provider not recognized."
+msgstr "Penyedia email tidak dikenal."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Password requirements not met."
+msgstr "Persyaratan kata sandi tidak terpenuhi."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in"
+msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
+msgstr "Percobaan masuk atau registrasi mengalami kesalahan tak terduga, silakan coba lagi atau hubungi info@archive.org"
+
+#: openlibrary/plugins/upstream/account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
+msgstr "Permintaan gagal dengan kode kesalahan: %(error_code)s"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+msgstr "Terima kasih telah mendaftarkan akun Open Library dan meminta akses disabilitas cetak khusus. Anda akan menerima email yang menjelaskan langkah berikutnya dalam proses ini."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Username unavailable"
+msgstr "Nama pengguna tidak tersedia"
+
+#: openlibrary/plugins/upstream/account.py
+#: openlibrary/plugins/upstream/forms.py
+msgid "Email already registered"
+msgstr "Email sudah terdaftar"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "An Internet Archive account already exists with this email"
+msgstr "Akun Internet Archive sudah ada dengan email ini"
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Verification failed. The link may be invalid or expired. Please try registering again."
+msgstr "Verifikasi gagal. Tautan mungkin tidak valid atau telah kedaluwarsa. Coba daftar lagi."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Your email has been verified. You are now logged in."
+msgstr "Email Anda telah diverifikasi. Anda sekarang masuk."
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Notification preferences have been updated successfully."
+msgstr "Preferensi notifikasi telah berhasil diperbarui."
+
+#: openlibrary/plugins/upstream/borrow.py
+#, fuzzy
+msgid "this book"
+msgstr "Beli buku ini"
+
+#: openlibrary/plugins/upstream/borrow.py
+#, fuzzy, python-format
+msgid "Unable to return %s. Please try again later or contact info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, fuzzy, python-format
+msgid "%s has been returned."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
+msgstr "Akun Anda telah mencapai batas peminjaman. Silakan coba lagi nanti atau hubungi info@archive.org."
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Username"
+msgstr "Nama pengguna"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "No user registered with this email address"
+msgstr "Tidak ada pengguna yang terdaftar dengan alamat email ini"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Disposable email not permitted"
+msgstr "Email sekali pakai tidak diizinkan"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Your email provider is not recognized."
+msgstr "Penyedia email Anda tidak dikenal."
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Username already used"
+msgstr "Nama pengguna sudah digunakan"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Must be between 3 and 20 letters and numbers"
+msgstr "Harus antara 3 dan 20 huruf dan angka"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Screen Name"
+msgstr "Nama Layar"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Public and cannot be changed later."
+msgstr "Publik dan tidak dapat diubah nanti."
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Invalid password"
+msgstr "Kata sandi tidak valid"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Your email address"
+msgstr "Alamat email Anda"
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Choose a password"
+msgstr "Pilih kata sandi"
+
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
+msgstr "Lanjutkan <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "eBook?"
+msgstr "eBook?"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr "Pertama diterbitkan"
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
+msgstr "eBook Klasik"
 
 #~ msgid "Point your camera at a barcode! 📷"
 #~ msgstr "Arahkan kamera anda pada barcode! 📷"
@@ -8452,4 +8886,232 @@ msgstr "Tambahkan edisi lain?"
 
 #~ msgid "Passwords didn't match."
 #~ msgstr ""
+
+#~ msgid "Donate this book to the <a href=\"https://archive.org\">Internet Archive</a> library."
+#~ msgstr "Silakan masukan email untuk <a href=\"https://archive.org\">Internet Archive</a> dan kata sandi untuk mengakses akun Open Library Anda."
+
+#~ msgid "Hooray! You've discovered a title that's missing from our <a href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library\">library</a>. Can you help donate a copy?"
+#~ msgstr "Hore! Anda menemukan judul yang tidak ada di <a href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library\">perpustakaan</a> kami. Bisakah Anda membantu menyumbangkan salinan?"
+
+#~ msgid "If you own this book, you can<a href=\"https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our address below."
+#~ msgstr "Jika Anda memiliki buku ini, Anda bisa <a href=\"https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE\">mengirimkannya</a> ke alamat kami di bawah."
+
+#~ msgid "You can also purchase this book from a vendor and ship it to our address:"
+#~ msgstr "Anda juga bisa membeli buku ini dari penjual dan mengirimkannya ke alamat kami:"
+
+#~ msgid "Benefits of donating"
+#~ msgstr "Manfaat donasi"
+
+#~ msgid "When you donate a physical book to the Internet Archive, your book will enjoy:"
+#~ msgstr "Saat Anda mendonasikan buku fisik ke Internet Archive, buku Anda akan mendapatkan:"
+
+#~ msgid "Donation info"
+#~ msgstr "Info donasi"
+
+#~ msgid "Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
+#~ msgstr "Digitalisasi <a target=\"_blank\" href=\"https://archive.org/scanning\">kualitas tinggi</a> yang indah"
+
+#~ msgid "Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/\">archival preservation</a>"
+#~ msgstr "<a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/\">Pelestarian arsip</a> jangka panjang"
+
+#~ msgid "Free <a href=\"https://controlleddigitallending.org/\">controlled digital library access</a> by the <a href=\"https://en.wikipedia.org/wiki/Print_disability\">print-disabled</a> public"
+#~ msgstr "Akses <a href=\"https://controlleddigitallending.org/\">perpustakaan digital terkendali</a> gratis oleh publik <a href=\"https://en.wikipedia.org/wiki/Print_disability\">penyandang disabilitas cetak</a>"
+
+#~ msgid "Open Library is a project of the <a href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-profit"
+#~ msgstr "Open Library adalah proyek dari <a href=\"https://archive.org/about\">Internet Archive</a>, sebuah non-profit 501(c)(3)"
+
+#~ msgid "First"
+#~ msgstr "Pertama"
+
+#~ msgid "Email address is already used."
+#~ msgstr "Alamat email sudah digunakan."
+
+#~ msgid "Your email address couldn't be updated. The specified email address is already used."
+#~ msgstr "Alamat email anda tidak dapat diperbarui. Alamat email telah digunakan."
+
+#~ msgid "Email verification successful."
+#~ msgstr "Email verifikasi berhasil."
+
+#~ msgid "Your email address has been successfully verified and updated in your account."
+#~ msgstr "Alamat email Anda telah berhasil diverifikasi dan diperbarui di akun Anda."
+
+#~ msgid "Email address couldn't be verified."
+#~ msgstr "Alamat email tidak dapat diverifikasi."
+
+#~ msgid "Your email address couldn't be verified. The verification link seems invalid."
+#~ msgstr "Alamat email Anda tidak dapat diverifikasi. Tautan verifikasi tampaknya tidak valid."
+
+#~ msgid "Design Pattern Library"
+#~ msgstr "Perpustakaan Pola Desain"
+
+#~ msgid "Colors"
+#~ msgstr "Warna"
+
+#~ msgid "Background"
+#~ msgstr "Latar Belakang"
+
+#~ msgid "Primary Call To Action"
+#~ msgstr "Ajakan Bertindak Utama"
+
+#~ msgid "Link (unclicked)"
+#~ msgstr "Tautan (belum diklik)"
+
+#~ msgid "Link (clicked)"
+#~ msgstr "Tautan (sudah diklik)"
+
+#~ msgid "Pagination component"
+#~ msgstr "Komponen paginasi"
+
+#~ msgid "The ol-pagination component provides support for both event-based and URL-based navigation."
+#~ msgstr "Komponen ol-pagination mendukung navigasi berbasis event maupun berbasis URL."
+
+#~ msgid "Event-based"
+#~ msgstr "Berbasis event"
+
+#~ msgid "When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s."
+#~ msgstr "Saat halaman diklik, komponen mengirimkan event %(update_page)s dengan nomor halaman di %(event_detail)s."
+
+#~ msgid "URL-based Navigation"
+#~ msgstr "Navigasi Berbasis URL"
+
+#~ msgid "When base-url is provided, pagination renders anchor tags for SEO-friendly links."
+#~ msgstr "Saat base-url diberikan, paginasi merender tag anchor untuk tautan ramah SEO."
+
+#~ msgid "First page (no previous arrow)"
+#~ msgstr "Halaman pertama (tidak ada panah sebelumnya)"
+
+#~ msgid "Middle page (both arrows visible)"
+#~ msgstr "Halaman tengah (kedua panah terlihat)"
+
+#~ msgid "Last page (no next arrow)"
+#~ msgstr "Halaman terakhir (tidak ada panah berikutnya)"
+
+#~ msgid "3 pages"
+#~ msgstr "3 halaman"
+
+#~ msgid "5 pages (no ellipsis needed)"
+#~ msgstr "5 halaman (tidak perlu elipsis)"
+
+#~ msgid "100 pages with ellipsis:"
+#~ msgstr "100 halaman dengan elipsis:"
+
+#~ msgid "Read More component"
+#~ msgstr "Komponen Baca Lebih Lanjut"
+
+#~ msgid "The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based."
+#~ msgstr "Komponen ol-read-more menyediakan konten yang dapat diperluas/dilipat dengan dua mode pemotongan: berbasis tinggi dan berbasis baris."
+
+#~ msgid "Height-based truncation"
+#~ msgstr "Pemotongan berbasis tinggi"
+
+#~ msgid "Use %(max_height)s to limit content by pixel height."
+#~ msgstr "Gunakan %(max_height)s untuk membatasi konten berdasarkan tinggi piksel."
+
+#~ msgid "Line-based truncation"
+#~ msgstr "Pemotongan berbasis baris"
+
+#~ msgid "Use %(max_lines)s to limit content by number of lines."
+#~ msgstr "Gunakan %(max_lines)s untuk membatasi konten berdasarkan jumlah baris."
+
+#~ msgid "Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example."
+#~ msgstr "Gunakan %(more_text)s dan %(less_text)s untuk menyesuaikan label tombol toggle. Kami akan menggunakan string i18n untuk contoh ini."
+
+#~ msgid "Custom background color"
+#~ msgstr "Warna latar belakang kustom"
+
+#~ msgid "Use %(background_color)s to match the gradient fade to your container background."
+#~ msgstr "Gunakan %(background_color)s untuk mencocokkan gradien dengan latar belakang kontainer Anda."
+
+#~ msgid "Small label size"
+#~ msgstr "Ukuran label kecil"
+
+#~ msgid "Use %(label_size)s for a smaller toggle button."
+#~ msgstr "Gunakan %(label_size)s untuk tombol toggle yang lebih kecil."
+
+#~ msgid "Content shorter than limit (no button)"
+#~ msgstr "Konten lebih pendek dari batas (tanpa tombol)"
+
+#~ msgid "When content fits within the limit, no toggle button is shown."
+#~ msgstr "Saat konten muat dalam batas, tidak ada tombol toggle yang ditampilkan."
+
+#~ msgid "This is short content that fits within 5 lines, so no button appears."
+#~ msgstr "Ini adalah konten pendek yang muat dalam 5 baris, jadi tidak ada tombol yang muncul."
+
+#~ msgid "Staged"
+#~ msgstr "Bertahap"
+
+#~ msgid "Ebooks"
+#~ msgstr "Buku elektronik"
+
+#~ msgid "Memory Status"
+#~ msgstr "Status Memori"
+
+#~ msgid "type"
+#~ msgstr "tipe"
+
+#~ msgid "count"
+#~ msgstr "Komentar"
+
+#~ msgid "mark"
+#~ msgstr "tandai"
+
+#~ msgid "Referents"
+#~ msgstr "Perbedaan"
+
+#~ msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
+#~ msgstr "Tautan aktivasi kedaluwarsa pada <span class=\"time\">%(date)s.</span>"
+
+#~ msgid "Activation link expired"
+#~ msgstr "Tautan aktivasi kedaluwarsa"
+
+#~ msgid "Resend activation link"
+#~ msgstr "Kirim ulang tautan aktivasi"
+
+#~ msgid "This DAISY file is protected."
+#~ msgstr "File DAISY ini dilindungi."
+
+#~ msgid "It can only be opened on a specialized device with a key issued by the Library of Congress."
+#~ msgstr "Hanya dapat dibuka pada perangkat khusus dengan kunci yang diterbitkan oleh Library of Congress."
+
+#~ msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs like this one can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
+#~ msgstr "Ada dua jenis DAISY di Open Library: <i>terbuka</i> dan <i>dilindungi</i>. DAISY terbuka dapat dibaca oleh siapa saja di seluruh dunia di berbagai perangkat. DAISY yang dilindungi seperti ini hanya dapat dibuka menggunakan kunci yang diterbitkan oleh <a href=\"http://www.loc.gov/nls/\">program Library of Congress NLS</a>."
+
+#~ msgid "Imported from"
+#~ msgstr "Diimpor dari"
+
+#~ msgid "Found a matching"
+#~ msgstr "Ditemukan yang cocok"
+
+#~ msgid "Edited without comment."
+#~ msgstr "Diedit tanpa komentar."
+
+#~ msgid "Text"
+#~ msgstr "Teks"
+
+#~ msgid "Advanced"
+#~ msgstr "Lanjutan"
+
+#~ msgid "more"
+#~ msgstr "lebih banyak"
+
+#~ msgid "eBook"
+#~ msgstr "eBook"
+
+#~ msgid "Classic eBook"
+#~ msgstr "eBook Klasik"
+
+#~ msgid "Explore Classic eBooks"
+#~ msgstr "Jelajahi eBook Klasik"
+
+#~ msgid "Explore books about %(subject)s"
+#~ msgstr "Jelajahi buku tentang %(subject)s"
+
+#~ msgid "Written in"
+#~ msgstr "Ditulis dalam"
+
+#~ msgid "Click to remove this facet"
+#~ msgstr "Klik untuk menghapus facet ini"
+
+#~ msgid "deprecated"
+#~ msgstr "usang"
 

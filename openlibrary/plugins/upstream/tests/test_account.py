@@ -193,8 +193,8 @@ class TestAccountVerify:
     @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
     @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
     @mock.patch("openlibrary.plugins.upstream.account.web")
-    def test_valid_token_calls_login_with_s3_keys(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
-        mock_web.input.return_value = web.storage(t="validtoken")
+    def test_valid_token_redirects_to_my_books(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="validtoken", redirect="")
         mock_ia_account.verify.return_value = {
             "email": "test@example.com",
             "s3": {"access": "ACCESSKEY", "secret": "SECRETKEY"},
@@ -208,29 +208,70 @@ class TestAccountVerify:
         login_instance.login.assert_called_once_with(
             access="ACCESSKEY",
             secret="SECRETKEY",
+            redirect="/account/books",
         )
 
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.account_login")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_token_honors_redirect_param(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="validtoken", redirect="/works/OL1W")
+        mock_ia_account.verify.return_value = {
+            "email": "test@example.com",
+            "s3": {"access": "ACCESSKEY", "secret": "SECRETKEY"},
+        }
+        login_instance = mock.MagicMock()
+        mock_login_cls.return_value = login_instance
+
+        self._make_handler().GET()
+
+        login_instance.login.assert_called_once_with(
+            access="ACCESSKEY",
+            secret="SECRETKEY",
+            redirect="/works/OL1W",
+        )
+
+    @mock.patch("openlibrary.plugins.upstream.account.accounts")
     @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
     @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
     @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
     @mock.patch("openlibrary.plugins.upstream.account.web")
-    def test_invalid_token_redirects_to_create(self, mock_web, mock_flash, mock_ia_account):
-        mock_web.input.return_value = web.storage(t="badtoken")
+    def test_invalid_token_redirects_to_create_when_not_logged_in(self, mock_web, mock_flash, mock_ia_account, mock_accounts):
+        mock_web.input.return_value = web.storage(t="badtoken", redirect="")
         mock_ia_account.verify.return_value = {"error": "invalid_token"}
+        mock_accounts.get_current_user.return_value = None
         mock_web.seeother.side_effect = Exception("redirect")
 
         with pytest.raises(Exception, match="redirect"):
             self._make_handler().GET()
 
         mock_flash.assert_called_once()
-        flash_args = mock_flash.call_args[0]
-        assert flash_args[0] == "error"
+        assert mock_flash.call_args[0][0] == "error"
         mock_web.seeother.assert_called_once_with("/account/create")
+
+    @mock.patch("openlibrary.plugins.upstream.account.accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_invalid_token_redirects_to_my_books_when_logged_in(self, mock_web, mock_flash, mock_ia_account, mock_accounts):
+        mock_web.input.return_value = web.storage(t="usedtoken", redirect="")
+        mock_ia_account.verify.return_value = {"error": "already_verified"}
+        mock_accounts.get_current_user.return_value = mock.MagicMock()
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_not_called()
+        mock_web.seeother.assert_called_once_with("/account/books")
 
     @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
     @mock.patch("openlibrary.plugins.upstream.account.web")
     def test_missing_token_redirects_to_create(self, mock_web, mock_flash):
-        mock_web.input.return_value = web.storage(t=None)
+        mock_web.input.return_value = web.storage(t=None, redirect="")
         mock_web.seeother.side_effect = Exception("redirect")
 
         with pytest.raises(Exception, match="redirect"):

@@ -228,6 +228,15 @@ max-statements = 70
 "tests/test_docker_compose.py" = ["PLC0415"]
 
 
+[tool.djlint]
+# J018: "Internal links should use url_for()" — Open Library doesn't use url_for() anywhere.
+#       This is a Django/Flask convention that doesn't apply here.
+# H025: "Tag seems to be an orphan" — False positive when HTML tags are inside Jinja
+#       string literals like ``{{ _("earn a <a href='...'>small commission</a>.") | safe }}``.
+#       djLint's HTML parser can't match tags buried inside a Jinja expression.
+#       See https://github.com/djlint/djLint/issues/483
+ignore = "J018,H025"
+
 [tool.sqlfluff.core]
 dialect = "postgres"
 # ── Rule Exclusions ──────────────────────────────────────────────────

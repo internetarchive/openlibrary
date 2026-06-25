@@ -42,7 +42,7 @@ def warning_color_fn(text: str) -> str:
     return "\033[93m" + text + "\033[0m"
 
 
-def get_untracked_files(dirs: list[str], extensions: tuple[str, str] | str) -> set[Path]:
+def get_untracked_files(dirs: list[str], extensions: tuple[str, ...] | str) -> set[Path]:
     """Returns a set of all currently untracked files with specified extension(s)."""
     untracked_files = {
         Path(line)
@@ -158,12 +158,16 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         copyright_holder="Internet Archive",
         creation_date=fixed_creation_date,
     )
-    METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
+    METHODS = [
+        ("**.py", "python"),
+        ("**.html", "openlibrary.i18n:extract_templetor"),
+        ("**.jinja", "jinja2.ext:babel_extract"),
+    ]
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, (".py", ".html"))
+        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja"))
 
     for source in map(Path, sources):
         counts: dict[Path, int] = {}

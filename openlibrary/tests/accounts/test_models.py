@@ -36,8 +36,10 @@ def test_xauth_http_error_with_json(monkeypatch):
     assert xauth("create", s3_key="_", s3_secret="_") == {"error": "Unknown Parameter Blah"}
 
 
+@mock.patch("openlibrary.accounts.model.site")
 @mock.patch("openlibrary.accounts.model.web")
-def test_get(mock_web):
+def test_get(mock_web, mock_site):
+    mock_site.get.return_value = mock_web.ctx.site
     test = True
     email = "test@example.com"
     account = OpenLibraryAccount.get_by_email(email)

@@ -69,13 +69,10 @@ distclean:
 reindex-solr:
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
 	curl -C - -L "https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db" -o $(OSP_DUMP_LOCATION)
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	parallel -j4 python ./scripts/solr_builder/solr_builder/index_subjects.py ::: subject person place time
 
 lint:
 	# See the pyproject.toml file for ruff's settings
