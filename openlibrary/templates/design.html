@@ -47,7 +47,6 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="pagination">
         <h2 class="design-pattern__title">Pagination</h2>
-        <p class="design-pattern__description">The ol-pagination component provides support for both event-based and URL-based navigation.</p>
 
         <section class="example">
           <h3 class="example__title">Event-based</h3>
@@ -149,7 +148,6 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">Read More</h2>
-        <p class="design-pattern__description">The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.</p>
 
         <section class="example">
           <h3 class="example__title">Height-based truncation</h3>
@@ -241,10 +239,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="chip-group">
         <h2 class="design-pattern__title">Chip Group</h2>
-        <p class="design-pattern__description">The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.</p>
 
         <section class="example">
-          <h3 class="example__title">Default (medium gap)</h3>
           <p>Chips are spaced with an 8px gap by default.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
           <div class="example__output">
@@ -322,10 +318,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="chip">
         <h2 class="design-pattern__title">Chip</h2>
-        <p class="design-pattern__description">The ol-chip component is a pill-shaped interactive element for filters, tags, and selections. It fires an <code>ol-chip-select</code> event on click.</p>
 
         <section class="example">
-          <h3 class="example__title">Default (medium)</h3>
           <p>Basic chips at the default medium size.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip&gt;
   Fiction
@@ -452,10 +446,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="markdown-editor">
         <h2 class="design-pattern__title">Markdown Editor</h2>
-        <p class="design-pattern__description">The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea. A 'View source' toolbar toggle is always available so editors can drop into a raw markdown textarea when WYSIWYG round-trips are awkward.</p>
 
         <section class="example">
-          <h3 class="example__title">Basic usage</h3>
           <p>Provide a <code>target-id</code> pointing to an existing textarea. The editor reads initial content from the textarea and syncs changes back to it.</p>
           <pre class="example__code"><code class="language-html">&lt;textarea id="my-input"&gt;
   **Hello** world
@@ -554,7 +546,6 @@ The response includes `title`, `authors`, and a `description` field formatted as
 
       <article class="design-pattern" id="control-alignment">
         <h2 class="design-pattern__title">Control alignment</h2>
-        <p class="design-pattern__description">A cohesion check, not a component. Controls that share the <code>--control-height-*</code> tokens should render at the same outer height at each size. The dashed guide lines behind each row mark the exact target height for that size — a control that overshoots or undershoots the lines reads as misaligned at a glance.</p>
 
         <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination is shown in the medium row as-is — it is not height-locked to the tokens, so this check is a way to eyeball whether it still reads as aligned.</p>
 

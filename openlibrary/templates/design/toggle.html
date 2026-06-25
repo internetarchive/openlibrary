@@ -2,10 +2,8 @@ $def with()
 
 <article class="design-pattern" id="toggle">
   <h2 class="design-pattern__title">$_("Toggle")</h2>
-  <p class="design-pattern__description">$:_("The %(tag)s component is a switch with a label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s.", tag="<code>ol-toggle</code>", role='<code>role="switch"</code>', checked="<code>checked</code>", event="<code>ol-toggle-change</code>")</p>
 
   <section class="example">
-    <h3 class="example__title">$_("Default")</h3>
     <p>$:_("A plain toggle: just the switch, a %(label)s, and an optional greyed %(sublabel)s.", label="<code>label</code>", sublabel="<code>sublabel</code>")</p>
     <pre class="example__code"><code class="language-html">&lt;ol-toggle label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">

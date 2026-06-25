@@ -97,12 +97,6 @@
   margin: 0 0 8px;
 }
 
-.design-pattern__description {
-  margin: 0 0 var(--spacing-stack-md);
-  font-size: 18px;
-  color: var(--mid-grey);
-}
-
 .example {
   margin-bottom: 48px;
 }

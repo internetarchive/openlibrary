@@ -2,12 +2,10 @@ $def with (api)
 
 <article class="design-pattern" id="segmented-control">
   <h2 class="design-pattern__title">Segmented Control</h2>
-  <p class="design-pattern__description">The <code>ol-segmented-control</code> component is a single-select control for a small set of mutually exclusive options — a styled radio group. It shares <code>ol-button</code>'s height tokens and visual language, so a same-size control and button line up at the same height.</p>
 
   <p>Options are declared as <code>&lt;ol-segment&gt;</code> children with a <code>value</code> attribute; their text is the label. The component reads them once and renders accessible radios — no per-option wiring needed. Exactly one option is always selected.</p>
 
   <section class="example">
-    <h3 class="example__title">Basic</h3>
     <pre class="example__code"><code class="language-html">&lt;ol-segmented-control value="list" accessible-label="View"&gt;
   &lt;ol-segment value="grid"&gt;Grid&lt;/ol-segment&gt;
   &lt;ol-segment value="list"&gt;List&lt;/ol-segment&gt;
