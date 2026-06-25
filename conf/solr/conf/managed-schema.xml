@@ -167,7 +167,7 @@
     <field name="ebook_provider" type="string" multiValued="true"/>
     <!-- Near-realtime loan availability, updated by loan_availability_updater -->
     <field name="ebook_availability" type="string" multiValued="false" docValues="true"/>
-    <field name="ebook_becomes_available" type="pdate" multiValued="false"/>
+    <field name="ebook_becomes_available" type="pdate" multiValued="false" docValues="true"/>
     <field name="loan_uid" type="plong" multiValued="false" docValues="true"/>
 
     <!-- Reading Levels -->
