@@ -59,7 +59,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 </div>
 
 <div id="contentBody">
-    $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
+    $if ctx.user and (ctx.user.is_librarian() or ctx.user.is_admin() or ctx.user.is_super_librarian()) and query_param('merge', 'false') == 'true':
         $ mrid = query_param('mrid', None)
         $ comment = query_param('comment', None)
         $ duplicate_olids = query_param('duplicates', '').split(',')
