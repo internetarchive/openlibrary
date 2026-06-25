@@ -92,9 +92,12 @@ $def seed_attrs(seed):
         $# SearchFilterBar.js (index.js binds any .search-filter-row): it inherits
         $# the global availability + language preference, navigates this list URL
         $# with the filter params, and honors the scope-local `filters=off` escape.
+        $# NB: the `list` template param shadows the builtin, so we normalize the
+        $# possibly-scalar `language` input via `not isinstance(_, str)` rather than
+        $# `isinstance(_, list)`.
         $ list_req = input(language=[])
         $ active_availability = get_active_availability(list_req)
-        $ selected_languages = [lang for lang in (list_req.language if isinstance(list_req.language, list) else [list_req.language]) if lang]
+        $ selected_languages = [lang for lang in (list_req.language if not isinstance(list_req.language, str) else [list_req.language]) if lang]
         $ filter_active = active_availability != 'all' or bool(selected_languages)
 
         <div class="search-results-stats">
