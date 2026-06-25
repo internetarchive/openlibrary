@@ -337,6 +337,41 @@ def extract_year(input: str, int_only: bool = True) -> str:
     return ""
 
 
+@functools.cache
+def get_author_exclusions() -> frozenset[str]:
+    """Returns the set of excluded author keys from config.
+
+    Reads ``author_exclusions`` from openlibrary.yml (a list of full author keys
+    such as ``["/authors/OL123A"]``).  Initialized once per process since
+    config is static per-deploy; a restart is required to pick up changes.
+    """
+    return frozenset(config.get("author_exclusions") or [])
+
+
+def is_exclusion(thing) -> bool:
+    """Returns True if *thing* should be excluded from public view.
+
+    A thing is excluded when it is an author whose key is in the
+    ``author_exclusions`` config list, or when it is a book/work whose
+    first resolvable author is in that list.
+    """
+    if not thing or not thing.key:
+        return False
+    try:
+        _, _type, _ = thing.key.split("/")
+    except ValueError:
+        return False
+    exclusions = get_author_exclusions()
+    if _type == "authors":
+        return thing.key in exclusions
+    elif _type in ("books", "works"):
+        for a in thing.get("authors") or []:
+            akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
+            if akey:
+                return akey in exclusions
+    return False
+
+
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)
