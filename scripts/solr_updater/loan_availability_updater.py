@@ -18,7 +18,6 @@ import time
 from pathlib import Path
 
 import infogami
-
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
