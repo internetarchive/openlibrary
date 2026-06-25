@@ -62,7 +62,7 @@ $var title: $header_title
       </div>
 
       $if not mb.is_my_page and mb.is_subscribed != -1:
-        $:macros.Follow(mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
+        $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
 
       $if 'followers' in mb.counts:
         <div class="social-wrapper">
