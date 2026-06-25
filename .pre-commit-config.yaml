@@ -41,6 +41,12 @@ repos:
         args: ["--skip", "*.mjs"]
         exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
 
+  - repo: https://github.com/djlint/djLint
+    rev: v1.38.1
+    hooks:
+      - id: djlint-reformat-jinja
+      - id: djlint-jinja
+
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.25
     hooks:
@@ -104,12 +110,13 @@ repos:
       name: Generate POT
       description: This hook generates the .pot file for internationalization.
       entry: python ./scripts/i18n-messages extract --skip-untracked
-      types_or: [python, html]
+      types_or: [python, html, jinja]
       language: python
       pass_filenames: false
       # Dependencies must be manually updated to match versions in requirements.txt
       additional_dependencies:
         - Babel==2.18.0
+        - Jinja2==3.1.6
         - multipart==1.3.1
         - "git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f"
         - fastapi==0.136.1 # annoyingly, these three needed to be added when we started using contextvars in i18n files

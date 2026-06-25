@@ -226,6 +226,18 @@
             },
             {
               "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Domain category that tints the chip: \"language\" | \"subject\" | \"genre\" | \"author\" | \"place\" | \"neutral\". Omit for the default (white / solid-blue-when-selected) chip. The chip maps the variant to a soft-tint palette internally (see colors.css); a variant chip keeps its tint when `selected` and just gains a close icon.",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
               "name": "href",
               "privacy": "public",
               "type": {
@@ -256,6 +268,47 @@
               "default": "null",
               "description": "Override aria-label on the inner interactive element",
               "attribute": "accessible-label"
+            },
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_focusTarget",
+              "description": "Override point. Return the element inside the shadow root that should\nreceive focus when `host.focus()` is called. Return `null` to use the\ndefault `delegatesFocus` behavior (focus the first focusable).",
+              "return": {
+                "type": {
+                  "text": "HTMLElement|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "parameters": [
+                {
+                  "name": "options"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
             }
           ],
           "events": [
@@ -287,6 +340,15 @@
               "fieldName": "size"
             },
             {
+              "name": "variant",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Domain category that tints the chip: \"language\" | \"subject\" | \"genre\" | \"author\" | \"place\" | \"neutral\". Omit for the default (white / solid-blue-when-selected) chip. The chip maps the variant to a soft-tint palette internally (see colors.css); a variant chip keeps its tint when `selected` and just gains a close icon.",
+              "fieldName": "variant"
+            },
+            {
               "name": "href",
               "type": {
                 "text": "String"
@@ -312,6 +374,12 @@
               "default": "null",
               "description": "Override aria-label on the inner interactive element",
               "fieldName": "accessibleLabel"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "FocusableHostMixin",
+              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
             }
           ],
           "superclass": {
@@ -1295,6 +1363,800 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlDialog.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A modal dialog built on the native `<dialog>` element. Provides focus trap,\nfocus restoration, scroll lock (via `showModal()`), backdrop dismissal, and\nEscape-to-close out of the box. Supports slotted header/body/footer content\nand a fullscreen mode for mobile.",
+          "name": "OlDialog",
+          "cssProperties": [
+            {
+              "description": "Padding around body and footer regions. Set to `0` for edge-to-edge content (e.g. when slotting a search bar or filter row that owns its own padding).",
+              "name": "--ol-dialog-padding"
+            },
+            {
+              "description": "Corner radius (ignored in fullscreen mode).",
+              "name": "--ol-dialog-border-radius"
+            },
+            {
+              "description": "Backdrop color.",
+              "name": "--ol-dialog-backdrop-color"
+            },
+            {
+              "description": "Open/close animation duration.",
+              "name": "--ol-dialog-animation-duration"
+            },
+            {
+              "description": "Distance from viewport top when `placement=\"top\"`. Default `clamp(40px, 8vh, 96px)`.",
+              "name": "--ol-dialog-top-offset"
+            }
+          ],
+          "slots": [
+            {
+              "description": "Default slot for the dialog body.",
+              "name": ""
+            },
+            {
+              "description": "Optional custom header. When filled, replaces the default title + close-button row entirely. Useful for search bars, custom toolbars, etc.",
+              "name": "header"
+            },
+            {
+              "description": "Slot for action buttons. Footer region is hidden when empty.",
+              "name": "footer"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_titleId",
+              "description": "Unique ID for ARIA labelledby association",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "dialog",
+              "return": {
+                "type": {
+                  "text": "HTMLDialogElement"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_openDialog"
+            },
+            {
+              "kind": "method",
+              "name": "_setInitialFocus",
+              "description": "Sets initial focus when dialog opens.\nPriority: [autofocus] > first focusable in body > close button > dialog"
+            },
+            {
+              "kind": "method",
+              "name": "_closeDialog"
+            },
+            {
+              "kind": "method",
+              "name": "_afterAnimation",
+              "parameters": [
+                {
+                  "name": "dialog",
+                  "type": {
+                    "text": "HTMLDialogElement"
+                  }
+                },
+                {
+                  "name": "done",
+                  "type": {
+                    "text": "() => void"
+                  }
+                }
+              ],
+              "description": "Runs `done` once the dialog's current open/close animation finishes.\n\nThe open/close transitions are CSS animations, so the obvious hook is the\n`animationend` event. But under `prefers-reduced-motion: reduce` the\nstylesheet sets `animation: none`, and an element with no animation never\ndispatches `animationend` — so a naive listener would leave the dialog\nstuck open (never calling `dialog.close()`, never restoring focus). We\nread the resolved animation duration instead: 0 (reduced motion, or no\nanimation) runs `done` immediately, otherwise we wait on `animationend`\nwith a timer fallback in case the event is dropped (e.g. backgrounded tab)."
+            },
+            {
+              "kind": "method",
+              "name": "_animationDurationMs",
+              "parameters": [
+                {
+                  "name": "dialog",
+                  "type": {
+                    "text": "HTMLDialogElement"
+                  }
+                }
+              ],
+              "description": "The dialog's resolved animation-duration in milliseconds (first value of\nthe list). Returns 0 when no animation is set (e.g. reduced motion).",
+              "return": {
+                "type": {
+                  "text": "Number"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_restoreFocus"
+            },
+            {
+              "kind": "method",
+              "name": "_handleCancel",
+              "parameters": [
+                {
+                  "name": "event"
+                }
+              ],
+              "description": "Native dialog cancel event (Escape key)."
+            },
+            {
+              "kind": "method",
+              "name": "_handleBackdropClick",
+              "parameters": [
+                {
+                  "name": "event"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleCloseClick"
+            },
+            {
+              "kind": "method",
+              "name": "_getFocusableElements",
+              "description": "Returns all focusable elements within the dialog in DOM order:\nheader → body → footer. Includes the default close button when no\ncustom header is slotted.",
+              "return": {
+                "type": {
+                  "text": "HTMLElement[]"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_isInsideOpenOverlay",
+              "parameters": [
+                {
+                  "name": "el",
+                  "type": {
+                    "text": "Element|null"
+                  }
+                }
+              ],
+              "description": "Walks up from `el` (across shadow boundaries) looking for an open\nnested overlay inside this dialog — currently any `<ol-popover>`\nwith the `open` attribute set. Used to skip Tab trapping when a\nsub-overlay is driving its own focus.",
+              "return": {
+                "type": {
+                  "text": "Boolean"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_handleKeyDown",
+              "parameters": [
+                {
+                  "name": "event"
+                }
+              ],
+              "description": "Manual Tab focus trap. Needed because Safari doesn't trap focus across\nshadow DOM boundaries for slotted content."
+            },
+            {
+              "kind": "method",
+              "name": "_handleHeaderSlotChange",
+              "parameters": [
+                {
+                  "name": "event"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleFooterSlotChange",
+              "parameters": [
+                {
+                  "name": "event"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_releaseScrollLock",
+              "description": "Releases the body scroll lock if this dialog holds one. Idempotent."
+            },
+            {
+              "kind": "method",
+              "name": "_attachBlurOnScroll",
+              "description": "On a fullscreen mobile dialog, dismiss the on-screen keyboard as soon as the\nuser starts scrolling/dragging. The dialog is `100dvh`, which doesn't shrink\nfor the keyboard — so while an input is focused iOS lets the user pan the\nvisual viewport and expose the page behind the dialog. Blurring the input on\ndrag closes the keyboard, removing the taller-than-visible region (and the pan)\nbefore it can happen. `touchmove` is the trigger rather than `scroll` because a\nshort result list doesn't scroll, yet still pans — and touchmove fires anyway."
+            },
+            {
+              "kind": "method",
+              "name": "_handleTouchMoveBlur"
+            },
+            {
+              "kind": "method",
+              "name": "_detachBlurOnScroll"
+            },
+            {
+              "kind": "method",
+              "name": "_attachDialogListeners"
+            },
+            {
+              "kind": "field",
+              "name": "open",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the dialog is open.",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Title shown in the default header. Also used as the accessible name when `withoutHeader` is true.",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "withoutHeader",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Hide the default header (title + close button). The `header` slot still works.",
+              "attribute": "without-header"
+            },
+            {
+              "kind": "field",
+              "name": "width",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Width preset: `'small'` (400px), `'medium'` (550px, default), or `'large'` (800px). Override per-instance via `--ol-dialog-width-*` host CSS variables.",
+              "attribute": "width"
+            },
+            {
+              "kind": "field",
+              "name": "closeOnBackdropClick",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether clicking the backdrop closes the dialog. Default `true`. Attribute: `close-on-backdrop-click`.",
+              "attribute": "close-on-backdrop-click"
+            },
+            {
+              "kind": "field",
+              "name": "closeOnEscape",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether pressing Escape closes the dialog. Default `true`. Attribute: `close-on-escape`.",
+              "attribute": "close-on-escape"
+            },
+            {
+              "kind": "field",
+              "name": "fullscreenOnMobile",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "At viewports ≤767px, render edge-to-edge (full viewport, no border-radius). Attribute: `fullscreen-on-mobile`.",
+              "attribute": "fullscreen-on-mobile",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'center'",
+              "description": "`'center'` (default) keeps the dialog vertically centered like a normal modal. `'top'` anchors it a fixed distance from the top of the viewport so the top edge stays put as content grows or shrinks (command-palette / search-modal pattern).",
+              "attribute": "placement",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "_hasHeaderContent",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_hasHeaderContent"
+            },
+            {
+              "kind": "field",
+              "name": "_hasFooterContent",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_hasFooterContent"
+            },
+            {
+              "kind": "field",
+              "name": "_previouslyFocusedElement",
+              "type": {
+                "text": "HTMLElement|null"
+              },
+              "description": "Element that had focus before dialog opened",
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_scrollLocked",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether this dialog currently holds a body scroll lock",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_blurOnScrollActive",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the dismiss-keyboard-on-scroll listener is attached",
+              "default": "false"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-open",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires when the dialog starts opening."
+            },
+            {
+              "name": "ol-after-open",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires after the open animation completes."
+            },
+            {
+              "name": "ol-after-close",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires after the close animation completes."
+            },
+            {
+              "description": "Fires when the dialog starts closing. Cancelable — calling `event.preventDefault()` keeps the dialog open.",
+              "name": "ol-close"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "open",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the dialog is open.",
+              "fieldName": "open"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Title shown in the default header. Also used as the accessible name when `withoutHeader` is true.",
+              "fieldName": "label"
+            },
+            {
+              "name": "without-header",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Hide the default header (title + close button). The `header` slot still works.",
+              "fieldName": "withoutHeader"
+            },
+            {
+              "name": "width",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Width preset: `'small'` (400px), `'medium'` (550px, default), or `'large'` (800px). Override per-instance via `--ol-dialog-width-*` host CSS variables.",
+              "fieldName": "width"
+            },
+            {
+              "name": "close-on-backdrop-click",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether clicking the backdrop closes the dialog. Default `true`. Attribute: `close-on-backdrop-click`.",
+              "fieldName": "closeOnBackdropClick"
+            },
+            {
+              "name": "close-on-escape",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether pressing Escape closes the dialog. Default `true`. Attribute: `close-on-escape`.",
+              "fieldName": "closeOnEscape"
+            },
+            {
+              "name": "fullscreen-on-mobile",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "At viewports ≤767px, render edge-to-edge (full viewport, no border-radius). Attribute: `fullscreen-on-mobile`.",
+              "fieldName": "fullscreenOnMobile"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "String"
+              },
+              "default": "'center'",
+              "description": "`'center'` (default) keeps the dialog vertically centered like a normal modal. `'top'` anchors it a fixed distance from the top of the viewport so the top edge stays put as content grows or shrinks (command-palette / search-modal pattern).",
+              "fieldName": "placement"
+            },
+            {
+              "name": "_hasHeaderContent",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_hasHeaderContent"
+            },
+            {
+              "name": "_hasFooterContent",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_hasFooterContent"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-dialog",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlDialog",
+          "declaration": {
+            "name": "OlDialog",
+            "module": "openlibrary/components/lit/OlDialog.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-dialog",
+          "declaration": {
+            "name": "OlDialog",
+            "module": "openlibrary/components/lit/OlDialog.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlOptionsPopover.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A trigger button paired with a popover containing a single-select list of\nrich options. Each option can show a label, a description, and a count\n(e.g. \"Readable Books Only — Primary older digitized, preserved, physical\nbooks — ~4.6M\"). Used for filters with a small fixed set of mutually\nexclusive choices.\n\nComposes `<ol-popover>` for animation, focus trap, mobile tray, and\nEscape/outside-click dismissal. Use `<ol-select-popover>` instead when\nthe user can pick multiple values or filter a long list.\n\nKeyboard follows the WAI-ARIA radiogroup pattern: Arrow/Home/End move focus\nbetween options and select the focused one (selection follows focus, staying\nopen); Enter/Space/click commit the choice and close. Native same-name radios\nprovide the roving tab stop, so Tab treats the group as one stop.",
+          "name": "OlOptionsPopover",
+          "slots": [
+            {
+              "description": "Optional custom trigger element. When omitted, a styled default button renders with `label` and a chevron icon.",
+              "name": "trigger"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_chevronIcon",
+              "static": true,
+              "default": "html`<svg class=\"trigger-chevron\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
+              "description": "Chevron icon for the default trigger"
+            },
+            {
+              "kind": "field",
+              "name": "_focusTarget",
+              "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order (which could be a slotted user-provided\ntrigger — but the default-trigger is the one we want when it's there).",
+              "return": {
+                "type": {
+                  "text": "HTMLElement|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderDefaultTrigger"
+            },
+            {
+              "kind": "method",
+              "name": "_renderPanel"
+            },
+            {
+              "kind": "method",
+              "name": "_renderItem",
+              "parameters": [
+                {
+                  "name": "item"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTriggerKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onPopoverOpen"
+            },
+            {
+              "kind": "method",
+              "name": "_onPopoverClose"
+            },
+            {
+              "kind": "method",
+              "name": "_onItemChange",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_selectValue",
+              "parameters": [
+                {
+                  "name": "value"
+                }
+              ],
+              "description": "Selection follows focus (WAI-ARIA radiogroup pattern): update the\nselected value and notify consumers, but keep the popover open so the\nuser can keep arrowing through options. Returns true when the value\nactually changed."
+            },
+            {
+              "kind": "method",
+              "name": "_commitSelection",
+              "parameters": [
+                {
+                  "name": "value"
+                }
+              ],
+              "description": "Commit a choice: select it (if not already) and close. Mirrors native\n<select> / dropdown-filter conventions where activating an option both\npicks it and dismisses the menu. <ol-popover> restores focus to the\ntrigger."
+            },
+            {
+              "kind": "method",
+              "name": "_onListKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_focusSelectedOrFirst"
+            },
+            {
+              "kind": "field",
+              "name": "items",
+              "privacy": "public",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "List of `{ value, label, description?, count?, nested? }` objects. Settable as JSON attribute or property. `nested: true` indents the option to show it's a subset of the option above it.",
+              "attribute": "items"
+            },
+            {
+              "kind": "field",
+              "name": "selected",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Currently selected `value`, or empty string for no selection. Reflects to attribute.",
+              "attribute": "selected",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Default trigger button text (e.g. \"Availability\").",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "heading",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Heading shown above the options list (default: uppercased `label`).",
+              "attribute": "heading"
+            },
+            {
+              "kind": "field",
+              "name": "_panelId",
+              "default": "`ol-options-popover-${++_idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_radioName",
+              "default": "`ol-options-popover-radio-${_idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_isOpen",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_pendingFocusFirst",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "parameters": [
+                {
+                  "name": "options"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-options-popover-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires when the selection changes. detail: { selected: String }"
+            }
+          ],
+          "attributes": [
+            {
+              "description": "Accessible name for the popover dialog. Falls back to `label` if unset.",
+              "name": "aria-label"
+            },
+            {
+              "name": "items",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "List of `{ value, label, description?, count?, nested? }` objects. Settable as JSON attribute or property. `nested: true` indents the option to show it's a subset of the option above it.",
+              "fieldName": "items"
+            },
+            {
+              "name": "selected",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Currently selected `value`, or empty string for no selection. Reflects to attribute.",
+              "fieldName": "selected"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Default trigger button text (e.g. \"Availability\").",
+              "fieldName": "label"
+            },
+            {
+              "name": "heading",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Heading shown above the options list (default: uppercased `label`).",
+              "fieldName": "heading"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "FocusableHostMixin",
+              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-options-popover",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlOptionsPopover",
+          "declaration": {
+            "name": "OlOptionsPopover",
+            "module": "openlibrary/components/lit/OlOptionsPopover.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-options-popover",
+          "declaration": {
+            "name": "OlOptionsPopover",
+            "module": "openlibrary/components/lit/OlOptionsPopover.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlPagination.js",
       "declarations": [
         {
@@ -1890,6 +2752,19 @@
             },
             {
               "kind": "method",
+              "name": "_scrollableInPath",
+              "parameters": [
+                {
+                  "name": "path"
+                },
+                {
+                  "name": "panel"
+                }
+              ],
+              "description": "Walk the touch's composed path (which includes slotted light-DOM content)\nup to and including the panel, returning the first vertically scrollable\nelement. Falls back to the panel itself."
+            },
+            {
+              "kind": "method",
               "name": "_onTouchMove",
               "parameters": [
                 {
@@ -1907,11 +2782,8 @@
             },
             {
               "kind": "method",
-              "name": "_lockBodyScroll"
-            },
-            {
-              "kind": "method",
-              "name": "_unlockBodyScroll"
+              "name": "_releaseScrollLock",
+              "description": "Releases the body scroll lock if this popover holds one. Idempotent."
             },
             {
               "kind": "method",
@@ -2004,6 +2876,14 @@
             },
             {
               "kind": "field",
+              "name": "_scrollLocked",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
               "name": "_panelId",
               "default": "`ol-popover-${++_idCounter}`"
             },
@@ -2022,22 +2902,6 @@
                 "text": "null"
               },
               "default": "null"
-            },
-            {
-              "kind": "field",
-              "name": "_savedBodyStyle",
-              "type": {
-                "text": "null"
-              },
-              "default": "null"
-            },
-            {
-              "kind": "field",
-              "name": "_savedScrollY",
-              "type": {
-                "text": "number"
-              },
-              "default": "0"
             },
             {
               "kind": "field",
@@ -2225,6 +3089,21 @@
               "static": true,
               "default": "html`<svg class=\"filter-icon\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>`",
               "description": "Search icon for the filter input"
+            },
+            {
+              "kind": "field",
+              "name": "_focusTarget",
+              "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order.",
+              "return": {
+                "type": {
+                  "text": "HTMLElement|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
             },
             {
               "kind": "method",
@@ -2456,6 +3335,40 @@
                 "text": "boolean"
               },
               "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_restoreFocusToValue",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "parameters": [
+                {
+                  "name": "options"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
             }
           ],
           "events": [
@@ -2576,6 +3489,12 @@
               },
               "default": "''",
               "fieldName": "_query"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "FocusableHostMixin",
+              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
             }
           ],
           "superclass": {
@@ -3035,6 +3954,621 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlToggle.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OlToggle - A switch/toggle web component.\n\nRenders a sliding switch followed by a bold label and an optional greyed\nsublabel. The whole control is a single `role=\"switch\"` button, so the\nentire surface is clickable and Enter/Space activate it.\n\nUnlike `ol-chip` (which leaves selection state to its listener), a toggle\nowns its on/off state: clicking flips `checked` and fires\n`ol-toggle-change` with the new value.",
+          "name": "OlToggle",
+          "slots": [
+            {
+              "description": "Custom label content. Overrides the label/sublabel properties when provided (they render as the slot's fallback content).",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "method",
+              "name": "_handleClick"
+            },
+            {
+              "kind": "field",
+              "name": "checked",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "On/off state. Default false.",
+              "attribute": "checked",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables interaction. Default false.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Primary (bold) label text.",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "sublabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Secondary greyed text shown after the label.",
+              "attribute": "sublabel"
+            },
+            {
+              "kind": "field",
+              "name": "accessibleLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Override aria-label on the switch. Needed when supplying label content via the default slot.",
+              "attribute": "accessible-label"
+            },
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_focusTarget",
+              "description": "Override point. Return the element inside the shadow root that should\nreceive focus when `host.focus()` is called. Return `null` to use the\ndefault `delegatesFocus` behavior (focus the first focusable).",
+              "return": {
+                "type": {
+                  "text": "HTMLElement|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "parameters": [
+                {
+                  "name": "options"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FocusableHostMixin",
+                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-toggle-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired on toggle. detail: { checked: Boolean }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "checked",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "On/off state. Default false.",
+              "fieldName": "checked"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables interaction. Default false.",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "variant",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "fieldName": "variant"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Primary (bold) label text.",
+              "fieldName": "label"
+            },
+            {
+              "name": "sublabel",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Secondary greyed text shown after the label.",
+              "fieldName": "sublabel"
+            },
+            {
+              "name": "accessible-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Override aria-label on the switch. Needed when supplying label content via the default slot.",
+              "fieldName": "accessibleLabel"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "FocusableHostMixin",
+              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-toggle",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlToggle",
+          "declaration": {
+            "name": "OlToggle",
+            "module": "openlibrary/components/lit/OlToggle.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-toggle",
+          "declaration": {
+            "name": "OlToggle",
+            "module": "openlibrary/components/lit/OlToggle.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlTooltip.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A tooltip component that displays contextual information on hover/focus.\n\nWraps a trigger element and shows a tooltip panel with configurable placement\nand arrow. The tooltip appears after a short delay and is shown/hidden\ninstantly with no animation. Each tooltip is independent — moving from one\ntrigger to another hides the old tooltip and shows the new one.",
+          "name": "OlTooltip",
+          "slots": [
+            {
+              "description": "The trigger element (button, icon, link, etc.)",
+              "name": ""
+            },
+            {
+              "description": "Optional rich HTML tooltip content (overrides the content attribute)",
+              "name": "content"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_idCounter",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "0"
+            },
+            {
+              "kind": "method",
+              "name": "_onSlotChange"
+            },
+            {
+              "kind": "method",
+              "name": "_onMouseEnter"
+            },
+            {
+              "kind": "method",
+              "name": "_onMouseLeave"
+            },
+            {
+              "kind": "method",
+              "name": "_onFocusIn"
+            },
+            {
+              "kind": "method",
+              "name": "_onFocusOut"
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onScroll"
+            },
+            {
+              "kind": "method",
+              "name": "_show"
+            },
+            {
+              "kind": "method",
+              "name": "_hide"
+            },
+            {
+              "kind": "method",
+              "name": "_computePosition",
+              "parameters": [
+                {
+                  "name": "panelW"
+                },
+                {
+                  "name": "panelH"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_arrowStyle",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_parsePlacement",
+              "parameters": [
+                {
+                  "name": "placement"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_triggerEl",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_clearTimers"
+            },
+            {
+              "kind": "field",
+              "name": "content",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Text content of the tooltip",
+              "attribute": "content"
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'top'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}\" or \"{side}-{align}\" where side is \"top\", \"bottom\", \"left\", or \"right\" and align is \"start\", \"center\", or \"end\". Default: \"top\"",
+              "attribute": "placement"
+            },
+            {
+              "kind": "field",
+              "name": "showDelay",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "150",
+              "description": "Milliseconds to wait before showing (default: 150). Set to 0 for an instant tooltip.",
+              "attribute": "show-delay"
+            },
+            {
+              "kind": "field",
+              "name": "hideDelay",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0",
+              "description": "Milliseconds to wait before hiding (default: 0)",
+              "attribute": "hide-delay"
+            },
+            {
+              "kind": "field",
+              "name": "offset",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and tooltip (default: 4)",
+              "attribute": "offset"
+            },
+            {
+              "kind": "field",
+              "name": "arrow",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows the directional arrow (hidden by default)",
+              "attribute": "arrow"
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Prevents the tooltip from showing",
+              "attribute": "disabled"
+            },
+            {
+              "kind": "field",
+              "name": "_visible",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_visible"
+            },
+            {
+              "kind": "field",
+              "name": "_position",
+              "privacy": "public",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "attribute": "_position"
+            },
+            {
+              "kind": "field",
+              "name": "_actualSide",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top'",
+              "attribute": "_actualSide"
+            },
+            {
+              "kind": "field",
+              "name": "_arrowOffset",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "_arrowOffset"
+            },
+            {
+              "kind": "field",
+              "name": "_showTimer",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_hideTimer",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_tooltipId",
+              "default": "`ol-tooltip-${++OlTooltip._idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_canHover"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-tooltip-show",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the tooltip opens"
+            },
+            {
+              "name": "ol-tooltip-hide",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the tooltip closes"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "content",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Text content of the tooltip",
+              "fieldName": "content"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "String"
+              },
+              "default": "'top'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}\" or \"{side}-{align}\" where side is \"top\", \"bottom\", \"left\", or \"right\" and align is \"start\", \"center\", or \"end\". Default: \"top\"",
+              "fieldName": "placement"
+            },
+            {
+              "name": "show-delay",
+              "type": {
+                "text": "Number"
+              },
+              "default": "150",
+              "description": "Milliseconds to wait before showing (default: 150). Set to 0 for an instant tooltip.",
+              "fieldName": "showDelay"
+            },
+            {
+              "name": "hide-delay",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0",
+              "description": "Milliseconds to wait before hiding (default: 0)",
+              "fieldName": "hideDelay"
+            },
+            {
+              "name": "offset",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and tooltip (default: 4)",
+              "fieldName": "offset"
+            },
+            {
+              "name": "arrow",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows the directional arrow (hidden by default)",
+              "fieldName": "arrow"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Prevents the tooltip from showing",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "_visible",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_visible"
+            },
+            {
+              "name": "_position",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "fieldName": "_position"
+            },
+            {
+              "name": "_actualSide",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top'",
+              "fieldName": "_actualSide"
+            },
+            {
+              "name": "_arrowOffset",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "_arrowOffset"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-tooltip",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlTooltip",
+          "declaration": {
+            "name": "OlTooltip",
+            "module": "openlibrary/components/lit/OlTooltip.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-tooltip",
+          "declaration": {
+            "name": "OlTooltip",
+            "module": "openlibrary/components/lit/OlTooltip.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OpenLibraryOTP.js",
       "declarations": [
         {
@@ -3336,6 +4870,265 @@
           "declaration": {
             "name": "OpenLibraryOTP",
             "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/focus-utils.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "FOCUSABLE_SELECTOR",
+          "type": {
+            "text": "string"
+          },
+          "default": "'button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'",
+          "description": "CSS selector for commonly focusable elements.\nExcludes elements with tabindex=\"-1\" which are programmatically focusable only."
+        },
+        {
+          "kind": "function",
+          "name": "getDeepActiveElement",
+          "description": "Gets the currently focused element, traversing through shadow DOM boundaries.\nUseful when you need to find the actual focused element inside shadow roots.",
+          "return": {
+            "type": {
+              "text": "Element|null"
+            }
+          }
+        },
+        {
+          "kind": "function",
+          "name": "isFocusable",
+          "parameters": [
+            {
+              "name": "el",
+              "type": {
+                "text": "HTMLElement"
+              }
+            }
+          ],
+          "description": "Whether an element should participate in a focus trap. Excludes disabled\nelements and elements that aren't currently rendered (e.g. `display: none`,\n`visibility: hidden`). Calling `.focus()` on a non-rendered element is a\nsilent no-op in browsers — including such elements in a trap list causes\nTab/Shift+Tab to appear stuck on the prior element.",
+          "return": {
+            "type": {
+              "text": "Boolean"
+            }
+          }
+        },
+        {
+          "kind": "function",
+          "name": "getFocusableFromSlot",
+          "parameters": [
+            {
+              "name": "slot",
+              "description": "The slot element to get focusable elements from",
+              "type": {
+                "text": "HTMLSlotElement"
+              }
+            }
+          ],
+          "description": "Gets all focusable elements from a slot's assigned content.\nHandles both elements that are directly focusable and their focusable descendants.",
+          "return": {
+            "type": {
+              "text": "HTMLElement[]"
+            }
+          }
+        },
+        {
+          "kind": "function",
+          "name": "findFocusableIndex",
+          "parameters": [
+            {
+              "name": "focusable",
+              "description": "Trap-managed focusable elements",
+              "type": {
+                "text": "HTMLElement[]"
+              }
+            },
+            {
+              "name": "deepActive",
+              "description": "Result of {@link getDeepActiveElement}",
+              "type": {
+                "text": "Element|null"
+              }
+            }
+          ],
+          "description": "Find the index of the focus-trap entry that owns the current focus, walking\nup the DOM and across shadow boundaries. This lets a focus trap operate on\na host element (e.g. a custom-element wrapper around a deeper button) while\nstill recognizing the host as \"current\" when the inner element is focused.",
+          "return": {
+            "type": {
+              "text": "Number"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FOCUSABLE_SELECTOR",
+          "declaration": {
+            "name": "FOCUSABLE_SELECTOR",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getDeepActiveElement",
+          "declaration": {
+            "name": "getDeepActiveElement",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "isFocusable",
+          "declaration": {
+            "name": "isFocusable",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getFocusableFromSlot",
+          "declaration": {
+            "name": "getFocusableFromSlot",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "findFocusableIndex",
+          "declaration": {
+            "name": "findFocusableIndex",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/focusable-host-mixin.js",
+      "declarations": [
+        {
+          "kind": "mixin",
+          "description": "FocusableHostMixin — makes a LitElement custom element behave as a single\nfocusable leaf in the document tab order, even when its actual focusable\nelement lives in its shadow DOM.\n\nWhy this exists\n---------------\nA consumer-level component (e.g. <ol-chip>, <ol-options-popover>) usually\nrenders a <button> inside its shadow root. Two things then go wrong by\ndefault for any outer focus trap that doesn't pierce shadow DOM:\n\n  1. `querySelectorAll('button, [tabindex]…')` on light DOM doesn't find\n     the shadow button — the component is invisible to the trap.\n  2. Calling `host.focus()` focuses the *host*, not the inner button, so\n     the focus ring lands on nothing visible.\n\nThis mixin fixes both at once:\n\n  - Sets `tabindex=\"0\"` on the host in connectedCallback (only if the\n    consumer hasn't set one). The host now matches the standard focusable\n    selector and outer traps discover it.\n  - Uses `delegatesFocus: true` on the shadow root, so the browser\n    forwards `host.focus()` to the first focusable inside the shadow root\n    AND `:focus-visible` fires correctly on the inner element (this is the\n    reason a manual focus() override is not enough — `:focus-visible` is a\n    UA heuristic, not a CSS pseudo-class we can opt into).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
+          "name": "FocusableHostMixin",
+          "members": [
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }"
+            },
+            {
+              "kind": "field",
+              "name": "_focusTarget",
+              "description": "Override point. Return the element inside the shadow root that should\nreceive focus when `host.focus()` is called. Return `null` to use the\ndefault `delegatesFocus` behavior (focus the first focusable).",
+              "return": {
+                "type": {
+                  "text": "HTMLElement|null"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "focus",
+              "parameters": [
+                {
+                  "name": "options"
+                }
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "BaseClass",
+              "type": {
+                "text": "T"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FocusableHostMixin",
+          "declaration": {
+            "name": "FocusableHostMixin",
+            "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/scroll-lock.js",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "lockBodyScroll",
+          "description": "Freezes background scroll by pinning <body> at its current scroll offset.\nSafe to call when a lock is already held — increments the reference count."
+        },
+        {
+          "kind": "function",
+          "name": "unlockBodyScroll",
+          "description": "Releases one scroll lock. When the last holder releases, restores the original\n<body> styles and the pre-lock scroll position. No-op if nothing is locked."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "lockBodyScroll",
+          "declaration": {
+            "name": "lockBodyScroll",
+            "module": "openlibrary/components/lit/utils/scroll-lock.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "unlockBodyScroll",
+          "declaration": {
+            "name": "unlockBodyScroll",
+            "module": "openlibrary/components/lit/utils/scroll-lock.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/slot-utils.js",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "slotHasContent",
+          "parameters": [
+            {
+              "name": "slot",
+              "description": "The slot element to check",
+              "type": {
+                "text": "HTMLSlotElement"
+              }
+            }
+          ],
+          "description": "Checks if a slot has meaningful content (elements or non-empty text).\nUseful for conditionally showing/hiding slot wrapper elements.",
+          "return": {
+            "type": {
+              "text": "boolean"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "slotHasContent",
+          "declaration": {
+            "name": "slotHasContent",
+            "module": "openlibrary/components/lit/utils/slot-utils.js"
           }
         }
       ]

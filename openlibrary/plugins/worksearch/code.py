@@ -120,6 +120,105 @@ def get_facet_map() -> tuple[tuple[str, str]]:
     )
 
 
+# Server-side mirror of AVAILABILITY_TO_PARAMS in
+# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync.
+# The keys are the user-facing availability "value" the header modal and the
+# search-page filter row use; the values are the Solr filter params they
+# materialize as in the URL.
+AVAILABILITY_TO_PARAMS: dict[str, dict[str, str]] = {
+    "all": {},
+    # "Readable Only" — readable without special access: ebook_access:[borrowable TO *]
+    # via has_fulltext (public + borrowable).
+    "readable": {"has_fulltext": "true"},
+    # "Borrow online" — readable but not public: borrowable scans only.
+    "borrowable": {"has_fulltext": "true", "public_scan": "false"},
+    # "Free to read now" — public-domain / open-access scans (ebook_access:public).
+    "open": {"public_scan": "true"},
+}
+
+
+def _param_first(param: dict, key: str) -> str:
+    """web.input can give back either a string or list depending on the field's
+    default. The availability params come in as scalar strings, but we
+    defensively unwrap lists too so a future change to the input declaration
+    doesn't silently break this comparison."""
+    val = param.get(key)
+    if isinstance(val, list):
+        return val[0] if val else ""
+    return "" if val is None else str(val)
+
+
+@public
+def get_active_availability(param: dict) -> str:
+    """Return the availability value ('all'/'readable'/'borrowable'/'open')
+    currently active for `param`. Mirrors availabilityFromParams() in
+    search-modal/constants.js: check the more specific multi-param values
+    first, fall back to 'all'."""
+
+    def matches(expected: dict) -> bool:
+        return all(_param_first(param, k) == v for k, v in expected.items())
+
+    for value in ("borrowable", "readable", "open"):
+        if matches(AVAILABILITY_TO_PARAMS[value]):
+            return value
+    return "all"
+
+
+@public
+def get_availability_label(value: str) -> str:
+    """Translated label for an availability value, used in the search-results
+    document title. Keep in sync with the label text in AVAILABILITY_OPTIONS
+    (search-modal/constants.js)."""
+    return {
+        "all": _("All books"),
+        "readable": _("Readable Only"),
+        "borrowable": _("Borrow online"),
+        "open": _("Free to read now"),
+    }.get(value, value)
+
+
+def _get_readable_count(param: dict, search_response) -> int | None:
+    """Count of the current search's results that are readable in-browser, for
+    the "Readable Only" toggle sublabel on work_search.html. Mirrors the
+    'readable' availability filter (has_fulltext=true). Reuses the main result
+    count when the search is already readable-scoped; otherwise runs one cheap
+    rows=0 count query. Returns None when there's nothing to count.
+
+    Note we can't use the has_fulltext facet count here: has_fulltext is indexed
+    as ebook_access > UNCLASSIFIED (includes printdisabled), but the toggle's
+    filter is ebook_access:[borrowable TO *], so the facet would over-count.
+    """
+    if not param or not search_response.num_found:
+        return None
+    if get_active_availability(param) == "readable":
+        return search_response.num_found  # the main query already counted it
+    readable_param = {k: v for k, v in param.items() if k != "public_scan"}
+    readable_param["has_fulltext"] = "true"
+    resp = run_solr_query(
+        WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+        readable_param,
+        rows=0,
+        spellcheck_count=0,
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=False,
+        request_label="BOOK_SEARCH_READABLE_COUNT",
+    )
+    return resp.num_found
+
+
+@public
+def get_request_lang() -> str:
+    """The request's UI language, safe to call from templates rendered on
+    either the legacy web.py server or the FastAPI server. The Templetor
+    global `get_lang()` reads `web.ctx.lang` directly, which isn't populated
+    by FastAPI — partials rendered there would AttributeError. Reading from
+    the unified `req_context` works on both. Falls back to 'en'."""
+    try:
+        return req_context.get().lang or "en"
+    except LookupError:
+        return "en"
+
+
 async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None = None, editions=False) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
@@ -313,7 +412,18 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         values = param[field]
         if isinstance(values, str):
             values = [values]
-        params += [("fq", f'{field}:"{val}"') for val in values if val]
+        non_empty = [val for val in values if val]
+        if field == "language" and len(non_empty) > 1:
+            # Multiple languages are additive: a work in any of the selected
+            # languages should match. Emitting one fq per value would make Solr
+            # AND them, requiring a work to be in every selected language at
+            # once. Keep the field name first (language:("a" OR "b")) so
+            # editions.fq rewriting, which splits on the first ':', still
+            # resolves the field correctly.
+            or_clause = " OR ".join(f'"{val}"' for val in non_empty)
+            params.append(("fq", f"{field}:({or_clause})"))
+        else:
+            params += [("fq", f'{field}:"{val}"') for val in non_empty]
 
     # Many fields in solr use the convention of `*_facet` both
     # as a facet key and as the explicit search query key.
@@ -724,6 +834,11 @@ class search(delegate.page):
             "person",
             "time",
             "editions.sort",
+            # Availability filters. These are defined in WorkSearchScheme.facet_rewrites
+            # (mapping to ebook_access:* Solr clauses) but are not facet_fields, so they
+            # must be whitelisted here for the availability filter to take effect.
+            "public_scan",
+            "print_disabled",
         } | WorkSearchScheme.facet_fields:
             if web_input.get(p):
                 param[p] = web_input[p]
@@ -756,6 +871,8 @@ class search(delegate.page):
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
 
+        readable_count = _get_readable_count(param, search_response)
+
         return render.work_search(
             " ".join(q_list),
             search_response,
@@ -763,6 +880,7 @@ class search(delegate.page):
             param,
             page,
             rows,
+            readable_count,
             has_solr_editions_enabled=req_context.get().solr_editions,
         )
 

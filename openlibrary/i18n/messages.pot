@@ -321,11 +321,24 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
+msgstr ""
+
+#: history.html
+msgid "Rev"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -350,12 +363,18 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
-msgid "Compare"
+msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
-msgid "See Diff"
+msgid "B"
 msgstr ""
 
 #: history.html lib/history.html
@@ -364,11 +383,20 @@ msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "Compare this version..."
+msgid "Changes"
 msgstr ""
 
 #: history.html
-msgid "...to this version"
+msgid "Compare this revision with the current version"
+msgstr ""
+
+#: history.html
+msgid "vs current"
+msgstr ""
+
+#: history.html
+#, python-format
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
@@ -722,15 +750,16 @@ msgstr ""
 msgid "PR"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html status.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: status.html
 msgid "Author"
 msgstr ""
 
@@ -935,8 +964,10 @@ msgstr ""
 
 #: trending.html
 #, python-format
-msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgid "Logged %(count)i time %(time_unit)s"
+msgid_plural "Logged %(count)i times %(time_unit)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: verify_human.html
 msgid "Human Verification"
@@ -1013,20 +1044,39 @@ msgstr ""
 msgid "Keywords"
 msgstr ""
 
-#: RecentChanges.html recentchanges/index.html work_search.html
-msgid "Everything"
-msgstr ""
-
-#: work_search.html
-msgid "Ebooks"
-msgstr ""
-
 #: work_search.html
 msgid "This is only visible to super librarians."
 msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
+msgstr ""
+
+#: design/toggle.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html work_search.html
+msgid "Readable Only"
+msgstr ""
+
+#: work_search.html
+msgid "Filter by availability"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
+#: type/edition/view.html type/work/view.html work_search.html
+msgid "Language"
+msgstr ""
+
+#: search/search_modal_i18n.html work_search.html
+msgid "Search languages…"
+msgstr ""
+
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html
+#: work_search.html
+msgid "Languages"
+msgstr ""
+
+#: work_search.html
+msgid "Filter by language"
 msgstr ""
 
 #: work_search.html
@@ -1085,7 +1135,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html lib/nav_head.html type/tag/index.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3060,7 +3110,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html type/local_id/view.html
+#: search/publishers.html search/search_modal_i18n.html search/searchbox.html
+#: type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -4017,10 +4068,6 @@ msgstr ""
 msgid "For example: <em>edited by David Anderson</em>"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html
-msgid "Languages"
-msgstr ""
-
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
 msgstr ""
@@ -4582,6 +4629,84 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/toggle.html
+msgid "Toggle"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"The %(tag)s component is a switch with a bold label and an optional "
+"greyed sublabel. The whole control is one %(role)s button, so the entire "
+"surface is clickable and Enter/Space activate it. It owns its on/off "
+"state: clicking flips %(checked)s and fires %(event)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Default"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
+" %(sublabel)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Card variant"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Use %(variant)s for a bordered container. When checked, it fills with a "
+"solid primary-blue background and white text — the same treatment as a "
+"selected %(chip)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Custom label content"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Put content in the default slot to customize the label instead of using "
+"%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
+" has an accessible name."
+msgstr ""
+
+#: design/toggle.html
+msgid "Dark mode"
+msgstr ""
+
+#: design/toggle.html
+msgid "easier on the eyes"
+msgstr ""
+
+#: design/toggle.html
+msgid "Disabled"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Add %(disabled)s to block interaction."
+msgstr ""
+
+#: design/toggle.html
+msgid "Change event"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Toggling fires %(event)s with the new state in %(detail)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Checked:"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -4615,7 +4740,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html home/about.html search/work_search_facets.html
+#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -5257,18 +5382,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Text"
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html
-msgid "Subject"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Advanced"
 msgstr ""
 
 #: lib/nav_head.html
@@ -6105,6 +6218,10 @@ msgstr ""
 msgid "By Bots"
 msgstr ""
 
+#: RecentChanges.html recentchanges/index.html
+msgid "Everything"
+msgstr ""
+
 #: recentchanges/render.html
 msgid "Admin view"
 msgstr ""
@@ -6220,6 +6337,10 @@ msgid "ISBN"
 msgstr ""
 
 #: search/advancedsearch.html
+msgid "Subject"
+msgstr ""
+
+#: search/advancedsearch.html
 msgid "Place"
 msgstr ""
 
@@ -6254,6 +6375,18 @@ msgstr ""
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "All books"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Free to read now"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Borrow online"
 msgstr ""
 
 #: search/inside.html
@@ -6310,6 +6443,87 @@ msgstr ""
 
 #: search/publishers.html
 msgid "Publishers Search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search Open Library"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search books and authors…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Close search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Clear search"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "See all results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Clear all"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Search filters"
+msgstr ""
+
+#: search/search_modal_i18n.html type/work/editions_datatable.html
+msgid "Availability"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Searching…"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "No results found"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "Showing %s of %s results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Top results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Untitled"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Readable"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "In %s"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Recent searches"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "Remove \"%s\" from recent searches"
 msgstr ""
 
 #: search/snippets.html
@@ -6471,19 +6685,7 @@ msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr ""
 
 #: search/work_search_selected_facets.html
-msgid "Written in"
-msgstr ""
-
-#: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "eBook"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBook"
 msgstr ""
 
 #: search/work_search_selected_facets.html
@@ -6877,11 +7079,6 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py type/edition/view.html
-#: type/work/view.html
-msgid "Language"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7512,10 +7709,6 @@ msgid "Edition"
 msgstr ""
 
 #: type/work/editions_datatable.html
-msgid "Availability"
-msgstr ""
-
-#: type/work/editions_datatable.html
 msgid "No editions available"
 msgstr ""
 
@@ -7523,12 +7716,12 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
-#: AffiliateLinks.html
+#: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
-#: AffiliateLinks.html
+#: AffiliateLinks.html.jinja
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
@@ -7955,14 +8148,6 @@ msgstr ""
 msgid "Clear my rating"
 msgstr ""
 
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "rating"
-msgstr ""
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "ratings"
-msgstr ""
-
 #. Shows the count of readers who added this book to their "Want to read"
 #. shelf, displayed on search result pages. %(want_to_read_count)s is a
 #. formatted integer (may include commas as thousands separators). Example:
@@ -7974,8 +8159,10 @@ msgstr ""
 
 #: StarRatingsComponent.html
 #, python-format
-msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgid "%(average)s (%(count)s rating)"
+msgid_plural "%(average)s (%(count)s ratings)"
+msgstr[0] ""
+msgstr[1] ""
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -8189,6 +8376,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Korean"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
