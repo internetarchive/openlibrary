@@ -132,8 +132,10 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
                 <form method="GET" class="olform pagesearchbox">
                     $# Preserve the active filters + sort across a search-within-author
-                    $# submit so the keyword search doesn't silently drop them.
-                    $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort']:
+                    $# submit so the keyword search doesn't silently drop them. `filters`
+                    $# carries the scope-local `filters=off` opt-out so "Show all" isn't
+                    $# undone (the stored global pref would otherwise re-apply on submit).
+                    $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort', 'filters']:
                         $if query_param(k):
                           <input type="hidden" name="$k" value="$query_param(k)"/>
                     $for lang in selected_languages:

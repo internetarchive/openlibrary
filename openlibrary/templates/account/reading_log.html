@@ -67,8 +67,10 @@ $add_metatag(property="og:image", content=meta_photo_url)
   $if len(docs) > 0 or filter_active or q:
     $if key in readlog_keys:
       <form method="GET" class="olform pagesearchbox">
-        $# Preserve the active filters + sort across a search-within submit.
-        $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort']:
+        $# Preserve the active filters + sort across a search-within submit. `filters`
+        $# carries the scope-local `filters=off` opt-out so "Show all" isn't undone
+        $# (the stored global pref would otherwise re-apply on submit).
+        $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort', 'filters']:
           $if query_param(k):
             <input type="hidden" name="$k" value="$query_param(k)"/>
         $for lang in languages:

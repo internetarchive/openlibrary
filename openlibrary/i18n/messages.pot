@@ -6367,6 +6367,13 @@ msgid "Borrow online"
 msgstr ""
 
 #: search/filters_disclosure.html
+#, python-format
+msgid "Filters, %(count)s active"
+msgid_plural "Filters, %(count)s active"
+msgstr[0] ""
+msgstr[1] ""
+
+#: search/filters_disclosure.html
 msgid "Filters"
 msgstr ""
 
