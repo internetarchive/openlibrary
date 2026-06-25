@@ -31,6 +31,8 @@ from openlibrary.accounts import (
     RunAs,
     audit_accounts,
     clear_cookies,
+    encrypt_s3_keys,
+    get_s3_keys,
     valid_email,
 )
 from openlibrary.core import helpers as h
@@ -55,7 +57,6 @@ from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
-from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.core.models import SubjectType
@@ -130,10 +131,7 @@ class xauth(delegate.page):
             result = {
                 "success": True,
                 "version": 1,
-                "values": {
-                    "access": "foo",
-                    "secret": "foo",
-                },
+                "values": {"token": "dev_placeholder_token"},
             }
         elif i.op == "info":
             result = {
@@ -151,7 +149,7 @@ class xauth(delegate.page):
             # Pretend to send an OTP email; accept any email in dev
             result = {"success": True, "version": 1}
         elif i.op == "redeem_otp":
-            # Accept "123456" as the dev OTP code
+            # Accept "123456" as the dev OTP code; S3 keys no longer returned here
             if body.get("password") == "123456":
                 result = {
                     "success": True,
@@ -160,7 +158,7 @@ class xauth(delegate.page):
                         "email": "openlibrary@example.org",
                         "itemname": "@openlibrary",
                         "screenname": "openlibrary",
-                        "s3": {"access": "foo", "secret": "foo"},
+                        "token": "dev_placeholder_token",
                     },
                 }
             else:
@@ -169,6 +167,24 @@ class xauth(delegate.page):
                     "version": 1,
                     "error": "invalid_otp",
                 }
+        elif i.op == "issue_key":
+            result = {
+                "success": True,
+                "version": 1,
+                "s3": {"access": "foo", "secret": "foo"},
+                "ttl": 3600,
+            }
+        elif i.op == "activate":
+            result = {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "email": "openlibrary@example.org",
+                    "itemname": "@openlibrary",
+                    "screenname": "openlibrary",
+                    "token": "dev_placeholder_token",
+                },
+            }
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
@@ -410,7 +426,9 @@ class account_login_json(delegate.page):
                     "errorDisplayString": get_login_error(error),
                 }
                 raise olib.code.BadRequest(json.dumps(resp))
-            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+            email = audit.get("ia_email") or audit.get("ol_email")
+            ol_account = OpenLibraryAccount.get_by_email(email) if email else None
+            _set_login_cookies(audit, ol_account)
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -471,11 +489,16 @@ def _set_login_cookies(
     """Set all session cookies after a successful login (password or OTP)."""
     expires = 3600 * 24 * 365 if remember else ""
 
-    def _setcookie(name, value):
-        web.setcookie(name, value, expires=expires if value else 1)
+    def _setcookie(name, value, **kwargs):
+        web.setcookie(name, value, expires=expires if value else 1, **kwargs)
 
     _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
     _setcookie("pd", "1" if audit.get("special_access") else "")
+
+    if s3_keys := audit.get("s3_keys"):
+        token = encrypt_s3_keys(s3_keys["access"], s3_keys["secret"])
+        web.setcookie("s3", token, expires=expires, secure=True, httponly=True, samesite="Lax")
+
     if ol_account and (ol_user := ol_account.get_user()):
         _setcookie("sfw", "yes" if ol_user.get_safe_mode() == "yes" else "")
         if pref_key := ol_user.preferences().get("yrg_banner_pref"):
@@ -513,11 +536,16 @@ class account_login_otp_redeem(delegate.page):
         result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
         if not result.get("success"):
             return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
-        s3 = result.get("values", {}).get("s3", {})
-        access = s3.get("access")
-        secret = s3.get("secret")
-        if not access or not secret:
+        values = result.get("values", {})
+        # Graceful migration: use S3 keys if redeem_otp returned them directly (current
+        # xauthn behavior); fall through to issue_key once #12942 is deployed to prod.
+        if not (s3_keys := values.get("s3")):
+            token = values.get("token")
+            s3_keys = InternetArchiveAccount.issue_s3_key(email=i.email, token=token)
+        if not s3_keys:
             return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
+        access = s3_keys["access"]
+        secret = s3_keys["secret"]
         audit = audit_accounts(
             None,
             None,
@@ -704,7 +732,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except OSError, ValueError:
+        except (OSError, ValueError):  # fmt: skip
             return
 
     @staticmethod
@@ -1470,7 +1498,7 @@ def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = site.get().store.get(account._key).get("s3_keys")
+    s3_keys = get_s3_keys(account)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
     loan_history = s3_loan_api(
