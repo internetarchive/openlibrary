@@ -142,28 +142,21 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                   </form>
         <div class="clearfix"></div>
 
-                $# The filter bar is wired client-side by SearchFilterBar.js (shared
-                $# with /search). Shown when there's more than one work to act on, or
-                $# whenever a filter is active so the user can always clear it — the
-                $# single-work, no-filter case has nothing to filter, so it's hidden.
-                $if filter_active or books_count > 1:
-                    <div class="search-filter-row" id="search-filter-row">
-                      $# Render the on/off state server-side so the toggle paints in
-                      $# its final position — without `checked` it starts off and the
-                      $# client-side seed animates it on after load.
-                      <ol-toggle
-                        variant="card"
-                        label="$_('Readable Only')"
-                        accessible-label="$_('Filter by availability')"
-                        $cond(active_availability != 'all', 'checked')
-                      ></ol-toggle>
-                      <ol-select-popover
-                        label="$_('Language')"
-                        placeholder="$_('Search languages…')"
-                        unselected-heading="$_('Languages')"
-                        aria-label="$_('Filter by language')"
-                      ></ol-select-popover>
-                    </div>
+                $# Unified controls row: sort (left), availability + language filter,
+                $# then the Details/Grid toggle (right-aligned). The filter bar keeps
+                $# its own .search-filter-row wrapper so SearchFilterBar.js still binds
+                $# it (shared with /search); it's shown when there's more than one work
+                $# to act on, or whenever a filter is active so the user can clear it.
+                <div class="search-controls-row">
+                    $if books_count > 1:
+                        $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+
+                    $if filter_active or books_count > 1:
+                        $:render_template("search/filters_disclosure.html", availability_active=(active_availability != 'all'), language_active=bool(selected_languages))
+
+                    $if books_count > 0:
+                        $:render_template("search/layout_options.html", selected_layout=layout)
+                </div>
 
                 $# Always-visible filtered-state line: whenever a global/URL filter is
                 $# narrowing this author's bibliography, say so (at any reduction, not
@@ -171,8 +164,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $# clears the filters for THIS page via `filters=off`, which
                 $# SearchFilterBar.js honors WITHOUT wiping the stored global reading
                 $# preference — so the user's availability/language choice still applies
-                $# on /search and other authors. The controls above already show *what*
-                $# is filtered; this line shows *how much* was pruned and how to undo it.
+                $# on /search and other authors.
                 $if filter_active:
                     $# "Show all" returns to the full bibliography: clear the availability
                     $# + language filters AND any search-within-author query, so the count
@@ -185,16 +177,6 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                             $_('Showing %(shown)s of %(total)s works.', shown=commify(books_count), total=commify(total_work_count))
                         <a href="$show_all_url">$_('Show all %(count)s works', count=commify(total_work_count))</a>
                     </p>
-
-                <div class="search-results-stats">
-                    $if books_count > 1:
-                        $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
-
-                    $if books_count > 0:
-                        $:render_template("search/layout_options.html", selected_layout=layout)
-                </div>
-
-                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">

@@ -67,13 +67,83 @@ div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
-/* Availability + language filter popovers below the search input. */
+/* Unified results controls: sort (left), the availability + language filter,
+   and the Details/Grid toggle on a single row. The layout toggle is pushed to
+   the right; the rest stay left-aligned in source order. */
+.search-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: var(--spacing-md) 0;
+}
+
+.search-controls-row .tools--layout {
+  margin-left: auto;
+}
+
+/* Availability + language filter popovers (also used standalone on /search,
+   where there's no .search-controls-row wrapper so they stay inline). */
 .search-filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
   margin: var(--spacing-md) 0;
+}
+
+/* Mobile-first: inside the results toolbar the filters collapse behind the
+   "Filters" button. When opened, the row drops to its own full-width line
+   below the toolbar (order pushes it past the right-aligned layout toggle). */
+.search-controls-row .search-filter-row {
+  display: none;
+  margin: 0;
+}
+
+.search-controls-row .search-filter-row.is-open {
+  display: flex;
+  flex-basis: 100%;
+  order: 1;
+}
+
+/* The "Filters" disclosure button — only shown on narrow screens. */
+.search-filters__toggle {
+  align-items: center;
+  gap: var(--spacing-xs);
+  font: inherit;
+  color: inherit;
+}
+
+.search-filters__icon {
+  flex: none;
+}
+
+.search-filters__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary-blue);
+  color: var(--white);
+  font-size: var(--font-size-label-small);
+  line-height: 1;
+}
+
+/* Wide screens: no disclosure — show the filters inline, hide the button. */
+@media only screen and (min-width: 768px) {
+  .search-filters__toggle {
+    display: none;
+  }
+
+  .search-controls-row .search-filter-row,
+  .search-controls-row .search-filter-row.is-open {
+    display: flex;
+    flex-basis: auto;
+    order: 0;
+  }
 }
 
 /* "Showing X of N works — Show all" line, shown whenever a filter is narrowing

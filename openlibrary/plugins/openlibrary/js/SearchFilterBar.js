@@ -116,6 +116,37 @@ function navigateWithParams(mutate) {
 }
 
 /**
+ * On narrow screens the availability + language controls collapse behind a
+ * "Filters" button (`.search-filters__toggle`, rendered by
+ * search/filters_disclosure). Wire it to expand/collapse the row and keep
+ * `aria-expanded` in sync. On wide screens the button is `display: none` and
+ * the row is always shown, so the listeners simply never fire — no-op there.
+ * @param {HTMLElement} row - the `.search-filter-row` element
+ */
+function initFiltersDisclosure(row) {
+    if (!row.id) return;
+    const toggle = document.querySelector(`.search-filters__toggle[aria-controls="${row.id}"]`);
+    if (!toggle) return;
+
+    const setOpen = (open) => {
+        row.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => {
+        setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    // Escape collapses the panel and returns focus to the trigger.
+    row.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            setOpen(false);
+            toggle.focus();
+        }
+    });
+}
+
+/**
  * Fill in option lists and wire change handlers for the filter row.
  * @param {HTMLElement} container - the `.search-filter-row` element
  */
@@ -196,4 +227,6 @@ export function initSearchFilterBar(container) {
             });
         });
     }
+
+    initFiltersDisclosure(container);
 }
