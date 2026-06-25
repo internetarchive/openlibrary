@@ -18,6 +18,7 @@ import time
 from pathlib import Path
 
 import infogami
+
 from openlibrary.config import load_config
 from openlibrary.core import lending
 from openlibrary.plugins.worksearch.search import get_solr
@@ -37,7 +38,7 @@ def read_state(path: Path) -> int:
     """Return last processed uid, or 0 if the state file is absent/corrupt."""
     try:
         return int(path.read_text().strip())
-    except (OSError, ValueError):
+    except (OSError, ValueError):  # fmt: skip
         return 0
 
 
