@@ -296,7 +296,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 </span>
                 <span class="toggle__text">
                     <slot>
-                        ${this.label ? html`<span class="toggle__label">${this.label}</span>` : nothing}
+                        ${this.label ? html`<span>${this.label}</span>` : nothing}
                         ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
                     </slot>
                 </span>

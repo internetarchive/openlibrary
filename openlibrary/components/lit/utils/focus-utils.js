@@ -51,39 +51,10 @@ export function isFocusable(el) {
 }
 
 /**
- * Gets all focusable elements from a slot's assigned content.
- * Handles both elements that are directly focusable and their focusable descendants.
- *
- * @param {HTMLSlotElement} slot - The slot element to get focusable elements from
- * @returns {HTMLElement[]} Array of focusable elements in DOM order
- *
- * @example
- * const slot = this.renderRoot.querySelector('slot');
- * const focusable = getFocusableFromSlot(slot);
- */
-export function getFocusableFromSlot(slot) {
-    if (!slot) return [];
-
-    const focusable = [];
-    const assignedElements = slot.assignedElements({ flatten: true });
-
-    for (const el of assignedElements) {
-        // Check if the element itself is focusable
-        if (el.matches?.(FOCUSABLE_SELECTOR)) {
-            focusable.push(el);
-        }
-        // Find focusable descendants
-        focusable.push(...el.querySelectorAll(FOCUSABLE_SELECTOR));
-    }
-
-    return focusable.filter(isFocusable);
-}
-
-/**
  * Collect tabbable elements under `root`, in depth-first DOM order, piercing
  * shadow roots and expanding slots — i.e. the real Tab order the user sees,
  * which `querySelectorAll` alone can't produce because it stops at shadow
- * boundaries (see {@link getFocusableFromSlot}, which only goes one slot deep).
+ * boundaries.
  *
  * This is the discovery backbone for the manual focus trap: it works on any
  * shadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can
@@ -118,8 +89,7 @@ export function getTabbableElements(root) {
  * (header/body/footer) rather than one subtree. Each assigned element is
  * visited with the same depth-first, shadow-piercing rules, so a custom element
  * sitting in slotted content contributes its real inner focusable rather than
- * being missed (the gap in {@link getFocusableFromSlot}, which only scans one
- * shadow level deep via `querySelectorAll`).
+ * being missed (which a one-slot-deep `querySelectorAll` scan would).
  *
  * @param {HTMLSlotElement|null} slot
  * @returns {HTMLElement[]} Tabbable elements in DOM order.

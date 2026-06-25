@@ -5918,25 +5918,6 @@
         },
         {
           "kind": "function",
-          "name": "getFocusableFromSlot",
-          "parameters": [
-            {
-              "name": "slot",
-              "description": "The slot element to get focusable elements from",
-              "type": {
-                "text": "HTMLSlotElement"
-              }
-            }
-          ],
-          "description": "Gets all focusable elements from a slot's assigned content.\nHandles both elements that are directly focusable and their focusable descendants.",
-          "return": {
-            "type": {
-              "text": "HTMLElement[]"
-            }
-          }
-        },
-        {
-          "kind": "function",
           "name": "getTabbableElements",
           "parameters": [
             {
@@ -5947,7 +5928,7 @@
               }
             }
           ],
-          "description": "Collect tabbable elements under `root`, in depth-first DOM order, piercing\nshadow roots and expanding slots — i.e. the real Tab order the user sees,\nwhich `querySelectorAll` alone can't produce because it stops at shadow\nboundaries (see getFocusableFromSlot, which only goes one slot deep).\n\nThis is the discovery backbone for the manual focus trap: it works on any\nshadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can\nfocus the *real* inner element directly rather than a host whose\n`host.focus()` might delegate to a hidden element (a silent no-op).\n\nTraversal rules:\n - A `<slot>` contributes its flattened assigned elements, in slot order.\n - An element matching FOCUSABLE_SELECTOR is a **leaf tab stop**:\n   recorded, and *not* descended into. A composite that owns its own\n   keyboard nav (roving tabindex, arrow keys) must therefore expose exactly\n   one Tab stop (its single `tabindex=\"0\"`); we don't enumerate its items.\n - A non-matching element with an open `shadowRoot` is descended into (the\n   shadow tree, whose `<slot>`s pull in light children at their position).\n - A non-matching element without a shadow root has its light children\n   walked.\n - Hidden/disabled subtrees (see isFocusable) are skipped entirely.\n - Closed shadow roots (e.g. `<video controls>`) are opaque and skipped.",
+          "description": "Collect tabbable elements under `root`, in depth-first DOM order, piercing\nshadow roots and expanding slots — i.e. the real Tab order the user sees,\nwhich `querySelectorAll` alone can't produce because it stops at shadow\nboundaries.\n\nThis is the discovery backbone for the manual focus trap: it works on any\nshadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can\nfocus the *real* inner element directly rather than a host whose\n`host.focus()` might delegate to a hidden element (a silent no-op).\n\nTraversal rules:\n - A `<slot>` contributes its flattened assigned elements, in slot order.\n - An element matching FOCUSABLE_SELECTOR is a **leaf tab stop**:\n   recorded, and *not* descended into. A composite that owns its own\n   keyboard nav (roving tabindex, arrow keys) must therefore expose exactly\n   one Tab stop (its single `tabindex=\"0\"`); we don't enumerate its items.\n - A non-matching element with an open `shadowRoot` is descended into (the\n   shadow tree, whose `<slot>`s pull in light children at their position).\n - A non-matching element without a shadow root has its light children\n   walked.\n - Hidden/disabled subtrees (see isFocusable) are skipped entirely.\n - Closed shadow roots (e.g. `<video controls>`) are opaque and skipped.",
           "return": {
             "type": {
               "text": "HTMLElement[]"
@@ -5965,7 +5946,7 @@
               }
             }
           ],
-          "description": "Like getTabbableElements but seeded from a `<slot>`'s assigned\n(light-DOM) content — for a focus trap that walks a component's named slots\n(header/body/footer) rather than one subtree. Each assigned element is\nvisited with the same depth-first, shadow-piercing rules, so a custom element\nsitting in slotted content contributes its real inner focusable rather than\nbeing missed (the gap in getFocusableFromSlot, which only scans one\nshadow level deep via `querySelectorAll`).",
+          "description": "Like getTabbableElements but seeded from a `<slot>`'s assigned\n(light-DOM) content — for a focus trap that walks a component's named slots\n(header/body/footer) rather than one subtree. Each assigned element is\nvisited with the same depth-first, shadow-piercing rules, so a custom element\nsitting in slotted content contributes its real inner focusable rather than\nbeing missed (which a one-slot-deep `querySelectorAll` scan would).",
           "return": {
             "type": {
               "text": "HTMLElement[]"
@@ -6026,14 +6007,6 @@
         },
         {
           "kind": "js",
-          "name": "getFocusableFromSlot",
-          "declaration": {
-            "name": "getFocusableFromSlot",
-            "module": "openlibrary/components/lit/utils/focus-utils.js"
-          }
-        },
-        {
-          "kind": "js",
           "name": "getTabbableElements",
           "declaration": {
             "name": "getTabbableElements",
@@ -6064,7 +6037,7 @@
       "declarations": [
         {
           "kind": "mixin",
-          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s\nshadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as\nif the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/focus-tabbing.md.\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover>), or\ncomposites that route focus themselves (roving tabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
+          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s\nshadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as\nif the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover>), or\ncomposites that route focus themselves (roving tabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
           "name": "FocusableHostMixin",
           "members": [
             {

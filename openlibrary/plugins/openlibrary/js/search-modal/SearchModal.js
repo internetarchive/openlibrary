@@ -844,7 +844,11 @@ export class SearchModal extends LitElement {
         ol-button > button > .ol-btn-chevron { display: none; }
 
         ol-button[aria-haspopup] > button > .ol-btn-chevron {
-            --chevron: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='m6%209%206%206%206-6'/%3E%3C/svg%3E");
+            /* Reference the external SVG (same file as ol-button.css) rather than
+               an inline data URI: an unquoted url() to a static path has no plus
+               sign or spaces for the CSS formatter to tokenize and mangle (a data
+               URI repeatedly got split on the image/svg+xml token). */
+            --chevron: url(/static/images/icons/chevron-down.svg);
 
             display: inline-block;
             width: 16px;

@@ -2,7 +2,6 @@ import {
     FOCUSABLE_SELECTOR,
     findFocusableIndex,
     getDeepActiveElement,
-    getFocusableFromSlot,
     getTabbableElements,
     getTabbableFromSlot,
     isFocusable,
@@ -47,49 +46,8 @@ describe('isFocusable', () => {
     });
 });
 
-describe('getFocusableFromSlot', () => {
-    test('returns [] when the slot is null', () => {
-        expect(getFocusableFromSlot(null)).toEqual([]);
-    });
-
-    test('includes directly focusable assigned elements and their focusable descendants', () => {
-        const button = makeButton('one');
-        const wrapper = document.createElement('div');
-        const inner  = makeButton('two');
-        wrapper.appendChild(inner);
-
-        const slot = {
-            assignedElements: () => [button, wrapper],
-        };
-
-        expect(getFocusableFromSlot(slot)).toEqual([button, inner]);
-    });
-
-    test('omits assigned elements that are disabled or hidden — the bug', () => {
-        // This is the regression that produced the "stuck on Escape / Clear
-        // all" report: the focus trap kept hidden buttons in its tab list and
-        // `.focus()` on them was a silent no-op.
-        const visible = makeButton('visible');
-        const hidden  = makeButton('hidden',   { hidden: true });
-        const disabled = makeButton('disabled', { disabled: true });
-
-        const slot = { assignedElements: () => [visible, hidden, disabled] };
-
-        expect(getFocusableFromSlot(slot)).toEqual([visible]);
-    });
-
-    test('also drops hidden focusable descendants of a wrapper', () => {
-        const wrapper = document.createElement('div');
-        const visible = makeButton('visible');
-        const hidden  = makeButton('hidden', { hidden: true });
-        wrapper.append(visible, hidden);
-
-        const slot = { assignedElements: () => [wrapper] };
-
-        expect(getFocusableFromSlot(slot)).toEqual([visible]);
-    });
-
-    test('matches the documented FOCUSABLE_SELECTOR (button, input, a[href], …)', () => {
+describe('FOCUSABLE_SELECTOR', () => {
+    test('matches the documented controls (button, input, a[href], …)', () => {
         // A meta-test: a regression in the selector string would silently break
         // every focus trap built on top of this util.
         expect(FOCUSABLE_SELECTOR).toMatch(/button/);
@@ -145,10 +103,10 @@ describe('getTabbableElements', () => {
         ]);
     });
 
-    test('pierces a nested shadow root — the gap getFocusableFromSlot misses', () => {
+    test('pierces a nested shadow root — the gap a shallow querySelectorAll misses', () => {
         // A wrapper whose only focusable lives inside a child custom element's
-        // shadow root. querySelectorAll (and thus getFocusableFromSlot) can't
-        // see it; the deep walker can.
+        // shadow root. A shallow querySelectorAll can't see it; the deep walker
+        // can.
         const wrapper = document.createElement('div');
         document.body.appendChild(wrapper);
         const host = document.createElement('div');
@@ -269,15 +227,14 @@ describe('getTabbableFromSlot', () => {
         expect(getTabbableFromSlot(slot)).toEqual([button, inner]);
     });
 
-    test('pierces an assigned custom element\'s shadow root — the getFocusableFromSlot gap', () => {
-        // An assigned element whose only focusable lives in its shadow root.
+    test('pierces an assigned custom element\'s shadow root', () => {
+        // An assigned element whose only focusable lives in its shadow root —
+        // a shallow one-slot-deep scan would miss it; the deep walker finds the
+        // real inner control.
         const host = document.createElement('div');
         host.attachShadow({ mode: 'open' }).innerHTML = '<button class="deep">x</button>';
         const slot = { assignedElements: () => [host] };
 
-        // The shallow helper misses it…
-        expect(getFocusableFromSlot(slot)).toEqual([]);
-        // …the deep one finds the real inner control.
         expect(getTabbableFromSlot(slot)).toEqual([host.shadowRoot.querySelector('.deep')]);
     });
 
