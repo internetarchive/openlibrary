@@ -1424,7 +1424,13 @@ export class SearchModal extends LitElement {
     _seeAllLabel() {
         const n = this._numFound;
         if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
-        const template = n === 1 ? this._i18n.seeAllOne : this._i18n.seeAllMany;
+        // "all" is only meaningful when there are more matches than we render
+        // inline. Once every hit is shown, drop "all" (and "all 1" never made
+        // sense). A there's-more count is always plural, so seeAllMany suffices.
+        let template;
+        if (n > this._results.length) template = this._i18n.seeAllMany;
+        else if (n === 1) template = this._i18n.seeOne;
+        else template = this._i18n.seeMany;
         return sprintf(template, n.toLocaleString());
     }
 
