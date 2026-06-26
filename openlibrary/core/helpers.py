@@ -40,7 +40,6 @@ __all__ = [
     "extract_year",
     "format_date",
     "format_decimal",
-    "json_encode",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
     "private_collection_in",
@@ -103,15 +102,6 @@ class NothingEncoder(json.JSONEncoder):
         if isinstance(obj, date):
             return obj.isoformat()
         return super().default(obj)
-
-
-def json_encode(d, **kw) -> str:
-    """Calls json.dumps on the given data d.
-    If d is a Nothing object, passes an empty list to json.dumps.
-
-    Returns the json.dumps results.
-    """
-    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
 def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = False) -> list:
