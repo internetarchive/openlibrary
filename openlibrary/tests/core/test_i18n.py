@@ -1,5 +1,9 @@
+from io import BytesIO
+
 import pytest
 import web
+from babel.messages.catalog import Catalog
+from babel.messages.pofile import write_po
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
@@ -92,37 +96,41 @@ class Test_ungettext:
         assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"
 
 
-class Test_unwrap_location_comments:
-    def test_collapses_a_wrapped_block_to_one_line(self):
-        pot = '#: search/authors.html search/lists.html search/subjects.html\n#: work_search.html\nmsgid "Checking Search Inside matches"\nmsgstr ""\n'
-        assert i18n._unwrap_location_comments(pot) == (
-            '#: search/authors.html search/lists.html search/subjects.html work_search.html\nmsgid "Checking Search Inside matches"\nmsgstr ""\n'
+class Test_pot_width:
+    """``messages.pot`` is written with ``width=POT_WIDTH`` so Babel never wraps the
+    ``#:`` location comments onto multiple lines, which is what caused spurious merge
+    conflicts (#12837). These guard that behaviour against a future Babel change.
+    """
+
+    def _write_pot(self, catalog):
+        buf = BytesIO()
+        write_po(buf, catalog, include_lineno=False, width=i18n.POT_WIDTH)
+        return buf.getvalue().decode("utf-8")
+
+    def test_locations_stay_on_a_single_line(self):
+        catalog = Catalog()
+        # A string used in many files: at Babel's default width=76 this location list
+        # would wrap across several #: lines; with POT_WIDTH it must stay on one.
+        locations = [(f"some/template/with_a_longish_path_{n}.html", n) for n in range(12)]
+        catalog.add("Reused string", locations=locations)
+        pot = self._write_pot(catalog)
+
+        location_lines = [line for line in pot.splitlines() if line.startswith("#:")]
+        assert len(location_lines) == 1
+        for filename, _ in locations:
+            assert filename in location_lines[0]
+
+    def test_flags_and_message_text_survive(self):
+        catalog = Catalog()
+        # python-format flag + a long string: confirm nothing but #: wrapping changes
+        # (the "could fuzzy/other comments break?" concern -- they don't go through any
+        # custom transform, Babel writes them as usual).
+        catalog.add(
+            "Created %(reference)s to track this error and we will investigate as we're able.",
+            locations=[("internalerror.html", 1)],
+            flags=["python-format"],
         )
+        pot = self._write_pot(catalog)
 
-    def test_leaves_single_line_location_comments_untouched(self):
-        pot = '#: work_search.html\nmsgid "Sort by"\nmsgstr ""\n'
-        assert i18n._unwrap_location_comments(pot) == pot
-
-    def test_does_not_touch_message_text_or_other_comments(self):
-        # Long msgid text stays wrapped; only #: lines are joined.
-        pot = (
-            "#. This is a translator note\n"
-            "#: a.html b.html\n"
-            "#: c.html\n"
-            'msgid ""\n'
-            '"A very long message that babel wrapped across two physical "\n'
-            '"lines for readability"\n'
-            'msgstr ""\n'
-        )
-        result = i18n._unwrap_location_comments(pot)
-        assert "#: a.html b.html c.html\n" in result
-        assert "#. This is a translator note\n" in result
-        assert '"A very long message that babel wrapped across two physical "\n' in result
-
-    def test_adding_one_file_extends_the_line_instead_of_reflowing(self):
-        before = "#: search/authors.html search/lists.html search/subjects.html work_search.html\n"
-        after = "#: search/authors.html search/editions.html search/lists.html\n#: search/subjects.html work_search.html\n"
-        # The wrapped "after" (what babel would emit) collapses back to a single line
-        # whose only change from "before" is the inserted file -- a clean one-line diff.
-        assert i18n._unwrap_location_comments(after) == ("#: search/authors.html search/editions.html search/lists.html search/subjects.html work_search.html\n")
-        assert i18n._unwrap_location_comments(before) == before
+        assert "#, python-format" in pot
+        assert "Created %(reference)s" in pot

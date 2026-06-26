@@ -149,37 +149,16 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def _unwrap_location_comments(pot: str) -> str:
-    """Collapse each message's wrapped ``#:`` location comment onto a single line.
-
-    Babel wraps location comments at 76 chars (it mirrors ``xgettext``, which always
-    wraps comments even when wrapping is otherwise disabled — so ``width=0`` does *not*
-    help here). When a string gains or loses one file, that wrapping re-flows the whole
-    block and rewrites filenames that didn't actually change, turning unrelated edits
-    into overlapping diffs and causing spurious ``messages.pot`` merge conflicts.
-
-    Keeping each location comment on a single line means adding a file just extends that
-    one line, so unrelated string changes no longer share — or conflict on — any lines.
-    Message text (``msgid``/``msgstr``) is left wrapped at Babel's default width so it
-    stays readable in diffs.
-    """
-    out: list[str] = []
-    pending: list[str] = []
-
-    def flush() -> None:
-        if pending:
-            files = " ".join(line.removeprefix("#:").strip() for line in pending)
-            out.append(f"#: {files}")
-            pending.clear()
-
-    for line in pot.split("\n"):
-        if line.startswith("#:"):
-            pending.append(line)
-        else:
-            flush()
-            out.append(line)
-    flush()
-    return "\n".join(out)
+# Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
+# comments that list which templates use each string. When a string gains or loses one
+# file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
+# turning unrelated edits into overlapping diffs and causing spurious merge conflicts.
+# Writing with a very large width disables wrapping, so each location comment stays on a
+# single line and adding a file just extends that line — unrelated changes no longer
+# share, or conflict on, any lines. (``width=0`` does *not* work: Babel mirrors
+# ``xgettext`` and always wraps comments at 76 regardless, while only unwrapping the
+# message text — the opposite of what we want.)
+POT_WIDTH = 1_000_000
 
 
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
@@ -237,11 +216,8 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
                 print(f"{count}\t{file_path}", file=sys.stderr)
 
     path = os.path.join(root, "messages.pot")
-    buffer = BytesIO()
-    write_po(buffer, catalog, include_lineno=False)
-    pot = _unwrap_location_comments(buffer.getvalue().decode("utf-8"))
     with open(path, "wb") as f:
-        f.write(pot.encode("utf-8"))
+        write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
 
