@@ -3,14 +3,15 @@ import { LitElement, html, css, nothing } from 'lit';
 /**
  * OLSubjectHero - A visual masthead for subject (and later, genre) pages.
  *
- * Renders a darkened, blurred "cover wall" backdrop built from a list of book
- * cover IDs, with the page's heading content layered on top via a default slot.
+ * Renders a soft-tinted masthead with the page's heading content on the left
+ * (a default slot) and an overlapping, fanned stack of representative book
+ * covers on the right.
  *
  * The textual content (heading, stats, description, search) is passed as
  * light-DOM slotted children so it stays server-rendered and crawlable, and
  * degrades gracefully to a plain heading if the component never hydrates.
  *
- * @property {Array<Number>} covers - Book cover IDs used to build the backdrop.
+ * @property {Array<Number>} covers - Book cover IDs used to build the stack.
  *   Pass as a JSON array attribute, e.g. covers="[123,456,789]".
  *
  * @example
@@ -23,58 +24,70 @@ export class OLSubjectHero extends LitElement {
         covers: { type: Array },
     };
 
+    /** Max covers shown in the fanned stack. */
+    static MAX_COVERS = 6;
+
     static styles = css`
         :host {
             display: block;
             position: relative;
             overflow: hidden;
-            border-radius: var(--border-radius-large, 12px);
-            /* A warm fallback while/if covers are unavailable */
-            background:
-                linear-gradient(135deg, var(--dark-blue, #036) 0%, var(--primary-blue, #0376c2) 100%);
-            color: var(--white, #fff);
+            /* Rounded top, flat bottom so the masthead reads as one piece with
+               the content that follows it. */
+            border-radius: var(--border-radius-large, 12px) var(--border-radius-large, 12px) 0 0;
+            /* Soft, warm tint; themeable per genre via --ol-subject-hero-bg. */
+            background: var(--ol-subject-hero-bg, hsl(41, 34%, 91%));
+            color: var(--dark-grey, #333);
             isolation: isolate;
         }
 
-        .wall {
-            position: absolute;
-            inset: 0;
+        .inner {
             display: flex;
-            gap: 0;
-            z-index: -2;
-            /* Slight scale so the blur doesn't reveal the host edges */
-            transform: scale(1.1);
-            filter: blur(2px) saturate(1.1);
-        }
-
-        .wall img {
-            flex: 1 0 auto;
-            width: auto;
-            height: 100%;
-            object-fit: cover;
-            min-width: 0;
-            /* Covers are decorative here */
-            opacity: 0.9;
-        }
-
-        /* Scrim: dark on the inline-start (where text sits), fading out */
-        .scrim {
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            background:
-                linear-gradient(
-                    to right,
-                    hsla(210, 60%, 12%, 0.92) 0%,
-                    hsla(210, 60%, 12%, 0.78) 45%,
-                    hsla(210, 60%, 12%, 0.5) 100%
-                );
+            align-items: center;
+            gap: 1rem;
+            min-height: 220px;
         }
 
         .content {
             position: relative;
+            flex: 1 1 auto;
             padding: 2.5rem 2rem;
             max-width: 46rem;
+        }
+
+        /* Fanned, overlapping cover stack on the inline-end side. */
+        .cover-stack {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: flex-end;
+            padding: 1.75rem 2rem 1.75rem 0;
+        }
+
+        .cover-stack__item {
+            width: 6.75rem;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            border-radius: var(--border-radius-sm, 4px);
+            background: var(--lighter-grey, #e0e0e0);
+            box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.22);
+            /* Fan out from a shared base point (like a hand of cards). */
+            transform-origin: bottom center;
+            transition: transform 0.18s ease;
+        }
+
+        .cover-stack__item:not(:first-child) {
+            margin-inline-start: -2.75rem;
+        }
+
+        /* On hover, ease the whole fan apart for a touch of life. */
+        .cover-stack:hover .cover-stack__item:not(:first-child) {
+            margin-inline-start: -2.25rem;
+        }
+
+        @media (max-width: 900px) {
+            .cover-stack {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
@@ -83,16 +96,19 @@ export class OLSubjectHero extends LitElement {
             }
         }
 
-        /* Slotted content inherits the light text and gets sensible spacing. */
-        ::slotted(h1) {
-            margin: 0 0 0.5rem;
-            color: var(--white, #fff);
-            font-size: 2.4rem;
-            line-height: 1.1;
+        @media (prefers-reduced-motion: reduce) {
+            .cover-stack__item {
+                transition: none;
+            }
         }
 
-        ::slotted(*) {
-            color: inherit;
+        /* Slotted content gets sensible spacing. Colours come from
+           subject-hero.css since slotted nodes live in the light DOM. */
+        ::slotted(h1) {
+            margin: 0 0 0.5rem;
+            font-size: 2.6rem;
+            line-height: 1.08;
+            letter-spacing: -0.01em;
         }
     `;
 
@@ -105,23 +121,32 @@ export class OLSubjectHero extends LitElement {
         return `https://covers.openlibrary.org/b/id/${id}-M.jpg`;
     }
 
-    _renderWall() {
-        const ids = (this.covers || []).filter(Boolean);
+    _renderStack() {
+        const ids = (this.covers || []).filter(Boolean).slice(0, OLSubjectHero.MAX_COVERS);
         if (!ids.length) return nothing;
 
+        const mid = (ids.length - 1) / 2;
         return html`
-            <div class="wall" aria-hidden="true">
-                ${ids.map((id) => html`<img src=${this._coverUrl(id)} alt="" loading="lazy" />`)}
+            <div class="cover-stack" aria-hidden="true">
+                ${ids.map((id, i) => {
+        // Gentle symmetric fan: ends rotate outward from the centre.
+        const rot = (i - mid) * 5;
+        return html`<img
+                        class="cover-stack__item"
+                        style="transform: rotate(${rot}deg); z-index: ${i};"
+                        src=${this._coverUrl(id)}
+                        alt=""
+                        loading="lazy" />`;
+    })}
             </div>
         `;
     }
 
     render() {
         return html`
-            ${this._renderWall()}
-            <div class="scrim" aria-hidden="true"></div>
-            <div class="content">
-                <slot></slot>
+            <div class="inner">
+                <div class="content"><slot></slot></div>
+                ${this._renderStack()}
             </div>
         `;
     }

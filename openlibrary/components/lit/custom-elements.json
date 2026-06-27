@@ -1149,9 +1149,19 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OLSubjectHero - A visual masthead for subject (and later, genre) pages.\n\nRenders a darkened, blurred \"cover wall\" backdrop built from a list of book\ncover IDs, with the page's heading content layered on top via a default slot.\n\nThe textual content (heading, stats, description, search) is passed as\nlight-DOM slotted children so it stays server-rendered and crawlable, and\ndegrades gracefully to a plain heading if the component never hydrates.",
+          "description": "OLSubjectHero - A visual masthead for subject (and later, genre) pages.\n\nRenders a soft-tinted masthead with the page's heading content on the left\n(a default slot) and an overlapping, fanned stack of representative book\ncovers on the right.\n\nThe textual content (heading, stats, description, search) is passed as\nlight-DOM slotted children so it stays server-rendered and crawlable, and\ndegrades gracefully to a plain heading if the component never hydrates.",
           "name": "OLSubjectHero",
           "members": [
+            {
+              "kind": "field",
+              "name": "MAX_COVERS",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "6",
+              "description": "Max covers shown in the fanned stack."
+            },
             {
               "kind": "method",
               "name": "_coverUrl",
@@ -1163,7 +1173,7 @@
             },
             {
               "kind": "method",
-              "name": "_renderWall"
+              "name": "_renderStack"
             },
             {
               "kind": "field",
@@ -1173,7 +1183,7 @@
                 "text": "Array<Number>"
               },
               "default": "[]",
-              "description": "Book cover IDs used to build the backdrop. Pass as a JSON array attribute, e.g. covers=\"[123,456,789]\".",
+              "description": "Book cover IDs used to build the stack. Pass as a JSON array attribute, e.g. covers=\"[123,456,789]\".",
               "attribute": "covers"
             }
           ],
@@ -1184,7 +1194,7 @@
                 "text": "Array<Number>"
               },
               "default": "[]",
-              "description": "Book cover IDs used to build the backdrop. Pass as a JSON array attribute, e.g. covers=\"[123,456,789]\".",
+              "description": "Book cover IDs used to build the stack. Pass as a JSON array attribute, e.g. covers=\"[123,456,789]\".",
               "fieldName": "covers"
             }
           ],
