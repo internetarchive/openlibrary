@@ -1593,6 +1593,19 @@
             },
             {
               "kind": "method",
+              "name": "_loadVisibleImages",
+              "parameters": [
+                {
+                  "name": "items"
+                },
+                {
+                  "name": "endVisible"
+                }
+              ],
+              "description": "Swap cover `data-lazy` → `src` for the visible range plus a one-page\nlookahead. Cards past the first page render with a placeholder src and\nthe real URL in `data-lazy` (see books/custom_carousel_card.html). The\nlegacy Slick carousel got this for free via `lazyLoad: 'ondemand'`;\n<ol-carousel> uses a transform-based track (not native scroll), so it\nmust do the swap itself or paged-in covers never load."
+            },
+            {
+              "kind": "method",
               "name": "_emitPageChange"
             },
             {

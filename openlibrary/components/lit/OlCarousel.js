@@ -531,6 +531,26 @@ export class OlCarousel extends LitElement {
                 item.setAttribute('aria-hidden', 'true');
             }
         });
+
+        this._loadVisibleImages(items, endVisible);
+    }
+
+    /** Swap cover `data-lazy` → `src` for the visible range plus a one-page
+     *  lookahead. Cards past the first page render with a placeholder src and
+     *  the real URL in `data-lazy` (see books/custom_carousel_card.html). The
+     *  legacy Slick carousel got this for free via `lazyLoad: 'ondemand'`;
+     *  <ol-carousel> uses a transform-based track (not native scroll), so it
+     *  must do the swap itself or paged-in covers never load. */
+    _loadVisibleImages(items, endVisible) {
+        const loadThrough = Math.min(items.length - 1, endVisible + this._columns);
+        for (let i = 0; i <= loadThrough; i++) {
+            const imgs = items[i].querySelectorAll?.('img[data-lazy]');
+            if (!imgs) continue;
+            imgs.forEach((img) => {
+                img.src = img.dataset.lazy;
+                img.removeAttribute('data-lazy');
+            });
+        }
     }
 
     _emitPageChange() {
