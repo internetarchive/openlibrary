@@ -1,7 +1,7 @@
 import pytest
 
-from openlibrary.solr.updater.edition import EditionSolrUpdater
-from openlibrary.tests.solr.test_update import FakeDataProvider
+from openlibrary.solr.updater.edition import EditionSolrBuilder, EditionSolrUpdater, sort_title
+from openlibrary.tests.solr.test_update import FakeDataProvider, make_edition
 
 
 class TestEditionSolrUpdater:
@@ -26,3 +26,30 @@ class TestEditionSolrUpdater:
         assert req.deletes == []
         assert req.adds == []
         assert new_keys == ["/works/OL1M"]
+
+
+@pytest.mark.parametrize(
+    ("title", "subtitle", "expected"),
+    [
+        ("The Great Gatsby", None, "Great Gatsby, The"),
+        ("Dune", None, "Dune"),
+        ("The Hobbit", "There and Back Again", "Hobbit: There and Back Again, The"),
+        ("L'amour", None, "amour, L'"),
+    ],
+)
+def test_sort_title(title, subtitle, expected):
+    assert sort_title(title, subtitle) == expected
+
+
+class TestEditionSolrBuilder:
+    def test_identifiers(self):
+        edition = make_edition(
+            identifiers={
+                "Some.Weird.Key##": ["  id-1  ", None, "id-1", "id-2  "],
+                "foo": [None],
+            }
+        )
+
+        assert EditionSolrBuilder(edition).identifiers == {
+            "id_some_weird_key": ["id-1", "id-2"],
+        }

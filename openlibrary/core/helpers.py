@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -15,7 +15,6 @@ import babel.numbers
 import genshi
 import genshi.filters
 import web
-from babel.core import Locale
 from bs4 import BeautifulSoup
 
 from infogami import config
@@ -24,6 +23,9 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
+if TYPE_CHECKING:
+    from babel.core import Locale
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -37,7 +39,7 @@ __all__ = [
     "days_since",
     "extract_year",
     "format_date",
-    "json_encode",
+    "format_decimal",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
     "private_collection_in",
@@ -53,7 +55,7 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
+def sanitize(html: str, encoding: str = "utf8", beautify: bool = True) -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
@@ -64,11 +66,11 @@ def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
     def get_nofollow(name, event):
         attrs = event[1][1]
 
-        if href := attrs.get('href', ''):
+        if href := attrs.get("href", ""):
             # add rel=nofollow to all absolute links
             _, host, _, _, _ = urlsplit(href)
             if host:
-                return 'nofollow'
+                return "nofollow"
 
     try:
         html_stream = genshi.HTML(html, encoding=encoding)
@@ -84,11 +86,7 @@ def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
         else:
             raise
 
-    stream = (
-        html_stream
-        | genshi.filters.HTMLSanitizer()
-        | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
-    )
+    stream = html_stream | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     return cast(str, stream.render())
 
 
@@ -106,18 +104,7 @@ class NothingEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def json_encode(d, **kw) -> str:
-    """Calls json.dumps on the given data d.
-    If d is a Nothing object, passes an empty list to json.dumps.
-
-    Returns the json.dumps results.
-    """
-    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
-
-
-def safesort(
-    iterable: Iterable, key: Callable | None = None, reverse: bool = False
-) -> list:
+def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = False) -> list:
     """Sorts heterogeneous of objects without raising errors.
 
     Sorting heterogeneous objects sometimes causes error. For example,
@@ -151,9 +138,7 @@ def datestr(
             now = datetime.now()
         delta = then - now
         if abs(delta.days) < 4:  # Threshold from web.py
-            return babel.dates.format_timedelta(
-                delta, add_direction=True, locale=_get_babel_locale(lang)
-            )
+            return babel.dates.format_timedelta(delta, add_direction=True, locale=_get_babel_locale(lang))
     return format_date(then, lang=lang)
 
 
@@ -205,10 +190,20 @@ def commify(number, lang=None):
         return str(number)
 
 
+def format_decimal(number, decimal_places=1, lang=None):
+    """Locale-aware decimal number formatting."""
+    try:
+        lang = lang or web.ctx.get("lang") or "en"
+        fmt = "#,##0." + "0" * decimal_places
+        return babel.numbers.format_decimal(number, format=fmt, locale=lang)
+    except Exception:
+        return str(round(number, decimal_places))
+
+
 def truncate(text: str, limit: int) -> str:
     """Truncate text and add ellipses if it longer than specified limit."""
     if not text:
-        return ''
+        return ""
     if len(text) <= limit:
         return text
     return text[:limit] + "..."
@@ -216,7 +211,7 @@ def truncate(text: str, limit: int) -> str:
 
 def urlsafe(path: str) -> str:
     """Replaces the unsafe chars from path with underscores."""
-    return _get_safepath_re().sub('_', path).strip('_')[:100]
+    return _get_safepath_re().sub("_", path).strip("_")[:100]
 
 
 @functools.cache
@@ -226,28 +221,28 @@ def _get_safepath_re():
     reserved = ";/?:@&=+$,"
     delims = '<>#%"'
     unwise = "{}|\\^[]`"
-    space = ' \n\r'
+    space = " \n\r"
 
     unsafe = reserved + delims + unwise + space
-    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    pattern = "[%s]+" % "".join(re.escape(c) for c in unsafe)
     return re.compile(pattern)
 
 
 _texsafe_map = {
-    '"': r'\textquotedbl{}',
-    '#': r'\#',
-    '$': r'\$',
-    '%': r'\%',
-    '&': r'\&',
-    '<': r'\textless{}',
-    '>': r'\textgreater{}',
-    '\\': r'\textbackslash{}',
-    '^': r'\^{}',
-    '_': r'\_{}',
-    '{': r'\{',
-    '}': r'\}',
-    '|': r'\textbar{}',
-    '~': r'\~{}',
+    '"': r"\textquotedbl{}",
+    "#": r"\#",
+    "$": r"\$",
+    "%": r"\%",
+    "&": r"\&",
+    "<": r"\textless{}",
+    ">": r"\textgreater{}",
+    "\\": r"\textbackslash{}",
+    "^": r"\^{}",
+    "_": r"\_{}",
+    "{": r"\{",
+    "}": r"\}",
+    "|": r"\textbar{}",
+    "~": r"\~{}",
 }
 
 _texsafe_re = None
@@ -302,17 +297,17 @@ def uniq(values, key=None):
 
 
 def affiliate_id(affiliate):
-    return config.get('affiliate_ids', {}).get(affiliate, '')
+    return config.get("affiliate_ids", {}).get(affiliate, "")
 
 
 def bookreader_host() -> str:
-    return config.get('bookreader_host', '')
+    return config.get("bookreader_host", "")
 
 
 def private_collections() -> list[str]:
     """Collections which are lendable but should not be linked from OL
     TODO: Remove when we can handle institutional books"""
-    return ['georgetown-university-law-library-rr']
+    return ["georgetown-university-law-library-rr"]
 
 
 def private_collection_in(collections: list[str]) -> bool:
@@ -322,14 +317,49 @@ def private_collection_in(collections: list[str]) -> bool:
 def extract_year(input: str, int_only: bool = True) -> str:
     """Extracts the year from an author's birth or death date."""
     if int_only:
-        pattern = r'\d{4}'
+        pattern = r"\d{4}"
     else:
-        pattern = r'[0-9xX?]{4}'
+        pattern = r"[0-9xX?]{4}"
 
     if result := re.search(pattern, input):
         return result.group()
 
-    return ''
+    return ""
+
+
+@functools.cache
+def get_author_exclusions() -> frozenset[str]:
+    """Returns the set of excluded author keys from config.
+
+    Reads ``author_exclusions`` from openlibrary.yml (a list of full author keys
+    such as ``["/authors/OL123A"]``).  Initialized once per process since
+    config is static per-deploy; a restart is required to pick up changes.
+    """
+    return frozenset(config.get("author_exclusions") or [])
+
+
+def is_exclusion(thing) -> bool:
+    """Returns True if *thing* should be excluded from public view.
+
+    A thing is excluded when it is an author whose key is in the
+    ``author_exclusions`` config list, or when it is a book/work whose
+    first resolvable author is in that list.
+    """
+    if not thing or not thing.key:
+        return False
+    try:
+        _, _type, _ = thing.key.split("/")
+    except ValueError:
+        return False
+    exclusions = get_author_exclusions()
+    if _type == "authors":
+        return thing.key in exclusions
+    elif _type in ("books", "works"):
+        for a in thing.get("authors") or []:
+            akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
+            if akey:
+                return akey in exclusions
+    return False
 
 
 def _get_helpers():

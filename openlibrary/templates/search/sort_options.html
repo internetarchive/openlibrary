@@ -58,6 +58,7 @@ $code:
               { 'sort': 'want_to_read', 'name': _("Want to Read"), 'ga_key': 'ReadingLogWantToRead' },
               { 'sort': 'currently_reading', 'name': _("Currently Reading"), 'ga_key': 'ReadingLogCurrentlyReading' },
               { 'sort': 'already_read', 'name': _("Already Read"), 'ga_key': 'ReadingLogAlreadyRead' },
+              { 'sort': 'stopped_reading', 'name': _("Stopped Reading"), 'ga_key': "ReadingLogStoppedReading"}
             ]
           },
          { 'sort': 'trending', 'name': _("Trending"), 'ga_key': 'Trending' },
@@ -69,7 +70,7 @@ $code:
      selected_sort_option = get_selected_sort_option(sort_options, selected_sort) or get_selected_sort_option(sort_options, default_sort)
     <details class="sort-dropper">
       <summary class="tool-button">
-        <img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" />
+        <img src="/static/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" />
         $selected_sort_option['name']
       </summary>
       <span class="sort-content">

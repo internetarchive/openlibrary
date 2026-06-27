@@ -1,24 +1,21 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', web_component=False)
 
-$def carousel_i18n_input():
-  $ show_carousel_i18n_strings=  {
-  $ "loading": _("Loading...")
-  $ }
-
-  <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
-
 $def render_cards(books, layout, key, secondary_action):
   $for index, book in enumerate(books or []):
       $ lazy_load = index > 5
       $ editions = book.get('editions', {})
-      $ book2 = storage(book if not editions else editions[0] if isinstance(editions, list) else editions.get('docs', [None])[0])
-      $ book2['authors'] = book['authors'] if 'authors' in book else []
+      $code:
+        target_data = book
+        if editions:
+            if isinstance(editions, list):
+                target_data = editions[0]
+            elif isinstance(editions, dict):
+                docs = editions.get('docs')
+                if docs and isinstance(docs, list):
+                    target_data = docs[0]
+      $ book2 = storage(target_data)
+      $ book2['authors'] = book.get('authors', [])
       $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
-
-
-$if render_once('books/custom_carousel.i18n-strings'):
-  $:carousel_i18n_input()
-
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:
@@ -33,6 +30,9 @@ $if test or (books and len(books) >= min_books):
             'booksPerBreakpoint': [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
             'analyticsCategory': 'BookCarousel',
             'carouselKey': key,
+            'i18n': {
+              'loading': _("Loading..."),
+            },
             'loadMore': {
               "queryType": load_more.get("queryType", ""),
               "q": load_more.get("q", ""),

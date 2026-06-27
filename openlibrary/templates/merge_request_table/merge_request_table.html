@@ -44,7 +44,5 @@ $else:
       </tbody>
     </table>
   </div>
-  <div class="pager">
-    $:macros.Pager(page, total[mode], results_per_page=25)
-  </div>
+  $:macros.OlPagination(page, ceil(total[mode] / 25))
 </div>

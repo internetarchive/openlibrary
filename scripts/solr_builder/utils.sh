@@ -52,7 +52,7 @@ test_ol_search() {
 
 test_all_ol_search() {
     echo "Test search on all servers returning results"
-    for base in ol-web{0..2}:8080 'openlibrary.org' 'testing.openlibrary.org' 'staging.openlibrary.org'; do
+    for base in ol-web{0..3}:8080 'openlibrary.org' 'testing.openlibrary.org' 'staging.openlibrary.org'; do
         echo -n "  Testing $base ... "
         test_ol_search $base
         if [ $? -eq 0 ]; then
@@ -117,7 +117,7 @@ switch_web_to_solr() {
 
 switch_all_web_to_solr() {
     local solr=$1
-    for node in ol-web{0..2} ol-dev1; do
+    for node in ol-web{0..3} ol-dev1; do
         echo -n "  $node ... "
         switch_web_to_solr $node $solr
 

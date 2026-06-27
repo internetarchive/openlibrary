@@ -4,9 +4,9 @@ export function initGoodreadsImport() {
 
     var count, prevPromise;
 
-    $(document).on('click', 'th.toggle-all input', function () {
+    $(document).on('click', 'th.toggle-all input', function() {
         var checked = $(this).prop('checked');
-        $('input.add-book').each(function () {
+        $('input.add-book').each(function() {
             $(this).prop('checked', checked);
             if (checked) {
                 $(this).attr('checked', 'checked');
@@ -19,7 +19,7 @@ export function initGoodreadsImport() {
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
-    $(document).on('click', 'input.add-book', function () {
+    $(document).on('click', 'input.add-book', function() {
         if ($(this).prop('checked')) {
             $(this).attr('checked', 'checked');
         }
@@ -43,7 +43,7 @@ export function initGoodreadsImport() {
         }
     }
 
-    $('.import-submit').on('click', function () {
+    $('.import-submit').on('click', function() {
         $('#myProgress').removeClass('hidden');
         $('.cancel-button').removeClass('hidden');
         $('input.import-submit').addClass('hidden');
@@ -52,19 +52,19 @@ export function initGoodreadsImport() {
         const shelves = { read: 3, 'currently-reading': 2, 'to-read': 1 };
         count = 0;
         prevPromise = Promise.resolve();
-        $('input.add-book').each(function () {
+        $('input.add-book').each(function() {
             var input = $(this),
                 checked = input.prop('checked');
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
             var shelf_id = 0;
-            const hasFailure = function () {
+            const hasFailure = function() {
                 return $(`[isbn=${value['ISBN']}]`).hasClass('import-failure');
             };
-            const fail = function (reason) {
+            const fail = function(reason) {
                 if (!hasFailure()) {
                     const element = $(`[isbn=${value['ISBN']}]`);
-                    element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`)
+                    element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`);
                     element.removeClass('selected');
                     element.addClass('import-failure');
                 }
@@ -86,10 +86,10 @@ export function initGoodreadsImport() {
                 return;
             }
 
-            prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
+            prevPromise = prevPromise.then(function() { // prevPromise changes in each iteration
                 $(`[isbn=${value['ISBN']}]`).addClass('selected');
                 return getWork(value['ISBN']); // return a new Promise
-            }).then(function (data) {
+            }).then(function(data) {
                 var obj = JSON.parse(data);
                 $.ajax({
                     url: `${obj['works'][0].key}/bookshelves.json`,
@@ -100,9 +100,9 @@ export function initGoodreadsImport() {
                         bookshelf_id: shelf_id
                     },
                     dataType: 'json'
-                }).fail(function () {
+                }).fail(function() {
                     fail('Failed to add book to reading log');
-                }).done(function () {
+                }).done(function() {
                     if (value['My Rating'] !== '0') {
                         return $.ajax({
                             url: `${obj['works'][0].key}/ratings.json`,
@@ -113,12 +113,12 @@ export function initGoodreadsImport() {
                                 bookshelf_id: shelf_id
                             },
                             dataType: 'json',
-                            fail: function () {
+                            fail: function() {
                                 fail('Failed to add rating');
                             }
                         });
                     }
-                }).then(function () {
+                }).then(function() {
                     if (value['Date Read'] !== '') {
                         const date_read = value['Date Read'].split('/'); // Format: "YYYY/MM/DD"
                         return $.ajax({
@@ -133,38 +133,38 @@ export function initGoodreadsImport() {
                             }),
                             dataType: 'json',
                             contentType: 'application/json',
-                            beforeSend: function (xhr) {
+                            beforeSend: function(xhr) {
                                 xhr.setRequestHeader('Content-Type', 'application/json');
                                 xhr.setRequestHeader('Accept', 'application/json');
                             },
-                            fail: function () {
+                            fail: function() {
                                 fail('Failed to set the read date');
                             }
                         });
                     }
                 });
                 if (!hasFailure()) {
-                    $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>')
+                    $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>');
                     $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                 }
                 func1(++count);
-            }).catch(function () {
+            }).catch(function() {
                 fail('Book not in collection');
                 func1(++count);
             });
         });
 
-        $('td.books-wo-isbn').each(function () {
+        $('td.books-wo-isbn').each(function() {
             $(this).removeClass('hidden');
         });
     });
 
     function getWork(isbn) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             var request = new XMLHttpRequest();
 
             request.open('GET', `/isbn/${isbn}.json`);
-            request.onload = function () {
+            request.onload = function() {
                 if (request.status === 200) {
                     resolve(request.response); // we get the data here, so resolve the Promise
                 } else {
@@ -172,7 +172,7 @@ export function initGoodreadsImport() {
                 }
             };
 
-            request.onerror = function () {
+            request.onerror = function() {
                 reject(Error('Error fetching data.')); // error occurred, so reject the Promise
             };
 

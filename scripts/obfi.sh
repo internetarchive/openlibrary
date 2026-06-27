@@ -44,7 +44,11 @@ obfi() {
         echo "  obfi tac | obfi_count_minute | ...    - count the logs by minute"
         echo "  obfi tac | obfi_count_hour | ...      - count the logs by hour"
         echo "  obfi_walk_logs | obfi_count_day | ... - count the logs by day"
-        echo "  obfi_previous_minute | obfi_top_ips   - count and sort the top IPs"
+        echo "  obfi_previous_minute | obfi_summary               - full summary with all top* commands"
+        echo "  obfi_previous_minute | obfi_top_ips               - count and sort the top IPs"
+        echo "  obfi_previous_minute | obfi_top_urls              - top requested URLs"
+        echo "  obfi_previous_minute | obfi_top_http_versions     - HTTP/1.1 vs HTTP/2 breakdown"
+        echo "  obfi_previous_minute | obfi_top_response_times    - min/avg/max + bucketed distribution"
         echo ""
         echo "For dealing with spam, you can decode obfuscated IPs with the obfi commands."
         echo "First, start listening with obfi_listen, then decode IPs with obfi_decode."
@@ -335,6 +339,131 @@ obfi_top_http_statuses() {
     grep -oE '" [0-9]{3} ' - | sort | uniq -c | sort -rn
 }
 
+obfi_top_user_agents() {
+    local COUNT=${1:-25}
+    grep -oE '"[^"]*" [0-9]+\.[0-9]+$' - | grep -oE '"[^"]*"' - | sort | uniq -c | sort -rn | head -n $COUNT
+}
+
+obfi_top_urls() {
+    local COUNT=${1:-25}
+    grep -oE '"(GET|POST|PUT|DELETE|HEAD) [^ ]+' - | sort | uniq -c | sort -rn | head -n $COUNT
+}
+
+obfi_top_http_versions() {
+    grep -oE 'HTTP/[0-9.]+' - | sort | uniq -c | sort -rn
+}
+
+obfi_top_response_times() {
+    # Prints min, max, avg, and a bucketed distribution of response times (in seconds)
+    awk '{print $NF}' - | awk '
+    BEGIN { n=0; sum=0; min=99999; max=0 }
+    /^[0-9]/ {
+        t=$1+0; n++; sum+=t
+        if (t<min) min=t
+        if (t>max) max=t
+        if      (t<0.01)  b["10ms"]++
+        else if (t<0.1)   b["100ms"]++
+        else if (t<1)     b["1000ms"]++
+        else if (t<5)     b["5000ms"]++
+        else if (t<10)    b["10000ms"]++
+        else if (t<20)    b["20000ms"]++
+        else              b["LONG"]++
+    }
+    END {
+        printf "n=%d  min=%.3fs  avg=%.3fs  max=%.3fs\n", n, min, sum/n, max
+        printf "  %6d %s\n", b["10ms"],     "10ms"
+        printf "  %6d %s\n", b["100ms"],    "100ms"
+        printf "  %6d %s\n", b["1000ms"],   "1000ms"
+        printf "  %6d %s\n", b["5000ms"],   "5000ms"
+        printf "  %6d %s\n", b["10000ms"],  "10000ms"
+        printf "  %6d %s\n", b["20000ms"],  "20000ms"
+        printf "  %6d %s\n", b["LONG"],     "LONG"
+    }'
+}
+
+obfi_summary() {
+    local input
+    input=$(cat -)
+
+    echo "==> wc -l <=="
+    echo "$input" | wc -l
+
+    echo -e "\n==> obfi_top_ips <=="
+    echo "$input" | obfi_top_ips
+
+    echo -e "\n==> obfi_top_user_agents <=="
+    echo "$input" | obfi_top_user_agents
+
+    echo -e "\n==> obfi_top_bots <=="
+    echo "$input" | obfi_top_bots
+
+    echo -e "\n==> obfi_top_http_statuses <=="
+    echo "$input" | obfi_top_http_statuses
+
+    echo -e "\n==> obfi_top_http_versions <=="
+    echo "$input" | obfi_top_http_versions
+
+    echo -e "\n==> obfi_top_response_times <=="
+    echo "$input" | obfi_top_response_times
+
+    echo -e "\n==> obfi_grep_secondary_reqs -v | obfi_top_urls <=="
+    echo "$input" | obfi_grep_secondary_reqs -v | obfi_top_urls
+}
+
+obfi_compare() {
+    if [[ -z "$1" || -z "$2" || "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: obfi_compare <file_a> <file_b>"
+        echo "Runs obfi_summary on both files and displays results side-by-side."
+        return 1
+    fi
+
+    local file_a=$1
+    local file_b=$2
+    local term_width=$(tput cols 2>/dev/null || echo 120)
+    local col_width=$(( (term_width - 4) / 2 ))  # 4 chars for " || "
+
+    _obfi_compare_section() {
+        local label=$1 a_out=$2 b_out=$3
+        echo -e "\n==> $label <=="
+        paste \
+            <(echo "$a_out" | awk -v w="$col_width" '{printf "%-*.*s\n", w, w, $0}') \
+            <(echo "$b_out" | awk -v w="$col_width" '{printf "%-*.*s\n", w, w, $0}') \
+            | sed 's/\t/ || /'
+    }
+
+    _obfi_compare_section "wc -l" \
+        "$(cat "$file_a" | wc -l)" \
+        "$(cat "$file_b" | wc -l)"
+
+    _obfi_compare_section "obfi_top_ips" \
+        "$(cat "$file_a" | obfi_top_ips)" \
+        "$(cat "$file_b" | obfi_top_ips)"
+
+    _obfi_compare_section "obfi_top_user_agents" \
+        "$(cat "$file_a" | obfi_top_user_agents)" \
+        "$(cat "$file_b" | obfi_top_user_agents)"
+
+    _obfi_compare_section "obfi_top_bots" \
+        "$(cat "$file_a" | obfi_top_bots)" \
+        "$(cat "$file_b" | obfi_top_bots)"
+
+    _obfi_compare_section "obfi_top_http_statuses" \
+        "$(cat "$file_a" | obfi_top_http_statuses)" \
+        "$(cat "$file_b" | obfi_top_http_statuses)"
+
+    _obfi_compare_section "obfi_top_http_versions" \
+        "$(cat "$file_a" | obfi_top_http_versions)" \
+        "$(cat "$file_b" | obfi_top_http_versions)"
+
+    _obfi_compare_section "obfi_top_response_times" \
+        "$(cat "$file_a" | obfi_top_response_times)" \
+        "$(cat "$file_b" | obfi_top_response_times)"
+
+    _obfi_compare_section "obfi_grep_secondary_reqs -v | obfi_top_urls" \
+        "$(cat "$file_a" | obfi_grep_secondary_reqs -v | obfi_top_urls)" \
+        "$(cat "$file_b" | obfi_grep_secondary_reqs -v | obfi_top_urls)"
+}
+
 obfi_top_bots() {
     obfi_grep_bots -o | \
         tr '[:upper:]' '[:lower:]' | \
@@ -347,8 +476,8 @@ obfi_top_bots() {
 ###############################################################
 
 obfi_grep_bots() {
-    # FIXME: Should be in sync with openlibrary/plugins/openlibrary/code.py
-    grep $1 -iE 'ahrefsbot|amazonbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot' -
+    # FIXME: Should be in sync with openlibrary/utils/request_context.py (USER_AGENT_BOTS)
+    grep $1 -iE 'ahrefsbot|amazonbot|applebot|aranet-searchbot|bingbot|bytespider|cheap-books-crawler|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|historichotspotsbot|iaskbot|likemindedbiobot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semanticscholarbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot|youbot' -
 }
 
 obfi_grep_secondary_reqs() {
@@ -407,7 +536,7 @@ def quick_parse_date(date_str: str, time_str) -> datetime:
 last_dt = None
 last_dt_str = None
 started = False
-buffer = 25  # Lines to read after mismatch
+buffer = 500  # Lines to read after mismatch - can sometimes be very out of order!
 try:
     for line in sys.stdin:
         try:
@@ -430,7 +559,7 @@ try:
 
             if start <= date <= end:
                 started = True
-                buffer = 25
+                buffer = 500
                 sys.stdout.write(line)
             elif started:
                 buffer -= 1

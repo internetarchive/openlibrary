@@ -50,7 +50,7 @@ button.larger {
 
 .adminOnly {
   background-color: var(--orange) !important;
-  padding: 4px;
+  padding: var(--spacing-inset-xs);
   border-radius: 4px;
 }
 
@@ -74,7 +74,7 @@ button.larger {
 }
 
 .valid {
-  padding: 5px 0 0 29px !important;
+  padding: var(--spacing-inset-xs) 0 0 29px !important;
 }
 
 .noborder {
@@ -190,11 +190,11 @@ button.larger {
 
 .headline,
 .sansserif {
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
 }
 
 .arial {
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
 }
 
 .nowrap {

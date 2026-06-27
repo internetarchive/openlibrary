@@ -13,6 +13,7 @@ static/css/page-dev.less
 build/
 *.local
 /.local
+CLAUDE.local.md
 *.tgz
 *.tar.gz
 *.org
@@ -50,3 +51,9 @@ android.keystore
 # Ignore checksum file if it’s generated during build
 manifest-checksum.txt
 .beads
+
+# Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
+docs/wiki/
+
+# uv lockfile (we resolve from requirements*.txt; not tracked)
+uv.lock

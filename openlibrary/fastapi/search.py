@@ -22,6 +22,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
     SolrInternalsParams,
+    parse_comma_separated_list,
 )
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -57,6 +58,14 @@ class PublicQueryOptions(BaseModel):
     # from workscheme facet_fields
     has_fulltext: Literal["true", "false"] | None = None
     public_scan_b: list[Literal["true", "false"]] = []
+    # Availability filters. These are not facet_fields — they're handled by
+    # WorkSearchScheme.facet_rewrites, which maps (`public_scan`, "true") and
+    # (`print_disabled`, "true") to `ebook_access:*` fq clauses. Mirrors the
+    # explicit whitelist in the web.py /search handler (worksearch/code.py);
+    # without declaring them here, FastAPI silently drops the params and the
+    # header search modal's availability filters do nothing.
+    public_scan: Literal["true", "false"] | None = None
+    print_disabled: Literal["true", "false"] | None = None
 
     # List fields (facets)
     author_key: list[str] = Field([], description="Filter by author key.", examples=["OL1394244A"])
@@ -97,7 +106,7 @@ class PublicQueryOptions(BaseModel):
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
-    fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
+    fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
@@ -109,12 +118,6 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
     )
-
-    @staticmethod
-    def parse_fields_string(v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            v = [v]
-        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
     @staticmethod
     def parse_query_json(v: str) -> dict[str, Any]:
@@ -168,7 +171,7 @@ async def search_json(
     """
 
     raw_response = await work_search_async(
-        params.selected_query,
+        params.selected_query,  # type: ignore[arg-type]
         sort=params.sort,
         page=params.page,
         offset=params.offset,

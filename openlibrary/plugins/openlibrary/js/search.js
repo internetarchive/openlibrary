@@ -12,9 +12,9 @@ import { buildPartialsUrl } from './utils';
  * @param {Number} facet_inc number of hidden facets to be displayed
  */
 export function more(header, start_facet_count, facet_inc) {
-    const facetEntry = `div.${header} div.facetEntry`
-    const shown = $(`${facetEntry}:not(:hidden)`).length
-    const total = $(facetEntry).length
+    const facetEntry = `div.${header} div.facetEntry`;
+    const shown = $(`${facetEntry}:not(:hidden)`).length;
+    const total = $(facetEntry).length;
     if (shown === start_facet_count) {
         $(`#${header}_less`).show();
         $(`#${header}_bull`).show();
@@ -34,9 +34,9 @@ export function more(header, start_facet_count, facet_inc) {
  * @param {Number} facet_inc number of displayed facets to be hidden
  */
 export function less(header, start_facet_count, facet_inc) {
-    const facetEntry = `div.${header} div.facetEntry`
-    const shown = $(`${facetEntry}:not(:hidden)`).length
-    const total = $(facetEntry).length
+    const facetEntry = `div.${header} div.facetEntry`;
+    const shown = $(`${facetEntry}:not(:hidden)`).length;
+    const total = $(facetEntry).length;
     const increment_extra = (shown - start_facet_count) % facet_inc;
     const facet_dec = (increment_extra === 0) ? facet_inc:increment_extra;
     const next_shown = Math.max(start_facet_count, shown - facet_dec);
@@ -65,30 +65,30 @@ export function less(header, start_facet_count, facet_inc) {
  * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
  */
 export async function initSearchFacets(facetsElem) {
-    const asyncLoad = facetsElem.dataset.asyncLoad
+    const asyncLoad = facetsElem.dataset.asyncLoad;
 
     if (asyncLoad) {
-        const param = JSON.parse(facetsElem.dataset.param)
+        const param = JSON.parse(facetsElem.dataset.param);
         await whenVisible(facetsElem);
 
         fetchPartials(param)
             .then((data) => {
                 if (data.activeFacets) {
-                    const activeFacetsElem = createElementFromMarkup(data.activeFacets)
-                    const activeFacetsContainer = document.querySelector('.selected-search-facets-container')
-                    activeFacetsContainer.replaceChildren(activeFacetsElem)
+                    const activeFacetsElem = createElementFromMarkup(data.activeFacets);
+                    const activeFacetsContainer = document.querySelector('.selected-search-facets-container');
+                    activeFacetsContainer.replaceChildren(activeFacetsElem);
                 }
-                const newFacetsElem = createElementFromMarkup(data.sidebar)
-                facetsElem.replaceWith(newFacetsElem)
-                hydrateFacets()
+                const newFacetsElem = createElementFromMarkup(data.sidebar);
+                facetsElem.replaceWith(newFacetsElem);
+                hydrateFacets();
 
-                document.title = data.title
+                document.title = data.title;
             })
             .catch(() => {
                 // XXX : Handle case where `/partials` response is not `2XX` here
-            })
+            });
     } else {
-        hydrateFacets()
+        hydrateFacets();
     }
 }
 
@@ -132,15 +132,15 @@ function fetchPartials(param) {
         param: param,
         path: location.pathname,
         query: location.search
-    }
+    };
 
     return fetch(buildPartialsUrl('SearchFacets', {data: JSON.stringify(data)}))
         .then((resp) => {
             if (!resp.ok) {
-                throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
+                throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
             }
-            return resp.json()
-        })
+            return resp.json();
+        });
 }
 
 /**
@@ -153,9 +153,9 @@ function fetchPartials(param) {
  * @returns {HTMLElement}
  */
 function createElementFromMarkup(markup) {
-    const template = document.createElement('template')
-    template.innerHTML = markup
-    return template.content.children[0]
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    return template.content.children[0];
 }
 
 
@@ -172,21 +172,21 @@ async function whenVisible(elem, options = {}) {
             (entries, observer) => {
                 entries.forEach(entry => {
                     if (!entry.isIntersecting) {
-                        return
+                        return;
                     }
 
                     // Stop observing once the element is visible
-                    observer.unobserve(entry.target)
-                    observer.disconnect()
-                    resolve()
-                })
+                    observer.unobserve(entry.target);
+                    observer.disconnect();
+                    resolve();
+                });
             },
             Object.assign({
                 root: null,
                 rootMargin: '200px',
                 threshold: 0
             }, options)
-        )
+        );
 
         intersectionObserver.observe(elem);
     });

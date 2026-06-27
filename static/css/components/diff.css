@@ -6,16 +6,16 @@
 /* stylelint-disable selector-max-specificity */
 #legend {
   font-size: var(--font-size-label-small);
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-stack-lg);
 }
 #legend dl,
 dd {
   margin: 0;
 }
 #legend dd {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border: 1px solid var(--lightest-grey);
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
 }
 #legend .mod {
   background-color: var(--orange-three);
@@ -40,8 +40,8 @@ dd {
   min-width: 400px;
 }
 .diff .revisions th {
-  padding: 10px;
-  font-family: var(--body-family);
+  padding: var(--spacing-inset-sm);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: 700;
   color: var(--black);
@@ -50,8 +50,8 @@ dd {
   text-transform: uppercase;
 }
 .diff .revisions td {
-  padding: 10px;
-  font-family: var(--code-family);
+  padding: var(--spacing-inset-sm);
+  font-family: var(--font-family-code);
   background: var(--lightest-grey);
   vertical-align: top;
   font-size: 0.875em;
@@ -62,7 +62,7 @@ dd {
   margin-top: 0;
 }
 td.r {
-  padding-left: 12px;
+  padding-left: var(--spacing-inset-sm);
   width: 50%;
 }
 .diff table tbody.mod td.r {
@@ -76,7 +76,7 @@ td.r {
   text-decoration: line-through;
 }
 td.l {
-  padding-left: 12px;
+  padding-left: var(--spacing-inset-sm);
   width: 50%;
 }
 .diff table tbody.rem td.l {

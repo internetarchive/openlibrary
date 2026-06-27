@@ -1,12 +1,40 @@
 from __future__ import annotations
 
+import json
 import re
 from typing import Self
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.core.env import get_ol_env
+
+JS_CALLBACK_RE = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$.]*$")
+
+
+def parse_comma_separated_list(v: str | list[str]) -> list[str]:
+    """
+    Parse comma-separated string values into a list of strings.
+
+    This validator handles both string and list inputs, converting:
+    - "a,b,c" → ["a", "b", "c"]
+    - ["a", "b,c"] → ["a", "b", "c"]
+
+    Used for query parameters that accept comma-separated values like:
+    - Search fields: "key,name,author_key"
+    - Bibliography keys: "ISBN1,ISBN2,ISBN3"
+
+    Args:
+        v: Input value (string or list of strings)
+
+    Returns:
+        List of trimmed strings with empty items filtered out
+    """
+    if not v:
+        return []
+    if isinstance(v, str):
+        v = [v]
+    return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
 
 class Pagination(BaseModel):
@@ -28,6 +56,26 @@ class Pagination(BaseModel):
 # This is a simple class to have a pagination with a limit of 20. Can be turned into a factory as needed.
 class PaginationLimit20(Pagination):
     limit: int = Field(20, ge=0, description="Maximum number of results to return.")
+
+
+def wrap_jsonp(request: Request, data: dict | list | str) -> Response:
+    """Wrap data in JSONP callback if callback param is present.
+
+    Always returns a Response object.
+    Accepts a dict or list (which will be JSON-serialized), or a pre-serialized JSON string.
+    """
+    if isinstance(data, str):
+        json_string = data
+    elif isinstance(data, (dict, list)):
+        json_string = json.dumps(data)
+    else:
+        raise TypeError(f"Unexpected type for JSON response: {type(data)}")
+
+    if callback := request.query_params.get("callback"):
+        if not JS_CALLBACK_RE.match(callback):
+            raise ValueError("Invalid callback parameter: must be a valid JavaScript identifier (only letters, numbers, underscore, $, and . allowed)")
+        return Response(content=f"{callback}({json_string});", media_type="application/javascript")
+    return Response(content=json_string, media_type="application/json")
 
 
 class SolrInternalsParams(BaseModel):
@@ -118,7 +166,7 @@ class SolrInternalsParams(BaseModel):
                 continue
 
             if value and value.startswith("$"):
-                if not re.match(r"^\$[a-zA-Z0-9.-_]+$", value):
+                if not re.match(r"^\$[a-zA-Z0-9._-]+$", value):
                     raise ValueError("Invalid solr internal variable supplied")
                 # Variables shouldn't be quoted
                 params.append(f"{solr_name}={value}")

@@ -1,6 +1,6 @@
 /* Styles for the check-in form */
 .check-in {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 .check-in__form {
@@ -9,7 +9,7 @@
 }
 
 .check-in__form > div {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .check-in__label,
@@ -22,7 +22,7 @@
 }
 
 .check-in__select {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 .check-in__actions {
@@ -57,9 +57,9 @@
 .last-read-date,
 .check-in-prompt {
   border-radius: 0 0 5px 5px;
-  padding: 5px 0;
+  padding: var(--spacing-inset-xs) 0;
   margin-top: -15px;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
   border: 1px solid var(--light-grey);
   font-size: var(--font-size-label-medium);
   text-align: center;
@@ -69,7 +69,7 @@
 .last-read-date a,
 .check-in-prompt a {
   display: inline-block;
-  padding: 8px 7px;
+  padding: var(--spacing-inset-sm);
   transition: background-color 0.2s;
   border-radius: var(--border-radius-button);
 }
@@ -86,7 +86,7 @@
   }
 
   .check-in__form > div {
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-stack-lg);
   }
 
   .check-in__label {
@@ -100,7 +100,7 @@
   .check-in__inputs {
     flex-direction: row;
     height: unset;
-    gap: 10px;
+    gap: var(--spacing-inline-lg);
   }
 
   .check-in__inputs > span {
@@ -124,5 +124,5 @@
 
 .check-in-prompt .prompt-copy {
   display: inline-block;
-  padding-top: 8px;
+  padding-top: var(--spacing-inset-sm);
 }

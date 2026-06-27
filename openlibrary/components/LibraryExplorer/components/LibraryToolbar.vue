@@ -433,7 +433,7 @@ export default {
 
             openTabs: [],
             maxTabs: screen.width > 600 ? 5 : 1,
-        }
+        };
     },
 
     computed: {
@@ -530,7 +530,7 @@ export default {
             }
         }
     }
-}
+};
 </script>
 
 

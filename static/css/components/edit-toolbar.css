@@ -24,15 +24,15 @@ div#editInfo > div {
   font-size: var(--font-size-label-small);
   font-weight: normal;
   color: var(--brown) !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 div#editInfo .smallest {
-  padding-top: 0.3rem;
+  padding-top: var(--spacing-inset-xs);
 }
 
 div#editTools {
   white-space: nowrap;
-  padding: 0 0 1rem;
+  padding: 0 0 var(--spacing-inset-md);
 }
 /* stylelint-enable selector-max-specificity */

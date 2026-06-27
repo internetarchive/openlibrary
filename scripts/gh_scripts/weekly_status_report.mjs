@@ -436,7 +436,7 @@ function prepareSubmitterInput(pullRequests, leads) {
         let awaitingResponseCount = 0
         assignedPulls.forEach((pull) => {
             for (const label of pull.labels) {
-                if (label.name === 'Needs: Response') {
+                if (label.name === 'Needs: Submitter Input') {
                     ++awaitingResponseCount
                     break
                 }

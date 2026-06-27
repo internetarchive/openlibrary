@@ -14,19 +14,19 @@ export function initLazyCarousel(elems) {
         root: null,
         rootMargin: '200px',
         threshold: 0
-    })
+    });
 
     elems.forEach(elem => {
         // Observe element for intersections
-        intersectionObserver.observe(elem)
+        intersectionObserver.observe(elem);
 
         // Add retry listener
-        const retryElem = elem.querySelector('.retry-btn')
+        const retryElem = elem.querySelector('.retry-btn');
         retryElem.addEventListener('click', (e) => {
-            e.preventDefault()
+            e.preventDefault();
             handleRetry(elem);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -36,7 +36,7 @@ export function initLazyCarousel(elems) {
  * @returns {Promise<Response>}
  */
 async function fetchPartials(data) {
-    return fetch(buildPartialsUrl('LazyCarousel', {...data}))
+    return fetch(buildPartialsUrl('LazyCarousel', {...data}));
 }
 
 /**
@@ -51,22 +51,22 @@ async function fetchPartials(data) {
  * @param target {HTMLElement} A placeholder element for a carousel
  */
 function doFetchAndUpdate(target) {
-    const config = JSON.parse(target.dataset.config)
-    const loadingIndicator = target.querySelector('.loadingIndicator')
+    const config = JSON.parse(target.dataset.config);
+    const loadingIndicator = target.querySelector('.loadingIndicator');
 
     fetchPartials(config)
         .then(resp => {
             if (!resp.ok) {
-                throw new Error('Failed to fetch partials from server')
+                throw new Error('Failed to fetch partials from server');
             }
-            return resp.json()
+            return resp.json();
         })
         .then(data => {
-            const newElem = document.createElement('div')
-            newElem.innerHTML = data.partials.trim()
-            const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced')
-            const olCarousels = newElem.querySelectorAll('ol-carousel[data-config]')
-            loadingIndicator.classList.add('hidden')
+            const newElem = document.createElement('div');
+            newElem.innerHTML = data.partials.trim();
+            const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced');
+            const olCarousels = newElem.querySelectorAll('ol-carousel[data-config]');
+            loadingIndicator.classList.add('hidden');
 
             if (carouselElements.length === 0 && olCarousels.length === 0 && config.fallback) {
                 // No results, disable filters
@@ -79,21 +79,21 @@ function doFetchAndUpdate(target) {
 
                 target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
             } else {
-                target.parentNode.insertBefore(newElem, target)
-                target.remove()
+                target.parentNode.insertBefore(newElem, target);
+                target.remove();
                 if (carouselElements.length) {
-                    initialzeCarousels(carouselElements)
+                    initialzeCarousels(carouselElements);
                 }
                 if (olCarousels.length) {
-                    initOlCarousels(olCarousels)
+                    initOlCarousels(olCarousels);
                 }
             }
         })
         .catch(() => {
             loadingIndicator.classList.add('hidden');
-            const retryElem = target.querySelector('.lazy-carousel-retry')
-            retryElem.classList.remove('hidden')
-        })
+            const retryElem = target.querySelector('.lazy-carousel-retry');
+            retryElem.classList.remove('hidden');
+        });
 }
 
 /**
@@ -103,13 +103,13 @@ function doFetchAndUpdate(target) {
  * @param target {Element}
  */
 function handleRetry(target) {
-    target.querySelector('.loadingIndicator').classList.remove('hidden')
-    target.querySelector('.lazy-carousel-retry').classList.add('hidden')
-    const carouselFallbackElem = target.querySelector('.lazy-carousel-fallback')
+    target.querySelector('.loadingIndicator').classList.remove('hidden');
+    target.querySelector('.lazy-carousel-retry').classList.add('hidden');
+    const carouselFallbackElem = target.querySelector('.lazy-carousel-fallback');
     if (carouselFallbackElem) {
-        carouselFallbackElem.classList.add('hidden')
+        carouselFallbackElem.classList.add('hidden');
     }
-    doFetchAndUpdate(target)
+    doFetchAndUpdate(target);
 }
 
 /**
@@ -123,9 +123,9 @@ function handleRetry(target) {
 function intersectionCallback(entries, observer) {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            const target = entry.target
-            observer.unobserve(target)
-            doFetchAndUpdate(target)
+            const target = entry.target;
+            observer.unobserve(target);
+            doFetchAndUpdate(target);
         }
-    })
+    });
 }
