@@ -1463,7 +1463,7 @@
                 "text": "array"
               },
               "static": true,
-              "default": "[ [480, 2], [600, 3], [768, 4], [960, 5], [Infinity, 6], ]",
+              "default": "[ [480, 3], [600, 4], [768, 5], [1024, 7], [Infinity, 8], ]",
               "description": "Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default."
             },
             {
@@ -1675,7 +1675,7 @@
               "type": {
                 "text": "Number"
               },
-              "default": "12",
+              "default": "8",
               "description": "Gap between items in px (default: 4)",
               "attribute": "gap"
             },
@@ -1884,7 +1884,7 @@
               "type": {
                 "text": "Number"
               },
-              "default": "12",
+              "default": "8",
               "description": "Gap between items in px (default: 4)",
               "fieldName": "gap"
             },

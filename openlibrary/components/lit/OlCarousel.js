@@ -221,11 +221,11 @@ export class OlCarousel extends LitElement {
 
     /** Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
     static _breakpoints = [
-        [480, 2],
-        [600, 3],
-        [768, 4],
-        [960, 5],
-        [Infinity, 6],
+        [480, 3],
+        [600, 4],
+        [768, 5],
+        [1024, 7],
+        [Infinity, 8],
     ];
 
     /** Spring physics constants */
@@ -258,7 +258,7 @@ export class OlCarousel extends LitElement {
     constructor() {
         super();
         this.peek = 0.03;
-        this.gap = 12;
+        this.gap = 8;
         this.label = 'Carousel';
         this.labelPrevious = 'Previous page';
         this.labelNext = 'Next page';

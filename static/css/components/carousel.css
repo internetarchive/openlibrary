@@ -213,3 +213,47 @@
   margin: 0 auto;
   padding: var(--spacing-inset-lg);
 }
+
+/**
+ * <ol-carousel> book layout
+ *
+ * The web-component carousel (subject/home pages) renders covers in uniform
+ * 2:3 boxes, tightly packed, blending into the page (no decorated background).
+ * Scoped to `.ol-carousel--books` so the legacy Slick carousel is unaffected.
+ */
+
+/* Blend into the page — drop the decorated background and borders. */
+.carousel-container-decorated:has(.ol-carousel--books) {
+  background: none;
+  border-top: 0;
+  border-bottom: 0;
+}
+
+/* Uniform 2:3 cover boxes; the carousel sets each item's width. */
+.ol-carousel--books .book .book-cover {
+  height: auto;
+}
+
+.ol-carousel--books .book img.bookcover {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
+
+/* Placeholder (no cover image) matches the same box. */
+.ol-carousel--books .carousel__item__blankcover {
+  height: auto;
+  aspect-ratio: 2 / 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-inset-sm);
+}
+
+/* Let the carousel's gap own the spacing between items. */
+.ol-carousel--books .carousel__item {
+  margin: 0;
+  padding: 0;
+}
