@@ -1,13 +1,13 @@
-/* Subject page masthead, stat strip, and author cards.
+/* Subject page masthead, stat strip, and the two-column dashboard below it.
  * Used by the overhauled /subjects/<topic> pages. The ol-subject-hero web
  * component supplies the soft-tinted background and the fanned cover stack;
  * the rules below style the dark light-DOM content slotted into it, plus the
- * author-card row. */
+ * carousels/sidebar layout (genres + notable authors). */
 
 ol-subject-hero {
   display: block;
-  margin: 0 0 1.5em;
-  min-height: 220px;
+  margin: 0 0 1em;
+  min-height: 200px;
 }
 
 /* Hero content (light DOM, slotted into the component) */
@@ -24,12 +24,17 @@ ol-subject-hero h1 {
   color: var(--dark-grey);
 }
 
-.subject-hero__tagline {
-  margin: 0 0 0.25rem;
-  max-width: 40rem;
+/* The genre description (two short paragraphs) lives in the hero masthead. */
+.subject-hero__lead {
+  max-width: 38rem;
+  margin: 0;
   color: var(--dark-grey);
-  font-size: 1.1rem;
-  line-height: 1.35;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.subject-hero__lead p {
+  margin: 0 0 0.5rem;
 }
 
 ol-subject-hero .tag-description {
@@ -67,7 +72,7 @@ ol-subject-hero a {
 
 .subject-stat__num {
   display: block;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--dark-grey);
@@ -91,50 +96,67 @@ ol-subject-hero a {
   color: var(--grey);
 }
 
-/* Stacked rails */
+/* ── Two-column dashboard: wide carousels + a narrow sidebar ── */
+.subject-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  gap: 3.5rem;
+  align-items: start;
+  margin-top: 1.25rem;
+}
+
+.subject-layout__main,
+.subject-layout__aside {
+  min-width: 0;
+}
+
+/* Stack on narrow screens: carousels first, sidebar below. */
+@media (max-width: 768px) {
+  .subject-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
 .subject-rails {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
-/* Author cards */
+/* Sidebar section headings (genres + authors) */
+.subject-aside__title {
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
+}
+
+/* ── Notable authors (sidebar list) ── */
 .subject-authors {
-  margin: 1.5rem 0;
+  margin: 1.75rem 0 0;
 }
 
-.subject-authors__row {
-  display: flex;
-  gap: 1rem;
-  margin: 0.75rem 0 0;
-  padding: 0.25rem 0 0.75rem;
-  list-style: none;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
+.subject-layout__aside > .subject-authors:first-child {
+  margin-top: 0;
 }
 
-.subject-authors__item {
-  scroll-snap-align: start;
-}
-
-.subject-author-card {
+/* Authors are rendered as cards reusing .flavor-card (border, radius, hover,
+   .flavor-card__text/__name/__blurb). Only the round avatar — which stands in
+   for the genre cards' icon — needs author-specific styling. */
+.subject-authors__list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 6.5rem;
-  text-align: center;
-  text-decoration: none;
-  color: var(--dark-grey);
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
 }
 
 .subject-author-card__avatar {
-  width: 5.5rem;
-  height: 5.5rem;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
   overflow: hidden;
   /* Fallback avatar shows through when the author has no photo */
   background: var(--lightest-grey) url(/images/icons/avatar_author-lg.png)
     center / cover no-repeat;
-  box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.15);
 }
 
 .subject-author-card__avatar img {
@@ -144,33 +166,17 @@ ol-subject-hero a {
   display: block;
 }
 
-.subject-author-card__name {
-  margin-top: 0.5rem;
-  font-size: var(--font-size-body-medium, 0.9rem);
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.subject-author-card:hover .subject-author-card__name {
-  text-decoration: underline;
-}
-
-.subject-author-card__count {
-  margin-top: 2px;
-  font-size: var(--font-size-label-medium, 0.78rem);
-  color: var(--grey);
-}
-
 /* ── Genre dashboard: about / flavors / rails ── */
 
+/* "Choose your flavor" heading — sized to match the sidebar it now lives in. */
 .subject-section-title {
-  margin: 0 0 0.25rem;
-  font-size: 1.4rem;
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
 }
 
+/* The subtitle is redundant in the sidebar; each flavor card has its own blurb. */
 .subject-section-sub {
-  margin: 0 0 1rem;
-  color: var(--grey);
+  display: none;
 }
 
 /* About-this-genre prose */
@@ -186,15 +192,15 @@ ol-subject-hero a {
   margin: 0 0 0.75rem;
 }
 
-/* Choose-your-flavor subgenre map */
+/* Choose-your-flavor subgenre map (sidebar; collapses to a single column) */
 .subject-flavors {
-  margin: 1.5rem 0 2rem;
+  margin: 0 0 1.75rem;
 }
 
 .subject-flavors__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.1rem;
 }
 
 .flavor-group__label {
@@ -218,13 +224,11 @@ ol-subject-hero a {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.4rem 0.55rem;
   border: var(--border-width, 1px) solid var(--lighter-grey);
   border-radius: var(--border-radius-medium, 8px);
   background: var(--white);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 /* Outrank the global `a:link`/`a:hover` underline (common.css). */
@@ -235,8 +239,7 @@ ol-subject-hero a {
 }
 
 .flavor-card:hover {
-  border-color: var(--primary-blue);
-  box-shadow: 0 1px 6px hsla(0, 0%, 0%, 0.08);
+  background: var(--lightest-grey);
 }
 
 .flavor-card__icon {
@@ -258,6 +261,7 @@ ol-subject-hero a {
 
 .flavor-card__name {
   display: block;
+  font-size: var(--font-size-label-large, 0.9rem);
   font-weight: 600;
   color: var(--link-blue);
 }
@@ -271,7 +275,7 @@ ol-subject-hero a {
 
 /* Labelled, interpreted rails ("paths") */
 .subject-rail {
-  margin: 0 0 1.75rem;
+  margin: 0 0 3rem;
 }
 
 .subject-rail__head {
@@ -324,12 +328,71 @@ ol-subject-hero a {
   display: none;
 }
 
+/* Decision pills overlaid on the cover. A series pill ("Book 1 of 4") sits
+   top-left; a context pill (rating ★4.0, or page count 330p) sits top-right.
+   The wrapper ignores pointer events so hovering still reaches the cover link
+   (and its instant hovercard). */
+.subject-rail .book-cover {
+  position: relative;
+}
+
+.cover-pills {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cover-pill {
+  position: absolute;
+  top: 6px;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% - 12px);
+  padding: 2px 7px;
+  border-radius: var(--border-radius-pill, 999px);
+  background: hsla(0, 0%, 0%, 0.78);
+  color: var(--white);
+  font-size: var(--font-size-label-medium, 0.72rem);
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.3);
+}
+
+/* Series pill top-left; context pill (rating/pages) bottom-right so the two
+   never collide on a narrow cover. */
+.cover-pill--series {
+  inset-inline-start: 6px;
+}
+
+.cover-pill--rating,
+.cover-pill--pages {
+  top: auto;
+  bottom: 6px;
+  inset-inline-end: 6px;
+}
+
+.cover-pill__star {
+  margin-right: 0.2em;
+  color: var(--orange, hsl(36, 100%, 50%));
+}
+
 /* Hovering a cover lifts it with a thick ring; the <ol-tooltip> hovercard
-   (rendered in books/custom_carousel_card.html) reveals title/year/author.
-   Extra block padding gives the ring room inside the carousel's clipped
-   viewport so it isn't sheared off at the top and bottom of the row. */
+   (rendered in books/custom_carousel_card.html) reveals title/year/author. */
 .subject-rail .carousel__item {
-  padding-block: 7px;
+  padding-block: 0;
+  /* Let the cover's hover ring/shadow (below) spill past the item box instead
+     of being clipped by the default .carousel__item { overflow: hidden }. */
+  overflow: visible;
+}
+
+/* Pad the <ol-carousel> viewport so the hover lift isn't clipped top/bottom by
+   its internal overflow: hidden. Horizontal edges still clip (normal for a
+   scroller); this just buys vertical room. */
+.subject-rail ol-carousel {
+  --ol-carousel-viewport-padding: 16px;
 }
 
 /* Covers here drop the default tan drop-shadow (.book img.bookcover) for a
@@ -340,7 +403,7 @@ ol-subject-hero a {
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--lighter-grey);
   box-shadow:
-    0 0 0 0 var(--white),
+    0 0 0 0 var(--primary-blue),
     0 0 0 hsla(0, 0%, 0%, 0);
   transition: box-shadow 0.15s ease;
 }
@@ -350,6 +413,6 @@ ol-subject-hero a {
 .subject-rail :focus-visible .bookcover,
 .subject-rail :focus-visible .carousel__item__blankcover {
   box-shadow:
-    0 0 0 5px var(--white),
+    0 0 0 5px var(--primary-blue),
     0 5px 16px hsla(0, 0%, 0%, 0.25);
 }
