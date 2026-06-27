@@ -66,7 +66,7 @@ export class OLSubjectHero extends LitElement {
         }
 
         .cover-stack__item {
-            width: 5rem;
+            width: 6.5rem;
             aspect-ratio: 2 / 3;
             object-fit: cover;
             border-radius: var(--border-radius-sm, 4px);
