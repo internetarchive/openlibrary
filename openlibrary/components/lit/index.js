@@ -11,4 +11,5 @@ export { OlPagination } from './OlPagination.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 export { OLSubjectHero } from './OLSubjectHero.js';
+export { OlCarousel } from './OlCarousel.js';
 

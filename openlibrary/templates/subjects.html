@@ -78,12 +78,12 @@ $if page.subject_type == 'subject':
               </ul>
           </div>
       <div class="subject-carousels">
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Trending now'), sort='trending,trending_score_hourly_sum', key='subject-trending', has_fulltext_only=False, fallback=True, user_lang_only=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Most widely read'), sort='readinglog', key='subject-popular', has_fulltext_only=False)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Highly rated'), sort='rating', key='subject-rated', has_fulltext_only=False)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Most want to read'), sort='want_to_read', key='subject-wtr', has_fulltext_only=False)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Available to read now'), sort='readinglog', key='subject-readnow', has_fulltext_only=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Recently published'), sort='new', key='subject-new', has_fulltext_only=False)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Trending now'), sort='trending,trending_score_hourly_sum', key='subject-trending', has_fulltext_only=False, fallback=True, user_lang_only=True, web_component=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Most widely read'), sort='readinglog', key='subject-popular', has_fulltext_only=False, web_component=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Highly rated'), sort='rating', key='subject-rated', has_fulltext_only=False, web_component=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Most want to read'), sort='want_to_read', key='subject-wtr', has_fulltext_only=False, web_component=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Available to read now'), sort='readinglog', key='subject-readnow', has_fulltext_only=True, web_component=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Recently published'), sort='new', key='subject-new', has_fulltext_only=False, web_component=True)
       </div>
 
       $if has_tag:

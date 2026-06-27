@@ -204,6 +204,14 @@ jQuery(function () {
                 module.initialzeCarousels(carouselElements)
             })
     }
+    // Wire load-more onto any non-lazy <ol-carousel> web components present at load
+    const olCarouselElements = document.querySelectorAll('ol-carousel[data-config]')
+    if (olCarouselElements.length) {
+        import(/* webpackChunkName: "ol-carousel" */ './ol-carousel')
+            .then((module) => {
+                module.initOlCarousels(olCarouselElements)
+            })
+    }
     if ($('script[type="text/json+graph"]').length > 0) {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());

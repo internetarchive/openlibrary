@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None, web_component=False)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -10,6 +10,7 @@ $# * search (bool) -- whether to include search within collection
 $# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
 $# * lazy (bool) -- When True, lazy-load this carousel
 $# * safe_mode (bool) -- When True, blurs covers of books that have a `content_warning` tag
+$# * web_component (bool) -- When True, renders the <ol-carousel> web component instead of the legacy Slick carousel
 
 $if safe_mode:
     $ query = '%s %s' % (query, '-subject:"content_warning:cover"')
@@ -25,6 +26,7 @@ $if lazy:
             "has_fulltext_only": has_fulltext_only,
             "layout": layout,
             "fallback": fallback,
+            "web_component": web_component,
         }
         if title:
             config["title"] = title
@@ -75,4 +77,4 @@ $else:
         "hasFulltextOnly": has_fulltext_only
       }
 
-    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout)
+    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout, web_component=web_component)

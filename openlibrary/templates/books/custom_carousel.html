@@ -1,4 +1,4 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', web_component=False)
 
 $def carousel_i18n_input():
   $ show_carousel_i18n_strings=  {
@@ -6,6 +6,14 @@ $def carousel_i18n_input():
   $ }
 
   <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
+
+$def render_cards(books, layout, key, secondary_action):
+  $for index, book in enumerate(books or []):
+      $ lazy_load = index > 5
+      $ editions = book.get('editions', {})
+      $ book2 = storage(book if not editions else editions[0] if isinstance(editions, list) else editions.get('docs', [None])[0])
+      $ book2['authors'] = book['authors'] if 'authors' in book else []
+      $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
 
 
 $if render_once('books/custom_carousel.i18n-strings'):
@@ -38,17 +46,19 @@ $if test or (books and len(books) >= min_books):
               "hasFulltextOnly": load_more.get("hasFulltextOnly", True),
             } if load_more else None
           }
-        $ compact = "carousel--compact" if compact_mode else ""
-        $ grid = "carousel--grid" if layout == 'grid' else ""
-        $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
-        <div class="carousel $grid $compact $loadjs"
-          data-config="$json_encode(config)">
-          $for index, book in enumerate(books or []):
-              $ lazy_load = index > 5
-              $ editions = book.get('editions', {})
-              $ book2 = storage(book if not editions else editions[0] if isinstance(editions, list) else editions.get('docs', [None])[0])
-              $ book2['authors'] = book['authors'] if 'authors' in book else []
-              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
-        </div>
+          use_oc = web_component and layout != 'grid'
+        $if use_oc:
+          <ol-carousel class="ol-carousel--books" label="$(title or key or _('Books'))" hide-indicators
+            data-config="$json_encode(config)">
+            $:render_cards(books, layout, key, secondary_action)
+          </ol-carousel>
+        $else:
+          $ compact = "carousel--compact" if compact_mode else ""
+          $ grid = "carousel--grid" if layout == 'grid' else ""
+          $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
+          <div class="carousel $grid $compact $loadjs"
+            data-config="$json_encode(config)">
+            $:render_cards(books, layout, key, secondary_action)
+          </div>
       </div>
     </div>

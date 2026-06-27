@@ -1,4 +1,5 @@
 import {initialzeCarousels} from './carousel';
+import { initOlCarousels } from './ol-carousel';
 import { buildPartialsUrl } from './utils';
 
 /**
@@ -64,9 +65,10 @@ function doFetchAndUpdate(target) {
             const newElem = document.createElement('div')
             newElem.innerHTML = data.partials.trim()
             const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced')
+            const olCarousels = newElem.querySelectorAll('ol-carousel[data-config]')
             loadingIndicator.classList.add('hidden')
 
-            if (carouselElements.length === 0 && config.fallback) {
+            if (carouselElements.length === 0 && olCarousels.length === 0 && config.fallback) {
                 // No results, disable filters
                 if (typeof config.fallback === 'string') {
                     config.query = config.fallback;
@@ -79,7 +81,12 @@ function doFetchAndUpdate(target) {
             } else {
                 target.parentNode.insertBefore(newElem, target)
                 target.remove()
-                initialzeCarousels(carouselElements)
+                if (carouselElements.length) {
+                    initialzeCarousels(carouselElements)
+                }
+                if (olCarousels.length) {
+                    initOlCarousels(olCarousels)
+                }
             }
         })
         .catch(() => {

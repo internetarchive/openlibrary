@@ -387,6 +387,7 @@ class LazyCarouselParams(BaseModel):
     url: str | None = None
     layout: str = "carousel"
     fallback: str | None = None
+    web_component: bool = False
 
     @classmethod
     def from_web_input(cls) -> "LazyCarouselParams":
@@ -402,6 +403,7 @@ class LazyCarouselParams(BaseModel):
             url=None,
             layout="carousel",
             fallback=None,
+            web_component="false",
         )
         return cls(
             query=i.query,
@@ -414,6 +416,7 @@ class LazyCarouselParams(BaseModel):
             url=i.url,
             layout=i.layout,
             fallback=i.fallback,
+            web_component=i.web_component != "false",
         )
 
 
@@ -437,6 +440,7 @@ class LazyCarouselPartial(PartialDataHandler):
             url=self.i.url,
             layout=self.i.layout,
             fallback=self.i.fallback,
+            web_component=self.i.web_component,
         )
         return {"partials": str(macro)}
 
