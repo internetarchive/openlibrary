@@ -32,9 +32,6 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
-from web.template import TemplateResult
-from web.utils import Storage
-
 from infogami import config
 from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
@@ -47,6 +44,9 @@ from infogami.utils.view import (
     public,
     render,
 )
+from web.template import TemplateResult
+from web.utils import Storage
+
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware

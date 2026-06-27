@@ -165,7 +165,6 @@ ia_ol_xauth_s3:
 ia_loan_api_url: http://web:8080/internal/fake/loans
 ia_xauth_api_url: http://web:8080/internal/fake/xauth
 ia_s3_auth_url: http://web:8080/internal/fake/s3auth
-otp_seed: dev-otp-seed-for-e2e-testing
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/
@@ -178,14 +177,8 @@ sentry:
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
     traces_sample_rate: 1.0
-    profiles_sample_rate: 0.05
+    profiles_sample_rate: 0.001
     environment: 'local'
-
-    frontend:
-        dsn: 'https://examplePublicKey@o0.ingest.sentry.io/1'
-        # Inherits same rates from above
-        # In JS, this controls error sample rate
-        sample_rate: 0.01
 
 sentry_cron_jobs:
     enabled: false
@@ -196,8 +189,8 @@ sentry_cron_jobs:
 # Observations cache settings:
 observation_cache_duration: 86400
 
-# Author keys whose pages (and their books/works) should return 404.
-# In production this list lives in olsystem's openlibrary.yml.
-# Format: full author keys, e.g. ["/authors/OL123A"].
-# The value below is intentionally empty so dev behaves like a normal site.
-author_exclusions: []
+# Proxy configuration.
+# http_proxy is used for all outbound service calls (Amazon Creators API, reCAPTCHA).
+# Include credentials directly in the URL if required by the proxy.
+# Dev/local: leave unset — no proxy needed.
+# http_proxy: http://user:password@squid.example.com:3128
