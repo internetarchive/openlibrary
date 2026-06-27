@@ -75,23 +75,29 @@ FEATURED_SUBJECTS: dict[str, dict] = {
         ],
         "collections": [
             {
+                "title": "Reader favorites",
+                "caption": "The science fiction Open Library readers return to most.",
+                "query": "subject_key:science_fiction",
+                "sort": "readinglog",
+            },
+            {
                 "title": "Hugo Award winners",
                 "caption": "Science fiction's most celebrated honor, voted by fans.",
                 "badge": "Award winner",
-                "query": 'subject:"Hugo Award Winner" OR subject:"Hugo Award"',
+                "query": 'subject:"Hugo Award" OR subject:"Hugo Awards"',
                 "sort": "readinglog",
             },
             {
                 "title": "Nebula Award winners",
                 "caption": "Chosen by the writers of the field themselves.",
                 "badge": "Award winner",
-                "query": 'subject:"Nebula Award Winner" OR subject:"Nebula Award"',
+                "query": 'subject:"Nebula Award" OR subject:"Nebula Awards"',
                 "sort": "readinglog",
             },
             {
                 "title": "Cyberpunk essentials",
                 "caption": "Neon, networks, and corporate dystopia.",
-                "query": "subject_key:cyberpunk",
+                "query": 'subject_key:cyberpunk OR subject:"Cyberpunk"',
                 "sort": "readinglog",
             },
             {
@@ -187,6 +193,161 @@ FEATURED_SUBJECTS: dict[str, dict] = {
                 "title": "Read it right now",
                 "caption": "Borrow or read these instantly on Open Library.",
                 "query": "subject_key:fantasy",
+                "sort": "readinglog",
+                "has_fulltext_only": True,
+            },
+        ],
+    },
+    "romance": {
+        "tagline": (
+            "Love at the center, a happy ending guaranteed — from slow-burn "
+            "historicals to steamy contemporaries and everything between."
+        ),
+        "description": (
+            "<p>Romance is the literature of relationships and emotional payoff. "
+            "Its one firm promise — a happy or hopeful ending — is exactly what "
+            "lets it take big emotional risks along the way.</p>"
+            "<p>What changes wildly from book to book is the <em>texture</em>: the "
+            "heat level, the trope, the setting, and how much angst you're in the "
+            "mood for. The flavors below are the fastest way to the right shelf.</p>"
+        ),
+        "flavors": [
+            {
+                "label": "By setting",
+                "items": [
+                    {"name": "Contemporary", "slug": "contemporary_romance", "blurb": "Here and now."},
+                    {"name": "Historical", "slug": "historical_romance", "blurb": "Regency ballrooms and beyond."},
+                    {"name": "Paranormal", "slug": "paranormal_romance", "blurb": "Love among the supernatural."},
+                ],
+            },
+            {
+                "label": "By heat",
+                "items": [
+                    {"name": "Sweet / closed-door", "slug": "clean_romance", "blurb": "Chemistry, no explicit scenes."},
+                    {"name": "Steamy", "slug": "erotic_romance", "blurb": "Turn up the temperature."},
+                ],
+            },
+            {
+                "label": "By mood",
+                "items": [
+                    {"name": "Romantic comedy", "slug": "romantic_comedy", "blurb": "Banter and laughs."},
+                    {"name": "Romantic suspense", "slug": "romantic_suspense", "blurb": "Love with the stakes high."},
+                ],
+            },
+        ],
+        "collections": [
+            {
+                "title": "Reader favorites",
+                "caption": "The romances Open Library readers love most.",
+                "query": "subject_key:romance",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Historical romance",
+                "caption": "Dukes, scandal, and slow-burn longing.",
+                "query": 'subject_key:historical_romance OR subject:"Historical romance"',
+                "sort": "readinglog",
+            },
+            {
+                "title": "Paranormal romance",
+                "caption": "Vampires, shifters, and fated mates.",
+                "query": 'subject_key:paranormal_romance OR subject:"Paranormal romance"',
+                "sort": "readinglog",
+            },
+            {
+                "title": "Short & sweet standalones",
+                "caption": "Under ~350 pages, no series to commit to.",
+                "query": "subject_key:romance -series_name:* number_of_pages:[1 TO 350]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Just published",
+                "caption": "The newest romance in the catalog.",
+                "query": "subject_key:romance",
+                "sort": "new",
+            },
+            {
+                "title": "Read it right now",
+                "caption": "Borrow or read these instantly on Open Library.",
+                "query": "subject_key:romance",
+                "sort": "readinglog",
+                "has_fulltext_only": True,
+            },
+        ],
+    },
+    "mystery": {
+        "tagline": (
+            "A puzzle, a crime, a secret to crack — from gentle cozies to "
+            "pulse-pounding psychological thrillers."
+        ),
+        "description": (
+            "<p>Mystery is the genre of questions and answers: a wrong to set "
+            "right, clues to follow, and the satisfaction of a solution. It runs "
+            "from warm, low-violence “cozies” to bleak noir and twisty domestic "
+            "suspense.</p>"
+            "<p>Readers usually know the <em>intensity</em> they want before the "
+            "plot — gentle and puzzle-like, or dark and tense. Start with a flavor "
+            "below.</p>"
+        ),
+        "flavors": [
+            {
+                "label": "Gentle & puzzle-like",
+                "items": [
+                    {"name": "Cozy mystery", "slug": "cozy_mystery", "blurb": "Amateur sleuths, low gore."},
+                    {"name": "Detective", "slug": "detective_and_mystery_stories", "blurb": "Classic whodunits."},
+                ],
+            },
+            {
+                "label": "Gritty & hardboiled",
+                "items": [
+                    {"name": "Noir", "slug": "noir_fiction", "blurb": "Shadows and moral grey."},
+                    {"name": "Police procedural", "slug": "police_procedural", "blurb": "The case, step by step."},
+                ],
+            },
+            {
+                "label": "Twisty & tense",
+                "items": [
+                    {"name": "Psychological thriller", "slug": "psychological_thriller", "blurb": "Unreliable narrators."},
+                    {"name": "Legal thriller", "slug": "legal_thriller", "blurb": "The courtroom as battlefield."},
+                ],
+            },
+        ],
+        "collections": [
+            {
+                "title": "Reader favorites",
+                "caption": "The mysteries Open Library readers can't put down.",
+                "query": "subject_key:mystery OR subject_key:detective_and_mystery_stories",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Edgar Award winners",
+                "caption": "The genre's top honor, from the Mystery Writers of America.",
+                "badge": "Award winner",
+                "query": 'subject:"Edgar Award" OR subject:"Edgar Awards"',
+                "sort": "readinglog",
+            },
+            {
+                "title": "Cozy mysteries",
+                "caption": "Small towns, big secrets, very little gore.",
+                "query": 'subject_key:cozy_mystery OR subject:"Cozy mysteries"',
+                "sort": "readinglog",
+            },
+            {
+                "title": "Short standalones",
+                "caption": "Under ~350 pages and not part of a series.",
+                "query": "subject_key:mystery -series_name:* number_of_pages:[1 TO 350]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Just published",
+                "caption": "The newest mysteries in the catalog.",
+                "query": "subject_key:mystery",
+                "sort": "new",
+            },
+            {
+                "title": "Read it right now",
+                "caption": "Borrow or read these instantly on Open Library.",
+                "query": "subject_key:mystery",
                 "sort": "readinglog",
                 "has_fulltext_only": True,
             },
