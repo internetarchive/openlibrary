@@ -124,12 +124,19 @@ export class OLSubjectHero extends LitElement {
         const mid = (ids.length - 1) / 2;
         return html`
             <div class="cover-stack" aria-hidden="true">
-                ${ids.map((id, i) => html`<img
-                    class="cover-stack__item"
-                    style="transform: rotate(${(i - mid) * 4}deg); z-index: ${i};"
-                    src=${this._coverUrl(id)}
-                    alt=""
-                    loading="lazy" />`)}
+                ${ids.map((id, i) => {
+        const d = i - mid;
+        // Outward tilt + a parabolic lift (middle highest, ends at the
+        // baseline) so the stack arcs like a rainbow rather than a flat fan.
+        const rot = d * 4;
+        const lift = -(mid * mid - d * d) * 7;
+        return html`<img
+                        class="cover-stack__item"
+                        style="transform: translateY(${lift}px) rotate(${rot}deg); z-index: ${i};"
+                        src=${this._coverUrl(id)}
+                        alt=""
+                        loading="lazy" />`;
+    })}
             </div>
         `;
     }
