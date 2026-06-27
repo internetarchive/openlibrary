@@ -72,12 +72,13 @@ export class OLSubjectHero extends LitElement {
             border-radius: var(--border-radius-sm, 4px);
             background: var(--lighter-grey, #e0e0e0);
             box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.22);
-            /* Fan out from a shared base point, like a spread deck of cards. */
-            transform-origin: bottom center;
+            /* Pivot from a point below the covers so they splay like a hand of
+               cards: bases converge, tops fan out in an arc. */
+            transform-origin: 50% 175%;
         }
 
         .cover-stack__item:not(:first-child) {
-            margin-inline-start: -1.5rem;
+            margin-inline-start: -3.25rem;
         }
 
         @media (max-width: 900px) {
@@ -125,14 +126,12 @@ export class OLSubjectHero extends LitElement {
         return html`
             <div class="cover-stack" aria-hidden="true">
                 ${ids.map((id, i) => {
-        const d = i - mid;
-        // Outward tilt + a parabolic lift (middle highest, ends at the
-        // baseline) so the stack arcs like a rainbow rather than a flat fan.
-        const rot = d * 4;
-        const lift = -(mid * mid - d * d) * 7;
+        // Rotate around the shared pivot below the covers; the arc/lift falls
+        // out of the rotation, like spreading a hand of cards.
+        const rot = (i - mid) * 8;
         return html`<img
                         class="cover-stack__item"
-                        style="transform: translateY(${lift}px) rotate(${rot}deg); z-index: ${i};"
+                        style="transform: rotate(${rot}deg); z-index: ${i};"
                         src=${this._coverUrl(id)}
                         alt=""
                         loading="lazy" />`;
