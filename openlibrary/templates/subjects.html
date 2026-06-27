@@ -6,8 +6,7 @@ $ can_add_tag = ctx.user and (ctx.user.is_admin() or ctx.user.is_curator())
 $ has_tag = 'tag' in page
 $ q = query_param('q')
 
-<div id="scrollHere"></div>
-<div class="page-heading-search-box">
+$def renderTagEdit(page, can_add_tag, has_tag):
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/add?name=%s&redir=%s&tag_type=%s" % (page.name, ctx.path, page.subject_type)
@@ -23,48 +22,126 @@ $ q = query_param('q')
           rel="nofollow"
         >$link_cta</a>
       </div>
-    <h1 class="inline">
-        $page.name
-    </h1>
-    <span class="heading">
-        <span class="count" id="coversCount">
-            <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
-        </span>
-    </span>
-    $if has_tag:
-      <p class="tag-description" itemprop="description">
-        $:format(sanitize(page.tag['tag_description']))
-      </p>
-    <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
+$def renderSearchForm(page, q):
     <form action="/search" class="olform pagesearchbox">
       $:render_template("search/searchbox", q=q)
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
-    $if 'disambiguations' in page:
-        <div class="disambiguations">
-            <h3>$_("Disambiguations")</h3>
-            <ul>
-                $for i in page.disambiguations:
-                    <li>
-                        <a href="$i.subject_key">$i.name ($i.tag_type)</a>
-                    </li>
-            </ul>
-        </div>
-</div>
-<div class="contentBody">
-    $if has_tag:
-      $:format(sanitize(page.tag.body))
-    $else:
-      $# Only show default carousel if subject doesn't have an associated Tag
-      $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
-    $:macros.PublishingHistory(page.publishing_history)
 
-    <div class="clearfix"></div>
-    $:macros.RelatedSubjects(page)
+<div id="scrollHere"></div>
 
-    <div class="clearfix"></div>
-    $:macros.ProlificAuthors(page.authors)
+$if page.subject_type == 'subject':
+    $# --- Overhauled, visual subject experience (plain subjects only) ---
+    $code:
+        cover_ids = [w.cover_id for w in page.works if w.get('cover_id')][:12]
+        years = [y for y, c in page.publishing_history] if page.get('publishing_history') else []
+        year_min = min(years) if years else None
+        year_max = max(years) if years else None
+        ebook_count = page.get('ebook_count') or 0
 
-    <div class="section clearfix"></div>
-</div>
+    <ol-subject-hero covers="$json_encode(cover_ids)">
+      $:renderTagEdit(page, can_add_tag, has_tag)
+      <h1>$page.name</h1>
+      <ul class="subject-stats">
+        <li class="subject-stat">
+          <span class="subject-stat__num"><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$commify(page.work_count)</a></span>
+          <span class="subject-stat__label">$ungettext("work", "works", page.work_count)</span>
+        </li>
+        $if ebook_count:
+          <li class="subject-stat">
+            <span class="subject-stat__num">$commify(ebook_count)</span>
+            <span class="subject-stat__label">$_("readable now")</span>
+          </li>
+        $if year_min and year_max and year_min != year_max:
+          <li class="subject-stat">
+            <span class="subject-stat__num">$year_min&ndash;$year_max</span>
+            <span class="subject-stat__label">$_("years in print")</span>
+          </li>
+      </ul>
+      $if has_tag:
+        <p class="tag-description" itemprop="description">
+          $:format(sanitize(page.tag['tag_description']))
+        </p>
+      $:renderSearchForm(page, q)
+    </ol-subject-hero>
+
+    <div class="contentBody">
+      $if 'disambiguations' in page:
+          <div class="disambiguations">
+              <h3>$_("Disambiguations")</h3>
+              <ul>
+                  $for i in page.disambiguations:
+                      <li>
+                          <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                      </li>
+              </ul>
+          </div>
+      <div class="subject-carousels">
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Trending now'), sort='trending,trending_score_hourly_sum', key='subject-trending', has_fulltext_only=False, fallback=True, user_lang_only=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Most widely read'), sort='readinglog', key='subject-popular', has_fulltext_only=False)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Highly rated'), sort='rating', key='subject-rated', has_fulltext_only=False)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Most want to read'), sort='want_to_read', key='subject-wtr', has_fulltext_only=False)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Available to read now'), sort='readinglog', key='subject-readnow', has_fulltext_only=True)
+        $:macros.QueryCarousel(query=page.solr_query, title=_('Recently published'), sort='new', key='subject-new', has_fulltext_only=False)
+      </div>
+
+      $if has_tag:
+        $:format(sanitize(page.tag.body))
+
+      $:macros.SubjectAuthors(page.authors, name=page.name)
+
+      <div class="clearfix"></div>
+      $:macros.PublishingHistory(page.publishing_history)
+
+      <div class="clearfix"></div>
+      $:macros.RelatedSubjects(page)
+
+      <div class="section clearfix"></div>
+    </div>
+$else:
+    $# --- Existing layout for person / place / time subjects ---
+    <div class="page-heading-search-box">
+        $:renderTagEdit(page, can_add_tag, has_tag)
+        <h1 class="inline">
+            $page.name
+        </h1>
+        <span class="heading">
+            <span class="count" id="coversCount">
+                <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
+            </span>
+        </span>
+        $if has_tag:
+          <p class="tag-description" itemprop="description">
+            $:format(sanitize(page.tag['tag_description']))
+          </p>
+        <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
+
+        $:renderSearchForm(page, q)
+        $if 'disambiguations' in page:
+            <div class="disambiguations">
+                <h3>$_("Disambiguations")</h3>
+                <ul>
+                    $for i in page.disambiguations:
+                        <li>
+                            <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                        </li>
+                </ul>
+            </div>
+    </div>
+    <div class="contentBody">
+        $if has_tag:
+          $:format(sanitize(page.tag.body))
+        $else:
+          $# Only show default carousel if subject doesn't have an associated Tag
+          $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
+        $:macros.PublishingHistory(page.publishing_history)
+
+        <div class="clearfix"></div>
+        $:macros.RelatedSubjects(page)
+
+        <div class="clearfix"></div>
+        $:macros.ProlificAuthors(page.authors)
+
+        <div class="section clearfix"></div>
+    </div>

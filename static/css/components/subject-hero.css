@@ -1,0 +1,155 @@
+/* Subject page masthead, stat strip, and author cards.
+ * Used by the overhauled /subjects/<topic> pages. The ol-subject-hero web
+ * component supplies the cover-wall backdrop; the rules below style the
+ * light-DOM content slotted into it, plus the author-card row. */
+
+ol-subject-hero {
+  display: block;
+  margin: 1em 0 1.5em;
+  min-height: 220px;
+}
+
+/* Hero content (light DOM, slotted into the component) */
+ol-subject-hero .subjectTagEdit {
+  position: absolute;
+  top: 0.75rem;
+  inset-inline-end: 0.75rem;
+  margin: 0;
+}
+
+ol-subject-hero h1 {
+  margin: 0 0 0.5rem;
+  color: var(--white);
+}
+
+ol-subject-hero .tag-description {
+  margin: 0.75rem 0 0;
+  max-width: 42rem;
+  color: var(--white);
+  opacity: 0.92;
+}
+
+ol-subject-hero a {
+  color: var(--white);
+}
+
+/* Stat strip */
+.subject-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subject-stat {
+  line-height: 1.1;
+}
+
+.subject-stat__num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--white);
+}
+
+.subject-stat__num a {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.subject-stat__num a:hover {
+  text-decoration: underline;
+}
+
+.subject-stat__label {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--font-size-label-medium, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  opacity: 0.8;
+}
+
+/* In-hero search form sits below the stats with a light surface */
+ol-subject-hero .pagesearchbox {
+  margin-top: 1.25rem;
+  max-width: 30rem;
+}
+
+/* Stacked carousels */
+.subject-carousels {
+  margin-top: 1rem;
+}
+
+.subject-carousels > .carousel-section,
+.subject-carousels > .lazy-carousel {
+  margin-bottom: 1.5rem;
+}
+
+/* Author cards */
+.subject-authors {
+  margin: 1.5rem 0;
+}
+
+.subject-authors__row {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0 0;
+  padding: 0.25rem 0 0.75rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.subject-authors__item {
+  scroll-snap-align: start;
+}
+
+.subject-author-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 6.5rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+
+.subject-author-card__avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  /* Fallback avatar shows through when the author has no photo */
+  background: var(--lightest-grey) url(/images/icons/avatar_author-lg.png) center / cover no-repeat;
+  box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.15);
+}
+
+.subject-author-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.subject-author-card__name {
+  margin-top: 0.5rem;
+  font-size: var(--font-size-body-medium, 0.9rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.subject-author-card:hover .subject-author-card__name {
+  text-decoration: underline;
+}
+
+.subject-author-card__count {
+  margin-top: 2px;
+  font-size: var(--font-size-label-medium, 0.78rem);
+  color: var(--grey);
+}

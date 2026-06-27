@@ -1,0 +1,39 @@
+$def with (authors, name=None)
+
+$# Renders the top authors for a subject as a horizontally scrolling row of
+$# visual cards (photo + name + book count), a richer replacement for the
+$# plain-text ProlificAuthors list.
+$#
+$# * authors (list) -- web.storage items with .key (/authors/OLxxxA), .name, .count
+$# * name (str)     -- optional subject name, used in the heading
+
+$if authors:
+  <div class="subject-authors">
+    <div class="head">
+      <h2 class="inline">
+        $if name:
+          $_("Authors in %(name)s", name=name)
+        $else:
+          $_("Authors")
+      </h2>
+      <span class="shift">$_("Writers with the most books on this subject")</span>
+    </div>
+    <ol class="subject-authors__row">
+      $for author in authors:
+        $ olid = author.key.split('/')[-1]
+        <li class="subject-authors__item">
+          <a class="subject-author-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
+            <span class="subject-author-card__avatar">
+              <img
+                src="https://covers.openlibrary.org/a/olid/$(olid)-M.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+            </span>
+            <span class="subject-author-card__name">$author.name</span>
+            <span class="subject-author-card__count">$ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)</span>
+          </a>
+        </li>
+    </ol>
+  </div>
