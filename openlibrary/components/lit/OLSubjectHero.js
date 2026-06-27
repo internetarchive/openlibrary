@@ -64,24 +64,22 @@ export class OLSubjectHero extends LitElement {
         }
 
         .cover-stack__item {
-            width: 6.75rem;
+            width: 5rem;
             aspect-ratio: 2 / 3;
             object-fit: cover;
             border-radius: var(--border-radius-sm, 4px);
             background: var(--lighter-grey, #e0e0e0);
             box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.22);
-            /* Fan out from a shared base point (like a hand of cards). */
-            transform-origin: bottom center;
-            transition: transform 0.18s ease;
+            transition: margin 0.18s ease;
         }
 
         .cover-stack__item:not(:first-child) {
-            margin-inline-start: -2.75rem;
+            margin-inline-start: -1.5rem;
         }
 
-        /* On hover, ease the whole fan apart for a touch of life. */
+        /* On hover, ease the covers apart for a touch of life. */
         .cover-stack:hover .cover-stack__item:not(:first-child) {
-            margin-inline-start: -2.25rem;
+            margin-inline-start: -1.25rem;
         }
 
         @media (max-width: 900px) {
@@ -125,19 +123,14 @@ export class OLSubjectHero extends LitElement {
         const ids = (this.covers || []).filter(Boolean).slice(0, OLSubjectHero.MAX_COVERS);
         if (!ids.length) return nothing;
 
-        const mid = (ids.length - 1) / 2;
         return html`
             <div class="cover-stack" aria-hidden="true">
-                ${ids.map((id, i) => {
-        // Gentle symmetric fan: ends rotate outward from the centre.
-        const rot = (i - mid) * 5;
-        return html`<img
-                        class="cover-stack__item"
-                        style="transform: rotate(${rot}deg); z-index: ${i};"
-                        src=${this._coverUrl(id)}
-                        alt=""
-                        loading="lazy" />`;
-    })}
+                ${ids.map((id, i) => html`<img
+                    class="cover-stack__item"
+                    style="z-index: ${i};"
+                    src=${this._coverUrl(id)}
+                    alt=""
+                    loading="lazy" />`)}
             </div>
         `;
     }
