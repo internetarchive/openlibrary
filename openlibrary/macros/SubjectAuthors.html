@@ -1,39 +1,44 @@
-$def with (authors, name=None)
+$def with (authors, name=None, author_works=None)
 
-$# Renders the top authors for a subject as a horizontally scrolling row of
-$# visual cards (photo + name + book count), a richer replacement for the
-$# plain-text ProlificAuthors list.
+$# Renders the top authors for a subject as a vertical stack of cards for the
+$# subject-page sidebar, styled like the genre (flavor) cards. The whole card
+$# links to the author; a representative book plus a count of the author's other
+$# books in the subject is shown as plain (non-clickable) text.
 $#
-$# * authors (list) -- web.storage items with .key (/authors/OLxxxA), .name, .count
-$# * name (str)     -- optional subject name, used in the heading
+$# * authors (list)      -- web.storage items with .key (/authors/OLxxxA), .name, .count
+$# * name (str)          -- optional subject name (unused in the heading, kept for callers)
+$# * author_works (dict) -- maps an author key to a representative work (web.storage
+$#                          with .key, .title, .cover_id), built in subjects.py
+
+$ works = author_works or {}
 
 $if authors:
-  <div class="subject-authors">
-    <div class="head">
-      <h2 class="inline">
-        $if name:
-          $_("Authors in %(name)s", name=name)
-        $else:
-          $_("Authors")
-      </h2>
-      <span class="shift">$_("Writers with the most books on this subject")</span>
-    </div>
-    <ol class="subject-authors__row">
-      $for author in authors:
+  <section class="subject-authors">
+    <h2 class="subject-aside__title">$_("Notable authors")</h2>
+    <div class="subject-authors__list">
+      $for author in authors[:6]:
         $ olid = author.key.split('/')[-1]
-        <li class="subject-authors__item">
-          <a class="subject-author-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
-            <span class="subject-author-card__avatar">
-              <img
-                src="https://covers.openlibrary.org/a/olid/$(olid)-M.jpg"
-                loading="lazy"
-                alt=""
-                aria-hidden="true"
-              />
-            </span>
-            <span class="subject-author-card__name">$author.name</span>
-            <span class="subject-author-card__count">$ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)</span>
-          </a>
-        </li>
-    </ol>
-  </div>
+        $ work = works.get(author.key)
+        $ additional = (author.count or 0) - 1
+        $if work and additional > 0:
+          $ blurb = "%s %s" % (work.title, ungettext("and %(count)d more", "and %(count)d more", additional, count=additional))
+        $elif work:
+          $ blurb = work.title
+        $else:
+          $ blurb = ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)
+        <a class="flavor-card subject-author-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
+          <span class="subject-author-card__avatar">
+            <img
+              src="https://covers.openlibrary.org/a/olid/$(olid)-M.jpg"
+              loading="lazy"
+              alt=""
+              aria-hidden="true"
+            />
+          </span>
+          <span class="flavor-card__text">
+            <span class="flavor-card__name">$author.name</span>
+            <span class="flavor-card__blurb">$blurb</span>
+          </span>
+        </a>
+    </div>
+  </section>
