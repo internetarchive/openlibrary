@@ -34,7 +34,7 @@ export class OLSubjectHero extends LitElement {
             overflow: hidden;
             /* Rounded top, flat bottom so the masthead reads as one piece with
                the content that follows it. */
-            border-radius: var(--border-radius-large, 12px) var(--border-radius-large, 12px) 0 0;
+            border-radius: var(--border-radius-sm, 4px) var(--border-radius-sm, 4px) 0 0;
             /* Soft, warm tint; themeable per genre via --ol-subject-hero-bg. */
             background: var(--ol-subject-hero-bg, hsl(41, 34%, 91%));
             color: var(--dark-grey, #333);
@@ -61,6 +61,8 @@ export class OLSubjectHero extends LitElement {
             display: flex;
             align-items: flex-end;
             padding: 1.75rem 2rem 1.75rem 0;
+            /* Purely decorative; never react to the pointer. */
+            pointer-events: none;
         }
 
         .cover-stack__item {
@@ -70,16 +72,12 @@ export class OLSubjectHero extends LitElement {
             border-radius: var(--border-radius-sm, 4px);
             background: var(--lighter-grey, #e0e0e0);
             box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.22);
-            transition: margin 0.18s ease;
+            /* Fan out from a shared base point, like a spread deck of cards. */
+            transform-origin: bottom center;
         }
 
         .cover-stack__item:not(:first-child) {
             margin-inline-start: -1.5rem;
-        }
-
-        /* On hover, ease the covers apart for a touch of life. */
-        .cover-stack:hover .cover-stack__item:not(:first-child) {
-            margin-inline-start: -1.25rem;
         }
 
         @media (max-width: 900px) {
@@ -123,11 +121,12 @@ export class OLSubjectHero extends LitElement {
         const ids = (this.covers || []).filter(Boolean).slice(0, OLSubjectHero.MAX_COVERS);
         if (!ids.length) return nothing;
 
+        const mid = (ids.length - 1) / 2;
         return html`
             <div class="cover-stack" aria-hidden="true">
                 ${ids.map((id, i) => html`<img
                     class="cover-stack__item"
-                    style="z-index: ${i};"
+                    style="transform: rotate(${(i - mid) * 4}deg); z-index: ${i};"
                     src=${this._coverUrl(id)}
                     alt=""
                     loading="lazy" />`)}
