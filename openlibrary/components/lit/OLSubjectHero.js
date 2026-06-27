@@ -55,18 +55,20 @@ export class OLSubjectHero extends LitElement {
             max-width: 46rem;
         }
 
-        /* Fanned, overlapping cover stack on the inline-end side. */
+        /* Fanned, overlapping cover stack on the inline-end side. The left
+           padding reserves room for the fan's outward splay so the rotated
+           covers never overlap the slotted text in .content. */
         .cover-stack {
             flex: 0 0 auto;
             display: flex;
             align-items: flex-end;
-            padding: 1.75rem 2rem 1.75rem 0;
+            padding: 1.75rem 2rem 1.75rem 3rem;
             /* Purely decorative; never react to the pointer. */
             pointer-events: none;
         }
 
         .cover-stack__item {
-            width: 6.5rem;
+            width: 5.25rem;
             aspect-ratio: 2 / 3;
             object-fit: cover;
             border-radius: var(--border-radius-sm, 4px);
@@ -74,11 +76,11 @@ export class OLSubjectHero extends LitElement {
             box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.22);
             /* Pivot from a point below the covers so they splay like a hand of
                cards: bases converge, tops fan out in an arc. */
-            transform-origin: 50% 175%;
+            transform-origin: 50% 145%;
         }
 
         .cover-stack__item:not(:first-child) {
-            margin-inline-start: -3.25rem;
+            margin-inline-start: -2.75rem;
         }
 
         @media (max-width: 900px) {
@@ -128,7 +130,7 @@ export class OLSubjectHero extends LitElement {
                 ${ids.map((id, i) => {
         // Rotate around the shared pivot below the covers; the arc/lift falls
         // out of the rotation, like spreading a hand of cards.
-        const rot = (i - mid) * 8;
+        const rot = (i - mid) * 6;
         return html`<img
                         class="cover-stack__item"
                         style="transform: rotate(${rot}deg); z-index: ${i};"
