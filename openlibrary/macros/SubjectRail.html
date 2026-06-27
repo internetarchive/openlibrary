@@ -1,0 +1,28 @@
+$def with(title, query, caption=None, badge=None, sort='new', has_fulltext_only=False, key='', limit=20, user_lang_only=False, fallback=False)
+
+$# A single labelled "path" on a subject page: an interpreted header
+$# (title + optional badge + a one-line "why this is here" caption) above an
+$# <ol-carousel> of books for an arbitrary query.
+$#
+$# * title (str)             -- rail heading, links to the full search
+$# * query (str)            -- Open Library search query for the books
+$# * caption (str)          -- short explanation of why these books are grouped
+$# * badge (str)            -- optional pill, e.g. "Award winner"
+$# * sort (str)             -- carousel sort
+$# * has_fulltext_only (bool) -- restrict to readable-now books
+
+$ primary_sort = sort.split(',')[0]
+$ see_all = '/search?' + urlencode({'q': query, 'sort': primary_sort})
+
+<div class="subject-rail">
+  <div class="subject-rail__head">
+    <div class="subject-rail__heading">
+      <h2 class="subject-rail__title"><a href="$see_all">$title</a></h2>
+      $if badge:
+        <span class="subject-rail__badge">$badge</span>
+    </div>
+    $if caption:
+      <p class="subject-rail__caption">$caption</p>
+  </div>
+  $:macros.QueryCarousel(query=query, sort=sort, key=key or title, limit=limit, has_fulltext_only=has_fulltext_only, web_component=True, user_lang_only=user_lang_only, fallback=fallback)
+</div>

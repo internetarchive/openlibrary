@@ -22,6 +22,15 @@ ol-subject-hero h1 {
   color: var(--white);
 }
 
+.subject-hero__tagline {
+  margin: 0 0 0.25rem;
+  max-width: 40rem;
+  color: var(--white);
+  font-size: 1.1rem;
+  line-height: 1.35;
+  opacity: 0.95;
+}
+
 ol-subject-hero .tag-description {
   margin: 0.75rem 0 0;
   max-width: 42rem;
@@ -80,14 +89,9 @@ ol-subject-hero .pagesearchbox {
   max-width: 30rem;
 }
 
-/* Stacked carousels */
-.subject-carousels {
-  margin-top: 1rem;
-}
-
-.subject-carousels > .carousel-section,
-.subject-carousels > .lazy-carousel {
-  margin-bottom: 1.5rem;
+/* Stacked rails */
+.subject-rails {
+  margin-top: 1.5rem;
 }
 
 /* Author cards */
@@ -152,4 +156,133 @@ ol-subject-hero .pagesearchbox {
   margin-top: 2px;
   font-size: var(--font-size-label-medium, 0.78rem);
   color: var(--grey);
+}
+
+/* ── Genre dashboard: about / flavors / rails ── */
+
+.subject-section-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+}
+
+.subject-section-sub {
+  margin: 0 0 1rem;
+  color: var(--grey);
+}
+
+/* About-this-genre prose */
+.subject-about {
+  max-width: 46rem;
+  margin: 0.5rem 0 1.75rem;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--dark-grey);
+}
+
+.subject-about p {
+  margin: 0 0 0.75rem;
+}
+
+/* Choose-your-flavor subgenre map */
+.subject-flavors {
+  margin: 1.5rem 0 2rem;
+}
+
+.subject-flavors__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.25rem;
+}
+
+.flavor-group__label {
+  margin: 0 0 0.5rem;
+  font-size: var(--font-size-label-medium, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grey);
+}
+
+.flavor-group__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flavor-card {
+  display: block;
+  padding: 0.6rem 0.75rem;
+  border: var(--border-width, 1px) solid var(--lighter-grey);
+  border-radius: var(--border-radius-medium, 8px);
+  background: var(--white);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flavor-card:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 1px 6px hsla(0, 0%, 0%, 0.08);
+}
+
+.flavor-card__name {
+  display: block;
+  font-weight: 600;
+  color: var(--link-blue);
+}
+
+.flavor-card__blurb {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--font-size-label-medium, 0.82rem);
+  color: var(--grey);
+}
+
+/* Labelled, interpreted rails ("paths") */
+.subject-rail {
+  margin: 0 0 1.75rem;
+}
+
+.subject-rail__head {
+  margin-bottom: 0.4rem;
+}
+
+.subject-rail__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.subject-rail__title {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.subject-rail__title a {
+  text-decoration: none;
+  color: var(--dark-grey);
+}
+
+.subject-rail__title a:hover {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+
+.subject-rail__badge {
+  padding: 2px 8px;
+  border-radius: var(--border-radius-pill, 999px);
+  background: var(--baby-green, hsl(120, 100%, 93%));
+  color: var(--dark-green);
+  font-size: var(--font-size-label-medium, 0.72rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.subject-rail__caption {
+  margin: 0;
+  color: var(--grey);
+  font-size: 0.92rem;
 }

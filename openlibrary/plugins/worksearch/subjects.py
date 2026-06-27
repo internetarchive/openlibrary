@@ -10,6 +10,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
+from openlibrary.plugins.worksearch.subject_config import get_featured_subject
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 from openlibrary.utils.async_utils import async_bridge
@@ -45,6 +46,8 @@ class subjects(delegate.page):
             page = render_template('subjects/notfound.tmpl', key)
         else:
             self.decorate_with_tags(subj)
+            if editorial := get_featured_subject(key):
+                subj.editorial = editorial
             page = render_template("subjects", page=subj)
 
         return page

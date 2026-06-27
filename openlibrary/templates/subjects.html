@@ -32,20 +32,24 @@ $def renderSearchForm(page, q):
 <div id="scrollHere"></div>
 
 $if page.subject_type == 'subject':
-    $# --- Overhauled, visual subject experience (plain subjects only) ---
+    $# --- Guided, visual subject experience (plain subjects only) ---
     $code:
         cover_ids = [w.cover_id for w in page.works if w.get('cover_id')][:12]
         years = [y for y, c in page.publishing_history] if page.get('publishing_history') else []
         year_min = min(years) if years else None
         year_max = max(years) if years else None
         ebook_count = page.get('ebook_count') or 0
+        editorial = page.get('editorial')
+        solrq = page.solr_query
 
     <ol-subject-hero covers="$json_encode(cover_ids)">
       $:renderTagEdit(page, can_add_tag, has_tag)
       <h1>$page.name</h1>
+      $if editorial:
+        <p class="subject-hero__tagline">$editorial['tagline']</p>
       <ul class="subject-stats">
         <li class="subject-stat">
-          <span class="subject-stat__num"><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$commify(page.work_count)</a></span>
+          <span class="subject-stat__num"><a href="/search?$urlencode(dict(q=solrq))" title="$_('See all works')">$commify(page.work_count)</a></span>
           <span class="subject-stat__label">$ungettext("work", "works", page.work_count)</span>
         </li>
         $if ebook_count:
@@ -59,7 +63,7 @@ $if page.subject_type == 'subject':
             <span class="subject-stat__label">$_("years in print")</span>
           </li>
       </ul>
-      $if has_tag:
+      $if has_tag and not editorial:
         <p class="tag-description" itemprop="description">
           $:format(sanitize(page.tag['tag_description']))
         </p>
@@ -77,17 +81,35 @@ $if page.subject_type == 'subject':
                       </li>
               </ul>
           </div>
-      <div class="subject-carousels">
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Trending now'), sort='trending,trending_score_hourly_sum', key='subject-trending', has_fulltext_only=False, fallback=True, user_lang_only=True, web_component=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Most widely read'), sort='readinglog', key='subject-popular', has_fulltext_only=False, web_component=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Highly rated'), sort='rating', key='subject-rated', has_fulltext_only=False, web_component=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Most want to read'), sort='want_to_read', key='subject-wtr', has_fulltext_only=False, web_component=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Available to read now'), sort='readinglog', key='subject-readnow', has_fulltext_only=True, web_component=True)
-        $:macros.QueryCarousel(query=page.solr_query, title=_('Recently published'), sort='new', key='subject-new', has_fulltext_only=False, web_component=True)
-      </div>
 
-      $if has_tag:
-        $:format(sanitize(page.tag.body))
+      $# About-this-genre prose: hand-authored editorial, else a curator tag body
+      $if editorial:
+        <section class="subject-about">
+          $:editorial['description']
+        </section>
+      $elif has_tag:
+        <section class="subject-about">
+          $:format(sanitize(page.tag.body))
+        </section>
+
+      $# Subgenre map ("choose your flavor") — featured subjects only
+      $if editorial and editorial.get('flavors'):
+        $:macros.SubjectFlavors(editorial['flavors'])
+
+      <div class="subject-rails">
+        $if editorial and editorial.get('collections'):
+          $# Curated, bookstore-style collections
+          $for c in editorial['collections']:
+            $:macros.SubjectRail(c['title'], c['query'], caption=c.get('caption'), badge=c.get('badge'), sort=c.get('sort', 'readinglog'), has_fulltext_only=c.get('has_fulltext_only', False), key='subject-coll-' + c['title'])
+        $else:
+          $# Differentiated, signal-driven intent paths for every other subject
+          $:macros.SubjectRail(_('Trending now'), solrq, caption=_('What readers are picking up this week.'), sort='trending,trending_score_hourly_sum', key='subject-trending', user_lang_only=True, fallback=True)
+          $:macros.SubjectRail(_('Most loved by readers'), solrq, caption=_('The most-read books on this subject.'), sort='readinglog', key='subject-popular')
+          $:macros.SubjectRail(_("On readers' want-to-read shelves"), solrq, caption=_('Books people are saving for later.'), sort='want_to_read', key='subject-wtr')
+          $:macros.SubjectRail(_('Short standalones'), solrq + ' -series_name:* number_of_pages:[1 TO 350]', caption=_('Under ~350 pages and not part of a series — an easy first step in.'), sort='readinglog', key='subject-short')
+          $:macros.SubjectRail(_('Fresh off the press'), solrq, caption=_('Recently published, newest first.'), sort='new', key='subject-new')
+          $:macros.SubjectRail(_('Read it right now'), solrq, caption=_('Borrow or read these instantly on Open Library.'), sort='readinglog', has_fulltext_only=True, key='subject-readnow')
+      </div>
 
       $:macros.SubjectAuthors(page.authors, name=page.name)
 

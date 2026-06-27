@@ -1,0 +1,25 @@
+$def with(flavors)
+
+$# The "choose your flavor" subgenre map for a featured subject.
+$# * flavors (list) -- groups of {label, items:[{name, slug, blurb}]}
+
+<section class="subject-flavors">
+  <h2 class="subject-section-title">$_("Choose your flavor")</h2>
+  <p class="subject-section-sub">$_("Same genre, very different reading experiences. Pick the corner that fits your mood.")</p>
+  <div class="subject-flavors__grid">
+    $for group in flavors:
+      <div class="flavor-group">
+        <h3 class="flavor-group__label">$group['label']</h3>
+        <ul class="flavor-group__items">
+          $for item in group['items']:
+            <li>
+              <a class="flavor-card" href="/subjects/$item['slug']">
+                <span class="flavor-card__name">$item['name']</span>
+                $if item.get('blurb'):
+                  <span class="flavor-card__blurb">$item['blurb']</span>
+              </a>
+            </li>
+        </ul>
+      </div>
+  </div>
+</section>
