@@ -14,9 +14,13 @@ $# * flavors (list) -- groups of {label, items:[{name, slug, blurb}]}
           $for item in group['items']:
             <li>
               <a class="flavor-card" href="/subjects/$item['slug']">
-                <span class="flavor-card__name">$item['name']</span>
-                $if item.get('blurb'):
-                  <span class="flavor-card__blurb">$item['blurb']</span>
+                $if item.get('icon'):
+                  <span class="flavor-card__icon">$:macros.LucideIcon(item['icon'])</span>
+                <span class="flavor-card__text">
+                  <span class="flavor-card__name">$item['name']</span>
+                  $if item.get('blurb'):
+                    <span class="flavor-card__blurb">$item['blurb']</span>
+                </span>
               </a>
             </li>
         </ul>

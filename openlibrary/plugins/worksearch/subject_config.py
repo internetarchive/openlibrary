@@ -23,10 +23,7 @@ __all__ = ["get_featured_subject"]
 
 FEATURED_SUBJECTS: dict[str, dict] = {
     "science_fiction": {
-        "tagline": (
-            "Worlds reshaped by science and possibility — from near-future "
-            "technothrillers to galaxy-spanning epics."
-        ),
+        "tagline": ("Worlds reshaped by science and possibility — from near-future technothrillers to galaxy-spanning epics."),
         "description": (
             "<p>Science fiction asks <em>what if?</em> and follows the answer "
             "wherever it leads: to distant planets, far futures, alternate "
@@ -43,33 +40,33 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             {
                 "label": "Cerebral & idea-driven",
                 "items": [
-                    {"name": "Hard SF", "slug": "hard_science_fiction", "blurb": "Rigorous science, big ideas."},
-                    {"name": "First Contact", "slug": "first_contact", "blurb": "Meeting the truly alien."},
-                    {"name": "Time Travel", "slug": "time_travel", "blurb": "Paradoxes and second chances."},
+                    {"name": "Hard SF", "slug": "hard_science_fiction", "icon": "atom", "blurb": "Rigorous science, big ideas."},
+                    {"name": "First Contact", "slug": "first_contact", "icon": "satellite-dish", "blurb": "Meeting the truly alien."},
+                    {"name": "Time Travel", "slug": "time_travel", "icon": "hourglass", "blurb": "Paradoxes and second chances."},
                 ],
             },
             {
                 "label": "Epic & adventurous",
                 "items": [
-                    {"name": "Space Opera", "slug": "space_opera", "blurb": "Galaxy-spanning sweep."},
-                    {"name": "Military SF", "slug": "military_science_fiction", "blurb": "War among the stars."},
-                    {"name": "Space Exploration", "slug": "space_exploration", "blurb": "Out past the edge of the map."},
+                    {"name": "Space Opera", "slug": "space_opera", "icon": "rocket", "blurb": "Galaxy-spanning sweep."},
+                    {"name": "Military SF", "slug": "military_science_fiction", "icon": "swords", "blurb": "War among the stars."},
+                    {"name": "Space Exploration", "slug": "space_exploration", "icon": "telescope", "blurb": "Out past the edge of the map."},
                 ],
             },
             {
                 "label": "Dark & cautionary",
                 "items": [
-                    {"name": "Dystopian", "slug": "dystopian", "blurb": "Futures that went wrong."},
-                    {"name": "Post-Apocalyptic", "slug": "post-apocalyptic", "blurb": "After the fall."},
-                    {"name": "Climate Fiction", "slug": "climate_fiction", "blurb": "Stories for a warming world."},
+                    {"name": "Dystopian", "slug": "dystopian", "icon": "eye", "blurb": "Futures that went wrong."},
+                    {"name": "Post-Apocalyptic", "slug": "post-apocalyptic", "icon": "radiation", "blurb": "After the fall."},
+                    {"name": "Climate Fiction", "slug": "climate_fiction", "icon": "thermometer-sun", "blurb": "Stories for a warming world."},
                 ],
             },
             {
                 "label": "Future & street-level",
                 "items": [
-                    {"name": "Cyberpunk", "slug": "cyberpunk", "blurb": "High tech, low life."},
-                    {"name": "Dystopias", "slug": "science_fiction_dystopias", "blurb": "Boots on neon streets."},
-                    {"name": "Artificial Intelligence", "slug": "artificial_intelligence", "blurb": "Minds we made."},
+                    {"name": "Cyberpunk", "slug": "cyberpunk", "icon": "cpu", "blurb": "High tech, low life."},
+                    {"name": "Dystopias", "slug": "science_fiction_dystopias", "icon": "building-2", "blurb": "Boots on neon streets."},
+                    {"name": "Artificial Intelligence", "slug": "artificial_intelligence", "icon": "bot", "blurb": "Minds we made."},
                 ],
             },
         ],
@@ -122,10 +119,7 @@ FEATURED_SUBJECTS: dict[str, dict] = {
         ],
     },
     "fantasy": {
-        "tagline": (
-            "Magic, myth, and the impossible — from cozy found-family tales to "
-            "grim empires and world-ending wars."
-        ),
+        "tagline": ("Magic, myth, and the impossible — from cozy found-family tales to grim empires and world-ending wars."),
         "description": (
             "<p>Fantasy is the literature of wonder: secondary worlds, hidden "
             "magic, old gods, and quests that test who we are. It stretches from "
@@ -138,29 +132,29 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             {
                 "label": "Comforting",
                 "items": [
-                    {"name": "Cozy Fantasy", "slug": "cozy_fantasy", "blurb": "Low stakes, warmth, found family."},
-                    {"name": "Fairy Tales", "slug": "fairy_tales", "blurb": "Old stories, retold."},
+                    {"name": "Cozy Fantasy", "slug": "cozy_fantasy", "icon": "house", "blurb": "Low stakes, warmth, found family."},
+                    {"name": "Fairy Tales", "slug": "fairy_tales", "icon": "wand-sparkles", "blurb": "Old stories, retold."},
                 ],
             },
             {
                 "label": "Romantic",
                 "items": [
-                    {"name": "Romantasy", "slug": "romantic_fantasy", "blurb": "Romance with real fantasy stakes."},
-                    {"name": "Paranormal", "slug": "paranormal_romance", "blurb": "Love among the supernatural."},
+                    {"name": "Romantasy", "slug": "romantic_fantasy", "icon": "heart", "blurb": "Romance with real fantasy stakes."},
+                    {"name": "Paranormal", "slug": "paranormal_romance", "icon": "ghost", "blurb": "Love among the supernatural."},
                 ],
             },
             {
                 "label": "Epic",
                 "items": [
-                    {"name": "High Fantasy", "slug": "high_fantasy", "blurb": "Big worlds, big quests."},
-                    {"name": "Epic Fantasy", "slug": "epic_fantasy", "blurb": "Sweeping, multi-book sagas."},
+                    {"name": "High Fantasy", "slug": "high_fantasy", "icon": "castle", "blurb": "Big worlds, big quests."},
+                    {"name": "Epic Fantasy", "slug": "epic_fantasy", "icon": "mountain", "blurb": "Sweeping, multi-book sagas."},
                 ],
             },
             {
                 "label": "Dark & strange",
                 "items": [
-                    {"name": "Grimdark", "slug": "dark_fantasy", "blurb": "Morally grey, often brutal."},
-                    {"name": "Urban Fantasy", "slug": "urban_fantasy", "blurb": "Magic in the modern city."},
+                    {"name": "Grimdark", "slug": "dark_fantasy", "icon": "skull", "blurb": "Morally grey, often brutal."},
+                    {"name": "Urban Fantasy", "slug": "urban_fantasy", "icon": "building-2", "blurb": "Magic in the modern city."},
                 ],
             },
         ],
@@ -174,7 +168,7 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             {
                 "title": "Cozy fantasy",
                 "caption": "Low-stakes, high-comfort — tea, magic, and found family.",
-                "query": "subject_key:cozy_fantasy OR subject:\"Cozy fantasy\"",
+                "query": 'subject_key:cozy_fantasy OR subject:"Cozy fantasy"',
                 "sort": "readinglog",
             },
             {
@@ -199,10 +193,7 @@ FEATURED_SUBJECTS: dict[str, dict] = {
         ],
     },
     "romance": {
-        "tagline": (
-            "Love at the center, a happy ending guaranteed — from slow-burn "
-            "historicals to steamy contemporaries and everything between."
-        ),
+        "tagline": ("Love at the center, a happy ending guaranteed — from slow-burn historicals to steamy contemporaries and everything between."),
         "description": (
             "<p>Romance is the literature of relationships and emotional payoff. "
             "Its one firm promise — a happy or hopeful ending — is exactly what "
@@ -215,23 +206,23 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             {
                 "label": "By setting",
                 "items": [
-                    {"name": "Contemporary", "slug": "contemporary_romance", "blurb": "Here and now."},
-                    {"name": "Historical", "slug": "historical_romance", "blurb": "Regency ballrooms and beyond."},
-                    {"name": "Paranormal", "slug": "paranormal_romance", "blurb": "Love among the supernatural."},
+                    {"name": "Contemporary", "slug": "contemporary_romance", "icon": "coffee", "blurb": "Here and now."},
+                    {"name": "Historical", "slug": "historical_romance", "icon": "crown", "blurb": "Regency ballrooms and beyond."},
+                    {"name": "Paranormal", "slug": "paranormal_romance", "icon": "ghost", "blurb": "Love among the supernatural."},
                 ],
             },
             {
                 "label": "By heat",
                 "items": [
-                    {"name": "Sweet / closed-door", "slug": "clean_romance", "blurb": "Chemistry, no explicit scenes."},
-                    {"name": "Steamy", "slug": "erotic_romance", "blurb": "Turn up the temperature."},
+                    {"name": "Sweet / closed-door", "slug": "clean_romance", "icon": "heart", "blurb": "Chemistry, no explicit scenes."},
+                    {"name": "Steamy", "slug": "erotic_romance", "icon": "flame", "blurb": "Turn up the temperature."},
                 ],
             },
             {
                 "label": "By mood",
                 "items": [
-                    {"name": "Romantic comedy", "slug": "romantic_comedy", "blurb": "Banter and laughs."},
-                    {"name": "Romantic suspense", "slug": "romantic_suspense", "blurb": "Love with the stakes high."},
+                    {"name": "Romantic comedy", "slug": "romantic_comedy", "icon": "laugh", "blurb": "Banter and laughs."},
+                    {"name": "Romantic suspense", "slug": "romantic_suspense", "icon": "venetian-mask", "blurb": "Love with the stakes high."},
                 ],
             },
         ],
@@ -276,10 +267,7 @@ FEATURED_SUBJECTS: dict[str, dict] = {
         ],
     },
     "mystery": {
-        "tagline": (
-            "A puzzle, a crime, a secret to crack — from gentle cozies to "
-            "pulse-pounding psychological thrillers."
-        ),
+        "tagline": ("A puzzle, a crime, a secret to crack — from gentle cozies to pulse-pounding psychological thrillers."),
         "description": (
             "<p>Mystery is the genre of questions and answers: a wrong to set "
             "right, clues to follow, and the satisfaction of a solution. It runs "
@@ -293,22 +281,22 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             {
                 "label": "Gentle & puzzle-like",
                 "items": [
-                    {"name": "Cozy mystery", "slug": "cozy_mystery", "blurb": "Amateur sleuths, low gore."},
-                    {"name": "Detective", "slug": "detective_and_mystery_stories", "blurb": "Classic whodunits."},
+                    {"name": "Cozy mystery", "slug": "cozy_mystery", "icon": "coffee", "blurb": "Amateur sleuths, low gore."},
+                    {"name": "Detective", "slug": "detective_and_mystery_stories", "icon": "search", "blurb": "Classic whodunits."},
                 ],
             },
             {
                 "label": "Gritty & hardboiled",
                 "items": [
-                    {"name": "Noir", "slug": "noir_fiction", "blurb": "Shadows and moral grey."},
-                    {"name": "Police procedural", "slug": "police_procedural", "blurb": "The case, step by step."},
+                    {"name": "Noir", "slug": "noir_fiction", "icon": "moon", "blurb": "Shadows and moral grey."},
+                    {"name": "Police procedural", "slug": "police_procedural", "icon": "fingerprint", "blurb": "The case, step by step."},
                 ],
             },
             {
                 "label": "Twisty & tense",
                 "items": [
-                    {"name": "Psychological thriller", "slug": "psychological_thriller", "blurb": "Unreliable narrators."},
-                    {"name": "Legal thriller", "slug": "legal_thriller", "blurb": "The courtroom as battlefield."},
+                    {"name": "Psychological thriller", "slug": "psychological_thriller", "icon": "brain", "blurb": "Unreliable narrators."},
+                    {"name": "Legal thriller", "slug": "legal_thriller", "icon": "gavel", "blurb": "The courtroom as battlefield."},
                 ],
             },
         ],

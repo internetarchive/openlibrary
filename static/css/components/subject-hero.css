@@ -5,7 +5,7 @@
 
 ol-subject-hero {
   display: block;
-  margin: 1em 0 1.5em;
+  margin: 0 0 1.5em;
   min-height: 220px;
 }
 
@@ -19,6 +19,7 @@ ol-subject-hero .subjectTagEdit {
 
 ol-subject-hero h1 {
   margin: 0 0 0.5rem;
+  font-family: var(--font-family-serif);
   color: var(--white);
 }
 
@@ -83,12 +84,6 @@ ol-subject-hero a {
   opacity: 0.8;
 }
 
-/* In-hero search form sits below the stats with a light surface */
-ol-subject-hero .pagesearchbox {
-  margin-top: 1.25rem;
-  max-width: 30rem;
-}
-
 /* Stacked rails */
 .subject-rails {
   margin-top: 1.5rem;
@@ -130,7 +125,8 @@ ol-subject-hero .pagesearchbox {
   border-radius: 50%;
   overflow: hidden;
   /* Fallback avatar shows through when the author has no photo */
-  background: var(--lightest-grey) url(/images/icons/avatar_author-lg.png) center / cover no-repeat;
+  background: var(--lightest-grey) url(/images/icons/avatar_author-lg.png)
+    center / cover no-repeat;
   box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.15);
 }
 
@@ -212,18 +208,45 @@ ol-subject-hero .pagesearchbox {
 }
 
 .flavor-card {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   border: var(--border-width, 1px) solid var(--lighter-grey);
   border-radius: var(--border-radius-medium, 8px);
   background: var(--white);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Outrank the global `a:link`/`a:hover` underline (common.css). */
+.flavor-card:link,
+.flavor-card:visited,
+.flavor-card:hover {
   text-decoration: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .flavor-card:hover {
   border-color: var(--primary-blue);
   box-shadow: 0 1px 6px hsla(0, 0%, 0%, 0.08);
+}
+
+.flavor-card__icon {
+  flex: none;
+  display: flex;
+  color: var(--primary-blue);
+}
+
+.flavor-card__icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.flavor-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .flavor-card__name {
@@ -285,4 +308,37 @@ ol-subject-hero .pagesearchbox {
   margin: 0;
   color: var(--grey);
   font-size: 0.92rem;
+}
+
+/* These rails are for browsing/discovery, so drop the per-book CTA buttons
+   (Read/Borrow/Join Waitlist/Not in Library/etc.) for a cleaner cover grid.
+   The cover is the only child we keep; LoanStatus renders the rest. */
+.subject-rail .carousel__item > :not(.book-cover) {
+  display: none;
+}
+
+/* Hovering a cover lifts it with a thick ring; the <ol-tooltip> hovercard
+   (rendered in books/custom_carousel_card.html) reveals title/year/author.
+   Extra block padding gives the ring room inside the carousel's clipped
+   viewport so it isn't sheared off at the top and bottom of the row. */
+.subject-rail .carousel__item {
+  padding-block: 7px;
+}
+
+.subject-rail .bookcover,
+.subject-rail .carousel__item__blankcover {
+  border-radius: var(--border-radius-sm);
+  box-shadow:
+    0 0 0 0 var(--white),
+    0 0 0 hsla(0, 0%, 0%, 0);
+  transition: box-shadow 0.15s ease;
+}
+
+.subject-rail .bookcover:hover,
+.subject-rail .carousel__item__blankcover:hover,
+.subject-rail :focus-visible .bookcover,
+.subject-rail :focus-visible .carousel__item__blankcover {
+  box-shadow:
+    0 0 0 5px var(--white),
+    0 5px 16px hsla(0, 0%, 0%, 0.25);
 }
