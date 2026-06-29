@@ -68,7 +68,7 @@ export class OlTooltip extends LitElement {
             display: none;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;
-            background: var(--dark-grey);
+            background: var(--ol-tooltip-bg, var(--dark-grey));
             color: var(--white);
             font-size: 13px;
             line-height: var(--line-height-snug);
@@ -76,6 +76,19 @@ export class OlTooltip extends LitElement {
             pointer-events: none;
             user-select: none;
             width: max-content;
+        }
+
+        /* When promoted to the top layer (Popover API), neutralise the UA
+           popover defaults (centred inset, border, background) so our own
+           position: fixed top/left and styling win. The top layer lets the
+           tooltip escape ancestor transforms and overflow:hidden — e.g. the
+           transformed, clipped <ol-carousel> track that book hovercards are
+           slotted into. */
+        .tooltip:popover-open {
+            inset: auto;
+            margin: 0;
+            border: 0;
+            overflow: visible;
         }
 
         .tooltip[data-visible] {
@@ -172,6 +185,7 @@ export class OlTooltip extends LitElement {
                 class="tooltip"
                 id="${this._tooltipId}"
                 role="tooltip"
+                popover="manual"
                 ?data-visible="${this._visible}"
                 style="top: ${this._position.top}px; left: ${this._position.left}px;"
             >
@@ -266,6 +280,11 @@ export class OlTooltip extends LitElement {
             const tooltip = this.shadowRoot.querySelector('.tooltip');
             if (!tooltip) return;
 
+            // Promote to the top layer so the panel escapes ancestor transforms
+            // and overflow:hidden (e.g. the <ol-carousel> track that book
+            // hovercards are slotted into). Measure afterwards so offsetWidth
+            // reflects the top-layer box.
+            this._showPopover(tooltip);
             this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
             this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
                 bubbles: true, composed: true
@@ -277,10 +296,32 @@ export class OlTooltip extends LitElement {
         if (!this._visible) return;
 
         window.removeEventListener('scroll', this._onScroll, true);
+        const tooltip = this.shadowRoot?.querySelector('.tooltip');
+        if (tooltip) this._hidePopover(tooltip);
         this._visible = false;
         this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
             bubbles: true, composed: true
         }));
+    }
+
+    /** Promote the panel into the top layer. No-op (graceful fallback to plain
+     *  position: fixed) on browsers without the Popover API. */
+    _showPopover(panel) {
+        if (typeof panel.showPopover !== 'function') return;
+        try {
+            if (!panel.matches(':popover-open')) panel.showPopover();
+        } catch {
+            // Not connected, or already open — safe to ignore.
+        }
+    }
+
+    _hidePopover(panel) {
+        if (typeof panel.hidePopover !== 'function') return;
+        try {
+            if (panel.matches(':popover-open')) panel.hidePopover();
+        } catch {
+            // Already hidden — safe to ignore.
+        }
     }
 
     // ── Positioning ──

@@ -1,0 +1,38 @@
+$def with (groups, flavors=None)
+
+$# "Keep exploring" — a complete "where to next" menu at the end of the page:
+$# sub-genres first, then curated place/person/time facets as serendipitous
+$# browse seeds. The facet groups come from subjects.build_browse_threads
+$# (already cleaned, deduped, capped, weak groups dropped); each `kind` maps to a
+$# reader-facing label here so translation stays in the template layer.
+$#
+$# Sub-genres mirror the sidebar Genres map (editorial flavors) in compact chip
+$# form — not a second set of cards — so the pivot survives even on mobile, where
+$# the sidebar otherwise stacks far below all the rails. Every chip links to a
+$# real subject page, continuing the wander.
+
+$ labels = {'places': _('Worlds & settings'), 'people': _('Featuring'), 'times': _("When it's set")}
+$ subgenres = [item for group in (flavors or []) for item in group['items']]
+
+$if subgenres or groups:
+  <section class="subject-threads">
+    <h2 class="subject-section-title subject-threads__title">$_("Keep exploring")</h2>
+    <div class="subject-threads__grid">
+      $if subgenres:
+        <div class="subject-threads__group">
+          <h3 class="subject-threads__label">$_("Sub-genres")</h3>
+          <ol-chip-group gap="small">
+            $for item in subgenres:
+              <ol-chip size="small" href="/subjects/$item['slug']">$item['name']</ol-chip>
+          </ol-chip-group>
+        </div>
+      $for g in groups:
+        <div class="subject-threads__group">
+          <h3 class="subject-threads__label">$labels[g['kind']]</h3>
+          <ol-chip-group gap="small">
+            $for item in g['items']:
+              <ol-chip size="small" href="$item.key">$item.display_name</ol-chip>
+          </ol-chip-group>
+        </div>
+    </div>
+  </section>

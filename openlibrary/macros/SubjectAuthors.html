@@ -28,17 +28,38 @@ $if authors:
           $ blurb = ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)
         <a class="flavor-card subject-author-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
           <span class="subject-author-card__avatar">
-            <img
-              src="https://covers.openlibrary.org/a/olid/$(olid)-M.jpg"
-              loading="lazy"
-              alt=""
-              aria-hidden="true"
-            />
+            $# Prefer the global photo id (/a/id) when known: it resolves on the
+            $# production CDN regardless of OLID, so it works in dev where local
+            $# OLIDs don't match production. Fall back to /a/olid otherwise.
+            $if author.get('photo'):
+              <img
+                src="$(get_coverstore_public_url())/a/id/$(author.photo)-M.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+            $else:
+              <img
+                src="$(get_coverstore_public_url())/a/olid/$(olid)-M.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
           </span>
           <span class="flavor-card__text">
             <span class="flavor-card__name">$author.name</span>
             <span class="flavor-card__blurb">$blurb</span>
           </span>
+          $# Representative (most-read) work cover, for at-a-glance recognition.
+          $if work and work.get('cover_id'):
+            <span class="subject-author-card__cover">
+              <img
+                src="$(get_coverstore_public_url())/b/id/$(work.cover_id)-S.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+            </span>
         </a>
     </div>
   </section>

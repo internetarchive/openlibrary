@@ -39,6 +39,39 @@ document.addEventListener('click', function(e) {
     }
 }, true);
 
+// Global listener for "Want to Read" buttons on subject-rail covers. Delegated
+// so it works for lazily-loaded and paged-in carousel cards. Adds the work to
+// the reader's Want-to-Read shelf in place; bounces anonymous users to login.
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-cover-save');
+    if (!btn) return;
+    e.preventDefault();
+    const workKey = btn.dataset.workKey;
+    if (!workKey || btn.dataset.busy) return;
+    btn.dataset.busy = '1';
+    fetch(`${workKey}/bookshelves.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'add', bookshelf_id: '1', dont_remove: 'true' }),
+    }).then(function(resp) {
+        if (resp.status === 401) {
+            const target = window.location.pathname + window.location.search;
+            window.location.href = `/account/login?redirect=${encodeURIComponent(target)}`;
+            return;
+        }
+        if (resp.ok) {
+            btn.classList.add('is-saved');
+            btn.setAttribute('aria-pressed', 'true');
+            if (btn.dataset.savedLabel) {
+                btn.setAttribute('aria-label', btn.dataset.savedLabel);
+                btn.setAttribute('title', btn.dataset.savedLabel);
+            }
+        }
+    }).finally(function() {
+        delete btn.dataset.busy;
+    });
+}, true);
+
 initSentry();
 
 // Init the service worker first since it does caching
@@ -223,12 +256,12 @@ jQuery(function() {
             });
     }
     // Wire load-more onto any non-lazy <ol-carousel> web components present at load
-    const olCarouselElements = document.querySelectorAll('ol-carousel[data-config]')
+    const olCarouselElements = document.querySelectorAll('ol-carousel[data-config]');
     if (olCarouselElements.length) {
         import(/* webpackChunkName: "ol-carousel" */ './ol-carousel')
             .then((module) => {
-                module.initOlCarousels(olCarouselElements)
-            })
+                module.initOlCarousels(olCarouselElements);
+            });
     }
     if ($('script[type="text/json+graph"]').length > 0) {
         import(/* webpackChunkName: "graphs" */ './graphs')
@@ -615,6 +648,23 @@ jQuery(function() {
     if (followForms.length) {
         import(/* webpackChunkName: "following" */ './following')
             .then(module => module.initAsyncFollowing(followForms));
+    }
+
+    // Subject-page browse toolbar. Initialized independently of (and before
+    // kicking off) the lazy carousels: initSubjectBrowse() synchronously captures
+    // each rail's base config — winning the race against the carousels' network
+    // fetches — and applies any sticky filters, without ever blocking the load.
+    if (document.querySelector('.subject-browse')) {
+        import(/* webpackChunkName: "subject-browse" */ './subject-browse')
+            .then(module => module.initSubjectBrowse())
+            .catch(() => {});
+    }
+
+    // "More info" book-card popover for subject-page carousel covers.
+    if (document.getElementById('subject-book-card')) {
+        import(/* webpackChunkName: "subject-book-card" */ './subject-book-card')
+            .then(module => module.initBookCardPopover())
+            .catch(() => {});
     }
 
     // Generalized carousel lazy-loading

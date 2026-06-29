@@ -122,6 +122,71 @@ ol-subject-hero a {
   margin-top: 0;
 }
 
+/* ── Browse toolbar: availability + era + language, all on one row ── */
+.subject-browse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+/* Language sits at the trailing end of the row. */
+.subject-browse__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-inline-start: auto;
+  font-size: 0.92rem;
+  color: var(--dark-grey);
+}
+
+.subject-browse__lang-select {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--border-radius-input);
+}
+
+.subject-browse__eras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.subject-browse__era {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+  color: var(--primary-blue);
+  background: var(--white);
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.subject-browse__era:hover {
+  background: var(--lightest-grey);
+}
+
+.subject-browse__era.is-active {
+  color: var(--white);
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+/* Shown in a rail when a filter leaves it with no matching books. */
+.lazy-carousel-empty {
+  padding: 1.25rem 0;
+  color: var(--grey);
+  font-size: 0.92rem;
+}
+
 /* Sidebar section headings (genres + authors) */
 .subject-aside__title {
   margin: 0 0 0.6rem;
@@ -164,6 +229,24 @@ ol-subject-hero a {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* The author's most-read work in this subject, shown as a small recognizable
+   cover on the right (the `.flavor-card__text` width override lives with the
+   base rule below to keep specificity ascending). */
+.subject-author-card__cover {
+  flex: none;
+  width: 1.85rem;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  line-height: 0;
+}
+
+.subject-author-card__cover img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* ── Genre dashboard: about / flavors / rails ── */
@@ -259,6 +342,11 @@ ol-subject-hero a {
   min-width: 0;
 }
 
+/* Author cards: text column grows so the work cover sits at the trailing edge. */
+.subject-author-card .flavor-card__text {
+  flex: 1 1 auto;
+}
+
 .flavor-card__name {
   display: block;
   font-size: var(--font-size-label-large, 0.9rem);
@@ -276,10 +364,6 @@ ol-subject-hero a {
 /* Labelled, interpreted rails ("paths") */
 .subject-rail {
   margin: 0 0 3rem;
-}
-
-.subject-rail__head {
-  margin-bottom: 0.4rem;
 }
 
 .subject-rail__heading {
@@ -334,12 +418,18 @@ ol-subject-hero a {
    (and its instant hovercard). */
 .subject-rail .book-cover {
   position: relative;
+  border-radius: var(--border-radius-sm);
+  transition: box-shadow 0.15s ease;
+  /* Match the hovercard background to the cover's blue hover ring. Inherits
+     through the <ol-tooltip> shadow DOM to override its --dark-grey default. */
+  --ol-tooltip-bg: var(--primary-blue);
 }
 
 .cover-pills {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transition: opacity 0.12s ease;
 }
 
 .cover-pill {
@@ -361,22 +451,229 @@ ol-subject-hero a {
   box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.3);
 }
 
-/* Series pill top-left; context pill (rating/pages) bottom-right so the two
-   never collide on a narrow cover. */
-.cover-pill--series {
-  inset-inline-start: 6px;
-}
-
+/* All context pills sit centered along the bottom of the cover. */
+.cover-pill--series,
 .cover-pill--rating,
 .cover-pill--pages {
   top: auto;
   bottom: 6px;
-  inset-inline-end: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Hovering/focusing the cover reveals the action buttons, so clear the pills
+   out of the way. */
+.book-cover:hover .cover-pills,
+.book-cover:has(:focus-visible) .cover-pills {
+  opacity: 0;
 }
 
 .cover-pill__star {
   margin-right: 0.2em;
   color: var(--orange, hsl(36, 100%, 50%));
+}
+
+/* Hover actions, centered and stacked over the cover. The container spans the
+   cover but is click-through; only the buttons capture pointer events, so the
+   rest of the cover stays a link to the work. */
+.cover-actions {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-index-level-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  padding-bottom: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.cover-actions:focus-within,
+.book-cover:hover .cover-actions {
+  opacity: 1;
+}
+
+.cover-action {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: var(--border-radius-pill);
+  background: hsla(0, 0%, 20%, 0.92);
+  color: var(--white);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.3);
+  transition: background-color 0.12s ease;
+}
+
+/* Light up on hover/focus: the (semi-transparent) background lifts to a
+   lighter grey; the label stays white. */
+.cover-action:hover,
+.cover-action:focus-visible {
+  background: hsla(0, 0%, 40%, 0.94);
+}
+
+.cover-action__icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+/* Add-to-list saved state: swap icon + label, green background. */
+.cover-action__icon--done,
+.cover-action__label--done {
+  display: none;
+}
+
+.cover-action.is-saved {
+  background: var(--green);
+}
+
+.cover-action.is-saved .cover-action__icon--add,
+.cover-action.is-saved .cover-action__label--add {
+  display: none;
+}
+
+.cover-action.is-saved .cover-action__icon--done,
+.cover-action.is-saved .cover-action__label--done {
+  display: inline-flex;
+}
+
+/* Touch devices have no hover, and two centered buttons would bury a wall of
+   covers. Hide the overlay; a tap navigates to the work page, which carries the
+   same actions. */
+@media (hover: none) {
+  .cover-actions {
+    display: none;
+  }
+}
+
+/* ── "More info" book card (top-layer Popover-API element) ── */
+.book-card-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(360px, calc(100vw - 24px));
+  padding: 0;
+  border: 1px solid var(--lighter-grey);
+  border-radius: var(--border-radius-card);
+  background: var(--white);
+  color: var(--dark-grey);
+  box-shadow: 0 8px 30px hsla(0, 0%, 0%, 0.25);
+}
+
+.book-card-popover::backdrop {
+  background: transparent;
+}
+
+/* Narrow viewports: dock as a bottom sheet. */
+.book-card-popover--sheet {
+  inset: auto 0 0;
+  width: 100%;
+  border-radius: var(--border-radius-overlay) var(--border-radius-overlay) 0 0;
+}
+
+.book-card {
+  position: relative;
+  padding: 1rem;
+}
+
+.book-card__close {
+  position: absolute;
+  top: 0.35rem;
+  inset-inline-end: 0.35rem;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--border-radius-circle);
+  background: transparent;
+  color: var(--grey);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.book-card__close:hover {
+  background: var(--lightest-grey);
+}
+
+.book-card__top {
+  display: flex;
+  gap: 0.9rem;
+  padding-inline-end: 1.5rem;
+}
+
+.book-card__cover {
+  flex: none;
+  width: 84px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.25);
+}
+
+.book-card__meta {
+  min-width: 0;
+}
+
+.book-card__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.book-card__byline {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  color: var(--grey);
+}
+
+.book-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.book-card__desc {
+  display: -webkit-box;
+  margin: 0.85rem 0 0;
+  overflow: hidden;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--dark-grey);
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.book-card__page {
+  display: inline-block;
+  margin-top: 0.85rem;
+  font-size: 0.9rem;
+}
+
+/* One-line title under each cover. Hidden on desktop by the cover-only rule
+   above (the instant hovercard covers identification there); revealed on touch,
+   where there is no hover and a wall of bare covers gives no titles. Same
+   specificity as that rule, and later in source order, so it wins on touch. */
+@media (hover: none) {
+  .subject-rail .carousel__item > .cover-title {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    line-height: 1.25;
+    color: var(--dark-grey);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* Hovering a cover lifts it with a thick ring; the <ol-tooltip> hovercard
@@ -405,14 +702,56 @@ ol-subject-hero a {
   box-shadow:
     0 0 0 0 var(--primary-blue),
     0 0 0 hsla(0, 0%, 0%, 0);
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease, opacity 0.12s ease;
 }
 
-.subject-rail .bookcover:hover,
-.subject-rail .carousel__item__blankcover:hover,
-.subject-rail :focus-visible .bookcover,
-.subject-rail :focus-visible .carousel__item__blankcover {
+/* Hovering the cover reveals the action buttons on top; dim the cover so the
+   buttons read clearly against it. Keyed off the container so the dim holds
+   while the cursor is over a button (which sits above the image). */
+.subject-rail .book-cover:hover img.bookcover,
+.subject-rail .book-cover:has(:focus-visible) img.bookcover,
+.subject-rail .book-cover:hover .carousel__item__blankcover,
+.subject-rail .book-cover:has(:focus-visible) .carousel__item__blankcover {
+  opacity: 0.6;
+}
+
+/* Key the hover/focus highlight off the .book-cover container, not the image:
+   the hover action buttons sit on top of the cover, so an image-level
+   `:hover`/`:focus-visible` would drop out the moment the cursor (or focus)
+   reached a button. `:has(:focus-visible)` keeps it keyboard-focus only. */
+.subject-rail .book-cover:hover,
+.subject-rail .book-cover:has(:focus-visible) {
   box-shadow:
-    0 0 0 5px var(--primary-blue),
+    0 0 0 4px var(--primary-blue),
     0 5px 16px hsla(0, 0%, 0%, 0.25);
+}
+
+/* ── "Keep exploring" browse threads (end-of-content, full width) ── */
+
+/* A quiet band of serendipitous browse seeds — settings, characters, eras —
+   that catches the reader who has finished the rails. Sits below the two-column
+   dashboard, spanning full width, set apart by a top rule. */
+.subject-threads {
+  margin: 1rem 0 0;
+  padding-top: 1.75rem;
+  border-top: var(--border-width, 1px) solid var(--lighter-grey);
+}
+
+/* Full-width band, so the title can be a touch larger than the sidebar reuse. */
+.subject-threads__title {
+  font-size: 1.3rem;
+}
+
+.subject-threads__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.1rem 1.75rem;
+}
+
+.subject-threads__label {
+  margin: 0 0 0.6rem;
+  font-size: var(--font-size-label-medium, 0.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--grey);
 }

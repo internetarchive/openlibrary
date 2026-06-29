@@ -50,6 +50,10 @@ export class OlCarousel extends LitElement {
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
             --_indicator-color: var(--ol-carousel-indicator-color, #ccc);
             --_indicator-active: var(--ol-carousel-indicator-active, #333);
+            /* Breathing room inside the clipped viewport so slotted items can
+               show a hover lift/shadow without it being cut off. Opt-in: 0 by
+               default, set --ol-carousel-viewport-padding to enable. */
+            --_viewport-padding: var(--ol-carousel-viewport-padding, 0px);
         }
 
         .carousel {
@@ -93,6 +97,7 @@ export class OlCarousel extends LitElement {
         .viewport {
             position: relative;
             overflow: hidden;
+            padding-block: var(--_viewport-padding);
         }
 
         /* ── Track ── */

@@ -25,16 +25,11 @@ FEATURED_SUBJECTS: dict[str, dict] = {
     "science_fiction": {
         "tagline": ("Worlds reshaped by science and possibility — from near-future technothrillers to galaxy-spanning epics."),
         "description": (
-            "<p>Science fiction asks <em>what if?</em> and follows the answer "
-            "wherever it leads: to distant planets, far futures, alternate "
-            "histories, and the frontiers of the mind. At its best it uses the "
-            "tools of the impossible to say something true about who we are and "
-            "where we're headed.</p>"
-            "<p>It's a sprawling genre. You'll find rigorous, idea-driven "
-            "“hard” SF sitting beside pulpy space adventure, bleak "
-            "dystopias beside hopeful futures, and quiet character studies "
-            "beside wars across galaxies. Use the subgenres below to find the "
-            "corner that fits the mood you're in.</p>"
+            "<p>Science fiction is the literature of <em>what if?</em> — the one "
+            "genre built to extrapolate, taking a single change to science or "
+            "society and chasing it to the end. Nothing else travels to the far "
+            "future, rewrites history, or puts a real idea on trial quite like "
+            "it.</p>"
         ),
         "flavors": [
             {
@@ -99,8 +94,14 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             },
             {
                 "title": "Short standalones",
-                "caption": "Under ~350 pages, no series commitment — perfect for a first taste.",
-                "query": "subject_key:science_fiction -series_name:* number_of_pages:[1 TO 350]",
+                "caption": "Under ~250 pages, no series commitment — perfect for a first taste.",
+                "query": "subject_key:science_fiction -series_name:* number_of_pages:[1 TO 250]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Begin a series",
+                "caption": "Start something bigger — the first book of a series worth committing to.",
+                "query": "subject_key:science_fiction series_position:1",
                 "sort": "readinglog",
             },
             {
@@ -115,18 +116,19 @@ FEATURED_SUBJECTS: dict[str, dict] = {
                 "query": "subject_key:science_fiction",
                 "sort": "readinglog",
                 "has_fulltext_only": True,
+                # Hide this rail entirely unless at least 5 readable-now books
+                # exist; a 1-4 book strip reads as broken/empty rather than useful.
+                "min_books": 5,
             },
         ],
     },
     "fantasy": {
         "tagline": ("Magic, myth, and the impossible — from cozy found-family tales to grim empires and world-ending wars."),
         "description": (
-            "<p>Fantasy is the literature of wonder: secondary worlds, hidden "
-            "magic, old gods, and quests that test who we are. It stretches from "
-            "comforting, low-stakes stories to brutal, morally complex epics.</p>"
-            "<p>“Fantasy” covers wildly different reading experiences, "
-            "so the subgenres below are the real map of the territory — pick the "
-            "flavor you're after.</p>"
+            "<p>Fantasy is the literature of wonder — the genre free to invent "
+            "its own worlds from scratch, where magic, myth, and old gods set the "
+            "rules. It's where you'll find secondary worlds, epic quests, and "
+            "impossible things no other genre will let you have.</p>"
         ),
         "flavors": [
             {
@@ -173,8 +175,14 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             },
             {
                 "title": "Short standalones",
-                "caption": "Under ~400 pages and not part of a series.",
-                "query": "subject_key:fantasy -series_name:* number_of_pages:[1 TO 400]",
+                "caption": "Under ~250 pages and not part of a series.",
+                "query": "subject_key:fantasy -series_name:* number_of_pages:[1 TO 250]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Begin a series",
+                "caption": "Start something bigger — the first book of a series worth committing to.",
+                "query": "subject_key:fantasy series_position:1",
                 "sort": "readinglog",
             },
             {
@@ -189,18 +197,19 @@ FEATURED_SUBJECTS: dict[str, dict] = {
                 "query": "subject_key:fantasy",
                 "sort": "readinglog",
                 "has_fulltext_only": True,
+                # Hide this rail entirely unless at least 5 readable-now books
+                # exist; a 1-4 book strip reads as broken/empty rather than useful.
+                "min_books": 5,
             },
         ],
     },
     "romance": {
         "tagline": ("Love at the center, a happy ending guaranteed — from slow-burn historicals to steamy contemporaries and everything between."),
         "description": (
-            "<p>Romance is the literature of relationships and emotional payoff. "
-            "Its one firm promise — a happy or hopeful ending — is exactly what "
-            "lets it take big emotional risks along the way.</p>"
-            "<p>What changes wildly from book to book is the <em>texture</em>: the "
-            "heat level, the trope, the setting, and how much angst you're in the "
-            "mood for. The flavors below are the fastest way to the right shelf.</p>"
+            "<p>Romance puts the relationship at the center and makes one promise "
+            "no other genre will: a happy or hopeful ending, guaranteed. That "
+            "safety net is exactly what frees it to take big emotional risks on "
+            "the way there.</p>"
         ),
         "flavors": [
             {
@@ -247,8 +256,14 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             },
             {
                 "title": "Short & sweet standalones",
-                "caption": "Under ~350 pages, no series to commit to.",
-                "query": "subject_key:romance -series_name:* number_of_pages:[1 TO 350]",
+                "caption": "Under ~250 pages, no series to commit to.",
+                "query": "subject_key:romance -series_name:* number_of_pages:[1 TO 250]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Begin a series",
+                "caption": "Start something bigger — the first book of a series worth committing to.",
+                "query": "subject_key:romance series_position:1",
                 "sort": "readinglog",
             },
             {
@@ -263,19 +278,19 @@ FEATURED_SUBJECTS: dict[str, dict] = {
                 "query": "subject_key:romance",
                 "sort": "readinglog",
                 "has_fulltext_only": True,
+                # Hide this rail entirely unless at least 5 readable-now books
+                # exist; a 1-4 book strip reads as broken/empty rather than useful.
+                "min_books": 5,
             },
         ],
     },
     "mystery": {
         "tagline": ("A puzzle, a crime, a secret to crack — from gentle cozies to pulse-pounding psychological thrillers."),
         "description": (
-            "<p>Mystery is the genre of questions and answers: a wrong to set "
-            "right, clues to follow, and the satisfaction of a solution. It runs "
-            "from warm, low-violence “cozies” to bleak noir and twisty domestic "
-            "suspense.</p>"
-            "<p>Readers usually know the <em>intensity</em> they want before the "
-            "plot — gentle and puzzle-like, or dark and tense. Start with a flavor "
-            "below.</p>"
+            "<p>Mystery is the genre of the puzzle — a crime or secret laid out "
+            "as a question, with every clue you need to beat the detective to the "
+            "answer. No other genre is built so deliberately around the payoff of "
+            "a solution.</p>"
         ),
         "flavors": [
             {
@@ -322,8 +337,14 @@ FEATURED_SUBJECTS: dict[str, dict] = {
             },
             {
                 "title": "Short standalones",
-                "caption": "Under ~350 pages and not part of a series.",
-                "query": "subject_key:mystery -series_name:* number_of_pages:[1 TO 350]",
+                "caption": "Under ~250 pages and not part of a series.",
+                "query": "subject_key:mystery -series_name:* number_of_pages:[1 TO 250]",
+                "sort": "readinglog",
+            },
+            {
+                "title": "Begin a series",
+                "caption": "Start something bigger — the first book of a series worth committing to.",
+                "query": "subject_key:mystery series_position:1",
                 "sort": "readinglog",
             },
             {
@@ -338,6 +359,9 @@ FEATURED_SUBJECTS: dict[str, dict] = {
                 "query": "subject_key:mystery",
                 "sort": "readinglog",
                 "has_fulltext_only": True,
+                # Hide this rail entirely unless at least 5 readable-now books
+                # exist; a 1-4 book strip reads as broken/empty rather than useful.
+                "min_books": 5,
             },
         ],
     },

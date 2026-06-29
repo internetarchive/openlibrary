@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import web
 
-from openlibrary.plugins.worksearch.subjects import SubjectEngine
+from openlibrary.plugins.worksearch.subjects import SubjectEngine, build_browse_threads
 from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
 
 
@@ -126,3 +126,60 @@ class TestDecorateWithTags:
 
         mock_find.assert_called_once_with("graphic_novel")
         assert subject.tag == mock_tag
+
+
+class TestBuildBrowseThreads:
+    """Curation of place/person/time facets into 'Keep exploring' browse seeds."""
+
+    @staticmethod
+    def _facets(*names):
+        return [web.storage(key=f"/subjects/x:{n}", name=n, count=1) for n in names]
+
+    def _subj(self, name="Science fiction", **facets):
+        return web.storage(name=name, **facets)
+
+    def test_strips_qualifiers_and_caps_each_group(self):
+        subj = self._subj(
+            places=self._facets("Mars (Planet)", "Outer space", "London", "Earth", "England", "Moon", "Venus"),
+        )
+        groups = build_browse_threads(subj)
+        place_group = next(g for g in groups if g["kind"] == "places")
+        names = [i.display_name for i in place_group["items"]]
+        assert names == ["Mars", "Outer space", "London", "Earth", "England", "Moon"]  # capped at 6, qualifier stripped
+
+    def test_dedupes_across_article_and_qualifier(self):
+        subj = self._subj(
+            people=self._facets("Doctor (Fictitious character)", "Doctor", "Han Solo (Fictitious character)", "Han Solo", "Leia Organa"),
+        )
+        groups = build_browse_threads(subj)
+        people = next(g for g in groups if g["kind"] == "people")
+        assert [i.display_name for i in people["items"]] == ["Doctor", "Han Solo", "Leia Organa"]
+
+    def test_drops_self_reference_and_generic_noise(self):
+        subj = self._subj(
+            name="Fiction",
+            subjects=self._facets("Fiction", "Fiction, general"),
+            places=self._facets("Mars", "Earth", "Moon"),
+        )
+        groups = build_browse_threads(subj)
+        assert all(g["kind"] != "subjects" for g in groups)  # 'subjects' never a browse-thread kind
+        assert {g["kind"] for g in groups} == {"places"}
+
+    def test_times_drops_bare_eras_and_tautological_words_then_self_hides(self):
+        subj = self._subj(
+            times=self._facets("20th century", "Future", "The Future", "The Far Future", "1950-"),
+        )
+        # After dropping centuries/year-ranges, bare "Future"/"The Future" (generic),
+        # only "The Far Future" survives -> below min_items -> group omitted.
+        assert build_browse_threads(subj) == []
+
+    def test_times_renders_when_enough_named_eras_survive(self):
+        subj = self._subj(
+            times=self._facets("Victorian era", "World War II", "Middle Ages", "20th century"),
+        )
+        groups = build_browse_threads(subj)
+        times = next(g for g in groups if g["kind"] == "times")
+        assert [i.display_name for i in times["items"]] == ["Victorian era", "World War II", "Middle Ages"]
+
+    def test_empty_facets_yield_no_groups(self):
+        assert build_browse_threads(self._subj(places=[], people=[], times=[])) == []

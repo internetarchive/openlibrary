@@ -1,4 +1,4 @@
-$def with(title, query, caption=None, badge=None, sort='new', has_fulltext_only=False, key='', limit=20, user_lang_only=False, fallback=False)
+$def with(title, query, caption=None, badge=None, sort='new', has_fulltext_only=False, key='', limit=20, user_lang_only=False, fallback=False, pill=None, min_books=1)
 
 $# A single labelled "path" on a subject page: an interpreted header
 $# (title + optional badge + a one-line "why this is here" caption) above an
@@ -10,6 +10,12 @@ $# * caption (str)          -- short explanation of why these books are grouped
 $# * badge (str)            -- optional pill, e.g. "Award winner"
 $# * sort (str)             -- carousel sort
 $# * has_fulltext_only (bool) -- restrict to readable-now books
+$# * pill (str)             -- per-cover pill context: 'rating' or 'pages'
+$#                            (a series pill always shows on books in a series)
+$# * min_books (int)        -- hide the whole rail (heading + carousel) unless at
+$#                            least this many books load; the carousel renders
+$#                            nothing below the threshold and lazy-carousel.js
+$#                            drops the empty rail.
 
 $ primary_sort = sort.split(',')[0]
 $ see_all = '/search?' + urlencode({'q': query, 'sort': primary_sort})
@@ -24,5 +30,5 @@ $ see_all = '/search?' + urlencode({'q': query, 'sort': primary_sort})
     $if caption:
       <p class="subject-rail__caption">$caption</p>
   </div>
-  $:macros.QueryCarousel(query=query, sort=sort, key=key or title, limit=limit, has_fulltext_only=has_fulltext_only, web_component=True, user_lang_only=user_lang_only, fallback=fallback)
+  $:macros.QueryCarousel(query=query, sort=sort, key=key or title, limit=limit, has_fulltext_only=has_fulltext_only, web_component=True, user_lang_only=user_lang_only, fallback=fallback, hovercard=True, cover_pill=pill, min_books=min_books)
 </div>

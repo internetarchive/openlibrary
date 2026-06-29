@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False, fallback=False, safe_mode=True, web_component=False)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False, fallback=False, safe_mode=True, web_component=False, hovercard=False, cover_pill=None, min_books=1)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -27,6 +27,6 @@ $ fallback = fallback and fallback_query
 
 $if use_cache and not lazy:
     $# Note this won't work with fallback; the JS that handles retries is in lazy-carousel.js
-    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode, web_component=web_component)
+    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode, web_component=web_component, hovercard=hovercard, cover_pill=cover_pill, min_books=min_books)
 $else:
-    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback, safe_mode=safe_mode, web_component=web_component)
+    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback, safe_mode=safe_mode, web_component=web_component, hovercard=hovercard, cover_pill=cover_pill, min_books=min_books)

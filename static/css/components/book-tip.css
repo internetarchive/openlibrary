@@ -1,0 +1,24 @@
+/* Book hovercard content shown inside an <ol-tooltip slot="content">.
+   Slotted content lives in the light DOM, so it is styled here rather than by
+   the tooltip component. Used by the design demo (design/tooltip.html) and the
+   subject-page carousels (books/custom_carousel_card.html). */
+.book-tip {
+  font-size: var(--font-size-body-medium);
+}
+
+.book-tip__heading {
+  margin-bottom: var(--spacing-2xs);
+}
+
+.book-tip__title {
+  font-weight: 600;
+}
+
+.book-tip__year {
+  color: var(--lighter-grey);
+}
+
+.book-tip__byline {
+  color: var(--lighter-grey);
+  font-size: var(--font-size-label-medium);
+}

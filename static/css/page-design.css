@@ -4,6 +4,8 @@
  * Any CSS loaded here will be render blocking.
  */
 
+@import "components/book-tip.css";
+
 .design-pattern-library {
   padding: var(--spacing-inset-md);
 }
@@ -218,13 +220,8 @@ pre.example__code code[class*="language-"] {
   font-size: var(--font-size-body-large);
 }
 
-/* Rich tooltip content, styled by the consuming page (see design/tooltip.html). */
-.book-tip {
-  font-size: var(--font-size-body-medium);
-}
-.book-tip__heading {
-  margin-bottom: var(--spacing-2xs);
-}
+/* Demo-only cover trigger for the "Book hovercard" example (design/tooltip.html).
+   The shared .book-tip content styles live in components/book-tip.css. */
 .book-tip__trigger {
   display: block;
   width: 120px;
@@ -238,16 +235,6 @@ pre.example__code code[class*="language-"] {
 .book-tip__trigger:focus-visible {
   box-shadow: 0 0 0 6px var(--lightest-grey);
   outline: none;
-}
-.book-tip__title {
-  font-weight: 600;
-}
-.book-tip__year {
-  color: var(--lighter-grey);
-}
-.book-tip__byline {
-  color: var(--lighter-grey);
-  font-size: var(--font-size-label-medium);
 }
 
 /* Auto-generated API reference tables (from the Custom Elements Manifest) */

@@ -51,7 +51,7 @@ export class OLSubjectHero extends LitElement {
         .content {
             position: relative;
             flex: 1 1 auto;
-            padding: 2.5rem 2rem;
+            padding: 1.75rem 2rem;
             max-width: 46rem;
         }
 
@@ -91,7 +91,7 @@ export class OLSubjectHero extends LitElement {
 
         @media (max-width: 768px) {
             .content {
-                padding: 1.75rem 1.25rem;
+                padding: 1.25rem 1.25rem;
             }
         }
 

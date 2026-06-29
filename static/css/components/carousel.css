@@ -194,7 +194,6 @@
 .lazy-carousel {
   /* Same height as the loaded carousel to avoid layout shift */
   height: 278.6px;
-  background: var(--book-cover-carousel-background);
   display: flex;
   flex-direction: column;
   justify-content: center;

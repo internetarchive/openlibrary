@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None, web_component=False, books_data=None)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None, web_component=False, hovercard=False, cover_pill=None, books_data=None, min_books=1)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -27,6 +27,9 @@ $if lazy:
             "layout": layout,
             "fallback": fallback,
             "web_component": web_component,
+            "hovercard": hovercard,
+            "cover_pill": cover_pill,
+            "min_books": min_books,
         }
         if title:
             config["title"] = title
@@ -75,4 +78,4 @@ $else:
         "hasFulltextOnly": has_fulltext_only
       }
 
-    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout, web_component=web_component)
+    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout, web_component=web_component, hovercard=hovercard, cover_pill=cover_pill, min_books=min_books)

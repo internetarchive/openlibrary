@@ -1,6 +1,6 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', web_component=False)
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', web_component=False, hovercard=False, cover_pill=None)
 
-$def render_cards(books, layout, key, secondary_action):
+$def render_cards(books, layout, key, secondary_action, hovercard, cover_pill):
   $for index, book in enumerate(books or []):
       $ lazy_load = index > 5
       $ editions = book.get('editions', {})
@@ -15,7 +15,27 @@ $def render_cards(books, layout, key, secondary_action):
                     target_data = docs[0]
       $ book2 = storage(target_data)
       $ book2['authors'] = book.get('authors', [])
-      $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
+      $# author_name and first_publish_year are work-level fields; carry them onto
+      $# the edition doc (target_data) so the hovercard can show them when the work
+      $# has nested editions and target_data is the edition rather than the work.
+      $ book2['author_name'] = book2.get('author_name') or book.get('author_name', [])
+      $ book2['first_publish_year'] = book2.get('first_publish_year') or book.get('first_publish_year')
+      $# Cover: prefer the work's representative cover over the rendered edition's.
+      $# The card links to a specific edition, but that edition's cover can be a
+      $# different or missing image, while the work's cover_i is the canonical one
+      $# (it's what search ranks on and what the work page shows). Fall back to the
+      $# edition's own cover only when the work has none. This keeps the carousel
+      $# cover correct independent of which edition happens to be rendered.
+      $ book2['cover_i'] = book.get('cover_i') or book2.get('cover_i')
+      $ book2['cover_id'] = book.get('cover_id') or book2.get('cover_id')
+      $# Likewise carry the work-level fields the cover pills need onto the
+      $# edition doc (target_data) when the work has nested editions.
+      $for f in ['number_of_pages_median', 'ratings_average', 'ratings_count', 'series_name', 'series_position', 'series_key', 'series_total']:
+        $ book2[f] = book2.get(f) or book.get(f)
+      $# The save button shelves the *work*, so keep the work key even when the
+      $# card itself renders (and links to) a specific edition.
+      $ book2['work_key'] = book.get('key')
+      $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action, hovercard=hovercard, cover_pill=cover_pill)
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:
@@ -42,6 +62,8 @@ $if test or (books and len(books) >= min_books):
               "key": key,
               "subject": load_more.get("subject", ""),
               "secondaryAction": secondary_action,
+              "hovercard": hovercard,
+              "cover_pill": cover_pill,
               "sorts": load_more.get("sorts", ""),
               "hasFulltextOnly": load_more.get("hasFulltextOnly", True),
             } if load_more else None
@@ -50,7 +72,7 @@ $if test or (books and len(books) >= min_books):
         $if use_oc:
           <ol-carousel class="ol-carousel--books" label="$(title or key or _('Books'))" hide-indicators
             data-config="$json_encode(config)">
-            $:render_cards(books, layout, key, secondary_action)
+            $:render_cards(books, layout, key, secondary_action, hovercard, cover_pill)
           </ol-carousel>
         $else:
           $ compact = "carousel--compact" if compact_mode else ""
@@ -58,7 +80,7 @@ $if test or (books and len(books) >= min_books):
           $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
           <div class="carousel $grid $compact $loadjs"
             data-config="$json_encode(config)">
-            $:render_cards(books, layout, key, secondary_action)
+            $:render_cards(books, layout, key, secondary_action, hovercard, cover_pill)
           </div>
       </div>
     </div>

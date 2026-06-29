@@ -67,6 +67,8 @@ function fetchMore(elem, loadMore) {
         pageMode: loadMore.pageMode,
         hasFulltextOnly: loadMore.hasFulltextOnly,
         secondaryAction: loadMore.secondaryAction,
+        hovercard: loadMore.hovercard,
+        cover_pill: loadMore.cover_pill,
         key: loadMore.key,
         ...(loadMore.extraParams || {}),
     });

@@ -48,8 +48,16 @@ async function fetchPartials(data) {
  *
  * On retry, this function is called again.
  *
+ * Exported as `loadCarousel` so callers (e.g. the subject-page browse toolbar)
+ * can imperatively (re)load a placeholder without waiting for it to scroll into
+ * view — the right model when the user has just changed a filter.
+ *
  * @param target {HTMLElement} A placeholder element for a carousel
  */
+export function loadCarousel(target) {
+    doFetchAndUpdate(target);
+}
+
 function doFetchAndUpdate(target) {
     const config = JSON.parse(target.dataset.config);
     const loadingIndicator = target.querySelector('.loadingIndicator');
@@ -68,7 +76,9 @@ function doFetchAndUpdate(target) {
             const olCarousels = newElem.querySelectorAll('ol-carousel[data-config]');
             loadingIndicator.classList.add('hidden');
 
-            if (carouselElements.length === 0 && olCarousels.length === 0 && config.fallback) {
+            const isEmpty = carouselElements.length === 0 && olCarousels.length === 0;
+
+            if (isEmpty && config.fallback) {
                 // No results, disable filters
                 if (typeof config.fallback === 'string') {
                     config.query = config.fallback;
@@ -78,6 +88,24 @@ function doFetchAndUpdate(target) {
                 target.dataset.config = JSON.stringify(config);
 
                 target.querySelector('.lazy-carousel-fallback').classList.remove('hidden');
+            } else if (isEmpty && config.keepOnEmpty) {
+                // A user filter (availability/language/era) emptied this rail.
+                // Keep it in place with a short message so the rail can be
+                // restored when the filter is toggled back off.
+                let msg = target.querySelector('.lazy-carousel-empty');
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.className = 'lazy-carousel-empty';
+                    msg.textContent = config.emptyMsg || '';
+                    target.appendChild(msg);
+                }
+            } else if (isEmpty) {
+                // No results and no fallback to fall back on. On a subject page
+                // each carousel is wrapped in a labelled rail (heading + caption),
+                // so drop the whole rail rather than leave an orphaned heading
+                // with nothing under it. Elsewhere, just remove the placeholder.
+                const rail = target.closest('.subject-rail');
+                (rail || target).remove();
             } else {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();

@@ -4884,6 +4884,25 @@
             },
             {
               "kind": "method",
+              "name": "_showPopover",
+              "parameters": [
+                {
+                  "name": "panel"
+                }
+              ],
+              "description": "Promote the panel into the top layer. No-op (graceful fallback to plain\nposition: fixed) on browsers without the Popover API."
+            },
+            {
+              "kind": "method",
+              "name": "_hidePopover",
+              "parameters": [
+                {
+                  "name": "panel"
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "_computePosition",
               "parameters": [
                 {
