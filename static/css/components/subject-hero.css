@@ -702,7 +702,9 @@ ol-subject-hero a {
   box-shadow:
     0 0 0 0 var(--primary-blue),
     0 0 0 hsla(0, 0%, 0%, 0);
-  transition: box-shadow 0.15s ease, opacity 0.12s ease;
+  transition:
+    box-shadow 0.15s ease,
+    opacity 0.12s ease;
 }
 
 /* Hovering the cover reveals the action buttons on top; dim the cover so the

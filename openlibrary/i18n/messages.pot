@@ -8379,6 +8379,26 @@ msgstr ""
 msgid "Manage Subjects"
 msgstr ""
 
+#: SubjectThreads.html
+msgid "Worlds & settings"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Featuring"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "When it's set"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Keep exploring"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Sub-genres"
+msgstr ""
+
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
