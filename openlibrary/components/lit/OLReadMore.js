@@ -159,7 +159,15 @@ export class OLReadMore extends LitElement {
         const content = this.shadowRoot.querySelector('.content-wrapper');
         if (!content) return;
 
-        const isOverflowing = content.scrollHeight > content.clientHeight;
+        const toggleBtn = this.shadowRoot.querySelector('.toggle-btn.more');
+        const toggleBtnHeight =
+            toggleBtn && toggleBtn.offsetHeight > 0
+                ? toggleBtn.offsetHeight
+                : this.labelSize === 'small'
+                    ? 27
+                    : 41;
+
+        const isOverflowing = content.scrollHeight > content.clientHeight + toggleBtnHeight;
         this._unnecessary = !isOverflowing;
 
         if (this._unnecessary) {
