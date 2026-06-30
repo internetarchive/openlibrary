@@ -121,7 +121,9 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 # Server-side mirror of AVAILABILITY_TO_PARAMS in
-# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync.
+# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync —
+# drift between the two copies is caught by
+# openlibrary/plugins/worksearch/tests/test_availability_sync.py.
 # The keys are the user-facing availability "value" the header modal and the
 # search-page filter row use; the values are the Solr filter params they
 # materialize as in the URL.
@@ -162,6 +164,24 @@ def get_active_availability(param: dict) -> str:
         if matches(AVAILABILITY_TO_PARAMS[value]):
             return value
     return "all"
+
+
+@public
+def doc_matches_reading_prefs(doc: dict, availability: str, languages: list[str]) -> bool:
+    """Whether a resolved Solr work/edition doc satisfies the reader's
+    availability + language preference.
+
+    Used to apply the global reading preference as a *per-page view filter* on
+    DB-backed list pages, which aren't Solr-indexed by membership and so can't
+    push these filters into the query (see type/list/view_body.html). 'readable'
+    availability == ebook_access in {borrowable, public} (matching the toggle's
+    `ebook_access:[borrowable TO *]`); an empty `languages` matches any language;
+    a doc with no resolved fields (e.g. an unresolved edition seed) fails an
+    active filter rather than slipping through unfiltered.
+    """
+    if languages and not (set(doc.get("language") or []) & set(languages)):
+        return False
+    return availability == "all" or doc.get("ebook_access") in ("borrowable", "public")
 
 
 @public
@@ -893,11 +913,22 @@ def works_by_author(
     facet=False,
     has_fulltext=False,
     query: str | None = None,
+    availability: str = "all",
+    languages: list[str] | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
 ):
-    param = {"q": query or "*:*"}
+    param: dict = {"q": query or "*:*"}
     if has_fulltext:
         param["has_fulltext"] = "true"
+    # Availability + language let an author page filter its works the same way
+    # /search does. AVAILABILITY_TO_PARAMS materializes the chosen availability
+    # ('readable'/'borrowable'/'open') into the has_fulltext/public_scan params
+    # run_solr_query already rewrites into ebook_access filters; `language` is a
+    # facet field run_solr_query turns into an (OR'd) fq. 'all' contributes
+    # nothing, so the default leaves the query unchanged.
+    param.update(AVAILABILITY_TO_PARAMS.get(availability, {}))
+    if languages:
+        param["language"] = languages
 
     result = run_solr_query(
         WorkSearchScheme(),

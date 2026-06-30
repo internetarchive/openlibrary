@@ -15,14 +15,13 @@ import {
     DEFAULT_AVAILABILITY,
     DEFAULT_LANGUAGE_OPTIONS,
     DEFAULT_SEARCH_MODAL_STRINGS,
-    SS_AVAILABILITY_KEY,
-    SS_LANGUAGES_KEY,
-    ssGet,
-    ssSet,
     availabilityOptionsFromElement,
     readableLanguageMismatch,
     readableEditionLanguages,
+    readStoredAvailability,
     readStoredLanguages,
+    writeStoredAvailability,
+    writeStoredLanguages,
     searchModalStringsFromElement,
     siteLanguageToMarc,
     readRecentSearches,
@@ -900,7 +899,7 @@ export class SearchModal extends LitElement {
         // explicit stored 'readable'; everything else — no preference, or a
         // legacy 'open'/'borrowable' value from before the toggle — collapses to
         // the default 'all' (toggle off).
-        const _storedAvailability = ssGet(SS_AVAILABILITY_KEY);
+        const _storedAvailability = readStoredAvailability();
         this._availability = _storedAvailability === 'readable' ? 'readable' : DEFAULT_AVAILABILITY;
         this._languages    = readStoredLanguages();
 
@@ -1572,21 +1571,21 @@ export class SearchModal extends LitElement {
 
     _onLanguagesChange(e) {
         this._languages = [...e.detail.selected];
-        ssSet(SS_LANGUAGES_KEY, JSON.stringify(this._languages));
+        writeStoredLanguages(this._languages);
         this._refetchIfActive();
     }
 
     _setAvailability(value) {
         this._availability = value;
-        ssSet(SS_AVAILABILITY_KEY, value);
+        writeStoredAvailability(value);
         this._refetchIfActive();
     }
 
     _clearAllFilters() {
         this._availability = DEFAULT_AVAILABILITY;
         this._languages    = [];
-        ssSet(SS_AVAILABILITY_KEY, DEFAULT_AVAILABILITY);
-        ssSet(SS_LANGUAGES_KEY, JSON.stringify([]));
+        writeStoredAvailability(DEFAULT_AVAILABILITY);
+        writeStoredLanguages([]);
         this._refetchIfActive();
     }
 
