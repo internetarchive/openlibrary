@@ -91,7 +91,7 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/search/inside", "json"),
     (r"/languages", "json"),
     (r"/reading-goal", "json"),
-    (r"(/subjects/[^/]+)", "json"),
+    (r"(/subjects/(?!merge$)[^/]+)", "json"),
     (r"(/publishers/[^/]+)", "json"),
     (r"(/partials/[^/]+)", "json"),
     (r"/api/books", "json"),

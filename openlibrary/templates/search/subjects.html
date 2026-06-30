@@ -41,9 +41,10 @@ $if q and response and not response.error and response.num_found:
     <ul class="subjectList">
     $for doc in response.docs:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
+        $ subject_id = (doc.get('key') or '').removeprefix('/subjects/') or url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
+        $ key = '/subjects/' + subject_id
 
-        <li>
+        <li class="searchResultItem" data-subject-id="$subject_id">
             <a href="$key">$n</a>
             $def render_type(subject_type):
                 $if subject_type == "time":

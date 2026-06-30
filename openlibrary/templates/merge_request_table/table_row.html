@@ -3,7 +3,8 @@ $# request : dict : Dict containing information about a single merge request.
 $# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
 $# can_merge : boolean : `True` if patron has merge privileges.
 
-$ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
+$ default_titles = {1: _('An untitled work'), 2: _('An unnamed author'), 3: _('An unnamed subject')}
+$ request_title = request.get('title', default_titles.get(request['mr_type'], _('An untitled work')))
 $ comments = request.get('comments', {}).get('comments', [])
 $ is_open = request['status'] == 1
 $ review_url = "%s&mrid=%s" % (request['url'], request['id'])

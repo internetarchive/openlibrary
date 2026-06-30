@@ -1,0 +1,74 @@
+$def with (records, formdata=None, mrid=None, primary=None)
+
+$var title: $_("Merge Subjects")
+
+<div id="contentHead">
+    <h1>$_("Merge Subjects")</h1>
+</div>
+
+<div id="contentBody">
+
+$if not records:
+    <div class="note">$_("No subjects selected.")</div>
+
+$if formdata:
+    $if not formdata.master:
+        <div class="note">$_("Please select a primary subject.")</div>
+    $if len(formdata.selected) == 0:
+        <div class="note">$_("Please select some subjects to merge.")</div>
+
+<ol class="sansserif">
+    <li>$_("Select the subject that should remain as primary.")</li>
+    <li>$_("Select subject records which should be merged with the primary.")</li>
+    <li>$_("Press Request Merge.")</li>
+</ol>
+
+<form method="POST" id="mergeForm" name="mergeForm" action="/subjects/merge">
+    $if mrid:
+        <input type="hidden" id="mrid-input" name="mrid" value="$mrid"/>
+    <div class="merge" id="include">
+        <div class="entry header">
+            <div class="data input smaller center">$_("Primary")</div>
+            <div class="data input smaller center"><strong>$_("Merge")</strong></div>
+            <div class="data record smaller"><strong>$_("Subjects")</strong></div>
+            <div class="data count">&nbsp;</div>
+        </div>
+
+        $if records:
+            $ master = formdata and formdata.master or primary or records[0].id
+        $else:
+            $ master = None
+
+        $for subject in records:
+            $ checked = "checked" if not formdata or subject.id in formdata.selected else ""
+            <input type="hidden" name="key" value="$subject.id"/>
+            <div class="entry subject">
+                <div class="data input radio">
+                    $:radio_input(checked=(subject.id==master), name="master", value=subject.id)
+                </div>
+                <div class="data input checkbox">
+                    <input type="checkbox" value="$subject.id" name="merge_key" id="$subject.id" $checked/>
+                </div>
+                <div class="data record">
+                    <span class="ol-num">$subject.subject_type</span>
+                    <label for="$subject.id">
+                        <a href="$subject.key" target="new">$subject.name</a>
+                    </label>
+                </div>
+                <div class="data count">
+                    <a href="$subject.key" target="new">$ungettext("%(count)d work", "%(count)d works", subject.work_count, count=subject.work_count)</a>
+                </div>
+            </div>
+    </div>
+
+    <div class="merge-feedback">
+        <label for="subject-merge-comment">$_("Comment:")</label>
+        <input type="text" id="subject-merge-comment" name="comment" placeholder="$_('Comment...')">
+        <div class="merge-feedback__buttons">
+            <button id="save" class="larger merge-feedback__submit" value="Request Merge" type="submit">$_("Request Merge")</button>
+            <a href="javascript:history.back();" class="small red sansserif">$_("Cancel")</a>
+        </div>
+    </div>
+</form>
+
+</div>

@@ -237,6 +237,9 @@ export default class SelectionManager {
                 SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
             }
         }
+        SelectionManager.TYPES.forEach(type => {
+            if (!this.selectedItems[type.singular]) this.selectedItems[type.singular] = [];
+        });
 
         const items = [];
         for (const type in this.selectedItems) items.push(...this.selectedItems[type]);
@@ -316,7 +319,10 @@ export default class SelectionManager {
     }
 
     getOlidsFromSelectionList(list) {
-        return list.map(item => item.split(':')[0]);
+        return list.map(item => {
+            const parts = item.split(':');
+            return /^OL\d+W$/.test(parts[0]) && /^OL\d+M$/.test(parts[1]) ? parts[0] : item;
+        });
     }
 }
 
@@ -399,6 +405,12 @@ SelectionManager.TYPES = [
         plural: 'authors',
         regex: /OL\d+A/,
         image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
+    },
+    {
+        singular: 'subject',
+        plural: 'subjects',
+        regex: /^((subject|person|place|time):)?[^\s,]+$/,
+        image: () => '/static/images/icons/avatar_book-lg.png',
     }
 ];
 
@@ -473,6 +485,15 @@ SelectionManager.SELECTION_PROVIDERS = [
         type: ['author'],
         data: el => $(el).find('a')[0].href.match(/OL\d+A/)[0],
     },
+    /**
+     * This selection provider makes subjects selectable on subject search pages.
+     */
+    {
+        path: /^\/search\/subjects$/,
+        selector: '.searchResultItem',
+        type: ['subject'],
+        data: el => el.dataset.subjectId,
+    },
 ];
 
 /**
@@ -515,5 +536,12 @@ SelectionManager.ACTIONS = [
         multiple_only: true,
         name: 'Merge Authors...',
         href: olids => `/authors/merge?records=${olids.join(',')}`,
+    },
+    {
+        applies_to_type: ['subject'],
+        requires_type: ['subject'],
+        multiple_only: true,
+        name: 'Merge Subjects...',
+        href: subjects => `/subjects/merge?records=${subjects.join(',')}`,
     },
 ];
