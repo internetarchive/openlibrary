@@ -6,6 +6,8 @@ on:
     paths:
       - "openlibrary/i18n/messages.pot"
 
+permissions: {}
+
 jobs:
   dispatch:
     runs-on: ubuntu-latest
