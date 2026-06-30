@@ -163,6 +163,19 @@ services:
       db:
         condition: service_healthy
 
+
+  #remove before committing:
+  dummy_provider:
+     build:
+        context: .
+        dockerfile: docker/Dockerfile.oldev
+     image: "${OLIMAGE:-oldev:latest}"
+     volumes:
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+     command:  python3 ./openlibrary/temp/dummy_api.py
+     networks:
+      - webnet
+
 volumes:
   ol-vendor:
   ol-build:
