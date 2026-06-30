@@ -31,6 +31,8 @@ RUN apt-get -qq update && apt-get install -y \
     libxml2-dev \
     libxslt-dev \
     libffi-dev \
+    pkg-config \
+    libicu-dev \
     curl \
     screen \
 # fail2ban used for monitoring nginx logs and banning abusive IPs

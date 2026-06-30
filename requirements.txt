@@ -25,6 +25,8 @@ Pillow==12.2.0
 prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.12
 pydantic==2.13.4
+PyICU
+PyICU==2.13
 pymarc==5.3.1
 python-amazon-paapi @ git+https://github.com/mekarpeles/python-amazon-paapi@proxy-support
 python-dateutil==2.9.0.post0
