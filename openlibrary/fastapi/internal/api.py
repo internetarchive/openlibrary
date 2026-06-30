@@ -20,6 +20,7 @@ from starlette.responses import RedirectResponse
 from openlibrary import accounts
 from openlibrary.core import lending, models
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
@@ -450,3 +451,107 @@ async def unlink_ia_ol():
 
 async def monthly_logins():
     pass
+
+
+def _to_iso(dt: object) -> str:
+    """Return an ISO-8601 string for a datetime/date value, or '' if None."""
+    if dt is None:
+        return ""
+    return dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+
+
+# --- Activity Feed ---
+
+_SHELF_LABELS: dict[int, str] = {
+    1: "added to Want to Read",
+    2: "is Currently Reading",
+    3: "has Already Read",
+    4: "stopped reading",
+}
+
+
+class ActivityItem(BaseModel):
+    type: str
+    shelf_id: int
+    shelf_label: str
+    username: str
+    avatar_url: str
+    work_key: str
+    title: str
+    cover_id: int | None = None
+    author: str | None = None
+    updated: str
+
+
+class ActivityResponse(BaseModel):
+    activity: list[ActivityItem]
+    page: int
+
+
+@router.get(
+    "/api/internal/activity.json",
+    response_model=ActivityResponse,
+    response_model_exclude_none=True,
+    description="Recent public reading log activity for the homepage activity feed.",
+)
+async def activity_feed_endpoint(
+    limit: Annotated[int, Query(ge=1, le=50)] = 12,
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ActivityResponse:
+    import web  # noqa: PLC0415
+
+    shelf_ids = [
+        Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+        Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+        Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+    ]
+
+    # Fetch extra rows so we still hit `limit` after filtering private accounts
+    batch = Bookshelves.get_recently_logged_books(
+        shelf_ids=shelf_ids,
+        limit=limit * 4,
+        page=page,
+    )
+    if not batch:
+        return ActivityResponse(activity=[], page=page)
+
+    # Batch-check public_readlog from infogami store (one key per unique username)
+    usernames = list({item["username"] for item in batch})
+    public_set: set[str] = set()
+    for username in usernames:
+        prefs = web.ctx.site.store.get(f"/people/{username}/preferences") or {}
+        if prefs.get("public_readlog", "no") == "yes":
+            public_set.add(username)
+
+    public_items = [item for item in batch if item["username"] in public_set][:limit]
+    if not public_items:
+        return ActivityResponse(activity=[], page=page)
+
+    # Enrich with Solr work data (title, cover, author)
+    await Bookshelves.add_solr_works_async(
+        public_items,
+        fields=["key", "title", "author_name", "cover_i"],
+    )
+
+    activity: list[ActivityItem] = []
+    for item in public_items:
+        work = item.get("work")
+        if not work:
+            continue
+        authors = work.get("author_name") or []
+        activity.append(
+            ActivityItem(
+                type="shelf_change",
+                shelf_id=item["bookshelf_id"],
+                shelf_label=_SHELF_LABELS.get(item["bookshelf_id"], "logged"),
+                username=item["username"],
+                avatar_url=models.User.get_avatar_url(item["username"]),
+                work_key=f"/works/OL{item['work_id']}W",
+                title=work.get("title", ""),
+                cover_id=work.get("cover_i"),
+                author=authors[0] if authors else None,
+                updated=_to_iso(item.get("updated") or item.get("created")),
+            )
+        )
+
+    return ActivityResponse(activity=activity, page=page)
