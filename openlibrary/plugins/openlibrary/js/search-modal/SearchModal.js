@@ -5,6 +5,7 @@ import { repeat } from 'lit/directives/repeat.js';
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError.
+import { x } from '../../../../components/lit/icons.generated.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { mode as searchMode } from '../SearchUtils.js';
@@ -1752,7 +1753,7 @@ export class SearchModal extends LitElement {
 
     static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    static _closeIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x}</svg>`;
 
     static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
 

@@ -341,4 +341,52 @@ pre.example__code code[class*="language-"] {
   color: var(--mid-grey);
 }
 
+/* Icon gallery */
+.icon-gallery__filter {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: var(--spacing-stack-md);
+  padding: var(--spacing-inset-sm);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.icon-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--border-card);
+  border-left: var(--border-card);
+}
+
+.icon-gallery__item {
+  display: flex;
+  border-right: var(--border-card);
+  border-bottom: var(--border-card);
+}
+
+.icon-gallery__item[hidden] {
+  display: none;
+}
+
+.icon-gallery__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--spacing-inset-md);
+  color: inherit;
+}
+
+.icon-gallery__name {
+  font-size: 0.75rem;
+  color: var(--grey);
+  text-align: center;
+  word-break: break-word;
+}
+
 @import "legacy.css";

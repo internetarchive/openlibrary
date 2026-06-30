@@ -1203,8 +1203,8 @@
               "kind": "field",
               "name": "_closeIcon",
               "static": true,
-              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>`",
-              "description": "Close (X) icon — the stroke-based glyph shared with ol-dialog / ol-toast"
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">${x}</svg>`",
+              "description": "Close (X) icon — the canonical glyph shared with ol-dialog / ol-toast"
             },
             {
               "kind": "method",
@@ -1856,6 +1856,107 @@
           "declaration": {
             "name": "OlDialog",
             "module": "openlibrary/components/lit/OlDialog.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlIcon.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A single icon from the Open Library icon sprite.\n\nRenders into the **light DOM** (no shadow root) and references the sprite via\na same-document `<use href=\"#name\">`. Both choices are deliberate: the sprite\nis inlined once per page (see the icon_sprite() helper), and same-document\nreferences resolve in every browser OL supports — external references\n(`file.svg#name`) are unreliable in older Safari/iOS. Same-document `<use>`\nalso cannot cross a shadow boundary, so this element must live in the light\nDOM; for icons inside another component's shadow root, inline the glyph\ninstead of using <ol-icon>. In the light DOM the glyph also inherits `color`\nfor its `currentColor` strokes, themed by whatever context it sits in.\n\nThis is the client-side counterpart of the `$:icon()` Templetor macro — both\npoint at the same sprite and share static/css/components/ol-icon.css, so an\nicon looks identical whether server- or component-rendered. Use this inside\nLit components; use the macro in server-rendered templates.\n\nDecorative by default (`aria-hidden`). Pass `label` to expose the icon to\nassistive tech as `role=\"img\"` with that accessible name.",
+          "name": "OlIcon",
+          "members": [
+            {
+              "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Icon name (a symbol id in the sprite, e.g. \"search\").",
+              "attribute": "name",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'md'",
+              "description": "\"sm\" (16px) | \"md\" (20px, default) | \"lg\" (24px), or a raw pixel number (e.g. \"32\") for a one-off size.",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Accessible name. When set, the icon is exposed as role=\"img\"; when omitted, it is aria-hidden.",
+              "attribute": "label"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "name",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Icon name (a symbol id in the sprite, e.g. \"search\").",
+              "fieldName": "name"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'md'",
+              "description": "\"sm\" (16px) | \"md\" (20px, default) | \"lg\" (24px), or a raw pixel number (e.g. \"32\") for a one-off size.",
+              "fieldName": "size"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Accessible name. When set, the icon is exposed as role=\"img\"; when omitted, it is aria-hidden.",
+              "fieldName": "label"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-icon",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlIcon",
+          "declaration": {
+            "name": "OlIcon",
+            "module": "openlibrary/components/lit/OlIcon.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-icon",
+          "declaration": {
+            "name": "OlIcon",
+            "module": "openlibrary/components/lit/OlIcon.js"
           }
         }
       ]
@@ -3564,8 +3665,8 @@
               "kind": "field",
               "name": "_closeIcon",
               "static": true,
-              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>`",
-              "description": "Close (X) icon — the stroke-based glyph shared with ol-dialog"
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">${x}</svg>`",
+              "description": "Close (X) icon — the canonical glyph shared with ol-dialog / ol-banner"
             },
             {
               "kind": "method",
@@ -4870,6 +4971,469 @@
           "declaration": {
             "name": "OpenLibraryOTP",
             "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/icons.generated.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "arrowLeft",
+          "default": "svg`<path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "arrowRight",
+          "default": "svg`<path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "bold",
+          "default": "svg`<path d=\"M14 12a4 4 0 0 0 0-8H6v8\"/><path d=\"M15 20a4 4 0 0 0 0-8H6v8Z\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "braces",
+          "default": "svg`<path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1\"/><path d=\"M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "check",
+          "default": "svg`<path d=\"M20 6 9 17l-5-5\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "chevronDown",
+          "default": "svg`<path d=\"m6 9 6 6 6-6\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "chevronLeft",
+          "default": "svg`<path d=\"m15 18-6-6 6-6\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "chevronRight",
+          "default": "svg`<path d=\"m9 18 6-6-6-6\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "chevronUp",
+          "default": "svg`<path d=\"m18 15-6-6-6 6\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "circleCheck",
+          "default": "svg`<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "clock",
+          "default": "svg`<circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "code",
+          "default": "svg`<polyline points=\"16 18 22 12 16 6\"/><polyline points=\"8 6 2 12 8 18\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "ellipsis",
+          "default": "svg`<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "eye",
+          "default": "svg`<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "eyeOff",
+          "default": "svg`<path d=\"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49\"/><path d=\"M14.084 14.158a3 3 0 0 1-4.242-4.242\"/><path d=\"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143\"/><path d=\"m2 2 20 20\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "fileCode",
+          "default": "svg`<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/><path d=\"m10 13-2 2 2 2\"/><path d=\"m14 13 2 2-2 2\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "globe",
+          "default": "svg`<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20\"/><path d=\"M2 12h20\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "heading1",
+          "default": "svg`<path d=\"M4 12h8\"/><path d=\"M4 18V6\"/><path d=\"M12 18V6\"/><path d=\"M17 12l3-2v8\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "heading2",
+          "default": "svg`<path d=\"M4 12h8\"/><path d=\"M4 18V6\"/><path d=\"M12 18V6\"/><path d=\"M21 18h-4c0-2.5 4-4.5 4-6s-2.5-2-4-1\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "image",
+          "default": "svg`<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "italic",
+          "default": "svg`<line x1=\"19\" y1=\"4\" x2=\"10\" y2=\"4\"/><line x1=\"14\" y1=\"20\" x2=\"5\" y2=\"20\"/><line x1=\"15\" y1=\"4\" x2=\"9\" y2=\"20\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "link",
+          "default": "svg`<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"/><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "list",
+          "default": "svg`<line x1=\"8\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"8\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"8\" y1=\"18\" x2=\"21\" y2=\"18\"/><line x1=\"3\" y1=\"6\" x2=\"3.01\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"3.01\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"3.01\" y2=\"18\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "listOrdered",
+          "default": "svg`<line x1=\"10\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"10\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"10\" y1=\"18\" x2=\"21\" y2=\"18\"/><path d=\"M4 6h1v4\"/><path d=\"M4 10h2\"/><path d=\"M6 18H4c0-1 2-2 2-3s-1-1.5-2-1\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "menu",
+          "default": "svg`<path d=\"M4 12h16\"/><path d=\"M4 6h16\"/><path d=\"M4 18h16\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "minus",
+          "default": "svg`<path d=\"M5 12h14\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "quote",
+          "default": "svg`<path d=\"M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z\"/><path d=\"M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "redo",
+          "default": "svg`<path d=\"M21 7v6h-6\"/><path d=\"M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "search",
+          "default": "svg`<circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "searchInside",
+          "default": "svg`<path d=\"M4 6h11\"/><path d=\"M4 10h7\"/><path d=\"M4 14h5\"/><circle cx=\"15.5\" cy=\"15.5\" r=\"3.5\"/><path d=\"m21 21-2.9-2.9\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "squareCode",
+          "default": "svg`<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><polyline points=\"10 10 8 12 10 14\"/><polyline points=\"14 10 16 12 14 14\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "trash",
+          "default": "svg`<path d=\"M3 6h18\"/><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\"/><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "undo",
+          "default": "svg`<path d=\"M3 7v6h6\"/><path d=\"M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "user",
+          "default": "svg`<path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>`"
+        },
+        {
+          "kind": "variable",
+          "name": "x",
+          "default": "svg`<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "arrowLeft",
+          "declaration": {
+            "name": "arrowLeft",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "arrowRight",
+          "declaration": {
+            "name": "arrowRight",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "bold",
+          "declaration": {
+            "name": "bold",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "braces",
+          "declaration": {
+            "name": "braces",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "check",
+          "declaration": {
+            "name": "check",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "chevronDown",
+          "declaration": {
+            "name": "chevronDown",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "chevronLeft",
+          "declaration": {
+            "name": "chevronLeft",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "chevronRight",
+          "declaration": {
+            "name": "chevronRight",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "chevronUp",
+          "declaration": {
+            "name": "chevronUp",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "circleCheck",
+          "declaration": {
+            "name": "circleCheck",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "clock",
+          "declaration": {
+            "name": "clock",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "code",
+          "declaration": {
+            "name": "code",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "ellipsis",
+          "declaration": {
+            "name": "ellipsis",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "eye",
+          "declaration": {
+            "name": "eye",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "eyeOff",
+          "declaration": {
+            "name": "eyeOff",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "fileCode",
+          "declaration": {
+            "name": "fileCode",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "globe",
+          "declaration": {
+            "name": "globe",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "heading1",
+          "declaration": {
+            "name": "heading1",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "heading2",
+          "declaration": {
+            "name": "heading2",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "image",
+          "declaration": {
+            "name": "image",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "italic",
+          "declaration": {
+            "name": "italic",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "link",
+          "declaration": {
+            "name": "link",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "list",
+          "declaration": {
+            "name": "list",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "listOrdered",
+          "declaration": {
+            "name": "listOrdered",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "menu",
+          "declaration": {
+            "name": "menu",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "minus",
+          "declaration": {
+            "name": "minus",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "quote",
+          "declaration": {
+            "name": "quote",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "redo",
+          "declaration": {
+            "name": "redo",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "search",
+          "declaration": {
+            "name": "search",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "searchInside",
+          "declaration": {
+            "name": "searchInside",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "squareCode",
+          "declaration": {
+            "name": "squareCode",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "trash",
+          "declaration": {
+            "name": "trash",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "undo",
+          "declaration": {
+            "name": "undo",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "user",
+          "declaration": {
+            "name": "user",
+            "module": "openlibrary/components/lit/icons.generated.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "x",
+          "declaration": {
+            "name": "x",
+            "module": "openlibrary/components/lit/icons.generated.js"
           }
         }
       ]
