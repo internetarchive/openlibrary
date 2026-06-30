@@ -41,7 +41,8 @@ test.describe('Subjects page @smoke', () => {
 
     test('renders the content body with works', async ({ page }) => {
         await skipIfNoSolr({ page });
-        await expect(page.locator('#contentBody')).toBeVisible();
+        // The subjects template wraps content in <div class="contentBody"> (a class, not an id).
+        await expect(page.locator('.contentBody')).toBeVisible();
     });
 
     test('has a search form for books with this subject', async ({ page }) => {

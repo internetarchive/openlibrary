@@ -5,8 +5,11 @@ test.describe('Login page @smoke', () => {
     test('loads with Log In heading', async ({ page }) => {
         const errors = collectConsoleErrors(page);
         await page.goto('/account/login');
-        await expect(page.locator('h1.ol-signup-hero__title')).toBeVisible();
-        const heading = await page.locator('h1.ol-signup-hero__title').textContent();
+        // The hero title renders in the DOM on every viewport but is hidden by responsive
+        // CSS on narrow (mobile) layouts, so assert it's attached rather than visible.
+        const title = page.locator('h1.ol-signup-hero__title');
+        await expect(title).toBeAttached();
+        const heading = await title.textContent();
         expect(heading?.trim()).toMatch(/log in/i);
         expect(errors()).toHaveLength(0);
     });
