@@ -1,5 +1,6 @@
 """ """
 
+import base64
 import datetime
 import hashlib
 import hmac
@@ -83,6 +84,42 @@ def generate_hash(secret_key, text, salt=None) -> str:
 
 def get_secret_key():
     return config.infobase["secret_key"]
+
+
+def _get_fernet():
+    from cryptography.fernet import Fernet
+
+    key = base64.urlsafe_b64encode(hashlib.sha256(get_secret_key().encode()).digest())
+    return Fernet(key)
+
+
+def encrypt_s3_keys(access: str, secret: str) -> str:
+    """Encrypt S3 access:secret into a Fernet token for cookie storage."""
+    return _get_fernet().encrypt(f"{access}:{secret}".encode()).decode()
+
+
+def decrypt_s3_keys(token: str) -> tuple[str, str]:
+    """Decrypt a Fernet token back to (access, secret). Raises on invalid/tampered input."""
+    plaintext = _get_fernet().decrypt(token.encode()).decode()
+    access, secret = plaintext.split(":", 1)
+    return access, secret
+
+
+def get_s3_keys(account) -> dict | None:
+    """Return S3 keys from the session cookie, falling back to the account store.
+
+    New logins set an encrypted ``s3`` cookie; this fallback handles sessions
+    that predate the cookie-based approach.
+    """
+    if token := web.cookies().get("s3"):
+        try:
+            from cryptography.fernet import InvalidToken
+
+            access, secret = decrypt_s3_keys(token)
+            return {"access": access, "secret": secret}
+        except InvalidToken:
+            pass  # tampered or stale cookie; fall through to store
+    return web.ctx.site.store.get(account._key, {}).get("s3_keys")
 
 
 def create_verification_cookie_value() -> str:
@@ -212,6 +249,7 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
 def clear_cookies() -> None:
     web.setcookie("pd", "", expires=-1)
     web.setcookie("sfw", "", expires=-1)
+    web.setcookie("s3", "", expires=-1, secure=True, httponly=True, samesite="Lax")
 
 
 class Link(web.storage):
@@ -903,6 +941,34 @@ class InternetArchiveAccount(web.storage):
         )
 
     @classmethod
+    def issue_s3_key(
+        cls,
+        email: str | None = None,
+        itemname: str | None = None,
+        token: str | None = None,
+    ) -> dict | None:
+        """Fetch a new S3 keypair via the xauthn issue_key op.
+
+        xauthn's info/authenticate/activate/redeem_otp ops no longer return S3
+        keys; callers must request them separately after a successful auth step.
+
+        token: the token returned by the preceding auth op (redeem_otp,
+        authenticate, or activate). Required by xauthn once the breaking change
+        from issue #12942 is fully deployed; pass None only in legacy contexts.
+
+        Returns {"access": ..., "secret": ...} on success, None on failure.
+        """
+        kwargs: dict = {"op": "issue_key", "key_type": "s3"}
+        if email:
+            kwargs["email"] = email.strip().lower()
+        if itemname:
+            kwargs["itemname"] = itemname
+        if token:
+            kwargs["token"] = token
+        response = cls.xauth(**kwargs)
+        return response.get("s3") or None
+
+    @classmethod
     def verify(cls, token, welcome_email=True, test=False):
         """
         Verifies (activates) an Internet Archive account using a one-time token sent to the user's email.
@@ -920,7 +986,16 @@ class InternetArchiveAccount(web.storage):
                 "code": response.get("code", 409),
             }
 
-        return response.get("values", response)
+        values = response.get("values", {})
+        # Graceful migration: use S3 keys if activate returned them directly (current
+        # xauthn behavior); fall through to issue_key once #12942 is deployed to prod.
+        if not (s3_keys := values.get("s3")):
+            token = values.get("token")
+            s3_keys = cls.issue_s3_key(email=values.get("email"), token=token)
+        if not s3_keys:
+            return {"error": "s3_key_issue_failed", "code": 500}
+        values["s3"] = s3_keys
+        return values
 
 
 def audit_accounts(  # noqa: PLR0912
@@ -949,6 +1024,7 @@ def audit_accounts(  # noqa: PLR0912
                       the absence of archive.org dependency
     """
 
+    ia_token: str | None = None
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
         if not r.get("authorized", False):
@@ -962,6 +1038,7 @@ def audit_accounts(  # noqa: PLR0912
         if not valid_email(email):
             return {"error": "invalid_email"}
         ia_login = InternetArchiveAccount.authenticate(email, password)
+        ia_token = ia_login.get("values", {}).get("token")
 
     if "values" in ia_login and any(ia_login["values"].get("reason") == err for err in ["account_blocked", "account_locked"]):
         return {"error": "account_locked"}
@@ -1054,12 +1131,17 @@ def audit_accounts(  # noqa: PLR0912
         if ol_account and not ol_account.itemname:
             return {"error": "accounts_not_connected"}
 
-    if "values" in ia_login:
-        s3_keys = {
-            "access": ia_login["values"].pop("access"),
-            "secret": ia_login["values"].pop("secret"),
-        }
-        ol_account.save_s3_keys(s3_keys)
+    if s3_access_key and s3_secret_key:
+        # S3-path login: keys were already validated by s3auth above.
+        s3_keys: dict | None = {"access": s3_access_key, "secret": s3_secret_key}
+    else:
+        # Graceful migration: use S3 keys if authenticate returned them directly (current
+        # xauthn behavior); fall through to issue_key once #12942 is deployed to prod.
+        ia_values = ia_login.get("values", {})
+        if (access := ia_values.get("access")) and (secret := ia_values.get("secret")):
+            s3_keys = {"access": access, "secret": secret}
+        else:
+            s3_keys = InternetArchiveAccount.issue_s3_key(email=email, token=ia_token)
 
     # Handle Print Disability Processing
     has_special_access = getattr(ia_account, "has_disability_access", False)
@@ -1091,6 +1173,7 @@ def audit_accounts(  # noqa: PLR0912
         "ia_username": ia_account.screenname,
         "ol_username": ol_account.username,
         "link": ol_account.itemname,
+        "s3_keys": s3_keys,
     }
 
 

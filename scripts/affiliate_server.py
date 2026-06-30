@@ -631,8 +631,8 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
-    # Should be auto-loaded in by setup_requests()
-    http_proxy_url = config.get("http_proxy")
+
+    http_proxy_url = config.get("http_proxy", "")
 
     stats.client = stats.create_stats_client(cfg=config)
 

@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from unittest import mock
@@ -348,3 +349,149 @@ class TestAccountLoginRedirect:
         for call in mock_web.setcookie.call_args_list:
             assert call[0][0] != "pending_action"
         mock_web.seeother.assert_called_with("/account/books")
+
+
+class TestOtpServiceS3Auth:
+    """Tests for S3 key validation on /account/otp/issue and /account/otp/redeem."""
+
+    def _make_web_mock(self, auth_header=""):
+        m = mock.MagicMock()
+        m.ctx.env = {"HTTP_AUTHORIZATION": auth_header, "HTTP_X_FORWARDED_FOR": "1.2.3.4"}
+        m.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false", otp="123456")
+        m.safestr.side_effect = lambda x: x
+        return m
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_missing_auth_header(self, mock_web, mock_ia):
+        mock_web.ctx.env = {}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_empty_secret_rejected(self, mock_web, mock_ia):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_invalid_keys_rejected(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW badaccess:badsecret"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_auth_service_5xx_returns_specific_error(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "service error", "code": 503}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:secret"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "auth_service_unavailable"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_valid_keys_proceeds(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True, "itemname": "@testuser"}
+        mock_web.ctx.env = {
+            "HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret",
+            "HTTP_X_FORWARDED_FOR": "1.2.3.4",
+        }
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false")
+        mock_otp.generate.return_value = "abc123"
+        mock_otp.is_ratelimited.return_value = None
+        mock_otp.verify_service.return_value = True
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body == {"success": "issued"}
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_missing_auth_header(self, mock_web, mock_ia):
+        mock_web.ctx.env = {}
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_invalid_keys_rejected(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW bad:creds"}
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_valid_keys_proceeds(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True, "itemname": "@testuser"}
+        mock_web.ctx.env = {
+            "HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret",
+            "HTTP_X_FORWARDED_FOR": "1.2.3.4",
+        }
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", otp="abc123")
+        mock_otp.is_valid.return_value = True
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body == {"success": "redeemed"}
+
+
+class TestParseLowAuthHeader:
+    """Unit tests for the _parse_low_auth_header() module-level helper."""
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_header_raises(self, mock_web):
+        mock_web.ctx.env = {}
+        with pytest.raises(ValueError, match="Missing or invalid"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_bearer_prefix_rejected(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "Bearer sometoken"}
+        with pytest.raises(ValueError, match="Missing or invalid"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_no_colon_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW accessonly"}
+        with pytest.raises(ValueError, match="Malformed"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_empty_secret_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:"}
+        with pytest.raises(ValueError, match="Empty"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_empty_access_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW :secret"}
+        with pytest.raises(ValueError, match="Empty"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_returns_stripped_tuple(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW  myaccess : mysecret "}
+        access, secret = account._parse_low_auth_header()
+        assert access == "myaccess"
+        assert secret == "mysecret"
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_colon_in_secret_preserved(self, mock_web):
+        # S3 secrets can contain colons; only split on the first one
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:sec:ret"}
+        access, secret = account._parse_low_auth_header()
+        assert access == "access"
+        assert secret == "sec:ret"

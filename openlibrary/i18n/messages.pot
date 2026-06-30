@@ -6462,12 +6462,17 @@ msgid "Clear search"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "See all results"
+msgid "See results"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all %s result"
+msgid "See %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html

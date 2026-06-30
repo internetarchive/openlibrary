@@ -55,6 +55,7 @@ from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.sentry import get_sentry
 
 
 def setup_contextvars(handler):
@@ -1135,6 +1136,7 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
+            "get_sentry": get_sentry,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,

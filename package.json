@@ -35,6 +35,7 @@
     "@ericblade/quagga2": "^1.7.4",
     "@eslint/js": "^9.39.4",
     "@internetarchive/elements": "^0.2.5",
+    "@sentry/browser": "^10.60.0",
     "@tiptap/core": "^3.20.4",
     "@tiptap/extension-image": "^3.22.1",
     "@tiptap/extension-placeholder": "^3.20.4",

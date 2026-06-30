@@ -302,8 +302,13 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d, indent=0) -> str:
-    return json.dumps(d, indent=indent)
+def json_encode(d, indent: int | str | None = None, sort_keys: bool = False) -> str:
+    if isinstance(d, Nothing):
+        d = []
+
+    # Escape < and > so the output is safe inside <script> tags with unescaped $: output.
+    # </> are valid JSON unicode escapes; all parsers decode them correctly.
+    return json.dumps(d, indent=indent, sort_keys=sort_keys).replace("<", "\\u003c").replace(">", "\\u003e")
 
 
 @public
