@@ -358,11 +358,15 @@ class MockSite:
 
 
 class MockConnection:
+    def __init__(self):
+        # Each MockConnection instance has its own token storage
+        self._auth_token = None
+
     def get_auth_token(self):
-        return web.ctx.infobase_auth_token
+        return self._auth_token
 
     def set_auth_token(self, token):
-        web.ctx.infobase_auth_token = token
+        self._auth_token = token
 
 
 class MockStore(dict):
