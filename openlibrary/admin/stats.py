@@ -11,6 +11,7 @@ import web
 import yaml
 
 from openlibrary.admin import numbers
+from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
 
 logger = logging.getLogger(__name__)
 
@@ -166,4 +167,10 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - datetime.timedelta(days=1)
+
+    # Gather participation scores for the previous hour
+    if ndays == 1:
+        pscores = gather_participation_scores()
+        write_to_statsd(openlibrary_config, pscores)
+
     return 0
