@@ -3346,6 +3346,17 @@
             },
             {
               "kind": "field",
+              "name": "loading",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "loading",
+              "reflects": true
+            },
+            {
+              "kind": "field",
               "name": "shadowRootOptions",
               "type": {
                 "text": "object"
@@ -3489,6 +3500,14 @@
               },
               "default": "''",
               "fieldName": "_query"
+            },
+            {
+              "name": "loading",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "loading"
             }
           ],
           "mixins": [
