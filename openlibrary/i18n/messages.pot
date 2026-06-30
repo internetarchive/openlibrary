@@ -1386,10 +1386,6 @@ msgid_plural "%(count)d Current Loans"
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html admin/loans_table.html
-msgid "Loan Expires"
-msgstr ""
-
 #: account/loans.html
 msgid "Loan actions"
 msgstr ""
@@ -1401,11 +1397,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: ManageLoansButtons.html account/loans.html
+#: account/loans.html
 msgid "Not yet downloaded."
 msgstr ""
 
-#: ManageLoansButtons.html account/loans.html
+#: account/loans.html
 msgid "Download Now"
 msgstr ""
 
@@ -2533,6 +2529,10 @@ msgid_plural "%d Current Loans"
 msgstr[0] ""
 msgstr[1] ""
 
+#: admin/loans_table.html
+msgid "Loan Expires"
+msgstr ""
+
 #: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
 #: admin/loans_table.html admin/people/edits.html recentchanges/render.html
 #: recentchanges/updated_records.html
@@ -2549,7 +2549,7 @@ msgstr ""
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr ""
 
-#: ManageLoansButtons.html admin/loans_table.html
+#: admin/loans_table.html
 #, python-format
 msgid "Borrowed %(date)s"
 msgstr ""
@@ -7888,13 +7888,6 @@ msgstr ""
 #: LocateButton.html
 msgid "Locate"
 msgstr ""
-
-#: ManageLoansButtons.html
-#, python-format
-msgid "There is one person waiting for this book."
-msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
 
 #: ManageWaitlistButton.html
 #, python-format

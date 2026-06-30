@@ -53,8 +53,7 @@ $def analytics_attr(action):
 $if user_loan:
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
   $if secondary_action:
-    $:macros.ReturnForm(ocaid)
-    $:macros.FormatExpiry(user_loan['expiry'])
+    $:macros.ReturnForm(ocaid, user_loan['expiry'])
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons
