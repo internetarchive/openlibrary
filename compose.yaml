@@ -124,11 +124,6 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    depends_on:
-      solr:
-        condition: service_healthy
-      dummy_provider:
-        condition: service_healthy
     networks:
       - webnet 
     environment:
@@ -136,7 +131,13 @@ services:
       - STATE_FILE=solr-loan-updater.last_uuid
     command: docker/ol-solr-loan-updater-start.sh
     volumes:
+      - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+    depends_on:
+      solr:
+        condition: service_healthy
+      dummy_provider:
+        condition: service_healthy
     logging:
       options:
         max-size: "512m"
