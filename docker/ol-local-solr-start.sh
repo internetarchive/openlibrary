@@ -31,12 +31,22 @@ if [ -f "$OL_SCHEMA_FILE" ] && [ -f "$SOLR_SCHEMA_FILE" ]; then
         echo "${PREFIX} Schema files has been updated. Attempting to resolve by deleting and recreating Solr core..."
 
         # Start Solr in background (on tmp port 8989)
+        # Use timeout to avoid hanging if the data volume is incompatible with the current Solr major version
         TMP_SOLR_PORT=8989
-        solr start -p $TMP_SOLR_PORT
-        # Wait for solr core to be ready for searching
-        until curl -s -o /dev/null -w "%{http_code}" "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -q "200"; do
-            sleep 1;
-        done
+        SOLR_VERSION=$(solr --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
+        if ! timeout 60 bash -c "
+            solr start -p $TMP_SOLR_PORT
+            until curl -s -o /dev/null -w '%{http_code}' \
+              'http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json' \
+              | grep -q '200'; do sleep 1; done
+        "; then
+            echo "${PREFIX} ERROR: Solr ${SOLR_VERSION} failed to start with the existing data volume."
+            echo "${PREFIX} This usually means the data volume was written by an older Solr major version."
+            echo "${PREFIX} Action required: docker compose down -v && docker compose up -d"
+            echo "${PREFIX} See: https://docs.openlibrary.org/advanced/solr.html#making-changes-to-solr-config"
+            solr stop -p $TMP_SOLR_PORT 2>/dev/null || true
+            exit 1
+        fi
 
         TOTAL_SOLR_DOCS=$(curl -s "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -oE '"numFound":[0-9]+' | grep -oE '[0-9]+')
         echo "${PREFIX} Current Solr core has $TOTAL_SOLR_DOCS documents"
