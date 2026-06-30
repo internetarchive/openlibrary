@@ -1,4 +1,4 @@
-name: Richy — Issue Enrichment
+name: Issue Enrichment
 
 on:
   issues:
@@ -9,7 +9,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: richy-${{ github.event.issue.number }}
+  group: issue-enrichment-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +28,8 @@ jobs:
           GH_TOKEN: ${{ secrets.OL_BOT_PAT }}
         with:
           prompt: |
-            @.github/workflows/richy.md
+            @.github/workflows/issue_enrichment.md
 
             Issue #${{ github.event.issue.number }} was just opened by @${{ github.event.issue.user.login }}.
+            Title: ${{ github.event.issue.title }}
           claude_args: "--max-turns 30"
