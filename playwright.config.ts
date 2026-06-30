@@ -2,10 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Run tests against a local Docker instance:
- *   cd ~/Projects/openlibrary-<slug>
  *   OL_MOUNT_DIR="$(pwd)" docker compose up -d web infobase db memcached home covers
- *   npx playwright install chromium
+ *   npx playwright install chromium chromium-headless-shell
  *   npm run test:e2e
+ *
+ * Projects are split so nothing runs twice: the core smoke tests run on the
+ * `desktop` project only, while tests tagged `@mobile` (responsive-layout
+ * checks) run on the `mobile` project only.
  */
 export default defineConfig({
   testDir: './tests/e2e',
@@ -15,14 +18,13 @@ export default defineConfig({
 
   use: {
     baseURL: process.env.OL_BASE_URL || 'http://localhost:8080',
-    // Collect browser console errors for assertion in tests
-    // (each test sets up its own listener)
     headless: true,
   },
 
   projects: [
     {
       name: 'desktop',
+      grepInvert: /@mobile/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 800 },
@@ -30,6 +32,7 @@ export default defineConfig({
     },
     {
       name: 'mobile',
+      grep: /@mobile/,
       use: {
         // Use Pixel 5 (Chromium) instead of iPhone 12 (WebKit).
         // WebKit headless launch times out on some macOS systems; Chromium is more reliable.

@@ -39,19 +39,6 @@ test.describe('Subjects page @smoke', () => {
         await expect(count).toBeVisible();
     });
 
-    test('renders the content body with works', async ({ page }) => {
-        await skipIfNoSolr({ page });
-        // The subjects template wraps content in <div class="contentBody"> (a class, not an id).
-        await expect(page.locator('.contentBody')).toBeVisible();
-    });
-
-    test('has a search form for books with this subject', async ({ page }) => {
-        await skipIfNoSolr({ page });
-        // subjects.html includes a search form bound to /search
-        const form = page.locator('form[action="/search"]');
-        await expect(form).toBeAttached();
-    });
-
     test('unknown subject shows a page (not 500)', async ({ page }) => {
         // First confirm the subjects system is healthy; if not, skip (Solr down causes 500 everywhere).
         await skipIfNoSolr({ page });

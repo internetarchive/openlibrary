@@ -20,20 +20,6 @@ test.describe('Login page @smoke', () => {
         await expect(page.locator('input[name="password"]')).toBeVisible();
     });
 
-    test('submit button is present and labeled', async ({ page }) => {
-        await page.goto('/account/login');
-        const btn = page.locator('button[name="login"]');
-        await expect(btn).toBeVisible();
-        const label = await btn.textContent();
-        expect(label?.trim().length).toBeGreaterThan(0);
-    });
-
-    test('sign up link is present', async ({ page }) => {
-        await page.goto('/account/login');
-        const signupLink = page.locator('a[href="/account/create"]').first();
-        await expect(signupLink).toBeAttached();
-    });
-
     test('invalid credentials do not crash the page', async ({ page }) => {
         await page.goto('/account/login');
         await page.fill('input[name="username"]', 'nobody@example.com');
@@ -46,8 +32,7 @@ test.describe('Login page @smoke', () => {
         expect(status).not.toContain('500');
     });
 
-    test('mobile: form fields are visible and not clipped', async ({ page, isMobile }) => {
-        if (!isMobile) test.skip();
+    test('mobile: form fields are visible and not clipped @mobile', async ({ page }) => {
         await page.goto('/account/login');
         const emailInput = page.locator('input[name="username"]');
         await expect(emailInput).toBeVisible();

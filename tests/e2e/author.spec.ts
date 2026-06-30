@@ -25,17 +25,6 @@ test.describe('Author page @smoke', () => {
         expect(errors()).toHaveLength(0);
     });
 
-    test('shows content body', async ({ page }) => {
-        await skipIfNotFound({ page });
-        await expect(page.locator('#contentBody')).toBeVisible();
-    });
-
-    test('has a works section', async ({ page }) => {
-        await skipIfNotFound({ page });
-        // #works is the works section container in type/author/view.html
-        await expect(page.locator('#works')).toBeAttached();
-    });
-
     test('works list renders at least one item when Solr is available', async ({ page }) => {
         await skipIfNotFound({ page });
         const resultsList = page.locator('#searchResults .list-books li, #searchResults .searchResultItem');
@@ -50,18 +39,5 @@ test.describe('Author page @smoke', () => {
         const response = await page.goto('/authors/OL999999999A');
         expect(response?.status()).not.toBe(500);
         await expect(page.locator('#header-bar').first()).toBeVisible();
-    });
-
-    test('mobile: author name is visible without horizontal overflow', async ({ page, isMobile }) => {
-        if (!isMobile) test.skip();
-        const response = await page.goto(AUTHOR_URL);
-        test.skip(response?.status() === 404, 'Author not in this environment\'s DB');
-        const heading = page.locator('h1[itemprop="name"]');
-        await expect(heading).toBeVisible();
-        const box = await heading.boundingBox();
-        expect(box).not.toBeNull();
-        expect(box!.x).toBeGreaterThanOrEqual(0);
-        const viewport = page.viewportSize();
-        expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
     });
 });

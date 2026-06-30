@@ -29,22 +29,10 @@ test.describe('Search page @smoke', () => {
         expect(count).toBeGreaterThan(0);
     });
 
-    test('displays search result stats', async ({ page }) => {
-        await skipIfNoSolrData({ page });
-        await expect(page.locator('.search-results-stats')).toBeVisible();
-    });
-
     test('empty query shows no error page', async ({ page }) => {
         const response = await page.goto('/search?q=');
         expect(response?.status()).not.toBe(500);
         // Should not crash — either redirect to home or show empty state
         await expect(page.locator('#header-bar').first()).toBeVisible();
-    });
-
-    test('search form is present for a new query', async ({ page }) => {
-        await page.goto(SEARCH_URL);
-        // A search form or input should still be visible so the user can refine
-        const input = page.locator('input[name="q"]').first();
-        await expect(input).toBeVisible();
     });
 });

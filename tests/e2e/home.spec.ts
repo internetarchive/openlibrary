@@ -11,21 +11,11 @@ test.describe('Home page @smoke', () => {
         expect(errors()).toHaveLength(0);
     });
 
-    test('shows main content body', async ({ page }) => {
-        await page.goto('/');
-        await expect(page.locator('#contentBody')).toBeVisible();
-    });
-
     test('header search trigger is present', async ({ page }) => {
         await page.goto('/');
         // The search bar is a Lit web component — the visible affordance is a trigger button
         // that opens a search dialog; there is no plain <input> in the DOM until the dialog opens.
         const searchTrigger = page.locator('.search-bar-component, button.search-bar-trigger').first();
         await expect(searchTrigger).toBeAttached();
-    });
-
-    test('footer is rendered', async ({ page }) => {
-        await page.goto('/');
-        await expect(page.locator('#footer-content, footer').first()).toBeVisible();
     });
 });

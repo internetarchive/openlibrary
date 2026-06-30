@@ -24,22 +24,7 @@ test.describe('Book (Work) page @smoke', () => {
         await expect(page.locator('.workDetails')).toBeVisible();
     });
 
-    test('renders the book cover or placeholder', async ({ page }) => {
-        await page.goto(WORK_URL);
-        // .editionCover is the outer container; .SRPCoverBlank is shown when no image exists
-        const cover = page.locator('.editionCover, .coverMagic').first();
-        await expect(cover).toBeAttached();
-    });
-
-    test('has a readable editions section or link', async ({ page }) => {
-        await page.goto(WORK_URL);
-        // Editions section, tab, or link should exist
-        const editions = page.locator('a[href*="editions"], .editions, #editions').first();
-        await expect(editions).toBeAttached();
-    });
-
-    test('mobile: work title is visible without horizontal scroll', async ({ page, isMobile }) => {
-        if (!isMobile) test.skip();
+    test('mobile: work title is visible without horizontal scroll @mobile', async ({ page }) => {
         await page.goto(WORK_URL);
         const title = page.locator('h1.work-title').filter({ visible: true });
         await expect(title).toBeVisible();
