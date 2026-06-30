@@ -27,9 +27,9 @@ Open Library now uses **uv** as its sole Python package manager. We no longer us
 |---|---|
 | `pyproject.toml` | Added `[build-system]`, `[project.dependencies]`, `[project.optional-dependencies]`, and `[tool.uv.sources]` |
 | `docker/Dockerfile.olbase` | `uv pip install -r requirements.txt` → `uv sync --no-install-project` + `chown .venv` |
-| `docker/Dockerfile.oldev` | `uv pip install -r requirements_test.txt` → `uv export --frozen --extra test | uv pip install -r -` |
+| `docker/Dockerfile.oldev` | `uv pip install -r requirements_test.txt` → `uv sync --frozen --no-install-project --extra test` |
 | `scripts/solr_builder/Dockerfile.olpython` | Same pattern |
-| `scripts/monitoring/Dockerfile` | Now uses `uv export --frozen --extra monitoring | uv pip install -r -` |
+| `scripts/monitoring/Dockerfile` | Now uses `uv sync --frozen --no-install-project --extra monitoring` |
 | .github/workflows/python_tests.yml | Removed pip fallback; uses `uv sync --extra test --no-install-project` |
 | `.github/workflows/new_comment_digest.yml` | `pip install` → `uv pip install` |
 | `renovate.json` | `pip_requirements` manager → `uv` manager |

@@ -1,2 +1,0 @@
-APScheduler==3.11.2
-py-spy==0.4.2

@@ -73,7 +73,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ENV PYTHONPATH=/openlibrary
 # Services use bare python/exec, so .venv must be on PATH
 ENV PATH="/openlibrary/.venv/bin:${PATH}"
-# Create venv and install all dependency packages from the lockfile (skip the root project)
+# Create venv and install all dependency packages from the lockfile (skip the root project).
+# We do this in two stages so that rebuilding only the openlibrary package layer is fast
+# when source code changes but dependencies have not.
 RUN uv sync --frozen --no-install-project
 
 COPY --chown=openlibrary:openlibrary package*.json ./
