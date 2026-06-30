@@ -366,7 +366,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
-        
+
         /* ── Item count ──────────────────────────────────────────────── */
 
         .item-count {
