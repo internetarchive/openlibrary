@@ -964,7 +964,7 @@
                 "text": "number"
               },
               "static": true,
-              "default": "5"
+              "default": "4"
             },
             {
               "kind": "method",

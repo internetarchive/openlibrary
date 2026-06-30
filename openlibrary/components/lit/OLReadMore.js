@@ -36,7 +36,7 @@ import { LitElement, html, css } from 'lit';
 export class OLReadMore extends LitElement {
     // Number of lines worth hiding before a "Read more" button earns its place.
     // Expressed in lines (not px) so font/spacing tweaks don't silently shift the threshold.
-    static BUFFER_LINES = 5;
+    static BUFFER_LINES = 4;
 
     static properties = {
         maxHeight: { type: String, attribute: 'max-height' },
