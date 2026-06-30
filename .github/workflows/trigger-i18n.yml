@@ -1,0 +1,19 @@
+name: Trigger i18n pipeline
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "openlibrary/i18n/messages.pot"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify openlibrary-i18n of pot change
+        env:
+          GH_TOKEN: ${{ secrets.OL_BOT_PAT }}
+        run: |
+          gh api repos/internetarchive/openlibrary-i18n/dispatches \
+            -f event_type=openlibrary-pot-updated \
+            -f "client_payload[sha]=$GITHUB_SHA"
