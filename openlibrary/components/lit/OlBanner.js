@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit';
+import { _ } from './utils/i18n.js';
 
 /**
  * A callout-style announcement banner.
@@ -105,7 +106,7 @@ export class OlBanner extends LitElement {
         this.appearance = 'outlined';
         this.dismissId = '';
         this.dismissible = false;
-        this.labelClose = 'Close';
+        this.labelClose = _('Close');
         this._closing = false;
     }
 

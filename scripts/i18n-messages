@@ -37,11 +37,20 @@ def main(cmd, args):
             text=True,
         ).stdout.splitlines()
 
+        js_sources = subprocess.run(
+            "grep -wrlF '_(' openlibrary/components/lit/ --include '*.js'",
+            shell=True,
+            capture_output=True,
+            check=False,
+            text=True,
+        ).stdout.splitlines()
+
         message_sources = [
             "openlibrary/templates/",
             "openlibrary/macros/",
             # grep can return things in an inconsistent order depending on the system
             *sorted(py_sources),
+            *sorted(js_sources),
         ]
 
         i18n.extract_messages(

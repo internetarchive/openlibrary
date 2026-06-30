@@ -149,6 +149,22 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+def get_js_i18n_data(lang: str) -> str:
+    """Return the JS i18n JSON for the given locale as a script-safe string.
+
+    Returns '{}' if no messages.json exists for the locale (e.g. English,
+    which falls back to the source strings in the JS components themselves).
+    """
+    import json as _json
+
+    json_path = os.path.join(root, lang, "messages.json")
+    if os.path.exists(json_path):
+        with open(json_path) as f:
+            data = _json.load(f)
+        return _json.dumps(data, ensure_ascii=False).replace("</", r"<\/")
+    return "{}"
+
+
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
     # Occasional manual bumps are fine to make it more up-to-date
@@ -162,12 +178,13 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
         ("**.py", "python"),
         ("**.html", "openlibrary.i18n:extract_templetor"),
         ("**.jinja", "jinja2.ext:babel_extract"),
+        ("**.js", "javascript"),
     ]
     COMMENT_TAGS = ["NOTE:"]
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja"))
+        skipped_files = get_untracked_files(sources, (".py", ".html", ".jinja", ".js"))
 
     for source in map(Path, sources):
         counts: dict[Path, int] = {}

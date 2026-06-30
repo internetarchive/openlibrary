@@ -590,6 +590,7 @@ msgstr ""
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
 #: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
 #: my_books/dropdown_content.html native_dialog.html
+#: openlibrary/components/lit/OlBanner.js
 msgid "Close"
 msgstr ""
 
@@ -7051,14 +7052,6 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Read Less"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
 "This work doesn't have a description yet. Can you <b><a "
@@ -8737,5 +8730,13 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/components/lit/OLReadMore.js
+msgid "Read More"
+msgstr ""
+
+#: openlibrary/components/lit/OLReadMore.js
+msgid "Read Less"
 msgstr ""
 

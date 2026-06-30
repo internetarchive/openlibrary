@@ -6,6 +6,7 @@ openlibrary/components/dev/_dev.js
 .vscode/
 *.swp
 *.mo
+openlibrary/i18n/*/messages.json
 var/
 usr/
 static/build/
