@@ -34,6 +34,10 @@ import { LitElement, html, css } from 'lit';
  * </ol-read-more>
  */
 export class OLReadMore extends LitElement {
+    // Number of lines worth hiding before a "Read more" button earns its place.
+    // Expressed in lines (not px) so font/spacing tweaks don't silently shift the threshold.
+    static BUFFER_LINES = 5;
+
     static properties = {
         maxHeight: { type: String, attribute: 'max-height' },
         moreText: { type: String, attribute: 'more-text' },
@@ -155,20 +159,26 @@ export class OLReadMore extends LitElement {
         }
     }
 
+    // Resolve an element's line-height to px, approximating `normal` from font-size.
+    _getLineHeight(el) {
+        const cs = getComputedStyle(el);
+        const lh = parseFloat(cs.lineHeight);
+        // `line-height: normal` parses to NaN — fall back to a typical ratio.
+        return Number.isNaN(lh) ? parseFloat(cs.fontSize) * 1.5 : lh;
+    }
+
     _checkIfTruncationNeeded() {
         const content = this.shadowRoot.querySelector('.content-wrapper');
         if (!content) return;
 
-        const toggleBtn = this.shadowRoot.querySelector('.toggle-btn.more');
-        const toggleBtnHeight =
-            toggleBtn && toggleBtn.offsetHeight > 0
-                ? toggleBtn.offsetHeight
-                : this.labelSize === 'small'
-                    ? 27
-                    : 41;
+        // Measure the real slotted text, not the shadow wrapper — the wrapper
+        // inherits the host's line-height, which may differ from the content's.
+        const slot = this.shadowRoot.querySelector('slot');
+        const sample = slot?.assignedElements?.()[0] ?? content;
+        const buffer = OLReadMore.BUFFER_LINES * this._getLineHeight(sample);
 
-        const isOverflowing = content.scrollHeight > content.clientHeight + toggleBtnHeight;
-        this._unnecessary = !isOverflowing;
+        const isOverflowingEnough = content.scrollHeight > content.clientHeight + buffer;
+        this._unnecessary = !isOverflowingEnough;
 
         if (this._unnecessary) {
             this._expanded = true;
