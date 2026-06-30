@@ -13,6 +13,8 @@
 @import "tokens/breakpoints.css";
 @import "tokens/colors.css";
 @import "tokens/font-families.css";
+@import "tokens/font-sizes.css";
+@import "tokens/font-weights.css";
 @import "tokens/line-heights.css";
 @import "tokens/spacing.css";
 @import "tokens/z-index.css";
