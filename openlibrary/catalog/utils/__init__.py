@@ -67,6 +67,9 @@ def author_dates_match(a: AuthorImportDict, b: dict | Author) -> bool:
             return False
         m2 = re_year.search(b[k])
         if m2 and m1.group(1) == m2.group(1):
+            year_str = m1.group(1)
+            if a[k] != year_str and b[k] != year_str and a[k] != b[k]:
+                return False
             continue
         return False
     return True

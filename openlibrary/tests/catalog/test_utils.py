@@ -76,8 +76,7 @@ def test_author_dates_match():
     # This method only compares dates and ignores names
     assert author_dates_match(no_dates, different_name)
     assert author_dates_match(basic, non_match) is False
-    # FIXME: the following should properly be False:
-    assert author_dates_match(full_different, full_dates)  # this shows matches are only occurring on year, full dates are ignored!
+    assert author_dates_match(full_different, full_dates) is False
 
 
 def test_flip_name():
