@@ -11,7 +11,6 @@ from scripts.solr_updater.loan_availability_updater import (
     process_changes,
     query_solr_uid,
     read_state,
-    resolve_edition_keys,
     write_state,
 )
 
