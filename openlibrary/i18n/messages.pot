@@ -6174,10 +6174,6 @@ msgstr ""
 msgid "published most by this publisher"
 msgstr ""
 
-#: publishers/view.html
-msgid "Get more information about this publisher"
-msgstr ""
-
 #: reading_goals/reading_goal_form.html
 msgid "How many books would you like to read this year?"
 msgstr ""
@@ -7096,11 +7092,6 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-#, python-format
-msgid "Search for other books from %(publisher)s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
