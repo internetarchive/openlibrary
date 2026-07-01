@@ -82,30 +82,113 @@ class BaseEntity(BaseModel):
     model_config = {"extra": "allow"}
 
 
+class TextBlock(BaseModel):
+    """An Open Library text sub-document (``{"type": "/type/text", "value": "..."}``)."""
+
+    type: Literal["/type/text"] = "/type/text"
+    value: str
+
+
+class Link(BaseModel):
+    """An Open Library link sub-document."""
+
+    url: str
+    title: str
+    type: EntityRef = Field(default=EntityRef(key="/type/link"))
+
+
 class WorkResponse(BaseEntity):
     """Full JSON of a work."""
 
     title: str = Field(default="", description="The work title.")
+    subtitle: str | None = Field(default=None, description="The work subtitle.")
     authors: list[dict[str, Any]] = Field(
         default_factory=list,
         description="List of author contributions (each entry is a dict with ``author``, ``type``, etc.).",
     )
+    covers: list[int] | None = Field(default=None, description="List of cover image IDs.")
+    links: list[Link] | None = Field(default=None, description="List of related links.")
+    lc_classifications: list[str] | None = Field(default=None, description="Library of Congress classifications.")
+    subjects: list[str] | None = Field(default=None, description="List of subject headings.")
+    first_publish_date: str | None = Field(default=None, description="The first publication date.")
+    description: TextBlock | str | None = Field(default=None, description="A description of the work.")
+    notes: TextBlock | str | None = Field(default=None, description="Notes about the work.")
 
 
 class EditionResponse(BaseEntity):
     """Full JSON of an edition (book)."""
 
     title: str = Field(default="", description="The edition title.")
+    subtitle: str | None = Field(default=None, description="The edition subtitle.")
     works: list[EntityRef] = Field(
         default_factory=list,
         description="List of works this edition belongs to.",
     )
+    authors: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="List of authors.",
+    )
+    identifiers: dict[str, Any] | None = Field(default=None, description="External identifiers.")
+    isbn_10: list[str] | None = Field(default=None, description="ISBN-10 numbers.")
+    isbn_13: list[str] | None = Field(default=None, description="ISBN-13 numbers.")
+    lccn: list[str] | None = Field(
+        default=None,
+        description="Library of Congress Control Numbers.",
+    )
+    ocaid: str | None = Field(
+        default=None,
+        description="Internet Archive OCAID.",
+    )
+    oclc_numbers: list[str] | None = Field(default=None, description="OCLC/WorldCat numbers.")
+    local_id: list[str] | None = Field(default=None, description="Local identifiers.")
+    covers: list[int] | None = Field(default=None, description="List of cover image IDs.")
+    links: list[Link] | None = Field(default=None, description="List of related links.")
+    languages: list[dict[str, Any]] | None = Field(default=None, description="List of languages.")
+    translated_from: list[dict[str, Any]] | None = Field(default=None, description="Languages translated from.")
+    translation_of: str | None = Field(default=None, description="The title of the original language work.")
+    by_statement: str | None = Field(default=None, description="The by-statement credit.")
+    weight: str | None = Field(default=None, description="The physical weight.")
+    edition_name: str | None = Field(default=None, description="The edition name.")
+    number_of_pages: int | None = Field(default=None, description="Number of pages.")
+    pagination: str | None = Field(default=None, description="Pagination string.")
+    physical_dimensions: str | None = Field(default=None, description="Physical dimensions.")
+    physical_format: str | None = Field(default=None, description="Physical format (e.g. Paperback).")
+    copyright_date: str | None = Field(default=None, description="Copyright date.")
+    publish_country: str | None = Field(default=None, description="MARC country code.")
+    publish_date: str | None = Field(default=None, description="Publication date in EDTF format.")
+    publish_places: list[str] | None = Field(default=None, description="List of publication places.")
+    publishers: list[str] | None = Field(default=None, description="List of publishers.")
+    contributions: list[str] | None = Field(default=None, description="List of contributors.")
+    dewey_decimal_class: list[str] | None = Field(default=None, description="Dewey Decimal classifications.")
+    genres: list[str] | None = Field(default=None, description="List of genres.")
+    lc_classifications: list[str] | None = Field(default=None, description="Library of Congress classifications.")
+    other_titles: list[str] | None = Field(default=None, description="Other titles.")
+    series: list[str] | None = Field(default=None, description="Series information.")
+    source_records: list[str] | None = Field(default=None, description="Source record identifiers.")
+    subjects: list[str] | None = Field(default=None, description="List of subject headings.")
+    work_titles: list[str] | None = Field(default=None, description="Work titles.")
+    table_of_contents: list[dict[str, Any]] | None = Field(default=None, description="Table of contents entries.")
+    description: TextBlock | str | None = Field(default=None, description="A description of the edition.")
+    first_sentence: TextBlock | str | None = Field(default=None, description="The first sentence.")
+    notes: TextBlock | str | None = Field(default=None, description="Notes about the edition.")
 
 
 class AuthorResponse(BaseEntity):
     """Full JSON of an author."""
 
     name: str = Field(default="", description="The author's display name.")
+    alternate_names: list[str] | None = Field(default=None, description="Alternate names.")
+    bio: TextBlock | str | None = Field(default=None, description="Biographical information.")
+    birth_date: str | None = Field(default=None, description="Birth date.")
+    death_date: str | None = Field(default=None, description="Death date.")
+    date: str | None = Field(default=None, description="A date associated with the author.")
+    entity_type: str | None = Field(default=None, description="Entity type (person, org, event).")
+    fuller_name: str | None = Field(default=None, description="Fuller name.")
+    personal_name: str | None = Field(default=None, description="Personal name.")
+    title: str | None = Field(default=None, description="Title (e.g. Sir, Dr.).")
+    photos: list[int] | None = Field(default=None, description="List of photo IDs.")
+    links: list[Link] | None = Field(default=None, description="List of related links.")
+    remote_ids: dict[str, str] | None = Field(default=None, description="Remote identifiers (wikidata, viaf, etc.).")
 
 
 class UserResponse(BaseEntity):
