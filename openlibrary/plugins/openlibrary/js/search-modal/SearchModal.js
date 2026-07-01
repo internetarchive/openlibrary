@@ -8,6 +8,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { mode as searchMode } from '../SearchUtils.js';
+import { trackEvent } from '../ol.analytics.js';
 import {
     AVAILABILITY_OPTIONS,
     AVAILABILITY_TO_PARAMS,
@@ -1483,20 +1484,21 @@ export class SearchModal extends LitElement {
     _seeAllLabel() {
         const n = this._numFound;
         if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
-        const template = n === 1 ? this._i18n.seeAllOne : this._i18n.seeAllMany;
+        // "all" is only meaningful when there are more matches than we render
+        // inline. Once every hit is shown, drop "all" (and "all 1" never made
+        // sense). A there's-more count is always plural, so seeAllMany suffices.
+        let template;
+        if (n > this._results.length) template = this._i18n.seeAllMany;
+        else if (n === 1) template = this._i18n.seeOne;
+        else template = this._i18n.seeMany;
         return sprintf(template, n.toLocaleString());
     }
 
     // ── Event handlers ───────────────────────────────────────────────────
 
-    // Send a Matomo event through OL's wrapper. The modal renders in Shadow
-    // DOM, so Matomo's selector-based click triggers can't see its controls —
-    // we emit events manually instead. Guarded so a missing analytics CDN can't
-    // break an interaction. Labels carry only the *shape* of the interaction
-    // (counts, positions, types) — never the query text the patron typed.
+    /** Send a Matomo analytics event */
     _track(action, label) {
-        if (!window.archive_analytics) return;
-        window.archive_analytics.ol_send_event_ping({ category: 'SearchModal', action, label });
+        trackEvent('SearchModal', action, label);
     }
 
     _onDialogOpened() {

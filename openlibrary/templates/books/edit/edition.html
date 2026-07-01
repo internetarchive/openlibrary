@@ -4,7 +4,7 @@ $ edition_config = get_identifier_config('edition')
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 $ is_admin = ctx.user and ctx.user.is_admin()
 $ is_super_librarian = ctx.user and ctx.user.is_super_librarian()
-$ is_privileged_user = is_librarian or is_super_librarian or is_admin
+$ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
 
 $def radiobuttons(name, options, value):
     $for v in options:

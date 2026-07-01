@@ -965,8 +965,26 @@
           ],
           "members": [
             {
+              "kind": "field",
+              "name": "BUFFER_LINES",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "4"
+            },
+            {
               "kind": "method",
               "name": "_updateBackgroundColor"
+            },
+            {
+              "kind": "method",
+              "name": "_getLineHeight",
+              "parameters": [
+                {
+                  "name": "el"
+                }
+              ]
             },
             {
               "kind": "method",

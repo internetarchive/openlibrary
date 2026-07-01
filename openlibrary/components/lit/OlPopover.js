@@ -384,6 +384,8 @@ export class OlPopover extends LitElement {
         _removeFromOverlayStack(this);
         _openPopoverStack.push(this);
 
+        // Keep 767px (--width-breakpoint-tablet - 1px) in sync with the tray
+        // media queries in header-bar.css / OlSelectPopover.js.
         this._mobile = window.matchMedia('(max-width: 767px)').matches;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

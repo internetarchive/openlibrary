@@ -63,3 +63,11 @@ ol-segmented-control[size="small"]:not(:defined) {
 ol-segmented-control[size="large"]:not(:defined) {
   height: var(--control-height-large);
 }
+
+/* Before ol-popover upgrades, its default-slot content (the panel) renders
+   in the light DOM. Hide everything except the trigger so the popover body
+   doesn't flash on page load; the upgraded component manages it in its
+   shadow root. */
+ol-popover:not(:defined) > :not([slot="trigger"]) {
+  display: none;
+}
