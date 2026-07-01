@@ -14,7 +14,6 @@ from openlibrary.core.features import Features
 def _full_config(**overrides: str) -> str:
     values = {
         "lists": "true",
-        "publishers": "false",
         "recentchanges_v2": "false",
         "stats": "true",
         "stats-header": "true",
@@ -48,7 +47,6 @@ class TestConstructor:
     def test_kwargs_only(self):
         f = Features(
             lists=True,
-            publishers=False,
             recentchanges_v2=False,
             stats=True,
             stats_header=True,
@@ -59,7 +57,6 @@ class TestConstructor:
     def test_extra_fields_are_ignored(self):
         f = Features(
             lists=True,
-            publishers=False,
             recentchanges_v2=False,
             stats=True,
             stats_header=True,
@@ -78,7 +75,6 @@ class TestFromYaml:
         assert f.stats is True
         assert f.stats_header is True
         assert f.lists is True
-        assert f.publishers is False
         assert f.recentchanges_v2 is False
         assert f.superfast is False
 
