@@ -622,3 +622,23 @@ def test_response_model_fields_exist_in_schema(model: type[BaseModel], schema_na
     assert not missing, (
         f"Field(s) {missing} declared on {model.__name__} not found in properties of {schema_name}. Add them to the schema or remove them from the model."
     )
+
+
+@pytest.mark.parametrize(
+    ("model", "schema_name"),
+    list(_RESPONSE_MODEL_SCHEMA.items()),
+    ids=_RESPONSE_MODEL_SCHEMA.values(),
+)
+def test_schema_required_fields_exist_on_model(model: type[BaseModel], schema_name: str):
+    """Every field required by the JSON Schema must be declared on the
+    Pydantic response model.  This ensures required schema fields aren't
+    accidentally dropped from the response model."""
+    schema_path = _SCHEMA_DIR / schema_name
+    with open(schema_path) as f:
+        schema = _json.load(f)
+
+    schema_required = set(schema.get("required", []))
+    model_fields = set(model.model_fields.keys())
+
+    missing = schema_required - model_fields
+    assert not missing, f"Required field(s) {missing} from {schema_name} missing on {model.__name__}. Add them to the model or update the schema."
