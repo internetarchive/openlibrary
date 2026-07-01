@@ -47,7 +47,7 @@ def test_get_doc():
             "ia": ["computerglossary00free"],
             "collections": [],
             "has_fulltext": True,
-            "public_scan": False,
+            "public_scan": True,
             "lending_edition": "OL1111795M",
             "lending_identifier": None,
             "authors": [

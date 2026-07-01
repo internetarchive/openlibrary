@@ -134,7 +134,6 @@ class SolrDocument(TypedDict):
     last_modified: Optional[str]
     seed_count: Optional[int]
     list_type: Optional[str]
-    # Removed public_scan_b
     printdisabled_s: Optional[str]
     lending_edition_s: Optional[str]
     ebook_count_i: Optional[int]
