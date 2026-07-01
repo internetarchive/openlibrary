@@ -5,7 +5,7 @@ import datetime
 import io
 import logging
 import re
-import urllib
+import urllib.parse
 from typing import TYPE_CHECKING, Literal, NoReturn, overload
 
 import web
@@ -966,6 +966,10 @@ class daisy(delegate.page):
 
         if not page:
             raise web.notfound()
+
+        if page.ocaid:
+            ia_item_url = f"https://archive.org/details/{urllib.parse.quote(page.ocaid, safe='')}"
+            raise web.seeother(ia_item_url)
 
         return render_template("books/daisy", page)
 

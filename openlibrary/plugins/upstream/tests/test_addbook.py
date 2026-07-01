@@ -1,5 +1,6 @@
 """py.test tests for addbook"""
 
+import pytest
 import web
 
 from openlibrary import accounts
@@ -487,6 +488,55 @@ class TestSaveBookHelper:
         # Should ignore authors/subjects by default
         assert not new_work.authors
         assert not new_work.subjects
+
+
+class TestDaisyPage:
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+
+    def test_redirects_to_archive_item_for_edition_with_ocaid(self, monkeypatch):
+        web.ctx.site.save(
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Accessible Book",
+                "ocaid": "testitem00archive",
+            }
+        )
+
+        redirects = []
+
+        def seeother(url):
+            redirects.append(url)
+            raise RuntimeError("redirect")
+
+        monkeypatch.setattr(addbook.web, "seeother", seeother)
+
+        with pytest.raises(RuntimeError, match="redirect"):
+            addbook.daisy().GET("/books/OL1M")
+        assert redirects == ["https://archive.org/details/testitem00archive"]
+
+    def test_redirect_escapes_archive_item_identifier(self, monkeypatch):
+        web.ctx.site.save(
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Accessible Book",
+                "ocaid": "test item/archive",
+            }
+        )
+
+        redirects = []
+
+        def seeother(url):
+            redirects.append(url)
+            raise RuntimeError("redirect")
+
+        monkeypatch.setattr(addbook.web, "seeother", seeother)
+
+        with pytest.raises(RuntimeError, match="redirect"):
+            addbook.daisy().GET("/books/OL1M")
+        assert redirects == ["https://archive.org/details/test%20item%2Farchive"]
 
 
 class TestMakeWork:
