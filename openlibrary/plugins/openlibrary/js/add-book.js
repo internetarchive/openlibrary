@@ -17,11 +17,11 @@ let invalidIsbn13;
 let invalidLccn;
 let invalidOclc;
 let emptyId;
-
-const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
-const addBookForm = $('form#addbook');
+let i18nStrings;
 
 export function initAddBookImport() {
+    const addBookForm = $('form#addbook');
+
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
@@ -31,6 +31,8 @@ export function initAddBookImport() {
         $('input#work').val('none-of-these');
         addBookForm.trigger('submit');
     });
+
+    i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
 
     invalidChecksum = i18nStrings.invalid_checksum;
     invalidIsbn10 = i18nStrings.invalid_isbn10;
