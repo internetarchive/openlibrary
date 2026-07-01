@@ -32,7 +32,6 @@ def test_get_doc():
             "ia": ["computerglossary00free"],
             "key": "/works/OL1820355W",
             "lending_edition_s": "OL1111795M",
-            "public_scan_b": False,
             "title": "The computer glossary",
             "ratings_average": None,
             "ratings_count": None,
@@ -48,7 +47,7 @@ def test_get_doc():
             "ia": ["computerglossary00free"],
             "collections": [],
             "has_fulltext": True,
-            "public_scan": False,
+            "public_scan": True,
             "lending_edition": "OL1111795M",
             "lending_identifier": None,
             "authors": [

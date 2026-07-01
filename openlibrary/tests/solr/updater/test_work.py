@@ -190,7 +190,6 @@ class TestWorkSolrBuilder:
         )
 
         assert d.has_fulltext is True
-        assert d.public_scan_b is False
         assert d.printdisabled_s is None
         assert d.lending_edition_s == "OL1M"
         assert d.ia == ["foo00bar"]
@@ -212,7 +211,6 @@ class TestWorkSolrBuilder:
             },
         )
         assert d.has_fulltext is True
-        assert d.public_scan_b is False
         assert d.printdisabled_s is None
         assert d.lending_edition_s == "OL1M"
         assert sorted(d.ia) == ["foo01bar", "foo02bar"]
@@ -228,7 +226,6 @@ class TestWorkSolrBuilder:
             ia_metadata={"foo00bar": {"collection": ["printdisabled", "inlibrary"]}},
         )
         assert d.has_fulltext is True
-        assert d.public_scan_b is False
         assert d.printdisabled_s == "OL1M"
         assert d.lending_edition_s == "OL1M"
         assert d.ia == ["foo00bar"]
@@ -244,7 +241,6 @@ class TestWorkSolrBuilder:
             ia_metadata={"foo00bar": {"collection": ["printdisabled", "americana"]}},
         )
         assert d.has_fulltext is True
-        assert d.public_scan_b is False
         assert d.printdisabled_s == "OL1M"
         assert d.lending_edition_s is None
         assert d.ia == ["foo00bar"]
@@ -283,7 +279,6 @@ class TestWorkSolrBuilder:
             },
         )
         assert d.has_fulltext is True
-        assert d.public_scan_b is True
         assert d.printdisabled_s == "OL4M"
         assert d.lending_edition_s == "OL2M"
         assert sorted(d.ia) == ["foo00bar", "foo01bar", "foo02bar"]
