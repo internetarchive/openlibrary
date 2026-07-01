@@ -6,7 +6,8 @@ on:
     paths:
       - "openlibrary/i18n/messages.pot"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   dispatch:
