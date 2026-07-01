@@ -344,6 +344,7 @@
 
 .header-bar .navigation-component.mobile {
   display: flex;
+  align-items: center;
 }
 
 .header-bar .navigation-component {
@@ -578,7 +579,7 @@
 /* ── Browse popover ──────────────────────────────────────────
  * The Browse nav item uses the <ol-popover> web component (rendered by
  * openlibrary/templates/lib/browse_popover.html) instead of a native
- * <details> dropdown. The panel opens with a 2-column grid of featured
+ * <details> dropdown. The panel opens with a single column of featured
  * destinations (icon + title + description) above a divider, followed by a
  * list of simple links. ol-popover owns the panel chrome (background, radius,
  * shadow) and the mobile bottom-tray behavior; these rules style the slotted
@@ -593,12 +594,51 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-inline-sm);
-  padding: 0;
+  /* Roomier click target; negative inline margin keeps the text aligned with
+   * the sibling nav items rather than pushing them apart. */
+  margin: 0 calc(-1 * var(--spacing-inset-md));
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   border: 0;
+  border-radius: var(--border-radius-md);
   background: none;
   color: var(--dark-grey);
   font: inherit;
   cursor: pointer;
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+/* A subtle darken of the --beige header/body. (--beige itself equals the header
+ * background, so it'd be invisible.) */
+.header-bar .navigation-component .browse-popover__trigger:hover,
+.header-bar .navigation-component .browse-popover__trigger:focus-visible,
+.header-bar .browse-popover[open] .browse-popover__trigger {
+  background-color: var(--beige-three);
+}
+
+/* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
+.header-bar .navigation-component .browse-popover__trigger:active {
+  transform: scale(0.97);
+}
+
+/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
+ * Overrides the generic .down-arrow nudge and rotates when the popover opens. */
+.header-bar .navigation-component .browse-popover__trigger .down-arrow {
+  top: 0;
+  width: 16px;
+  height: 16px;
+  transition: transform 150ms ease-out;
+}
+
+.header-bar .browse-popover[open] .browse-popover__trigger .down-arrow {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-bar .navigation-component .browse-popover__trigger,
+  .header-bar .navigation-component .browse-popover__trigger .down-arrow {
+    transition: none;
+  }
 }
 
 .header-bar .browse-popover__panel {
@@ -609,10 +649,18 @@
   text-align: left;
 }
 
+/* In the mobile bottom-tray the popover spans the full viewport width, so let
+ * the panel fill it instead of staying pinned to the 240px desktop width. */
+@media (max-width: 767px) /* --width-breakpoint-tablet - 1px; matches OlPopover.js _mobile */ {
+  .header-bar .browse-popover__panel {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 .header-bar .browse-popover__featured {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .header-bar .navigation-component .browse-feature {
@@ -623,12 +671,14 @@
   border-radius: var(--border-radius-md);
   color: var(--dark-grey);
   text-decoration: none;
-  transition: background-color 0.12s ease;
 }
 
+/* Fade in on hover, but snap back instantly on hover-off (transition lives on
+ * the hover state, so the base state has none). */
 .navigation-component .browse-feature:hover,
 .navigation-component .browse-feature:focus-visible {
   background-color: var(--lightest-grey);
+  transition: background-color 0.12s ease;
 }
 
 .header-bar .browse-feature__icon {
@@ -641,6 +691,15 @@
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
   color: var(--primary-blue);
+}
+
+/* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
+ * so the icon would wash out. Deepen the tile to --beige to keep it distinct.
+ * Fade in with the row, snap back instantly on hover-off. */
+.navigation-component .browse-feature:hover .browse-feature__icon,
+.navigation-component .browse-feature:focus-visible .browse-feature__icon {
+  background: var(--beige);
+  transition: background-color 0.12s ease;
 }
 
 .header-bar .browse-feature__icon svg {
