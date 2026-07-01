@@ -1833,6 +1833,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component {
     display: flex;
+    align-items: center;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;

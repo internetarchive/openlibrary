@@ -62,9 +62,6 @@ features:
     dev: enabled
     history_v2: admin
     lists: enabled
-    merge-authors:
-        filter: usergroup
-        usergroup: /usergroup/librarians
     publishers: enabled
     recentchanges_v2: enabled
     stats: enabled

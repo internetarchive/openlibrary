@@ -1393,6 +1393,7 @@ class account_waitlist(delegate.page):
 #         return render.notfound(path, create=False)
 
 
+@deprecated("migrated to fastapi")
 class account_anonymization_json(delegate.page):
     path = "/account/anonymize"
     encoding = "json"
