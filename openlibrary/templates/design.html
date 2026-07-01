@@ -135,7 +135,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         $:render_template("design/api_tables", components.get("ol-pagination"))
       </article>
 
-      $:render_template("design/carousel", components.get("ol-carousel"))
+      $:render_jinja_template("design/carousel.html.jinja", api=components.get("ol-carousel"))
 
       $:render_template("design/popover", components.get("ol-popover"))
 
