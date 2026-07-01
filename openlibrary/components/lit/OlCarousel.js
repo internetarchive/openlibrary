@@ -17,7 +17,7 @@ import { LitElement, html, css, nothing } from 'lit';
  * @prop {String} label - Accessible label for the carousel region (default: "Carousel")
  * @prop {String} labelPrevious - Aria-label for previous arrow (default: "Previous page")
  * @prop {String} labelNext - Aria-label for next arrow (default: "Next page")
- * @prop {Boolean} hideIndicators - When present, hides the page indicator bar (default: false)
+ * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
  * @fires ol-carousel-page-change - Fired after page transition. detail: { page: Number, totalPages: Number }
  *
@@ -44,7 +44,7 @@ export class OlCarousel extends LitElement {
         label: { type: String },
         labelPrevious: { type: String, attribute: 'label-previous' },
         labelNext: { type: String, attribute: 'label-next' },
-        hideIndicators: { type: Boolean, attribute: 'hide-indicators' },
+        showIndicators: { type: Boolean, attribute: 'show-indicators' },
         _page: { type: Number, state: true },
         _totalPages: { type: Number, state: true },
         _columns: { type: Number, state: true },
@@ -283,7 +283,7 @@ export class OlCarousel extends LitElement {
         this.label = 'Carousel';
         this.labelPrevious = 'Previous page';
         this.labelNext = 'Next page';
-        this.hideIndicators = false;
+        this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
         this._columns = 6;
@@ -754,7 +754,7 @@ export class OlCarousel extends LitElement {
     // ── Render ──
 
     _renderIndicators() {
-        if (this.hideIndicators || this._totalPages <= 1) return nothing;
+        if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
             <div class="indicators" role="tablist" aria-label="Carousel pages">
                 ${Array.from({ length: this._totalPages }, (_, i) => html`

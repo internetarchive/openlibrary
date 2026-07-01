@@ -1703,14 +1703,14 @@
             },
             {
               "kind": "field",
-              "name": "hideIndicators",
+              "name": "showIndicators",
               "privacy": "public",
               "type": {
                 "text": "Boolean"
               },
               "default": "false",
-              "description": "When present, hides the page indicator bar (default: false)",
-              "attribute": "hide-indicators"
+              "description": "When present, shows the page indicator bar (default: false)",
+              "attribute": "show-indicators"
             },
             {
               "kind": "field",
@@ -1905,13 +1905,13 @@
               "fieldName": "labelNext"
             },
             {
-              "name": "hide-indicators",
+              "name": "show-indicators",
               "type": {
                 "text": "Boolean"
               },
               "default": "false",
-              "description": "When present, hides the page indicator bar (default: false)",
-              "fieldName": "hideIndicators"
+              "description": "When present, shows the page indicator bar (default: false)",
+              "fieldName": "showIndicators"
             },
             {
               "name": "_page",
