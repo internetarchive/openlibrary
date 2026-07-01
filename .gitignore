@@ -13,6 +13,7 @@ static/css/page-dev.less
 build/
 *.local
 /.local
+CLAUDE.local.md
 *.tgz
 *.tar.gz
 *.org

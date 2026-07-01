@@ -57,6 +57,7 @@ from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.sentry import get_sentry
 
 
 def setup_contextvars(handler):
@@ -1106,6 +1107,7 @@ def setup_template_globals():
             "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
             "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
             "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
+            "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
             "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
             "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
             "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
@@ -1138,6 +1140,7 @@ def setup_template_globals():
             "get_cover_url": get_cover_url,
             "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
+            "get_sentry": get_sentry,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
