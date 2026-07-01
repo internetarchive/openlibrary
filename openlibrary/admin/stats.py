@@ -169,7 +169,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
         start = end - datetime.timedelta(days=1)
 
     # Gather participation scores for the previous hour
-    if ndays == 1:
+    if int(ndays) == 1:
         pscores = gather_participation_scores()
         write_to_statsd(openlibrary_config, pscores)
 
