@@ -203,7 +203,7 @@ class Ratings(db.CommonExtras):
                 AND created < date_trunc('hour', now());
         """
         totals = oldb.query(total_ratings_query)
-        results['star_ratings'] = next(iter(totals))['count']
+        results["star_ratings"] = next(iter(totals))["count"]
 
         distinct_raters_query = """
             select count(distinct username) from ratings
@@ -211,6 +211,6 @@ class Ratings(db.CommonExtras):
                 AND created < date_trunc('hour', now());
         """
         distinct_totals = oldb.query(distinct_raters_query)
-        results["distinct_star_ratings"] = next(iter(distinct_totals))['count']
+        results["distinct_star_ratings"] = next(iter(distinct_totals))["count"]
 
         return results

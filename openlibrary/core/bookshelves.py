@@ -739,9 +739,7 @@ class Bookshelves(db.CommonExtras):
             order by b.id;
         """
         totals = oldb.query(total_books_logged_query)
-        results['reading_logs'] = {
-            normalize_shelf_name(i.bookshelf_name): i.cnt for i in totals
-        }
+        results["reading_logs"] = {normalize_shelf_name(i.bookshelf_name): i.cnt for i in totals}
 
         distinct_readers_logging_query = """
             select count(distinct bb.username) as cnt,
@@ -755,8 +753,6 @@ class Bookshelves(db.CommonExtras):
             order by b.id;
         """
         distinct_totals = oldb.query(distinct_readers_logging_query)
-        results["distinct_reading_logs"] = {
-            normalize_shelf_name(i.bookshelf_name): i.cnt for i in distinct_totals
-        }
+        results["distinct_reading_logs"] = {normalize_shelf_name(i.bookshelf_name): i.cnt for i in distinct_totals}
 
         return results
