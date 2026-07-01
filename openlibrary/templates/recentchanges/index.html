@@ -29,8 +29,7 @@ $def subnav():
     $     (path + "/add-cover", _("Covers Added")),
     $ ]
 
-    $if "lists" in ctx.features:
-        $nav_items.append((path + "/lists", _("Lists")))
+    $nav_items.append((path + "/lists", _("Lists")))
 
     $:render_template("lib/subnavigation", nav_items)
 
