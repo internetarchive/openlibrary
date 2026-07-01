@@ -1,10 +1,10 @@
-"""FastAPI endpoint for serving entity documents as JSON.
+"""FastAPI endpoint for serving thing documents as JSON.
 
-This file is named entities.py because it handles the
-generic "view document as JSON" pattern for multiple entity types —
+This file is named things.py because it handles the
+generic "view document as JSON" pattern for multiple thing types —
 works, editions/books, authors, and people (users).  The shared helpers
 (``_entity_get`` / ``_entity_put``) and factory functions live here so
-that every entity type gets identical behavior — JSONP support, revision
+that every thing type gets identical behavior — JSONP support, revision
 fetching, error formatting — without duplicating code.
 
 Naming rationale
@@ -13,8 +13,8 @@ The FastAPI router files in this package are named after the **route
 domain** they serve (books.py → /api/books, lists.py → /lists/...,
 subjects.py → /subjects/..., etc.).  A file called ``works.py`` that
 also registers routes under ``/books/``, ``/authors/`` and ``/people/``
-would be misleading.  ``entities.py`` accurately captures the scope:
-any top-level Open Library entity whose raw JSON document should be
+would be misleading.  ``things.py`` accurately captures the scope:
+any top-level Open Library thing whose raw JSON document should be
 exposed at ``/{type}/{id}.json``.
 """
 
@@ -28,11 +28,11 @@ from pydantic import BaseModel, Field
 from starlette.responses import JSONResponse, Response
 
 from infogami.infobase import client
-from openlibrary.fastapi.auth import CanWriteDep  # noqa: TC001
+from openlibrary.fastapi.auth import ApiPermissionsDep  # noqa: TC001
 from openlibrary.fastapi.models import wrap_jsonp
 from openlibrary.utils.request_context import site
 
-router = APIRouter(tags=["entities"])
+router = APIRouter(tags=["things"])
 
 
 # Shared query-parameter descriptors used by both factory and direct handlers.
@@ -40,7 +40,7 @@ router = APIRouter(tags=["entities"])
 #: ``?m=history`` routes to the version-history endpoint.
 # NB: ``default`` is omitted here because the default is set via ``= None``
 # in the function signature — FastAPI/Annotated rejects duplicate defaults.
-_MODE_PARAM = Query(description="View mode. Set to ``history`` to return version history instead of the entity document.")
+_MODE_PARAM = Query(description="View mode. Set to ``history`` to return version history instead of the thing document.")
 
 #: History pagination.
 _HISTORY_AUTHOR = Query(description="Filter version history by author key (e.g. ``/people/openlibrary``).")
@@ -57,7 +57,7 @@ _HISTORY_LIMIT = Query(ge=1, le=1000, description="Maximum revisions to return."
 
 
 class EntityRef(BaseModel):
-    """A reference to another entity document (e.g. ``{"key": "/authors/OL1A"}``)."""
+    """A reference to another thing document (e.g. ``{"key": "/authors/OL1A"}``)."""
 
     key: str
 
@@ -70,7 +70,7 @@ class DatetimeValue(BaseModel):
 
 
 class BaseEntity(BaseModel):
-    """Common metadata fields present in every entity document."""
+    """Common metadata fields present in every thing document."""
 
     key: str
     type: EntityRef
@@ -83,7 +83,7 @@ class BaseEntity(BaseModel):
 
 
 class WorkResponse(BaseEntity):
-    """Full JSON of a work entity."""
+    """Full JSON of a work."""
 
     title: str = Field(default="", description="The work title.")
     authors: list[dict[str, Any]] = Field(
@@ -93,7 +93,7 @@ class WorkResponse(BaseEntity):
 
 
 class EditionResponse(BaseEntity):
-    """Full JSON of an edition (book) entity."""
+    """Full JSON of an edition (book)."""
 
     title: str = Field(default="", description="The edition title.")
     works: list[EntityRef] = Field(
@@ -103,7 +103,7 @@ class EditionResponse(BaseEntity):
 
 
 class AuthorResponse(BaseEntity):
-    """Full JSON of an author entity."""
+    """Full JSON of an author."""
 
     name: str = Field(default="", description="The author's display name.")
 
@@ -115,14 +115,14 @@ class UserResponse(BaseEntity):
 
 
 class PutResponse(BaseModel):
-    """Response from saving an entity."""
+    """Response from saving a thing."""
 
-    key: str = Field(description="The key of the saved entity.")
+    key: str = Field(description="The key of the saved thing.")
     revision: int = Field(ge=1, description="The new revision number.")
 
 
 # -------------------------------------------------------------------------
-# Internal helpers shared by all entity-type routes
+# Internal helpers shared by all thing-type routes
 # -------------------------------------------------------------------------
 
 
@@ -141,7 +141,7 @@ def _entity_history(
     offset: int = 0,
     limit: int = 20,
 ) -> list[dict[str, Any]]:
-    """Fetch version history for an entity, stripping IP addresses.
+    """Fetch version history for a thing, stripping IP addresses.
 
     Mirrors the legacy web.py ``?m=history`` handler
     (``openlibrary.plugins.upstream.code.history``) which redacts IPs
@@ -166,7 +166,7 @@ def _entity_get(
     revision: int | None,
     text: bool,
 ) -> Response:
-    """Shared GET logic: fetch a single entity by key and return JSON."""
+    """Shared GET logic: fetch a single thing by key and return JSON."""
     s = site.get()
 
     try:
@@ -201,7 +201,7 @@ def _entity_put(
     key: str,
     body: dict[str, Any],
 ) -> Response:
-    """Shared PUT logic: save an entity by key and return the result."""
+    """Shared PUT logic: save a thing by key and return the result."""
     s = site.get()
 
     # Ensure the key in the body matches the URL key
@@ -229,7 +229,7 @@ def _entity_put(
 
 
 def _make_get_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callable:
-    """Factory that creates a GET handler for a specific entity type.
+    """Factory that creates a GET handler for a specific thing type.
 
     Args:
         entity_name: Human-readable name ("work", "edition", "author").
@@ -273,7 +273,7 @@ def _make_get_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callab
 
 
 def _make_put_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callable:
-    """Factory that creates a PUT handler for a specific entity type."""
+    """Factory that creates a PUT handler for a specific thing type."""
     entity_id_path = Path(gt=0, description=f"The Open Library {entity_name} numeric ID.")
 
     def handler(
@@ -282,10 +282,10 @@ def _make_put_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callab
         body: Annotated[
             dict[str, Any],
             Body(
-                description="The full entity document as JSON. The ``_comment`` field is extracted and passed as the save comment.",
+                description="The full thing document as JSON. The ``_comment`` field is extracted and passed as the save comment.",
             ),
         ],
-        _: CanWriteDep,
+        _: ApiPermissionsDep,
     ) -> Response:
         return _entity_put(request, key_fmt(entity_id), body=body)
 
@@ -306,7 +306,7 @@ router.add_api_route(
     methods=["GET"],
     description=WORK_DESC,
     response_model=WorkResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 router.add_api_route(
     "/works/OL{entity_id}W.json",
@@ -314,7 +314,7 @@ router.add_api_route(
     methods=["PUT"],
     description="Saves an updated work document. Requires write access (admin, API usergroup, or bot-flagged user).",
     response_model=PutResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 
 # --- Books (editions) -------------------------------------------------
@@ -327,7 +327,7 @@ router.add_api_route(
     methods=["GET"],
     description=BOOK_DESC,
     response_model=EditionResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 router.add_api_route(
     "/books/OL{entity_id}M.json",
@@ -335,7 +335,7 @@ router.add_api_route(
     methods=["PUT"],
     description=("Saves an updated edition document. Requires write access (admin, API usergroup, or bot-flagged user)."),
     response_model=PutResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 
 # --- Authors ---------------------------------------------------------
@@ -348,7 +348,7 @@ router.add_api_route(
     methods=["GET"],
     description=AUTHOR_DESC,
     response_model=AuthorResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 router.add_api_route(
     "/authors/OL{entity_id}A.json",
@@ -356,7 +356,7 @@ router.add_api_route(
     methods=["PUT"],
     description="Saves an updated author document. Requires write access (admin, API usergroup, or bot-flagged user).",
     response_model=PutResponse,
-    tags=["entities"],
+    tags=["things"],
 )
 
 # --- People (users) --------------------------------------------------
