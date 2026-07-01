@@ -5304,20 +5304,24 @@ msgstr ""
 
 #: lib/nav_foot.html
 msgid ""
-"Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
-"Archive</a>, a 501(c)(3) non-profit, building a digital library of "
-"Internet sites and other cultural artifacts in  digital form. Other <a "
-"href=\"//archive.org/projects/\">projects</a> include the <a "
-"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
-"href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
-"\">archive-it.org</a>"
+"Open Library is an initiative of the <a href=\"//archive.org/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">Internet Archive</a>, a "
+"501(c)(3) non-profit, building a digital library of Internet sites and "
+"other cultural artifacts in  digital form. Other <a "
+"href=\"//archive.org/projects/\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">projects</a> include the <a href=\"//archive.org/web/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">archive.org</a> and <a href=\"//archive-it.org\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">archive-it.org</a>"
 msgstr ""
 
 #: lib/nav_foot.html
 #, python-format
 msgid ""
 "version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">%s</a>"
 msgstr ""
 
 #: lib/nav_head.html
