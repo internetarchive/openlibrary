@@ -11,7 +11,6 @@ from urllib.parse import urlencode
 
 import requests
 import web
-
 from infogami.infobase import client
 
 # TODO: fix this. openlibrary.core should not import plugins.
@@ -705,7 +704,7 @@ class Work(Thing):
         """
         solrdata = web.storage(self._solr_data or {})
         d = {}
-        if solrdata.get("has_fulltext") and solrdata.get("public_scan_b"):
+        if solrdata.get("has_fulltext") and solrdata.get("ebook_access") == "public":
             d["read_url"] = f"https://archive.org/stream/{solrdata.ia[0]}"
             d["has_ebook"] = True
         elif solrdata.get("lending_edition_s"):

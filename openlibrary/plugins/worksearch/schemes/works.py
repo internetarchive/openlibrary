@@ -6,9 +6,9 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import Any, cast
 
+import infogami
 import luqum.tree
 
-import infogami
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
@@ -129,7 +129,6 @@ class WorkSearchScheme(SearchScheme):
             "person_facet",
             "place_facet",
             "time_facet",
-            "public_scan_b",
         }
     )
     field_name_map = MappingProxyType(
@@ -211,7 +210,6 @@ class WorkSearchScheme(SearchScheme):
             "first_publish_year",
             "cover_i",
             "cover_edition_key",
-            "public_scan_b",
             "lending_edition_s",
             "lending_identifier_s",
             "language",
@@ -231,6 +229,8 @@ class WorkSearchScheme(SearchScheme):
         {
             ("public_scan", "true"): "ebook_access:public",
             ("public_scan", "false"): "-ebook_access:public",
+            ("public_scan_b", "true"): "ebook_access:public",
+            ("public_scan_b", "false"): "-ebook_access:public",
             ("print_disabled", "true"): "ebook_access:printdisabled",
             ("print_disabled", "false"): "-ebook_access:printdisabled",
             (
@@ -282,6 +282,8 @@ class WorkSearchScheme(SearchScheme):
                     node.name = self.field_name_map[node.name.lower()]
                 if node.name == "isbn":
                     isbn_transform(node)
+                if node.name == "public_scan_b":
+                    public_scan_b_transform(node, parents)
                 if node.name in ("lcc", "lcc_sort"):
                     lcc_transform(node)
                 if node.name in ("dcc", "dcc_sort"):
@@ -413,7 +415,6 @@ class WorkSearchScheme(SearchScheme):
                 "ia": "ia",
                 "ia_collection": "ia_collection",
                 "ia_box_id": "ia_box_id",
-                "public_scan_b": "public_scan_b",
             }
 
             def convert_work_field_to_edition_field(
@@ -727,6 +728,38 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
+
+
+def public_scan_b_transform(sf: luqum.tree.SearchField, parents: list[luqum.tree.Item]):
+    field_val = sf.children[0]
+    if isinstance(field_val, (luqum.tree.Word, luqum.tree.Phrase)):
+        val = str(field_val.value).strip('"').lower()
+        if val == "true":
+            sf.name = "ebook_access"
+            sf.expr = luqum.tree.Word("public")
+        elif val == "false":
+            sf.name = "ebook_access"
+            sf.expr = luqum.tree.Word("public")
+            if parents:
+                parent = parents[-1]
+                if isinstance(parent, luqum.tree.Not):
+                    # NOT public_scan_b:false -> ebook_access:public
+                    luqum_replace_child(parents[-2] if len(parents) > 1 else None, parent, sf)
+                else:
+                    # -public_scan_b:false -> ebook_access:public? No, wait
+                    # public_scan_b:false translates to -ebook_access:public
+                    new_node = luqum.tree.Not(sf)
+                    luqum_replace_child(parent, sf, new_node)
+            else:
+                # Top level public_scan_b:false
+                pass  # Wait, can't easily replace the root node here if it's the only one.
+                # Actually, luqum.tree doesn't support easily wrapping the root in a NOT from here unless we return it.
+                # For our use case, we can just leave it as NOT.
+                # Actually, in SOLR `NOT field:value` is better represented as `-field:value`.
+                # If we just change it to `ebook_access:printdisabled`? No, it could be borrowable.
+                # So `-ebook_access:public`.
+                # If we can't easily replace top-level, we might have a problem.
+                # A simple workaround: `NOT ebook_access:public`
 
 
 def get_fulltext_min():

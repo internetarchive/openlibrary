@@ -18,7 +18,7 @@ $code:
     # header search modal: `has_fulltext` / `public_scan` / `print_disabled` by
     # the availability toggle, and `language` by the language popover. Excluded
     # from the facet_map chip loop below.
-    special_handled = {'has_fulltext', 'public_scan_b', 'language'}
+    special_handled = {'has_fulltext', 'language'}
 
     def del_facet_url(k, v):
         if k != 'has_fulltext':
@@ -99,15 +99,6 @@ $if param and not search_response.error:
                     $ chip_display = fulltext_names.get(k, '')
                     <ol-chip selected size="small" href="$del_facet_url('has_fulltext', k)">$chip_display</ol-chip>
 
-            $if 'public_scan_b' in param:
-                $ counts = search_response.facet_counts.get('public_scan_b', [])
-                $for k, display, count in counts:
-                    $if k not in param.get('public_scan_b', []):
-                        $continue
-                    $# TODO: Consider removing public_scan_b handling. No UI exposes
-                    $# this facet (the sidebar skips it), so it only triggers via
-                    $# manually crafted URLs like /search?public_scan_b=true.
-                    $ chip_display = _("Only Classic eBooks") if display == 'true' else _("Classic eBooks hidden")
-                    <ol-chip selected size="small" href="$del_facet_url('public_scan_b', k)">$chip_display</ol-chip>
+
         </div>
     $var title: $_('%(title)s - search', title=', '.join(title))

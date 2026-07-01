@@ -518,10 +518,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def has_fulltext(self) -> bool:
         return any(e.has_fulltext for e in self._solr_editions)
 
-    @property
-    def public_scan_b(self) -> bool:
-        return any(e.public_scan_b for e in self._solr_editions)
-
     @cached_property
     def ia(self) -> list[str]:
         return [cast(str, e.ia) for e in self._ia_editions]

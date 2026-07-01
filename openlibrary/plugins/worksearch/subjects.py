@@ -5,9 +5,9 @@ from datetime import date
 from typing import TYPE_CHECKING, cast
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
@@ -247,7 +247,7 @@ class SubjectEngine:
                 "has_fulltext",
                 "subject",
                 "ia_collection",
-                "public_scan_b",
+                "ebook_access",
                 "lending_edition_s",
                 "lending_identifier_s",
             ],
@@ -379,7 +379,7 @@ class SubjectEngine:
             authors=[web.storage(key=f"/authors/{olid}", name=name) for olid, name in zip(w.get("author_key", []), w.get("author_name", []))],
             first_publish_year=w.get("first_publish_year"),
             ia=w.get("ia", [None])[0],
-            public_scan=w.get("public_scan_b", bool(w.get("ia"))),
+            public_scan=w.get("ebook_access") == "public" if "ebook_access" in w else bool(w.get("ia")),
             has_fulltext=w.get("has_fulltext", False),
         )
 

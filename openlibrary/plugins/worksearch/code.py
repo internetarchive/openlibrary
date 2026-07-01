@@ -13,11 +13,11 @@ from unicodedata import normalize
 
 import httpx
 import web
-
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability, add_availability_async
@@ -116,7 +116,6 @@ def get_facet_map() -> tuple[tuple[str, str]]:
         ("person_facet", _("People")),
         ("place_facet", _("Places")),
         ("time_facet", _("Times")),
-        ("public_scan_b", _("Classic eBooks")),
     )
 
 
@@ -658,7 +657,7 @@ def get_doc(doc: SolrDocument):
         ia=doc.get("ia", []),
         collections=(doc.get("ia_collection") or []),
         has_fulltext=doc.get("has_fulltext", False),
-        public_scan=doc.get("public_scan_b", bool(doc.get("ia"))),
+        public_scan=doc.get("ebook_access") == "public" if "ebook_access" in doc else bool(doc.get("ia")),
         lending_edition=doc.get("lending_edition_s", None),
         lending_identifier=doc.get("lending_identifier_s", None),
         authors=[
@@ -783,7 +782,6 @@ class search(delegate.page):
             person_facet=[],
             place_facet=[],
             time_facet=[],
-            public_scan_b=[],
         )
 
         # Send to full-text Search Inside if checkbox checked
