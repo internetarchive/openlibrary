@@ -1387,6 +1387,49 @@
           "kind": "class",
           "description": "A Netflix-style carousel component with page-based navigation.\n\nItems are passed as direct children. The component controls their width\nbased on responsive breakpoints, shows peek areas at the edges, and\nprovides arrow buttons and bar-segment indicators for navigation.\n\nAll motion (button clicks, swipe release) uses spring physics via\nrequestAnimationFrame for natural momentum and deceleration.",
           "name": "OlCarousel",
+          "cssProperties": [
+            {
+              "description": "Colour of the arrow glyphs",
+              "name": "--ol-carousel-arrow-color",
+              "default": "#333"
+            },
+            {
+              "description": "Background of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-bg",
+              "default": "#fff"
+            },
+            {
+              "description": "Border of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-border",
+              "default": "hsl(55, 20%, 83%)"
+            },
+            {
+              "description": "Diameter of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-size",
+              "default": "36px"
+            },
+            {
+              "description": "Colour of the inactive page indicators",
+              "name": "--ol-carousel-indicator-color",
+              "default": "#ccc"
+            },
+            {
+              "description": "Colour of the active page indicator",
+              "name": "--ol-carousel-indicator-active",
+              "default": "#333"
+            },
+            {
+              "description": "Inner viewport padding so slotted items can show a hover lift/shadow without being clipped",
+              "name": "--ol-carousel-viewport-padding",
+              "default": "0px"
+            }
+          ],
+          "slots": [
+            {
+              "description": "Carousel items. Each direct child becomes one card; the component controls its width.",
+              "name": ""
+            }
+          ],
           "members": [
             {
               "kind": "field",

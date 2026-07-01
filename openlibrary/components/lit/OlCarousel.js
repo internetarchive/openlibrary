@@ -21,6 +21,16 @@ import { LitElement, html, css, nothing } from 'lit';
  *
  * @fires ol-carousel-page-change - Fired after page transition. detail: { page: Number, totalPages: Number }
  *
+ * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
+ *
+ * @cssprop [--ol-carousel-arrow-color=#333] - Colour of the arrow glyphs
+ * @cssprop [--ol-carousel-arrow-icon-bg=#fff] - Background of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-border=hsl(55, 20%, 83%)] - Border of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
+ * @cssprop [--ol-carousel-indicator-color=#ccc] - Colour of the inactive page indicators
+ * @cssprop [--ol-carousel-indicator-active=#333] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
+ *
  * @example
  * <ol-carousel label="Trending Books">
  *   <div class="book-card"><img src="/cover1.jpg" alt="Book 1" /></div>
