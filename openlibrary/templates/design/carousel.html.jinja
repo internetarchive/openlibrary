@@ -55,10 +55,16 @@
         </div>
         <p>Page <strong id="demo-carousel-page">1</strong> of <strong id="demo-carousel-total">?</strong></p>
         <script>
-            document.getElementById('demo-carousel').addEventListener('ol-carousel-page-change', (e) => {
-                document.getElementById('demo-carousel-page').textContent = e.detail.page + 1;
-                document.getElementById('demo-carousel-total').textContent = e.detail.totalPages;
-            });
+            (() => {
+                const carousel = document.getElementById('demo-carousel');
+                const setLabel = () => {
+                    document.getElementById('demo-carousel-page').textContent = carousel.page + 1;
+                    document.getElementById('demo-carousel-total').textContent = carousel.totalPages;
+                };
+                // Seed once the component has upgraded and measured its width.
+                customElements.whenDefined('ol-carousel').then(() => carousel.updateComplete.then(setLabel));
+                carousel.addEventListener('ol-carousel-page-change', setLabel);
+            })();
         </script>
     </section>
     {% if api %}{{ render_templetor_template("design/api_tables", api) | safe }}{% endif %}

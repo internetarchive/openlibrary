@@ -12,8 +12,8 @@ import { LitElement, html, css, nothing } from 'lit';
  *
  * @element ol-carousel
  *
- * @prop {Number} peek - Fraction of item width visible at edges (0–0.5, default: 0.075)
- * @prop {Number} gap - Gap between items in px (default: 4)
+ * @prop {Number} peek - Fraction of item width visible at edges (0–0.5, default: 0.03)
+ * @prop {Number} gap - Gap between items in px (default: 8)
  * @prop {String} label - Accessible label for the carousel region (default: "Carousel")
  * @prop {String} labelPrevious - Aria-label for previous arrow (default: "Previous page")
  * @prop {String} labelNext - Aria-label for next arrow (default: "Next page")
@@ -95,7 +95,7 @@ export class OlCarousel extends LitElement {
         }
 
         .indicator:focus-visible {
-            outline: 2px solid #5B8DD9;
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -179,7 +179,7 @@ export class OlCarousel extends LitElement {
         }
 
         .arrow:focus-visible {
-            outline: 2px solid #5B8DD9;
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: -2px;
         }
 
@@ -371,6 +371,12 @@ export class OlCarousel extends LitElement {
     }
 
     // ── Public methods ──
+
+    /** Current page (0-indexed). Meaningful after `firstUpdated`/`updateComplete`. */
+    get page() { return this._page; }
+
+    /** Total number of pages. Depends on measured width, so read after `updateComplete`. */
+    get totalPages() { return this._totalPages; }
 
     /** Advance to the next page. */
     next() {
@@ -690,9 +696,16 @@ export class OlCarousel extends LitElement {
 
         this._dragging = false;
 
-        // Remove dragging class after the click event has been processed.
-        // rAF fires after event dispatch but before next paint.
-        requestAnimationFrame(() => this.classList.remove('dragging'));
+        // Remove dragging class and clear the drag-click guard after the click
+        // event has been processed. rAF fires after event dispatch but before
+        // next paint, so the drag's own synthetic click is still suppressed by
+        // _onClickCapture, but the flag never lingers to eat a later click
+        // (e.g. when the drag was released off the carousel, or a touch swipe
+        // fires no synthetic click at all — see _onClickCapture).
+        requestAnimationFrame(() => {
+            this.classList.remove('dragging');
+            this._draggedPastThreshold = false;
+        });
 
         const delta = this._dragDelta;
         const velocity = this._velocity; // px/ms

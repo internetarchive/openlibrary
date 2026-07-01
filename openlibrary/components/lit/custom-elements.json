@@ -1486,6 +1486,18 @@
               "description": "Apply rubber-band resistance when position exceeds bounds.\nUses an iOS-style formula: overscroll is dampened asymptotically\nso the track resists increasingly as you drag further out.\nMaximum visual overscroll is capped at one viewport width."
             },
             {
+              "kind": "field",
+              "name": "page",
+              "description": "Current page (0-indexed). Meaningful after `firstUpdated`/`updateComplete`.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "totalPages",
+              "description": "Total number of pages. Depends on measured width, so read after `updateComplete`.",
+              "readonly": true
+            },
+            {
               "kind": "method",
               "name": "next",
               "description": "Advance to the next page."
@@ -1654,7 +1666,7 @@
                 "text": "Number"
               },
               "default": "0.03",
-              "description": "Fraction of item width visible at edges (0–0.5, default: 0.075)",
+              "description": "Fraction of item width visible at edges (0–0.5, default: 0.03)",
               "attribute": "peek"
             },
             {
@@ -1665,7 +1677,7 @@
                 "text": "Number"
               },
               "default": "8",
-              "description": "Gap between items in px (default: 4)",
+              "description": "Gap between items in px (default: 8)",
               "attribute": "gap"
             },
             {
@@ -1865,7 +1877,7 @@
                 "text": "Number"
               },
               "default": "0.03",
-              "description": "Fraction of item width visible at edges (0–0.5, default: 0.075)",
+              "description": "Fraction of item width visible at edges (0–0.5, default: 0.03)",
               "fieldName": "peek"
             },
             {
@@ -1874,7 +1886,7 @@
                 "text": "Number"
               },
               "default": "8",
-              "description": "Gap between items in px (default: 4)",
+              "description": "Gap between items in px (default: 8)",
               "fieldName": "gap"
             },
             {
