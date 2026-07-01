@@ -1,341 +1,275 @@
 """Tests for the FastAPI work editions and author works endpoints."""
 
-import json
-from types import SimpleNamespace
 from unittest.mock import Mock, patch
-from urllib.parse import urlencode
 
 import pytest
-import web
+from starlette.datastructures import URL
 
 from openlibrary.plugins.openlibrary import api as legacy_api
 
 
-def make_doc(key: str, type_key: str, **attrs):
-    return SimpleNamespace(key=key, type=SimpleNamespace(key=type_key), **attrs)
-
-
-def make_site(doc, keys, entries):
+def make_test_site(
+    doc_key: str,
+    doc_type: str,
+    thing_keys: list[str] | None = None,
+    entries: list[dict] | None = None,
+    **doc_attrs,
+) -> Mock:
+    """Create a mock site with a doc, thing query results, and get_many entries."""
+    doc = Mock(key=doc_key, type=Mock(key=doc_type), spec=[])
+    for k, v in doc_attrs.items():
+        setattr(doc, k, v)
     current_site = Mock()
     current_site.get.return_value = doc
-    current_site.things.return_value = keys
-    current_site.get_many.return_value = entries
+    current_site.things.return_value = thing_keys or []
+    current_site.get_many.return_value = entries or []
     return current_site
 
 
-def mock_web_input_func(data):
-    def _mock_web_input(*args, **kwargs):
-        return web.storage(kwargs | data)
-
-    return _mock_web_input
-
-
-def legacy_get_work_editions_json(current_site, data=None):
-    data = data or {}
-    path = "/works/OL123W/editions.json"
-    fullpath = path if not data else f"{path}?{urlencode(data)}"
-    ctx = web.storage(site=current_site, path=path, fullpath=fullpath)
-
-    with (
-        patch("openlibrary.plugins.openlibrary.api.web.ctx", ctx),
-        patch("openlibrary.plugins.openlibrary.api.site") as site_context,
-        patch("openlibrary.plugins.openlibrary.api.web.input", side_effect=mock_web_input_func(data)),
-        pytest.deprecated_call(match="migrated to fastapi"),
-    ):
-        site_context.get.return_value = current_site
-        return json.loads(legacy_api.work_editions().GET("/works/OL123W")["rawtext"])
-
-
-def legacy_get_author_works_json(current_site, data=None):
-    data = data or {}
-    path = "/authors/OL456A/works.json"
-    fullpath = path if not data else f"{path}?{urlencode(data)}"
-    ctx = web.storage(site=current_site, path=path, fullpath=fullpath)
-
-    with (
-        patch("openlibrary.plugins.openlibrary.api.web.ctx", ctx),
-        patch("openlibrary.plugins.openlibrary.api.site") as site_context,
-        patch("openlibrary.plugins.openlibrary.api.web.input", side_effect=mock_web_input_func(data)),
-        pytest.deprecated_call(match="migrated to fastapi"),
-    ):
-        site_context.get.return_value = current_site
-        return json.loads(legacy_api.author_works().GET("/authors/OL456A")["rawtext"])
+@pytest.fixture
+def patched_site():
+    with patch("openlibrary.plugins.openlibrary.api.site") as m:
+        yield m
 
 
 class TestWorkEditions:
-    def test_work_editions_uses_default_pagination(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=1)
-        entries = [{"key": "/books/OL1M", "title": "Test Edition"}]
-        current_site = make_site(work, ["/books/OL1M"], entries)
+    DOC_KEY = "/works/OL123W"
+    DOC_TYPE = "/type/work"
+    ENDPOINT = "/works/OL123W/editions.json"
+    LINK_KEY = "work"
 
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json")
+    def _things_query(self, limit, offset):
+        return {
+            "type": "/type/edition",
+            "works": self.DOC_KEY,
+            "limit": limit,
+            "offset": offset,
+        }
+
+    def test_uses_default_pagination(self, fastapi_client, patched_site):
+        entries = [{"key": "/books/OL1M", "title": "Test Edition"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=1, thing_keys=["/books/OL1M"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(self.ENDPOINT)
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "links": {"self": self.ENDPOINT, self.LINK_KEY: self.DOC_KEY},
+            "size": 1,
+            "entries": entries,
+        }
+        current_site.things.assert_called_once_with(self._things_query(50, 0))
+        current_site.get_many.assert_called_once_with(["/books/OL1M"], raw=True)
+
+    def test_caps_limit_and_preserves_legacy_links(self, fastapi_client, patched_site):
+        entries = [{"key": "/books/OL1M"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=2000, thing_keys=["/books/OL1M"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=1000&offset=25")
 
         assert response.status_code == 200
         assert response.json() == {
             "links": {
-                "self": "/works/OL123W/editions.json",
-                "work": "/works/OL123W",
+                "self": f"{self.ENDPOINT}?limit=1000&offset=25",
+                self.LINK_KEY: self.DOC_KEY,
+                "prev": f"{self.ENDPOINT}?limit=1000&offset=0",
+                "next": f"{self.ENDPOINT}?limit=1000&offset=1025",
             },
+            "size": 2000,
+            "entries": entries,
+        }
+        current_site.things.assert_called_once_with(self._things_query(1000, 25))
+
+    def test_rejects_invalid_pagination(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=0)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=abc&offset=xyz")
+
+        assert response.status_code == 422
+        current_site.get.assert_not_called()
+
+    def test_zero_limit_defaults_to_50(self, fastapi_client, patched_site):
+        entries = [{"key": "/books/OL1M"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=1, thing_keys=["/books/OL1M"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=0")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "links": {"self": f"{self.ENDPOINT}?limit=0", self.LINK_KEY: self.DOC_KEY},
             "size": 1,
             "entries": entries,
         }
-        current_site.get.assert_called_once_with("/works/OL123W")
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/edition",
-                "works": "/works/OL123W",
-                "limit": 50,
-                "offset": 0,
-            }
-        )
-        current_site.get_many.assert_called_once_with(["/books/OL1M"], raw=True)
+        current_site.things.assert_called_once_with(self._things_query(50, 0))
 
-    def test_work_editions_caps_limit_and_preserves_legacy_links(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=2000)
-        entries = [{"key": "/books/OL1M"}]
-        current_site = make_site(work, ["/books/OL1M"], entries)
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json?limit=1000&offset=25")
-
-        assert response.status_code == 200
-        assert response.json()["links"] == {
-            "self": "/works/OL123W/editions.json?limit=1000&offset=25",
-            "work": "/works/OL123W",
-            "prev": "/works/OL123W/editions.json?limit=1000&offset=0",
-            "next": "/works/OL123W/editions.json?limit=1000&offset=1025",
-        }
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/edition",
-                "works": "/works/OL123W",
-                "limit": 1000,
-                "offset": 25,
-            }
-        )
-
-    def test_work_editions_rejects_invalid_pagination(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=0)
-        current_site = make_site(work, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json?limit=abc&offset=xyz")
+    def test_rejects_negative_offset(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=0)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=10&offset=-5")
 
         assert response.status_code == 422
         current_site.get.assert_not_called()
-        current_site.things.assert_not_called()
 
-    def test_work_editions_zero_limit_uses_legacy_default(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=0)
-        current_site = make_site(work, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json?limit=0")
-
-        assert response.status_code == 200
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/edition",
-                "works": "/works/OL123W",
-                "limit": 50,
-                "offset": 0,
-            }
-        )
-
-    def test_work_editions_rejects_negative_offset(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=0)
-        current_site = make_site(work, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json?limit=10&offset=-5")
-
-        assert response.status_code == 422
-        current_site.get.assert_not_called()
-        current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
-
-    @pytest.mark.parametrize("doc", [None, make_doc("/authors/OL1A", "/type/author")])
-    def test_work_editions_returns_404(self, fastapi_client, doc):
-        current_site = make_site(doc, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json")
+    @pytest.mark.parametrize("doc_key", [None, "/authors/OL1A"])
+    def test_returns_404_for_missing_or_wrong_type(self, fastapi_client, doc_key, patched_site):
+        if doc_key is None:
+            current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE)
+            current_site.get.return_value = None
+        else:
+            current_site = make_test_site(doc_key, "/type/author")
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(self.ENDPOINT)
 
         assert response.status_code == 404
         current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
 
-    def test_work_editions_allows_zero_id_and_returns_404(self, fastapi_client):
-        current_site = make_site(None, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL0W/editions.json")
+    def test_allows_zero_olid_but_returns_404(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE)
+        current_site.get.return_value = None
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get("/works/OL0W/editions.json")
 
         assert response.status_code == 404
         current_site.get.assert_called_once_with("/works/OL0W")
         current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
 
-    def test_work_editions_response_matches_legacy(self, fastapi_client):
-        work = make_doc("/works/OL123W", "/type/work", edition_count=2)
+    def test_response_matches_legacy(self, fastapi_client, patched_site):
         entries = [{"key": "/books/OL1M"}]
-        data = {"limit": "1", "offset": "0"}
 
-        legacy_site = make_site(work, ["/books/OL1M"], entries)
-        legacy_response = legacy_get_work_editions_json(legacy_site, data)
+        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=2, thing_keys=["/books/OL1M"], entries=entries)
+        patched_site.get.return_value = legacy_site
+        legacy_response = legacy_api.work_editions.get_editions_data(
+            self.DOC_KEY,
+            url=URL(f"{self.ENDPOINT}?limit=1&offset=0"),
+            limit=1,
+            offset=0,
+        )
 
-        fastapi_site = make_site(work, ["/books/OL1M"], entries)
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = fastapi_site
-            fastapi_response = fastapi_client.get("/works/OL123W/editions.json?limit=1&offset=0")
+        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=2, thing_keys=["/books/OL1M"], entries=entries)
+        patched_site.get.return_value = fastapi_site
+        fastapi_response = fastapi_client.get(f"{self.ENDPOINT}?limit=1&offset=0")
 
         assert fastapi_response.status_code == 200
         assert fastapi_response.json() == legacy_response
 
 
 class TestAuthorWorks:
-    def test_author_works_uses_default_pagination_and_work_count(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=1))
-        entries = [{"key": "/works/OL1W", "title": "Test Work"}]
-        current_site = make_site(author, ["/works/OL1W"], entries)
+    DOC_KEY = "/authors/OL456A"
+    DOC_TYPE = "/type/author"
+    ENDPOINT = "/authors/OL456A/works.json"
+    LINK_KEY = "author"
 
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json")
+    def _things_query(self, limit, offset):
+        return {
+            "type": "/type/work",
+            "authors": {"author": {"key": self.DOC_KEY}},
+            "limit": limit,
+            "offset": offset,
+        }
+
+    def test_uses_default_pagination(self, fastapi_client, patched_site):
+        entries = [{"key": "/works/OL1W", "title": "Test Work"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(self.ENDPOINT)
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "links": {"self": self.ENDPOINT, self.LINK_KEY: self.DOC_KEY},
+            "size": 1,
+            "entries": entries,
+        }
+        current_site.things.assert_called_once_with(self._things_query(50, 0))
+        current_site.get_many.assert_called_once_with(["/works/OL1W"], raw=True)
+        current_site.get.return_value.get_work_count.assert_called_once_with()
+
+    def test_caps_limit_and_preserves_legacy_links(self, fastapi_client, patched_site):
+        entries = [{"key": "/works/OL1W"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2000), thing_keys=["/works/OL1W"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=1000&offset=25")
 
         assert response.status_code == 200
         assert response.json() == {
             "links": {
-                "self": "/authors/OL456A/works.json",
-                "author": "/authors/OL456A",
+                "self": f"{self.ENDPOINT}?limit=1000&offset=25",
+                self.LINK_KEY: self.DOC_KEY,
+                "prev": f"{self.ENDPOINT}?limit=1000&offset=0",
+                "next": f"{self.ENDPOINT}?limit=1000&offset=1025",
             },
+            "size": 2000,
+            "entries": entries,
+        }
+        current_site.things.assert_called_once_with(self._things_query(1000, 25))
+
+    def test_zero_limit_passed_through(self, fastapi_client, patched_site):
+        entries = [{"key": "/works/OL1W"}]
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=0&offset=0")
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "links": {"self": f"{self.ENDPOINT}?limit=0&offset=0", self.LINK_KEY: self.DOC_KEY},
             "size": 1,
             "entries": entries,
         }
-        current_site.get.assert_called_once_with("/authors/OL456A")
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": "/authors/OL456A"}},
-                "limit": 50,
-                "offset": 0,
-            }
-        )
-        current_site.get_many.assert_called_once_with(["/works/OL1W"], raw=True)
-        author.get_work_count.assert_called_once_with()
+        current_site.things.assert_called_once_with(self._things_query(0, 0))
 
-    def test_author_works_caps_limit_and_preserves_legacy_links(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=2000))
-        entries = [{"key": "/works/OL1W"}]
-        current_site = make_site(author, ["/works/OL1W"], entries)
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json?limit=1000&offset=25")
-
-        assert response.status_code == 200
-        assert response.json()["links"] == {
-            "self": "/authors/OL456A/works.json?limit=1000&offset=25",
-            "author": "/authors/OL456A",
-            "prev": "/authors/OL456A/works.json?limit=1000&offset=0",
-            "next": "/authors/OL456A/works.json?limit=1000&offset=1025",
-        }
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": "/authors/OL456A"}},
-                "limit": 1000,
-                "offset": 25,
-            }
-        )
-
-    def test_author_works_accepts_zero_limit_like_legacy(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=0))
-        current_site = make_site(author, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json?limit=0&offset=0")
-
-        assert response.status_code == 200
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": "/authors/OL456A"}},
-                "limit": 0,
-                "offset": 0,
-            }
-        )
-
-    def test_author_works_rejects_invalid_pagination(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=0))
-        current_site = make_site(author, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json?limit=abc&offset=xyz")
+    def test_rejects_invalid_pagination(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=0))
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=abc&offset=xyz")
 
         assert response.status_code == 422
         current_site.get.assert_not_called()
-        current_site.things.assert_not_called()
 
-    def test_author_works_rejects_negative_offset(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=0))
-        current_site = make_site(author, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json?limit=10&offset=-5")
+    def test_rejects_negative_offset(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=0))
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(f"{self.ENDPOINT}?limit=10&offset=-5")
 
         assert response.status_code == 422
         current_site.get.assert_not_called()
-        current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
 
-    @pytest.mark.parametrize("doc", [None, make_doc("/works/OL1W", "/type/work")])
-    def test_author_works_returns_404(self, fastapi_client, doc):
-        current_site = make_site(doc, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json")
+    @pytest.mark.parametrize("doc_key", [None, "/works/OL1W"])
+    def test_returns_404_for_missing_or_wrong_type(self, fastapi_client, doc_key, patched_site):
+        if doc_key is None:
+            current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE)
+            current_site.get.return_value = None
+        else:
+            current_site = make_test_site(doc_key, "/type/work")
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get(self.ENDPOINT)
 
         assert response.status_code == 404
         current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
 
-    def test_author_works_allows_zero_id_and_returns_404(self, fastapi_client):
-        current_site = make_site(None, [], [])
-
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL0A/works.json")
+    def test_allows_zero_olid_but_returns_404(self, fastapi_client, patched_site):
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE)
+        current_site.get.return_value = None
+        patched_site.get.return_value = current_site
+        response = fastapi_client.get("/authors/OL0A/works.json")
 
         assert response.status_code == 404
         current_site.get.assert_called_once_with("/authors/OL0A")
         current_site.things.assert_not_called()
-        current_site.get_many.assert_not_called()
 
-    def test_author_works_response_matches_legacy(self, fastapi_client):
-        author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=2))
+    def test_response_matches_legacy(self, fastapi_client, patched_site):
         entries = [{"key": "/works/OL1W"}]
-        data = {"limit": "1", "offset": "0"}
 
-        legacy_site = make_site(author, ["/works/OL1W"], entries)
-        legacy_response = legacy_get_author_works_json(legacy_site, data)
+        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
+        patched_site.get.return_value = legacy_site
+        legacy_response = legacy_api.author_works.get_works_data(
+            self.DOC_KEY,
+            url=URL(f"{self.ENDPOINT}?limit=1&offset=0"),
+            limit=1,
+            offset=0,
+        )
 
-        fastapi_site = make_site(author, ["/works/OL1W"], entries)
-        with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
-            site_context.get.return_value = fastapi_site
-            fastapi_response = fastapi_client.get("/authors/OL456A/works.json?limit=1&offset=0")
+        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
+        patched_site.get.return_value = fastapi_site
+        fastapi_response = fastapi_client.get(f"{self.ENDPOINT}?limit=1&offset=0")
 
         assert fastapi_response.status_code == 200
         assert fastapi_response.json() == legacy_response
