@@ -192,7 +192,7 @@ async def require_librarian(
     return _
 
 
-async def require_can_write(
+async def require_api_permissions(
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AuthenticatedUser:
     """FastAPI dependency matching web.py's ``can_write()`` check.
@@ -226,7 +226,7 @@ async def require_can_write(
 
 
 LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]
-CanWriteDep = Annotated[AuthenticatedUser, Depends(require_can_write)]
+ApiPermissionsDep = Annotated[AuthenticatedUser, Depends(require_api_permissions)]
 
 
 async def require_maintainer(

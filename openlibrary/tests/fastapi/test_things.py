@@ -1,7 +1,7 @@
-"""Tests for the FastAPI entities endpoint (openlibrary.fastapi.entities).
+"""Tests for the FastAPI things endpoint (openlibrary.fastapi.things).
 
 Verifies that the generic "view document as JSON" pattern works correctly
-for all entity types (works, books, authors, people), including GET and
+for all thing types (works, books, authors, people), including GET and
 PUT operations, error handling, and query-parameter support.
 
 .. important:: The endpoint routes are registered via ``router.add_api_route()``
@@ -19,8 +19,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from infogami.infobase.client import ClientException
-from openlibrary.fastapi.auth import AuthenticatedUser, require_can_write
-from openlibrary.fastapi.entities import router
+from openlibrary.fastapi.auth import AuthenticatedUser, require_api_permissions
+from openlibrary.fastapi.things import router
 
 # ---------------------------------------------------------------------------
 # Fake entity data — mirrors the structure returned by thing.dict()
@@ -130,7 +130,7 @@ def _stub_site(monkeypatch, fake_site: MagicMock):
     read-only, so we replace the entire module-level variable."""
     mock_cv = MagicMock()
     mock_cv.get.return_value = fake_site
-    monkeypatch.setattr("openlibrary.fastapi.entities.site", mock_cv)
+    monkeypatch.setattr("openlibrary.fastapi.things.site", mock_cv)
 
 
 # ===================================================================
@@ -288,18 +288,18 @@ class TestEntityPut:
     """Tests for ``PUT /{entity_type}/{id}.json`` routes.
 
     All PUT routes require write access (admin, API usergroup, or bot);
-    the autouse fixture overrides ``require_can_write`` to skip that check.
+    the autouse fixture overrides ``require_api_permissions`` to skip that check.
     """
 
     @pytest.fixture(autouse=True)
     def _write_override(self, client):
-        """Override ``require_can_write`` so PUT tests don't need real auth.
+        """Override ``require_api_permissions`` so PUT tests don't need real auth.
 
-        ``CanWriteDep`` is an ``Annotated[..., Depends(require_can_write)]``
+        ``ApiPermissionsDep`` is an ``Annotated[..., Depends(require_api_permissions)]``
         type alias.  ``dependency_overrides`` expects the actual function
         passed to ``Depends()`` as the key.
         """
-        client.app.dependency_overrides[require_can_write] = lambda: AuthenticatedUser(
+        client.app.dependency_overrides[require_api_permissions] = lambda: AuthenticatedUser(
             username="testuser",
             user_key="/people/testuser",
             timestamp="2026-01-01T00:00:00",
@@ -398,7 +398,7 @@ class TestEntityPut:
     # -- auth -------------------------------------------------------------
 
     def test_put_unauthenticated(self, client):
-        """Without overriding ``CanWriteDep``, PUT should return 401."""
+        """Without overriding ``ApiPermissionsDep``, PUT should return 401."""
         # Ensure no override is active for this test
         client.app.dependency_overrides.clear()
 
