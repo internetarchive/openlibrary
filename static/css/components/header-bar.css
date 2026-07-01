@@ -610,33 +610,33 @@
 
 /* A subtle darken of the --beige header/body. (--beige itself equals the header
  * background, so it'd be invisible.) */
-.header-bar .navigation-component .browse-popover__trigger:hover,
-.header-bar .navigation-component .browse-popover__trigger:focus-visible,
-.header-bar .browse-popover[open] .browse-popover__trigger {
+.navigation-component .browse-popover__trigger:hover,
+.navigation-component .browse-popover__trigger:focus-visible,
+.browse-popover[open] .browse-popover__trigger {
   background-color: var(--beige-three);
 }
 
 /* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
-.header-bar .navigation-component .browse-popover__trigger:active {
+.navigation-component .browse-popover__trigger:active {
   transform: scale(0.97);
 }
 
 /* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
  * Overrides the generic .down-arrow nudge and rotates when the popover opens. */
-.header-bar .navigation-component .browse-popover__trigger .down-arrow {
+.navigation-component .browse-popover__trigger .down-arrow {
   top: 0;
   width: 16px;
   height: 16px;
   transition: transform 150ms ease-out;
 }
 
-.header-bar .browse-popover[open] .browse-popover__trigger .down-arrow {
+.browse-popover[open] .down-arrow {
   transform: rotate(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-bar .navigation-component .browse-popover__trigger,
-  .header-bar .navigation-component .browse-popover__trigger .down-arrow {
+  .navigation-component .browse-popover__trigger,
+  .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
 }
@@ -696,8 +696,8 @@
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
  * so the icon would wash out. Deepen the tile to --beige to keep it distinct.
  * Fade in with the row, snap back instantly on hover-off. */
-.navigation-component .browse-feature:hover .browse-feature__icon,
-.navigation-component .browse-feature:focus-visible .browse-feature__icon {
+.browse-feature:hover .browse-feature__icon,
+.browse-feature:focus-visible .browse-feature__icon {
   background: var(--beige);
   transition: background-color 0.12s ease;
 }
