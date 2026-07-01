@@ -222,6 +222,12 @@ export class OlCarousel extends LitElement {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
+        /* Tactile press: nudge the icon down in scale, matching ol-button,
+           ol-chip, ol-pagination et al. Snaps (no transition) like the others. */
+        .arrow:active .arrow-icon {
+            transform: scale(0.92);
+        }
+
         .arrow svg {
             width: 28px;
             height: 28px;
