@@ -376,9 +376,10 @@ export class OlToast extends LitElement {
             this._clearTimer();
             const elapsed = Date.now() - this._timerStartedAt;
             this._remainingMs = Math.max(0, this._remainingMs - elapsed);
-            const fraction = this._remainingMs / this.timeout;
-            this.style.setProperty('--toast-progress-scale', String(fraction));
+            const denom = this.timeout > 0 ? this.timeout : 1;
+            const fraction = Math.max(0, Math.min(1, this._remainingMs / denom));
             this.style.setProperty('--toast-progress-time', '0ms');
+            this.style.setProperty('--toast-progress-scale', String(fraction));
         }
     }
 
