@@ -13,6 +13,7 @@ from warnings import deprecated
 
 import qrcode
 import web
+from starlette.datastructures import URL
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -232,27 +233,32 @@ class work_bookshelves(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/work":
+        i = web.input(limit=50, offset=0)
+        data = self.get_editions_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit) or 50,
+            offset=h.safeint(i.offset) or 0,
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
-
-            data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_editions_data(work, limit, offset):
-        limit = min(limit, 1000)
+    def get_editions_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        work = current_site.get(key)
+        if not work or work.type.key != "/type/work":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit or 50, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/edition",
                 "works": work.key,
@@ -260,44 +266,47 @@ class work_editions(delegate.page):
                 "offset": offset,
             }
         )
-        editions = web.ctx.site.get_many(keys, raw=True)
+        editions = current_site.get_many(keys, raw=True)
 
-        size = work.edition_count
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "work": work.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
+        if offset + len(editions) < work.edition_count:
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
-        if offset + len(editions) < size:
-            links["next"] = web.changequery(offset=offset + limit)
-
-        return {"links": links, "size": size, "entries": editions}
+        return {"links": links, "size": work.edition_count, "entries": editions}
 
 
+@deprecated("migrated to fastapi")
 class author_works(delegate.page):
     path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/author":
+        i = web.input(limit=50, offset=0)
+        data = self.get_works_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit, 50),
+            offset=h.safeint(i.offset, 0),
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit, 50)
-            offset = h.safeint(i.offset, 0)
-
-            data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_works_data(author, limit, offset):
-        limit = min(limit, 1000)
+    def get_works_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        author = current_site.get(key)
+        if not author or author.type.key != "/type/author":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/work",
                 "authors": {"author": {"key": author.key}},
@@ -305,19 +314,18 @@ class author_works(delegate.page):
                 "offset": offset,
             }
         )
-        works = web.ctx.site.get_many(keys, raw=True)
-
+        works = current_site.get_many(keys, raw=True)
         size = author.get_work_count()
+
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "author": author.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
-
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
         if offset + len(works) < size:
-            links["next"] = web.changequery(offset=offset + limit)
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
         return {"links": links, "size": size, "entries": works}
 
