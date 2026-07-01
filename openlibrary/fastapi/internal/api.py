@@ -19,6 +19,7 @@ from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
@@ -486,5 +487,13 @@ async def unlink_ia_ol():
     pass
 
 
-async def monthly_logins():
-    pass
+class MonthlyLoginsResponse(BaseModel):
+    """Response model for the /api/monthly_logins.json endpoint."""
+
+    loginCount: int
+
+
+@router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
+def monthly_logins() -> MonthlyLoginsResponse:
+    """Return the cached unique monthly login count for the admin stats UI."""
+    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())

@@ -28,7 +28,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
-from openlibrary.core.admin import get_cached_unique_logins_since
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
@@ -961,12 +961,13 @@ class link_ia_ol(delegate.page):
             web.ctx.site.save(data, "Associate OCAID with record", action="edit-edition-ocaid")
 
 
+@deprecated("migrated to fastapi")
 class monthly_logins(delegate.page):
     path = "/api/monthly_logins"
     encoding = "json"
 
     def GET(self):
         return delegate.RawText(
-            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            json.dumps({"loginCount": get_unique_logins_since()}),
             content_type="application/json",
         )
