@@ -40,7 +40,7 @@ def write_to_statsd(configfile, stats):
 
 
 def gather_participation_scores() -> dict[str, int | dict[str, int]]:
-    results = {}
+    results: dict[str, int | dict[str, int]] = {}
     results.update(Ratings.calc_star_rating_counts())
     results.update(Bookshelves.calc_reading_log_counts())
     results.update(calc_list_counts())
