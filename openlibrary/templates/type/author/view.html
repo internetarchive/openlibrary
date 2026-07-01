@@ -175,10 +175,9 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $:render_subjects(_("Time"), books.facet_counts.get('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
-        $if "lists" in ctx.features:
-            <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, async_load=True)
-            </div>
+        <div class="section Tools">
+            $:render_template("lists/widget", page, include_rating=False, async_load=True)
+        </div>
 
         <div class="section">
             <h3>$_('ID Numbers')</h3>
