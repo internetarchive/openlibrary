@@ -76,10 +76,9 @@ $else:
         </div>
         <div class="clearfix"></div>
 
-    $ is_admin = ctx.user and ctx.user.is_admin()
-    $ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian())
+    $ is_librarian_or_higher = ctx.user and ctx.user.is_librarian_or_higher()
 
-    $if owners_page or is_admin or is_librarian:
+    $if owners_page or is_librarian_or_higher:
         $if "recentchanges_v2" in ctx.features:
             $ changes = render_template("recentchanges/render", author=page.key, limit=25)
             $if changes.length > 1:

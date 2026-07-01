@@ -10,7 +10,7 @@ $ bodyclass.append('search-page')
     </div>
 
 <div id="contentBody">
-  $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+  $ show_dashboard = ctx.user and ctx.user.is_librarian_or_higher()
   $if show_dashboard:
     $:render_template("librarian_dashboard/data_quality_table", search_response.num_found)
 
@@ -20,7 +20,7 @@ $ bodyclass.append('search-page')
     <form method="get" action="/search" class="siteSearch search-row olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       $:render_template("search/searchbox", q=q_param, autofocus=True)
-      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
+      $if ctx.user and ctx.user.is_librarian_or_higher():
         <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
             <label
             style="padding: 4px; display: inline-block;"

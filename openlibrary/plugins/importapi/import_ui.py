@@ -25,7 +25,7 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
@@ -39,7 +39,7 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
@@ -74,7 +74,7 @@ class import_preview_json(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
@@ -94,7 +94,7 @@ class import_preview_json(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
