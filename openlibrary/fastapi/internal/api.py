@@ -13,14 +13,13 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
-import web
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
-from openlibrary.core.admin import get_cached_unique_logins_since
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
@@ -457,7 +456,6 @@ class MonthlyLoginsResponse(BaseModel):
 
 
 @router.get("/api/monthly_logins.json", response_model=MonthlyLoginsResponse)
-def monthly_logins(request: Request) -> MonthlyLoginsResponse:
+def monthly_logins() -> MonthlyLoginsResponse:
     """Return the cached unique monthly login count for the admin stats UI."""
-    web.ctx.host = request.url.netloc
-    return MonthlyLoginsResponse(loginCount=get_cached_unique_logins_since())
+    return MonthlyLoginsResponse(loginCount=get_unique_logins_since())

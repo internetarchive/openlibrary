@@ -27,7 +27,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
-from openlibrary.core.admin import get_cached_unique_logins_since
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
@@ -960,6 +960,6 @@ class monthly_logins(delegate.page):
 
     def GET(self):
         return delegate.RawText(
-            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            json.dumps({"loginCount": get_unique_logins_since()}),
             content_type="application/json",
         )
