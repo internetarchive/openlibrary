@@ -192,3 +192,25 @@ class Ratings(db.CommonExtras):
         else:
             where = "work_id=$work_id AND username=$username"
             return oldb.update("ratings", where=where, rating=rating, vars=data)
+
+    @classmethod
+    def calc_star_rating_counts(cls) -> dict[str, int]:
+        results = {}
+        oldb = db.get_db()
+        total_ratings_query = """
+            select count(*) from ratings
+            WHERE created >= date_trunc('hour', now() - interval '1 hour')
+                AND created < date_trunc('hour', now());
+        """
+        totals = oldb.query(total_ratings_query)
+        results['star_ratings'] = next(iter(totals))['count']
+
+        distinct_raters_query = """
+            select count(distinct username) from ratings
+            WHERE created >= date_trunc('hour', now() - interval '1 hour')
+                AND created < date_trunc('hour', now());
+        """
+        distinct_totals = oldb.query(distinct_raters_query)
+        results["distinct_star_ratings"] = next(iter(distinct_totals))['count']
+
+        return results
