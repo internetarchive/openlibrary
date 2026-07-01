@@ -439,7 +439,7 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: lib/nav_head.html library_explorer.html
+#: lib/browse_popover.html lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
 msgstr ""
 
@@ -1766,7 +1766,7 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html lib/nav_head.html lists/home.html recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html account/sidebar.html lib/browse_popover.html lib/nav_head.html lists/home.html recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -4578,6 +4578,50 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+msgid "Collections"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "K-12 Student Library"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Book Talks"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Random Book"
+msgstr ""
+
+#: databarWork.html lib/browse_popover.html lib/nav_head.html
+msgid "Browse"
+msgstr ""
+
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html lib/browse_popover.html lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse books by topic"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Most popular right now"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse the virtual shelves"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Reader-curated collections"
+msgstr ""
+
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
 msgstr ""
@@ -4769,16 +4813,8 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Explore collections"
-msgstr ""
-
-#: lib/nav_foot.html lib/nav_head.html
-msgid "Collections"
 msgstr ""
 
 #: SearchNavigation.html lib/nav_foot.html lib/nav_head.html search/advancedsearch.html
@@ -4914,22 +4950,6 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html search/sort_options.html
-msgid "Trending"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "K-12 Student Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Book Talks"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Random Book"
-msgstr ""
-
 #: lib/nav_head.html
 msgid "Recent Community Edits"
 msgstr ""
@@ -4944,10 +4964,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "My Open Library"
-msgstr ""
-
-#: databarWork.html lib/nav_head.html
-msgid "Browse"
 msgstr ""
 
 #: lib/nav_head.html
@@ -6004,12 +6020,17 @@ msgid "Clear search"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "See all results"
+msgid "See results"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all %s result"
+msgid "See %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html

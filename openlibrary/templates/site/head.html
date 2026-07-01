@@ -111,4 +111,11 @@ $def with (title)
 
     $for tag in ctx.get("metatags", []):
         $:tag
+
+    $ sentry = get_sentry()
+    $if sentry and sentry.enabled:
+        <meta name="sentry-trace" content="$sentry.get_traceparent()">
+        <meta name="baggage" content="$sentry.get_baggage()">
+        $# detect-missing-i18n-skip-line
+        <script>window.OL_SENTRY = $:json_encode(sentry.get_frontend_config());</script>
 </head>
