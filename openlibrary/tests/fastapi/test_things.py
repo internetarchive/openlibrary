@@ -11,16 +11,19 @@ PUT operations, error handling, and query-parameter support.
 """
 
 import json
+import json as _json
+from pathlib import Path
 from typing import ClassVar
 from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import BaseModel  # noqa: TC002
 
 from infogami.infobase.client import ClientException
 from openlibrary.fastapi.auth import AuthenticatedUser, require_api_permissions
-from openlibrary.fastapi.things import router
+from openlibrary.fastapi.things import AuthorResponse, EditionResponse, WorkResponse, router
 
 # ---------------------------------------------------------------------------
 # Fake entity data — mirrors the structure returned by thing.dict()
@@ -583,3 +586,39 @@ class TestPeopleEndpoint:
         """PUT is not implemented for people — should return 405."""
         resp = client.put("/people/testuser.json", json={"key": "/people/testuser"})
         assert resp.status_code == 405
+
+
+# ===================================================================
+# Schema coverage — every field on the Pydantic response models must
+# exist in the corresponding JSON Schema definition.
+# ===================================================================
+
+_SCHEMA_DIR = Path(__file__).parents[3] / "openlibrary" / "schemata"
+
+_RESPONSE_MODEL_SCHEMA: dict[type[BaseModel], str] = {
+    WorkResponse: "work.schema.json",
+    EditionResponse: "edition.schema.json",
+    AuthorResponse: "author.schema.json",
+}
+
+
+@pytest.mark.parametrize(
+    ("model", "schema_name"),
+    list(_RESPONSE_MODEL_SCHEMA.items()),
+    ids=_RESPONSE_MODEL_SCHEMA.values(),
+)
+def test_response_model_fields_exist_in_schema(model: type[BaseModel], schema_name: str):
+    """Every field declared on the Pydantic response model must be a known
+    property in the corresponding JSON Schema.  This ensures the hand-written
+    models don't drift out of sync with the canonical schema definitions."""
+    schema_path = _SCHEMA_DIR / schema_name
+    with open(schema_path) as f:
+        schema = _json.load(f)
+
+    schema_props = set(schema.get("properties", {}).keys())
+    model_fields = set(model.model_fields.keys())
+
+    missing = model_fields - schema_props
+    assert not missing, (
+        f"Field(s) {missing} declared on {model.__name__} not found in properties of {schema_name}. Add them to the schema or remove them from the model."
+    )
