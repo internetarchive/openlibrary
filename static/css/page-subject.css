@@ -21,6 +21,8 @@
 @import "components/book.css";
 @import "components/carousel.css";
 @import "components/category-item.css";
+@import "components/subject-hero.css";
+@import "components/book-tip.css";
 @import "components/loading-indicator.css";
 @import "components/chart.css";
 @import "components/link-box.css";

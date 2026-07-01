@@ -1,7 +1,11 @@
-$def with(book, lazy, layout, key="", secondary_action=False)
+$def with(book, lazy, layout, key="", secondary_action=False, hovercard=False, cover_pill=None)
 
 $ fallback_cover = 'https://openlibrary.org/static/images/icons/avatar_book.png'
-$ cover_host = '//covers.openlibrary.org'
+$# Use the configured cover store (local in dev, CDN in prod) so cover ids
+$# resolve against the same store that minted them. Hardcoding the production
+$# CDN shows the wrong image for any locally-created cover, since a local
+$# cover id is unrelated to the production cover with the same id.
+$ cover_host = get_coverstore_public_url()
 $ url = book.get('key') or book.url
 $ title = book.get("title", "")
 
@@ -29,12 +33,62 @@ $if author_names:
 $else:
   $ byline = ''
 
+$# When the hovercard is on, the <ol-tooltip> already shows the title/author, so
+$# blank the native cover tooltip to avoid two tooltips fighting on hover.
+$ cover_title = '' if hovercard else '%s%s' % (title, byline)
+$ year = book.get('first_publish_year')
+
+$# Cover pills (subject-rail cards only). A series pill ("Book 1 of 4") shows on
+$# any book that belongs to a series; the carousel chooses one context pill via
+$# cover_pill: 'rating' (★4.0) for reader-favorite rails, 'pages' (330p) for
+$# short-standalone rails.
+$code:
+    pages = book.get('number_of_pages_median')
+    ratings_avg = book.get('ratings_average')
+    ratings_count = book.get('ratings_count')
+    series_pos = book.get('series_position')
+    series_name = book.get('series_name')
+    series_total = book.get('series_total')
+    if isinstance(series_pos, (list, tuple)):
+        series_pos = series_pos[0] if series_pos else None
+    if isinstance(series_total, (list, tuple)):
+        series_total = series_total[0] if series_total else None
+    series_pill = None
+    if series_pos not in (None, ''):
+        _p = str(series_pos)
+        _p = _p[:-2] if _p.endswith('.0') else _p
+        if series_total:
+            series_pill = _('Book %(pos)s of %(total)s', pos=_p, total=series_total)
+        else:
+            series_pill = _('Book %(pos)s', pos=_p)
+    elif series_name:
+        series_pill = _('In a series')
+    rating_pill = ('%.1f' % ratings_avg) if (cover_pill == 'rating' and ratings_avg and ratings_count and ratings_count >= 5) else None
+    pages_pill = _('%(n)sp', n=commify(pages)) if (cover_pill == 'pages' and pages) else None
+    show_pills = hovercard and (series_pill or rating_pill or pages_pill)
+
+    # Primary read/preview action surfaced in the "More info" popover (subject
+    # rails). Derived from availability already on the doc; no extra query.
+    _ia = book.get('ia')
+    ocaid = (_ia[0] if isinstance(_ia, (list, tuple)) else _ia) if _ia else (book.get('availability') or {}).get('identifier')
+    _avail = book.get('availability') or {}
+    read_label = None
+    read_href = None
+    if ocaid:
+        if _avail.get('is_readable') or _avail.get('status') == 'open' or _avail.get('available_to_borrow') or _avail.get('available_to_browse'):
+            read_label = _('Read')
+        else:
+            read_label = _('Preview')
+        read_href = 'https://archive.org/details/%s' % ocaid
+
 <div class="book carousel__item">
   <div class="book-cover">
+    $if hovercard:
+      <ol-tooltip placement="bottom" arrow show-delay="0">
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
       $if cover_url:
         <img class="bookcover" loading="lazy"
-          title="$('%s%s'%(title,byline))"
+          title="$cover_title"
           alt="$('%s%s'%(title,byline))"
         $if lazy and layout == 'carousel':
           data-lazy="$(cover_url)"
@@ -48,6 +102,62 @@ $else:
             <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
         </div>
     </a>
+    $if hovercard:
+        <div slot="content" class="book-tip">
+          <div class="book-tip__heading">
+            <span class="book-tip__title">$title</span>
+            $if year:
+              <span class="book-tip__year">($year)</span>
+          </div>
+          $if author_names:
+            <div class="book-tip__byline">$:_('By %(name)s', name=', '.join(author_names))</div>
+        </div>
+        $# Hover actions live INSIDE <ol-tooltip> so moving onto them doesn't fire
+        $# the tooltip's mouseleave and dismiss the hovercard. The container is
+        $# click-through; only the buttons capture pointer events, so the rest of
+        $# the cover stays a link. "Add to list" one-click-saves to Want-to-Read
+        $# (js/index.js); "More info" opens a book-card popover
+        $# (js/subject-book-card.js) from the data-* below + a lazy description.
+        <div class="cover-actions">
+          <button type="button" class="cover-action js-cover-save" data-work-key="$(book.get('work_key') or url)"
+            aria-pressed="false" data-saved-label="$_('On your Want to Read shelf')" title="$_('Add to list')">
+            <svg class="cover-action__icon cover-action__icon--add" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="cover-action__icon cover-action__icon--done" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="cover-action__label cover-action__label--add">$_("Add to list")</span>
+            <span class="cover-action__label cover-action__label--done">$_("On your list")</span>
+          </button>
+          <button type="button" class="cover-action js-cover-moreinfo" title="$_('More info')"
+            data-work-key="$(book.get('work_key') or url)"
+            data-url="$url"
+            data-title="$title"
+            data-authors="$(', '.join(author_names))"
+            $if year:
+              data-year="$year"
+            $if cover_url:
+              data-cover="$cover_url"
+            $if read_label:
+              data-read-href="$read_href"
+              data-read-label="$read_label"
+            >
+            <svg class="cover-action__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11.5v4.5M12 7.75v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="cover-action__label">$_("More info")</span>
+          </button>
+        </div>
+      </ol-tooltip>
+    $if show_pills:
+      <div class="cover-pills">
+        $if series_pill:
+          <span class="cover-pill cover-pill--series">$series_pill</span>
+        $if rating_pill:
+          <span class="cover-pill cover-pill--rating"><span class="cover-pill__star" aria-hidden="true">★</span>$rating_pill</span>
+        $if pages_pill:
+          <span class="cover-pill cover-pill--pages">$pages_pill</span>
+      </div>
   </div>
+  $if hovercard:
+    $# Touch devices have no hovercard, so a wall of bare covers gives no titles.
+    $# Show a compact one-line title under each cover (CSS reveals it only on
+    $# hover: none); desktop keeps the clean cover wall + instant hovercard.
+    <a class="cover-title" href="$(url)">$title</a>
   $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
 </div>

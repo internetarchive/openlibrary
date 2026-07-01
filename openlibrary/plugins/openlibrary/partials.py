@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -106,6 +107,8 @@ class CarouselLoadMoreParams(BaseModel):
     key: str = ""
     layout: str | None = None
     published_in: str = ""
+    hovercard: bool = False
+    cover_pill: str | None = None
 
 
 class CarouselCardPartial:
@@ -130,6 +133,22 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            # first_publish_year is a work-level field; carry it onto the
+            # edition doc so the hovercard can show it. Likewise the cover-pill
+            # fields, so paged-in cards match the initial ones.
+            for f in (
+                "first_publish_year",
+                "number_of_pages_median",
+                "ratings_average",
+                "ratings_count",
+                "series_name",
+                "series_position",
+                "series_key",
+                "series_total",
+            ):
+                book[f] = book.get(f) or work.get(f)
+            # The save button shelves the work, not the rendered edition.
+            book["work_key"] = work.get("key")
 
             cards.append(
                 render_template(
@@ -138,6 +157,8 @@ class CarouselCardPartial:
                     lazy,
                     params.layout,
                     key=params.key,
+                    hovercard=params.hovercard,
+                    cover_pill=params.cover_pill,
                 )
             )
 
@@ -163,6 +184,7 @@ class CarouselCardPartial:
             "title",
             "subtitle",
             "author_name",
+            "first_publish_year",
             "cover_i",
             "ia",
             "availability",
@@ -172,6 +194,13 @@ class CarouselCardPartial:
             "id_standard_ebooks",
             "id_openstax",
             "editions",
+            # Cover-pill metadata (see _CAROUSEL_FIELDS).
+            "series_key",
+            "series_name",
+            "series_position",
+            "number_of_pages_median",
+            "ratings_average",
+            "ratings_count",
         ]
         query_params: dict = {"q": params.q}
         if params.hasFulltextOnly:
@@ -185,7 +214,9 @@ class CarouselCardPartial:
             facet=False,
             offset=params.page,
         )
-        return results.get("docs", [])
+        docs = results.get("docs", [])
+        await _attach_series_totals(docs)
+        return docs
 
     @classmethod
     async def _do_browse_query(cls, params: CarouselLoadMoreParams) -> list:
@@ -435,6 +466,10 @@ class LazyCarouselParams(BaseModel):
     layout: str = "carousel"
     fallback: str | None = None
     safe_mode: bool = True
+    web_component: bool = False
+    hovercard: bool = False
+    cover_pill: str | None = None
+    min_books: int = 1
 
 
 class LazyCarouselPartial:
@@ -465,6 +500,10 @@ class LazyCarouselPartial:
             layout=params.layout,
             fallback=params.fallback,
             safe_mode=params.safe_mode,
+            web_component=params.web_component,
+            hovercard=params.hovercard,
+            cover_pill=params.cover_pill,
+            min_books=params.min_books,
             books_data=books["docs"],
         )
         return {"partials": str(macro["__body__"])}
@@ -476,6 +515,7 @@ _CAROUSEL_FIELDS = [
     "subtitle",
     "editions",
     "author_name",
+    "first_publish_year",
     "availability",
     "cover_i",
     "ia",
@@ -484,6 +524,13 @@ _CAROUSEL_FIELDS = [
     "id_standard_ebooks",
     "id_openstax",
     "providers",
+    # Cover-pill metadata for subject-rail cards (series, length, rating).
+    "series_key",
+    "series_name",
+    "series_position",
+    "number_of_pages_median",
+    "ratings_average",
+    "ratings_count",
 ]
 
 _SAFE_MODE_FILTER = '-subject:"content_warning:cover"'
@@ -535,13 +582,48 @@ async def gather_lazy_carousel_data_async(
         facet=False,
         request_label="BOOK_CAROUSEL",
     )
+    docs = results.get("docs", [])
+    await _attach_series_totals(docs)
     return_dict: CarouselData = {
-        "docs": results.get("docs", []),
+        "docs": docs,
     }
     # Add error to make sure we don't cache
     if "error" in results:
         return_dict["error"] = results["error"]
     return return_dict
+
+
+def _first(value):
+    """Solr multi-valued fields come back as lists; take the first value."""
+    if isinstance(value, (list, tuple)):
+        return value[0] if value else None
+    return value
+
+
+async def _attach_series_totals(docs: list[dict]) -> None:
+    """Annotate each series book with `series_total` (number of works in its
+    series) so cover pills can show "Book 1 of 4". Solr indexes series_position
+    but not the series size, so we count works per series_key in one concurrent
+    batch. Whole result is memcached by the caller, so this runs only on a miss.
+    """
+    keys = {k for doc in docs if (k := _first(doc.get("series_key")))}
+    if not keys:
+        return
+
+    async def count(series_key: str) -> tuple[str, int]:
+        resp = await work_search_async(
+            {"q": f'series_key:"{series_key}"'},
+            limit=0,
+            fields="key",
+            facet=False,
+            request_label="BOOK_CAROUSEL",
+        )
+        return series_key, resp.get("num_found") or 0
+
+    totals = dict(await asyncio.gather(*(count(k) for k in keys)))
+    for doc in docs:
+        if (total := totals.get(_first(doc.get("series_key")))) and total > 1:
+            doc["series_total"] = total
 
 
 gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "gather_lazy_carousel_data")

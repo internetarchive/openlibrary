@@ -6,8 +6,7 @@ $ can_add_tag = ctx.user and (ctx.user.is_admin() or ctx.user.is_curator())
 $ has_tag = 'tag' in page
 $ q = query_param('q')
 
-<div id="scrollHere"></div>
-<div class="page-heading-search-box">
+$def renderTagEdit(page, can_add_tag, has_tag):
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/add?name=%s&redir=%s&tag_type=%s" % (page.name, ctx.path, page.subject_type)
@@ -23,48 +22,226 @@ $ q = query_param('q')
           rel="nofollow"
         >$link_cta</a>
       </div>
-    <h1 class="inline">
-        $page.name
-    </h1>
-    <span class="heading">
-        <span class="count" id="coversCount">
-            <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
-        </span>
-    </span>
-    $if has_tag:
-      <p class="tag-description" itemprop="description">
-        $:format(sanitize(page.tag['tag_description']))
-      </p>
-    <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
+$def renderSearchForm(page, q):
     <form action="/search" class="olform pagesearchbox">
       $:render_template("search/searchbox", q=q)
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
     </form>
-    $if 'disambiguations' in page:
-        <div class="disambiguations">
-            <h3>$_("Disambiguations")</h3>
-            <ul>
-                $for i in page.disambiguations:
-                    <li>
-                        <a href="$i.subject_key">$i.name ($i.tag_type)</a>
-                    </li>
-            </ul>
+
+<div id="scrollHere"></div>
+
+$if page.subject_type == 'subject':
+    $# --- Guided, visual subject experience (plain subjects only) ---
+    $code:
+        cover_ids = [w.cover_id for w in page.works if w.get('cover_id')][:12]
+        years = [y for y, c in page.publishing_history] if page.get('publishing_history') else []
+        year_min = min(years) if years else None
+        year_max = max(years) if years else None
+        ebook_count = page.get('ebook_count') or 0
+        editorial = page.get('editorial')
+        solrq = page.solr_query
+
+    <ol-subject-hero covers="$json_encode(cover_ids)">
+      $:renderTagEdit(page, can_add_tag, has_tag)
+      <h1>$page.name</h1>
+      $if editorial:
+        <div class="subject-hero__lead">
+          $:editorial['description']
         </div>
-</div>
-<div class="contentBody">
-    $if has_tag:
-      $:format(sanitize(page.tag.body))
-    $else:
-      $# Only show default carousel if subject doesn't have an associated Tag
-      $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
-    $:macros.PublishingHistory(page.publishing_history)
+      <ul class="subject-stats">
+        <li class="subject-stat">
+          <span class="subject-stat__num"><a href="/search?$urlencode(dict(q=solrq))" title="$_('See all works')">$commify(page.work_count)</a></span>
+          <span class="subject-stat__label">$ungettext("work", "works", page.work_count)</span>
+        </li>
+        $if ebook_count:
+          <li class="subject-stat">
+            <span class="subject-stat__num">$commify(ebook_count)</span>
+            <span class="subject-stat__label">$_("readable now")</span>
+          </li>
+        $if year_min and year_max and year_min != year_max:
+          <li class="subject-stat">
+            <span class="subject-stat__num">$year_min&ndash;$year_max</span>
+            <span class="subject-stat__label">$_("years in print")</span>
+          </li>
+      </ul>
+      $if has_tag and not editorial:
+        <p class="tag-description" itemprop="description">
+          $:format(sanitize(page.tag['tag_description']))
+        </p>
+    </ol-subject-hero>
 
-    <div class="clearfix"></div>
-    $:macros.RelatedSubjects(page)
+    <div class="contentBody">
+      $if 'disambiguations' in page:
+          <div class="disambiguations">
+              <h3>$_("Disambiguations")</h3>
+              <ul>
+                  $for i in page.disambiguations:
+                      <li>
+                          <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                      </li>
+              </ul>
+          </div>
 
-    <div class="clearfix"></div>
-    $:macros.ProlificAuthors(page.authors)
+      $# Featured subjects show their description in the hero. Non-editorial
+      $# subjects with a curator tag still get their prose here.
+      $if has_tag and not editorial:
+        <section class="subject-about">
+          $:format(sanitize(page.tag.body))
+        </section>
 
-    <div class="section clearfix"></div>
-</div>
+      $# Two-column dashboard: wide carousels on the left, a sidebar with the
+      $# subgenre map and notable authors on the right.
+      <div class="subject-layout">
+        <div class="subject-layout__main">
+          $# Browse toolbar: availability + language are sticky across sessions
+          $# (handled in subject-browse.js); era chips reset each visit. All
+          $# controls re-filter every rail below client-side.
+          $ ui_lang = get_lang() or 'en'
+          $ langs = [l for l in (page.get('languages') or []) if l.get('name')][:8]
+          $ readable_sublabel = commify(ebook_count) if ebook_count else ''
+          <div
+            class="subject-browse"
+            data-empty-msg="$_('No books here match these filters.')"
+            data-retry-msg="$_('Retry?')"
+          >
+            <ol-toggle
+              class="subject-browse__readable"
+              variant="card"
+              label="$_('Readable now')"
+              accessible-label="$_('Filter by availability')"
+              sublabel="$readable_sublabel"
+            ></ol-toggle>
+            <div class="subject-browse__eras" role="group" aria-label="$_('Filter by era')">
+              <button type="button" class="subject-browse__era is-active" data-era="" aria-pressed="true">$_("All eras")</button>
+              <button type="button" class="subject-browse__era" data-era="[* TO 1969]" aria-pressed="false">$_("Before 1970")</button>
+              <button type="button" class="subject-browse__era" data-era="[1970 TO 1999]" aria-pressed="false">1970&ndash;1999</button>
+              <button type="button" class="subject-browse__era" data-era="[2000 TO 2014]" aria-pressed="false">2000&ndash;2014</button>
+              <button type="button" class="subject-browse__era" data-era="[2015 TO *]" aria-pressed="false">$_("2015 & newer")</button>
+            </div>
+            $if len(langs) > 1:
+              <label class="subject-browse__lang">
+                <span class="subject-browse__lang-label">$_("Language")</span>
+                <select class="subject-browse__lang-select">
+                  <option value="">$_("All languages")</option>
+                  $for lang in langs:
+                    <option value="$lang.name">$get_language_name('/languages/' + lang.name, ui_lang)</option>
+                </select>
+              </label>
+          </div>
+
+          $# Shell for the "More info" book-card popover (subject-book-card.js
+          $# clones this, fills it from the trigger's data-*, and lazily fetches
+          $# the description). Kept here so its labels are translated server-side.
+          <template id="subject-book-card">
+            <div class="book-card" role="dialog" aria-label="$_('Book details')">
+              <button type="button" class="book-card__close" aria-label="$_('Close')">&times;</button>
+              <div class="book-card__top">
+                <img class="book-card__cover" alt="" loading="lazy" />
+                <div class="book-card__meta">
+                  <h3 class="book-card__title"></h3>
+                  <p class="book-card__byline">
+                    <span class="book-card__by">$_("By")</span>
+                    <span class="book-card__authors"></span>
+                    <span class="book-card__year"></span>
+                  </p>
+                  <div class="book-card__actions">
+                    <button type="button" class="cta-btn book-card__save js-cover-save" aria-pressed="false" data-saved-label="$_('On your Want to Read shelf')">$_("Add to list")</button>
+                    <a class="cta-btn book-card__read" hidden></a>
+                  </div>
+                </div>
+              </div>
+              <p class="book-card__desc" data-state="idle"></p>
+              <a class="book-card__page" href="#">$_("Go to book page")</a>
+            </div>
+          </template>
+
+          <div class="subject-rails">
+            $if editorial and editorial.get('collections'):
+              $# Curated, bookstore-style collections. Each cover gets a context
+              $# pill: rating on reader-favorite rails, page count on standalone
+              $# rails. Authors can override per collection with an explicit
+              $# "pill" key; otherwise we infer it from the collection title.
+              $for c in editorial['collections']:
+                $code:
+                    pill = c.get('pill')
+                    if pill is None:
+                        _t = c['title'].lower()
+                        pill = 'pages' if 'standalone' in _t else ('rating' if _t == 'reader favorites' else None)
+                $:macros.SubjectRail(c['title'], c['query'], caption=c.get('caption'), badge=c.get('badge'), sort=c.get('sort', 'readinglog'), has_fulltext_only=c.get('has_fulltext_only', False), key='subject-coll-' + c['title'], pill=pill, min_books=c.get('min_books', 1))
+            $else:
+              $# Differentiated, signal-driven intent paths for every other subject
+              $:macros.SubjectRail(_('Trending now'), solrq, caption=_('What readers are picking up this week.'), sort='trending,trending_score_hourly_sum', key='subject-trending', user_lang_only=True, fallback=True)
+              $:macros.SubjectRail(_('Most loved by readers'), solrq, caption=_('The most-read books on this subject.'), sort='readinglog', key='subject-popular', pill='rating')
+              $:macros.SubjectRail(_('Highly rated'), solrq, caption=_('The best-reviewed books readers have rated.'), sort='rating', key='subject-rated', pill='rating')
+              $:macros.SubjectRail(_("On readers' want-to-read shelves"), solrq, caption=_('Books people are saving for later.'), sort='want_to_read', key='subject-wtr')
+              $:macros.SubjectRail(_('Short standalones'), solrq + ' -series_name:* number_of_pages:[1 TO 250]', caption=_('Under ~250 pages and not part of a series — an easy first step in.'), sort='readinglog', key='subject-short', pill='pages')
+              $:macros.SubjectRail(_('Begin a series'), solrq + ' series_position:1', caption=_('Start something bigger — the first book of a series worth committing to.'), sort='readinglog', key='subject-series-start')
+              $:macros.SubjectRail(_('Fresh off the press'), solrq, caption=_('Recently published, newest first.'), sort='new', key='subject-new')
+              $:macros.SubjectRail(_('Read it right now'), solrq, caption=_('Borrow or read these instantly on Open Library.'), sort='readinglog', has_fulltext_only=True, key='subject-readnow', min_books=5)
+          </div>
+        </div>
+
+        <aside class="subject-layout__aside">
+          $# Subgenre map ("choose your flavor") — featured subjects only
+          $if editorial and editorial.get('flavors'):
+            $:macros.SubjectFlavors(editorial['flavors'])
+          $:macros.SubjectAuthors(page.get('notable_authors') or page.authors, name=page.name, author_works=page.get('author_works'))
+        </aside>
+      </div>
+
+      $# End-of-content "where to next" menu: sub-genres (echoing the sidebar map,
+      $# so the pivot survives mobile) plus serendipitous setting/character/era
+      $# seeds. Facet seeds are curated in subjects.build_browse_threads.
+      $ thread_flavors = editorial.get('flavors') if editorial else None
+      $if page.get('browse_threads') or thread_flavors:
+        $:macros.SubjectThreads(page.get('browse_threads') or [], flavors=thread_flavors)
+
+      <div class="section clearfix"></div>
+    </div>
+$else:
+    $# --- Existing layout for person / place / time subjects ---
+    <div class="page-heading-search-box">
+        $:renderTagEdit(page, can_add_tag, has_tag)
+        <h1 class="inline">
+            $page.name
+        </h1>
+        <span class="heading">
+            <span class="count" id="coversCount">
+                <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
+            </span>
+        </span>
+        $if has_tag:
+          <p class="tag-description" itemprop="description">
+            $:format(sanitize(page.tag['tag_description']))
+          </p>
+        <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
+
+        $:renderSearchForm(page, q)
+        $if 'disambiguations' in page:
+            <div class="disambiguations">
+                <h3>$_("Disambiguations")</h3>
+                <ul>
+                    $for i in page.disambiguations:
+                        <li>
+                            <a href="$i.subject_key">$i.name ($i.tag_type)</a>
+                        </li>
+                </ul>
+            </div>
+    </div>
+    <div class="contentBody">
+        $if has_tag:
+          $:format(sanitize(page.tag.body))
+        $else:
+          $# Only show default carousel if subject doesn't have an associated Tag
+          $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
+        $:macros.PublishingHistory(page.publishing_history)
+
+        <div class="clearfix"></div>
+        $:macros.RelatedSubjects(page)
+
+        <div class="clearfix"></div>
+        $:macros.ProlificAuthors(page.authors)
+
+        <div class="section clearfix"></div>
+    </div>

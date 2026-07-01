@@ -1,0 +1,65 @@
+$def with (authors, name=None, author_works=None)
+
+$# Renders the top authors for a subject as a vertical stack of cards for the
+$# subject-page sidebar, styled like the genre (flavor) cards. The whole card
+$# links to the author; a representative book plus a count of the author's other
+$# books in the subject is shown as plain (non-clickable) text.
+$#
+$# * authors (list)      -- web.storage items with .key (/authors/OLxxxA), .name, .count
+$# * name (str)          -- optional subject name (unused in the heading, kept for callers)
+$# * author_works (dict) -- maps an author key to a representative work (web.storage
+$#                          with .key, .title, .cover_id), built in subjects.py
+
+$ works = author_works or {}
+
+$if authors:
+  <section class="subject-authors">
+    <h2 class="subject-aside__title">$_("Notable authors")</h2>
+    <div class="subject-authors__list">
+      $for author in authors[:6]:
+        $ olid = author.key.split('/')[-1]
+        $ work = works.get(author.key)
+        $ additional = (author.count or 0) - 1
+        $if work and additional > 0:
+          $ blurb = "%s %s" % (work.title, ungettext("and %(count)d more", "and %(count)d more", additional, count=additional))
+        $elif work:
+          $ blurb = work.title
+        $else:
+          $ blurb = ungettext("%(count)d book", "%(count)d books", author.count, count=author.count)
+        <a class="flavor-card subject-author-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
+          <span class="subject-author-card__avatar">
+            $# Prefer the global photo id (/a/id) when known: it resolves on the
+            $# production CDN regardless of OLID, so it works in dev where local
+            $# OLIDs don't match production. Fall back to /a/olid otherwise.
+            $if author.get('photo'):
+              <img
+                src="$(get_coverstore_public_url())/a/id/$(author.photo)-M.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+            $else:
+              <img
+                src="$(get_coverstore_public_url())/a/olid/$(olid)-M.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+          </span>
+          <span class="flavor-card__text">
+            <span class="flavor-card__name">$author.name</span>
+            <span class="flavor-card__blurb">$blurb</span>
+          </span>
+          $# Representative (most-read) work cover, for at-a-glance recognition.
+          $if work and work.get('cover_id'):
+            <span class="subject-author-card__cover">
+              <img
+                src="$(get_coverstore_public_url())/b/id/$(work.cover_id)-S.jpg"
+                loading="lazy"
+                alt=""
+                aria-hidden="true"
+              />
+            </span>
+        </a>
+    </div>
+  </section>

@@ -315,8 +315,9 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html import_preview.html
+#: BookPreview.html book_providers/read_button.html
+#: books/custom_carousel_card.html books/edit/edition.html editpage.html
+#: import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -589,7 +590,7 @@ msgstr ""
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
 #: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
-#: my_books/dropdown_content.html native_dialog.html
+#: my_books/dropdown_content.html native_dialog.html subjects.html
 msgid "Close"
 msgstr ""
 
@@ -869,6 +870,149 @@ msgstr ""
 msgid "See all works"
 msgstr ""
 
+#: search/subjects.html subjects.html
+msgid "work"
+msgid_plural "works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: subjects.html
+msgid "readable now"
+msgstr ""
+
+#: subjects.html
+msgid "years in print"
+msgstr ""
+
+#: subjects.html
+msgid "Disambiguations"
+msgstr ""
+
+#: subjects.html
+msgid "No books here match these filters."
+msgstr ""
+
+#: RawQueryCarousel.html subjects.html
+msgid "Retry?"
+msgstr ""
+
+#: subjects.html
+msgid "Readable now"
+msgstr ""
+
+#: subjects.html work_search.html
+msgid "Filter by availability"
+msgstr ""
+
+#: subjects.html
+msgid "Filter by era"
+msgstr ""
+
+#: subjects.html
+msgid "All eras"
+msgstr ""
+
+#: subjects.html
+msgid "Before 1970"
+msgstr ""
+
+#: subjects.html
+msgid "2015 & newer"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
+#: subjects.html type/edition/view.html type/work/view.html work_search.html
+msgid "Language"
+msgstr ""
+
+#: subjects.html
+msgid "All languages"
+msgstr ""
+
+#: subjects.html
+msgid "Book details"
+msgstr ""
+
+#: recentchanges/header.html subjects.html
+msgid "By"
+msgstr ""
+
+#: books/custom_carousel_card.html subjects.html
+msgid "On your Want to Read shelf"
+msgstr ""
+
+#: books/custom_carousel_card.html subjects.html
+msgid "Add to list"
+msgstr ""
+
+#: subjects.html
+msgid "Go to book page"
+msgstr ""
+
+#: subjects.html
+msgid "Trending now"
+msgstr ""
+
+#: subjects.html
+msgid "What readers are picking up this week."
+msgstr ""
+
+#: subjects.html
+msgid "Most loved by readers"
+msgstr ""
+
+#: subjects.html
+msgid "The most-read books on this subject."
+msgstr ""
+
+#: subjects.html
+msgid "Highly rated"
+msgstr ""
+
+#: subjects.html
+msgid "The best-reviewed books readers have rated."
+msgstr ""
+
+#: subjects.html
+msgid "On readers' want-to-read shelves"
+msgstr ""
+
+#: subjects.html
+msgid "Books people are saving for later."
+msgstr ""
+
+#: subjects.html
+msgid "Short standalones"
+msgstr ""
+
+#: subjects.html
+msgid "Under ~250 pages and not part of a series — an easy first step in."
+msgstr ""
+
+#: subjects.html
+msgid "Begin a series"
+msgstr ""
+
+#: subjects.html
+msgid "Start something bigger — the first book of a series worth committing to."
+msgstr ""
+
+#: subjects.html
+msgid "Fresh off the press"
+msgstr ""
+
+#: subjects.html
+msgid "Recently published, newest first."
+msgstr ""
+
+#: subjects.html
+msgid "Read it right now"
+msgstr ""
+
+#: subjects.html
+msgid "Borrow or read these instantly on Open Library."
+msgstr ""
+
 #: merge/authors.html publishers/view.html subjects.html type/author/view.html
 #, python-format
 msgid "%(count)d work"
@@ -879,10 +1023,6 @@ msgstr[1] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
-
-#: subjects.html
-msgid "Disambiguations"
 msgstr ""
 
 #: trending.html
@@ -940,8 +1080,8 @@ msgid "Currently Reading"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/read_button.html books/edit/edition.html trending.html
-#: type/list/embed.html widget.html
+#: book_providers/read_button.html books/custom_carousel_card.html
+#: books/edit/edition.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -1055,15 +1195,6 @@ msgstr ""
 #: design/toggle.html openlibrary/plugins/worksearch/code.py
 #: search/availability_i18n.html work_search.html
 msgid "Readable Only"
-msgstr ""
-
-#: work_search.html
-msgid "Filter by availability"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
-#: type/edition/view.html type/work/view.html work_search.html
-msgid "Language"
 msgstr ""
 
 #: search/search_modal_i18n.html work_search.html
@@ -1431,9 +1562,10 @@ msgid ""
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: ProlificAuthors.html account/loans.html authors/index.html
-#: lists/list_follow.html lists/showcase.html publishers/view.html
-#: search/authors.html search/publishers.html search/subjects.html
+#: ProlificAuthors.html SubjectAuthors.html account/loans.html
+#: authors/index.html lists/list_follow.html lists/showcase.html
+#: publishers/view.html search/authors.html search/publishers.html
+#: search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -3579,6 +3711,12 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
+#: SearchNavigation.html books/custom_carousel.html
+#: books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py
+msgid "Books"
+msgstr ""
+
 #: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
 msgstr ""
@@ -3586,6 +3724,38 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/custom_carousel_card.html
+#, python-format
+msgid "Book %(pos)s of %(total)s"
+msgstr ""
+
+#: books/custom_carousel_card.html
+#, python-format
+msgid "Book %(pos)s"
+msgstr ""
+
+#: books/custom_carousel_card.html
+msgid "In a series"
+msgstr ""
+
+#: books/custom_carousel_card.html
+#, python-format
+msgid "%(n)sp"
+msgstr ""
+
+#: books/custom_carousel_card.html
+#, python-format
+msgid "By %(name)s"
+msgstr ""
+
+#: books/custom_carousel_card.html
+msgid "On your list"
+msgstr ""
+
+#: books/custom_carousel_card.html
+msgid "More info"
 msgstr ""
 
 #: books/daisy.html
@@ -3814,11 +3984,6 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
-
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "Books"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -6183,10 +6348,6 @@ msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html
-msgid "By"
-msgstr ""
-
-#: recentchanges/header.html
 msgid "Undo All"
 msgstr ""
 
@@ -6646,10 +6807,6 @@ msgstr ""
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
-
-#: search/subjects.html
-msgid "work"
 msgstr ""
 
 #: search/work_search_facets.html
@@ -7982,10 +8139,6 @@ msgid "Failed to fetch carousel."
 msgstr ""
 
 #: RawQueryCarousel.html
-msgid "Retry?"
-msgstr ""
-
-#: RawQueryCarousel.html
 msgid "No books match the current filters."
 msgstr ""
 
@@ -8196,8 +8349,54 @@ msgstr ""
 msgid "Stopped reading"
 msgstr ""
 
+#: SubjectAuthors.html
+msgid "Notable authors"
+msgstr ""
+
+#: SubjectAuthors.html
+#, python-format
+msgid "and %(count)d more"
+msgid_plural "and %(count)d more"
+msgstr[0] ""
+msgstr[1] ""
+
+#: SubjectAuthors.html
+#, python-format
+msgid "See more books by %(name)s"
+msgstr ""
+
+#: SubjectFlavors.html
+msgid "Genres"
+msgstr ""
+
+#: SubjectFlavors.html
+msgid ""
+"Same genre, very different reading experiences. Pick the corner that fits"
+" your mood."
+msgstr ""
+
 #: SubjectTags.html
 msgid "Manage Subjects"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Worlds & settings"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Featuring"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "When it's set"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Keep exploring"
+msgstr ""
+
+#: SubjectThreads.html
+msgid "Sub-genres"
 msgstr ""
 
 #: Subnavigation.html
