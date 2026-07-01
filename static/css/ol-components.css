@@ -41,3 +41,11 @@ ol-chip:not(:defined) {
 ol-chip[size="small"]:not(:defined) {
   height: 24px;
 }
+
+/* Before ol-popover upgrades, its default-slot content (the panel) renders
+   in the light DOM. Hide everything except the trigger so the popover body
+   doesn't flash on page load; the upgraded component manages it in its
+   shadow root. */
+ol-popover:not(:defined) > :not([slot="trigger"]) {
+  display: none;
+}

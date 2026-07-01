@@ -69,12 +69,6 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       >Page Status</a>
   </div>
 
-  $ browseProps = {
-  $   'name': 'browse',
-  $   'label': _('Browse'),
-  $   'links': browseLinks
-  $ }
-
   $ myBooksProps = {
   $   'name': 'mybooks',
   $   'label': _('My Books'),
@@ -82,7 +76,7 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
   $ }
   <ul class="navigation-component">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
-    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/browse_popover", track_prefix="MainNav")</li>
   </ul>
 
   <div class="search-component">
@@ -134,6 +128,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
-    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+    $# Distinct prefix so browse analytics separate the mobile tray from the
+    $# desktop popover (see the tracking note in browse_popover.html).
+    <li>$:render_template("lib/browse_popover", track_prefix="MainNavMobile")</li>
   </ul>
 </header>

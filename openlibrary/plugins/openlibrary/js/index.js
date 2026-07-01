@@ -429,6 +429,24 @@ jQuery(function() {
         }
     });
 
+    // Browse menu: send one analytics event each time the popover opens
+    // (pointer or keyboard), so we can measure open-rate and click-through.
+    // Scoped to the browse popover on purpose rather than a global
+    // ol-popover-open listener — other popovers can opt into tracking with
+    // their own wiring once we know how we want to measure them. The
+    // "category|action|label" string is set server-side per surface (desktop
+    // vs. mobile tray) in browse_popover.html.
+    document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach((popover) => {
+        popover.addEventListener('ol-popover-open', () => {
+            const ping = popover.getAttribute('data-ol-open-track').split('|');
+            window.archive_analytics?.ol_send_event_ping?.({
+                category: ping[0],
+                action: ping[1],
+                label: ping[2],
+            });
+        });
+    });
+
     $('.dropdown-menu').each(function() {
         $(this).find('a').last().on('focusout', function() {
             $('.header-dropdown > details[open]').removeAttr('open');
