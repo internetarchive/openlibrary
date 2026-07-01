@@ -137,11 +137,65 @@ color changes.
 }
 ```
 
+### Hover moves the whole control, and its direction depends on the fill
+
+Two rules keep hover feedback coherent across our controls (`ol-button`,
+`ol-toggle`, `ol-chip`, and anything built on them):
+
+**1. The border moves with the fill.** When a control darkens (or lightens) its
+fill on hover, its border must shift by the same amount. A fill that darkens
+inside a static outline reads as two disconnected pieces; moving both together
+reads as one solid shape. Match the magnitude — our light controls drop the fill
+~7% in lightness (`--white` → `--lightest-grey`) and the border tracks it (`--color-border-subtle`
+→ `--light-grey`, both ~7%).
+
+```css
+/* Bad - fill darkens inside a frozen border */
+.button:hover {
+  background: var(--lightest-grey);
+}
+
+/* Good - border tracks the fill by the same amount */
+.button:hover {
+  background: var(--lightest-grey);
+  border-color: var(--light-grey);
+}
+```
+
+**2. Light fills darken; saturated/dark fills lighten.** Hover should always
+shift the fill toward *more* activation, and the visible direction of that shift
+depends on where the fill starts. A near-white control (secondary button,
+unchecked toggle, neutral chip) darkens. A solid, saturated fill (primary and
+destructive buttons, the selected chip) instead *lightens* — darkening an
+already-dark fill barely registers, and lightening reads as the control coming
+forward. For a saturated fill, `filter: brightness(1.1)` is the cleanest tool:
+it carries the fill, the border, and any inset specular highlight together in
+one declaration, so there's nothing to keep in sync.
+
+```css
+/* Light fill: darken fill + border on hover */
+ol-button[variant="secondary"] > button:hover {
+  background-color: var(--lightest-grey);
+  border-color: var(--light-grey);
+}
+
+/* Saturated fill: lighten the whole thing at once */
+ol-button[variant="primary"] > button:hover,
+ol-button[variant="destructive"] > button:hover {
+  filter: brightness(1.1);
+}
+```
+
+Both still obey "hover is instant" above — no transition on the color/filter
+change; only the `:active` press-scale animates.
+
 ### Practical Tips
 
 | Scenario | Solution |
 | --- | --- |
 | Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
+| Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
+| Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
 | Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |
 | Shaky/jittery animations | Add `will-change: transform` |
 | Hover causes flicker | Animate child element, not parent |

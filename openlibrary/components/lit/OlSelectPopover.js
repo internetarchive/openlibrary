@@ -1,9 +1,9 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
+import './OLButton.js';
 
 let _idCounter = 0;
 
@@ -22,6 +22,9 @@ let _idCounter = 0;
  *     attribute (`items='[{"value":"en","label":"English"}]'`) or property.
  * @prop {Array} selected - Array of selected `value`s. Reflects to attribute
  *     as JSON.
+ * @prop {String} name - Form field name. When set, each selected value submits
+ *     with the enclosing `<form>` as a repeated `name` entry (see
+ *     FormAssociatedMixin).
  * @prop {String} label - Default trigger button text (e.g. "Language").
  * @prop {Number} searchThreshold - Show the filter input when `items.length`
  *     exceeds this value. Default `8`. Use `0` to always show, a large number
@@ -46,9 +49,9 @@ let _idCounter = 0;
  * @fires ol-select-popover-clear - Fires when the clear-selections button is
  *     clicked. A change event also fires with the cleared selection.
  *
- * @slot trigger - Optional custom trigger element. When omitted, a styled
- *     default button renders showing `label` plus a "(n)" badge when items
- *     are selected and a chevron icon.
+ * @slot trigger - Optional custom trigger element. When omitted, a default
+ *     `<ol-button>` is injected (showing `label` plus a "(n)" count when items
+ *     are selected); its disclosure chevron comes from ol-button automatically.
  *
  * @example
  * <ol-select-popover
@@ -71,7 +74,18 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-export class OlSelectPopover extends FocusableHostMixin(LitElement) {
+// NOT a FocusableHostMixin host. Unlike its siblings (ol-toggle, ol-chip,
+// ol-options-popover), whose focusable element lives in their *shadow* root,
+// this component's focusable is its trigger — and the default trigger is an
+// <ol-button> injected into *light* DOM (so the global ol-button.css applies;
+// see _createDefaultTrigger). A focus trap that walks slotted content
+// (e.g. ol-dialog's) already discovers that trigger button on its own. Adding
+// the mixin's host tabindex would enroll the host as a *second* tab stop for
+// the same control, and the mixin's delegatesFocus would forward host.focus()
+// to the first focusable in *this* shadow root (the filter input — hidden
+// while the popover is closed), a no-op that strands focus on the prior
+// element. So the host stays a plain wrapper; the trigger is the focusable.
+export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -92,85 +106,11 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             font-family: var(--font-family-body);
         }
 
-        /* ── Default trigger ─────────────────────────────────────── */
-
-        .default-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
-            font: inherit;
-            font-size: var(--font-size-label-large);
-            line-height: 1.4;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        /* Active: soft blue tint fill with a darker primary-blue border and
-           dark-blue text — matches the active ol-toggle card variant in the
-           same filter row (and the selected row in this popover's own list).
-           The chevron inherits currentColor, so it picks up the blue too. */
-        .default-trigger--active {
-            background: hsla(202, 96%, 37%, 0.08);
-            border-color: hsla(202, 96%, 37%, 0.35);
-            color: var(--link-blue);
-        }
-
-        .trigger-label {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 18ch;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .default-trigger:hover {
-                background: var(--lightest-grey);
-            }
-
-            .default-trigger--active:hover {
-                background: hsla(202, 96%, 37%, 0.12);
-                border-color: hsla(202, 96%, 37%, 0.5);
-            }
-        }
-
-        .default-trigger:active {
-            transform: scale(0.97);
-        }
-
-        .default-trigger:focus {
-            outline: none;
-        }
-
-        .default-trigger:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .trigger-count {
-            font-variant-numeric: tabular-nums;
-        }
-
-        .trigger-chevron {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            transition: transform 150ms ease-out;
-            flex-shrink: 0;
-        }
-
-        :host([data-open]) .trigger-chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .trigger-chevron {
-                transition: none;
-            }
-        }
+        /* The default trigger is an <ol-button> injected into light DOM (see
+           _createDefaultTrigger), so it is styled by the global ol-button.css —
+           including the automatic disclosure chevron. No trigger styles live
+           here. A consumer-supplied trigger is likewise their own light-DOM
+           element. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -367,9 +307,6 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
     `;
 
-    /** Chevron icon for the default trigger */
-    static _chevronIcon = html`<svg class="trigger-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
-
     /** Search icon for the filter input */
     static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
@@ -398,18 +335,21 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         this._restoreFocusToValue = null;
     }
 
-    /**
-     * Send focus to the default-trigger button rather than the first
-     * focusable in shadow order.
-     */
-    get _focusTarget() {
-        return this.shadowRoot?.querySelector('.default-trigger')
-            ?? this.querySelector('[slot="trigger"]')
-            ?? null;
-    }
-
     updated(changedProperties) {
         super.updated?.(changedProperties);
+        if (changedProperties.has('label') || changedProperties.has('selected')) {
+            this._updateDefaultTriggerLabel();
+        }
+        // Keep the form value in step with a programmatic `selected` change
+        // (a documented, reflected property). The user-click path already
+        // syncs synchronously in _emitChange — needed there so a change handler
+        // that submits the form right away sees the new value — but a bare
+        // `el.selected = [...]` only goes through here, so without this the
+        // enclosing <form> would submit the stale value. Mirrors OlToggle /
+        // OlSegmentedControl.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
         // Restore focus to the checkbox of an item that just moved between
         // the selected/suggestions groups (see _onItemToggle). Lit binds the
         // checkbox value via `.value=` (the JS property, not the attribute),
@@ -439,40 +379,95 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
                     name="trigger"
                     slot="trigger"
                     @keydown=${this._onTriggerKeydown}
-                >${this._renderDefaultTrigger()}</slot>
+                ></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
     }
 
-    _renderDefaultTrigger() {
+    // ── Default trigger (light-DOM ol-button) ────────────────────
+    //
+    // When the consumer doesn't supply their own trigger, we inject an
+    // <ol-button slot="trigger"> into our *light* DOM. It has to live in light
+    // DOM (not the shadow root) so the global ol-button.css applies — that
+    // stylesheet is what paints the button and, via aria-haspopup/aria-expanded
+    // set by the inner ol-popover, the automatic disclosure chevron. This way
+    // there is a single chevron implementation (ol-button's) for both the
+    // default trigger and any consumer-supplied ol-button.
+    //
+    // The injection happens here, in connectedCallback (before the first
+    // render), so the default trigger is a plain light-DOM child from the start
+    // — structurally identical to a consumer-supplied trigger. Injecting after
+    // render instead would re-assign slotted content mid-lifecycle and storm the
+    // inner ol-popover's slot reprojection.
+
+    connectedCallback() {
+        super.connectedCallback();
+        const hasConsumerTrigger = Array.from(this.children).some(
+            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
+        );
+        if (!hasConsumerTrigger && !this._defaultTrigger) {
+            this._createDefaultTrigger();
+        }
+        // Capture the authored default selection for <form>.reset().
+        if (this._defaultSelected === undefined) this._defaultSelected = [...(this.selected || [])];
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A multi-select submits one `name` entry per selected value (mirroring a
+    // native <select multiple>), via a FormData; nothing when empty.
+    get formValue() {
+        const values = this.selected || [];
+        if (values.length === 0 || !this.name) return null;
+        const data = new FormData();
+        for (const value of values) data.append(this.name, value);
+        return data;
+    }
+
+    formReset() {
+        this.selected = [...this._defaultSelected];
+        this._updateDefaultTriggerLabel();
+    }
+
+    _createDefaultTrigger() {
+        const btn = document.createElement('ol-button');
+        btn.setAttribute('slot', 'trigger');
+        // Keep a reference to the text node's wrapper so label/count updates
+        // mutate it in place. ol-button moves this span into its own label
+        // wrapper on upgrade, but the node identity (and our ref) survives.
+        const text = document.createElement('span');
+        btn.appendChild(text);
+        this._defaultTrigger = btn;
+        this._defaultTriggerText = text;
+        this._updateDefaultTriggerLabel();
+        this.appendChild(btn);
+    }
+
+    _updateDefaultTriggerLabel() {
+        const btn = this._defaultTrigger;
+        if (!btn || !this._defaultTriggerText) return;
         const selected = this.selected || [];
         const count = selected.length;
-
-        let text;
-        let ariaLabel;
-        if (count === 0) {
-            text = this.label;
-            ariaLabel = undefined;
-        } else if (count === 1) {
-            const match = (this.items || []).find(it => it.value === selected[0]);
-            text = (match && match.label) || selected[0];
-            ariaLabel = `${this.label}: ${text}`;
+        this._defaultTriggerText.textContent = count > 0
+            ? `${this.label} (${count})`
+            : this.label;
+        // The visible text collapses the selection to a "(n)" count, which
+        // hides *which* values are chosen from a screen reader. Give the
+        // button an aria-label naming them. (On work_search.html the
+        // server-side facet chips also surface the selection, but in
+        // SearchModal this trigger is the only place it appears.)
+        if (count > 0) {
+            const labels = selected
+                .map(v => (this.items || []).find(it => it.value === v)?.label ?? v)
+                .join(', ');
+            btn.setAttribute('aria-label', `${this.label}: ${labels}`);
         } else {
-            text = `${this.label} (${count})`;
-            ariaLabel = `${this.label}, ${count} selected`;
+            btn.removeAttribute('aria-label');
         }
-
-        return html`
-            <button
-                type="button"
-                class=${classMap({ 'default-trigger': true, 'default-trigger--active': count > 0 })}
-                aria-label=${ifDefined(ariaLabel)}
-            >
-                <span class="trigger-label">${text}</span>
-                ${OlSelectPopover._chevronIcon}
-            </button>
-        `;
     }
 
     _renderPanel() {
@@ -588,7 +583,6 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
     _onPopoverOpen() {
         this._isOpen = true;
         this._query = '';
-        this.setAttribute('data-open', '');
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
@@ -605,7 +599,6 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
     _onPopoverClose() {
         this._isOpen = false;
         this._pendingFocusFirst = false;
-        this.removeAttribute('data-open');
     }
 
     _onQueryInput(e) {
@@ -686,6 +679,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
 
     _emitChange(nextSelected, added, removed) {
         this.selected = nextSelected;
+        this._syncFormValue();
         this.dispatchEvent(new CustomEvent('ol-select-popover-change', {
             bubbles: true, composed: true,
             detail: { selected: nextSelected, added, removed },

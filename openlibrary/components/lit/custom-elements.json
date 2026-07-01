@@ -8,7 +8,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OLButton - A pure-presentation button primitive.\n\nRenders a real <button> element into the light DOM so global CSS styles\nit both before and after hydration. Handles variants, sizes, loading,\ndisabled, and form submission for type=\"submit\" / type=\"reset\".\n\nContains no application-specific logic, copy, or translations. The\nconsuming page owns what the button *does* — this component only owns\nhow it looks and basic interaction semantics.",
+          "description": "OLButton - A pure-presentation button primitive.\n\nRenders a real <button> element into the light DOM so global CSS styles\nit both before and after hydration. Handles variants, sizes, loading,\ndisabled, and form submission for type=\"submit\" / type=\"reset\".\n\nContains no application-specific logic, copy, or translations. The\nconsuming page owns what the button *does* — this component only owns\nhow it looks and basic interaction semantics.\n\nDisclosure chevron: when the button is wired as a popover/menu trigger,\nthe controller (ol-popover / ol-select-popover) sets `aria-haspopup` and\n`aria-expanded` on it. CSS keys off those attributes to show a chevron\nthat rotates 180° while expanded — automatically, with no consumer markup.\nSuppress it with the `no-chevron` attribute.",
           "name": "OLButton",
           "slots": [
             {
@@ -24,8 +24,8 @@
               "type": {
                 "text": "String"
               },
-              "default": "'primary'",
-              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "default": "'secondary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"secondary\"",
               "attribute": "variant",
               "reflects": true
             },
@@ -92,12 +92,19 @@
           ],
           "attributes": [
             {
+              "type": {
+                "text": "Boolean"
+              },
+              "description": "Suppresses the automatic disclosure chevron shown when the button is a popover/menu trigger (has `aria-haspopup`).",
+              "name": "no-chevron"
+            },
+            {
               "name": "variant",
               "type": {
                 "text": "String"
               },
-              "default": "'primary'",
-              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "default": "'secondary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"secondary\"",
               "fieldName": "variant"
             },
             {
@@ -2508,6 +2515,25 @@
             },
             {
               "kind": "field",
+              "name": "formValue",
+              "description": "Override point. The value(s) to submit with the form: a string, a\n`FormData` (multi-value), a `File`, or `null` to contribute nothing.",
+              "return": {
+                "type": {
+                  "text": "string|FormData|File|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formReset"
+            },
+            {
+              "kind": "field",
               "name": "_focusTarget",
               "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order (which could be a slotted user-provided\ntrigger — but the default-trigger is the one we want when it's there).",
               "return": {
@@ -2670,6 +2696,168 @@
             },
             {
               "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "name",
+              "reflects": true,
+              "description": "Form field name. When set, the selected value submits with the enclosing `<form>` (see FormAssociatedMixin).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "formAssociated",
+              "type": {
+                "text": "boolean"
+              },
+              "static": true,
+              "default": "true",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "properties",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.properties, name: { type: String, reflect: true }, }",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "return": {
+                "type": {
+                  "text": "ElementInternals|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "form",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_syncFormValue",
+              "description": "Push the current formValue into the form. Call after the\ncomponent's value changes (and once initially).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state"
+                },
+                {
+                  "name": "mode"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
               "name": "shadowRootOptions",
               "type": {
                 "text": "object"
@@ -2744,9 +2932,24 @@
               "default": "''",
               "description": "Heading shown above the options list (default: uppercased `label`).",
               "fieldName": "heading"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
             }
           ],
           "mixins": [
+            {
+              "name": "FormAssociatedMixin",
+              "module": "/openlibrary/components/lit/utils/form-associated-mixin.js"
+            },
             {
               "name": "FocusableHostMixin",
               "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
@@ -3235,7 +3438,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "A reusable popover component that anchors to a trigger element.\n\nRenders a trigger slot and a popover panel that opens/closes with animation.\nThe popover uses `position: fixed` to escape overflow clipping and animates\nfrom the trigger's location using `transform-origin`.\n\nSelf-manages open state by default — clicking the slotted trigger toggles\nthe popover, Escape and outside-click close it. Consumers can drive `open`\nimperatively for programmatic control. The `ol-popover-close` event is\ncancelable: call `event.preventDefault()` to keep the popover open.\n\nAutomatically flips and shifts when the panel would overflow the viewport.\nRepositions on scroll and resize. On mobile viewports, renders as a bottom\ntray with a drag handle, swipe-to-dismiss, and body scroll locking.\n\nTraps focus within the popover while open and restores focus to the\npreviously-focused element on close. The host's `aria-label` is forwarded\nto the inner dialog as its accessible name.",
+          "description": "A reusable popover component that anchors to a trigger element.\n\nRenders a trigger slot and a popover panel that opens/closes with animation.\nThe popover uses `position: fixed` to escape overflow clipping and animates\nfrom the trigger's location using `transform-origin`.\n\nSelf-manages open state by default — clicking the slotted trigger toggles\nthe popover, Escape and outside-click close it. Consumers can drive `open`\nimperatively for programmatic control. The `ol-popover-close` event is\ncancelable: call `event.preventDefault()` to keep the popover open.\n\nAutomatically flips and shifts when the panel would overflow the viewport.\nRepositions on scroll and resize. On mobile viewports, renders as a bottom\ntray with a drag handle, swipe-to-dismiss, and body scroll locking.\n\nNon-modal: while open it keeps focus within the panel, but Tab/Shift+Tab off\neither edge closes it and returns focus to the trigger (a keyboard user must\nbe able to Tab out — the page behind stays interactive, so we don't set\n`aria-modal`). Restores focus to the previously-focused element on close. The\nhost's `aria-label` is forwarded to the inner dialog as its accessible name.",
           "name": "OlPopover",
           "slots": [
             {
@@ -3289,7 +3492,8 @@
                 {
                   "name": "e"
                 }
-              ]
+              ],
+              "description": "Focus reached a bracketing sentinel → the user Tabbed past the panel's\nedge. A popover is non-modal, so we close it and let focus return to the\ntrigger (via _restoreFocus) instead of wrapping back into the panel — a\nkeyboard user must be able to Tab out. The sentinels detect the boundary\ncrossing robustly regardless of the panel's internal tab semantics (e.g.\na native radio group, which is a single tab stop), which an index-based\nedge check could not.\n\nIf a consumer cancels the close (`ol-popover-close` is cancelable), fall\nback to wrapping so focus never sticks on the hidden sentinel."
             },
             {
               "kind": "method",
@@ -3581,7 +3785,7 @@
               "type": {
                 "text": "CustomEvent"
               },
-              "description": "Cancelable. Fired when the popover requests to close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss close fires after the gesture completes and is not cancelable. detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' }"
+              "description": "Cancelable. Fired when the popover requests to close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss close fires after the gesture completes and is not cancelable. detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' | 'tab' }"
             }
           ],
           "attributes": [
@@ -3687,6 +3891,439 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlSegmentedControl.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OlSegmentedControl - A single-select control styled like ol-button.\n\nRenders a row of mutually-exclusive options (a radio group): exactly one is\nselected at a time. It shares ol-button's height tokens and visual language,\nso a same-size segmented control and button line up at the same height.\n\nOptions are declared as light-DOM <ol-segment> children carrying a `value`\nattribute; their content is the label — plain text, or markup such as an\n<svg> icon. Icon-only segments must add a `label` attribute to name the radio\n(used as the aria-label and a hover title). Children are read once on connect\nand re-rendered as accessible radios in the shadow root, so the control needs\nno per-option wiring from the consuming page.\n\nContains no application logic — the consuming page owns what a selection\n*does*. Listen for the change event (or read `.value`).",
+          "name": "OlSegmentedControl",
+          "slots": [
+            {
+              "description": "One or more <ol-segment value=\"…\">Label</ol-segment> option elements. A segment's content may be text or markup (e.g. an icon); add a `label` attribute on icon-only segments for the accessible name.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "formValue",
+              "description": "Override point. The value(s) to submit with the form: a string, a\n`FormData` (multi-value), a `File`, or `null` to contribute nothing.",
+              "return": {
+                "type": {
+                  "text": "string|FormData|File|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formReset"
+            },
+            {
+              "kind": "method",
+              "name": "_harvestOptions"
+            },
+            {
+              "kind": "method",
+              "name": "_measure"
+            },
+            {
+              "kind": "field",
+              "name": "_activeIndex",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_select",
+              "parameters": [
+                {
+                  "name": "value"
+                },
+                {
+                  "name": "{ focus = false }",
+                  "default": "{}"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_renderGhost",
+              "parameters": [
+                {
+                  "name": "option"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_renderSegment",
+              "parameters": [
+                {
+                  "name": "option"
+                },
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "activeIndex"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "The selected option's value. Reflected; defaults to the first enabled option.",
+              "attribute": "value",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables the whole control.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "fullWidth",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Stretch to fill the container; options share the width equally.",
+              "attribute": "full-width",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "accessibleLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "aria-label for the radio group. Default: none.",
+              "attribute": "accessible-label"
+            },
+            {
+              "kind": "field",
+              "name": "_options",
+              "privacy": "public",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "attribute": "_options"
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "name",
+              "reflects": true,
+              "description": "Form field name. When set, the selected `value` submits with the enclosing `<form>` (see FormAssociatedMixin).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "formAssociated",
+              "type": {
+                "text": "boolean"
+              },
+              "static": true,
+              "default": "true",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "properties",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.properties, name: { type: String, reflect: true }, }",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "return": {
+                "type": {
+                  "text": "ElementInternals|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "form",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_syncFormValue",
+              "description": "Push the current formValue into the form. Call after the\ncomponent's value changes (and once initially).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state"
+                },
+                {
+                  "name": "mode"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-segmented-control-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired on user selection. detail: { value: String }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "value",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "The selected option's value. Reflected; defaults to the first enabled option.",
+              "fieldName": "value"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "fieldName": "size"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables the whole control.",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "full-width",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Stretch to fill the container; options share the width equally.",
+              "fieldName": "fullWidth"
+            },
+            {
+              "name": "accessible-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "aria-label for the radio group. Default: none.",
+              "fieldName": "accessibleLabel"
+            },
+            {
+              "name": "_options",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "fieldName": "_options"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            }
+          ],
+          "mixins": [
+            {
+              "name": "FormAssociatedMixin",
+              "module": "/openlibrary/components/lit/utils/form-associated-mixin.js"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-segmented-control",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlSegmentedControl",
+          "declaration": {
+            "name": "OlSegmentedControl",
+            "module": "openlibrary/components/lit/OlSegmentedControl.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-segmented-control",
+          "declaration": {
+            "name": "OlSegmentedControl",
+            "module": "openlibrary/components/lit/OlSegmentedControl.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlSelectPopover.js",
       "declarations": [
         {
@@ -3695,18 +4332,11 @@
           "name": "OlSelectPopover",
           "slots": [
             {
-              "description": "Optional custom trigger element. When omitted, a styled default button renders showing `label` plus a \"(n)\" badge when items are selected and a chevron icon.",
+              "description": "Optional custom trigger element. When omitted, a default `<ol-button>` is injected (showing `label` plus a \"(n)\" count when items are selected); its disclosure chevron comes from ol-button automatically.",
               "name": "trigger"
             }
           ],
           "members": [
-            {
-              "kind": "field",
-              "name": "_chevronIcon",
-              "static": true,
-              "default": "html`<svg class=\"trigger-chevron\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
-              "description": "Chevron icon for the default trigger"
-            },
             {
               "kind": "field",
               "name": "_searchIcon",
@@ -3716,22 +4346,30 @@
             },
             {
               "kind": "field",
-              "name": "_focusTarget",
-              "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order.",
+              "name": "formValue",
+              "description": "Override point. The value(s) to submit with the form: a string, a\n`FormData` (multi-value), a `File`, or `null` to contribute nothing.",
               "return": {
                 "type": {
-                  "text": "HTMLElement|null"
+                  "text": "string|FormData|File|null"
                 }
               },
               "readonly": true,
               "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
               }
             },
             {
               "kind": "method",
-              "name": "_renderDefaultTrigger"
+              "name": "formReset"
+            },
+            {
+              "kind": "method",
+              "name": "_createDefaultTrigger"
+            },
+            {
+              "kind": "method",
+              "name": "_updateDefaultTriggerLabel"
             },
             {
               "kind": "method",
@@ -3970,28 +4608,164 @@
             },
             {
               "kind": "field",
-              "name": "shadowRootOptions",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "name",
+              "reflects": true,
+              "description": "Form field name. When set, each selected value submits with the enclosing `<form>` as a repeated `name` entry (see FormAssociatedMixin).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "formAssociated",
+              "type": {
+                "text": "boolean"
+              },
+              "static": true,
+              "default": "true",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "properties",
               "type": {
                 "text": "object"
               },
               "static": true,
-              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
+              "default": "{ ...BaseClass.properties, name: { type: String, reflect: true }, }",
               "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "return": {
+                "type": {
+                  "text": "ElementInternals|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "form",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
               }
             },
             {
               "kind": "method",
-              "name": "focus",
+              "name": "checkValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_syncFormValue",
+              "description": "Push the current formValue into the form. Call after the\ncomponent's value changes (and once initially).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
               "parameters": [
                 {
-                  "name": "options"
+                  "name": "disabled"
                 }
               ],
               "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state"
+                },
+                {
+                  "name": "mode"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
               }
             }
           ],
@@ -4113,12 +4887,23 @@
               },
               "default": "''",
               "fieldName": "_query"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
             }
           ],
           "mixins": [
             {
-              "name": "FocusableHostMixin",
-              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
+              "name": "FormAssociatedMixin",
+              "module": "/openlibrary/components/lit/utils/form-associated-mixin.js"
             }
           ],
           "superclass": {
@@ -4582,7 +5367,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OlToggle - A switch/toggle web component.\n\nRenders a sliding switch followed by a bold label and an optional greyed\nsublabel. The whole control is a single `role=\"switch\"` button, so the\nentire surface is clickable and Enter/Space activate it.\n\nUnlike `ol-chip` (which leaves selection state to its listener), a toggle\nowns its on/off state: clicking flips `checked` and fires\n`ol-toggle-change` with the new value.",
+          "description": "OlToggle - A switch/toggle web component.\n\nRenders a sliding switch followed by a label and an optional greyed\nsublabel. The whole control is a single `role=\"switch\"` button, so the\nentire surface is clickable and Enter/Space activate it.\n\nUnlike `ol-chip` (which leaves selection state to its listener), a toggle\nowns its on/off state: clicking flips `checked` and fires\n`ol-toggle-change` with the new value.",
           "name": "OlToggle",
           "slots": [
             {
@@ -4591,6 +5376,25 @@
             }
           ],
           "members": [
+            {
+              "kind": "field",
+              "name": "formValue",
+              "description": "Override point. The value(s) to submit with the form: a string, a\n`FormData` (multi-value), a `File`, or `null` to contribute nothing.",
+              "return": {
+                "type": {
+                  "text": "string|FormData|File|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formReset"
+            },
             {
               "kind": "method",
               "name": "_handleClick"
@@ -4627,7 +5431,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "description": "Omit for the default (plain) toggle, or \"button\" for a bordered, raised container styled like ol-button[variant=\"secondary\"] (subtle drop shadow, inset specular edge on hover) that fills with a soft blue tint when checked.",
               "attribute": "variant",
               "reflects": true
             },
@@ -4639,7 +5443,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Primary (bold) label text.",
+              "description": "Primary label text.",
               "attribute": "label"
             },
             {
@@ -4663,6 +5467,179 @@
               "default": "null",
               "description": "Override aria-label on the switch. Needed when supplying label content via the default slot.",
               "attribute": "accessible-label"
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'on'",
+              "description": "Value submitted when checked. Default \"on\".",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "name",
+              "reflects": true,
+              "description": "Form field name. When set and the toggle is checked, it submits with the enclosing `<form>` (see FormAssociatedMixin).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "formAssociated",
+              "type": {
+                "text": "boolean"
+              },
+              "static": true,
+              "default": "true",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "properties",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.properties, name: { type: String, reflect: true }, }",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "return": {
+                "type": {
+                  "text": "ElementInternals|null"
+                }
+              },
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "form",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_syncFormValue",
+              "description": "Push the current formValue into the form. Call after the\ncomponent's value changes (and once initially).",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state"
+                },
+                {
+                  "name": "mode"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
             },
             {
               "kind": "field",
@@ -4740,7 +5717,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Omit for the default (plain) toggle, or \"card\" for a bordered container that fills with a solid primary-blue background (white text, like a selected ol-chip) when checked.",
+              "description": "Omit for the default (plain) toggle, or \"button\" for a bordered, raised container styled like ol-button[variant=\"secondary\"] (subtle drop shadow, inset specular edge on hover) that fills with a soft blue tint when checked.",
               "fieldName": "variant"
             },
             {
@@ -4749,7 +5726,7 @@
                 "text": "String"
               },
               "default": "null",
-              "description": "Primary (bold) label text.",
+              "description": "Primary label text.",
               "fieldName": "label"
             },
             {
@@ -4769,9 +5746,33 @@
               "default": "null",
               "description": "Override aria-label on the switch. Needed when supplying label content via the default slot.",
               "fieldName": "accessibleLabel"
+            },
+            {
+              "name": "value",
+              "type": {
+                "text": "String"
+              },
+              "default": "'on'",
+              "description": "Value submitted when checked. Default \"on\".",
+              "fieldName": "value"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "FormAssociatedMixin",
+                "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+              }
             }
           ],
           "mixins": [
+            {
+              "name": "FormAssociatedMixin",
+              "module": "/openlibrary/components/lit/utils/form-associated-mixin.js"
+            },
             {
               "name": "FocusableHostMixin",
               "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
@@ -5541,17 +6542,35 @@
         },
         {
           "kind": "function",
-          "name": "getFocusableFromSlot",
+          "name": "getTabbableElements",
           "parameters": [
             {
-              "name": "slot",
-              "description": "The slot element to get focusable elements from",
+              "name": "root",
+              "description": "Subtree to search.",
               "type": {
-                "text": "HTMLSlotElement"
+                "text": "Element|ShadowRoot"
               }
             }
           ],
-          "description": "Gets all focusable elements from a slot's assigned content.\nHandles both elements that are directly focusable and their focusable descendants.",
+          "description": "Collect tabbable elements under `root`, in depth-first DOM order, piercing\nshadow roots and expanding slots — i.e. the real Tab order the user sees,\nwhich `querySelectorAll` alone can't produce because it stops at shadow\nboundaries.\n\nThis is the discovery backbone for the manual focus trap: it works on any\nshadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can\nfocus the *real* inner element directly rather than a host whose\n`host.focus()` might delegate to a hidden element (a silent no-op).\n\nTraversal rules:\n - A `<slot>` contributes its flattened assigned elements, in slot order.\n - An element matching FOCUSABLE_SELECTOR is a **leaf tab stop**:\n   recorded, and *not* descended into. A composite that owns its own\n   keyboard nav (roving tabindex, arrow keys) must therefore expose exactly\n   one Tab stop (its single `tabindex=\"0\"`); we don't enumerate its items.\n - A non-matching element with an open `shadowRoot` is descended into (the\n   shadow tree, whose `<slot>`s pull in light children at their position).\n - A non-matching element without a shadow root has its light children\n   walked.\n - Hidden/disabled subtrees (see isFocusable) are skipped entirely.\n - Closed shadow roots (e.g. `<video controls>`) are opaque and skipped.",
+          "return": {
+            "type": {
+              "text": "HTMLElement[]"
+            }
+          }
+        },
+        {
+          "kind": "function",
+          "name": "getTabbableFromSlot",
+          "parameters": [
+            {
+              "name": "slot",
+              "type": {
+                "text": "HTMLSlotElement|null"
+              }
+            }
+          ],
+          "description": "Like getTabbableElements but seeded from a `<slot>`'s assigned\n(light-DOM) content — for a focus trap that walks a component's named slots\n(header/body/footer) rather than one subtree. Each assigned element is\nvisited with the same depth-first, shadow-piercing rules, so a custom element\nsitting in slotted content contributes its real inner focusable rather than\nbeing missed (which a one-slot-deep `querySelectorAll` scan would).",
           "return": {
             "type": {
               "text": "HTMLElement[]"
@@ -5612,9 +6631,17 @@
         },
         {
           "kind": "js",
-          "name": "getFocusableFromSlot",
+          "name": "getTabbableElements",
           "declaration": {
-            "name": "getFocusableFromSlot",
+            "name": "getTabbableElements",
+            "module": "openlibrary/components/lit/utils/focus-utils.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "getTabbableFromSlot",
+          "declaration": {
+            "name": "getTabbableFromSlot",
             "module": "openlibrary/components/lit/utils/focus-utils.js"
           }
         },
@@ -5634,7 +6661,7 @@
       "declarations": [
         {
           "kind": "mixin",
-          "description": "FocusableHostMixin — makes a LitElement custom element behave as a single\nfocusable leaf in the document tab order, even when its actual focusable\nelement lives in its shadow DOM.\n\nWhy this exists\n---------------\nA consumer-level component (e.g. <ol-chip>, <ol-options-popover>) usually\nrenders a <button> inside its shadow root. Two things then go wrong by\ndefault for any outer focus trap that doesn't pierce shadow DOM:\n\n  1. `querySelectorAll('button, [tabindex]…')` on light DOM doesn't find\n     the shadow button — the component is invisible to the trap.\n  2. Calling `host.focus()` focuses the *host*, not the inner button, so\n     the focus ring lands on nothing visible.\n\nThis mixin fixes both at once:\n\n  - Sets `tabindex=\"0\"` on the host in connectedCallback (only if the\n    consumer hasn't set one). The host now matches the standard focusable\n    selector and outer traps discover it.\n  - Uses `delegatesFocus: true` on the shadow root, so the browser\n    forwards `host.focus()` to the first focusable inside the shadow root\n    AND `:focus-visible` fires correctly on the inner element (this is the\n    reason a manual focus() override is not enough — `:focus-visible` is a\n    UA heuristic, not a CSS pseudo-class we can opt into).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
+          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s\nshadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as\nif the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover>), or\ncomposites that route focus themselves (roving tabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
           "name": "FocusableHostMixin",
           "members": [
             {
@@ -5684,6 +6711,202 @@
           "declaration": {
             "name": "FocusableHostMixin",
             "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/form-associated-mixin.js",
+      "declarations": [
+        {
+          "kind": "mixin",
+          "description": "FormAssociatedMixin — turns a Lit component into a real form control (a\n\"form-associated custom element\", FACE) so it submits with a `<form>`,\nparticipates in reset, and carries default ARIA semantics — the same way a\nnative `<input>`/`<select>` would.\n\nWhy: a control rendered in shadow DOM (e.g. <ol-toggle>'s switch, the radios\ninside <ol-options-popover>) is invisible to the surrounding form — the form\nnever sees its value. FACE fixes that via `ElementInternals`: the element\ndeclares `static formAssociated = true`, grabs `this.attachInternals()`, and\ncalls `internals.setFormValue(...)` whenever its value changes. The browser\nthen submits that value under the element's `name`, fires\n`formResetCallback` on `<form>.reset()`, and disables the control inside a\ndisabled `<fieldset>`. Broadly supported on our floor (Safari 16.4+).\n\nWhat a consumer must provide:\n  1. `get formValue()` — the value(s) to submit. Return a string (single\n     value, submitted under `name`), a `FormData` (multiple entries, for a\n     multi-select — you own the keys), a `File`, or `null` to contribute\n     nothing (e.g. an unchecked switch).\n  2. A call to `this._syncFormValue()` whenever that value changes — the\n     simplest place is `firstUpdated()` (initial value) plus `updated()`\n     (subsequent changes), or directly in the change handler.\n  3. Optionally `formReset()` — restore the control's default value on\n     `<form>.reset()`. Capture the default once on connect.\n\n`name` is provided by this mixin (reflected, like a native control).",
+          "name": "FormAssociatedMixin",
+          "members": [
+            {
+              "kind": "field",
+              "name": "formAssociated",
+              "type": {
+                "text": "boolean"
+              },
+              "static": true,
+              "default": "true"
+            },
+            {
+              "kind": "field",
+              "name": "properties",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...BaseClass.properties, name: { type: String, reflect: true }, }"
+            },
+            {
+              "kind": "field",
+              "name": "internals",
+              "return": {
+                "type": {
+                  "text": "ElementInternals|null"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "form",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity"
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity"
+            },
+            {
+              "kind": "field",
+              "name": "formValue",
+              "description": "Override point. The value(s) to submit with the form: a string, a\n`FormData` (multi-value), a `File`, or `null` to contribute nothing.",
+              "return": {
+                "type": {
+                  "text": "string|FormData|File|null"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_syncFormValue",
+              "description": "Push the current formValue into the form. Call after the\ncomponent's value changes (and once initially)."
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback"
+            },
+            {
+              "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state"
+                },
+                {
+                  "name": "mode"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "name",
+              "reflects": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name"
+            }
+          ],
+          "parameters": [
+            {
+              "name": "BaseClass",
+              "type": {
+                "text": "T"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FormAssociatedMixin",
+          "declaration": {
+            "name": "FormAssociatedMixin",
+            "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/utils/keyboard-nav.js",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getNextIndex",
+          "parameters": [
+            {
+              "name": "key",
+              "description": "`KeyboardEvent.key`.",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "{ count, current, isDisabled = () => false, orientation = 'both', wrap = true }"
+            },
+            {
+              "name": "opts",
+              "type": {
+                "text": "@param {number} opts.count - Total number of items.\n * @param {number} opts.current - Index currently active/focused (`-1` if none).\n * @param {(i: number) => boolean} [opts.isDisabled] - Items to skip.\n * @param {'horizontal'|'vertical'|'both'} [opts.orientation='both'] - Which\n *   arrow axes navigate. Off-axis arrows are ignored (return `-1`).\n * @param {boolean} [opts.wrap=true] - Wrap around past the first/last item.\n * "
+              }
+            }
+          ],
+          "description": "Destination index for an arrow-key navigation keypress.",
+          "return": {
+            "type": {
+              "text": "number"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getNextIndex",
+          "declaration": {
+            "name": "getNextIndex",
+            "module": "openlibrary/components/lit/utils/keyboard-nav.js"
           }
         }
       ]

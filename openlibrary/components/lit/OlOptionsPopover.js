@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
 
 let _idCounter = 0;
@@ -29,6 +30,8 @@ let _idCounter = 0;
  *     indents the option to show it's a subset of the option above it.
  * @prop {String} selected - Currently selected `value`, or empty string for
  *     no selection. Reflects to attribute.
+ * @prop {String} name - Form field name. When set, the selected value submits
+ *     with the enclosing `<form>` (see FormAssociatedMixin).
  * @prop {String} label - Default trigger button text (e.g. "Availability").
  * @prop {String} heading - Heading shown above the options list (default:
  *     uppercased `label`).
@@ -51,7 +54,7 @@ let _idCounter = 0;
  *     ]'
  * ></ol-options-popover>
  */
-export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
+export class OlOptionsPopover extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
     static properties = {
         items: { type: Array },
         selected: { type: String, reflect: true },
@@ -255,6 +258,39 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
         this._pendingFocusFirst = false;
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        // Capture the authored default selection for <form>.reset().
+        if (this._defaultSelected === undefined) this._defaultSelected = this.selected;
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        // Keep the form value in step with a programmatic `selected` change
+        // (a documented, reflected property). The roving-selection path syncs
+        // synchronously in _selectValue; a bare `el.selected = 'x'` only goes
+        // through here, so without this the enclosing <form> would submit the
+        // stale value. Mirrors OlToggle / OlSegmentedControl.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A single-select: submits the selected value under `name`, or nothing
+    // when there is no selection.
+    get formValue() {
+        return this.selected || null;
+    }
+
+    formReset() {
+        this.selected = this._defaultSelected;
+    }
+
     /**
      * Send focus to the default-trigger button rather than the first
      * focusable in shadow order (which could be a slotted user-provided
@@ -391,6 +427,7 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
     _selectValue(value) {
         if (value === this.selected) return false;
         this.selected = value;
+        this._syncFormValue();
         this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
             bubbles: true, composed: true,
             detail: { selected: value },

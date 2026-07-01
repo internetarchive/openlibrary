@@ -31,10 +31,15 @@ $ _x = ctx.setdefault('cssfile', 'design')
           </ul>
         </li>
         <li><a href="#button">Button</a></li>
+        <li><a href="#segmented-control">Segmented Control</a></li>
         <li><a href="#toggle">Toggle</a></li>
         <li><a href="#toast">Toast</a></li>
         <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
+      </ul>
+
+      <ul class="design-pattern-nav__list design-pattern-nav__list--playground">
+        <li><a href="#control-alignment">Control alignment</a></li>
       </ul>
     </nav>
 
@@ -43,7 +48,6 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="pagination">
         <h2 class="design-pattern__title">Pagination</h2>
-        <p class="design-pattern__description">The ol-pagination component provides support for both event-based and URL-based navigation.</p>
 
         <section class="example">
           <h3 class="example__title">Event-based</h3>
@@ -147,7 +151,6 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">Read More</h2>
-        <p class="design-pattern__description">The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.</p>
 
         <section class="example">
           <h3 class="example__title">Height-based truncation</h3>
@@ -239,10 +242,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="chip-group">
         <h2 class="design-pattern__title">Chip Group</h2>
-        <p class="design-pattern__description">The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.</p>
 
         <section class="example">
-          <h3 class="example__title">Default (medium gap)</h3>
           <p>Chips are spaced with an 8px gap by default.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
           <div class="example__output">
@@ -320,10 +321,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="chip">
         <h2 class="design-pattern__title">Chip</h2>
-        <p class="design-pattern__description">The ol-chip component is a pill-shaped interactive element for filters, tags, and selections. It fires an <code>ol-chip-select</code> event on click.</p>
 
         <section class="example">
-          <h3 class="example__title">Default (medium)</h3>
           <p>Basic chips at the default medium size.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-chip&gt;
   Fiction
@@ -440,6 +439,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       $:render_template("design/button", components.get("ol-button"))
 
+      $:render_template("design/segmented-control", components.get("ol-segmented-control"))
+
       $:render_template("design/toggle")
 
       $:render_template("design/toast", components.get("ol-toast"))
@@ -448,10 +449,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="markdown-editor">
         <h2 class="design-pattern__title">Markdown Editor</h2>
-        <p class="design-pattern__description">The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea. A 'View source' toolbar toggle is always available so editors can drop into a raw markdown textarea when WYSIWYG round-trips are awkward.</p>
 
         <section class="example">
-          <h3 class="example__title">Basic usage</h3>
           <p>Provide a <code>target-id</code> pointing to an existing textarea. The editor reads initial content from the textarea and syncs changes back to it.</p>
           <pre class="example__code"><code class="language-html">&lt;textarea id="my-input"&gt;
   **Hello** world
@@ -546,6 +545,101 @@ The response includes `title`, `authors`, and a `description` field formatted as
         </section>
 
         $:render_template("design/api_tables", components.get("ol-markdown-editor"))
+      </article>
+
+      <article class="design-pattern" id="control-alignment">
+        <h2 class="design-pattern__title">Control alignment</h2>
+
+        <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination is shown in the medium row as-is — it is not height-locked to the tokens, so this check is a way to eyeball whether it still reads as aligned.</p>
+
+        <div class="control-alignment__guides-toggle">
+          <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines"></ol-toggle>
+        </div>
+
+        <section class="example">
+          <h3 class="example__title">Small</h3>
+          <div class="example__output control-row control-row--small">
+            <span class="control-row__cell">
+              <ol-button size="small" variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control size="small" accessible-label="Alignment, small">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, small" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" size="small" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--small" type="text" value="Input" aria-label="Alignment input, small">
+            </span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Medium</h3>
+          <div class="example__output control-row control-row--medium">
+            <span class="control-row__cell">
+              <ol-button variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control accessible-label="Alignment, medium">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, medium" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <ol-toggle variant="button" label="Readable Only" sublabel="4.6M"></ol-toggle>
+            </span>
+            <span class="control-row__cell">
+              <ol-pagination total-pages="5" current-page="3" label-pagination="Alignment pagination, medium"></ol-pagination>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--medium" type="text" value="Input" aria-label="Alignment input, medium">
+            </span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Large</h3>
+          <div class="example__output control-row control-row--large">
+            <span class="control-row__cell">
+              <ol-button size="large" variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control size="large" accessible-label="Alignment, large">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, large" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" size="large" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--large" type="text" value="Input" aria-label="Alignment input, large">
+            </span>
+          </div>
+        </section>
+
+        <script>
+          (function () {
+            const article = document.getElementById('control-alignment');
+            const toggle = document.getElementById('control-alignment-guides');
+            toggle.addEventListener('ol-toggle-change', function (e) {
+              article.classList.toggle('control-alignment--guides-hidden', !e.detail.checked);
+            });
+          })();
+        </script>
       </article>
     </main>
   </div>

@@ -4,7 +4,7 @@ version = "1.0.0"
 requires-python = ">=3.14.5,<3.14.6"
 
 [tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
+ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
 skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]

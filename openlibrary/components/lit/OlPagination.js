@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { getNextIndex } from './utils/keyboard-nav.js';
 
 /**
  * A pagination component that displays page numbers with navigation controls.
@@ -228,31 +229,20 @@ export class OlPagination extends LitElement {
      * @param {KeyboardEvent} e
      */
     _handleKeyDown(e) {
+        // Pagination is a list of links/buttons — every item stays its own tab
+        // stop (it's navigation, not a roving composite). Arrows are a
+        // convenience that moves focus horizontally without wrapping; selection
+        // is unaffected (a page only changes on activation).
         const focusable = this._getFocusableElements();
-        const currentIndex = focusable.indexOf(this.shadowRoot.activeElement);
-
-        switch (e.key) {
-        case 'ArrowLeft':
-            e.preventDefault();
-            if (currentIndex > 0) {
-                focusable[currentIndex - 1].focus();
-            }
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            if (currentIndex < focusable.length - 1) {
-                focusable[currentIndex + 1].focus();
-            }
-            break;
-        case 'Home':
-            e.preventDefault();
-            focusable[0]?.focus();
-            break;
-        case 'End':
-            e.preventDefault();
-            focusable[focusable.length - 1]?.focus();
-            break;
-        }
+        const target = getNextIndex(e.key, {
+            count: focusable.length,
+            current: focusable.indexOf(this.shadowRoot.activeElement),
+            orientation: 'horizontal',
+            wrap: false,
+        });
+        if (target === -1) return;
+        e.preventDefault();
+        focusable[target].focus();
     }
 
     /**
