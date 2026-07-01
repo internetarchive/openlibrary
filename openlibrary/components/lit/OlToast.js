@@ -150,9 +150,14 @@ export class OlToast extends LitElement {
             :host {
                 transition: none;
             }
+            .toast__progress {
+                display: none;
+            }
         }
 
         .toast {
+            position: relative;
+            overflow: hidden;
             display: flex;
             align-items: flex-start;
             gap: var(--spacing-inline-md);
@@ -172,6 +177,19 @@ export class OlToast extends LitElement {
                 0 2px 4px 0 var(--icon-link-grey);
         }
 
+        .toast__progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: currentColor;
+            opacity: 0.35;
+            transform-origin: left;
+            transform: scaleX(var(--toast-progress-scale, 1));
+            transition: transform var(--toast-progress-time, 0ms) linear;
+        }
+
         :host([data-stacked]) .toast {
             width: 100%;
         }
@@ -186,7 +204,7 @@ export class OlToast extends LitElement {
             flex-shrink: 0;
             width: 20px;
             height: 20px;
-            margin-top: 1px; /* optically center against the first text line */
+            margin-top: 4px; /* Centered against the first line of text */
             border-radius: 50%;
             color: var(--white);
         }
@@ -210,6 +228,12 @@ export class OlToast extends LitElement {
                content gets the same treatment */
             font-size: var(--font-size-body-large);
             font-weight: 500;
+
+            /* Align single-line text to center of 28px close button height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 28px;
         }
 
         .toast__message {
@@ -309,6 +333,15 @@ export class OlToast extends LitElement {
             requestAnimationFrame(() => {
                 this.setAttribute('data-mounted', '');
                 this._announce = true;
+
+                // Start the progress bar transition after the element is mounted and visible
+                if (!this.persistent && this._timerId) {
+                    requestAnimationFrame(() => {
+                        if (this._closing || this._timerId === null) return;
+                        this.style.setProperty('--toast-progress-scale', '0');
+                        this.style.setProperty('--toast-progress-time', `${this._remainingMs}ms`);
+                    });
+                }
             });
         });
     }
@@ -341,7 +374,11 @@ export class OlToast extends LitElement {
     pauseTimer() {
         if (this._timerId) {
             this._clearTimer();
-            this._remainingMs -= Date.now() - this._timerStartedAt;
+            const elapsed = Date.now() - this._timerStartedAt;
+            this._remainingMs = Math.max(0, this._remainingMs - elapsed);
+            const fraction = this._remainingMs / this.timeout;
+            this.style.setProperty('--toast-progress-scale', String(fraction));
+            this.style.setProperty('--toast-progress-time', '0ms');
         }
     }
 
@@ -356,6 +393,16 @@ export class OlToast extends LitElement {
         if (this.closest('ol-toast-region')?.expanded) return;
         this._timerStartedAt = Date.now();
         this._timerId = setTimeout(() => this.close('timeout'), Math.max(0, this._remainingMs));
+
+        // Only schedule progress animation immediately if the element has already mounted.
+        // If not mounted yet, connectedCallback's requestAnimationFrame chain will start it.
+        if (this.hasAttribute('data-mounted')) {
+            requestAnimationFrame(() => {
+                if (this._closing || this._timerId === null) return;
+                this.style.setProperty('--toast-progress-scale', '0');
+                this.style.setProperty('--toast-progress-time', `${this._remainingMs}ms`);
+            });
+        }
     }
 
     /**
@@ -413,6 +460,7 @@ export class OlToast extends LitElement {
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
                 >${OlToast._closeIcon}</button>
+                ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;
     }
