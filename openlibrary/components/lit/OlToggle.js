@@ -222,6 +222,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         @media (hover: hover) and (pointer: fine) {
             :host([variant="button"]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--lightest-grey);
+                /* Nudge the border a touch darker in step with the fill (both
+                   drop ~7% in lightness), matching ol-button[variant="secondary"]
+                   so the whole control reads as one shape on hover. */
+                --_toggle-border: var(--light-grey);
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--lightest-grey));
             }
 

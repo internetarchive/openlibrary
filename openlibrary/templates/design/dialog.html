@@ -9,26 +9,17 @@ $def with()
       <pre class="example__code"><code class="language-html">&lt;ol-dialog label="Delete this list?" width="small"&gt;
   &lt;p&gt;This can't be undone.&lt;/p&gt;
   &lt;div slot="footer"&gt;
-    &lt;button value="cancel"&gt;Cancel&lt;/button&gt;
-    &lt;button value="delete"&gt;Delete list&lt;/button&gt;
+    &lt;ol-button variant="secondary" value="cancel"&gt;Cancel&lt;/ol-button&gt;
+    &lt;ol-button variant="destructive" value="delete"&gt;Delete list&lt;/ol-button&gt;
   &lt;/div&gt;
 &lt;/ol-dialog&gt;</code></pre>
       <div class="example__output">
-        <button
-          id="demo-dialog-confirm-trigger"
-          style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 15px;"
-        >Delete list…</button>
+        <ol-button id="demo-dialog-confirm-trigger" variant="secondary">Delete list…</ol-button>
         <ol-dialog id="demo-dialog-confirm" label="Delete this list?" width="small">
           <p style="margin: 0;">Deleting <strong>“Want to Read”</strong> removes it permanently. This can't be undone.</p>
           <div slot="footer" style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button
-              data-action="cancel"
-              style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,80%); background: #fff; cursor: pointer; font: inherit; font-size: 14px;"
-            >Cancel</button>
-            <button
-              data-action="delete"
-              style="padding: 8px 16px; border-radius: 8px; border: none; background: hsl(0,72%,46%); color: #fff; cursor: pointer; font: inherit; font-size: 14px;"
-            >Delete list</button>
+            <ol-button data-action="cancel" variant="secondary">Cancel</ol-button>
+            <ol-button data-action="delete" variant="destructive">Delete list</ol-button>
           </div>
         </ol-dialog>
         <p style="margin-top: 12px; font-size: 13px;">
@@ -57,18 +48,9 @@ $def with()
       <p>Use <code>width</code> to pick a preset: <code>small</code> (400px), <code>medium</code> (550px, the default), or <code>large</code> (800px). The dialog never exceeds <code>90vw</code>, so presets stay responsive. Override a single instance with the <code>--ol-dialog-width-*</code> custom properties.</p>
       <pre class="example__code"><code class="language-html">&lt;ol-dialog width="large" label="…"&gt;…&lt;/ol-dialog&gt;</code></pre>
       <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button
-          data-width="small"
-          style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 14px;"
-        >Small</button>
-        <button
-          data-width="medium"
-          style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 14px;"
-        >Medium</button>
-        <button
-          data-width="large"
-          style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 14px;"
-        >Large</button>
+        <ol-button data-width="small" variant="secondary">Small</ol-button>
+        <ol-button data-width="medium" variant="secondary">Medium</ol-button>
+        <ol-button data-width="large" variant="secondary">Large</ol-button>
         <ol-dialog id="demo-dialog-width" label="Width demo">
           <p style="margin: 0;">This dialog is using the <strong id="demo-dialog-width-label">medium</strong> width preset. Resize the window to see how it stays within 90vw on narrow screens.</p>
         </ol-dialog>
@@ -95,15 +77,12 @@ $def with()
   &lt;label for="note"&gt;Your note&lt;/label&gt;
   &lt;textarea id="note"&gt;&lt;/textarea&gt;
   &lt;div slot="footer"&gt;
-    &lt;button value="cancel"&gt;Cancel&lt;/button&gt;
-    &lt;button value="save"&gt;Save note&lt;/button&gt;
+    &lt;ol-button variant="secondary" value="cancel"&gt;Cancel&lt;/ol-button&gt;
+    &lt;ol-button variant="primary" value="save"&gt;Save note&lt;/ol-button&gt;
   &lt;/div&gt;
 &lt;/ol-dialog&gt;</code></pre>
       <div class="example__output">
-        <button
-          id="demo-dialog-form-trigger"
-          style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 15px;"
-        >Add a note…</button>
+        <ol-button id="demo-dialog-form-trigger" variant="secondary">Add a note…</ol-button>
         <ol-dialog id="demo-dialog-form" label="Add a note" width="medium">
           <label for="demo-dialog-note" style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px;">Your note</label>
           <textarea
@@ -113,14 +92,8 @@ $def with()
             style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid hsl(0,0%,80%); border-radius: 6px; font: inherit; font-size: 14px; resize: vertical;"
           ></textarea>
           <div slot="footer" style="display: flex; justify-content: flex-end; gap: 8px;">
-            <button
-              data-action="cancel"
-              style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,80%); background: #fff; cursor: pointer; font: inherit; font-size: 14px;"
-            >Cancel</button>
-            <button
-              data-action="save"
-              style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--primary-blue); color: #fff; cursor: pointer; font: inherit; font-size: 14px;"
-            >Save note</button>
+            <ol-button data-action="cancel" variant="secondary">Cancel</ol-button>
+            <ol-button data-action="save" variant="primary">Save note</ol-button>
           </div>
         </ol-dialog>
       </div>
@@ -152,10 +125,7 @@ $def with()
   &lt;ul&gt;…results…&lt;/ul&gt;
 &lt;/ol-dialog&gt;</code></pre>
       <div class="example__output">
-        <button
-          id="demo-dialog-search-trigger"
-          style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 15px;"
-        >Search…</button>
+        <ol-button id="demo-dialog-search-trigger" variant="secondary">Search…</ol-button>
         <ol-dialog
           id="demo-dialog-search"
           placement="top"

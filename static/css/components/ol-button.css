@@ -140,14 +140,14 @@ ol-button[variant="secondary"] > button {
   color: var(--dark-grey);
 }
 
-/* Destructive */
+/* Destructive — solid red fill, mirroring primary but in the danger hue. */
 ol-button[variant="destructive"]:not([hydrated]),
 ol-button[variant="destructive"] > button {
-  background-color: transparent;
+  background-color: var(--red);
   border-color: var(--red);
-  color: var(--red);
-  /* Softer specular edge, matching primary — most visible once the red fill
-     comes in on hover. */
+  color: var(--white);
+  /* Tone the specular highlight to the red fill and soften it, matching primary. */
+  --control-surface: var(--red);
   --control-highlight-strength: 18%;
 }
 
@@ -157,22 +157,23 @@ ol-button[variant="destructive"] > button {
    specular highlight stays toned to the resting color (e.g. a blown-out white
    edge once destructive fills red). Keep --control-surface == background-color. */
 @media (hover: hover) and (pointer: fine) {
-  ol-button:not([variant]) > button:hover,
-  ol-button[variant="primary"] > button:hover {
-    background-color: var(--link-blue);
-    border-color: var(--link-blue);
-    --control-surface: var(--link-blue);
-  }
-
   ol-button[variant="secondary"] > button:hover {
     background-color: var(--lightest-grey);
+    /* Nudge the border a touch darker in step with the fill (both drop ~7%
+       in lightness) so the whole button reads as one shape on hover, rather
+       than the fill darkening inside a static outline. */
+    border-color: var(--light-grey);
     --control-surface: var(--lightest-grey);
   }
 
+  /* The two solid, saturated fills lighten on hover — the mirror image of the
+     light secondary control darkening above, and matching the selected chip.
+     brightness() carries the fill, border, and inset specular edge together, so
+     there's no per-property override or --control-surface retoning to keep in
+     sync. The press-scale on :active still reads as the "down" step. */
+  ol-button[variant="primary"] > button:hover,
   ol-button[variant="destructive"] > button:hover {
-    background-color: var(--red);
-    color: var(--white);
-    --control-surface: var(--red);
+    filter: brightness(1.1);
   }
 }
 
