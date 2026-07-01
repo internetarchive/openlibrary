@@ -84,6 +84,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         clearLabel: { type: String, attribute: 'clear-label' },
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
         _query: { state: true },
+        loading: { type: Boolean, reflect: true },
     };
 
     static styles = css`
@@ -365,6 +366,45 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
+
+        /* ── Item count ──────────────────────────────────────────────── */
+
+        .item-count {
+            margin-left: auto;
+            flex-shrink: 0;
+            color: var(--accessible-grey);
+            font-size: var(--font-size-label-medium);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Host-driven loading state ───────────────────────────────────────── */
+
+        @keyframes ol-sp-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-inline-sm);
+            padding: var(--spacing-inset-md);
+            color: var(--accessible-grey);
+            font-size: var(--font-size-body-medium);
+        }
+        .loading-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--color-border-subtle);
+            border-top-color: var(--accessible-grey);
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: ol-sp-spin 0.65s linear infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+                .loading-spinner { animation: none; opacity: 0.5; }
+        }
     `;
 
     /** Chevron icon for the default trigger */
@@ -396,6 +436,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         // re-homes the item between the selected/suggestions groups (which
         // destroys its DOM node, so its focus is lost).
         this._restoreFocusToValue = null;
+        this.loading = false;
     }
 
     /**
@@ -522,6 +563,13 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
                     </ul>
                 ` : nothing}
                 <div class="list-area" id=${this._panelId} @keydown=${this._onListKeydown}>
+                    ${this.loading
+        ? html`
+                        <div class="loading-row" role="status" aria-live="polite">
+                            <span class="loading-spinner" aria-hidden="true"></span>
+                            <span>Loading…</span>
+                        </div>`
+        : html`
                     <ul
                         class="group group--suggestions"
                         role="group"
@@ -531,7 +579,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
                         ${filteredSuggestions.length === 0 && query
         ? html`<li class="empty-state">${this.noMatchesLabel}</li>`
         : repeat(filteredSuggestions, it => it.value, it => this._renderItem(it))}
-                    </ul>
+                    </ul>`}
                 </div>
                 ${hasSelected ? html`
                     <div class="footer">
@@ -559,6 +607,9 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
                         @change=${this._onItemToggle}
                     />
                     <span class="item-label">${item.label}</span>
+                    ${item.count !== null && item.count !== undefined
+        ? html`<span class="item-count" aria-hidden="true">${item.count.toLocaleString()}</span>`
+        : nothing}
                 </label>
             </li>
         `;

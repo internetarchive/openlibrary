@@ -21,6 +21,8 @@
  *    bar — the user gets the filters they last set in this session.
  *
  * The full language catalogue is fetched lazily on first popover open.
+ * Context-aware facet counts are fetched
+ * in parallel with the catalogue whenever there is an active search query.
  */
 
 import {
@@ -35,6 +37,7 @@ import {
     readStoredLanguages,
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
+import { fetchFacetCounts } from './search-modal/searchFacets.js';
 import { trackEvent } from './ol.analytics.js';
 
 // Every query param the availability filter owns, across all of its values.
@@ -43,6 +46,35 @@ import { trackEvent } from './ol.analytics.js';
 const AVAILABILITY_PARAM_KEYS = [
     ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
 ];
+
+// ── Facet field config ─────────────────────────────────────────────────────
+//
+// Maps each OlSelectPopover to its Solr facet field name (validated server-side
+// against WorkSearchScheme.facet_fields).
+/** @type {Map<HTMLElement, string>} */
+let POPOVER_FIELD_CONFIG;
+
+// ── Merge helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Merge context-aware facet counts from the API into the item list, then
+ * sort and filter according to the issue spec:
+ * @param {Array<{value: string, label: string}>} items - Full catalogue list.
+ * @param {Array<{value: string, count: number}>} counts - API response.
+ * @param {string[]} selectedValues - Currently selected item values.
+ * @returns {Array<{value: string, label: string, count: number}>}
+ */
+export function mergeFacetCounts(items, counts, selectedValues) {
+    const countMap = new Map(counts.map(c => [c.value, c.count]));
+    const selectedSet = new Set(selectedValues);
+
+    return items
+        .map(it => ({ ...it, count: countMap.get(it.value) ?? 0 }))
+        .filter(it => it.count > 0 || selectedSet.has(it.value))
+        .sort((a, b) => b.count - a.count);
+}
+
+// ── sessionStorage helpers ─────────────────────────────────────────────────
 
 function writeStoredAvailability(value) {
     ssSet(SS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);
@@ -127,11 +159,18 @@ export function initSearchFilterBar(container) {
     const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
 
+    // Build the facet field config now that we have element references.
+    // Future filters: add an entry here.
+    POPOVER_FIELD_CONFIG = new Map([
+        ...(languageEl ? [[languageEl, 'language']] : []),
+    ]);
+
+    // True when the page has a meaningful search query — facet counts are only
+    // fetched in this case. An empty or whitespace-only q= is treated as no
+    // query (popularity-sorted catalogue, no per-query counts).
+    const hasQuery = (currentParams.get('q') || '').trim().length > 0;
+
     if (availabilityEl) {
-        // Binary availability: the toggle reads as "on" whenever any
-        // readable-scoped filter is in the URL (readable / open / borrowable),
-        // and "off" for the all-books default. Flipping it on applies the broad
-        // `readable` filter; flipping it off clears every availability param.
         availabilityEl.checked =
             availabilityFromParams((name) => currentParams.get(name)) !== DEFAULT_AVAILABILITY;
         availabilityEl.addEventListener('ol-toggle-change', (e) => {
@@ -144,8 +183,6 @@ export function initSearchFilterBar(container) {
                 Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
-        // The readable-count sublabel is rendered server-side (work_search.html),
-        // so it's already present on first paint — nothing to fetch here.
     }
 
     if (languageEl) {
@@ -154,17 +191,38 @@ export function initSearchFilterBar(container) {
         languageEl.items = DEFAULT_LANGUAGE_OPTIONS;
         languageEl.selected = currentParams.getAll('language');
 
-        // Defer fetching the full catalogue list until the popover first opens.
-        // Most searches never touch the language filter, so this avoids the
-        // /languages.json request entirely for them. ol-popover-open bubbles
-        // (composed) out of the popover's shadow root up to this host.
-        let languagesLoaded = false;
-        languageEl.addEventListener('ol-popover-open', () => {
-            if (languagesLoaded) return;
-            languagesLoaded = true;
-            fetchLanguageOptions().then((options) => {
-                languageEl.items = options;
-            });
+        // Defer fetching the full catalogue + context-aware counts until the
+        // popover first opens. Most searches never touch the language filter,
+        // avoiding both the /languages.json and /search/facets.json requests.
+        // On subsequent opens of the same dropper (same page load / same query):
+        //   counts are already merged into items; nothing to re-fetch.
+        let loaded = false;
+
+        languageEl.addEventListener('ol-popover-open', async() => {
+            if (loaded) return;
+            loaded = true;
+
+            const field = POPOVER_FIELD_CONFIG.get(languageEl);
+            languageEl.loading = true;
+
+            try {
+                // Fetch catalogue and counts in parallel to minimise latency.
+                const [options, counts] = await Promise.all([
+                    fetchLanguageOptions(),
+                    hasQuery && field
+                        ? fetchFacetCounts(field, currentParams)
+                        : Promise.resolve([]),
+                ]);
+
+                languageEl.items = (hasQuery && counts.length > 0)
+                    ? mergeFacetCounts(options, counts, languageEl.selected || [])
+                    : options;
+            } catch (_err) {
+                // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
+                // init. Filtering must never break (spec requirement).
+            } finally {
+                languageEl.loading = false;
+            }
         });
 
         languageEl.addEventListener('ol-select-popover-change', (e) => {
