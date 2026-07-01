@@ -1,0 +1,18 @@
+<table>
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th>Infogami</th>
+            <th>Pydantic-Settings</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in features_table %}
+            <tr>
+                <td>{{ row['feature'] }}</td>
+                <td>{{ row['infogami'] }}</td>
+                <td>{{ row['pydantic'] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

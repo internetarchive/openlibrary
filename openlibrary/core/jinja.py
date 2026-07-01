@@ -1,7 +1,22 @@
 from functools import cache as functools_cache
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+
+
+def render_jinja_template(template_name: str, **kwargs: Any) -> str:
+    """Render a Jinja template and return the resulting HTML string.
+
+    This is a generic helper to render any Jinja template from the macros
+    directory and pass it values from Templetor templates.
+
+    Usage in Templetor template:
+        $:render_template("MyTemplate.html.jinja", foo="bar")
+    """
+    env = get_jinja_env()
+    template = env.get_template(template_name)
+    return template.render(**kwargs)
 
 
 @functools_cache
