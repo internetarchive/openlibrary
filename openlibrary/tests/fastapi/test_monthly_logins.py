@@ -7,21 +7,6 @@ import pytest
 import web
 
 from openlibrary.plugins.openlibrary.api import monthly_logins as legacy_monthly_logins
-from openlibrary.utils.request_context import RequestContextVars, req_context
-
-
-@pytest.fixture(autouse=True)
-def _setup_request_context():
-    """Set ContextVars for the legacy cached helper used by monthly_logins."""
-    req_context.set(
-        RequestContextVars(
-            x_forwarded_for=None,
-            user_agent=None,
-            lang="en",
-            solr_editions=True,
-            print_disabled=False,
-        )
-    )
 
 
 def test_monthly_logins_returns_cached_count(fastapi_client):
@@ -48,7 +33,8 @@ def test_monthly_logins_response_matches_legacy(fastapi_client):
     fastapi_get_logins_mock.assert_called_once_with()
 
 
-def test_monthly_logins_sets_web_ctx_host_for_cached_helper(fastapi_client, monkeypatch):
+def test_monthly_logins_sets_web_ctx_host_for_cached_helper(fastapi_client, request_context_fixture, monkeypatch):
+    request_context_fixture(lang="en")
     captured_hosts = []
 
     def memcache_memoize_mock(func, key_prefix, timeout=None, prethread=None):
