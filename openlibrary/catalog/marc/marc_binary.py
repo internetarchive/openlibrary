@@ -61,7 +61,7 @@ class BinaryDataField(MarcFieldBase):
         """
         if self.rec.marc8():
             data = mnemonics.read(data)
-            return marc8.translate(data)
+            return normalize("NFC", marc8.translate(data))
         return normalize("NFC", data.decode("utf8"))
 
     def ind1(self) -> str:
