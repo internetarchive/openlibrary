@@ -9,10 +9,10 @@ $def with (page)
           <li><a href="/about/vision">$_("Vision")</a></li>
           <li><a href="/volunteer">$_("Volunteer")</a></li>
           <li><a href="/partner-with-us">$_("Partner With Us")</a></li>
-          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">$_("Careers")</a></li>
-          <li><a href="https://blog.openlibrary.org/">$_("Blog")</a></li>
-          <li><a href="https://archive.org/about/terms.php">$_("Terms of Service")</a></li>
-          <li><a href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton">$_("Donate")</a></li>
+          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')" target="_blank" rel="noopener noreferrer">$_("Careers")</a></li>
+          <li><a href="https://blog.openlibrary.org/" target="_blank" rel="noopener noreferrer">$_("Blog")</a></li>
+          <li><a href="https://archive.org/about/terms.php" target="_blank" rel="noopener noreferrer">$_("Terms of Service")</a></li>
+          <li><a href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" target="_blank" rel="noopener noreferrer">$_("Donate")</a></li>
         </ul>
       </div>
       <div>
@@ -33,7 +33,7 @@ $def with (page)
           <li><a href="/developers" title="$_('Explore Open Library Developer Center')">$_("Developer Center")</a></li>
           <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_("API Documentation")</a></li>
           <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_("Bulk Data Dumps")</a></li>
-          <li><a href="https://docs.openlibrary.org/developers/backend/writing-bots.html" title="$_('Write a bot')">$_("Writing Bots")</a></li>
+          <li><a href="https://docs.openlibrary.org/developers/backend/writing-bots.html" title="$_('Write a bot')" target="_blank" rel="noopener noreferrer">$_("Writing Bots")</a></li>
         </ul>
       </div>
       <div>
@@ -43,12 +43,12 @@ $def with (page)
           <li><a href="mailto:openlibrary@archive.org?subject=Support Case" title="$_('Contact')">$_("Contact Us")</a></li>
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_("Suggesting Edits")</a></li>
           <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_("Release Notes")</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')" target="_blank" rel="noopener noreferrer">$_("Release Notes")</a></li>
         </ul>
         <aside>
-          <a class="footer-icon" title="$_('Bluesky')" href="https://bsky.app/profile/openlibrary.org"><img src="/static/images/bsky.svg" alt="$_('Open Library on Bluesky')" loading="lazy"></a>
-          <a class="footer-icon" title="$_('Twitter')" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="$_('Open Library on Twitter')" loading="lazy"></a>
-          <a class="footer-icon" title="$_('GitHub')" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="$_('Open Library on GitHub')" loading="lazy"></a>
+          <a class="footer-icon" title="$_('Bluesky')" href="https://bsky.app/profile/openlibrary.org" target="_blank" rel="noopener noreferrer"><img src="/static/images/bsky.svg" alt="$_('Open Library on Bluesky')" loading="lazy"></a>
+          <a class="footer-icon" title="$_('Twitter')" href="https://twitter.com/OpenLibrary" target="_blank" rel="noopener noreferrer"><img src="/static/images/tweet.svg" alt="$_('Open Library on Twitter')" loading="lazy"></a>
+          <a class="footer-icon" title="$_('GitHub')" href="https://github.com/internetarchive/openlibrary" target="_blank" rel="noopener noreferrer"><img src="/static/images/github.svg" alt="$_('Open Library on GitHub')" loading="lazy"></a>
         </aside>
       </div>
       <div>
@@ -60,12 +60,12 @@ $def with (page)
     <div id="footer-details">
       <img id="archive-logo" src="/static/images/pantheon.png" alt="$_('Open Library logo')" loading="lazy">
       <div id="legal-details" >
-        <span>$:_('Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a>')</span>
+        <span>$:_('Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a>')</span>
       </div>
       $ git_rev_hash = get_git_revision_short_hash()
       $if git_rev_hash:
         <div id="version-details">
-          <span class="version">$:_('version <a href="https://github.com/internetarchive/openlibrary/commit/%s">%s</a>', git_rev_hash, git_rev_hash)</span>
+          <span class="version">$:_('version <a href="https://github.com/internetarchive/openlibrary/commit/%s" target="_blank" rel="noopener noreferrer">%s</a>', git_rev_hash, git_rev_hash)</span>
         </div>
     </div>
   </div>
