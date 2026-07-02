@@ -67,6 +67,11 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:open
 WORKDIR /openlibrary
 
 USER openlibrary
+# npm is slower than uv, so run it first for better layer caching
+# Must come before pyproject.toml copy so Python dep changes don't bust the npm cache
+COPY --chown=openlibrary:openlibrary package*.json ./
+RUN npm ci --no-audit
+
 COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Util to make scripts like copydocs work without needing to manually specify PYTHONPATH
@@ -75,9 +80,6 @@ ENV PYTHONPATH=/openlibrary
 ENV PATH="/openlibrary/.venv/bin:${PATH}"
 # Create venv without installing the root /openlibrary project itself (not copied in yet)
 RUN uv sync --frozen --no-install-project --no-dev
-
-COPY --chown=openlibrary:openlibrary package*.json ./
-RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files

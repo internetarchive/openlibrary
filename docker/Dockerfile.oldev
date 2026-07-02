@@ -7,9 +7,10 @@ ARG HTTPS_PROXY
 
 WORKDIR /openlibrary
 
+COPY --chown=openlibrary:openlibrary package*.json ./
+# npm is slower than uv, so run it first for better layer caching
+RUN npm install --no-audit
+
 COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
 # .venv already exists from olbase; just install the extra test dependencies
 RUN uv sync --frozen --no-install-project --extra test
-
-COPY --chown=openlibrary:openlibrary package*.json ./
-RUN npm install --no-audit
