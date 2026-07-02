@@ -310,6 +310,7 @@ div.editionTools p {
   }
 }
 
-.related-books .carousel-container, .lazy-carousel {
+.related-books .carousel-container,
+.lazy-carousel {
   margin: 0 !important;
 }
