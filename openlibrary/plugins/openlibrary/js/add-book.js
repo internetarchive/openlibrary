@@ -176,6 +176,10 @@ function autoCompleteIdName(){
         document.getElementById('id_name').value = 'isbn_13';
     }
 
+    else if (isValidOclc(parseOclc(idValue))){
+        document.getElementById('id_name').value = 'oclc_numbers';
+    }
+
     else if ((isValidLccn(parseLccn(idValue)))){
         document.getElementById('id_name').value = 'lccn';
     }
