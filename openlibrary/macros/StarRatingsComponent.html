@@ -1,14 +1,16 @@
-$def with(ratings_count, ratings_average, cls='')
+$def with(ratings_count, ratings_average, cls='', microdata=True)
 
 $ stats_decimal = (float(ratings_average) - int(ratings_average))
 
 <span
   $if cls:
     class="$cls"
-  itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"
+  $if microdata:
+    itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"
 >
-  <meta itemprop="ratingValue" content="$ratings_average"/>
-  <meta itemprop="ratingCount" content="$ratings_count"/>
+  $if microdata:
+    <meta itemprop="ratingValue" content="$ratings_average"/>
+    <meta itemprop="ratingCount" content="$ratings_count"/>
   $:('<span class="star star--small">★</span>' * int(ratings_average))
   $if (stats_decimal >= 0.5) and (stats_decimal < 1):
     <span class="star star--half star--small">★</span>
