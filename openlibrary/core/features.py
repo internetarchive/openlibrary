@@ -30,7 +30,6 @@ class Features(BaseSettings):
     # dev: bool # Warning: this is setup locally but not in testing/production
     # history_v2: bool # is set to admin in local/testing but in production it's "librarians". We might want to get rid of the flag?
     lists: bool  # we probably want to get rid of this one...
-    recentchanges_v2: bool  # might be able to get rid of this one, but it's used in infogami..
     stats: bool
     stats_header: bool
     superfast: bool

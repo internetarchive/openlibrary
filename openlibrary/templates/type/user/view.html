@@ -79,13 +79,10 @@ $else:
     $ is_librarian_or_higher = ctx.user and ctx.user.is_librarian_or_higher()
 
     $if owners_page or is_librarian_or_higher:
-        $if "recentchanges_v2" in ctx.features:
-            $ changes = render_template("recentchanges/render", author=page.key, limit=25)
-            $if changes.length > 1:
-                <h2>$_('Recent Activity')</h2>
-                $:changes
-            $else:
-                <p>$_("No edits. Yet.")</p>
+        $ changes = render_template("recentchanges/render", author=page.key, limit=25)
+        $if changes.length > 1:
+            <h2>$_('Recent Activity')</h2>
+            $:changes
         $else:
-            $:macros.RecentChangesUsers(author=page, limit=25)
+            <p>$_("No edits. Yet.")</p>
 </div>
