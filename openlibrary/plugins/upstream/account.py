@@ -820,7 +820,6 @@ class account_verify(delegate.page):
         return account_login().login(
             access=r["s3"]["access"],
             secret=r["s3"]["secret"],
-            redirect=i.redirect or "/account/books",
         )
 
 
