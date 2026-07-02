@@ -61,10 +61,10 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --toggle-gap: 10px;
 
             /* Color slots. Default = plain, unchecked toggle; overridden below
-               by [checked] and by the [variant="card"] container states. */
+           by [checked] and by the [variant="card"] container states. */
             --_toggle-bg: transparent;
-            --_toggle-fg: var(--dark-grey);
-            --_toggle-sublabel-fg: #777;
+            --_toggle-fg: var(--color-text);
+            --_toggle-sublabel-fg: var(--color-text-muted);
             --_toggle-border: transparent;
             --_toggle-track: var(--lighter-grey);
             --_toggle-knob: var(--white);
@@ -163,11 +163,11 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --_toggle-bg: var(--white);
 
             /* Shrink the switch so it no longer out-measures the label's text
-               line box. The sibling dropdown trigger is sized by its 14px/1.4
-               text (19.6px tall); with the default 20px switch the toggle's
-               switch would drive the height instead, making the card ~0.4px
-               taller. An 18px track (with a 14px knob) stays under the text
-               line so the two controls end up exactly the same height. */
+           line box. The sibling dropdown trigger is sized by its 14px/1.4
+           text (19.6px tall); with the default 20px switch the toggle's
+           switch would drive the height instead, making the card ~0.4px
+           taller. An 18px track (with a 14px knob) stays under the text
+           line so the two controls end up exactly the same height. */
             --toggle-track-height: 18px;
             --toggle-knob-size: 14px;
 
@@ -176,31 +176,31 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
 
         :host([variant="card"]) .toggle {
             /* Match the sibling dropdown trigger (ol-select-popover's
-               .default-trigger) so the filter row reads as one set of
-               equally-sized controls — same padding and corner radius. */
+           .default-trigger) so the filter row reads as one set of
+           equally-sized controls — same padding and corner radius. */
             padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             border-radius: var(--border-radius-button);
         }
 
         /* Drive the card's height by the same text metrics as the dropdown
-           trigger (14px/1.4) rather than the tighter chip line-height, so the
-           two controls compute to an identical height. */
+       trigger (14px/1.4) rather than the tighter chip line-height, so the
+       two controls compute to an identical height. */
         :host([variant="card"]) .toggle__text {
             line-height: 1.4;
         }
 
         /* The card sits next to a dropdown whose label is regular weight and
-           14px; match it (the toggle's base font-size is already
-           --font-size-body-medium = 14px) so the two controls read alike. */
+       14px; match it (the toggle's base font-size is already
+       --font-size-body-medium = 14px) so the two controls read alike. */
         :host([variant="card"]) .toggle__label {
             font-weight: 400;
         }
 
         /* Card + checked: soft blue tint fill (matching the selected row in
-           the sibling ol-select-popover) with a darker primary-blue border and
-           dark-blue text, so the active state reads clearly without the harsh
-           solid-blue block. The switch track stays solid primary-blue so the
-           on-state remains obvious against the pale surface. */
+       the sibling ol-select-popover) with a darker primary-blue border and
+       dark-blue text, so the active state reads clearly without the harsh
+       solid-blue block. The switch track stays solid primary-blue so the
+       on-state remains obvious against the pale surface. */
         :host([variant="card"][checked]) {
             --_toggle-bg: hsla(202, 96%, 37%, 0.08);
             --_toggle-fg: var(--link-blue);
@@ -211,8 +211,8 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         }
 
         /* Hover backgrounds for the card variant: the neutral card fills with
-           --lightest-grey, and the checked card deepens its blue tint and
-           border (matching the selected-row hover in ol-select-popover). */
+       --lightest-grey, and the checked card deepens its blue tint and
+       border (matching the selected-row hover in ol-select-popover). */
         @media (hover: hover) and (pointer: fine) {
             :host([variant="card"]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--lightest-grey);

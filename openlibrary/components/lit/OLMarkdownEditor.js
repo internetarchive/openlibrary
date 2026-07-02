@@ -163,7 +163,7 @@ export class OLMarkdownEditor extends LitElement {
       background: var(--grey-f4f4f4);
       border-bottom: 1px dashed var(--light-grey);
       font-size: 0.7rem;
-      font-family: monospace;
+      font-family: var(--font-family-mono);
       font-weight: 600;
       color: var(--darker-grey);
     }
@@ -173,7 +173,7 @@ export class OLMarkdownEditor extends LitElement {
       width: 100%;
       border: none;
       padding: 8px;
-      font-family: monospace;
+      font-family: var(--font-family-mono);
       font-size: 0.8rem;
       resize: vertical;
       min-height: 40px;
@@ -201,7 +201,7 @@ export class OLMarkdownEditor extends LitElement {
       border: 1px solid var(--lighter-grey);
       border-radius: var(--border-radius-input);
       padding: 0.1em 0.3em;
-      font-family: monospace;
+      font-family: var(--font-family-mono);
       font-size: 0.85em;
     }
 
@@ -212,7 +212,7 @@ export class OLMarkdownEditor extends LitElement {
       padding: var(--spacing-inset-sm);
       margin: 0 0 0.55em;
       overflow-x: auto;
-      font-family: monospace;
+      font-family: var(--font-family-mono);
       font-size: 0.85em;
     }
 
@@ -250,19 +250,19 @@ export class OLMarkdownEditor extends LitElement {
       .toolbar-btn:hover:not(:disabled) { background: var(--lighter-grey); }
     }
 
-    .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
-
-    .toolbar-btn.is-active {
-      background: var(--light-grey);
-      color: var(--black);
-    }
-
     .toolbar-btn:focus-visible {
       outline: var(--focus-width) solid var(--color-focus-ring);
       outline-offset: -2px;
     }
 
     .toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
+
+    .toolbar-btn.is-active {
+      background: var(--light-grey);
+      color: var(--black);
+    }
 
     .link-popover-wrapper { position: relative; display: inline-flex; }
 
@@ -344,7 +344,7 @@ export class OLMarkdownEditor extends LitElement {
       border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
       background: var(--white);
       color: var(--dark-grey);
-      font-family: monospace;
+      font-family: var(--font-family-mono);
       font-size: 0.75rem;
       line-height: 1.5;
       resize: vertical;

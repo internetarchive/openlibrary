@@ -187,7 +187,7 @@ export default {
 }
 
 .hover {
-  border-color: red;
-  color: red;
+  border-color: var(--color-error-fg);
+  color: var(--color-error-fg);
 }
 </style>

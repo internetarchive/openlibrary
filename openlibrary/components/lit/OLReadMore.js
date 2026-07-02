@@ -54,7 +54,7 @@ export class OLReadMore extends LitElement {
             display: block;
             position: relative;
             --ol-readmore-link-color: hsl(202, 96%, 28%);
-            --ol-readmore-gradient-color: white;
+            --ol-readmore-gradient-color: var(--white);
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
         }
 

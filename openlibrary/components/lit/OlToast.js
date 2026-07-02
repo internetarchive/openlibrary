@@ -73,8 +73,8 @@ export class OlToast extends LitElement {
     static styles = css`
         :host {
             /* Sonner's curve — a strong ease-out with a hint of overshoot.
-               Shared by enter, exit, and stack re-shuffles so the toasts
-               move as one system (paired-elements rule). */
+           Shared by enter, exit, and stack re-shuffles so the toasts
+           move as one system (paired-elements rule). */
             --ol-toast-ease: cubic-bezier(0.21, 1.02, 0.73, 1);
 
             display: block;
@@ -87,9 +87,9 @@ export class OlToast extends LitElement {
                 opacity 400ms var(--ol-toast-ease);
 
             /* Enter starting point: hidden, sitting below its final spot.
-               The component flips data-mounted one frame after connecting,
-               and the transition carries it up into place — same mounted-
-               attribute technique as the reference implementation. */
+           The component flips data-mounted one frame after connecting,
+           and the transition carries it up into place — same mounted-
+           attribute technique as the reference implementation. */
             opacity: 0;
             transform: translateY(8px) scale(0.97);
         }
@@ -100,13 +100,13 @@ export class OlToast extends LitElement {
         }
 
         /* --- Stacked mode: managed by <ol-toast-region> ------------------
-           A plain vertical list anchored to the bottom edge — no depth, no
-           scaling. The region positions each toast by setting
-           --ol-toast-offset (the cumulative height of the newer toasts below
-           it): the newest sits in the bottom slot, older ones stack straight
-           up with a fixed gap. A new toast slides up from below into the
-           bottom slot while the others slide up to make room (the region
-           bumps their offset and the transition carries them). */
+       A plain vertical list anchored to the bottom edge — no depth, no
+       scaling. The region positions each toast by setting
+       --ol-toast-offset (the cumulative height of the newer toasts below
+       it): the newest sits in the bottom slot, older ones stack straight
+       up with a fixed gap. A new toast slides up from below into the
+       bottom slot while the others slide up to make room (the region
+       bumps their offset and the transition carries them). */
         :host([data-stacked]) {
             position: absolute;
             bottom: 0;
@@ -122,7 +122,7 @@ export class OlToast extends LitElement {
         }
 
         /* Invisible bridge over the gap above each toast, so the pointer
-           never "leaves" the stack while moving between toasts */
+       never "leaves" the stack while moving between toasts */
         :host([data-stacked])::after {
             content: '';
             position: absolute;
@@ -164,7 +164,7 @@ export class OlToast extends LitElement {
             font-size: var(--font-size-body-medium);
             line-height: 1.4;
             /* Borderless surface: a hairline ring plus two soft layers,
-               in place of a hard border */
+           in place of a hard border */
             border-radius: var(--border-radius-notification);
             box-shadow:
                 0 0 0 1px var(--icon-link-grey),
@@ -177,8 +177,8 @@ export class OlToast extends LitElement {
         }
 
         /* Type variants are signalled by a leading white glyph in a filled
-           colored circle — sized to the first text line so it reads as part
-           of the message, not a separate badge */
+       colored circle — sized to the first text line so it reads as part
+       of the message, not a separate badge */
         .toast__icon {
             display: flex;
             align-items: center;
@@ -207,7 +207,7 @@ export class OlToast extends LitElement {
             flex: 1;
             overflow-wrap: anywhere;
             /* Applied to the body (not just the message) so slotted rich
-               content gets the same treatment */
+           content gets the same treatment */
             font-size: var(--font-size-body-large);
             font-weight: 500;
         }

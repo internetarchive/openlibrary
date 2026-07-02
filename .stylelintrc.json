@@ -42,5 +42,27 @@
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["openlibrary/components/lit/*.js"],
+      "customSyntax": "postcss-lit"
+    },
+    {
+      "files": ["openlibrary/components/ObservationForm/**/*.vue"],
+      "customSyntax": "postcss-html",
+      "rules": {
+        "color-no-hex": true,
+        "color-named": "never",
+        "scale-unlimited/declaration-strict-value": null,
+        "prettier/prettier": null,
+        "no-descending-specificity": null,
+        "selector-max-specificity": null,
+        "declaration-block-no-redundant-longhand-properties": null,
+        "no-duplicate-selectors": null,
+        "shorthand-property-no-redundant-values": null,
+        "declaration-block-no-duplicate-properties": null
+      }
+    }
+  ]
 }

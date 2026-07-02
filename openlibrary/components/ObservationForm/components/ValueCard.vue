@@ -99,7 +99,7 @@ export default {
 
 <style scoped>
 .value-card {
-  border: 1px solid #999999;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   margin: 1em 3em;
 }

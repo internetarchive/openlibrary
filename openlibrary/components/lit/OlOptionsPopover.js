@@ -163,7 +163,7 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
         }
 
         /* Nested options are a subset of the option above them; indent the
-           whole row so the hierarchy reads at a glance. */
+       whole row so the hierarchy reads at a glance. */
         .item--nested .item-row {
             padding-left: var(--spacing-inset-xl);
         }

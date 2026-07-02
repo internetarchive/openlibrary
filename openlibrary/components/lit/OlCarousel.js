@@ -23,12 +23,12 @@ import { LitElement, html, css, nothing } from 'lit';
  *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
- * @cssprop [--ol-carousel-arrow-color=#333] - Colour of the arrow glyphs
- * @cssprop [--ol-carousel-arrow-icon-bg=#fff] - Background of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-color=var(--color-text)] - Colour of the arrow glyphs
+ * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-surface)] - Background of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-border=hsl(55, 20%, 83%)] - Border of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
- * @cssprop [--ol-carousel-indicator-color=#ccc] - Colour of the inactive page indicators
- * @cssprop [--ol-carousel-indicator-active=#333] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
+ * @cssprop [--ol-carousel-indicator-active=var(--color-text)] - Colour of the active page indicator
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  *
  * @example
@@ -54,16 +54,16 @@ export class OlCarousel extends LitElement {
     static styles = css`
         :host {
             display: block;
-            --_arrow-color: var(--ol-carousel-arrow-color, #333);
-            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, #fff);
+            --_arrow-color: var(--ol-carousel-arrow-color, var(--color-text));
+            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-surface));
             --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, hsl(55, 20%, 83%));
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
-            --_indicator-color: var(--ol-carousel-indicator-color, #ccc);
-            --_indicator-active: var(--ol-carousel-indicator-active, #333);
+            --_indicator-color: var(--ol-carousel-indicator-color, var(--neutral-300));
+            --_indicator-active: var(--ol-carousel-indicator-active, var(--color-text));
             /* Breathing room inside the clipped viewport so slotted items can
-               show a hover lift/shadow without it being cut off. Opt-in: 0 by
-               default, set --ol-carousel-viewport-padding to enable. */
-            --_viewport-padding: var(--ol-carousel-viewport-padding, 0px);
+           show a hover lift/shadow without it being cut off. Opt-in: 0 by
+           default, set --ol-carousel-viewport-padding to enable. */
+            --_viewport-padding: var(--ol-carousel-viewport-padding, 0);
         }
 
         .carousel {
@@ -130,8 +130,8 @@ export class OlCarousel extends LitElement {
         }
 
         /* During drag, make children transparent to pointer events so the
-           browser's click (fired on pointerup) lands on the track, not on
-           any <a> inside the slotted children. */
+       browser's click (fired on pointerup) lands on the track, not on
+       any <a> inside the slotted children. */
         :host(.dragging) ::slotted(*) {
             pointer-events: none !important;
         }
@@ -142,7 +142,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: calc(var(--_peek, 0.075) * 100% + 16px);
-            z-index: 1;
+            z-index: var(--z-index-level-1);
             pointer-events: none;
         }
 
@@ -169,7 +169,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: var(--_arrow-icon-size);
-            z-index: 2;
+            z-index: var(--z-index-level-2);
             border: none;
             background: none;
             cursor: pointer;
@@ -223,7 +223,7 @@ export class OlCarousel extends LitElement {
         }
 
         /* Tactile press: nudge the icon down in scale, matching ol-button,
-           ol-chip, ol-pagination et al. Snaps (no transition) like the others. */
+       ol-chip, ol-pagination et al. Snaps (no transition) like the others. */
         .arrow:active .arrow-icon {
             transform: scale(0.92);
         }

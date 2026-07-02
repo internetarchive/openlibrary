@@ -141,7 +141,7 @@ h3 {
 
 .subtitle {
   margin-top: 5px;
-  color: #505050;
+  color: var(--color-text-secondary);
 }
 
 .chip-group {

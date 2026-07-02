@@ -1391,12 +1391,12 @@
             {
               "description": "Colour of the arrow glyphs",
               "name": "--ol-carousel-arrow-color",
-              "default": "#333"
+              "default": "var(--color-text)"
             },
             {
               "description": "Background of the round arrow buttons",
               "name": "--ol-carousel-arrow-icon-bg",
-              "default": "#fff"
+              "default": "var(--color-surface)"
             },
             {
               "description": "Border of the round arrow buttons",
@@ -1411,12 +1411,12 @@
             {
               "description": "Colour of the inactive page indicators",
               "name": "--ol-carousel-indicator-color",
-              "default": "#ccc"
+              "default": "var(--neutral-300)"
             },
             {
               "description": "Colour of the active page indicator",
               "name": "--ol-carousel-indicator-active",
-              "default": "#333"
+              "default": "var(--color-text)"
             },
             {
               "description": "Inner viewport padding so slotted items can show a hover lift/shadow without being clipped",
@@ -5494,6 +5494,27 @@
           "declaration": {
             "name": "OpenLibraryOTP",
             "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/hard-break.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "OLHardBreak",
+          "description": "OLHardBreak – a hard-break node that serializes to OLMarkdown's dialect.\n\nThe server-side display renderer (OLMarkdown, a vendored Python-Markdown)\ntreats every newline inside a paragraph as a `<br>` and has no escape syntax\nfor hard breaks. tiptap-markdown's default serializer emits CommonMark's\n`\\<newline>`; that trailing backslash makes OLMarkdown escape the `<` of the\n`<br/>` it injects, so readers see the literal text `<br />`.\n\nEmitting a bare newline instead keeps the two renderers in agreement, and\nre-saving a page through the editor cleans up any legacy backslash/`<br>`\ncruft. See internetarchive/openlibrary#13074."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLHardBreak",
+          "declaration": {
+            "name": "OLHardBreak",
+            "module": "openlibrary/components/lit/hard-break.js"
           }
         }
       ]

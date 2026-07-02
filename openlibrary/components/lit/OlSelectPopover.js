@@ -111,9 +111,9 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         /* Active: soft blue tint fill with a darker primary-blue border and
-           dark-blue text — matches the active ol-toggle card variant in the
-           same filter row (and the selected row in this popover's own list).
-           The chevron inherits currentColor, so it picks up the blue too. */
+       dark-blue text — matches the active ol-toggle card variant in the
+       same filter row (and the selected row in this popover's own list).
+       The chevron inherits currentColor, so it picks up the blue too. */
         .default-trigger--active {
             background: hsla(202, 96%, 37%, 0.08);
             border-color: hsla(202, 96%, 37%, 0.35);
@@ -213,7 +213,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         /* iOS zooms in on focus when the input font is < 16px; bump it up on
-           mobile to suppress that. */
+       mobile to suppress that. */
         @media (max-width: 767px) {
             .filter-input { font-size: var(--font-size-body-large); }
         }
@@ -244,10 +244,10 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
-           Caps at ~5 items so a long selection doesn't dominate the panel;
-           items scroll within when over the cap. flex-shrink: 0 prevents the
-           flex layout from collapsing it below content size — needed because
-           overflow-y: auto sets implied min-height to 0. */
+       Caps at ~5 items so a long selection doesn't dominate the panel;
+       items scroll within when over the cap. flex-shrink: 0 prevents the
+       flex layout from collapsing it below content size — needed because
+       overflow-y: auto sets implied min-height to 0. */
         .group--selected {
             flex-shrink: 0;
             max-height: 200px;

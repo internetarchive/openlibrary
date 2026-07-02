@@ -89,7 +89,7 @@ export class OlPagination extends LitElement {
             padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             border-radius: var(--border-radius-button);
             background: transparent;
-            color: var(--darker-grey, #444);
+            color: var(--color-text);
             cursor: pointer;
             text-decoration: none;
             font-variant-numeric: tabular-nums;
@@ -101,27 +101,27 @@ export class OlPagination extends LitElement {
             }
         }
 
-        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
-            transform: scale(0.92);
-        }
-
         .pagination-item:focus {
             outline: none;
         }
 
         .pagination-item:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring, #5B8DD9);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
+        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
+            transform: scale(0.92);
+        }
+
         .pagination-item[aria-current="page"] {
-            background-color: var(--lightest-grey, #eee);
+            background-color: var(--color-surface-sunken);
             cursor: default;
             user-select: none;
         }
 
         .pagination-item[aria-disabled="true"] {
-            color: var(--lighter-grey, #ddd);
+            color: var(--neutral-300);
             cursor: not-allowed;
         }
 
@@ -133,7 +133,7 @@ export class OlPagination extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--mid-grey, #aaa);
+            color: var(--neutral-400);
             cursor: default;
             user-select: none;
         }

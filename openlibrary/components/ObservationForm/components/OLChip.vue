@@ -103,7 +103,7 @@ export default {
 <style scoped>
 .chip {
   padding: 4px 12px;
-  border: 1px solid #999999;
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   user-select: none;
 }
@@ -113,17 +113,16 @@ export default {
 }
 
 .chip--selectable:hover {
-  background-color: #e6e6e6;
+  background-color: var(--neutral-200);
 }
 
 .chip--selected {
-  background-color: white;
-  border-color: #1976d2;
-  color: #1976d2;
-  background-color: #f6fafe;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
 }
 
 .chip--selected:hover {
-  background-color: white;
+  background-color: var(--color-surface);
 }
 </style>

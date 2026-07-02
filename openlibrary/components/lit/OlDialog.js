@@ -176,10 +176,9 @@ export class OlDialog extends LitElement {
         }
 
         /* Top-anchored placement: keeps the dialog's top edge fixed as its
-           own height grows or shrinks (search modal / command palette). */
+       own height grows or shrinks (search modal / command palette). */
         :host([placement="top"]) dialog {
-            margin-block-start: var(--ol-dialog-top-offset);
-            margin-block-end: auto;
+            margin-block: var(--ol-dialog-top-offset) auto;
             max-height: calc(100dvh - var(--ol-dialog-top-offset) - var(--spacing-xl));
             transform-origin: top center;
         }
@@ -228,8 +227,8 @@ export class OlDialog extends LitElement {
         }
 
         /* Fullscreen on mobile — overrides width preset and removes chrome.
-           Also neutralizes placement="top" so the dialog truly fills the
-           viewport (no top offset, no leftover max-height clamp). */
+       Also neutralizes placement="top" so the dialog truly fills the
+       viewport (no top offset, no leftover max-height clamp). */
         @media (max-width: 767px) {
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
@@ -240,8 +239,7 @@ export class OlDialog extends LitElement {
             }
 
             :host([fullscreen-on-mobile][placement="top"]) dialog {
-                margin-block-start: 0;
-                margin-block-end: 0;
+                margin-block: 0;
                 max-height: 100dvh;
             }
         }

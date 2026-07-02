@@ -79,7 +79,7 @@ export class OpenLibraryOTP extends LitElement {
                 display: flex;
             }
             .ol-otp-dialog {
-                background: #fff;
+                background: var(--color-surface);
                 border-radius: 8px;
                 padding: 2rem;
                 max-width: 400px;
@@ -119,15 +119,15 @@ export class OpenLibraryOTP extends LitElement {
             .ol-otp-email-form input[type='email'] {
                 padding: 8px;
                 font-size: 1rem;
-                border: 1px solid #ccc;
+                border: 1px solid var(--color-border);
                 border-radius: 4px;
                 width: 100%;
                 box-sizing: border-box;
             }
             .ol-otp-email-form button[type='submit'] {
                 padding: 8px 16px;
-                background: var(--ia-button-primary-bg, #4b4bdf);
-                color: var(--ia-button-primary-color, #fff);
+                background: var(--ia-button-primary-bg, var(--color-primary));
+                color: var(--ia-button-primary-color, var(--color-on-primary));
                 border: none;
                 border-radius: 4px;
                 font-size: 1rem;
@@ -140,16 +140,18 @@ export class OpenLibraryOTP extends LitElement {
                 cursor: not-allowed;
             }
             .ol-otp-error {
-                color: var(--color-danger, #c00);
+                color: var(--color-error-fg);
                 font-size: 0.9rem;
                 margin: 0;
             }
             ia-otp-form {
                 --font-size-standard: 0.95rem;
                 --font-size-lg: 1.5rem;
-                --color-success: #008000;
-                --color-danger: #c00;
-                --link-color: #4b4bdf;
+                /* ia-otp-form's own custom-property API - keep the names,
+                   feed them Open Library token values. */
+                --color-success: var(--color-success-fg);
+                --color-danger: var(--color-error-fg);
+                --link-color: var(--color-link);
                 margin-top: 0.5rem;
             }
             .ol-otp-focus-sentinel {
@@ -226,8 +228,8 @@ export class OpenLibraryOTP extends LitElement {
         :host { display: inline-block; }
 
         .trigger-btn {
-            background: var(--primary-blue, hsl(202, 96%, 37%));
-            color: var(--ia-button-primary-color, #fff);
+            background: var(--color-primary);
+            color: var(--color-on-primary);
             border: none;
             border-radius: 4px;
             padding: 8px 16px;

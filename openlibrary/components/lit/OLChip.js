@@ -53,12 +53,12 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --chip-icon-gap: var(--spacing-2xs);
 
             /* Color slots. Default = idle, unselected neutral chip; overridden
-               below by [selected] and by each domain [variant]. */
-            --_chip-bg: var(--white);
-            --_chip-fg: var(--dark-grey);
+           below by [selected] and by each domain [variant]. */
+            --_chip-bg: var(--color-surface);
+            --_chip-fg: var(--color-text);
             --_chip-border: var(--color-border-subtle);
-            --_chip-bg-hover: var(--lightest-grey);
-            --_chip-count-fg: #777;
+            --_chip-bg-hover: var(--color-surface-sunken);
+            --_chip-count-fg: var(--color-text-muted);
 
             display: inline-block;
         }
@@ -103,11 +103,11 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
         /* Default selected (no domain variant): solid primary-blue fill. */
         :host([selected]:not([variant])) {
-            --_chip-bg: var(--primary-blue);
-            --_chip-fg: var(--white);
-            --_chip-border: var(--primary-blue);
-            --_chip-bg-hover: var(--primary-blue);
-            --_chip-count-fg: #c6e1f0;
+            --_chip-bg: var(--color-primary);
+            --_chip-fg: var(--color-on-primary);
+            --_chip-border: var(--color-primary);
+            --_chip-bg-hover: var(--color-primary);
+            --_chip-count-fg: var(--blue-100);
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -122,9 +122,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         }
 
         /* ── Domain variants: soft category-colored tint ──────────────────
-           The tint is identical whether or not the chip is selected; the
-           [selected] rule above only reserves space for the close icon, so a
-           selected variant chip reads as a removable, category-colored pill. */
+       The tint is identical whether or not the chip is selected; the
+       [selected] rule above only reserves space for the close icon, so a
+       selected variant chip reads as a removable, category-colored pill. */
         :host([variant="language"]) {
             --_chip-bg: var(--color-chip-language-bg);
             --_chip-fg: var(--color-chip-language-fg);

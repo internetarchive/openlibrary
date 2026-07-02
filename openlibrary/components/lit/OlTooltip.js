@@ -64,7 +64,7 @@ export class OlTooltip extends LitElement {
 
         .tooltip {
             position: fixed;
-            z-index: 1000;
+            z-index: var(--z-index-level-14);
             display: none;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;

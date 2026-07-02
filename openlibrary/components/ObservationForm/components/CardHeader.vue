@@ -23,7 +23,7 @@ export default {
 
 <style scoped>
 .card-header {
-  border-bottom: 1px solid #999;
+  border-bottom: 1px solid var(--color-border);
   margin: 1em;
   padding-bottom: 1em;
 }
