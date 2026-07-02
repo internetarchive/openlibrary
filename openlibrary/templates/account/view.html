@@ -32,10 +32,9 @@ $var title: $header_title
                           document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
                       });
                   }
-                  var dismiss = container.querySelector('.page-banner--dismissable-close');
-                  if (dismiss) {
-                      dismiss.setAttribute('data-ol-link-track', 'PreserveIntent|Dismiss');
-                  }
+                  container.addEventListener('ol-banner-dismiss', (e) => {
+                    document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                  })
               }
           });
         </script>

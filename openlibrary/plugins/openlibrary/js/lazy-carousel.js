@@ -1,6 +1,15 @@
 import {initialzeCarousels} from './carousel';
 import { buildPartialsUrl } from './utils';
 
+let relatedBooksTracked = false;
+let bannerClicked = false;
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('a[href="#related-work-carousel"]')) {
+        bannerClicked = true;
+    }
+});
+
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
  * scrolls near any of the given elements
@@ -93,7 +102,7 @@ function doFetchAndUpdate(target) {
                     const isUnavailable = unavailableStates.indexOf(lendingState) !== -1;
 
                     let action;
-                    if (window.location.hash === '#related-work-carousel') {
+                    if (bannerClicked) {
                         action = 'FromBanner';
                     } else if (isUnavailable) {
                         action = 'ScrolledDownUnavailable';
@@ -101,11 +110,13 @@ function doFetchAndUpdate(target) {
                         action = 'ScrolledDownAvailable';
                     }
 
-                    if (window.archive_analytics && window.archive_analytics.ol_send_event_ping) {
+                    if (!relatedBooksTracked && window.archive_analytics && window.archive_analytics.ol_send_event_ping) {
                         window.archive_analytics.ol_send_event_ping({
                             category: 'OpenRelatedBooks',
-                            action: action
+                            action: action,
+                            label: lendingState,
                         });
+                        relatedBooksTracked = true;
                     }
                 }
             }
