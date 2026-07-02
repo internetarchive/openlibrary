@@ -817,10 +817,10 @@ class account_verify(delegate.page):
             )
             raise web.seeother("/account/create")
         add_flash_message("success", _("Your email has been verified. You are now logged in."))
-        return account_login().login(
-            access=r["s3"]["access"],
-            secret=r["s3"]["secret"],
-        )
+        kwargs = {"access": r["s3"]["access"], "secret": r["s3"]["secret"]}
+        if i.redirect:
+            kwargs["redirect"] = i.redirect
+        return account_login().login(**kwargs)
 
 
 class account_ia_email_forgot(delegate.page):
