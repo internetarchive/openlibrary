@@ -1,0 +1,35 @@
+name: Issue Enrichment
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: issue-enrichment-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.user.type != 'Bot' &&
+      !contains(github.event.issue.labels.*.name, 'agentic-workflows')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enrich issue
+        uses: anthropics/claude-code-action@v1
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.OL_CLAUDE_CODE_TOKEN }}
+          GH_TOKEN: ${{ secrets.OL_BOT_PAT }}
+        with:
+          prompt: |
+            @.github/workflows/issue_enrichment.md
+
+            Issue #${{ github.event.issue.number }} was just opened by @${{ github.event.issue.user.login }}.
+            Title: ${{ github.event.issue.title }}
+          claude_args: "--max-turns 30"
