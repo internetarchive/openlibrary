@@ -7,7 +7,7 @@
 
 @media screen and (min-width: 769px /* @width-breakpoint-tablet */) {
   .compact-title {
-    background: var(--white);
+    background: var(--color-surface);
     display: flex;
     justify-content: space-between;
     align-items: baseline;

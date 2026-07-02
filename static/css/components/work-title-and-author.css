@@ -14,7 +14,7 @@
 .work-title-and-author h1.work-title {
   font-family: var(--font-family-title);
   margin: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-headline-large);
   overflow-wrap: break-word;
 }
@@ -22,27 +22,27 @@
 .work-title-and-author h2.work-subtitle {
   font-family: var(--font-family-subtitle);
   margin: 0;
-  color: var(--grey);
-  font-size: 1.3em;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-title-large);
   font-weight: normal;
   font-style: italic;
 }
 
 .work-title-and-author h2.edition-byline {
-  font-size: var(--font-size-title-medium);
+  font-size: var(--font-size-body-medium);
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin: 10px 0 20px;
   line-height: var(--line-height-meta);
 }
 
 .work-title-and-author .work-line {
   font-style: oblique;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .work-line a {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .series-line a {
@@ -51,7 +51,7 @@
 }
 
 .work-title-and-author .first-published-date {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-label-medium);
 }
 
@@ -83,15 +83,15 @@
   }
 
   .work-title-and-author h1.work-title {
-    font-size: 1.375em;
+    font-size: var(--font-size-title-large);
   }
 
   .work-title-and-author h2.work-subtitle {
-    font-size: 1em;
+    font-size: var(--font-size-title-medium);
   }
 
   .work-title-and-author h2.edition-byline {
-    font-size: 0.875em;
+    font-size: var(--font-size-body-medium);
     margin-bottom: 10px;
     line-height: var(--line-height-meta);
   }
@@ -109,8 +109,8 @@
   }
 
   .work-title-and-author .share-modal-link .icon-link__text {
-    color: var(--dark-grey);
-    font-size: 0.675em;
+    color: var(--color-text);
+    font-size: var(--font-size-label-small);
   }
 
   /* When there are no reviews, hide the review count text */
@@ -137,7 +137,7 @@
 
   .work-title-and-author .readers-stats li.avg-ratings,
   .work-title-and-author .readers-stats li.readers-stats__review-count {
-    font-size: 0.85em;
+    font-size: var(--font-size-body-small);
   }
 
   /* On mobile only, the rating count text has parentheses around it */

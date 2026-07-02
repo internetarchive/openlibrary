@@ -16,12 +16,12 @@
 
 .read-options,
 .btn-notice {
-  font-size: 1em;
+  font-size: var(--font-size-body-large);
   padding: 15px;
   margin-bottom: 10px;
-  background-color: var(--white);
+  background-color: var(--color-surface);
   border-radius: 5px;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   margin-top: 0;
 }
 
@@ -38,7 +38,7 @@
 /* Preview button appears styled as a text link with a book icon */
 .read-options .cta-btn.cta-btn--preview,
 .btn-notice .cta-btn.cta-btn--preview {
-  color: var(--primary-blue);
+  color: var(--color-primary);
   text-decoration: none;
   position: relative;
   margin: 0 auto;
@@ -72,7 +72,7 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -85,13 +85,13 @@
 
 .read-options .cta-section,
 .btn-notice .cta-section {
-  font-size: 0.78em;
+  font-size: var(--font-size-label-medium);
 }
 
 .read-options .check-availability,
 .btn-notice .check-availability {
   font-size: var(--font-size-label-large);
-  border-top: 1px solid var(--lightest-grey);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .read-options .check-other-editions,
@@ -101,13 +101,13 @@
 
 .read-options strong,
 .btn-notice strong {
-  font-size: 12.5px;
+  font-size: var(--font-size-body-small);
   font-weight: bold;
 }
 
 .read-options .cta-section-title,
 .btn-notice .cta-section-title {
-  font-size: 12.5px;
+  font-size: var(--font-size-body-small);
   display: block;
   font-weight: bold;
 }
@@ -151,9 +151,9 @@ ul.ebook-download-options li {
 .sponsorship-card {
   border-radius: 5px;
   padding: 10px;
-  border: 2px solid hsla(202, 96%, 28%, 0.2);
-  background: hsla(202, 40%, 95%, 0.5);
-  font-size: 0.8em;
+  border: 2px solid var(--blue-200);
+  background: var(--color-primary-subtle);
+  font-size: var(--font-size-body-small);
   text-align: center;
 }
 
@@ -164,11 +164,11 @@ ul.ebook-download-options li {
 }
 
 .sponsorship-card hr {
-  background: hsla(202, 96%, 28%, 0.35);
+  background: var(--blue-200);
 }
 
 .sponsorship-card a.learn-more {
-  font-size: 0.9em;
+  font-size: var(--font-size-body-medium);
 }
 
 .Tools .booklinks li {
@@ -263,11 +263,11 @@ ul.ebook-download-options li {
   }
 
   .readers-stats__wrapper.mobile .readers-stats li .readers-stats__label {
-    font-size: 0.85em;
+    font-size: var(--font-size-body-small);
   }
 
   .readers-stats__wrapper.mobile .readers-stats li + li {
-    border-right: solid 1px var(--lighter-grey);
+    border-right: solid 1px var(--color-border-subtle);
   }
 
   .readers-stats__wrapper.mobile .readers-stats li:last-child {

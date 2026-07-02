@@ -70,11 +70,11 @@ div.editionAbout p.featured-count {
   flex: 1;
   margin-top: 5px;
   margin-bottom: 14px;
-  font-size: 1.375em;
+  font-size: var(--font-size-title-large);
 }
 
 .workFooter .lists-heading a {
-  color: var(--link-blue);
+  color: var(--color-link);
   font-size: var(--font-size-title-medium);
 }
 /* stylelint-enable selector-max-specificity */
@@ -107,7 +107,7 @@ div.editionAbout p.featured-count {
 .edition-notes ol li,
 .book-description ol li {
   list-style-type: initial;
-  font-size: 0.8rem;
+  font-size: var(--font-size-body-small);
 }
 
 .checkboxes label {
@@ -147,14 +147,14 @@ div.editionAbout p.featured-count {
 
 .edition-overview .edition-title {
   margin-bottom: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 .edition-overview .edition-subtitle {
   margin-top: 5px;
-  font-size: 1.4em;
+  font-size: var(--font-size-title-large);
   font-weight: normal;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 a.section-anchor {
@@ -190,7 +190,7 @@ div.editionTools {
 }
 
 div.editionTools p {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 @media only screen and (min-width: 960px) {
@@ -209,7 +209,7 @@ div.editionTools p {
 }
 
 .admin-bar {
-  background-color: var(--lightest-grey);
+  background-color: var(--color-surface-sunken);
 }
 
 .admin-bar form {
@@ -246,7 +246,7 @@ div.editionTools p {
   flex: 1;
   padding: 9px;
   margin: 0 4px;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 5px;
   font-size: var(--font-size-body-medium);
   word-break: break-word;
@@ -257,7 +257,7 @@ div.editionTools p {
 .edition-omniline-item div {
   margin-bottom: 4px;
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   word-wrap: break-word;
 }
 
@@ -288,20 +288,20 @@ div.editionTools p {
 
 .tab-section {
   padding: 10px;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 5px;
   clear: both;
 }
 
 .preview-languages {
-  font-size: 0.8em;
-  color: var(--grey);
+  font-size: var(--font-size-body-small);
+  color: var(--color-text-secondary);
 }
 
 .list-heading {
-  font-size: 1.2em;
+  font-size: var(--font-size-title-large);
   font-weight: normal;
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 @media only screen and (max-width: 960px) {

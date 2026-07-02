@@ -53,7 +53,11 @@
         "static/css/components/category-item.css",
         "static/css/components/page-banner.css",
         "static/css/components/search-result-item.css",
-        "static/css/components/sort-dropper.css"
+        "static/css/components/sort-dropper.css",
+        "static/css/components/work-title-and-author.css",
+        "static/css/components/editions.css",
+        "static/css/components/nav-bar.css",
+        "static/css/components/read-panel.css"
       ],
       "rules": {
         "scale-unlimited/declaration-strict-value": [

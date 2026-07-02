@@ -19,7 +19,7 @@
   justify-content: center;
   height: 30px;
   text-decoration: none;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0 12px;
   line-height: var(--line-height-control);
   border-bottom: 2px solid transparent;
@@ -27,12 +27,12 @@
 
 /* stylelint-disable selector-max-specificity */
 .nav-bar:not(.work-menu) li.selected a {
-  color: var(--link-blue);
-  border-bottom: 2px solid var(--link-blue);
+  color: var(--color-link);
+  border-bottom: 2px solid var(--color-link);
 }
 
 .nav-bar:not(.work-menu) li:hover a {
-  border-bottom: 2px solid var(--link-blue);
+  border-bottom: 2px solid var(--color-link);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -42,7 +42,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 20px;
-  background: var(--white);
+  background: var(--color-surface);
   z-index: var(--z-index-level-5);
 }
 
@@ -124,7 +124,7 @@
 @media (hover: hover) and (pointer: fine) {
   /* stylelint-disable max-nesting-depth */
   .nav-bar-wrapper .nav-bar.work-menu li:hover {
-    background-color: hsl(212, 39%, 45%); /* darken(@blue-5e88B9, 10%) */
+    background-color: var(--blue-500);
   }
 
   .nav-bar-wrapper .nav-bar.work-menu li:hover a {
