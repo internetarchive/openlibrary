@@ -6,7 +6,7 @@
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link with a book icon */
 .bookcover .cta-btn.cta-btn--preview {
-  color: var(--primary-blue);
+  color: var(--color-primary);
   text-decoration: none;
   position: relative;
   background-color: transparent;
@@ -39,7 +39,7 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -59,11 +59,11 @@
 
 .searchResultItem {
   list-style-type: none;
-  background-color: var(--grey-fafafa);
+  background-color: var(--color-surface);
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-sm);
   margin-bottom: var(--spacing-stack-xs);
-  border-bottom: 1px solid var(--light-beige);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .searchResultItem.sri--w-main {
@@ -78,8 +78,8 @@
   display: block;
   margin: 0;
   padding: 0;
-  color: var(--dark-grey);
-  font-size: 1.1em;
+  color: var(--color-text);
+  font-size: var(--font-size-title-medium);
   font-weight: 700;
   font-family: var(--font-family-title);
   overflow: auto;
@@ -96,14 +96,14 @@
 }
 
 .searchResultItem .resultStats {
-  font-size: 0.75em;
-  color: var(--grey);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   display: block;
 }
 
 .searchResultItem span.resultType {
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
 }
 
 .searchResultItem .bookseries {
@@ -120,7 +120,7 @@
 }
 
 .searchResultItem .ratingsByline {
-  color: var(--black);
+  color: var(--color-text);
 }
 
 .search-result-item__preview-covers {
@@ -131,7 +131,7 @@
 
 .search-result-item__preview-covers img {
   border-radius: var(--border-radius-thumbnail);
-  border: 2px solid var(--grey-fafafa);
+  border: 2px solid var(--color-surface);
   opacity: 1;
 }
 
@@ -229,9 +229,9 @@
 }
 
 .srw__chapters {
-  background: rgba(0, 124, 255, 0.2);
+  background: var(--color-primary-subtle);
   border-radius: 4px;
-  color: var(--black);
+  color: var(--color-text);
   margin-bottom: var(--spacing-stack-xs);
   font-size: var(--font-size-label-medium);
 }
@@ -249,7 +249,6 @@
   display: flex;
   gap: var(--spacing-inline-sm);
   line-height: 1.2em;
-  transition: background-color 0.2s;
 }
 
 .srw__chapters .srw__chapter em {
@@ -258,23 +257,22 @@
 
 /* stylelint-disable-next-line selector-max-specificity */
 .srw__chapters a.srw__chapter:hover {
-  background: rgba(0, 124, 255, 0.2);
+  background: var(--blue-100);
 }
 
 .searchResultItem__librarian-extras {
-  font-size: 0.7em;
+  font-size: var(--font-size-label-small);
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));
-  color: var(--grey);
+  color: var(--color-text-muted);
   padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
-  transition: color 0.2s;
   text-decoration: dotted underline;
 }
 
 .searchResultItem__librarian-extras:hover {
-  color: var(--primary-blue);
+  color: var(--color-link);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -283,7 +281,7 @@
   }
 
   .search-result-item__preview-covers :hover img {
-    border-color: var(--primary-blue);
+    border-color: var(--color-primary);
   }
 }
 
@@ -325,7 +323,7 @@
 
 .trending-badge {
   display: inline-block;
-  background-color: hsla(81, 39%, 35%, 0.12);
+  background-color: var(--green-50);
   border-radius: var(--border-radius-pill);
   padding: 0 var(--spacing-inset-md);
 }
@@ -340,7 +338,7 @@
 .trending-badge .trending-badge__chart > span {
   display: inline-block;
   width: 4px;
-  background: var(--green);
+  background: var(--green-500);
 }
 
 @media only screen and (min-width: 768px /* @width-breakpoint-tablet */) {

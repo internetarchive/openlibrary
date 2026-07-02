@@ -51,7 +51,9 @@
         "static/css/components/home.css",
         "static/css/components/carousel.css",
         "static/css/components/category-item.css",
-        "static/css/components/page-banner.css"
+        "static/css/components/page-banner.css",
+        "static/css/components/search-result-item.css",
+        "static/css/components/sort-dropper.css"
       ],
       "rules": {
         "scale-unlimited/declaration-strict-value": [

@@ -40,12 +40,12 @@
 @import "components/provider-table.css";
 
 body {
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-disable selector-max-specificity */
 div#background {
   width: 100%;
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-enable selector-max-specificity */
 div.message {
@@ -53,7 +53,7 @@ div.message {
   clear: both;
   width: 100%;
   margin-bottom: var(--spacing-stack-md);
-  background: var(--light-yellow);
+  background: var(--color-warning-bg);
 }
 div.message p {
   font-family: var(--font-family-body);
@@ -64,7 +64,7 @@ div.siteSearch {
   order: 3;
 }
 div.siteSearch.darker {
-  background-color: var(--grey-f3f3f3);
+  background-color: var(--color-surface-sunken);
   padding-right: 22px;
 }
 /* Stack the search box, filter row, selected-facet chips, and results stats */
@@ -137,7 +137,7 @@ div.lists {
 }
 
 th.toggle-all {
-  background: var(--primary-blue);
+  background: var(--color-primary);
 }
 
 .div-class {
