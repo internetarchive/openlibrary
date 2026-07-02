@@ -104,10 +104,19 @@ export class OlCarousel extends LitElement {
         }
 
         /* ── Viewport ── */
+        /* The viewport owns the swipe gesture (pointerdown listener,
+           touch-action, user-select) rather than the track: once the track
+           is translated to another page, its own hit-box only covers the
+           peek sliver — gaps, padding, and inert off-page items would fall
+           through it, and iOS Safari hit-testing of overflowing children of
+           transformed elements is unreliable. The viewport never moves. */
         .viewport {
             position: relative;
             overflow: hidden;
             padding-block: var(--_viewport-padding);
+            touch-action: pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* ── Track ── */
@@ -115,9 +124,6 @@ export class OlCarousel extends LitElement {
             display: flex;
             gap: var(--_gap, 4px);
             will-change: transform;
-            touch-action: pan-y pinch-zoom;
-            user-select: none;
-            -webkit-user-select: none;
         }
 
         /* ── Slotted items ── */
@@ -256,6 +262,26 @@ export class OlCarousel extends LitElement {
         precision: 0.02, // Threshold to snap to final position; lower = smoother finish, higher = earlier cutoff
     };
 
+    /** Movement (px) before a touch gesture is locked to an axis.
+     *  Kept small so the carousel claims horizontal swipes before the
+     *  browser commits the gesture to vertical page scrolling. */
+    static _axisLockThreshold = 8;
+
+    /** Horizontal bias for the axis lock. A gesture only goes to page
+     *  scrolling when |dy| > |dx| × this factor, so the carousel catches
+     *  angled swipes (2 ≈ anything within ~63° of horizontal) instead of
+     *  splitting at an unforgiving 45° — real thumb swipes drift vertically. */
+    static _horizontalBias = 2;
+
+    /** Minimum window (ms) between velocity samples. Coalesced pointer
+     *  events can arrive microseconds apart; dividing by such a tiny dt
+     *  produces absurd velocity spikes, so short gaps accumulate instead. */
+    static _velocitySampleWindow = 4;
+
+    /** Release velocity is capped here (px/ms) so a single noisy sample
+     *  can never fling the track further than a hard real-world flick. */
+    static _maxVelocity = 4;
+
     /** Apply rubber-band resistance when position exceeds bounds.
      *  Uses an iOS-style formula: overscroll is dampened asymptotically
      *  so the track resists increasingly as you drag further out.
@@ -298,11 +324,18 @@ export class OlCarousel extends LitElement {
         // Pointer / drag state (non-reactive for zero-overhead drag)
         this._dragging = false;
         this._pointerStartX = 0;
+        this._pointerStartY = 0;
         this._pointerId = null;
         this._dragDelta = 0;
         this._velocity = 0;
         this._pointerPrevX = 0;
         this._pointerPrevTime = 0;
+
+        // Gesture axis lock: null until the pointer travels past
+        // _axisLockThreshold, then 'x' (carousel drag) or 'y' (page scroll —
+        // the drag is abandoned). Mouse pointers lock to 'x' immediately
+        // since they never conflict with page scrolling.
+        this._axisLock = null;
 
         // Drag-click prevention: set true when a drag exceeds the movement
         // threshold. Checked by the capture-phase click handler to suppress
@@ -316,6 +349,8 @@ export class OlCarousel extends LitElement {
         this._onPointerDown = this._onPointerDown.bind(this);
         this._onPointerMove = this._onPointerMove.bind(this);
         this._onPointerUp = this._onPointerUp.bind(this);
+        this._onPointerCancel = this._onPointerCancel.bind(this);
+        this._onTouchMove = this._onTouchMove.bind(this);
         this._onClickCapture = this._onClickCapture.bind(this);
     }
 
@@ -345,6 +380,7 @@ export class OlCarousel extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('click', this._onClickCapture, true);
+        this._removeDragListeners();
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
         this._cancelAnimation();
@@ -636,9 +672,26 @@ export class OlCarousel extends LitElement {
     //  - Track drag movement even when the pointer leaves the carousel
     //  - Preserve native click target resolution so <a> tags work normally
     //  - Work for both mouse and touch (touch has implicit capture anyway)
+    //
+    // TOUCH GESTURE OWNERSHIP: the track's `touch-action: pan-y pinch-zoom`
+    // leaves vertical panning to the browser, so a touch gesture starts out
+    // ambiguous — it could become a carousel swipe or a page scroll. We
+    // resolve it with an axis lock: the first _axisLockThreshold px of
+    // movement decide the owner.
+    //  - Mostly vertical → the drag is abandoned (no navigation, no track
+    //    movement) and the browser scrolls the page.
+    //  - Mostly horizontal → the carousel claims the gesture and a
+    //    non-passive touchmove listener calls preventDefault() so the page
+    //    cannot scroll underneath the swipe.
+    // If the browser wins the race and takes the gesture first, it fires
+    // pointercancel — handled as an abort (spring home), never a navigation.
 
     _onPointerDown(e) {
         if (e.button !== 0) return;
+
+        // The viewport hosts the arrow buttons too — a press on an arrow is
+        // a click, not the start of a drag.
+        if (e.target?.closest?.('.arrow')) return;
 
         // Interrupt any running animation and start from current position
         this._cancelAnimation();
@@ -646,20 +699,65 @@ export class OlCarousel extends LitElement {
         this._dragging = true;
         this._draggedPastThreshold = false;
         this._pointerStartX = e.clientX;
+        this._pointerStartY = e.clientY;
         this._pointerId = e.pointerId;
         this._dragDelta = 0;
         this._velocity = 0;
         this._pointerPrevX = e.clientX;
         this._pointerPrevTime = performance.now();
 
+        // A mouse never scrolls the page by dragging, so there is no gesture
+        // ambiguity to resolve — lock to the carousel axis immediately.
+        this._axisLock = e.pointerType === 'mouse' ? 'x' : null;
+
         // Use window-level listeners instead of pointer capture.
         window.addEventListener('pointermove', this._onPointerMove);
         window.addEventListener('pointerup', this._onPointerUp);
-        window.addEventListener('pointercancel', this._onPointerUp);
+        window.addEventListener('pointercancel', this._onPointerCancel);
+        // Non-passive so we can preventDefault() page scrolling once the
+        // gesture is locked horizontal (see _onTouchMove).
+        window.addEventListener('touchmove', this._onTouchMove, { passive: false });
+    }
+
+    /** While a drag is locked horizontal, block the browser's vertical page
+     *  scroll so the swipe owns the gesture exclusively. Before the axis lock
+     *  resolves (or when it resolves vertical) this does nothing and native
+     *  scrolling proceeds as normal. */
+    _onTouchMove(e) {
+        if (this._dragging && this._axisLock === 'x' && e.cancelable) {
+            e.preventDefault();
+        }
     }
 
     _onPointerMove(e) {
         if (!this._dragging || e.pointerId !== this._pointerId) return;
+
+        // Resolve the axis lock for touch/pen gestures. Until the pointer
+        // leaves the dead zone the track does not move at all — this keeps
+        // vertical page scrolling from wiggling the carousel sideways.
+        if (!this._axisLock) {
+            const dx = e.clientX - this._pointerStartX;
+            const dy = e.clientY - this._pointerStartY;
+            if (Math.abs(dx) < OlCarousel._axisLockThreshold
+                && Math.abs(dy) < OlCarousel._axisLockThreshold) {
+                return;
+            }
+            if (Math.abs(dy) > Math.abs(dx) * OlCarousel._horizontalBias) {
+                // Clearly vertical: hand it to the browser for page scroll.
+                this._abortDrag();
+                return;
+            }
+            this._axisLock = 'x';
+            // Re-anchor the drag at the lock point so the track doesn't
+            // jump by the dead-zone distance on the first locked frame.
+            this._pointerStartX = e.clientX;
+            this._pointerPrevX = e.clientX;
+            this._pointerPrevTime = performance.now();
+            this._draggedPastThreshold = true;
+            this.classList.add('dragging');
+            return;
+        }
+
         this._dragDelta = e.clientX - this._pointerStartX;
 
         // Mark that a real drag occurred (past the 5px dead zone).
@@ -669,14 +767,19 @@ export class OlCarousel extends LitElement {
             this.classList.add('dragging');
         }
 
-        // Track velocity from recent movement
+        // Track velocity from recent movement. Samples accumulate over at
+        // least _velocitySampleWindow ms (see note there), and an exponential
+        // moving average smooths jitter so release momentum is stable.
         const now = performance.now();
         const dt = now - this._pointerPrevTime;
-        if (dt > 0) {
-            this._velocity = (e.clientX - this._pointerPrevX) / dt;
+        if (dt >= OlCarousel._velocitySampleWindow) {
+            const instantVelocity = (e.clientX - this._pointerPrevX) / dt;
+            this._velocity = this._velocity === 0
+                ? instantVelocity
+                : instantVelocity * 0.8 + this._velocity * 0.2;
+            this._pointerPrevX = e.clientX;
+            this._pointerPrevTime = now;
         }
-        this._pointerPrevX = e.clientX;
-        this._pointerPrevTime = now;
 
         // Direct DOM update — no Lit re-render overhead
         const deltaPct = (this._dragDelta / this.clientWidth) * 100;
@@ -688,13 +791,62 @@ export class OlCarousel extends LitElement {
         this._applyTransform(OlCarousel._rubberBand(rawPos, minPos, maxPos, this.clientWidth));
     }
 
-    _onPointerUp(e) {
-        if (e.pointerId !== this._pointerId) return;
+    _removeDragListeners() {
         window.removeEventListener('pointermove', this._onPointerMove);
         window.removeEventListener('pointerup', this._onPointerUp);
-        window.removeEventListener('pointercancel', this._onPointerUp);
+        window.removeEventListener('pointercancel', this._onPointerCancel);
+        window.removeEventListener('touchmove', this._onTouchMove);
+    }
+
+    /** End the drag without navigating: release the gesture to the browser
+     *  and spring the track home to the current page (recovers cleanly when
+     *  pointerdown interrupted a running page animation). */
+    _abortDrag() {
+        this._removeDragListeners();
+        this._dragging = false;
+        this._axisLock = null;
+        requestAnimationFrame(() => {
+            this.classList.remove('dragging');
+            this._draggedPastThreshold = false;
+        });
+        this._animateSpring(this._currentPos, 0, this._getOffsetForPage(this._page));
+    }
+
+    /** The browser took the gesture (started scrolling, alert, etc.).
+     *  Never navigate from a cancelled pointer — just spring home. */
+    _onPointerCancel(e) {
+        if (e.pointerId !== this._pointerId) return;
+        // The track may have moved if the gesture was briefly locked
+        // horizontal before the browser claimed it — return from there.
+        const width = this.clientWidth;
+        const rawPos = this._currentPos + (this._dragDelta / width) * 100;
+        const minPos = this._getOffsetForPage(this._totalPages - 1);
+        const maxPos = this._getOffsetForPage(0);
+        this._currentPos = OlCarousel._rubberBand(rawPos, minPos, maxPos, width);
+        this._abortDrag();
+    }
+
+    /** Return the page whose resting offset is closest to `pos` (%), so a
+     *  long drag can land several pages away instead of snapping back. */
+    _nearestPage(pos) {
+        let best = 0;
+        let bestDist = Infinity;
+        for (let p = 0; p < this._totalPages; p++) {
+            const dist = Math.abs(this._getOffsetForPage(p) - pos);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = p;
+            }
+        }
+        return best;
+    }
+
+    _onPointerUp(e) {
+        if (e.pointerId !== this._pointerId) return;
+        this._removeDragListeners();
 
         this._dragging = false;
+        this._axisLock = null;
 
         // Remove dragging class and clear the drag-click guard after the click
         // event has been processed. rAF fires after event dispatch but before
@@ -708,8 +860,17 @@ export class OlCarousel extends LitElement {
         });
 
         const delta = this._dragDelta;
-        const velocity = this._velocity; // px/ms
         const width = this.clientWidth;
+
+        // Discard stale velocity: if the pointer sat still before release
+        // (drag, hold, let go) there is no momentum — without this check the
+        // last recorded movement would fling the track on release. Fresh
+        // velocity is capped so one noisy sample can't launch the track.
+        const staleVelocity = performance.now() - this._pointerPrevTime > 100;
+        const velocity = staleVelocity
+            ? 0
+            : Math.max(-OlCarousel._maxVelocity,
+                Math.min(OlCarousel._maxVelocity, this._velocity)); // px/ms
 
         // Current visual position after drag (with rubber-banding applied)
         const rawPos = this._currentPos + (delta / width) * 100;
@@ -723,12 +884,23 @@ export class OlCarousel extends LitElement {
         const outOfBounds = rawPos > maxPos || rawPos < minPos;
         const velPct = outOfBounds ? 0 : (velocity / width) * 100;
 
-        // Project endpoint with momentum to decide target page
+        // A long drag lands on the page nearest the release position, so one
+        // gesture can cross several pages. Momentum projects the endpoint
+        // 200ms out, but carries the track at most one page beyond where the
+        // drag physically rests — flicks feel lively without launching the
+        // carousel out of control.
+        const restingPage = this._nearestPage(releasePos);
+        const projectedPos = releasePos + velPct * 200;
+        let targetPage = Math.max(
+            restingPage - 1,
+            Math.min(restingPage + 1, this._nearestPage(projectedPos))
+        );
+
+        // Preserve the quick flick: a short sharp swipe should advance one
+        // page even when the projection falls short of the halfway point.
         const projectedDelta = delta + velocity * 200;
         const threshold = width * 0.1;
-
-        let targetPage = this._page;
-        if (Math.abs(projectedDelta) > threshold) {
+        if (targetPage === this._page && Math.abs(projectedDelta) > threshold) {
             if (projectedDelta < 0 && this._page < this._totalPages - 1) {
                 targetPage = this._page + 1;
             } else if (projectedDelta > 0 && this._page > 0) {
@@ -800,6 +972,8 @@ export class OlCarousel extends LitElement {
                     class="viewport"
                     aria-live="polite"
                     aria-atomic="false"
+                    @pointerdown=${this._onPointerDown}
+                    @dragstart=${(e) => e.preventDefault()}
                 >
                     <div class="edge-fade prev" ?hidden=${!showPrev}></div>
                     <div class="edge-fade next" ?hidden=${!showNext}></div>
@@ -811,11 +985,7 @@ export class OlCarousel extends LitElement {
                         @click=${() => this.prev()}
                     ><span class="arrow-icon">${OlCarousel._leftArrow}</span></button>
 
-                    <div
-                        class="track"
-                        @pointerdown=${this._onPointerDown}
-                        @dragstart=${(e) => e.preventDefault()}
-                    >
+                    <div class="track">
                         <slot @slotchange=${this._onSlotChange}></slot>
                     </div>
 
