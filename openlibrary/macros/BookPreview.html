@@ -4,7 +4,7 @@ $# :param str ocaid:
 $ track_action = "PreviewSearchInsideBefore|PreviewOnly" if show_only else "PreviewSearchInsideBefore|Preview"
 $if analytics_attr:
     $ default_attr = analytics_attr("Preview")
-    $if "CTAClick|Preview" in default_attr:
+    $if "CTAClick|Preview" in str(default_attr):
         $ analytics = 'data-ol-link-track="%s"' % track_action
     $else:
         $ analytics = default_attr
