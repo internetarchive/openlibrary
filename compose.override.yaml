@@ -175,7 +175,9 @@ services:
       # mailpit web UI — browse captured email at http://localhost:8025
       - 8025:8025
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://localhost:8090/health"]
+      # wget is purged from the image after installing mailpit (see Dockerfile);
+      # use python, which is always present in the python:3.12-slim base, instead.
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health', timeout=2)"]
       interval: 10s
       start_period: 5s
       timeout: 3s
