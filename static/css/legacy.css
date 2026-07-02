@@ -1007,7 +1007,7 @@ div.facet .facetHead {
 }
 
 div.facetEntry {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 div.facetEntry a {
@@ -1017,7 +1017,7 @@ div.facetEntry a {
 
 div.facetMoreLess {
   flex-basis: 100%;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   position: relative;
   top: -4px;
   padding-left: 8px;
