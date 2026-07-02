@@ -1,6 +1,6 @@
 .searchbox {
-  background-color: var(--white);
-  border: 1px solid var(--dark-beige);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   position: relative;
   display: inline-flex;
@@ -22,7 +22,7 @@
   margin: 0 !important;
   border: 0;
   background: transparent;
-  color: var(--grey) !important;
+  color: var(--color-text) !important;
   flex-grow: 1;
   font-size: 1em !important;
   min-width: 0;

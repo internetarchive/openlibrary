@@ -10,9 +10,9 @@
 .btn.primary {
   /* For input[type=submit] */
   border: none;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   /* Important is necessary to override default link color */
-  color: var(--white) !important;
+  color: var(--color-on-primary) !important;
   border-radius: 5px;
 }
 
@@ -23,7 +23,7 @@ a.btn {
 /* These should be in their own chip.css file */
 .chip {
   padding: var(--spacing-inset-xs) var(--spacing-inset-md);
-  border: 1px solid var(--mid-grey);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   user-select: none;
   width: fit-content;
@@ -38,17 +38,17 @@ a.btn {
 }
 
 .chip--selectable:hover {
-  background-color: var(--grey-e7e7e7);
+  background-color: var(--color-surface-sunken);
 }
 
 .chip--selected {
-  border-color: var(--primary-blue);
-  color: var(--primary-blue);
-  background-color: var(--grey-e7e7e7);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
 }
 
 .chip--selected:hover {
-  background-color: var(--white);
+  background-color: var(--color-surface);
 }
 
 .chip-group {

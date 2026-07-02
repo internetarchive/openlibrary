@@ -75,8 +75,8 @@ ol-button > button {
   white-space: nowrap;
   border: 1.5px solid transparent;
   border-radius: var(--border-radius-button);
-  background-color: var(--primary-blue);
-  color: var(--white);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
   cursor: pointer;
   user-select: none;
   /* Hover color changes are instant (see docs/ai/design.md); only the
@@ -112,25 +112,25 @@ ol-button[size="large"] > button {
 /* Primary is the default (already set above). Explicit selector for clarity. */
 ol-button[variant="primary"]:not([hydrated]),
 ol-button[variant="primary"] > button {
-  background-color: var(--primary-blue);
-  border-color: var(--primary-blue);
-  color: var(--white);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 /* Secondary */
 ol-button[variant="secondary"]:not([hydrated]),
 ol-button[variant="secondary"] > button {
-  background-color: var(--white);
+  background-color: var(--color-surface);
   border-color: var(--color-border-subtle);
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 /* Destructive */
 ol-button[variant="destructive"]:not([hydrated]),
 ol-button[variant="destructive"] > button {
   background-color: transparent;
-  border-color: var(--red);
-  color: var(--red);
+  border-color: var(--color-error-fg);
+  color: var(--color-error-fg);
 }
 
 /* Hover (only fires post-hydration because pointer-events is none on
@@ -138,17 +138,17 @@ ol-button[variant="destructive"] > button {
 @media (hover: hover) and (pointer: fine) {
   ol-button:not([variant]) > button:hover,
   ol-button[variant="primary"] > button:hover {
-    background-color: var(--link-blue);
-    border-color: var(--link-blue);
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
   }
 
   ol-button[variant="secondary"] > button:hover {
-    background-color: var(--lightest-grey);
+    background-color: var(--color-surface-sunken);
   }
 
   ol-button[variant="destructive"] > button:hover {
-    background-color: var(--red);
-    color: var(--white);
+    background-color: var(--color-error-fg);
+    color: var(--color-on-primary);
   }
 }
 

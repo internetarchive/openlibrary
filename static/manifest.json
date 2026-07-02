@@ -28,9 +28,9 @@
     ],
     "start_url": "/?source=pwa",
     "scope": "/",
-    "background_color": "#e2dcc5",
+    "background_color": "#f5f2eb",
     "display": "standalone",
-    "theme_color": "#e2dcc5",
+    "theme_color": "#f5f2eb",
     "share_target": {
         "action": "/search",
         "method": "GET",

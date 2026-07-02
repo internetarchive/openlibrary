@@ -31,7 +31,7 @@
 
 .header-bar .navigation-component .dropdown-menu {
   border-radius: 3px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-subtle);
 }
 
 /* stylelint-disable-next-line max-nesting-depth, selector-max-specificity */
@@ -48,8 +48,8 @@
    keep the bare icon-only button from the base file. */
 .header-bar .search-component .search-bar-component {
   width: 100%;
-  background-color: var(--grey-fafafa);
-  border: 1px solid var(--dark-beige);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
 }
 

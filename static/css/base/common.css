@@ -37,7 +37,7 @@ li {
 body {
   font-size: 100%;
   line-height: normal;
-  background-color: var(--beige);
+  background-color: var(--color-background);
   font-family: var(--font-family-body);
 }
 fieldset {

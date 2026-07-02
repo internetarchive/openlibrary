@@ -44,7 +44,7 @@
 
 .header-bar .auth-component li button,
 .header-bar .auth-component li a {
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 .header-bar .auth-component .hide-me {
@@ -53,13 +53,13 @@
 
 .header-bar .dropdown-menu {
   text-align: left;
-  background-color: var(--light-beige);
-  border: 1px solid var(--dark-beige);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 3px;
 }
 
 .header-bar .dropdown-menu li {
-  border-bottom: 1px solid var(--beige-two);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
@@ -68,13 +68,13 @@
 }
 
 .header-bar .dropdown-menu li:hover {
-  background-color: var(--white);
+  background-color: var(--color-surface-sunken);
 }
 
 .header-bar .dropdown-menu li button,
 .header-bar .dropdown-menu li a {
   text-decoration: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
   white-space: nowrap;
   font-size: 0.9em;
   padding: var(--spacing-inset-md) var(--spacing-inset-sm);
@@ -98,7 +98,7 @@
   z-index: var(--z-index-level-2);
   overflow-y: auto;
   overscroll-behavior: contain;
-  background-color: var(--light-beige);
+  background-color: var(--color-surface);
   box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
 }
 
@@ -107,8 +107,8 @@
 }
 
 .header-bar .app-drawer .app-drawer__badge {
-  color: var(--white);
-  background-color: var(--primary-blue);
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
   font-size: 0.9em;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 1px;
   border-radius: 4px;
@@ -119,7 +119,7 @@
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
 .header-bar .app-drawer .subsection {
   font-weight: bold;
-  border-bottom: 2px solid hsl(32.7, 14.7%, 70.6%);
+  border-bottom: 2px solid var(--color-border-subtle);
   padding: var(--spacing-inset-md) var(--spacing-inset-md)
     var(--spacing-inset-xs);
 }
@@ -129,7 +129,7 @@
 }
 
 .header-bar .app-drawer li {
-  border-bottom: 1px solid hsla(33.6, 10%, 49.2%, 0.25);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .header-bar .app-drawer li:not(.subsection) {
@@ -150,7 +150,7 @@
 }
 
 .header-bar .app-drawer .subsection:first-child {
-  border-top: 1px solid var(--dark-beige);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .header-bar .app-drawer .login-links {
@@ -175,21 +175,21 @@
 }
 
 .header-bar .app-drawer .login-links .login-links__primary {
-  background: var(--primary-blue);
-  color: var(--white);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .header-bar .app-drawer .login-links .login-links__primary:hover {
-  background-color: var(--link-blue);
+  background-color: var(--color-primary-hover);
 }
 
 .header-bar .app-drawer .login-links .login-links__secondary {
-  color: var(--primary-blue);
-  border: 2px solid var(--primary-blue);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
 }
 
 .header-bar .app-drawer .login-links .login-links__secondary:hover {
-  background-color: var(--white);
+  background-color: var(--color-surface);
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
@@ -304,8 +304,8 @@
 
 .header-bar .header-dropdown .mr-notifications {
   position: absolute;
-  background: var(--primary-blue);
-  color: var(--white);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   border-radius: var(--border-radius-notification);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   font-size: var(--font-size-label-medium);
@@ -369,14 +369,14 @@
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
   display: block;
 }
 
 .header-bar .navigation-component li button:visited,
 .header-bar .navigation-component li a:visited {
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -464,7 +464,7 @@
 }
 
 .logo-component a {
-  color: var(--black);
+  color: var(--color-text);
   text-decoration: none !important;
 }
 
@@ -552,11 +552,7 @@
   #header-bar {
     position: sticky;
     top: 0;
-    background: linear-gradient(
-      to bottom,
-      var(--header-bar-gradient-start),
-      var(--header-bar-gradient-end)
-    );
+    background: var(--color-surface-header);
     padding: var(--spacing-inset-xs) 0;
     box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
     z-index: var(--z-index-level-3);
@@ -601,19 +597,19 @@
   border: 0;
   border-radius: var(--border-radius-md);
   background: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font: inherit;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
   transition: transform 0.08s;
 }
 
-/* A subtle darken of the --beige header/body. (--beige itself equals the header
- * background, so it'd be invisible.) */
+/* A subtle darken of the paper header/body background. (--color-background
+ * itself would be invisible against the header.) */
 .navigation-component .browse-popover__trigger:hover,
 .navigation-component .browse-popover__trigger:focus-visible,
 .browse-popover[open] .browse-popover__trigger {
-  background-color: var(--beige-three);
+  background-color: var(--neutral-200);
 }
 
 /* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
@@ -669,7 +665,7 @@
   gap: var(--spacing-inline-md);
   padding: var(--spacing-inset-sm);
   border-radius: var(--border-radius-md);
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -677,7 +673,7 @@
  * the hover state, so the base state has none). */
 .navigation-component .browse-feature:hover,
 .navigation-component .browse-feature:focus-visible {
-  background-color: var(--lightest-grey);
+  background-color: var(--color-surface-sunken);
   transition: background-color 0.12s ease;
 }
 
@@ -689,16 +685,16 @@
   width: 36px;
   height: 36px;
   border-radius: var(--border-radius-md);
-  background: var(--light-beige);
-  color: var(--primary-blue);
+  background: var(--color-surface-sunken);
+  color: var(--color-primary);
 }
 
-/* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
- * so the icon would wash out. Deepen the tile to --beige to keep it distinct.
- * Fade in with the row, snap back instantly on hover-off. */
+/* The row hover fill shares the resting tile's lightness, so the icon would
+ * wash out. Deepen the tile one step to keep it distinct. Fade in with the
+ * row, snap back instantly on hover-off. */
 .browse-feature:hover .browse-feature__icon,
 .browse-feature:focus-visible .browse-feature__icon {
-  background: var(--beige);
+  background: var(--neutral-200);
   transition: background-color 0.12s ease;
 }
 
@@ -721,7 +717,7 @@
 
 .header-bar .browse-feature__desc {
   font-size: var(--font-size-label-medium);
-  color: var(--mid-grey);
+  color: var(--color-text-muted);
   line-height: var(--line-height-tight);
 }
 
@@ -729,7 +725,7 @@
   height: 1px;
   margin: var(--spacing-stack-xs) 0;
   border: 0;
-  background: var(--lighter-grey);
+  background: var(--color-border-subtle);
 }
 
 .header-bar .browse-popover__links {
@@ -746,14 +742,14 @@
   display: block;
   padding: var(--spacing-2xs) var(--spacing-inset-sm);
   border-radius: var(--border-radius-md);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
 }
 
 .header-bar .browse-popover__link:hover,
 .header-bar .browse-popover__link:focus-visible {
-  background-color: var(--lightest-grey);
+  background-color: var(--color-surface-sunken);
 }
 
 /* ── Search trigger button ───────────────────────────────────────────────

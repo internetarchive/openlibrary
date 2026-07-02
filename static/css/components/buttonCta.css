@@ -22,8 +22,6 @@ a.cta-btn {
   background-color: var(--grey);
   line-height: 1.5em;
   text-decoration: none;
-
-  transition: background-color 0.2s;
 }
 
 .cta-btn .btn-icon,
@@ -68,8 +66,8 @@ a.cta-btn--no-pointer {
 a.cta-btn--available,
 a.cta-btn--preview,
 a.cta-btn--primary {
-  background-color: var(--primary-blue);
-  color: var(--white);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .cta-btn--available:hover,
@@ -78,7 +76,7 @@ a.cta-btn--primary {
 a.cta-btn--available:hover,
 a.cta-btn--preview:hover,
 a.cta-btn--primary:hover {
-  background-color: hsl(202, 96%, 17%);
+  background-color: var(--color-primary-active);
 }
 
 .cta-btn--available:disabled,
@@ -87,7 +85,8 @@ a.cta-btn--primary:hover {
 a.cta-btn--available:disabled,
 a.cta-btn--preview:disabled,
 a.cta-btn--primary:disabled {
-  background-color: var(--grey);
+  background-color: var(--color-disabled-bg);
+  color: var(--color-disabled-fg);
   cursor: default;
 }
 
@@ -102,13 +101,13 @@ a.cta-btn--external {
 
 .cta-btn--unavailable,
 a.cta-btn--unavailable {
-  background-color: var(--primary-blue);
-  color: var(--white);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .cta-btn--unavailable:hover,
 a.cta-btn--unavailable:hover {
-  background-color: hsl(202, 96%, 17%);
+  background-color: var(--color-primary-active);
 }
 
 .cta-btn--shell.cta-btn--external,
@@ -122,22 +121,22 @@ a.cta-btn--shell.cta-btn--external {
 a.cta-btn--shell,
 a.cta-btn--shell:link,
 a.cta-btn--shell:visited {
-  background-color: var(--white);
-  border: 2px solid var(--primary-blue);
-  color: var(--primary-blue);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
 }
 
 .cta-btn--shell:disabled,
 a.cta-btn--shell:disabled {
-  border: 2px solid var(--light-grey);
-  color: var(--light-grey);
+  border: 2px solid var(--color-disabled-bg);
+  color: var(--color-disabled-fg);
   cursor: default;
 }
 
 .cta-btn--sponsor,
 a.cta-btn--sponsor {
-  border: 2px solid var(--link-blue);
-  background: hsl(202, 40%, 95%);
+  border: 2px solid var(--color-primary-hover);
+  background: var(--color-primary-subtle);
 }
 
 .cta-btn--vanilla,
@@ -183,7 +182,7 @@ a.cta-btn--cancel:visited {
 .cta-btn--cancel:hover,
 a.cta-btn--delete:hover,
 a.cta-btn--cancel:hover {
-  background-color: hsl(8, 78%, 29%);
+  background-color: var(--red-700);
 }
 
 .cta-btn.cta-btn--w-icon,
@@ -197,19 +196,19 @@ a.cta-btn.cta-btn--w-icon {
 .cta-btn--sponsor:visited,
 a.cta-btn--sponsor:link,
 a.cta-btn--sponsor:visited {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .cta-btn--sponsor:hover,
 a.cta-btn--sponsor:hover {
-  border: 2px solid var(--link-blue);
-  background-color: var(--link-blue);
-  color: var(--white);
+  border: 2px solid var(--color-primary-hover);
+  background-color: var(--color-primary-hover);
+  color: var(--color-on-primary);
 }
 
 .cta-btn__badge,
 a.cta-btn__badge {
-  background-color: hsl(19, 95%, 20%);
+  background-color: var(--amber-700);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border-radius: 5px;
   font-size: 0.7em;
@@ -242,9 +241,9 @@ a.cta-btn__badge {
   width: auto;
   display: inline-block;
   margin: 0;
-  border: 1px solid var(--dark-beige);
-  background-color: var(--light-beige);
-  color: var(--grey);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
 }
 
 .waitinglist-message {

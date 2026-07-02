@@ -9,7 +9,7 @@
 
 .olform .formBack {
   padding: var(--spacing-inset-sm);
-  background-color: var(--lightest-grey);
+  background-color: var(--color-surface-sunken);
 }
 
 .olform .collapse {
@@ -70,7 +70,7 @@
 }
 
 .olform .mia__input .mia__remove {
-  color: var(--red);
+  color: var(--color-error-fg);
   text-decoration: none;
   min-width: 30px;
   text-align: center;
@@ -190,7 +190,7 @@
 /* "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)." */
 .olform .tip {
   font-size: var(--font-size-label-small);
-  color: var(--grey);
+  color: var(--color-text-muted);
   font-family: var(--font-family-body) !important;
 }
 
@@ -268,7 +268,7 @@
   top: -8px;
   left: 3px;
   font-size: 11px;
-  background: var(--white);
+  background: var(--color-surface);
   padding: 0 var(--spacing-inset-xs);
   white-space: nowrap;
 }
