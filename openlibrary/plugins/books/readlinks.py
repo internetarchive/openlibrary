@@ -11,8 +11,10 @@ import web
 
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
-from openlibrary.core import helpers, ia
+from openlibrary.core import helpers
 from openlibrary.plugins.books import dynlinks
+from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.solr import Solr
 
 
 def key_to_olid(key):
@@ -34,11 +36,13 @@ class ReadProcessor:
     def __init__(self, options):
         self.options = options
 
-    def get_item_status(self, ekey, iaid, collections) -> str:
-        if "inlibrary" in collections:
+    def get_item_status(self, ekey, iaid, ebook_access: str | None) -> str:
+        if ebook_access == "borrowable":
             status = "lendable"
+        elif ebook_access == "printdisabled":
+            status = "restricted"
         else:
-            status = "restricted" if "printdisabled" in collections else "full access"
+            status = "full access"
 
         if status == "lendable":
             loanstatus = web.ctx.site.store.get(f"ebooks/{iaid}", {"borrowed": "false"})
@@ -48,8 +52,7 @@ class ReadProcessor:
         return status
 
     def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
-        meta = self.iaid_to_meta.get(iaid)
-        if meta is None:
+        if iaid not in self.iaid_to_ebook_access:
             return None
 
         if status == "missing":
@@ -130,19 +133,13 @@ class ReadProcessor:
         # Sort iaids.  Is there a more concise way?
 
         def getstatus(self, iaid):
-            meta = self.iaid_to_meta.get(iaid)
-            if not meta:
-                status = "missing"
-                edition = None
-            else:
-                collections = meta.get("collection", [])
-                edition = self.iaid_to_ed.get(iaid)
+            if iaid not in self.iaid_to_ebook_access:
+                return "missing"
+            edition = self.iaid_to_ed.get(iaid)
             if not edition:
-                status = "missing"
-            else:
-                ekey = edition.get("key", "")
-                status = self.get_item_status(ekey, iaid, collections)
-            return status
+                return "missing"
+            ekey = edition.get("key", "")
+            return self.get_item_status(ekey, iaid, self.iaid_to_ebook_access[iaid])
 
         def getdate(self, iaid):
             if edition := self.iaid_to_ed.get(iaid):
@@ -226,8 +223,14 @@ class ReadProcessor:
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
         self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
-        iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
-        self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
+        # Deduplicate while preserving order; the same ocaid can appear across multiple works.
+        iaids = list(dict.fromkeys(v for sublist in self.wkey_to_iaids.values() for v in sublist))
+        if iaids:
+            ia_query = "type:edition AND ia:(" + " OR ".join(Solr.escape(iaid) for iaid in iaids) + ")"
+            solr_result = await get_solr().select_async(ia_query, fields=["ia", "ebook_access"], rows=len(iaids))
+            self.iaid_to_ebook_access = {iaid: doc.get("ebook_access") for doc in solr_result.docs for iaid in (doc.get("ia") or [])}
+        else:
+            self.iaid_to_ebook_access = {}
 
         def lookup_iaids(iaids):
             step = 10
