@@ -47,7 +47,11 @@
     {
       "files": [
         "static/css/base/common.css",
-        "static/css/base/headings.css"
+        "static/css/base/headings.css",
+        "static/css/components/home.css",
+        "static/css/components/carousel.css",
+        "static/css/components/category-item.css",
+        "static/css/components/page-banner.css"
       ],
       "rules": {
         "scale-unlimited/declaration-strict-value": [

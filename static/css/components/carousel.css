@@ -10,11 +10,16 @@
 
 /* Badly named. Should be renamed "carousel-heading" or similar. */
 .home-h2 {
-  font-size: var(--font-size-title-medium);
-  font-weight: normal;
-  color: var(--link-blue);
+  font-size: var(--font-size-headline-small);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
+}
+
+/* The welcome section leads the page - display-size serif hero. */
+.home-h2--hero {
+  font-size: var(--font-size-display-small);
 }
 
 .carousel-container,
@@ -40,9 +45,20 @@
   flex-wrap: wrap;
 }
 
+/* Section headings are often links (to the subject page); keep them ink
+   like their non-link siblings, underline only on hover. */
+.home-h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .carousel a,
 .carousel a:link {
   text-decoration: none;
+}
+
+.home-h2 a:hover {
+  text-decoration: underline;
 }
 
 .carousel__item {
@@ -99,15 +115,15 @@
 
 /*h2*/
 .carousel .book .book-title {
-  font-size: 0.8em;
+  font-size: var(--font-size-body-small);
   margin: var(--spacing-stack-xs) 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 .carousel .book .book-title a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: none;
 }
 
@@ -121,9 +137,9 @@
  */
 
 .carousel-container-decorated {
-  background: var(--book-cover-carousel-background);
-  border-bottom: 1px solid var(--book-cover-carousel-border-bottom);
-  border-top: 1px solid var(--book-cover-carousel-border-top);
+  background: var(--color-surface-sunken);
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 /* TODO: Document where this is used. This is unlikely to need to be so specific. */
@@ -143,8 +159,8 @@
   padding: 33% var(--spacing-inset-sm) var(--spacing-inset-sm);
   text-align: center;
   background: var(--lighter-grey);
-  font-size: 1em;
-  color: var(--black);
+  font-size: var(--font-size-body-large);
+  color: var(--color-text);
   height: var(--height-blank-cover);
 }
 
@@ -165,14 +181,14 @@
 
 .carousel__item__blankcover--title {
   position: relative;
-  font-size: 0.9em;
+  font-size: var(--font-size-body-medium);
 }
 
 .carousel__item__blankcover--authors {
   position: relative;
-  color: var(--dark-grey-two);
+  color: var(--color-text-secondary);
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-small);
   font-style: oblique;
 }
 
@@ -194,22 +210,22 @@
 .lazy-carousel {
   /* Same height as the loaded carousel to avoid layout shift */
   height: 278.6px;
-  background: var(--book-cover-carousel-background);
+  background: var(--color-surface-sunken);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .lazy-carousel .loadingIndicator {
-  border: 1px var(--grey) solid;
+  border: 1px var(--color-border) solid;
   width: 80%;
   margin: 0 auto;
 }
 
 .lazy-carousel-retry,
 .lazy-carousel-fallback {
-  border: 1px var(--grey) solid;
-  background: var(--lightest-grey);
+  border: 1px var(--color-border) solid;
+  background: var(--color-surface);
   margin: 0 auto;
   padding: var(--spacing-inset-lg);
 }

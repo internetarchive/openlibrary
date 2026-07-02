@@ -57,7 +57,7 @@
   font-weight: bold;
 }
 .page-banner-body {
-  font-size: 0.9em;
+  font-size: var(--font-size-body-medium);
   padding: 10px;
   line-height: 25px;
   text-align: center;

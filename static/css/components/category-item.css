@@ -15,9 +15,9 @@ img.category-img {
 
 p.category-count {
   text-align: center;
-  font-size: 0.7em;
+  font-size: var(--font-size-label-small);
   line-height: 1;
-  color: var(--grey);
+  color: var(--color-text-muted);
   padding: 0 0 1px;
   margin: 0;
   margin-top: var(--spacing-stack-xs);
@@ -25,7 +25,7 @@ p.category-count {
 }
 
 p.category-title {
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   text-align: center;
   line-height: 1;
   margin: 0;
