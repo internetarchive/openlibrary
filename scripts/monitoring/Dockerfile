@@ -3,8 +3,7 @@ FROM openlibrary/olbase:latest
 ARG APT_MIRROR
 ARG DOCKER_KEY_URL=https://download.docker.com/linux/debian/gpg
 ARG DOCKER_REPOSITORY_URL=https://download.docker.com/linux/debian
-ARG PIP_INDEX_URL
-ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
+ARG UV_DEFAULT_INDEX
 
 USER root
 

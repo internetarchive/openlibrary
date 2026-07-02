@@ -73,10 +73,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ENV PYTHONPATH=/openlibrary
 # Services use bare python/exec, so .venv must be on PATH
 ENV PATH="/openlibrary/.venv/bin:${PATH}"
-# Create venv and install all dependency packages from the lockfile (skip the root project).
-# We do this in two stages so that rebuilding only the openlibrary package layer is fast
-# when source code changes but dependencies have not.
-RUN uv sync --frozen --no-install-project
+# Create venv without installing the root /openlibrary project itself (not copied in yet)
+RUN uv sync --frozen --no-install-project --no-dev
 
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci --no-audit
@@ -85,5 +83,6 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make
-# Install the root project package into .venv (deps already cached from earlier sync)
+
+ # Install the root project package
 RUN uv sync --frozen --no-dev

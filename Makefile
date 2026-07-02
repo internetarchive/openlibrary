@@ -51,7 +51,7 @@ lit-components:
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
 
 i18n:
-	uv run python ./scripts/i18n-messages compile
+	uv run ./scripts/i18n-messages compile
 
 git:
 	git submodule init
@@ -85,7 +85,7 @@ test-py:
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
-	uv run python ./scripts/i18n-messages validate de es fr hr it ja zh
+	uv run ./scripts/i18n-messages validate de es fr hr it ja zh
 
 test:
 	make test-py && npm run test && make test-i18n

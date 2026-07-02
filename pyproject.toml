@@ -35,7 +35,7 @@ dependencies = [
   "pymarc==5.3.1",
   "pyopds2",
   "pyopds2-openlibrary",
-  "python-amazon-paapi==6.3.0",
+  "python-amazon-paapi",
   "python-dateutil==2.9.0.post0",
   "python-memcached==1.62",
   "python-multipart==0.0.32",
@@ -74,6 +74,7 @@ monitoring = [
 [tool.uv.sources]
 pyopds2 = { git = "https://github.com/ArchiveLabs/pyopds2.git", rev = "3d5b3b0f9d993b5385be013de105f98bb7d3b203" }
 "pyopds2-openlibrary" = { git = "https://github.com/ArchiveLabs/pyopds2_openlibrary.git", rev = "e18e79f9a06afeaabe59d7dd8d50b1646db0646c" }
+"python-amazon-paapi" = { git = "https://github.com/mekarpeles/python-amazon-paapi.git", rev = "c1c38bcf8b683b4da3551ae54e153d0bee431cdd" }
 "web.py" = { git = "https://github.com/webpy/webpy.git", rev = "2598dfe693ff931a9c67196f0b904b13637ec19f" }
 
 [tool.codespell]

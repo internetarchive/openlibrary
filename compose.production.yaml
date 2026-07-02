@@ -346,7 +346,7 @@ services:
         - APT_MIRROR=${APT_MIRROR:-}
         - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
         - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
-        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+        - UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX:-}
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped

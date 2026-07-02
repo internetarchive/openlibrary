@@ -844,7 +844,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = "==9.0.3" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = "==1.4.0" },
     { name = "pytest-httpx", marker = "extra == 'test'", specifier = "==0.36.2" },
-    { name = "python-amazon-paapi", specifier = "==6.3.0" },
+    { name = "python-amazon-paapi", git = "https://github.com/mekarpeles/python-amazon-paapi.git?rev=c1c38bcf8b683b4da3551ae54e153d0bee431cdd" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "python-memcached", specifier = "==1.62" },
     { name = "python-multipart", specifier = "==0.0.32" },
@@ -1153,7 +1153,7 @@ wheels = [
 [[package]]
 name = "python-amazon-paapi"
 version = "6.3.0"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/mekarpeles/python-amazon-paapi.git?rev=c1c38bcf8b683b4da3551ae54e153d0bee431cdd#c1c38bcf8b683b4da3551ae54e153d0bee431cdd" }
 dependencies = [
     { name = "certifi" },
     { name = "pydantic" },
@@ -1161,10 +1161,6 @@ dependencies = [
     { name = "requests" },
     { name = "six" },
     { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/bf/b1d24c88304c6e3bad3d44585e42b95a5f53a915d8eb95dc270ce0457e30/python_amazon_paapi-6.3.0.tar.gz", hash = "sha256:e525d69efcbe4f9566ec2b9b43fa3183c484d166d3852edb38b4df9c0b19cf1f", size = 231222, upload-time = "2026-05-18T20:43:20.425Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/39/3a741264d8bfc7978250ed9b206bbbac42d6dc3206208dc45849ed3a97c8/python_amazon_paapi-6.3.0-py3-none-any.whl", hash = "sha256:b7cd852084a49d53c3ba2195531fccbc8c7f4124b2e82e2fda02b53d3b8de521", size = 425189, upload-time = "2026-05-18T20:43:18.34Z" },
 ]
 
 [[package]]
