@@ -1,5 +1,9 @@
+from io import BytesIO
+
 import pytest
 import web
+from babel.messages.catalog import Catalog
+from babel.messages.pofile import write_po
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
@@ -90,3 +94,43 @@ class Test_ungettext:
 
         assert i18n.ungettext("one book", "%(n)d books", 1, n=1) == "un libre"
         assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"
+
+
+class Test_pot_width:
+    """``messages.pot`` is written with ``width=POT_WIDTH`` so Babel never wraps the
+    ``#:`` location comments onto multiple lines, which is what caused spurious merge
+    conflicts (#12837). These guard that behaviour against a future Babel change.
+    """
+
+    def _write_pot(self, catalog):
+        buf = BytesIO()
+        write_po(buf, catalog, include_lineno=False, width=i18n.POT_WIDTH)
+        return buf.getvalue().decode("utf-8")
+
+    def test_locations_stay_on_a_single_line(self):
+        catalog = Catalog()
+        # A string used in many files: at Babel's default width=76 this location list
+        # would wrap across several #: lines; with POT_WIDTH it must stay on one.
+        locations = [(f"some/template/with_a_longish_path_{n}.html", n) for n in range(12)]
+        catalog.add("Reused string", locations=locations)
+        pot = self._write_pot(catalog)
+
+        location_lines = [line for line in pot.splitlines() if line.startswith("#:")]
+        assert len(location_lines) == 1
+        for filename, _ in locations:
+            assert filename in location_lines[0]
+
+    def test_flags_and_message_text_survive(self):
+        catalog = Catalog()
+        # python-format flag + a long string: confirm nothing but #: wrapping changes
+        # (the "could fuzzy/other comments break?" concern -- they don't go through any
+        # custom transform, Babel writes them as usual).
+        catalog.add(
+            "Created %(reference)s to track this error and we will investigate as we're able.",
+            locations=[("internalerror.html", 1)],
+            flags=["python-format"],
+        )
+        pot = self._write_pot(catalog)
+
+        assert "#, python-format" in pot
+        assert "Created %(reference)s" in pot
