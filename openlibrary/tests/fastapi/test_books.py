@@ -316,20 +316,21 @@ class TestGetVolumesMultiget:
         response = client.get("/api/volumes/brief/json/isbn:0452010586.json")
 
         assert response.status_code == 200
-        mock_readlinks.assert_called_once()
+        mock_readlinks.assert_called_once_with("isbn:0452010586", {})
 
     def test_multiple_identifiers(self, client, mock_readlinks):
         """Verify pipe-separated identifiers are passed through."""
         response = client.get("/api/volumes/brief/json/isbn:0452010586|lccn:88037464.json")
 
         assert response.status_code == 200
-        mock_readlinks.assert_called_once()
+        mock_readlinks.assert_called_once_with("isbn:0452010586|lccn:88037464", {})
 
     def test_jsonp_callback(self, client, mock_readlinks):
         """Verify JSONP callback wrapping works for multiget endpoint."""
         response = client.get("/api/volumes/brief/json/isbn:0452010586.json?callback=jQueryCb")
 
         assert response.status_code == 200
+        mock_readlinks.assert_called_once_with("isbn:0452010586", {})
         data = extract_jsonp(response.text, "jQueryCb")
         assert isinstance(data, dict)
 
