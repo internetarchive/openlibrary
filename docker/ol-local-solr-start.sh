@@ -40,14 +40,16 @@ if [ -f "$OL_SCHEMA_FILE" ] && [ -f "$SOLR_SCHEMA_FILE" ]; then
     # If the schema files differ
     if ! diff -q "$OL_SCHEMA_FILE" "$SOLR_SCHEMA_FILE" >/dev/null 2>&1; then
         echo "${PREFIX} ERROR: managed-schema.xml has changed since the Solr core was created."
-        diff "$OL_SCHEMA_FILE" "$SOLR_SCHEMA_FILE" 2>&1 | sed "s/^/${PREFIX} /"
+        echo "${PREFIX}"
+        echo "${PREFIX} Diff:"
+        diff "$OL_SCHEMA_FILE" "$SOLR_SCHEMA_FILE" 2>&1 | sed "s/^/${PREFIX} /" || true
         echo_reset_instructions
         exit 1
     fi
 fi
 
 # Check Solr version against the stamp written on first startup.
-# $SOLR_VERSION is provided by the official Solr Docker image.
+SOLR_VERSION=$(solr --version 2>/dev/null)
 SOLR_VERSION_FILE="/var/solr/data/.ol_local_solr_version"
 
 if [ -f "$SOLR_VERSION_FILE" ]; then
