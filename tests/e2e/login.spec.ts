@@ -1,0 +1,45 @@
+import { test, expect } from '@playwright/test';
+import { collectConsoleErrors } from './helpers';
+
+test.describe('Login page @smoke', () => {
+    test('loads with Log In heading', async ({ page }) => {
+        const errors = collectConsoleErrors(page);
+        await page.goto('/account/login');
+        // The hero title renders in the DOM on every viewport but is hidden by responsive
+        // CSS on narrow (mobile) layouts, so assert it's attached rather than visible.
+        const title = page.locator('h1.ol-signup-hero__title');
+        await expect(title).toBeAttached();
+        const heading = await title.textContent();
+        expect(heading?.trim()).toMatch(/log in/i);
+        expect(errors()).toHaveLength(0);
+    });
+
+    test('email and password inputs are present', async ({ page }) => {
+        await page.goto('/account/login');
+        await expect(page.locator('input[name="username"]')).toBeVisible();
+        await expect(page.locator('input[name="password"]')).toBeVisible();
+    });
+
+    test('invalid credentials do not crash the page', async ({ page }) => {
+        await page.goto('/account/login');
+        await page.fill('input[name="username"]', 'nobody@example.com');
+        await page.fill('input[name="password"]', 'wrongpassword123');
+        await page.click('button[name="login"]');
+        // Should stay on login-related page (not crash to 500)
+        await expect(page.locator('#header-bar').first()).toBeVisible({ timeout: 10_000 });
+        const status = page.url();
+        // Should not redirect to a 500 page
+        expect(status).not.toContain('500');
+    });
+
+    test('mobile: form fields are visible and not clipped @mobile', async ({ page }) => {
+        await page.goto('/account/login');
+        const emailInput = page.locator('input[name="username"]');
+        await expect(emailInput).toBeVisible();
+        const box = await emailInput.boundingBox();
+        expect(box).not.toBeNull();
+        // Input should be fully within the viewport horizontally
+        const viewport = page.viewportSize();
+        expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width + 1);
+    });
+});

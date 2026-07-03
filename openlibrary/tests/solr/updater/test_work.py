@@ -113,7 +113,7 @@ class TestWorkSolrBuilder:
 
     def test_edition_key(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL1M"},
                 {"key": "/books/OL2M"},
@@ -467,7 +467,7 @@ class Test_number_of_pages_median:
 class Test_Sort_Editions_Ocaids:
     def test_sort(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
                 {"key": "/books/OL567M", "ocaid": "ocaid_printdisabled"},
@@ -503,7 +503,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_goog_deprioritized(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},
@@ -516,7 +516,7 @@ class Test_Sort_Editions_Ocaids:
 
     def test_excludes_fav_ia_collections(self):
         wsb = make_work_solr_builder(
-            work={},
+            work=make_work(),
             editions=[
                 {"key": "/books/OL789M", "ocaid": "foobargoog"},
                 {"key": "/books/OL789M", "ocaid": "foobarblah"},

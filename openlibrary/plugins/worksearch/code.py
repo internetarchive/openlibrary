@@ -30,6 +30,7 @@ from openlibrary.plugins.upstream.utils import (
     safeget,
     urlencode,
 )
+from openlibrary.plugins.worksearch.author_suggestion import derive_authors
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
@@ -873,14 +874,21 @@ class search(delegate.page):
 
         readable_count = _get_readable_count(param, search_response)
 
+        # Surface an author row above the results when the query names the author
+        # of one of the top works (see author_suggestion.derive_authors). No extra
+        # Solr round-trip: it reuses the docs this same search already returned.
+        q_joined = " ".join(q_list)
+        author_suggestions = derive_authors(search_response.docs, q_joined)
+
         return render.work_search(
-            " ".join(q_list),
+            q_joined,
             search_response,
             get_doc,
             param,
             page,
             rows,
             readable_count,
+            author_suggestions,
             has_solr_editions_enabled=req_context.get().solr_editions,
         )
 

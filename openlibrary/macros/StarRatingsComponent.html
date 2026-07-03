@@ -1,13 +1,16 @@
-$def with(ratings_count, ratings_average, page_type)
+$def with(ratings_count, ratings_average, cls='')
 
-$ rounded_avg = "%.1f" % ratings_average
-$ formatted_ratings_count = "{:,}".format(ratings_count) if ratings_count else ""
-$ ratings_label = _('rating') if ratings_count == 1 else _('ratings')
-$ small = "star--small" if page_type != 'book_page' else ''
+$ stats_decimal = (float(ratings_average) - int(ratings_average))
 
-$if ratings_average:
-  $ stats_decimal = (float(ratings_average) - int(ratings_average))
-    $:('<span class="star {}">★</span>'.format(small) * int(ratings_average))
-    $if (stats_decimal >= 0.5) and (stats_decimal < 1):
-      <span class="star star--half $small">★</span>
-    <span itemprop="ratingValue">$:_('%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)', ratings_avg=rounded_avg, ratings_count=formatted_ratings_count, ratings_label=ratings_label)</span>
+<span
+  $if cls:
+    class="$cls"
+  itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"
+>
+  <meta itemprop="ratingValue" content="$ratings_average"/>
+  <meta itemprop="ratingCount" content="$ratings_count"/>
+  $:('<span class="star star--small" aria-hidden="true">★</span>' * int(ratings_average))
+  $if (stats_decimal >= 0.5) and (stats_decimal < 1):
+    <span class="star star--half star--small" aria-hidden="true">★</span>
+  <span>$ungettext('%(average)s (%(count)s rating)', '%(average)s (%(count)s ratings)', ratings_count, average=format_decimal(ratings_average), count=commify(ratings_count))</span>
+</span>

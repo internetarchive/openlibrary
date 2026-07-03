@@ -10,16 +10,9 @@ import web
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
+from openlibrary.core.helpers import is_exclusion
 
 logger = logging.getLogger("openlibrary.readableurls")
-
-try:
-    from booklending_utils.openlibrary import is_exclusion
-except ImportError:
-
-    def is_exclusion(obj):
-        """Processor for determining whether records require exclusion"""
-        return False
 
 
 class ReadableUrlProcessor:
