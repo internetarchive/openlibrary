@@ -1,0 +1,38 @@
+$def with (ocaid)
+$# :param str ocaid:
+
+
+$if ocaid:
+  <div class="cta-button-group book-preview-buttons">
+    <!-- Preview Button -->
+    <ol-button variant="secondary" full-width size="small" class="preview-btn"
+      data-book-preview
+      data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
+      data-iframe-link="https://archive.org/details/$ocaid"
+      data-ol-link-track="BookOptions|Preview">
+      <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M599-361q49-49 49-119t-49-119q-49-49-119-49t-119 49q-49 49-49 119t49 119q49 49 119 49t119-49Zm-187-51q-28-28-28-68t28-68q28-28 68-28t68 28q28 28 28 68t-28 68q-28 28-68 28t-68-28ZM220-270.5Q103-349 48-480q55-131 172-209.5T480-768q143 0 260 78.5T912-480q-55 131-172 209.5T480-192q-143 0-260-78.5ZM480-480Zm207 158q95-58 146-158-51-100-146-158t-207-58q-112 0-207 58T127-480q51 100 146 158t207 58q112 0 207-58Z"/></svg>
+      $_('Preview')
+    </ol-button>
+
+    <!-- Search Trigger Button -->
+    <ol-button variant="secondary" full-width size="small" class="search-inside-trigger-btn"
+      data-search-trigger
+      aria-expanded="false"
+      data-ol-link-track="BookOptions|SearchInside">
+      <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="m592-168 72 72H264q-29.7 0-50.85-21.15Q192-138.3 192-168v-624q0-29.7 21.15-50.85Q234.3-864 264-864h312l192 192v476q0 36-5.5 54T746-116L553-309q-15 10-34 14.5t-39 4.5q-60 0-102-42t-42-102q0-60 42-102t102-42q60 0 102 42t42 102q0 20-5 39.5T604-360l92 92v-374L546-792H264v624h328Zm-61-215.21q21-21.21 21-51T530.79-485q-21.21-21-51-21T429-484.79q-21 21.21-21 51T429.21-383q21.21 21 51 21T531-383.21ZM480-444Zm0 0Z"/></svg>
+      $_('Search')
+    </ol-button>
+
+    <!-- Search Inside Input Form -->
+    <form class="search-inside-form" data-ocaid="$ocaid" role="search" aria-label="$_('Search inside book')" style="display: none;">
+      <input class="search-inside-input" type="text" name="q" placeholder="$_('Search inside')" required />
+      <button type="submit" class="search-submit-btn" title="$_('Search')">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" height="18px" width="18px" fill="var(--primary-blue)"><path d="M765-144 526-383q-30 22-65.79 34.5-35.79 12.5-76.18 12.5Q284-336 214-406t-70-170q0-100 70-170t170-70q100 0 170 70t70 170.03q0 40.39-12.5 76.18Q599-464 577-434l239 239-51 51ZM384-408q70 0 119-49t49-119q0-70-49-119t-119-49q-70 0-119 49t-49 119q0 70 49 119t119 49Z"/></svg>
+      </button>
+      <button type="button" class="search-cancel-btn" title="$_('Cancel')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </form>
+  </div>
+
+$:macros.BookPreviewFloater()
