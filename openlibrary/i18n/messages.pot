@@ -7251,10 +7251,6 @@ msgstr ""
 msgid "Loading Lists"
 msgstr ""
 
-#: EditionNavBar.html type/edition/view.html type/work/view.html
-msgid "Related Books"
-msgstr ""
-
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
@@ -7854,6 +7850,10 @@ msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
 msgstr[0] ""
 msgstr[1] ""
+
+#: EditionNavBar.html
+msgid "Related Books"
+msgstr ""
 
 #: EditionNavBar.html
 msgid "Go to next section"
