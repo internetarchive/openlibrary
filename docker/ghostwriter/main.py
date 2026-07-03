@@ -1,5 +1,5 @@
 """
-Mock services for Open Library local development.
+Ghostwriter — mock services for Open Library local development.
 
 Replaces the web.py inline stubs from account.py (/internal/fake/*) and
 provides mocks for external services that do not have dev interceptors:
@@ -14,20 +14,20 @@ provides mocks for external services that do not have dev interceptors:
   - Amazon PA-API (stub)
 
 Configure openlibrary.yml to point at this service:
-  ia_xauth_api_url:          http://mockservices:8090/services/xauthn/
-  ia_s3_auth_url:            http://mockservices:8090/services/s3auth/
-  ia_loan_api_url:           http://mockservices:8090/services/loans/loan/
-  ia_s3_loan_url:            http://mockservices:8090/services/loans/loan/
-  ia_availability_api_v2_url: http://mockservices:8090/services/availability/
-  ia_borrow_status_url:      http://mockservices:8090/services/borrow/
-  recaptcha_url:             http://mockservices:8090/recaptcha/api/siteverify
+  ia_xauth_api_url:          http://ghostwriter:8090/services/xauthn/
+  ia_s3_auth_url:            http://ghostwriter:8090/services/s3auth/
+  ia_loan_api_url:           http://ghostwriter:8090/services/loans/loan/
+  ia_s3_loan_url:            http://ghostwriter:8090/services/loans/loan/
+  ia_availability_api_v2_url: http://ghostwriter:8090/services/availability/
+  ia_borrow_status_url:      http://ghostwriter:8090/services/borrow/
+  recaptcha_url:             http://ghostwriter:8090/recaptcha/api/siteverify
 
   /fts/v1/search is implemented but NOT wired as the default — be-api.us.archive.org
   works fine for local dev as-is. Point (plugin_inside) search_endpoint at
-  http://mockservices:8090/fts/v1/search only if you need to work offline or
+  http://ghostwriter:8090/fts/v1/search only if you need to work offline or
   simulate a specific search response.
 
-Email: configure smtp_server=mockservices, smtp_port=1025, dummy_sendmail=False
+Email: configure smtp_server=ghostwriter, smtp_port=1025, dummy_sendmail=False
        Inspect captured mail via mailpit: http://localhost:8025
 """
 
@@ -55,7 +55,7 @@ async def _lifespan(app: FastAPI):
     task.cancel()
 
 
-app = FastAPI(title="OL Mock Services", docs_url="/mock/docs", lifespan=_lifespan)
+app = FastAPI(title="Ghostwriter", docs_url="/mock/docs", lifespan=_lifespan)
 
 # ---------------------------------------------------------------------------
 # IA xauthn  (was /internal/fake/xauth in account.py)
@@ -392,4 +392,4 @@ async def amazon_get_items(request: Request) -> JSONResponse:
 
 @app.get("/health")
 async def health() -> JSONResponse:
-    return JSONResponse({"status": "ok", "service": "ol-mockservices"})
+    return JSONResponse({"status": "ok", "service": "ol-ghostwriter"})

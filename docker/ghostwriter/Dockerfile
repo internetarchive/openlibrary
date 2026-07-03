@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certifi
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY docker/mockservices/requirements.txt .
+COPY docker/ghostwriter/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY docker/mockservices/main.py .
-COPY docker/mockservices/start.sh .
+COPY docker/ghostwriter/main.py .
+COPY docker/ghostwriter/start.sh .
 RUN chmod +x start.sh
 
 # FastAPI mock on 8090; mailpit SMTP on 1025; mailpit web UI on 8025
