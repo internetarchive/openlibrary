@@ -184,8 +184,8 @@
 }
 
 .header-bar .app-drawer .login-links .login-links__secondary {
-  color: var(--primary-blue);
-  border: 2px solid var(--primary-blue);
+  color: var(--link-blue);
+  border: 2px solid var(--link-blue);
 }
 
 .header-bar .app-drawer .login-links .login-links__secondary:hover {
