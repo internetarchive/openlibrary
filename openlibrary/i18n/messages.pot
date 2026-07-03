@@ -4988,10 +4988,6 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
-#: lib/dropper.html
-msgid "More options"
-msgstr ""
-
 #: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
 msgstr ""
@@ -5037,6 +5033,10 @@ msgstr ""
 
 #: lib/browse_popover.html
 msgid "Reader-curated collections"
+msgstr ""
+
+#: lib/dropper.html
+msgid "More options"
 msgstr ""
 
 #: lib/edit_head.html lib/view_head.html
