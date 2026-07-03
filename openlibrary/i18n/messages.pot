@@ -5035,6 +5035,10 @@ msgstr ""
 msgid "Reader-curated collections"
 msgstr ""
 
+#: lib/dropper.html
+msgid "More options"
+msgstr ""
+
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
 msgstr ""
@@ -5949,6 +5953,15 @@ msgstr ""
 msgid ""
 "Removing this book from your shelves will delete your check-ins for this "
 "work.  Continue?"
+msgstr ""
+
+#: my_books/dropper.html
+#, python-format
+msgid "More reading options for %(title)s"
+msgstr ""
+
+#: my_books/dropper.html
+msgid "More reading options"
 msgstr ""
 
 #: my_books/primary_action.html
