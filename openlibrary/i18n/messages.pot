@@ -537,7 +537,7 @@ msgid ""
 "email and password to access your Open Library account."
 msgstr ""
 
-#: login.html openlibrary/plugins/upstream/forms.py
+#: login.html
 msgid "Email"
 msgstr ""
 
@@ -546,7 +546,6 @@ msgid "Forgot your Internet Archive email?"
 msgstr ""
 
 #: account/email/forgot-ia.html login.html
-#: openlibrary/plugins/upstream/forms.py
 msgid "Password"
 msgstr ""
 
@@ -757,9 +756,9 @@ msgid "Title"
 msgstr ""
 
 #: SearchAuthorSuggestion.html books/add.html books/edit.html
-#: books/edit/edition.html openlibrary/plugins/worksearch/code.py
-#: search/advancedsearch.html search/search_modal_i18n.html
-#: search/work_search_selected_facets.html status.html
+#: books/edit/edition.html search/advancedsearch.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: status.html
 msgid "Author"
 msgstr ""
 
@@ -910,7 +909,7 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+#: home/index.html trending.html
 msgid "Trending Books"
 msgstr ""
 
@@ -1052,8 +1051,7 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: design/toggle.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html work_search.html
+#: design/toggle.html search/availability_i18n.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
@@ -1061,8 +1059,8 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
-#: type/edition/view.html type/work/view.html work_search.html
+#: search/search_modal_i18n.html type/edition/view.html type/work/view.html
+#: work_search.html
 msgid "Language"
 msgstr ""
 
@@ -1118,7 +1116,7 @@ msgid "Authors"
 msgstr ""
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py work_search.html
+#: work_search.html
 msgid "Books"
 msgstr ""
 
@@ -1189,11 +1187,11 @@ msgid ""
 "information form</a>."
 msgstr ""
 
-#: account/create.html openlibrary/plugins/upstream/forms.py
+#: account/create.html
 msgid "Must be a valid email address"
 msgstr ""
 
-#: account/create.html openlibrary/plugins/upstream/forms.py
+#: account/create.html
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
@@ -1519,7 +1517,7 @@ msgstr ""
 #. (bookshelf ID 3). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
-#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1545,7 +1543,7 @@ msgid "My Reading Stats"
 msgstr ""
 
 #: account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: books/mybooks_breadcrumb_select.html
 msgid "Loan History"
 msgstr ""
 
@@ -1661,7 +1659,7 @@ msgid "Save"
 msgstr ""
 
 #: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: books/mybooks_breadcrumb_select.html
 msgid "Reviews"
 msgstr ""
 
@@ -1918,7 +1916,6 @@ msgid "Click on a bar to see matching works"
 msgstr ""
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr ""
 
@@ -2357,7 +2354,7 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: admin/imports_by_date.html openlibrary/core/edits.py
+#: admin/imports_by_date.html
 msgid "Pending"
 msgstr ""
 
@@ -2573,8 +2570,7 @@ msgid "Admin Center"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html
-#: admin/people/index.html admin/people/view.html
-#: openlibrary/plugins/worksearch/code.py type/author/view.html
+#: admin/people/index.html admin/people/view.html type/author/view.html
 #: type/list/view_body.html
 msgid "People"
 msgstr ""
@@ -3080,7 +3076,7 @@ msgid "Anonymize Account"
 msgstr ""
 
 #: admin/people/view.html books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/upstream/account.py type/user/view.html
+#: type/user/view.html
 msgid "Loans"
 msgstr ""
 
@@ -3825,50 +3821,36 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#. Page title for the "Want to Read" shelf page.
-#. Example: "Want to Read (17)". %(count)d is the number of books on this
-#. shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: books/mybooks_breadcrumb_select.html
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
-#. Page title for the "Currently Reading" shelf page.
-#. Example: "Currently Reading (42)". %(count)d is the number of books on this
-#. shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: books/mybooks_breadcrumb_select.html
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
-#. Page title for the "Already Read" shelf page.
-#. Example: "Already Read (203)". %(count)d is the number of books on this
-#. shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: books/mybooks_breadcrumb_select.html
 #, python-format
 msgid "Already Read (%(count)d)"
 msgstr ""
 
-#. Page title for the "Stopped Reading" shelf page.
-#. Example: "Stopped Reading (8)". %(count)d is the number of books on this
-#. shelf.
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: books/mybooks_breadcrumb_select.html
 #, python-format
 msgid "Stopped Reading (%(count)d)"
 msgstr ""
 
 #: books/mybooks_breadcrumb_select.html
-#: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
-#: type/edition/modal_links.html
+#: books/mybooks_breadcrumb_select.html type/edition/modal_links.html
 msgid "Notes"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: books/mybooks_breadcrumb_select.html
 msgid "Imports and Exports"
 msgstr ""
 
@@ -4344,7 +4326,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -4765,7 +4747,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
+#: home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -4796,7 +4778,7 @@ msgstr[1] ""
 msgid "Welcome to Open Library"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html
 msgid "Classic Books"
 msgstr ""
 
@@ -4804,21 +4786,19 @@ msgstr ""
 msgid "Recently Returned"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-#: openlibrary/plugins/openlibrary/home.py
+#: home/index.html
 msgid "Romance"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html
 msgid "Kids"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: home/index.html
 msgid "Thrillers"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py
-#: openlibrary/plugins/openlibrary/home.py
+#: home/index.html
 msgid "Textbooks"
 msgstr ""
 
@@ -5031,8 +5011,7 @@ msgstr ""
 
 #: RelatedSubjects.html SearchNavigation.html SubjectTags.html
 #: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
-#: openlibrary/plugins/worksearch/code.py subjects/notfound.html
-#: type/author/view.html type/list/view_body.html
+#: subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -5118,7 +5097,7 @@ msgid "New!"
 msgstr ""
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
+#: lib/history.html
 msgid "History"
 msgstr ""
 
@@ -5195,7 +5174,7 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
+#: lib/nav_foot.html site/head.html
 msgid "Open Library"
 msgstr ""
 
@@ -5837,11 +5816,11 @@ msgstr ""
 msgid "Request Status"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/core/edits.py
+#: merge_request_table/table_header.html
 msgid "Merged"
 msgstr ""
 
-#: merge_request_table/table_header.html openlibrary/core/edits.py
+#: merge_request_table/table_header.html
 msgid "Declined"
 msgstr ""
 
@@ -6142,8 +6121,8 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py publishers/view.html
-#: search/advancedsearch.html type/edition/view.html type/work/view.html
+#: publishers/view.html search/advancedsearch.html type/edition/view.html
+#: type/work/view.html
 msgid "Publisher"
 msgstr ""
 
@@ -6428,15 +6407,15 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#: search/availability_i18n.html
 msgid "All books"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#: search/availability_i18n.html
 msgid "Free to read now"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+#: search/availability_i18n.html
 msgid "Borrow online"
 msgstr ""
 
@@ -6998,8 +6977,8 @@ msgstr ""
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
-#: type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html type/author/view.html
+#: type/list/view_body.html
 msgid "Places"
 msgstr ""
 
@@ -7138,10 +7117,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
-
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7472,8 +7447,7 @@ msgstr ""
 msgid "Derived from seed metadata"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
-#: type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
 msgid "Times"
 msgstr ""
 
@@ -9158,5 +9132,9 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
