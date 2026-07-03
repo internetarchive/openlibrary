@@ -909,6 +909,11 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
+        // NoResults analytics: keys (query+filters) already counted empty this
+        // modal session, so re-settling the same dead-end — a filter toggled off
+        // and back, an edit-and-undo — never re-fires. Reset per open.
+        this._noResultsTracked = new Set();
+        this._noResultsTimer   = null;
     }
 
     connectedCallback() {
@@ -925,6 +930,7 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
+        clearTimeout(this._noResultsTimer);
         super.disconnectedCallback();
     }
 
@@ -948,6 +954,7 @@ export class SearchModal extends LitElement {
 
     _openModal(trigger = 'click') {
         this.open = true;
+        this._noResultsTracked.clear();
         this._track('Open', trigger);
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
@@ -969,6 +976,7 @@ export class SearchModal extends LitElement {
     // (false); `clearReadableCount` is false in the main fetch's error path,
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
+        clearTimeout(this._noResultsTimer);
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
@@ -1441,6 +1449,30 @@ export class SearchModal extends LitElement {
         trackEvent('SearchModal', action, label);
     }
 
+    // Fire NoResults only for a query the patron has settled on. Deferring the
+    // event behind a short idle window — and re-checking _activeFetchKey when it
+    // fires — drops the transient empties a query passes through while being
+    // typed: each keystroke starts a fresh fetch that supersedes this key, so
+    // only the query left standing counts (rather than every partial string on
+    // the way to it). The per-session Set collapses repeat settles of the same
+    // (query+filters) key — a filter toggled off and back, an edit-and-undo — to
+    // one event. Label by active filter *category* only (never the filter values
+    // or query text; that catalog-gap detail belongs in the server search logs,
+    // not analytics labels) so a genuine catalog gap (`unfiltered`) reads apart
+    // from an over-constrained search (`availability`/`language`/`availability+language`).
+    _scheduleNoResultsTrack(fetchKey) {
+        clearTimeout(this._noResultsTimer);
+        this._noResultsTimer = setTimeout(() => {
+            if (this._activeFetchKey !== fetchKey) return;   // query moved on
+            if (this._noResultsTracked.has(fetchKey)) return;
+            this._noResultsTracked.add(fetchKey);
+            const active = [];
+            if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+            if (this._languages.length > 0) active.push('language');
+            this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
+        }, 1200);
+    }
+
     _onDialogOpened() {
         this.renderRoot.querySelector('.search-input')?.focus();
     }
@@ -1448,6 +1480,9 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
+        // Drop any pending NoResults timer so a search interrupted by closing
+        // the modal doesn't fire a phantom event after the fact.
+        clearTimeout(this._noResultsTimer);
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
@@ -1653,17 +1688,11 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
-                // A settled autocomplete that came back empty. Label by which
-                // filter *category* was active so we can tell a genuine catalog
-                // gap (`unfiltered`) from a user who over-constrained themselves
-                // (`availability`/`language`/`availability+language`). Categories
-                // only — never the filter values or query text; that catalog-gap
-                // detail belongs in the server search logs, not analytics labels.
+                // A settled autocomplete that came back empty — schedule (don't
+                // immediately fire) the NoResults event, so only a query the
+                // patron actually stops on is counted. See _scheduleNoResultsTrack.
                 if (this._results.length === 0) {
-                    const active = [];
-                    if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
-                    if (this._languages.length > 0) active.push('language');
-                    this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
+                    this._scheduleNoResultsTrack(fetchKey);
                 }
             })
             .catch(() => {
