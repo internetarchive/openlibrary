@@ -32,9 +32,8 @@ jobs:
             Title: ${{ github.event.issue.title }}
           claude_args: >-
             --max-turns 30
-            --allowedTools "Bash(git log:*) Bash(git blame:*) Bash(git show:*) Bash(git rev-parse:*)
-            Bash(grep:*) Bash(cat:*) Bash(gh issue view:*) Bash(gh issue comment:*)
-            Bash(gh issue edit:*) Bash(gh issue close:*) Bash(gh issue list:*) Bash(gh pr list:*)
-            Bash(gh api:*) Bash(gh label list:*)"
+            --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
+            Bash(gh issue comment:*) Bash(gh issue edit:*) Bash(gh issue close:*)
+            Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh api:*) Bash(gh label list:*)"
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.OL_BOT_PAT }}
