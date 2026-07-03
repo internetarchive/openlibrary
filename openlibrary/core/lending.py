@@ -1103,8 +1103,6 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 
     if user_loan:
         return "borrowed"
-    elif is_waiting:
-        return "waitlist"
     elif book_provider and bp_short_name != "ia":
         return "partner"
     elif availability.get("is_readable") or availability.get("status") == "open":
@@ -1114,7 +1112,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     elif availability.get("is_lendable"):
         if availability.get("available_to_borrow") or availability.get("available_to_browse"):
             return "borrowable"
-        elif availability.get("available_to_waitlist"):
+        elif availability.get("available_to_waitlist") or is_waiting:
             return "waitlist"
         else:
             return "checkedout"

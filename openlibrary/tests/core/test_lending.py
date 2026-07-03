@@ -189,3 +189,15 @@ class TestGetLendingState:
             # General availability has the book as borrowable now that it's their turn
             doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_borrow": True}}
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "borrowable"
+
+        # Case C: User is on waitlist, but they are printdisabled (or book is readable/borrowable)
+        mock_user.get_user_waiting_loans.return_value = {"status": "waiting", "position": 2}
+        mock_user.is_printdisabled.return_value = True
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_waitlist": False}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "printdisabled"
+
+        mock_user.is_printdisabled.return_value = False
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_readable": True, "is_lendable": True}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"

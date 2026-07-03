@@ -309,8 +309,3 @@ div.editionTools p {
     padding-top: 1em;
   }
 }
-
-.related-books .carousel-container,
-.lazy-carousel {
-  margin: 0 !important;
-}

@@ -5,7 +5,7 @@ let relatedBooksTracked = false;
 let bannerClicked = false;
 
 document.addEventListener('click', (e) => {
-    if (e.target.closest('a[href="#related-work-carousel"]')) {
+    if (e.target.closest('a[data-ol-link-track="OpenRelatedBooks|BannerClick"]')) {
         bannerClicked = true;
     }
 });
