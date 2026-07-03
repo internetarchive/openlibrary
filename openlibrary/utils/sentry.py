@@ -124,6 +124,34 @@ class Sentry:
 
         DB._db_execute = _db_execute
 
+    def get_frontend_config(self) -> dict:
+        """Return Sentry config for browser SDK initialization."""
+        if not self.config.get("frontend"):
+            return {}
+        config = {} | self.config | self.config["frontend"]
+        del config["frontend"]
+        result: dict = {
+            "dsn": config.get("dsn"),
+            "environment": config.get("environment"),
+            "tracesSampleRate": config.get("traces_sample_rate", 0.0),
+            "sampleRate": config.get("sample_rate", 0.0),
+            "release": get_software_version(),
+        }
+        # The Hub-based processor (WebPySentryProcessor) stashes the normalized route name on
+        # web.ctx so it's reachable here without fighting sentry_sdk 2.x scope threading.
+        if route_name := getattr(web.ctx, "sentry_route_name", None):
+            result["transactionName"] = route_name
+
+        return result
+
+    def get_traceparent(self) -> str | None:
+        """Return sentry-trace header value for the active transaction (for meta tag injection)."""
+        return sentry_sdk.get_traceparent()
+
+    def get_baggage(self) -> str | None:
+        """Return W3C baggage header value for the active transaction (for meta tag injection)."""
+        return sentry_sdk.get_baggage()
+
 
 @dataclass
 class InfogamiRoute:
@@ -164,6 +192,7 @@ class WebPySentryProcessor:
             )
 
             with hub.start_transaction(transaction):
+                web.ctx.sentry_route_name = route_name
                 try:
                     return handler()
                 finally:
@@ -207,6 +236,11 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
 
 
 _sentry: Sentry | None = None
+
+
+def get_sentry() -> Sentry | None:
+    """Return the active Sentry singleton, or None if not initialized / disabled."""
+    return _sentry
 
 
 def init_sentry(config_dict: dict) -> Sentry:

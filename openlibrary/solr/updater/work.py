@@ -46,6 +46,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
     async def preload_keys(self, keys: Iterable[str]):
         await super().preload_keys(keys)
         self.data_provider.preload_editions_of_works(keys)
+        self.data_provider.preload_cover_dimensions()
 
     async def update_key(self, work: dict) -> tuple[SolrUpdateRequest, list[str]]:
         """
@@ -286,7 +287,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._trending_data = trending_data
-        self._solr_editions = [EditionSolrBuilder(e, self, self._ia_metadata.get(e.get("ocaid", "").strip())) for e in self._editions]
+        self._solr_editions = [
+            EditionSolrBuilder(
+                edition=e,
+                solr_work=self,
+                ia_metadata=self._ia_metadata.get(e.get("ocaid", "").strip()),
+                data_provider=self._data_provider,
+            )
+            for e in self._editions
+        ]
+        self._as_solr_edition = EditionSolrBuilder(
+            edition=self._work,
+            data_provider=self._data_provider,
+        )
 
     def build(self) -> SolrDocument:
         doc = cast(dict, super().build())
@@ -351,7 +364,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def alternative_title(self) -> set[str]:
         alt_title_set = set()
-        for book in (EditionSolrBuilder(self._work), *self._solr_editions):
+        for book in (self._as_solr_edition, *self._solr_editions):
             alt_title_set.update(book.alternative_title)
             if book.translation_of:
                 alt_title_set.add(book.translation_of)
@@ -480,7 +493,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def isbn(self) -> set[str]:
-        return {isbn for ed in self._editions for isbn in EditionSolrBuilder(ed).isbn}
+        return {isbn for ed in self._solr_editions for isbn in ed.isbn}
 
     @property
     def last_modified_i(self) -> int:
@@ -570,6 +583,20 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         )
 
         return work_cover_id or next((ed.cover_i for ed in self._solr_editions if ed.cover_i is not None), None)
+
+    @cached_property
+    def _cover_dimensions(self) -> tuple[int, int] | None:
+        if self.cover_i is None:
+            return None
+        return self._data_provider.get_cover_dimensions(self.cover_i)
+
+    @property
+    def cover_width(self) -> int | None:
+        return self._cover_dimensions[0] if self._cover_dimensions else None
+
+    @property
+    def cover_height(self) -> int | None:
+        return self._cover_dimensions[1] if self._cover_dimensions else None
 
     @property
     def cover_edition_key(self) -> str | None:

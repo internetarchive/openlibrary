@@ -39,6 +39,7 @@ pipeline {
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
         OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
         OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
+        OL_COVERS_METADATA_LINK = 'https://openlibrary.org/data/ol_dump_covers_metadata_latest.txt.gz'
         // Keep link in sync with ol-solr-updater-start and Makefile
         OSP_DUMP_LINK = 'https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db'
         // Get the date-suffixed name of the latest dump
@@ -46,6 +47,7 @@ pipeline {
         OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
         OL_RATINGS_FILE = sh(script: "curl '${env.OL_RATINGS_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
         OL_READING_LOG_FILE = sh(script: "curl '${env.OL_READING_LOG_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_COVERS_METADATA_FILE = sh(script: "curl '${env.OL_COVERS_METADATA_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
       }
       stages {
         stage('Wipe old postgres') {
@@ -86,6 +88,7 @@ pipeline {
                       sh "rm \$(ls ol_dump_2* | grep -v ${env.OL_DUMP_FILE}) || true"
                       sh "rm \$(ls ol_dump_ratings_2* | grep -v ${env.OL_RATINGS_FILE}) || true"
                       sh "rm \$(ls ol_dump_reading-log_2* | grep -v ${env.OL_READING_LOG_FILE}) || true"
+                      sh "rm \$(ls ol_dump_covers_metadata_2* | grep -v ${env.OL_COVERS_METADATA_FILE}) || true"
                     }
                   }
                 }
@@ -95,6 +98,7 @@ pipeline {
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_READING_LOG_LINK}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_COVERS_METADATA_LINK}"
                       // This file is small, so we don't need to check if it's already downloaded
                       sh "wget --progress=dot:giga --trust-server-names ${env.OSP_DUMP_LINK}"
                     }
@@ -115,6 +119,8 @@ pipeline {
                     script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
                   sh(label: 'Import reading log',
                     script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
+                  sh(label: 'Import covers metadata',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_COVERS_METADATA_FILE} cover")
                 }
               }
             }

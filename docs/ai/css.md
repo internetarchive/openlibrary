@@ -92,4 +92,6 @@ Your changes exceeded the CSS payload limit. Options:
 
 ## Browser Support
 
-Firefox and Chromium-based browsers on desktop and mobile (iOS and Android).
+See [Browser Support in the AI guide](README.md#browser-support) for the canonical policy (MediaWiki Grade A; `browserslist` in `package.json` is the source of truth).
+
+The CSS-specific gotcha: **CSS is not transpiled** — there is no PostCSS in the build, so anything you write ships verbatim. Before using a newer CSS feature, check [caniuse](https://caniuse.com) against the Safari floor in `browserslist`. JS gets transpiled to the floor automatically; CSS does not.

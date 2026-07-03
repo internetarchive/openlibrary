@@ -18,6 +18,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
       <ul class="design-pattern-nav__list">
         <li><a href="#tooltip">Tooltip</a></li>
         <li><a href="#pagination">Pagination</a></li>
+        <li><a href="#carousel">Carousel</a></li>
         <li><a href="#popover">Popover</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
         <li><a href="#options-popover">Options Popover</a></li>
@@ -133,6 +134,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
         $:render_template("design/api_tables", components.get("ol-pagination"))
       </article>
+
+      $:render_jinja_template("design/carousel.html.jinja", api=components.get("ol-carousel"))
 
       $:render_template("design/popover", components.get("ol-popover"))
 

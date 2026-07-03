@@ -56,6 +56,48 @@ def test_login_template_does_not_bind_password_value():
     assert "$form.password.value" not in template
 
 
+def test_no_role_trio_in_source():
+    """No source file should use all three of is_admin(), is_librarian(),
+    is_super_librarian() on the same line -- use is_librarian_or_higher() instead.
+    """
+    excluded = {"vendor", "node_modules", ".git", "__pycache__", "tests"}
+    source_roots = [
+        "openlibrary/plugins",
+        "openlibrary/templates",
+        "openlibrary/macros",
+        "openlibrary/core",
+        "openlibrary/fastapi",
+        "openlibrary/code.py",
+        "openlibrary/asgi_app.py",
+    ]
+
+    violations = {}
+    for root in source_roots:
+        if root.endswith(".py"):
+            files = [Path(root)]
+        else:
+            files = glob.glob(f"{root}/**/*", recursive=True)
+
+        for path in files:
+            p = Path(path)
+            if any(part in excluded for part in p.parts):
+                continue
+            if p.suffix not in (".py", ".html"):
+                continue
+            if not p.is_file():
+                continue
+
+            for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+                if "is_librarian_or_higher" in line:
+                    continue
+                if "is_admin" in line and "is_librarian" in line and "is_super_librarian" in line:
+                    violations[f"{p}:{i}"] = line.strip()
+
+    assert not violations, "Found lines using all three role checks. Use is_librarian_or_higher() instead:\n" + "\n".join(
+        f"  {k}: {v}" for k, v in sorted(violations.items())
+    )
+
+
 def test_all_jinja_templates_compile(subtests):
     """Every ``.html.jinja`` template in the project should compile.
 

@@ -1,12 +1,14 @@
 """Tests for openlibrary.core.jinja — Jinja2 environment setup."""
 
 import pathlib
+import textwrap
 
 import jinja2
 import jinja2.exceptions
 import pytest
 from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
+from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
 from openlibrary.core.jinja import get_jinja_env
@@ -62,6 +64,22 @@ def _create_validation_env() -> jinja2.Environment:
     )
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
     env.policies["ext.i18n.trimmed"] = True
+
+    try:
+        from infogami.utils.view import render_template as _render_templetor  # noqa: PLC0415
+
+        env.globals["render_templetor_template"] = _render_templetor
+    except ImportError:
+
+        def _stub(*a, **kw):
+            return ""
+
+        env.globals["render_templetor_template"] = _stub
+
+    env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
+
+    env.filters["dedent"] = lambda s: textwrap.dedent(str(s)).strip()
+
     return env
 
 

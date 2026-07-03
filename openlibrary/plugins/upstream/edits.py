@@ -7,7 +7,7 @@ import web
 
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, require_login
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
 from openlibrary.utils.request_context import site
@@ -80,6 +80,7 @@ def perform_merge_update(mrid: str | None, olids: str, comment: str | None) -> N
 class community_edits_queue(delegate.page):
     path = "/merges"
 
+    @require_login
     def GET(self) -> str | web.HTTPError:
         i = web.input(
             page=1,
@@ -132,6 +133,7 @@ class community_edits_queue(delegate.page):
             merge_requests=merge_requests,
         )
 
+    @require_login
     def POST(self):
         if not (user := accounts.get_current_user()) or not user.is_member_of_any(ALLOWED_USERGROUPS):
             raise web.unauthorized()

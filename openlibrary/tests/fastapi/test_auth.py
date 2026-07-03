@@ -144,9 +144,7 @@ def test_require_librarian_returns_403_for_regular_user():
 
     with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
         user = MagicMock()
-        user.is_admin.return_value = False
-        user.is_librarian.return_value = False
-        user.is_super_librarian.return_value = False
+        user.is_librarian_or_higher.return_value = False
         mock_get_user.return_value = user
 
         client = TestClient(app, raise_server_exceptions=False)
@@ -164,9 +162,7 @@ def test_require_librarian_allows_admin():
 
     with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
         user = MagicMock()
-        user.is_admin.return_value = True
-        user.is_librarian.return_value = False
-        user.is_super_librarian.return_value = False
+        user.is_librarian_or_higher.return_value = True
         mock_get_user.return_value = user
 
         client = TestClient(app, raise_server_exceptions=False)
@@ -184,9 +180,7 @@ def test_require_librarian_allows_librarian():
 
     with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
         user = MagicMock()
-        user.is_admin.return_value = False
-        user.is_librarian.return_value = True
-        user.is_super_librarian.return_value = False
+        user.is_librarian_or_higher.return_value = True
         mock_get_user.return_value = user
 
         client = TestClient(app, raise_server_exceptions=False)
@@ -204,9 +198,7 @@ def test_require_librarian_allows_super_librarian():
 
     with patch("openlibrary.fastapi.auth.get_current_user") as mock_get_user:
         user = MagicMock()
-        user.is_admin.return_value = False
-        user.is_librarian.return_value = False
-        user.is_super_librarian.return_value = True
+        user.is_librarian_or_higher.return_value = True
         mock_get_user.return_value = user
 
         client = TestClient(app, raise_server_exceptions=False)
