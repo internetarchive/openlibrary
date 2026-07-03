@@ -209,6 +209,46 @@ pre.example__code code[class*="language-"] {
 .color-block-link-unclicked {
   background-color: var(--link-blue);
 }
+.demo-btn {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--border-radius-button);
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  background: var(--white);
+  font-size: var(--font-size-body-large);
+}
+
+/* Rich tooltip content, styled by the consuming page (see design/tooltip.html). */
+.book-tip {
+  font-size: var(--font-size-body-medium);
+}
+.book-tip__heading {
+  margin-bottom: var(--spacing-2xs);
+}
+.book-tip__trigger {
+  display: block;
+  width: 120px;
+  height: auto;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  box-shadow: 0 0 0 0 var(--lightest-grey);
+  transition: box-shadow 0.15s ease;
+}
+.book-tip__trigger:hover,
+.book-tip__trigger:focus-visible {
+  box-shadow: 0 0 0 6px var(--lightest-grey);
+  outline: none;
+}
+.book-tip__title {
+  font-weight: 600;
+}
+.book-tip__year {
+  color: var(--lighter-grey);
+}
+.book-tip__byline {
+  color: var(--lighter-grey);
+  font-size: var(--font-size-label-medium);
+}
 
 /* Auto-generated API reference tables (from the Custom Elements Manifest) */
 .component-api {
@@ -299,6 +339,20 @@ pre.example__code code[class*="language-"] {
 .component-api__default-slot {
   font-style: italic;
   color: var(--mid-grey);
+}
+
+/* Placeholder cards for the ol-carousel demos. The carousel sets each item's
+   width; these just give the slotted children a visible 2:3 box. */
+.design-carousel-demo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 3;
+  background: var(--off-white);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  color: var(--mid-grey);
+  font-size: 1.25rem;
 }
 
 @import "legacy.css";

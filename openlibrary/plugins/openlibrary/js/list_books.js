@@ -28,7 +28,9 @@ export class ListBooks {
     }
 
     static init() {
-        // Assume only one list-books/layout per page
+        // Assume only one list-books/layout per page. The author-suggestion row
+        // is deliberately not a `.list-books` (it's not books), so this only
+        // ever matches the work results list.
         new ListBooks(
             document.querySelector('.list-books'),
             document.querySelector('.tools--layout'),

@@ -209,21 +209,11 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ""
-    included = web.ctx.setdefault("included-components", [])
 
-    if not included:
-        # Support for legacy browsers (see vite.config.mjs)
-        polyfills_url = static_url("build/components/production/ol-polyfills-legacy.js")
-        html += f'<script nomodule src="{polyfills_url}" defer></script>'
-
-    if name not in included:
+    if name not in (included := web.ctx.setdefault("included-components", [])):
         url = static_url("build/components/production/ol-%s.js" % name)
         script_attrs = "" if not asyncDefer else "async defer"
         html += f'<script type="module" {script_attrs} src="{url}"></script>'
-
-        legacy_url = static_url("build/components/production/ol-%s-legacy.js" % name)
-        html += f'<script nomodule src="{legacy_url}" defer></script>'
-
         included.append(name)
 
     html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
@@ -302,8 +292,13 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d, indent=0) -> str:
-    return json.dumps(d, indent=indent)
+def json_encode(d, indent: int | str | None = None, sort_keys: bool = False) -> str:
+    if isinstance(d, Nothing):
+        d = []
+
+    # Escape < and > so the output is safe inside <script> tags with unescaped $: output.
+    # </> are valid JSON unicode escapes; all parsers decode them correctly.
+    return json.dumps(d, indent=indent, sort_keys=sort_keys).replace("<", "\\u003c").replace(">", "\\u003e")
 
 
 @public

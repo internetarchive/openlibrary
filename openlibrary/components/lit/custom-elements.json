@@ -958,8 +958,26 @@
           ],
           "members": [
             {
+              "kind": "field",
+              "name": "BUFFER_LINES",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "4"
+            },
+            {
               "kind": "method",
               "name": "_updateBackgroundColor"
+            },
+            {
+              "kind": "method",
+              "name": "_getLineHeight",
+              "parameters": [
+                {
+                  "name": "el"
+                }
+              ]
             },
             {
               "kind": "method",
@@ -1357,6 +1375,612 @@
           "declaration": {
             "name": "OlBanner",
             "module": "openlibrary/components/lit/OlBanner.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlCarousel.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A Netflix-style carousel component with page-based navigation.\n\nItems are passed as direct children. The component controls their width\nbased on responsive breakpoints, shows peek areas at the edges, and\nprovides arrow buttons and bar-segment indicators for navigation.\n\nAll motion (button clicks, swipe release) uses spring physics via\nrequestAnimationFrame for natural momentum and deceleration.",
+          "name": "OlCarousel",
+          "cssProperties": [
+            {
+              "description": "Colour of the arrow glyphs",
+              "name": "--ol-carousel-arrow-color",
+              "default": "#333"
+            },
+            {
+              "description": "Background of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-bg",
+              "default": "#fff"
+            },
+            {
+              "description": "Border of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-border",
+              "default": "hsl(55, 20%, 83%)"
+            },
+            {
+              "description": "Diameter of the round arrow buttons",
+              "name": "--ol-carousel-arrow-icon-size",
+              "default": "36px"
+            },
+            {
+              "description": "Colour of the inactive page indicators",
+              "name": "--ol-carousel-indicator-color",
+              "default": "#ccc"
+            },
+            {
+              "description": "Colour of the active page indicator",
+              "name": "--ol-carousel-indicator-active",
+              "default": "#333"
+            },
+            {
+              "description": "Inner viewport padding so slotted items can show a hover lift/shadow without being clipped",
+              "name": "--ol-carousel-viewport-padding",
+              "default": "0px"
+            }
+          ],
+          "slots": [
+            {
+              "description": "Carousel items. Each direct child becomes one card; the component controls its width.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_leftArrow",
+              "static": true,
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m15 18-6-6 6-6\"/></svg>`",
+              "description": "Left chevron SVG"
+            },
+            {
+              "kind": "field",
+              "name": "_rightArrow",
+              "static": true,
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg>`",
+              "description": "Right chevron SVG"
+            },
+            {
+              "kind": "field",
+              "name": "_breakpoints",
+              "type": {
+                "text": "array"
+              },
+              "static": true,
+              "default": "[ [480, 3], [600, 4], [768, 5], [1024, 7], [Infinity, 8], ]",
+              "description": "Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default."
+            },
+            {
+              "kind": "field",
+              "name": "_spring",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ stiffness: 0.09, // Pull strength toward target; lower = gentler, higher = snappier damping: 0.5, // Velocity retained per frame; lower = more friction/less bounce, higher = more oscillation precision: 0.02, // Threshold to snap to final position; lower = smoother finish, higher = earlier cutoff }",
+              "description": "Spring physics constants"
+            },
+            {
+              "kind": "method",
+              "name": "_rubberBand",
+              "static": true,
+              "parameters": [
+                {
+                  "name": "pos"
+                },
+                {
+                  "name": "min"
+                },
+                {
+                  "name": "max"
+                },
+                {
+                  "name": "dimension"
+                }
+              ],
+              "description": "Apply rubber-band resistance when position exceeds bounds.\nUses an iOS-style formula: overscroll is dampened asymptotically\nso the track resists increasingly as you drag further out.\nMaximum visual overscroll is capped at one viewport width."
+            },
+            {
+              "kind": "field",
+              "name": "page",
+              "description": "Current page (0-indexed). Meaningful after `firstUpdated`/`updateComplete`.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "totalPages",
+              "description": "Total number of pages. Depends on measured width, so read after `updateComplete`.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "next",
+              "description": "Advance to the next page."
+            },
+            {
+              "kind": "method",
+              "name": "prev",
+              "description": "Go to the previous page."
+            },
+            {
+              "kind": "method",
+              "name": "goToPage",
+              "parameters": [
+                {
+                  "name": "index"
+                }
+              ],
+              "description": "Jump to a specific page (0-indexed)."
+            },
+            {
+              "kind": "method",
+              "name": "_navigateToPage",
+              "parameters": [
+                {
+                  "name": "targetPage"
+                },
+                {
+                  "name": "initialVelocity",
+                  "default": "0"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_animateSpring",
+              "parameters": [
+                {
+                  "name": "fromPos"
+                },
+                {
+                  "name": "initialVelocity"
+                },
+                {
+                  "name": "targetPos"
+                },
+                {
+                  "name": "onComplete"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_cancelAnimation"
+            },
+            {
+              "kind": "method",
+              "name": "_applyTransform",
+              "parameters": [
+                {
+                  "name": "pos"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_countItems"
+            },
+            {
+              "kind": "method",
+              "name": "_updateColumns",
+              "parameters": [
+                {
+                  "name": "width"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_recalculate"
+            },
+            {
+              "kind": "method",
+              "name": "_getOffsetForPage",
+              "parameters": [
+                {
+                  "name": "page"
+                }
+              ],
+              "description": "Calculate the translateX offset (%) for a given page.\nUses pixel math to account for gap, then converts to % of track width\n(track is a block-level flex container, so its width = viewport width)."
+            },
+            {
+              "kind": "method",
+              "name": "_updateInert"
+            },
+            {
+              "kind": "method",
+              "name": "_loadVisibleImages",
+              "parameters": [
+                {
+                  "name": "items"
+                },
+                {
+                  "name": "endVisible"
+                }
+              ],
+              "description": "Swap cover `data-lazy` → `src` for the visible range plus a one-page\nlookahead. Cards past the first page render with a placeholder src and\nthe real URL in `data-lazy` (see books/custom_carousel_card.html). The\nlegacy Slick carousel got this for free via `lazyLoad: 'ondemand'`;\n<ol-carousel> uses a transform-based track (not native scroll), so it\nmust do the swap itself or paged-in covers never load."
+            },
+            {
+              "kind": "method",
+              "name": "_emitPageChange"
+            },
+            {
+              "kind": "method",
+              "name": "_onSlotChange"
+            },
+            {
+              "kind": "method",
+              "name": "_onClickCapture",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onPointerDown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onPointerMove",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onPointerUp",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_applyTrackLayout",
+              "description": "Set layout CSS custom properties on the host element.\nThese cascade into the shadow DOM for ::slotted(*) and .arrow sizing.\nKept separate from the track's inline style so Lit re-renders\nnever overwrite the imperatively-set transform."
+            },
+            {
+              "kind": "method",
+              "name": "_renderIndicators"
+            },
+            {
+              "kind": "field",
+              "name": "peek",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0.03",
+              "description": "Fraction of item width visible at edges (0–0.5, default: 0.03)",
+              "attribute": "peek"
+            },
+            {
+              "kind": "field",
+              "name": "gap",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "8",
+              "description": "Gap between items in px (default: 8)",
+              "attribute": "gap"
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Carousel'",
+              "description": "Accessible label for the carousel region (default: \"Carousel\")",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "labelPrevious",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Previous page'",
+              "description": "Aria-label for previous arrow (default: \"Previous page\")",
+              "attribute": "label-previous"
+            },
+            {
+              "kind": "field",
+              "name": "labelNext",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Next page'",
+              "description": "Aria-label for next arrow (default: \"Next page\")",
+              "attribute": "label-next"
+            },
+            {
+              "kind": "field",
+              "name": "showIndicators",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "When present, shows the page indicator bar (default: false)",
+              "attribute": "show-indicators"
+            },
+            {
+              "kind": "field",
+              "name": "_page",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "_page"
+            },
+            {
+              "kind": "field",
+              "name": "_totalPages",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "attribute": "_totalPages"
+            },
+            {
+              "kind": "field",
+              "name": "_columns",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "6",
+              "attribute": "_columns"
+            },
+            {
+              "kind": "field",
+              "name": "_itemCount",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "_itemCount"
+            },
+            {
+              "kind": "field",
+              "name": "_currentPos",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_resizeObserver",
+              "type": {
+                "text": "ResizeObserver|null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_dragging",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_pointerStartX",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_pointerId",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_dragDelta",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_velocity",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_pointerPrevX",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_pointerPrevTime",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_draggedPastThreshold",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_animationFrame",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_springVel",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-carousel-page-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired after page transition. detail: { page: Number, totalPages: Number }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "peek",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0.03",
+              "description": "Fraction of item width visible at edges (0–0.5, default: 0.03)",
+              "fieldName": "peek"
+            },
+            {
+              "name": "gap",
+              "type": {
+                "text": "Number"
+              },
+              "default": "8",
+              "description": "Gap between items in px (default: 8)",
+              "fieldName": "gap"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Carousel'",
+              "description": "Accessible label for the carousel region (default: \"Carousel\")",
+              "fieldName": "label"
+            },
+            {
+              "name": "label-previous",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Previous page'",
+              "description": "Aria-label for previous arrow (default: \"Previous page\")",
+              "fieldName": "labelPrevious"
+            },
+            {
+              "name": "label-next",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Next page'",
+              "description": "Aria-label for next arrow (default: \"Next page\")",
+              "fieldName": "labelNext"
+            },
+            {
+              "name": "show-indicators",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "When present, shows the page indicator bar (default: false)",
+              "fieldName": "showIndicators"
+            },
+            {
+              "name": "_page",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "_page"
+            },
+            {
+              "name": "_totalPages",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "fieldName": "_totalPages"
+            },
+            {
+              "name": "_columns",
+              "type": {
+                "text": "number"
+              },
+              "default": "6",
+              "fieldName": "_columns"
+            },
+            {
+              "name": "_itemCount",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "_itemCount"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-carousel",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlCarousel",
+          "declaration": {
+            "name": "OlCarousel",
+            "module": "openlibrary/components/lit/OlCarousel.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-carousel",
+          "declaration": {
+            "name": "OlCarousel",
+            "module": "openlibrary/components/lit/OlCarousel.js"
           }
         }
       ]
@@ -4176,6 +4800,393 @@
           "declaration": {
             "name": "OlToggle",
             "module": "openlibrary/components/lit/OlToggle.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlTooltip.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A tooltip component that displays contextual information on hover/focus.\n\nWraps a trigger element and shows a tooltip panel with configurable placement\nand arrow. The tooltip appears after a short delay and is shown/hidden\ninstantly with no animation. Each tooltip is independent — moving from one\ntrigger to another hides the old tooltip and shows the new one.",
+          "name": "OlTooltip",
+          "slots": [
+            {
+              "description": "The trigger element (button, icon, link, etc.)",
+              "name": ""
+            },
+            {
+              "description": "Optional rich HTML tooltip content (overrides the content attribute)",
+              "name": "content"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_idCounter",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "0"
+            },
+            {
+              "kind": "method",
+              "name": "_onSlotChange"
+            },
+            {
+              "kind": "method",
+              "name": "_onMouseEnter"
+            },
+            {
+              "kind": "method",
+              "name": "_onMouseLeave"
+            },
+            {
+              "kind": "method",
+              "name": "_onFocusIn"
+            },
+            {
+              "kind": "method",
+              "name": "_onFocusOut"
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onScroll"
+            },
+            {
+              "kind": "method",
+              "name": "_show"
+            },
+            {
+              "kind": "method",
+              "name": "_hide"
+            },
+            {
+              "kind": "method",
+              "name": "_computePosition",
+              "parameters": [
+                {
+                  "name": "panelW"
+                },
+                {
+                  "name": "panelH"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_arrowStyle",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_parsePlacement",
+              "parameters": [
+                {
+                  "name": "placement"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_triggerEl",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_clearTimers"
+            },
+            {
+              "kind": "field",
+              "name": "content",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Text content of the tooltip",
+              "attribute": "content"
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'top'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}\" or \"{side}-{align}\" where side is \"top\", \"bottom\", \"left\", or \"right\" and align is \"start\", \"center\", or \"end\". Default: \"top\"",
+              "attribute": "placement"
+            },
+            {
+              "kind": "field",
+              "name": "showDelay",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "150",
+              "description": "Milliseconds to wait before showing (default: 150). Set to 0 for an instant tooltip.",
+              "attribute": "show-delay"
+            },
+            {
+              "kind": "field",
+              "name": "hideDelay",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0",
+              "description": "Milliseconds to wait before hiding (default: 0)",
+              "attribute": "hide-delay"
+            },
+            {
+              "kind": "field",
+              "name": "offset",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and tooltip (default: 4)",
+              "attribute": "offset"
+            },
+            {
+              "kind": "field",
+              "name": "arrow",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows the directional arrow (hidden by default)",
+              "attribute": "arrow"
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Prevents the tooltip from showing",
+              "attribute": "disabled"
+            },
+            {
+              "kind": "field",
+              "name": "_visible",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_visible"
+            },
+            {
+              "kind": "field",
+              "name": "_position",
+              "privacy": "public",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "attribute": "_position"
+            },
+            {
+              "kind": "field",
+              "name": "_actualSide",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top'",
+              "attribute": "_actualSide"
+            },
+            {
+              "kind": "field",
+              "name": "_arrowOffset",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "_arrowOffset"
+            },
+            {
+              "kind": "field",
+              "name": "_showTimer",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_hideTimer",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_tooltipId",
+              "default": "`ol-tooltip-${++OlTooltip._idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_canHover"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-tooltip-show",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the tooltip opens"
+            },
+            {
+              "name": "ol-tooltip-hide",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the tooltip closes"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "content",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Text content of the tooltip",
+              "fieldName": "content"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "String"
+              },
+              "default": "'top'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}\" or \"{side}-{align}\" where side is \"top\", \"bottom\", \"left\", or \"right\" and align is \"start\", \"center\", or \"end\". Default: \"top\"",
+              "fieldName": "placement"
+            },
+            {
+              "name": "show-delay",
+              "type": {
+                "text": "Number"
+              },
+              "default": "150",
+              "description": "Milliseconds to wait before showing (default: 150). Set to 0 for an instant tooltip.",
+              "fieldName": "showDelay"
+            },
+            {
+              "name": "hide-delay",
+              "type": {
+                "text": "Number"
+              },
+              "default": "0",
+              "description": "Milliseconds to wait before hiding (default: 0)",
+              "fieldName": "hideDelay"
+            },
+            {
+              "name": "offset",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and tooltip (default: 4)",
+              "fieldName": "offset"
+            },
+            {
+              "name": "arrow",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows the directional arrow (hidden by default)",
+              "fieldName": "arrow"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Prevents the tooltip from showing",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "_visible",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_visible"
+            },
+            {
+              "name": "_position",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "fieldName": "_position"
+            },
+            {
+              "name": "_actualSide",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top'",
+              "fieldName": "_actualSide"
+            },
+            {
+              "name": "_arrowOffset",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "_arrowOffset"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-tooltip",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlTooltip",
+          "declaration": {
+            "name": "OlTooltip",
+            "module": "openlibrary/components/lit/OlTooltip.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-tooltip",
+          "declaration": {
+            "name": "OlTooltip",
+            "module": "openlibrary/components/lit/OlTooltip.js"
           }
         }
       ]
