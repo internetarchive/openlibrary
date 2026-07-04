@@ -8045,6 +8045,10 @@ msgid "Read ebook from Internet Archive"
 msgstr ""
 
 #: ReadButton.html
+msgid "More reading options"
+msgstr ""
+
+#: ReadButton.html
 msgid "Listen"
 msgstr ""
 
