@@ -3,6 +3,12 @@ name: Issue Enrichment
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Debug: manually enrich a specific existing issue"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -17,8 +23,9 @@ jobs:
   enrich:
     runs-on: ubuntu-latest
     if: |
-      github.event.issue.user.type != 'Bot' &&
-      !contains(github.event.issue.labels.*.name, 'agentic-workflows')
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.type != 'Bot' &&
+       !contains(github.event.issue.labels.*.name, 'agentic-workflows'))
     steps:
       - uses: actions/checkout@v4
 
@@ -28,8 +35,7 @@ jobs:
           prompt: |
             @.github/workflows/issue_enrichment.md
 
-            Issue #${{ github.event.issue.number }} was just opened by @${{ github.event.issue.user.login }}.
-            Title: ${{ github.event.issue.title }}
+            ${{ github.event_name == 'workflow_dispatch' && format('Manual test dispatch: enrich issue #{0}. Fetch its data yourself in Step 1 -- do not assume anything about it from this line.', inputs.issue_number) || format('Issue #{0} was just opened by @{1}.\nTitle: {2}', github.event.issue.number, github.event.issue.user.login, github.event.issue.title) }}
           claude_args: >-
             --max-turns 30
             --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
