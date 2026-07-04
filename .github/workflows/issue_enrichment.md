@@ -174,29 +174,29 @@ For every label below, make an active decision: **add**, **remove**, or **leave 
 | `Needs: Triage` | Staff has not confirmed this is valid/desirable | Replaced by `Priority: *` |
 | `Needs: Lead` | No lead assigned | Replaced by `Lead: @*` |
 | `Needs: Breakdown` | No concrete implementation steps or task checklist present | A sufficient breakdown exists |
-| `Needs: Staff / Admin` | Requires prod DB, VPN, librarian tools, or institutional knowledge | — |
+| `Needs: Staff / Internal` | Requires prod DB, VPN, librarian tools, or institutional knowledge | — |
 | `Needs: Staff Decision` | A specific decision from a maintainer is required before work can begin | Decision made and documented |
-| `Needs: Design` | UI/UX change proposed with no mockups or design direction | Design direction established |
+| `Needs: Designs` | UI/UX change proposed with no mockups or design direction | Design direction established |
 | `Needs: Investigation` | Root cause or approach genuinely unknown; research required before coding | Root cause or approach is clear |
 | `Good First Issue` | Well-scoped, clear acceptance criteria, ≤1 day of work, no deep knowledge required, NOT blocked | — |
-| `Blocked` | Hard external dependency: unavailable credential/service, incomplete external work | Dependency resolved |
-| `Blocker` | The proposal introduces a security or privacy risk | Risk resolved |
+| `State: Blocked` | Hard external dependency: unavailable credential/service, incomplete external work | Dependency resolved |
+| *(no label — flag in comment body)* | The proposal introduces a security or privacy risk. No label exists for this; do not invent one. Instead add a `> [!WARNING]` block to the comment stating the risk plainly, and tag the relevant lead. | Risk resolved |
 
 ### Module / Theme labels
 
 | Condition | Labels to add |
 |---|---|
-| Auth, login, account, borrowing, payments, admin | `Needs: Staff / Admin` |
+| Auth, login, account, borrowing, payments, admin | `Needs: Staff / Internal` |
 | Search, solr keywords | `Theme: Search`, `Module: Solr` |
 | Frontend / UI / CSS keywords | `Affects: UI`, `Module: JavaScript`, `Module: CSS` |
 | Backend / server keywords | `Affects: Server` |
 | Data / metadata / book / author | `Affects: Data` |
 | Docker / dev setup | `Module: Docker`, `Affects: Configuration` |
 | JavaScript | `Module: JavaScript` |
-| API | `Theme: Public-APIs` |
+| API | `Theme: Public APIs` |
 | Performance | `Theme: Performance` |
 | Accessibility | `Theme: Accessibility` |
-| Internationalization | `Theme: Internationalization` |
+| Internationalization | `Theme: Internationalization (i18n)` |
 
 **CRITICAL**: Never add `Priority:` labels. Never remove `Needs: Triage`. Only staff can set priority.
 
@@ -220,7 +220,7 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 
 > Thank you @{author} for submitting this issue!
 
-**If `Needs: Staff / Admin` was applied**, insert immediately after the opening:
+**If `Needs: Staff / Internal` was applied**, insert immediately after the opening:
 
 ```markdown
 > [!WARNING]
@@ -233,11 +233,11 @@ Always end every comment with `<!-- ol-issue-bot -->`.
 ⚠️ *Contributors*, this issue will be ready to work on once:
 - [ ] **Triage** — maintainers will add `Priority: *` and `Lead: @*`
 - [ ] **Needs: Investigation** — root cause or approach unknown; research required first
-- [ ] **Needs: Design** — UI/UX direction required before implementation
+- [ ] **Needs: Designs** — UI/UX direction required before implementation
 - [ ] **Needs: Staff Decision** — [state the specific decision plainly]
 - [ ] **Needs: Breakdown** — issue lacks concrete implementation steps
-- [ ] **Needs: Staff / Admin** — requires production access or institutional knowledge
-- [ ] **Blocked** — [state the specific external dependency]
+- [ ] **Needs: Staff / Internal** — requires production access or institutional knowledge
+- [ ] **State: Blocked** — [state the specific external dependency]
 ```
 
 Only include checklist items that genuinely apply.
@@ -262,7 +262,7 @@ If codebase research turned up nothing critically relevant, omit this section.
 
 **Open questions** — things the author needs to answer or clarify. Written as questions.
 
-**Action items** — concrete things the author or community needs to add or do. Written as `- [ ]` checkboxes.
+**Action items** — concrete things the author or community needs to add or do. Written as `- [ ]` checkboxes. **Resolve what you can before listing it as open.** If an action item or open question is answerable from research you can actually do (checking a related repo, grepping the codebase, reading a linked doc), do that research and write the item as `- [x] **Question** (**Answer: ...**)` instead of leaving it as an open ask. Only leave an item as `- [ ]` when the answer genuinely requires information you don't have access to (e.g. private infra, a maintainer's judgment call).
 
 **Suggested breakdown** — only include if `Needs: Breakdown` applies and you have enough context to propose one. List concrete sub-tasks as `- [ ]` items. Note whether any could be a `Good First Issue`.
 
@@ -280,6 +280,8 @@ If codebase research turned up nothing critically relevant, omit this section.
 ---
 
 **Triage checklist** *(always include, collapsed)*
+
+Mark each item `[x]` if it is actually satisfied for **this specific issue**, `[ ]` if it is not. Do not post the template with everything unchecked — every item below must reflect a real assessment you made in Steps 3-5, not the default state.
 
 ```markdown
 <details>
@@ -361,8 +363,9 @@ Only apply to **non-staff** issues. Never flag staff-created issues as spam.
 
 If a non-staff issue is spam, bot-generated, or clearly not a real issue:
 1. Post: "This appears to be [spam/bot-generated/not a real issue]. Closing."
-2. Add label `Close: Not an Issue`
-3. Close: `gh issue close {ISSUE_NUMBER} --repo internetarchive/openlibrary`
+2. Close: `gh issue close {ISSUE_NUMBER} --repo internetarchive/openlibrary`
+
+No label exists for this (`Close: Not an Issue` does not exist as a real label) — do not try to apply one; the closing comment plus the closed state is sufficient.
 
 ---
 
