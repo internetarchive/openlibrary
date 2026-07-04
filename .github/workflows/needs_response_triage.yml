@@ -1,0 +1,35 @@
+name: Needs Response Triage
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+concurrency:
+  group: needs-response-triage-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    if: "github.event.label.name == 'Needs: Response'"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Safe label triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          prompt: |
+            @.github/workflows/needs_response_triage.md
+
+            Issue #${{ github.event.issue.number }} was just labeled "Needs: Response".
+          claude_args: >-
+            --max-turns 20
+            --allowedTools "Bash(gh issue view:*) Bash(gh issue edit:*) Bash(gh label list:*)
+            Bash(gh api:*)"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.OL_BOT_PAT }}

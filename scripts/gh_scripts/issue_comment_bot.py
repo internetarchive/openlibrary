@@ -25,6 +25,12 @@ github_headers = {
     "Accept": "application/vnd.github+json",
 }
 
+# Accounts that post automated comments but are not registered GitHub Apps,
+# so GitHub's API reports their `user.type` as "User" rather than "Bot".
+# A comment from one of these should never trigger "Needs: Response" -- it's
+# not a human waiting on a reply.
+EXEMPT_COMMENTER_LOGINS = {"openlibrary-bot"}
+
 
 # Custom Exceptions:
 class AuthenticationError(Exception):
@@ -174,9 +180,14 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
         # comparing a timezone-aware datetime with a timezone-naive datetime
         created = created.replace(tzinfo=None)
         if created > since:
-            # Next step: Determine if the last commenter is a lead
+            # Next step: Determine if the last commenter is a lead, a bot
+            # (registered GitHub App, e.g. github-actions[bot]), or a known
+            # bot account that doesn't report as type "Bot" (e.g.
+            # openlibrary-bot, a PAT-authenticated account). None of these
+            # should trigger "Needs: Response".
             last_commenter = last_comment["user"]["login"]
-            if last_commenter not in [lead["githubUsername"] for lead in leads]:
+            is_bot = last_comment["user"].get("type") == "Bot" or last_commenter in EXEMPT_COMMENTER_LOGINS
+            if not is_bot and last_commenter not in [lead["githubUsername"] for lead in leads]:
                 lead_label = find_lead_label(i.get("labels", []))
                 results.append(
                     {
