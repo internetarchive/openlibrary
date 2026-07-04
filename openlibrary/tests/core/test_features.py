@@ -13,7 +13,6 @@ from openlibrary.core.features import Features
 
 def _full_config(**overrides: str) -> str:
     values = {
-        "lists": "true",
         "stats": "true",
         "stats-header": "true",
     }
@@ -44,7 +43,6 @@ class TestConstructor:
 
     def test_kwargs_only(self):
         f = Features(
-            lists=True,
             stats=True,
             stats_header=True,
         )
@@ -52,7 +50,6 @@ class TestConstructor:
 
     def test_extra_fields_are_ignored(self):
         f = Features(
-            lists=True,
             stats=True,
             stats_header=True,
             nonexistent=True,
@@ -68,7 +65,6 @@ class TestFromYaml:
         f = Features.from_yaml(tmp_path / "openlibrary.yml")
         assert f.stats is True
         assert f.stats_header is True
-        assert f.lists is True
 
     def test_missing_field_raises(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"

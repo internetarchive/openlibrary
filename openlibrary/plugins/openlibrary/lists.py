@@ -280,9 +280,6 @@ class lists(delegate.page):
 
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
 
-    def is_enabled(self):
-        return "lists" in web.ctx.features
-
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
         if path.startswith("/people/"):
