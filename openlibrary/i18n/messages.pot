@@ -5960,7 +5960,7 @@ msgstr ""
 msgid "More reading options for %(title)s"
 msgstr ""
 
-#: my_books/dropper.html
+#: ReadButton.html my_books/dropper.html
 msgid "More reading options"
 msgstr ""
 
@@ -8042,10 +8042,6 @@ msgstr ""
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
-
-#: ReadButton.html
-msgid "More reading options"
 msgstr ""
 
 #: ReadButton.html
