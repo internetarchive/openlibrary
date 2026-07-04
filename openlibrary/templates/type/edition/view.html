@@ -527,7 +527,7 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
       <a id="lists-section" class="section-anchor"></a>
       $# pages like /books/ia:foo00bar are fake records created from metadata API.
       $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-      $if "lists" in ctx.features and not page.is_fake_record():
+      $if not page.is_fake_record():
         $ component_times['Lists section'] = time()
         $code:
           data_ids = {}

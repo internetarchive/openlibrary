@@ -9,10 +9,7 @@ $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
 $if days_since(page.created) < 30:
   $ putctx('robots', 'noindex')
 
-$if "lists" in ctx.features:
-    $ lists = page.get_lists(limit=3)
-$else:
-    $ lists = []
+$ lists = page.get_lists(limit=3)
 
 <div id="contentHead">
     $if is_public and not owners_page:
@@ -30,7 +27,7 @@ $else:
     $elif ctx.user and ctx.user.is_admin():
         &bull;
         <span class="adminOnly"><a href="/admin$page.key">$_('admin page')</a></span>
-    $if "lists" in ctx.features and lists:
+    $if lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
     </div>
@@ -62,7 +59,7 @@ $else:
         $else:
             <p>$_('This reader has chosen to make their Reading Log private.')</p>
 
-    $if "lists" in ctx.features and lists:
+    $if lists:
         <div id="listsDisplay">
             <h2>$(_('My Lists') if owners_page else _('Lists'))
             <span class="sansserif small"><a href="$page.key/lists">$(_('Edit') if owners_page else _('See All'))</a></span>
