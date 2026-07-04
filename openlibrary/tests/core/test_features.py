@@ -16,7 +16,6 @@ def _full_config(**overrides: str) -> str:
         "lists": "true",
         "stats": "true",
         "stats-header": "true",
-        "superfast": "false",
     }
     values.update(overrides)
     lines = ["features:"]
@@ -48,7 +47,6 @@ class TestConstructor:
             lists=True,
             stats=True,
             stats_header=True,
-            superfast=False,
         )
         assert f.stats is True
 
@@ -57,7 +55,6 @@ class TestConstructor:
             lists=True,
             stats=True,
             stats_header=True,
-            superfast=False,
             nonexistent=True,
         )
         assert f.stats is True
@@ -72,7 +69,6 @@ class TestFromYaml:
         assert f.stats is True
         assert f.stats_header is True
         assert f.lists is True
-        assert f.superfast is False
 
     def test_missing_field_raises(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"

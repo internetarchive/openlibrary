@@ -32,7 +32,6 @@ class Features(BaseSettings):
     lists: bool  # we probably want to get rid of this one...
     stats: bool
     stats_header: bool
-    superfast: bool
     # undo: bool # Warning: this is enabled locally but a usergroup of librarians in testing/production
 
     @classmethod

@@ -65,7 +65,6 @@ features:
     recentchanges_v2: enabled
     stats: enabled
     stats-header: enabled
-    superfast: enabled
     undo: enabled
 
 upstream_to_www_migration: true
