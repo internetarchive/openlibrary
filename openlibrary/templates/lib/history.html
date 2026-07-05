@@ -1,7 +1,7 @@
 $def with (page)
 
 $ h = None
-$if "history_v2" not in ctx.features:
+$if not (ctx.user and ctx.user.is_librarian_or_higher()):
     $ h = page.get_history_preview()
 $if not h:
     $ h = get_history(page)
