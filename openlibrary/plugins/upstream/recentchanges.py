@@ -9,7 +9,7 @@ import math
 import web
 import yaml
 
-from infogami.utils import delegate, features
+from infogami.utils import delegate
 from infogami.utils.view import (
     add_flash_message,  # noqa: F401 side effects may be needed
     public,
@@ -172,12 +172,8 @@ class recentchanges_view(delegate.page):
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = ["/usergroup/admin", "/usergroup/super-librarians"]
-        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
+        if not (user := get_current_user()) or not user.is_super_librarian():
             raise web.unauthorized()
-        if not features.is_enabled("undo"):
-            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
-
         id = int(id)
         change = web.ctx.site.get_change(id)
         change._undo()
