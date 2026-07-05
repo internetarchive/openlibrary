@@ -28,7 +28,6 @@ class Features(BaseSettings):
 
     # debug: bool # disabled because we should probably get rid of it but we still have a `features.is_enabled("debug")` to deal with we didn't see in #12884
     # dev: bool # Warning: this is setup locally but not in testing/production
-    # history_v2: bool # is set to admin in local/testing but in production it's "librarians". We might want to get rid of the flag?
     stats: bool
     stats_header: bool
     # undo: bool # Warning: this is enabled locally but a usergroup of librarians in testing/production
