@@ -12,36 +12,109 @@ With --dry-run, prints accounts that would be modified without writing.
 """
 
 import argparse
+import json
 import sys
 
-import web
+from psycopg2 import DatabaseError
+
+from openlibrary.core import db
+from openlibrary.setup import setup_for_script
+from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 
-def purge_s3_keys(dry_run: bool = False) -> None:
-    modified = 0
-    skipped = 0
+DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
-    for doc in web.ctx.site.store.values(type="account"):
-        if "s3_keys" not in doc:
-            skipped += 1
-            continue
-        key = doc["_key"]
-        if dry_run:
-            print(f"[dry-run] would remove s3_keys from {key}")
-        else:
-            del doc["s3_keys"]
-            web.ctx.site.store[key] = doc
-            print(f"removed s3_keys from {key}")
-        modified += 1
+def setup(config_path=DEFAULT_CONFIG_PATH):
+    setup_for_script(config_path)
+    init_signal_handler()
 
-    print(f"\nDone: {modified} modified, {skipped} skipped (no s3_keys).")
+def get_all_affected_keys():
+    query = """
+        SELECT key FROM store
+        WHERE id IN (
+            SELECT store_id FROM store_index
+            WHERE type = 'account'
+                AND name = 's3_keys.access'
+        )
+    """
+    oldb = db.get_db()
+    rs = oldb.query(query)
+    return iter(rs)
 
+def get_affected_keys_batch(limit=100_000):
+    query = """
+        SELECT key FROM store
+        WHERE id IN (
+            SELECT store_id FROM store_index
+            WHERE type = 'account'
+                AND name = 's3_keys.access'
+            LIMIT $limit
+        )
+    """
+    oldb = db.get_db()
+    rs = oldb.query(query, vars={"limit": limit})
+    return iter(rs)
+
+def update_record(key: str) -> bool:
+    acct_rec_query = "SELECT id, json FROM store WHERE key = $key"
+    acct_rec_update_query = "UPDATE store SET json = $json WHERE key = $key"
+    store_index_delete_query = """
+       DELETE FROM store_index
+       WHERE
+           store_id = $store_id 
+           AND name IN ('s3_keys.access', 's3_keys.secret')
+   """
+
+    oldb = db.get_db()
+    t = oldb.transaction()
+    try:
+        # Fetch account record:
+        rs = oldb.query(acct_rec_query, vars={"key": key})
+        result = next(iter(rs))
+        acct_rec_json = result.get('json')
+        store_id = result.get('id')
+
+        # Update account record
+        acct_rec = json.loads(acct_rec_json)
+        if 's3_keys' in acct_rec:
+            del acct_rec['s3_keys']
+        oldb.query(
+            acct_rec_update_query,
+            vars={"key": key, "json": json.dumps(acct_rec)}
+        )
+
+        # Delete keys from store_index
+        oldb.query(store_index_delete_query, vars={"store_id": store_id})
+        t.commit()
+    except DatabaseError as e:
+        t.rollback()
+        return False
+
+    return True
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--dry-run", action="store_true", help="Print accounts without writing")
     args = parser.parse_args()
-    purge_s3_keys(dry_run=args.dry_run)
+
+    setup()
+
+    if args.dry_run:
+        it = get_all_affected_keys()
+        for record in it:
+            print(record["key"])
+            if was_shutdown_requested():
+                return 130
+    else:
+        while (it := get_affected_keys_batch()) and len(it):
+            for record in it:
+                key = record["key"]
+                success = update_record(key)
+                if not success:
+                    print(f"Failed to update {key}")
+                if was_shutdown_requested():
+                    return 130
+
     return 0
 
 
