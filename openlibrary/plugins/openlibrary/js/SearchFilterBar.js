@@ -65,11 +65,11 @@ let POPOVER_FIELD_CONFIG;
  * @returns {Array<{value: string, label: string, count: number}>}
  */
 export function mergeFacetCounts(items, counts, selectedValues) {
-    const countMap = new Map(counts.map(c => [c.value, c.count]));
+    const countMap = new Map(counts.map(c => [c.label, c.count]));
     const selectedSet = new Set(selectedValues);
 
     return items
-        .map(it => ({ ...it, count: countMap.get(it.value) ?? 0 }))
+        .map(it => ({ ...it, count: countMap.get(it.label) ?? 0 }))
         .filter(it => it.count > 0 || selectedSet.has(it.value))
         .sort((a, b) => b.count - a.count);
 }

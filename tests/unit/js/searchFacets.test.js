@@ -104,10 +104,9 @@ describe('mergeFacetCounts', () => {
 
     // Fixture counts (what fetchFacetCounts() returns)
     const COUNTS = [
-        { value: 'English', count: 665 },
-        { value: 'German',  count: 32  },
-        { value: 'Spanish', count: 18  },
-        // French and Dutch are absent → 0 results
+        { value: 'English', label: 'English', count: 665 },
+        { value: 'German',  label: 'German',  count: 32  },
+        { value: 'Spanish', label: 'Spanish', count: 18  },
     ];
 
     test('attaches counts to matching items', () => {
