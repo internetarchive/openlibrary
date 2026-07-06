@@ -522,6 +522,7 @@ class work_delete(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class hide_banner(delegate.page):
     path = "/hide_banner"
 
