@@ -27,7 +27,6 @@ class Features(BaseSettings):
     model_config = {"extra": "ignore"}
 
     # debug: bool # disabled because we should probably get rid of it but we still have a `features.is_enabled("debug")` to deal with we didn't see in #12884
-    # dev: bool # Warning: this is setup locally but not in testing/production
     stats: bool
     stats_header: bool
     # undo: bool # Warning: this is enabled locally but a usergroup of librarians in testing/production

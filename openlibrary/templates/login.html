@@ -8,7 +8,7 @@ $putctx("cssfile", "signup")
 
 $var title: $_("Log In")
 
-$if "dev" in ctx.features:
+$if get_ol_env().LOCAL_DEV:
     <div class="flash-messages" id="autofill-dev-credentials">
         <div class="info ol-signup-form__info-box">
             <span>

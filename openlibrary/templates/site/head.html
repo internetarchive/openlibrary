@@ -86,7 +86,7 @@ $def with (title)
  */
   </script>
 
-    $if "dev" in ctx.features:
+    $if get_ol_env().LOCAL_DEV:
         <link href="$static_url('build/css/page-dev.css')" rel="stylesheet" type="text/css"/>
 
     <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
