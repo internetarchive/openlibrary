@@ -166,9 +166,9 @@
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
     <!-- Near-realtime loan availability, updated by loan_availability_updater -->
-    <field name="ebook_availability" type="string" multiValued="false" stored="false" docValues="true" />
-    <field name="ebook_becomes_available" type="pdate" multiValued="false" stored="false" docValues="true" />
-    <field name="loan_uid" type="plong" multiValued="false" docValues="true"/>
+    <field name="ebook_availability" type="pint" indexed="false" multiValued="false" stored="false" docValues="true" />
+    <field name="ebook_becomes_available" type="plong" indexed="false" multiValued="false" stored="false" docValues="true" />
+    <field name="loan_uid" type="plong" indexed="false" multiValued="false" stored="false" docValues="true"/>
 
     <!-- Usefulness scores -->
     <field name="usefulness_score" type="pint" multiValued="false"/>

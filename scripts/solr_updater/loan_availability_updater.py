@@ -30,7 +30,9 @@ logger = logging.getLogger("openlibrary.loan-availability-updater")
 
 LOAN_ACTIVE_EVENTS = frozenset({"borrow", "browse", "renew_borrow", "renew_browse"})
 LOAN_ENDED_EVENTS = frozenset({"return", "expire_borrow", "expire_browse"})
-
+#Used to indicate when no learn has been returned. 
+#It's necessary, as in-place updates do not allow us to delete the value of a field or set it to None. 
+NO_LOAN_VAL = 0 
 LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
 POLL_INTERVAL = 30  # seconds between polls when caught up
@@ -81,7 +83,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     if not latest_uid:
         return 0
 
-    target_time = datetime.datetime.utcnow() - datetime.timedelta(days=target_age_days)
+    target_time = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=target_age_days)
     low, high = 0, latest_uid
 
     for _ in range(40):
@@ -130,16 +132,15 @@ def process_changes(rows: list[dict]) -> dict[str, dict]:
     return latest
 
 
-def ia_until_to_solr_date(until: str | None) -> str | None:
-    """Convert IA 'until' string ("2026-05-01 15:42:43") to Solr pdate format."""
+def ia_until_to_epoch(until: str | None) -> int | None:
+    """Convert IA 'until' string ("2026-05-01 15:42:43") to UTC POSIX epoch."""
     if not until:
         return None
     try:
-        return datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%SZ")
+        return int(datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp())
     except ValueError:
         logger.debug("Could not parse 'until' value: %r", until)
         return None
-
 
 def resolve_edition_keys(identifiers: list[str]) -> dict[str, str]:
     """Batch-resolve IA identifiers to Solr edition keys via the ia field."""
@@ -186,10 +187,10 @@ def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, str])
                 "key": edition_data["key"],
                 "_root_": edition_data["_root_"],
                 "_version_": edition_data["_version_"],
-                "ebook_availability": {"set": "unavailable"},
+                "ebook_availability": {"set": 0},
                 "loan_uid": {"set": state["uid"]},
             }
-            solr_until = ia_until_to_solr_date(state["until"])
+            solr_until = ia_until_to_epoch(state["until"])
             if solr_until is not None:
                 update["ebook_becomes_available"] = {"set": solr_until}
             updates.append(update)
@@ -199,11 +200,12 @@ def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, str])
                     "key": edition_data["key"],
                     "_root_": edition_data["_root_"],
                     "_version_": edition_data["_version_"],
-                    "ebook_availability": {"set": "available"},
-                    "ebook_becomes_available": {"set": None},
+                    "ebook_availability": {"set": 1},
+                    "ebook_becomes_available": {"set": NO_LOAN_VAL},
                     "loan_uid": {"set": state["uid"]},
                 }
             )
+    logger.debug("Built %d Solr updates from %d identifiers", len(updates), len(id_state))
     return updates
 
 
@@ -213,7 +215,7 @@ def build_eviction_updates() -> list[dict]:
     Safety net for return/expire events missed during an outage.
     """
     result = get_solr().select(
-        query="ebook_becomes_available:[* TO NOW]",
+        query=f"ebook_becomes_available:[{NO_LOAN_VAL + 1} TO {int(datetime.datetime.now(datetime.UTC).timestamp())}]",
         fields=["key", "_version_", "_root_"],
         rows=10000,
     )
@@ -222,8 +224,8 @@ def build_eviction_updates() -> list[dict]:
             "key": doc["key"],
             "_version_": doc["_version_"],
             "_root_": doc["_root_"],
-            "ebook_availability": {"set": "available"},
-            "ebook_becomes_available": {"set": None},
+            "ebook_availability": {"set": 1},
+            "ebook_becomes_available": {"set": NO_LOAN_VAL},
         }
         for doc in result.docs if doc["key"].startswith("/books/")
     ]
@@ -247,6 +249,7 @@ def main(
     :param dry_run: Fetch and log updates but do not write to Solr.
     :param reset: Ignore existing state and binary-search for the start uid.
     """
+    time.sleep(30)
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
     logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
 
