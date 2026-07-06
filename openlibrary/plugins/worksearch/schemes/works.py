@@ -77,6 +77,7 @@ class WorkSearchScheme(SearchScheme):
             "place",
             "time",
             "has_fulltext",
+            "public_scan_b",
             "title_suggest",
             "publish_year",
             "language",
@@ -280,14 +281,27 @@ class WorkSearchScheme(SearchScheme):
                 has_search_fields = True
                 if node.name.lower() in self.field_name_map:
                     node.name = self.field_name_map[node.name.lower()]
+
                 if node.name == "isbn":
                     isbn_transform(node)
-                if node.name == "public_scan_b":
-                    public_scan_b_transform(node, parents)
-                if node.name in ("lcc", "lcc_sort"):
+                elif node.name in ("lcc", "lcc_sort"):
                     lcc_transform(node)
-                if node.name in ("dcc", "dcc_sort"):
+                elif node.name in ("dcc", "dcc_sort"):
                     ddc_transform(node)
+
+                field_val = node.children[0]
+                if isinstance(field_val, (luqum.tree.Word, luqum.tree.Phrase)):
+                    val = str(field_val.value).strip('"').lower()
+                    if rewrite := self.facet_rewrites.get((node.name, val)):
+                        if callable(rewrite):
+                            rewrite = rewrite()
+                        if not rewrite.startswith("("):
+                            rewrite = f"({rewrite})"
+                        new_node = luqum_parser(rewrite)
+                        if parents:
+                            luqum_replace_child(parents[-1], node, new_node)
+                        else:
+                            q_tree = new_node
 
         if not has_search_fields:
             # If there are no search fields, maybe we want just an isbn?
@@ -728,38 +742,6 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
-
-
-def public_scan_b_transform(sf: luqum.tree.SearchField, parents: list[luqum.tree.Item]):
-    field_val = sf.children[0]
-    if isinstance(field_val, (luqum.tree.Word, luqum.tree.Phrase)):
-        val = str(field_val.value).strip('"').lower()
-        if val == "true":
-            sf.name = "ebook_access"
-            sf.expr = luqum.tree.Word("public")
-        elif val == "false":
-            sf.name = "ebook_access"
-            sf.expr = luqum.tree.Word("public")
-            if parents:
-                parent = parents[-1]
-                if isinstance(parent, luqum.tree.Not):
-                    # NOT public_scan_b:false -> ebook_access:public
-                    luqum_replace_child(parents[-2] if len(parents) > 1 else None, parent, sf)
-                else:
-                    # -public_scan_b:false -> ebook_access:public? No, wait
-                    # public_scan_b:false translates to -ebook_access:public
-                    new_node = luqum.tree.Not(sf)
-                    luqum_replace_child(parent, sf, new_node)
-            else:
-                # Top level public_scan_b:false
-                pass  # Wait, can't easily replace the root node here if it's the only one.
-                # Actually, luqum.tree doesn't support easily wrapping the root in a NOT from here unless we return it.
-                # For our use case, we can just leave it as NOT.
-                # Actually, in SOLR `NOT field:value` is better represented as `-field:value`.
-                # If we just change it to `ebook_access:printdisabled`? No, it could be borrowable.
-                # So `-ebook_access:public`.
-                # If we can't easily replace top-level, we might have a problem.
-                # A simple workaround: `NOT ebook_access:public`
 
 
 def get_fulltext_min():

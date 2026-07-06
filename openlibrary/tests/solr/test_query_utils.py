@@ -39,13 +39,13 @@ REPLACE_TESTS = {
         "title:foo OR id:1",
         "title:foo",
         "(title:foo OR bar:foo)",
-        "(title:foo OR bar:foo)OR id:1",
+        "(title:foo OR bar:foo) OR id:1",
     ),
     "Deeply nested": (
         "title:foo OR (id:1 OR id:2)",
         "id:2",
         "(subject:horror)",
-        "title:foo OR (id:1 OR(subject:horror))",
+        "title:foo OR (id:1 OR (subject:horror))",
     ),
 }
 

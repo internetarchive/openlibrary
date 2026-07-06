@@ -657,7 +657,7 @@ def get_doc(doc: SolrDocument):
         ia=doc.get("ia", []),
         collections=(doc.get("ia_collection") or []),
         has_fulltext=doc.get("has_fulltext", False),
-        public_scan=doc.get("ebook_access") == "public" if "ebook_access" in doc else bool(doc.get("ia")),
+        public_scan=doc.get("ebook_access") == "public",
         lending_edition=doc.get("lending_edition_s", None),
         lending_identifier=doc.get("lending_identifier_s", None),
         authors=[

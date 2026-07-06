@@ -55,16 +55,12 @@ class PublicQueryOptions(BaseModel):
     place: str | None = None
     person: str | None = None
     time: str | None = None
-    # from workscheme facet_fields
+
+    # Legacy availability fields ; handled by WorkSearchScheme. Need to be specified
+    # here or else will be ignored.
     has_fulltext: Literal["true", "false"] | None = None
-    public_scan_b: list[Literal["true", "false"]] = []
-    # Availability filters. These are not facet_fields — they're handled by
-    # WorkSearchScheme.facet_rewrites, which maps (`public_scan`, "true") and
-    # (`print_disabled`, "true") to `ebook_access:*` fq clauses. Mirrors the
-    # explicit whitelist in the web.py /search handler (worksearch/code.py);
-    # without declaring them here, FastAPI silently drops the params and the
-    # header search modal's availability filters do nothing.
     public_scan: Literal["true", "false"] | None = None
+    public_scan_b: list[Literal["true", "false"]] = []
     print_disabled: Literal["true", "false"] | None = None
 
     # List fields (facets)
