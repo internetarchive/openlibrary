@@ -837,3 +837,59 @@
     background-color: var(--white);
   }
 }
+
+/**
+ * Navigating (pressed menu link → page loading)
+ * When a link is pressed the whole window navigates, and the next page can
+ * take a beat to paint. During that gap the pressed row holds full opacity
+ * while the rest dim back and a spinner shows at its trailing edge. Mirrors
+ * the search modal's result loading treatment. The `is-navigating` /
+ * `is-target` classes are toggled by the inline script in nav_head.html.
+ */
+.drawer-menu.is-navigating .drawer-menu__subsection,
+.drawer-menu.is-navigating .drawer-menu__item,
+.drawer-menu.is-navigating .drawer-menu__login-links {
+  opacity: 0.4;
+}
+
+/* The row holding the pressed link stays lit. `is-target-row` is set on the
+   <li> (not the link) because opacity on the row compounds onto its children,
+   so lifting the link alone can't undo a dimmed parent. */
+.drawer-menu.is-navigating .is-target-row {
+  opacity: 1;
+}
+
+.drawer-menu .is-target {
+  position: relative;
+  /* Reserve room at the trailing edge so the spinner never overlaps the label. */
+  padding-right: var(--spacing-2xl);
+}
+
+/* Spinner: a currentcolor ring with one transparent edge, spun by keyframes
+   (the same construction as the <ol-button> loading spinner). */
+.drawer-menu .is-target::after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-inset-sm);
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--border-radius-circle);
+  animation: ol-drawer-menu-spin 0.7s linear infinite;
+}
+
+@keyframes ol-drawer-menu-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-menu .is-target::after {
+    animation-duration: 2s;
+  }
+}

@@ -174,10 +174,36 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       drawer.addEventListener('ol-drawer-after-hide', function() {
         trigger.setAttribute('aria-expanded', 'false');
       });
+
+      // Pressing a menu link navigates the whole window; the next page can take
+      // a beat to start painting. Flag the pressed row so it shows a spinner
+      // and the rest dim back (mirrors the search modal's result loading
+      // treatment) — the drawer stays open until the new page takes over.
       drawer.addEventListener('click', function(e) {
-        if (e.target.closest('a[href], button[type="submit"], button:not([type])')) {
-          drawer.open = false;
-        }
+        var el = e.target.closest('a[href], button[type="submit"], button:not([type])');
+        if (!el) return;
+        // New-tab / modified / non-left clicks don't navigate this window.
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (el.tagName === 'A' && el.target === '_blank') return;
+        var menu = drawer.querySelector('.drawer-menu');
+        if (menu) menu.classList.add('is-navigating');
+        el.classList.add('is-target');
+        // Mark the row too, so it stays lit while its siblings dim.
+        var row = el.closest('li');
+        if (row) row.classList.add('is-target-row');
+      });
+
+      // Restoring from bfcache (back/forward) reuses this DOM with the spinner
+      // still on the pressed row — clear it so the menu looks idle again.
+      window.addEventListener('pageshow', function(e) {
+        if (!e.persisted) return;
+        var menu = drawer.querySelector('.drawer-menu');
+        if (!menu) return;
+        menu.classList.remove('is-navigating');
+        Array.prototype.forEach.call(menu.querySelectorAll('.is-target, .is-target-row'), function(t) {
+          t.classList.remove('is-target');
+          t.classList.remove('is-target-row');
+        });
       });
     }
   })();
