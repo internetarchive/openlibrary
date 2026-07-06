@@ -28,20 +28,7 @@ def setup(config_path=DEFAULT_CONFIG_PATH):
     setup_for_script(config_path)
     init_signal_handler()
 
-def get_all_affected_keys():
-    query = """
-        SELECT key FROM store
-        WHERE id IN (
-            SELECT store_id FROM store_index
-            WHERE type = 'account'
-                AND name = 's3_keys.access'
-        )
-    """
-    oldb = db.get_db()
-    rs = oldb.query(query)
-    return iter(rs)
-
-def get_affected_keys_batch(limit=100_000):
+def get_affected_keys(limit: int|None=100_000):
     query = """
         SELECT key FROM store
         WHERE id IN (
@@ -100,13 +87,13 @@ def main():
     setup()
 
     if args.dry_run:
-        it = get_all_affected_keys()
+        it = get_affected_keys(limit=None)
         for record in it:
             print(record["key"])
             if was_shutdown_requested():
                 return 130
     else:
-        while (it := get_affected_keys_batch()) and len(it):
+        while (it := get_affected_keys()) and len(it):
             for record in it:
                 key = record["key"]
                 success = update_record(key)
