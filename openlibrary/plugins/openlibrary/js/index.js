@@ -316,6 +316,17 @@ jQuery(function() {
             .then((module) => module.initSearchFilterBar(searchFilterBar));
     }
 
+    // Author-suggestion avatars request photos with ?default=false, so a missing
+    // photo 404s; hide the broken <img> to reveal the placeholder icon behind it
+    // (mirrors the header search modal's _onAvatarError).
+    for (const img of document.querySelectorAll('.search-author-suggestion .sas-avatar__photo')) {
+        if (img.complete && img.naturalWidth === 0) {
+            img.hidden = true;
+        } else {
+            img.addEventListener('error', () => { img.hidden = true; }, { once: true });
+        }
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')

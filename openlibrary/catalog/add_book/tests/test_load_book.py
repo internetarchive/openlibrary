@@ -428,3 +428,25 @@ class TestImportAuthor:
         }
         found = author_import_record_to_author(searched_author)
         assert found.key == author["key"]
+
+    def test_infobase_metadata_keys_stripped_from_existing_author(self, mock_site):
+        """
+        Infobase metadata keys are removed from an existing author before it is returned.
+
+        When find_entity() returns a match, Infobase decorates the record with
+        last_modified, revision, and created. These must be stripped so that
+        save_many() does not receive stale metadata in the update payload.
+        """
+        mock_site.save(
+            {
+                "name": "Jane Doe",
+                "key": "/authors/OL99A",
+                "type": {"key": "/type/author"},
+            }
+        )
+
+        result = author_import_record_to_author({"name": "Jane Doe"})
+
+        assert "last_modified" not in result
+        assert "revision" not in result
+        assert "created" not in result

@@ -60,13 +60,8 @@ http_request_timeout: 10
 features:
     debug: enabled
     dev: enabled
-    history_v2: admin
-    lists: enabled
-    publishers: enabled
-    recentchanges_v2: enabled
     stats: enabled
     stats-header: enabled
-    superfast: enabled
     undo: enabled
 
 upstream_to_www_migration: true
