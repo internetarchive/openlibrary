@@ -3,18 +3,15 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import aiofiles
-import web
 
-from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
     DataProvider,
     ExternalDataProvider,
     get_data_provider,
 )
-from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
 from openlibrary.solr.updater.list import ListSolrUpdater
@@ -28,6 +25,9 @@ from openlibrary.solr.utils import (
 )
 from openlibrary.utils import uniq
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+
+if TYPE_CHECKING:
+    from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -57,7 +57,7 @@ async def update_keys(
     commit=True,
     output_file=None,
     skip_id_check=False,
-    update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
+    update: Literal["update", "print", "pprint", "quiet"] = "update",
 ) -> SolrUpdateRequest:
     """
     Insert/update the documents with the provided keys in Solr.
@@ -70,19 +70,19 @@ async def update_keys(
     """
     logger.debug("BEGIN update_keys")
 
-    def _solr_update(update_state: SolrUpdateRequest):
-        if update == 'update':
-            return solr_update(update_state, skip_id_check)
-        elif update == 'pprint':
-            print(update_state.to_solr_requests_json(sep='\n', indent=4))
-        elif update == 'print':
-            print(update_state.to_solr_requests_json(sep='\n'))
-        elif update == 'quiet':
+    async def _solr_update(update_state: SolrUpdateRequest):
+        if update == "update":
+            return await solr_update(update_state, skip_id_check)
+        elif update == "pprint":
+            print(update_state.to_solr_requests_json(sep="\n", indent=4))
+        elif update == "print":
+            print(update_state.to_solr_requests_json(sep="\n"))
+        elif update == "quiet":
             pass
 
     global data_provider
     if data_provider is None:
-        data_provider = get_data_provider('default')
+        data_provider = get_data_provider("default")
 
     net_update = SolrUpdateRequest(commit=commit)
 
@@ -93,7 +93,7 @@ async def update_keys(
         for key in updater_keys:
             logger.debug(f"processing {key}")
             try:
-                fake_work = re.fullmatch(r'^/works/(OL\d+M)$', key)
+                fake_work = re.fullmatch(r"^/works/(OL\d+M)$", key)
                 if fake_work and isinstance(updater, WorkSolrUpdater):
                     # This is a "fake" work key made from processing an orphaned edition. We know this doesn't exist, don't try to fetch it.
                     real_key = f"/books/{fake_work.group(1)}"
@@ -101,23 +101,23 @@ async def update_keys(
                 else:
                     thing = await data_provider.get_document(key)
 
-                if thing and thing['type']['key'] == '/type/redirect':
-                    logger.warning("Found redirect to %r", thing['location'])
+                if thing and thing["type"]["key"] == "/type/redirect":
+                    logger.warning("Found redirect to %r", thing["location"])
                     # When the given key is not found or redirects to another thing,
                     # explicitly delete the key. It won't get deleted otherwise.
-                    update_state.deletes.append(thing['key'])
-                    thing = await data_provider.get_document(thing['location'])
+                    update_state.deletes.append(thing["key"])
+                    thing = await data_provider.get_document(thing["location"])
 
                 if not thing:
                     logger.warning("No thing found for key %r. Ignoring...", key)
                     continue
-                if thing['type']['key'] == '/type/delete':
+                if thing["type"]["key"] == "/type/delete":
                     logger.info(
                         "%r has type %r. queuing for deleting it solr.",
-                        thing['key'],
-                        thing['type']['key'],
+                        thing["key"],
+                        thing["type"]["key"],
                     )
-                    update_state.deletes.append(thing['key'])
+                    update_state.deletes.append(thing["key"])
                 else:
                     new_update_state, new_keys = await updater.update_key(thing)
                     update_state += new_update_state
@@ -131,29 +131,19 @@ async def update_keys(
                     for doc in update_state.adds:
                         await f.write(f"{json.dumps(doc)}\n")
             else:
-                _solr_update(update_state)
+                await _solr_update(update_state)
         net_update += update_state
 
     logger.debug("END update_keys")
     return net_update
 
 
-async def do_updates(keys):
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-    )
-    await update_keys(keys, commit=False)
-
-
 def load_configs(
     c_host: str,
     c_config: str,
-    c_data_provider: (
-        DataProvider | Literal["default", "legacy", "external"]
-    ) = 'default',
+    c_data_provider: (DataProvider | Literal["default", "external"]) = "default",
 ) -> DataProvider:
-    host = web.lstrips(c_host, "http://").strip("/")
-    set_query_host(host)
+    host = c_host.removeprefix("http://").strip("/")
 
     load_config(c_config)
 
@@ -161,7 +151,7 @@ def load_configs(
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
             data_provider = c_data_provider
-        elif c_data_provider == 'external':
+        elif c_data_provider == "external":
             data_provider = ExternalDataProvider(host)
         else:
             data_provider = get_data_provider(c_data_provider)
@@ -175,10 +165,10 @@ async def main(
     ol_config="openlibrary.yml",
     output_file: str | None = None,
     commit=True,
-    data_provider: Literal['default', 'legacy', 'external'] = "default",
+    data_provider: Literal["default", "external"] = "default",
     solr_base: str | None = None,
     solr_next=False,
-    update: Literal['update', 'print', 'pprint'] = 'update',
+    update: Literal["update", "print", "pprint"] = "update",
 ):
     """
     Insert the documents with the given keys into Solr.
@@ -195,15 +185,13 @@ async def main(
     """
     load_configs(ol_url, ol_config, data_provider)
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
     if not keys:
         logger.warning("No keys provided to update. Exiting.")
         return
 
-    if keys[0].startswith('//'):
+    if keys[0].startswith("//"):
         keys = [k[1:] for k in keys]
 
     if solr_base:
@@ -215,7 +203,7 @@ async def main(
     await update_keys(keys, commit=commit, output_file=output_file, update=update)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
     FnToCLI(main).run()

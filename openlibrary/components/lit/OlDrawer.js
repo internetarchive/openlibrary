@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+import { findFocusableIndex, getDeepActiveElement, getFocusableFromSlot } from './utils/focus-utils.js';
+import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 
 /**
  * A slide-in drawer component that overlays the page from a viewport edge.
@@ -20,6 +20,11 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @prop {String} placement - Which edge the drawer slides from:
  *     `'start'` (left in LTR) or `'end'` (right in LTR). Default: `'end'`
  * @prop {String} label - Accessible label for the drawer dialog.
+ *
+ * @cssprop [--ol-drawer-width=300px] - Width of the drawer panel.
+ * @cssprop [--ol-drawer-backdrop-color=hsla(0, 0%, 0%, 0.5)] - Backdrop scrim color.
+ * @cssprop [--ol-drawer-enter-duration=400ms] - Slide-in animation duration.
+ * @cssprop [--ol-drawer-exit-duration=300ms] - Slide-out animation duration.
  *
  * @fires ol-drawer-show - Fired when the drawer begins opening.
  * @fires ol-drawer-after-show - Fired after the enter animation completes.
@@ -53,6 +58,11 @@ export class OlDrawer extends LitElement {
 
     static styles = css`
         :host {
+            --ol-drawer-width: 300px;
+            --ol-drawer-backdrop-color: hsla(0, 0%, 0%, 0.5);
+            --ol-drawer-enter-duration: 400ms;
+            --ol-drawer-exit-duration: 300ms;
+
             display: contents;
         }
 
@@ -61,8 +71,8 @@ export class OlDrawer extends LitElement {
         .backdrop {
             position: fixed;
             inset: 0;
-            z-index: var(--z-index-level-5, 999);
-            background: hsla(0, 0%, 0%, 0.5);
+            z-index: var(--z-index-modal);
+            background: var(--ol-drawer-backdrop-color);
             opacity: 0;
             pointer-events: none;
         }
@@ -74,13 +84,13 @@ export class OlDrawer extends LitElement {
         }
 
         .backdrop[data-state="entering"] {
-            transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--ol-drawer-enter-duration) cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--ol-drawer-exit-duration) cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         /* ── Drawer panel ── */
@@ -89,10 +99,10 @@ export class OlDrawer extends LitElement {
             position: fixed;
             top: 0;
             bottom: 0;
-            width: var(--size, 300px);
+            width: var(--ol-drawer-width);
             max-width: 100vw;
-            z-index: var(--z-index-level-6, 1000);
-            background: var(--light-beige, #f5f0e5);
+            z-index: var(--z-index-modal);
+            background: var(--light-beige);
             overflow-y: auto;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
@@ -101,13 +111,13 @@ export class OlDrawer extends LitElement {
 
         .drawer--end {
             right: 0;
-            box-shadow: -10px 0 10px -6px hsla(0, 0%, 0%, 0.25);
+            box-shadow: -10px 0 10px -6px var(--boxshadow-black);
             transform: translateX(100%);
         }
 
         .drawer--start {
             left: 0;
-            box-shadow: 10px 0 10px -6px hsla(0, 0%, 0%, 0.25);
+            box-shadow: 10px 0 10px -6px var(--boxshadow-black);
             transform: translateX(-100%);
         }
 
@@ -126,13 +136,13 @@ export class OlDrawer extends LitElement {
         }
 
         .drawer[data-state="entering"] {
-            transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--ol-drawer-enter-duration) cubic-bezier(0.23, 1, 0.32, 1);
             will-change: transform;
         }
 
         .drawer[data-state="exiting"] {
             pointer-events: none;
-            transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--ol-drawer-exit-duration) cubic-bezier(0.23, 1, 0.32, 1);
             will-change: transform;
         }
 
@@ -142,20 +152,6 @@ export class OlDrawer extends LitElement {
 
         .drawer--start[data-state="exiting"] {
             transform: translateX(-100%);
-        }
-
-        /* ── Focus sentinel (visually hidden) ── */
-
-        .focus-sentinel {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -175,7 +171,9 @@ export class OlDrawer extends LitElement {
         this.label = '';
         this._animState = 'closed';
         this._prevFocus = null;
-        this._savedScrollY = 0;
+
+        /** @type {boolean} Whether this drawer currently holds a body scroll lock */
+        this._scrollLocked = false;
 
         // Touch drag state (horizontal swipe-to-dismiss)
         this._touchStartX = 0;
@@ -183,7 +181,7 @@ export class OlDrawer extends LitElement {
         this._isDragging = false;
         this._lastDragX = 0;
 
-        this._onKeydownGlobal = this._onKeydownGlobal.bind(this);
+        this._onKeydown = this._onKeydown.bind(this);
         this._onTouchStart = this._onTouchStart.bind(this);
         this._onTouchMove = this._onTouchMove.bind(this);
         this._onTouchEnd = this._onTouchEnd.bind(this);
@@ -209,21 +207,7 @@ export class OlDrawer extends LitElement {
                     tabindex="-1"
                     @transitionend="${this._onTransitionEnd}"
                 >
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="start"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                     <slot></slot>
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="end"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                 </div>
             ` : nothing}
         `;
@@ -243,9 +227,13 @@ export class OlDrawer extends LitElement {
 
     _show() {
         this._prevFocus = document.activeElement;
-        this._lockBodyScroll();
+        if (!this._scrollLocked) {
+            lockBodyScroll();
+            this._scrollLocked = true;
+        }
 
-        document.addEventListener('keydown', this._onKeydownGlobal);
+        // Capture phase to intercept Tab before the browser's native handling.
+        document.addEventListener('keydown', this._onKeydown, true);
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         this._animState = reducedMotion ? 'open' : 'preparing';
@@ -318,8 +306,16 @@ export class OlDrawer extends LitElement {
 
     _cleanup() {
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
         this._restoreFocus();
+    }
+
+    /** Releases the body scroll lock if this drawer holds one. Idempotent. */
+    _releaseScrollLock() {
+        if (this._scrollLocked) {
+            unlockBodyScroll();
+            this._scrollLocked = false;
+        }
     }
 
     _restoreFocus() {
@@ -331,42 +327,52 @@ export class OlDrawer extends LitElement {
 
     // ── Focus trap ──────────────────────────────────────────────
 
+    /**
+     * Focusable elements slotted into the drawer, in DOM order. Filtered to
+     * currently-rendered elements by {@link getFocusableFromSlot}.
+     * @returns {HTMLElement[]}
+     */
     _getFocusableElements() {
-        const slot = this.shadowRoot?.querySelector('.drawer slot:not([name])');
-        if (!slot) return [];
-        const elements = [];
-        for (const node of slot.assignedElements({ flatten: true })) {
-            if (node.matches?.(FOCUSABLE)) elements.push(node);
-            elements.push(...node.querySelectorAll(FOCUSABLE));
-        }
-        return elements;
+        return getFocusableFromSlot(this.shadowRoot?.querySelector('.drawer slot:not([name])'));
     }
 
-    _onSentinelFocus(e) {
-        const edge = e.target.dataset.edge;
-        const focusable = this._getFocusableElements();
-        if (focusable.length === 0) {
-            this.shadowRoot.querySelector('.drawer')?.focus({ preventScroll: true });
+    /**
+     * Handles Escape (dismiss) and Tab (manual focus trap). A manual trap is
+     * needed because Safari doesn't trap focus across shadow DOM boundaries
+     * for slotted content.
+     */
+    _onKeydown(e) {
+        if (e.key === 'Escape' && this.open) {
+            e.preventDefault();
+            this._requestClose('escape');
             return;
         }
-        if (edge === 'start') {
-            focusable[focusable.length - 1].focus({ preventScroll: true });
+
+        if (e.key !== 'Tab') return;
+
+        const focusable = this._getFocusableElements();
+        if (focusable.length === 0) return;
+
+        e.preventDefault();
+
+        // findFocusableIndex climbs shadow boundaries so a slotted custom
+        // element that delegates focus inward still matches its trap entry.
+        const currentIndex = findFocusableIndex(focusable, getDeepActiveElement());
+
+        let nextIndex;
+        if (e.shiftKey) {
+            nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
         } else {
-            focusable[0].focus({ preventScroll: true });
+            nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
         }
+
+        focusable[nextIndex].focus({ preventScroll: true });
     }
 
     // ── Dismiss handlers ────────────────────────────────────────
 
     _onBackdropClick() {
         this._requestClose('backdrop');
-    }
-
-    _onKeydownGlobal(e) {
-        if (e.key === 'Escape' && this.open) {
-            e.preventDefault();
-            this._requestClose('escape');
-        }
     }
 
     _requestClose(reason) {
@@ -510,49 +516,10 @@ export class OlDrawer extends LitElement {
         }
     }
 
-    // ── Body scroll lock ────────────────────────────────────────
-
-    _lockBodyScroll() {
-        if (this._savedDocumentElementStyles) {
-            return;
-        }
-
-        const rootStyle = document.documentElement.style;
-        this._savedScrollY = window.scrollY;
-        this._savedDocumentElementStyles = {
-            position: rootStyle.position,
-            top: rootStyle.top,
-            left: rootStyle.left,
-            right: rootStyle.right,
-            overflowY: rootStyle.overflowY,
-        };
-
-        rootStyle.position = 'fixed';
-        rootStyle.top = `-${this._savedScrollY}px`;
-        rootStyle.left = '0';
-        rootStyle.right = '0';
-        rootStyle.overflowY = 'scroll';
-    }
-
-    _unlockBodyScroll() {
-        if (!this._savedDocumentElementStyles) {
-            return;
-        }
-
-        const rootStyle = document.documentElement.style;
-        rootStyle.position = this._savedDocumentElementStyles.position;
-        rootStyle.top = this._savedDocumentElementStyles.top;
-        rootStyle.left = this._savedDocumentElementStyles.left;
-        rootStyle.right = this._savedDocumentElementStyles.right;
-        rootStyle.overflowY = this._savedDocumentElementStyles.overflowY;
-        window.scrollTo(0, this._savedScrollY);
-        this._savedDocumentElementStyles = null;
-    }
-
     // ── Listener management ─────────────────────────────────────
 
     _removeListeners() {
-        document.removeEventListener('keydown', this._onKeydownGlobal);
+        document.removeEventListener('keydown', this._onKeydown, true);
 
         const panel = this.shadowRoot?.querySelector('.drawer');
         if (panel) {
@@ -565,8 +532,11 @@ export class OlDrawer extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this._removeListeners();
-        this._unlockBodyScroll();
+        // Safety net: if torn down while still open, don't leave the body pinned.
+        this._releaseScrollLock();
     }
 }
 
-customElements.define('ol-drawer', OlDrawer);
+if (!customElements.get('ol-drawer')) {
+    customElements.define('ol-drawer', OlDrawer);
+}

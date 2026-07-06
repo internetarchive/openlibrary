@@ -13,6 +13,7 @@ static/css/page-dev.less
 build/
 *.local
 /.local
+CLAUDE.local.md
 *.tgz
 *.tar.gz
 *.org
@@ -53,3 +54,6 @@ manifest-checksum.txt
 
 # Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
 docs/wiki/
+
+# uv lockfile (we resolve from requirements*.txt; not tracked)
+uv.lock

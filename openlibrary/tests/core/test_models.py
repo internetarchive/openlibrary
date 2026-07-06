@@ -1,8 +1,95 @@
+from unittest.mock import PropertyMock
+
 import pytest
 import web
 
 from openlibrary.core import models
 from openlibrary.mocks import mock_infobase
+from openlibrary.utils.request_context import site as site_var
+
+
+class _FakeGroup:
+    def __init__(self, key: str):
+        self.key = key
+
+
+class TestUserGroupMembership:
+    @pytest.mark.parametrize(
+        ("group_keys", "check_groups", "expected"),
+        [
+            ([], ["/usergroup/librarians"], False),
+            ([], ["/usergroup/librarians", "/usergroup/admin"], False),
+            (["/usergroup/librarians"], ["/usergroup/librarians"], True),
+            (["/usergroup/librarians"], ["/usergroup/admin"], False),
+            (["/usergroup/librarians", "/usergroup/admin"], ["/usergroup/librarians"], True),
+            (["/usergroup/admin"], ["/usergroup/librarians", "/usergroup/admin"], True),
+            (["/usergroup/admin"], ["/usergroup/librarians", "/usergroup/super-librarians"], False),
+            ([], [], False),
+        ],
+    )
+    def test_is_member_of_any(self, monkeypatch, group_keys, check_groups, expected):
+        groups = [_FakeGroup(k) for k in group_keys]
+        user = models.User(MockSite(), "/people/test", data={})
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=groups),
+        )
+        assert user.is_member_of_any(check_groups) == expected
+
+    @pytest.mark.parametrize(
+        ("group_keys", "check_group", "expected"),
+        [
+            ([], "librarians", False),
+            ([], "/usergroup/librarians", False),
+            (["/usergroup/librarians"], "librarians", True),
+            (["/usergroup/librarians"], "/usergroup/librarians", True),
+            (["/usergroup/librarians"], "admin", False),
+            (["/usergroup/librarians"], "/usergroup/admin", False),
+            (["/usergroup/admin"], "librarians", False),
+            (["/usergroup/super-librarians"], "super-librarians", True),
+        ],
+    )
+    def test_is_usergroup_member(self, monkeypatch, group_keys, check_group, expected):
+        groups = [_FakeGroup(k) for k in group_keys]
+        user = models.User(MockSite(), "/people/test", data={})
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=groups),
+        )
+        assert user.is_usergroup_member(check_group) == expected
+
+    def test_is_librarian_or_higher(self, monkeypatch):
+        user = models.User(MockSite(), "/people/test", data={})
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/admin")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/super-librarians")]),
+        )
+        assert user.is_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[]),
+        )
+        assert user.is_librarian_or_higher() is False
 
 
 class MockSite:
@@ -153,16 +240,20 @@ class TestWork:
         work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
         work4 = {"key": work4_key, "type": type_work}
 
-        site = mock_infobase.MockSite()
-        site.save(web.storage(work1))
-        site.save(web.storage(work2))
-        site.save(web.storage(work3))
-        site.save(web.storage(work4))
-        monkeypatch.setattr(web.ctx, "site", site, raising=False)
+        mock_site = mock_infobase.MockSite()
+        mock_site.save(web.storage(work1))
+        mock_site.save(web.storage(work2))
+        mock_site.save(web.storage(work3))
+        mock_site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        token = site_var.set(mock_site)
 
-        work_key = "/works/OL123W"
-        redirect_chain = models.Work.get_redirect_chain(work_key)
-        assert redirect_chain
-        resolved_work = redirect_chain[-1]
-        assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
-        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        try:
+            work_key = "/works/OL123W"
+            redirect_chain = models.Work.get_redirect_chain(work_key)
+            assert redirect_chain
+            resolved_work = redirect_chain[-1]
+            assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+            assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        finally:
+            site_var.reset(token)

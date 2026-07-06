@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import ClassVar
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -6,19 +7,15 @@ from . import db
 
 
 class YearlyReadingGoals:
-    TABLENAME = 'yearly_reading_goals'
+    TABLENAME = "yearly_reading_goals"
 
     @classmethod
     def summary(cls) -> dict[str, dict[str, int]]:
         return {
-            'total_yearly_reading_goals': {
-                'total': YearlyReadingGoals.total_yearly_reading_goals(),
-                'month': YearlyReadingGoals.total_yearly_reading_goals(
-                    since=DATE_ONE_MONTH_AGO
-                ),
-                'week': YearlyReadingGoals.total_yearly_reading_goals(
-                    since=DATE_ONE_WEEK_AGO
-                ),
+            "total_yearly_reading_goals": {
+                "total": YearlyReadingGoals.total_yearly_reading_goals(),
+                "month": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
+                "week": YearlyReadingGoals.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
             },
         }
 
@@ -29,25 +26,37 @@ class YearlyReadingGoals:
         oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
 
     # Read methods:
+    # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
+    # `vars=` substitutions are parameterized -- so any caller passing a
+    # user-controlled `order` would have a SQLi sink in the same shape as the
+    # /merges bug fixed in PR #12460. Restrict callers to a known set.
+    _ALLOWED_ORDERS: ClassVar[dict[str, str]] = {
+        "year ASC": "year ASC",
+        "year DESC": "year DESC",
+    }
+
     @classmethod
-    def select_by_username(cls, username: str, order: str = 'year ASC') -> list[dict]:
+    def select_by_username(cls, username: str, order: str = "year ASC") -> list[dict]:
         oldb = db.get_db()
 
-        where = 'username=$username'
+        if order not in cls._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
+
+        where = "username=$username"
         data = {
-            'username': username,
+            "username": username,
         }
 
-        return list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
+        return list(oldb.select(cls.TABLENAME, where=where, order=cls._ALLOWED_ORDERS[order], vars=data))
 
     @classmethod
     def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
         oldb = db.get_db()
 
-        where = 'username=$username AND year=$year'
+        where = "username=$username AND year=$year"
         data = {
-            'username': username,
-            'year': year,
+            "username": username,
+            "year": year,
         }
 
         return list(oldb.select(cls.TABLENAME, where=where, vars=data))
@@ -65,18 +74,18 @@ class YearlyReadingGoals:
         query = f"SELECT count(*) from {cls.TABLENAME}"
         if since:
             query += " WHERE updated >= $since"
-        results = oldb.query(query, vars={'since': since})
-        return results[0]['count'] if results else 0
+        results = oldb.query(query, vars={"since": since})
+        return results[0]["count"] if results else 0
 
     # Update methods:
     @classmethod
     def update_target(cls, username: str, year: int, new_target: int) -> None:
         oldb = db.get_db()
 
-        where = 'username=$username AND year=$year'
+        where = "username=$username AND year=$year"
         data = {
-            'username': username,
-            'year': year,
+            "username": username,
+            "year": year,
         }
 
         oldb.update(
@@ -92,8 +101,8 @@ class YearlyReadingGoals:
     def delete_by_username(cls, username: str) -> None:
         oldb = db.get_db()
 
-        where = 'username=$username'
-        data = {'username': username}
+        where = "username=$username"
+        data = {"username": username}
 
         oldb.delete(cls.TABLENAME, where=where, vars=data)
 
@@ -102,9 +111,9 @@ class YearlyReadingGoals:
         oldb = db.get_db()
 
         data = {
-            'username': username,
-            'year': year,
+            "username": username,
+            "year": year,
         }
-        where = 'username=$username AND year=$year'
+        where = "username=$username AND year=$year"
 
         oldb.delete(cls.TABLENAME, where=where, vars=data)

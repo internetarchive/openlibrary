@@ -3,7 +3,7 @@
 /** @typedef {import('./classes.js').MatchOptions} MatchOptions */
 /** @typedef {import('./classes.js').BookMatch} BookMatch */
 
-const OL_SEARCH_BASE = 'openlibrary.org'
+const OL_SEARCH_BASE = 'openlibrary.org';
 
 /**
  * @param {ExtractedBook} extractedBook
@@ -11,7 +11,7 @@ const OL_SEARCH_BASE = 'openlibrary.org'
  */
 export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     let title = extractedBook.title?.split(/[:(?]/)[0].replace(/’/g, '\'');
-    const author = extractedBook.author
+    const author = extractedBook.author;
     // Remove leading articles from title; these can sometimes be missing from OL records,
     // and will hence cause a failed match.
     // Taken from https://github.com/internetarchive/openlibrary/blob/4d880c1bf3e2391dd001c7818052fd639d38ff58/conf/solr/conf/managed-schema.xml#L526

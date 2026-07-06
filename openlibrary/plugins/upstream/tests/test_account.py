@@ -1,10 +1,16 @@
+import json
 import os
 import sys
+from unittest import mock
 
 import pytest
 import web
 
+from openlibrary.accounts.model import create_link_doc
+from openlibrary.utils.request_context import RequestContextVars, req_context
+
 from .. import account
+from ..account import account_login, account_verify
 
 
 def open_test_data(filename):
@@ -19,7 +25,7 @@ def test_create_list_doc(wildcard):
     username = "foo"
     email = "foo@example.com"
 
-    doc = account.create_link_doc(key, username, email)
+    doc = create_link_doc(key, username, email)
 
     assert doc == {
         "_key": key,
@@ -31,6 +37,22 @@ def test_create_list_doc(wildcard):
         "created_on": wildcard,
         "expires_on": wildcard,
     }
+
+
+@pytest.mark.parametrize(
+    ("redirect", "expected"),
+    [
+        ("/account/books", True),
+        ("/account/login", True),
+        ("/books", True),
+        ("https://evil.example/path", False),
+        ("//evil.example/path", False),
+        ("/\\evil.example/path", False),
+        ("", False),
+    ],
+)
+def test_is_safe_redirect(redirect, expected):
+    assert account.is_safe_redirect(redirect) is expected
 
 
 class TestGoodReadsImport:
@@ -156,3 +178,322 @@ class TestGoodReadsImport:
         books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
+
+
+# --- account_verify.GET ---
+
+
+class TestAccountVerify:
+    """Tests for the /account/verify GET endpoint."""
+
+    def _make_handler(self):
+        return account_verify()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.account_login")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_token_redirects_to_my_books(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="validtoken", redirect="")
+        mock_ia_account.verify.return_value = {
+            "email": "test@example.com",
+            "s3": {"access": "ACCESSKEY", "secret": "SECRETKEY"},
+        }
+        login_instance = mock.MagicMock()
+        mock_login_cls.return_value = login_instance
+
+        self._make_handler().GET()
+
+        mock_ia_account.verify.assert_called_once_with(token="validtoken")
+        # No explicit redirect is forwarded when the caller didn't request one;
+        # account_login.login()'s own fallback sends the user to /account/books
+        # without clearing the pending patron-intent cookie.
+        login_instance.login.assert_called_once_with(
+            access="ACCESSKEY",
+            secret="SECRETKEY",
+        )
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.account_login")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_token_honors_redirect_param(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="validtoken", redirect="/works/OL1W")
+        mock_ia_account.verify.return_value = {
+            "email": "test@example.com",
+            "s3": {"access": "ACCESSKEY", "secret": "SECRETKEY"},
+        }
+        login_instance = mock.MagicMock()
+        mock_login_cls.return_value = login_instance
+
+        self._make_handler().GET()
+
+        login_instance.login.assert_called_once_with(
+            access="ACCESSKEY",
+            secret="SECRETKEY",
+            redirect="/works/OL1W",
+        )
+
+    @mock.patch("openlibrary.plugins.upstream.account.accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_invalid_token_redirects_to_create_when_not_logged_in(self, mock_web, mock_flash, mock_ia_account, mock_accounts):
+        mock_web.input.return_value = web.storage(t="badtoken", redirect="")
+        mock_ia_account.verify.return_value = {"error": "invalid_token"}
+        mock_accounts.get_current_user.return_value = None
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_called_once()
+        assert mock_flash.call_args[0][0] == "error"
+        mock_web.seeother.assert_called_once_with("/account/create")
+
+    @mock.patch("openlibrary.plugins.upstream.account.accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_invalid_token_redirects_to_my_books_when_logged_in(self, mock_web, mock_flash, mock_ia_account, mock_accounts):
+        mock_web.input.return_value = web.storage(t="usedtoken", redirect="")
+        mock_ia_account.verify.return_value = {"error": "already_verified"}
+        mock_accounts.get_current_user.return_value = mock.MagicMock()
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_not_called()
+        mock_web.seeother.assert_called_once_with("/account/books")
+
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_token_redirects_to_create(self, mock_web, mock_flash):
+        mock_web.input.return_value = web.storage(t=None, redirect="")
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_not_called()
+        mock_web.seeother.assert_called_once_with("/account/create")
+
+
+# --- account_login.login cookie helpers ---
+
+
+class TestAccountLoginSetCookies:
+    """Tests for the set_cookies helper on account_login."""
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_truthy_value_uses_expires(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=True, session="abc123")
+        mock_web.setcookie.assert_called_once_with("session", "abc123", expires=3600 * 24 * 365)
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_falsy_value_expires_cookie(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=True, pda="")
+        mock_web.setcookie.assert_called_once_with("pda", "", expires=1)
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_no_remember_uses_session_expiry(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=False, session="abc123")
+        mock_web.setcookie.assert_called_once_with("session", "abc123", expires="")
+
+
+class TestAccountLoginRedirect:
+    def setup_method(self):
+        self._req_context_token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent="pytest-agent",
+                lang="en",
+                solr_editions=True,
+                print_disabled=False,
+                sfw=False,
+                is_recognized_bot=False,
+                is_bot=False,
+            )
+        )
+
+    def teardown_method(self):
+        req_context.reset(self._req_context_token)
+
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.OpenLibraryAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    @mock.patch("openlibrary.plugins.upstream.account.stats")
+    def test_login_deletes_preserve_intent_cookie_on_valid_redirect(self, mock_stats, mock_web, mock_ol_account_cls, mock_audit_accounts):
+        handler = account_login()
+        mock_audit_accounts.return_value = {"ia_email": "test@example.com"}
+        mock_ol_account_cls.get_by_email.return_value = mock.MagicMock()
+        mock_web.seeother.side_effect = Exception("seeother")
+
+        # Case 1: Valid redirect string -> deletes preserve intent cookie
+        with pytest.raises(Exception, match="seeother"):
+            handler.login(username="test", password="pwd", redirect="/books")
+        mock_web.setcookie.assert_any_call("pending_action", "", expires=-1)
+        mock_web.seeother.assert_called_with("/books")
+
+        mock_web.reset_mock()
+
+        # Case 2: Invalid redirect string -> redirects to fallback without deleting cookie
+        with pytest.raises(Exception, match="seeother"):
+            handler.login(username="test", password="pwd", redirect="http://evil.com")
+        for call in mock_web.setcookie.call_args_list:
+            assert call[0][0] != "pending_action"
+        mock_web.seeother.assert_called_with("/account/books")
+
+
+class TestOtpServiceS3Auth:
+    """Tests for S3 key validation on /account/otp/issue and /account/otp/redeem."""
+
+    def _make_web_mock(self, auth_header=""):
+        m = mock.MagicMock()
+        m.ctx.env = {"HTTP_AUTHORIZATION": auth_header, "HTTP_X_FORWARDED_FOR": "1.2.3.4"}
+        m.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false", otp="123456")
+        m.safestr.side_effect = lambda x: x
+        return m
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_missing_auth_header(self, mock_web, mock_ia):
+        mock_web.ctx.env = {}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_empty_secret_rejected(self, mock_web, mock_ia):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_invalid_keys_rejected(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW badaccess:badsecret"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_auth_service_5xx_returns_specific_error(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "service error", "code": 503}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:secret"}
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "auth_service_unavailable"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_issue_valid_keys_proceeds(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True, "itemname": "@testuser"}
+        mock_web.ctx.env = {
+            "HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret",
+            "HTTP_X_FORWARDED_FOR": "1.2.3.4",
+        }
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false")
+        mock_otp.generate.return_value = "abc123"
+        mock_otp.is_ratelimited.return_value = None
+        mock_otp.verify_service.return_value = True
+        result = account.otp_service_issue().POST()
+        body = json.loads(result.rawtext)
+        assert body == {"success": "issued"}
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_missing_auth_header(self, mock_web, mock_ia):
+        mock_web.ctx.env = {}
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "missing_or_invalid_authorization"
+        mock_ia.s3auth.assert_not_called()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_invalid_keys_rejected(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW bad:creds"}
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body["error"] == "unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_redeem_valid_keys_proceeds(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True, "itemname": "@testuser"}
+        mock_web.ctx.env = {
+            "HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret",
+            "HTTP_X_FORWARDED_FOR": "1.2.3.4",
+        }
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", otp="abc123")
+        mock_otp.is_valid.return_value = True
+        result = account.otp_service_redeem().POST()
+        body = json.loads(result.rawtext)
+        assert body == {"success": "redeemed"}
+
+
+class TestParseLowAuthHeader:
+    """Unit tests for the _parse_low_auth_header() module-level helper."""
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_header_raises(self, mock_web):
+        mock_web.ctx.env = {}
+        with pytest.raises(ValueError, match="Missing or invalid"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_bearer_prefix_rejected(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "Bearer sometoken"}
+        with pytest.raises(ValueError, match="Missing or invalid"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_no_colon_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW accessonly"}
+        with pytest.raises(ValueError, match="Malformed"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_empty_secret_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:"}
+        with pytest.raises(ValueError, match="Empty"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_empty_access_raises(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW :secret"}
+        with pytest.raises(ValueError, match="Empty"):
+            account._parse_low_auth_header()
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_returns_stripped_tuple(self, mock_web):
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW  myaccess : mysecret "}
+        access, secret = account._parse_low_auth_header()
+        assert access == "myaccess"
+        assert secret == "mysecret"
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_colon_in_secret_preserved(self, mock_web):
+        # S3 secrets can contain colons; only split on the first one
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:sec:ret"}
+        access, secret = account._parse_low_auth_header()
+        assert access == "access"
+        assert secret == "sec:ret"

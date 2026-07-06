@@ -14,10 +14,19 @@ import { LitElement, html, css } from 'lit';
  *   <p>Long content here...</p>
  * </ol-read-more>
  *
- * @property {String} background-color - Background color for the gradient fade (default: white)
- * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {String} maxHeight - Collapsed height of the content before truncating (default: "80px")
+ * @prop {String} moreText - Label for the expand toggle (default: "Read more")
+ * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
+ * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
+ * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ *
+ * @slot - The collapsible content
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
+ *
+ * @cssprop [--ol-readmore-link-color=hsl(202, 96%, 28%)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
+ * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
  * @example
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">
@@ -25,6 +34,10 @@ import { LitElement, html, css } from 'lit';
  * </ol-read-more>
  */
 export class OLReadMore extends LitElement {
+    // Number of lines worth hiding before a "Read more" button earns its place.
+    // Expressed in lines (not px) so font/spacing tweaks don't silently shift the threshold.
+    static BUFFER_LINES = 4;
+
     static properties = {
         maxHeight: { type: String, attribute: 'max-height' },
         moreText: { type: String, attribute: 'more-text' },
@@ -146,12 +159,26 @@ export class OLReadMore extends LitElement {
         }
     }
 
+    // Resolve an element's line-height to px, approximating `normal` from font-size.
+    _getLineHeight(el) {
+        const cs = getComputedStyle(el);
+        const lh = parseFloat(cs.lineHeight);
+        // `line-height: normal` parses to NaN — fall back to a typical ratio.
+        return Number.isNaN(lh) ? parseFloat(cs.fontSize) * 1.5 : lh;
+    }
+
     _checkIfTruncationNeeded() {
         const content = this.shadowRoot.querySelector('.content-wrapper');
         if (!content) return;
 
-        const isOverflowing = content.scrollHeight > content.clientHeight;
-        this._unnecessary = !isOverflowing;
+        // Measure the real slotted text, not the shadow wrapper — the wrapper
+        // inherits the host's line-height, which may differ from the content's.
+        const slot = this.shadowRoot.querySelector('slot');
+        const sample = slot?.assignedElements?.()[0] ?? content;
+        const buffer = OLReadMore.BUFFER_LINES * this._getLineHeight(sample);
+
+        const isOverflowingEnough = content.scrollHeight > content.clientHeight + buffer;
+        this._unnecessary = !isOverflowingEnough;
 
         if (this._unnecessary) {
             this._expanded = true;

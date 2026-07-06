@@ -64,7 +64,7 @@ $code:
     </div>
   <div class="sri__main">
     <span class="bookcover $blur_cover">
-      $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
+      $ cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png"
       <a href="$work_edition_url">
         <img
           itemprop="image"
@@ -123,9 +123,9 @@ $code:
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
         <span class="resultStats">
-          $ ratings_count = doc.get('ratings_count', None)
+          $ ratings_count = doc.get('ratings_count') or 0
           $ ratings_avg = doc.get('ratings_average', None)
-          $ want_to_read_count = doc.get('want_to_read_count', None)
+          $ want_to_read_count = doc.get('want_to_read_count') or 0
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if show_librarian_extras and doc.get('trending_z_score') is not None:
             $:macros.TrendingBadge(doc)
@@ -134,11 +134,11 @@ $code:
         $if highlighting:
           $if highlighting.get('subject'):
             <br />
-            <span class="srw__subjects">
+            <ol-chip-group class="srw__subjects" gap="small">
               $for subj in highlighting['subject']:
                 $# detect-missing-i18n-skip-line
-                <a href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</a>
-            </span>
+                <ol-chip size="small" href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</ol-chip>
+            </ol-chip-group>
 
           $if highlighting.get('chapter'):
             <br />
@@ -261,8 +261,12 @@ $code:
           $elif doc_type == 'infogami_edition':
             $ edition_key = doc.key
           $elif doc_type == 'solr_work':
-            $ edition_key = doc.get('edition_key') and doc.get("edition_key")[0]
-            $ edition_key = '/books/%s' % edition_key
+            $if doc.get('logged_edition'):
+              $# Prefer logged_edition set when user added book
+              $ edition_key = doc.get('logged_edition')
+            $else:
+              $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
+              $ edition_key = '/books/%s' % edition_key
           $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:

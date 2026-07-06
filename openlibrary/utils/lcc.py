@@ -97,7 +97,7 @@ from openlibrary.utils.ddc import collapse_multiple_space
 # KEEP IN SYNC!
 
 LCC_PARTS_RE = re.compile(
-    r'''
+    r"""
     ^
     # trailing dash only valid in "sortable" LCCs
     # Include W, even though technically part of NLM system
@@ -107,7 +107,7 @@ LCC_PARTS_RE = re.compile(
     (?P<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
-''',
+""",
     re.IGNORECASE | re.VERBOSE,
 )
 
@@ -122,19 +122,19 @@ def short_lcc_to_sortable_lcc(lcc: str) -> str | None:
         return None
 
     parts = m.groupdict()
-    parts['letters'] = parts['letters'].upper().ljust(3, '-')
-    parts['number'] = float(parts['number'] or 0)
-    parts['cutter1'] = '.' + parts['cutter1'].lstrip(' .') if parts['cutter1'] else ''
-    parts['rest'] = ' ' + parts['rest'].strip() if parts['rest'] else ''
+    parts["letters"] = parts["letters"].upper().ljust(3, "-")
+    parts["number"] = float(parts["number"] or 0)
+    parts["cutter1"] = "." + parts["cutter1"].lstrip(" .") if parts["cutter1"] else ""
+    parts["rest"] = " " + parts["rest"].strip() if parts["rest"] else ""
 
     # There will often be a CPB Box No (whatever that is) in the LCC field;
     # E.g. "CPB Box no. 1516 vol. 17"
     # Although this might be useful to search by, it's not really an LCC,
     # so considering it invalid here.
-    if parts['letters'] == 'CPB':
+    if parts["letters"] == "CPB":
         return None
 
-    return '%(letters)s%(number)013.8f%(cutter1)s%(rest)s' % parts
+    return "%(letters)s%(number)013.8f%(cutter1)s%(rest)s" % parts
 
 
 def sortable_lcc_to_short_lcc(lcc: str) -> str:
@@ -144,22 +144,20 @@ def sortable_lcc_to_short_lcc(lcc: str) -> str:
     m = LCC_PARTS_RE.match(lcc)
     assert m, f'Unable to parse LCC "{lcc}"'
     parts = m.groupdict()
-    parts['letters'] = parts['letters'].strip('-')
-    parts['number'] = parts['number'].strip('0').strip('.')  # Need to do in order!
-    parts['cutter1'] = parts['cutter1'].strip(' ') if parts['cutter1'] else ''
-    parts['rest'] = ' ' + parts['rest'].strip() if parts['rest'] else ''
+    parts["letters"] = parts["letters"].strip("-")
+    parts["number"] = parts["number"].strip("0").strip(".")  # Need to do in order!
+    parts["cutter1"] = parts["cutter1"].strip(" ") if parts["cutter1"] else ""
+    parts["rest"] = " " + parts["rest"].strip() if parts["rest"] else ""
 
-    return '%(letters)s%(number)s%(cutter1)s%(rest)s' % parts
+    return "%(letters)s%(number)s%(cutter1)s%(rest)s" % parts
 
 
 def clean_raw_lcc(raw_lcc: str) -> str:
     """
     Remove noise in lcc before matching to LCC_PARTS_RE
     """
-    lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
-    if (lcc.startswith('[') and lcc.endswith(']')) or (
-        lcc.startswith('(') and lcc.endswith(')')
-    ):
+    lcc = collapse_multiple_space(raw_lcc.replace("\\", " ").strip(" "))
+    if (lcc.startswith("[") and lcc.endswith("]")) or (lcc.startswith("(") and lcc.endswith(")")):
         lcc = lcc[1:-1]
     return lcc
 
@@ -184,18 +182,18 @@ def normalize_lcc_prefix(prefix: str) -> str | None:
     >>> normalize_lcc_prefix('PN-')
     'PN-'
     """
-    if re.match(r'^[A-Z]+$', prefix, re.IGNORECASE):
+    if re.match(r"^[A-Z]+$", prefix, re.IGNORECASE):
         return prefix
     else:
-        lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))
+        lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip("."))
         if lcc_norm:
-            result = lcc_norm.rstrip('0')
-            if '.' in prefix and prefix.endswith('0'):
-                zeros_to_add = len(prefix) - len(prefix.rstrip('0'))
-                result += '0' * zeros_to_add
-            elif result.endswith('-0000.'):
-                result = result.rstrip('0.')
-            return result.rstrip('.')
+            result = lcc_norm.rstrip("0")
+            if "." in prefix and prefix.endswith("0"):
+                zeros_to_add = len(prefix) - len(prefix.rstrip("0"))
+                result += "0" * zeros_to_add
+            elif result.endswith("-0000."):
+                result = result.rstrip("0.")
+            return result.rstrip(".")
         else:
             return None
 
@@ -206,9 +204,7 @@ def normalize_lcc_range(start: str, end: str) -> list[str | None]:
     :param str end: LCC prefix to end range
     :return: range with prefixes being prefixes for sortable LCCs
     """
-    return [
-        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)
-    ]
+    return [lcc if lcc == "*" else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)]
 
 
 def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:

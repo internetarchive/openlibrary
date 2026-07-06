@@ -1,6 +1,7 @@
 import { FadingToast } from '../Toast.js';
 import { findDropperForWork } from '../my-books';
 import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
+import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
@@ -33,7 +34,17 @@ function handleRatingSubmission(event, form) {
         })
             .then((response) => {
                 if (response.status === 401) {
-                    throw new Error('You must be logged in to rate books');
+                    if (event.submitter && event.submitter.id) {
+                        const label = form.querySelector(`label[for="${event.submitter.id}"]`);
+                        if (label) {
+                            const { action, title, type } = label.dataset;
+                            if (action && title && type) {
+                                queueAction(action, title, window.location.pathname + window.location.search, type);
+                            }
+                        }
+                    }
+                    window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                    return;
                 }
                 if (!response.ok) {
                     throw new Error('Ratings update failed');

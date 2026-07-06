@@ -91,7 +91,7 @@ $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/static/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
@@ -180,7 +180,6 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
 $ component_times['affiliate_links component'] = time()
 $ prices = edition.key.startswith('/books/')
 
-$ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ isbn_13 = edition.get_isbn13() or None
 $ isbn_10 = edition.get_isbn10() or None
 
@@ -192,10 +191,11 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
+$ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, isbn_13, asin, prices)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
-$ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+$ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
+$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
@@ -207,7 +207,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -263,14 +263,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 <div>$_("Publisher")</div>
                 <span>
                 $for p in edition.publishers:
-                  $if "publishers" in ctx.features:
-                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
-                       title="$_('Show other books from %(publisher)s', publisher=p)"
-                       >$p</a>$cond(loop.last, "", ", ")
-                  $else:
-                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')"
-                       title="$_('Search for other books from %(publisher)s', publisher=p)"
-                       >$p</a>$cond(loop.last, "", ", ")
+                  <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
+                     title="$_('Show other books from %(publisher)s', publisher=p)"
+                     >$p</a>$cond(loop.last, "", ", ")
                 </span>
               </div>
             $if edition.languages:
@@ -310,7 +305,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <div class="Tools">
         <div class="panel mobile-vendor">
           <div class="btn-notice">
-            $:worldcat_links
+            $:worldcat_link
 
             <div class="cta-section">
               <p class="cta-section-title">$_('Buy this book')</p>
@@ -532,7 +527,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="lists-section" class="section-anchor"></a>
       $# pages like /books/ia:foo00bar are fake records created from metadata API.
       $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-      $if "lists" in ctx.features and not page.is_fake_record():
+      $if not page.is_fake_record():
         $ component_times['Lists section'] = time()
         $code:
           data_ids = {}

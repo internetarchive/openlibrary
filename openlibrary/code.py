@@ -25,7 +25,6 @@ def setup():
     import openlibrary.plugins.openlibrary.code  # noqa: I001 registers endpoints
     import openlibrary.plugins.worksearch.code
     import openlibrary.plugins.inside.code
-    import openlibrary.plugins.books.code
     import openlibrary.plugins.admin.code
     import openlibrary.plugins.upstream.code
     import openlibrary.plugins.importapi.code  # noqa: F401 registers endpoints
@@ -35,15 +34,18 @@ def setup():
     # override the deprecated ones
     # This is only temporary while we move to fastapi
 
-    for path in deprecated_handler.DEPRECATED_PATHS:
+    for path, encoding in deprecated_handler.DEPRECATED_PATHS:
         if path not in pages:
             pages[path] = {}
-        old_handler = pages[path].get("json")
+        old_handler = pages[path].get(encoding)
         print(
             f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}",
             file=sys.stderr,
         )
-        pages[path]["json"] = deprecated_handler.DeprecatedEndpointHandler
+        if encoding == "json":
+            pages[path]["json"] = deprecated_handler.DeprecatedJSONEndpointHandler
+        else:
+            pages[path][None] = deprecated_handler.DeprecatedEndpointHandler
 
     load_views()
 

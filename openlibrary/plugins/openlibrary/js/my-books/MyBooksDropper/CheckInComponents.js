@@ -95,14 +95,18 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then((resp) => {
+                .then(async(resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
+                    }
+                    const data = await resp.json();
+                    if (data.id) {
+                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
-                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedSubmitCheckIn).show();
                 });
         });
 
@@ -134,8 +138,7 @@ export class CheckInComponents {
                     this.checkInPrompt.show();
                 })
                 .catch(() => {
-                    // TODO : Use localized strings
-                    new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedDeleteCheckIn).show();
                 })
                 .finally(() => {
                     this.closeModal();
@@ -148,15 +151,18 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then((resp) => {
+                .then(async(resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
+                    }
+                    const data = await resp.json();
+                    if (data.id) {
+                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
-                    // TODO : Use localized strings
-                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedSubmitCheckIn).show();
                 })
                 .finally(() => {
                     this.closeModal();
@@ -230,7 +236,7 @@ export class CheckInComponents {
         return fetch(url, {
             method: 'POST',
             headers: {
-                'content-type': 'application/x-www-form-urlencoded',
+                'content-type': 'application/json',
                 accept: 'application/json'
             },
             body: JSON.stringify(eventData)

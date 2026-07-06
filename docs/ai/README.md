@@ -24,8 +24,11 @@ npm run watch:lit-components # Watch Lit components
 
 ```bash
 # Python tests (excludes integration tests by default)
-make test-py
-pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+# Preferred: run outside Docker with uv (faster)
+make test-py-uv
+
+# Alternative: run inside Docker
+docker compose run --rm home make test-py
 
 # Run a single Python test file
 pytest openlibrary/core/tests/test_models.py
@@ -136,9 +139,25 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
+### Browser Support
+
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+
+What the toolchain guarantees:
+
+- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
+
+Rules for new code:
+
+- **Do not add polyfills or legacy fallback bundles.** IE11-era polyfills were removed deliberately (#12685).
+- **Web platform APIs are not auto-polyfilled anywhere** — feature-detect (`if ('IntersectionObserver' in window)`) or verify the API is within the floor before using it unguarded.
+- Browsers below the floor get the server-rendered experience: content stays readable, JS enhancements are untested. Don't deliberately break them, but don't spend effort on them either.
+
 ### Search
 
-Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
+Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
 
 ### Data Model
 
@@ -149,9 +168,13 @@ Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/i
 
 A Work has many Editions. This is the central relationship in the data model.
 
+## Pull Requests
+
+When creating PRs, use the template in `.github/pull_request_template.md` for the PR body. Before pushing code, run `npm run lint` to catch issues early.
+
 ## Code Style
 
-- **Python:** Ruff linter, Black formatter. Line length 162. Target Python 3.12.
+- **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
 - **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
@@ -160,8 +183,20 @@ A Work has many Editions. This is the central relationship in the data model.
 
 These companion docs cover specific areas in depth:
 
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, animations
-- [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
+- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM
+- [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+
+## Domain Knowledge Bases
+
+Deep-dive references for major system domains. Each covers production architecture, key files, how it works, endpoints/APIs, debug playbook, open issues, and PR review expectations.
+
+- [Solr](solr/index.md) — search index, solr-updater, schema, search endpoints, facets
+- [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
+- [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
+- [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
 
 ## Key File Locations
 

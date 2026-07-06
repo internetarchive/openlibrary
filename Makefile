@@ -15,14 +15,17 @@ all: git css js components lit-components i18n
 
 frontend: css js components lit-components
 
-css:
+node_modules: package-lock.json package.json
+	npm ci --no-audit --no-fund
+
+css: node_modules
 	mkdir -p $(BUILD)/css_new
 	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
 	mkdir -p $(BUILD)/css
 	rm -rf $(BUILD)/css
 	mv $(BUILD)/css_new $(BUILD)/css
 
-js:
+js: node_modules
 	mkdir -p $(BUILD)/js_new
 	BUILD_DIR=$(BUILD)/js_new NODE_ENV=production npx webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
@@ -34,14 +37,16 @@ js:
 	rm -rf $(BUILD)/js
 	mv $(BUILD)/js_new $(BUILD)/js
 
-components:
+components: node_modules
 	mkdir -p $(BUILD)/components_new
 	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
 	mkdir -p $(BUILD)/components
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
-lit-components:
+lit-components: node_modules
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new
 	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
 	mkdir -p $(BUILD)/lit-components
@@ -67,20 +72,22 @@ distclean:
 reindex-solr:
     # Keep link in sync with ol-solr-updater-start and Jenkinsfile
 	curl -C - -L "https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db" -o $(OSP_DUMP_LOCATION)
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
-	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep -E '/(lists|series)/' | xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --osp-dump $(OSP_DUMP_LOCATION) --ol-config conf/openlibrary.yml --solr-next
+	parallel -j4 python ./scripts/solr_builder/solr_builder/index_subjects.py ::: subject person place time
 
 lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
+PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+
 test-py:
-	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+	pytest $(PYTEST_ARGS)
+
+test-py-uv:
+	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate

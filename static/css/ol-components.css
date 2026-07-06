@@ -1,0 +1,57 @@
+/**
+ * ol-components.css — site-wide styles for OL web components.
+ *
+ * Loaded render-blocking on every page (see site/head.html), separately
+ * from the page-* bundles, so it caches once per visitor and serves all
+ * subsequent pages from cache. Same pattern as tokens.css.
+ *
+ * What belongs here: CSS that needs to be in the document outside any
+ * shadow root — i.e. styles for light-DOM web components (e.g.
+ * <ol-button>) and pre-hydration FOUC fixes for shadow-DOM components
+ * (reserving height before Lit upgrades them).
+ *
+ * What does NOT belong here: page-specific styles, shadow-DOM component
+ * internals (those ship inside the component's JS).
+ */
+
+@import "components/ol-button.css";
+@import "components/ol-banner.css";
+
+/* Pre-hydration sizing for shadow-DOM web components. These rules apply
+   only until the component upgrades and renders its own shadow root. */
+
+/* Hide ol-read-more content before component is defined to prevent flash
+   of unstyled content. min-height matches the default rendered height. */
+ol-read-more {
+  min-height: 121px;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+ol-read-more[label-size="small"] {
+  min-height: 107px;
+}
+
+/* Reserve height for ol-chip before Lit hydrates to prevent layout shift. */
+ol-chip:not(:defined) {
+  display: inline-block;
+  height: 30px;
+}
+
+ol-chip[size="small"]:not(:defined) {
+  height: 24px;
+}
+
+/* Before ol-popover upgrades, its default-slot content (the panel) renders
+   in the light DOM. Hide everything except the trigger so the popover body
+   doesn't flash on page load; the upgraded component manages it in its
+   shadow root. */
+ol-popover:not(:defined) > :not([slot="trigger"]) {
+  display: none;
+}
+
+/* Hide ol-drawer's slotted menu content before the component upgrades; the
+   drawer shell renders in its shadow root once Lit defines it. */
+ol-drawer:not(:defined) {
+  display: none;
+}

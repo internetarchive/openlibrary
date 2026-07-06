@@ -66,14 +66,14 @@ $def with()
 
     <section class="example">
       <h3 class="example__title">$_("Custom width")</h3>
-      <p>$:_("Use the %(size)s CSS custom property to control drawer width.", size="<code>--size</code>")</p>
-      <code class="example__code">&lt;ol-drawer label="Wide panel" style="--size: 420px"&gt;...&lt;/ol-drawer&gt;</code>
+      <p>$:_("Use the %(size)s CSS custom property to control drawer width.", size="<code>--ol-drawer-width</code>")</p>
+      <code class="example__code">&lt;ol-drawer label="Wide panel" style="--ol-drawer-width: 420px"&gt;...&lt;/ol-drawer&gt;</code>
       <div class="example__output">
         <button id="demo-drawer-wide-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open wide drawer")</button>
-        <ol-drawer id="demo-drawer-wide" label="$_('Wide panel')" style="--size: 420px">
+        <ol-drawer id="demo-drawer-wide" label="$_('Wide panel')" style="--ol-drawer-width: 420px">
           <div style="padding: 16px;">
             <h3 style="margin: 0 0 12px;">$_("Wide Drawer")</h3>
-            <p>$_("This drawer uses a custom width of 420px via the --size CSS custom property.")</p>
+            <p>$_("This drawer uses a custom width of 420px via the --ol-drawer-width CSS custom property.")</p>
           </div>
         </ol-drawer>
       </div>

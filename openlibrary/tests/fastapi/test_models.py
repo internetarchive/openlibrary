@@ -73,6 +73,26 @@ class TestWrapJsonp:
         assert response.media_type == "application/javascript"
         assert response.body == b'cb({"key": "value"});'
 
+    def test_accepts_list_json(self):
+        """Should JSON-serialize list input."""
+        mock_request = MagicMock(spec=Request)
+        type(mock_request.query_params).get = MagicMock(return_value=None)
+
+        response = wrap_jsonp(mock_request, ["a", {"key": "value"}])
+
+        assert response.media_type == "application/json"
+        assert response.body == b'["a", {"key": "value"}]'
+
+    def test_list_with_callback(self):
+        """List input should work with callback."""
+        mock_request = MagicMock(spec=Request)
+        type(mock_request.query_params).get = MagicMock(return_value="cb")
+
+        response = wrap_jsonp(mock_request, ["a", {"key": "value"}])
+
+        assert response.media_type == "application/javascript"
+        assert response.body == b'cb(["a", {"key": "value"}]);'
+
 
 class TestParseCommaSeparatedList:
     """Tests for parse_comma_separated_list utility function.

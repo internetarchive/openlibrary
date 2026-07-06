@@ -1,5 +1,5 @@
 .header-bar {
-  padding-top: 5px;
+  padding-top: var(--spacing-inset-xs);
 }
 
 /* The width and height attributes of logo-icon should be equal to */
@@ -23,19 +23,6 @@
   -webkit-box-ordinal-group: 4;
   -ms-flex-order: 3;
   order: 3;
-}
-
-.header-bar .search-component .search-bar-component {
-  width: 300px;
-}
-
-.header-bar .search-component .search-justify-right {
-  min-width: 210px;
-}
-
-.header-bar .search-component .search-bar {
-  width: auto;
-  max-width: 310px;
 }
 
 .header-bar .header-dropdown .account__icon {

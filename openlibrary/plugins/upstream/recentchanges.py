@@ -4,6 +4,7 @@ This should go into infogami.
 """
 
 import json
+import math
 
 import web
 import yaml
@@ -30,17 +31,11 @@ class index2(delegate.page):
     path = "/recentchanges"
 
     def GET(self):
-        if features.is_enabled("recentchanges_v2"):
-            return index().render()
-        else:
-            return render.recentchanges()
+        return index().render()
 
 
 class index(delegate.page):
     path = "/recentchanges(/[^/0-9][^/]*)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def GET(self, kind):
         return self.render(kind=kind)
@@ -50,11 +45,11 @@ class index(delegate.page):
 
         if date:
             begin_date, end_date = dateutil.parse_daterange(date)
-            query['begin_date'] = begin_date.isoformat()
-            query['end_date'] = end_date.isoformat()
+            query["begin_date"] = begin_date.isoformat()
+            query["end_date"] = end_date.isoformat()
 
         if kind:
-            query['kind'] = kind and kind.strip("/")
+            query["kind"] = kind and kind.strip("/")
 
         if web.ctx.encoding in ["json", "yml"]:
             return self.handle_encoding(query, web.ctx.encoding)
@@ -67,13 +62,13 @@ class index(delegate.page):
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
         if i.bot.lower() == "true":
-            query['bot'] = True
+            query["bot"] = True
         elif i.bot.lower() == "false":
-            query['bot'] = False
+            query["bot"] = False
 
         # Handle author query parameter
         if i.author:
-            query['author'] = i.author
+            query["author"] = i.author
 
         # and limit and offset business too
         limit = safeint(i.limit, 100)
@@ -91,8 +86,8 @@ class index(delegate.page):
         limit = constrain(limit, 0, 1000)
         offset = constrain(offset, 0, 10000)
 
-        query['limit'] = limit
-        query['offset'] = offset
+        query["limit"] = limit
+        query["offset"] = offset
 
         result = [c.dict() for c in web.ctx.site.recentchanges(query)]
 
@@ -107,9 +102,9 @@ class index(delegate.page):
             content_type = "text/plain"
 
         if i.text.lower() == "true":
-            web.header('Content-Type', 'text/plain')
+            web.header("Content-Type", "text/plain")
         else:
-            web.header('Content-Type', content_type)
+            web.header("Content-Type", content_type)
 
         return delegate.RawText(response)
 
@@ -128,9 +123,6 @@ class index_with_date(index):
 class recentchanges_redirect(delegate.page):
     path = r"/recentchanges/goto/(\d+)"
 
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
-
     def GET(self, id):
         id = int(id)
         change = web.ctx.site.get_change(id)
@@ -143,9 +135,6 @@ class recentchanges_redirect(delegate.page):
 
 class recentchanges_view(delegate.page):
     path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def get_change_url(self, change):
         t = change.timestamp
@@ -164,7 +153,7 @@ class recentchanges_view(delegate.page):
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
 
-        if web.ctx.encoding == 'json':
+        if web.ctx.encoding == "json":
             return self.render_json(change)
 
         path = self.get_change_url(change)
@@ -179,21 +168,15 @@ class recentchanges_view(delegate.page):
                 return render_template("recentchanges/default/view", change)
 
     def render_json(self, change):
-        return delegate.RawText(
-            json.dumps(change.dict()), content_type="application/json"
-        )
+        return delegate.RawText(json.dumps(change.dict()), content_type="application/json")
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = ['/usergroup/admin', '/usergroup/super-librarians']
-        if not (user := get_current_user()) or not (
-            user.is_member_of_any(allowed_usergroups)
-        ):
+        allowed_usergroups = ["/usergroup/admin", "/usergroup/super-librarians"]
+        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
             raise web.unauthorized()
         if not features.is_enabled("undo"):
-            return render_template(
-                "permission_denied", web.ctx.path, "Permission denied to undo."
-            )
+            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
 
         id = int(id)
         change = web.ctx.site.get_change(id)
@@ -206,8 +189,12 @@ class history(delegate.mode):
         page = web.ctx.site.get(path)
         if not page:
             raise web.seeother(path)
-        i = web.input(page=0)
-        offset = 20 * safeint(i.page)
+        i = web.input(page=1)
         limit = 20
+        # Clamp so legacy ?page=0 links resolve to the first page instead of a negative offset.
+        page_num = max(1, safeint(i.page))
+        offset = (page_num - 1) * limit
         history = get_changes({"key": path, "limit": limit, "offset": offset})
-        return render.history(page, history)
+        # page.revision is the total number of saved revisions (infogami bumps it on every save).
+        total_pages = math.ceil(page.revision / limit)
+        return render.history(page, history, page_num, total_pages)

@@ -20,7 +20,6 @@
  * with `page-` or `js-`
  */
 @import "legacy-tools.css";
-@import "legacy-wmd.css";
 
 @import "components/read-panel.css";
 @import "components/preview.css";
@@ -54,7 +53,7 @@ table {
 }
 
 table.meta {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 table.meta td {
@@ -97,13 +96,13 @@ table.changeHistory th {
   color: var(--brown);
   text-transform: uppercase !important;
   font-size: 0.6875em;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 table#pageHistory td,
 table.changeHistory td {
   border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   font-size: 0.75em;
   color: var(--grey);
 }
@@ -139,7 +138,7 @@ table.help th {
   font-family: var(--font-family-body);
   color: var(--grey);
   border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   vertical-align: top;
   background-color: var(--lightest-grey);
 }
@@ -149,7 +148,7 @@ table.help td {
   font-family: var(--font-family-body);
   color: var(--grey);
   border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   vertical-align: top;
 }
 
@@ -171,7 +170,7 @@ var {
 
 li span.snippet {
   display: block;
-  margin: 10px 0;
+  margin: var(--spacing-stack-sm) 0;
   background-color: var(--lightest-grey);
   font-size: 0.8em;
   padding: 20px;
@@ -217,44 +216,6 @@ em {
   font-style: italic;
 }
 
-/* Styles that should apply to markdown documents */
-.markdown-content ol,
-.markdown-content ul {
-  padding-left: 40px;
-}
-
-.markdown-content ol li {
-  list-style: decimal;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-.markdown-content ul li {
-  list-style: disc;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-pre,
-code {
-  font-family: var(--font-family-code);
-  font-size: 0.875em;
-  font-weight: normal;
-  white-space: pre-wrap;
-}
-
-blockquote,
-q {
-  quotes: "" "";
-}
-
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-  content: "";
-}
-
 /* SITE DEFAULTS */
 
 @import "base/common.css";
@@ -266,6 +227,7 @@ q:after {
 @import "base/dl.css";
 @import "base/helpers-common.css";
 @import "base/helpers-misc.css";
+@import "markdown.css";
 
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */
@@ -286,7 +248,7 @@ q:after {
 @import "components/widget-box.css";
 
 div.unordered {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
   line-height: var(--line-height-list);
 }
 
@@ -294,7 +256,7 @@ div.superNav {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   color: var(--grey);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 @import "base/headings.css";
@@ -323,12 +285,12 @@ span.tools span.label {
   background-color: var(--orange);
   color: var(--white);
   font-weight: normal !important;
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
   border-radius: 3px;
 }
 
 span.tools span.list {
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
 }
 
 span.tag {
@@ -341,12 +303,12 @@ span.count {
   font-weight: normal !important;
   font-family: var(--font-family-body);
   color: var(--brown);
-  padding: 5px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
 }
 
 /* span.merge appears in openlibrary/templates/work_search.html */
 span.merge {
-  padding: 2px 0;
+  padding: var(--spacing-inset-xs) 0;
 }
 
 span.resultTitle {
@@ -376,14 +338,14 @@ span.resultTitle span.details {
 /* openlibrary/templates/form.html */
 span#showpass {
   display: block;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 /* openlibrary/templates/form.html */
 span#masker {
   display: block;
   float: left;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   clear: both;
 }
 
@@ -402,16 +364,16 @@ p.alert {
   background-color: var(--light-yellow);
   background-position: 10px 50%;
   background-repeat: no-repeat;
-  margin: 10px auto 0;
-  padding: 15px 52px;
+  margin: var(--spacing-stack-sm) auto 0;
+  padding: var(--spacing-inset-md) 52px;
 }
 
 p.info {
-  background-image: url(/images/icons/icon_info.png);
+  background-image: url(/static/images/icons/icon_info.png);
 }
 
 p.thanks {
-  background-image: url(/images/icons/icon_check.png);
+  background-image: url(/static/images/icons/icon_check.png);
 }
 
 input[type="text"],
@@ -442,7 +404,7 @@ input.highlight {
 
 .format {
   font-size: 0.75em;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 /* openlibrary/templates/search/inside.html */
@@ -462,7 +424,7 @@ input.highlight {
   border: 1px solid var(--lighter-grey);
   background-color: var(--white);
   padding: 0 10px 10px;
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 /* LAYOUT */
@@ -499,7 +461,7 @@ div#content div#contentLists {
   float: left;
   position: relative;
   border-top: 1px solid var(--lighter-grey);
-  background: var(--white) url(/images/back_results.png) repeat-x;
+  background: var(--white) url(/static/images/back_results.png) repeat-x;
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -525,38 +487,45 @@ div.note {
   font-family: var(--font-family-body);
   background-color: var(--light-yellow);
   margin: 0 auto;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   text-align: left;
   border: 1px solid var(--dark-yellow);
 }
 
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
-  margin-top: 10px;
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
-    10px 50%;
-  padding: 10px 10px 10px 44px;
+  margin-top: var(--spacing-stack-sm);
+  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
+    no-repeat 10px 50%;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 44px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#preMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_merge.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#postMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_check.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_check.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#errorMerge {
   min-height: 32px;
-  padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_alert.png) no-repeat 10px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) 52px;
+  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
+    10px 10px;
 }
 
 /* FORMS */
@@ -581,7 +550,7 @@ div.formElement .input label {
 div.formElement .footnote,
 div.formElement p.tip {
   border-top: 1px solid var(--mid-grey);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 div.formElement blockquote {
@@ -593,7 +562,7 @@ div.formElement blockquote {
 fieldset {
   position: relative;
   padding: 0 0 20px;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
 }
 
 fieldset.minor {
@@ -603,7 +572,7 @@ fieldset.minor {
 }
 
 fieldset.major legend {
-  padding: 5px 0;
+  padding: var(--spacing-inset-xs) 0;
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
@@ -706,7 +675,7 @@ div.siteSearch input[type="text"] {
   font-family: var(--font-family-body);
   font-size: 0.75em;
   color: var(--dark-grey);
-  padding: 15px 0;
+  padding: var(--spacing-inset-md) 0;
 }
 
 .searchPlus a {
@@ -732,10 +701,10 @@ div.cclicense {
   font-family: var(--font-family-body);
   font-size: 0.75em;
   min-height: 20px;
-  padding: 3px 0 0 30px;
+  padding: var(--spacing-inset-xs) 0 0 30px;
   color: var(--brown);
   margin-bottom: 12px;
-  background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
+  background: url(/static/images/logo_CC0-20px.png) 0 0 no-repeat;
 }
 
 /* TOOLS ACCORDION */
@@ -755,7 +724,7 @@ div#revertNotice {
   width: 958px;
   height: 45px;
   text-align: center;
-  padding-top: 15px;
+  padding-top: var(--spacing-inset-md);
   background-color: var(--dark-green);
 }
 
@@ -764,7 +733,7 @@ div.alert span,
 div.verify span {
   margin: 0 auto;
   min-height: 25px;
-  padding: 5px 0 5px 32px;
+  padding: var(--spacing-inset-xs) 0 var(--spacing-inset-xs) 32px;
 }
 
 div.alert,
@@ -774,11 +743,11 @@ div.verify {
 
 /* openlibrary/templates/account/verify/failed.html */
 div.alert span {
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
 }
 
 div.verify span {
-  background: url(/images/icons/icon_check.png) no-repeat;
+  background: url(/static/images/icons/icon_check.png) no-repeat;
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
@@ -787,7 +756,7 @@ div.verify span {
 }
 
 .defaultstyling .padtop {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
@@ -800,7 +769,7 @@ div.verify span {
 }
 
 .forgot-email-form .form-row {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .forgot-email-form label {
@@ -874,7 +843,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -895,7 +864,7 @@ div#searchResults .SRPCoverBlank {
   position: relative;
   width: 130px;
   height: 200px;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   margin: 0 15px 20px 0;
   text-align: center;
   float: left;
@@ -913,19 +882,6 @@ div#searchResults .SRPCoverBlank .innerBorder {
 
 div#searchResults .SRPCoverBlank a {
   text-decoration: none;
-}
-
-/* openlibrary/templates/work_search.html */
-/* openlibrary/templates/type/author/view.html */
-.mode-options {
-  font-size: 0.7em;
-  font-family: var(--font-family-body);
-}
-
-.mode-options input {
-  margin-left: 15px;
-  margin-right: 4px;
-  position: relative;
 }
 
 /* openlibrary/macros/AvailabilityButton.html */
@@ -953,6 +909,69 @@ div#searchResults .SRPCoverBlank a {
 .authorList .cover {
   max-width: 120px;
   border-radius: 4px;
+}
+
+/* Section labels ("Authors"/"Books") shown above the work search result */
+/* groups when the query names an author. */
+/* openlibrary/templates/work_search.html */
+.search-results-section-label {
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accessible-grey);
+}
+
+/* Author suggestion row shown above work search results. */
+/* openlibrary/macros/SearchAuthorSuggestion.html */
+.search-author-suggestion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-stack-sm);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.search-author-suggestion li {
+  margin-bottom: 0;
+  max-width: none;
+  gap: var(--spacing-inline-lg);
+  /* Keep the avatar to the left of the name on mobile too; the shared */
+  /* .searchResultItem stacks (flex-direction: column) below the tablet */
+  /* breakpoint, which would center the avatar on top. */
+  flex-direction: row;
+}
+
+/* Avatar: a person-icon placeholder layered behind the author photo. The photo */
+/* covers it when it loads; a missing photo (?default=false 404) is hidden by */
+/* index.js, revealing the icon. Mirrors the modal's .result__avatar. */
+.search-author-suggestion .sas-avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: var(--accessible-grey);
+  background: var(--lightest-grey);
+  border-radius: var(--border-radius-avatar);
+}
+
+.search-author-suggestion .sas-avatar__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.search-author-suggestion .sas-avatar__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* openlibrary/templates/languages/index.html */
@@ -1037,7 +1056,7 @@ div.list h5 {
   font-family: var(--font-family-serif);
   font-weight: normal;
   color: var(--dark-grey);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list h5 span {
@@ -1049,7 +1068,7 @@ div.list .tags {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
   color: var(--grey);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list .owner {
@@ -1142,7 +1161,7 @@ div.books .SRPCoverBlank {
   position: relative;
   width: 74px;
   height: 105px;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   text-align: center;
   float: left;
   font-size: 0.6875em;
@@ -1171,7 +1190,7 @@ div.books .BookTitle {
 div.books .Author {
   color: var(--grey);
   font-style: italic;
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
 }
 
@@ -1193,7 +1212,7 @@ div.excerpt {
 }
 
 div.excerpt .text {
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   font-size: 0.875em;
   line-height: 1.25em;
   font-style: italic;
@@ -1210,7 +1229,7 @@ div.excerpt .attribution {
 .identifiers td {
   color: var(--dark-grey);
   border-bottom: 1px solid var(--lighter-grey);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 .identifiers.authors td {
@@ -1220,10 +1239,10 @@ div.excerpt .attribution {
 /* openlibrary/templates/books/edit/edition.html */
 .multi-input-autocomplete--series {
   max-width: 600px;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 .multi-input-autocomplete--series .mia__input + .mia__input {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 .multi-input-autocomplete--series .mias__name {
   flex: 1;
@@ -1311,7 +1330,7 @@ ul.clean li span.resultTitle {
 .Author {
   color: var(--grey);
   font-style: italic;
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: var(--font-size-label-small);
 }
 
@@ -1343,7 +1362,7 @@ span.actions a span.image {
   height: 24px;
   margin: 0 auto;
   padding: 0;
-  background-image: url(/images/icons/icons_sprite-sm.png);
+  background-image: url(/static/images/icons/icons_sprite-sm.png);
   background-repeat: no-repeat;
 }
 
@@ -1456,8 +1475,8 @@ ul.list-books span.resultType {
 .list-books--grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  grid-gap: 30px 5px;
-  padding: 10px;
+  grid-gap: 30px var(--spacing-inline-xs);
+  padding: var(--spacing-inset-sm);
 }
 
 .list-books--grid .searchResultItem {
@@ -1503,7 +1522,7 @@ ul.list-books span.resultType {
 .list-books--grid .list-books__note {
   overflow: hidden;
   padding-top: 8px;
-  margin-top: 4px;
+  margin-top: var(--spacing-stack-xs);
   border-top: var(--border-divider);
   line-height: var(--line-height-blurb);
   display: -webkit-box;
@@ -1520,9 +1539,9 @@ ul.list-books span.resultType {
 div.popAlert {
   display: none;
   width: 550px;
-  padding: 8px 16px;
-  margin-bottom: 15px;
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-bottom: var(--spacing-stack-md);
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
@@ -1532,7 +1551,7 @@ div.popAlert {
 #wikicode textarea {
   width: 400px;
   height: 200px;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   margin: 10px;
   font-family: var(--font-family-body);
   font-size: 0.75em;
@@ -1594,9 +1613,9 @@ div.popAlert {
 /* openlibrary/templates/search/authors.html */
 div.mergeThis {
   display: inline;
-  padding: 15px 0 0 45px;
+  padding: var(--spacing-inset-md) 0 0 45px;
   margin-left: 15px;
-  background: url(/images/icons/icon_merge.png) no-repeat 0 0;
+  background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
 
 @import "components/merge-form.css";
@@ -1606,12 +1625,12 @@ div.mergeThis {
 /* openlibrary/templates/recentchanges/undo/view.html */
 #mergeHead {
   background-color: var(--lightest-grey);
-  padding: 15px;
+  padding: var(--spacing-inset-md);
 }
 
 /* stylelint-disable selector-max-specificity */
 #mergeHead #recordMaster {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -1641,7 +1660,7 @@ div.postSubmit {
   width: 28px;
   height: 28px;
   margin-right: 15px;
-  background-image: url(/images/icons/icons_lists.png);
+  background-image: url(/static/images/icons/icons_lists.png);
   background-repeat: no-repeat;
 }
 
@@ -1703,7 +1722,7 @@ div#subjectLists p {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   padding-left: 42px;
-  margin-bottom: 5px !important;
+  margin-bottom: var(--spacing-stack-xs) !important;
 }
 
 /* SEARCH INSIDE */
@@ -1725,12 +1744,12 @@ div#subjectLists p {
 }
 
 .editionCover .illustration {
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* openlibrary/macros/databarWork.html */
 #read.panel {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* openlibrary/macros/SearchResultsWork.html */
@@ -1742,7 +1761,7 @@ div#subjectLists p {
   padding: 0;
   color: var(--link-blue);
   border-bottom: 1px solid var(--link-blue);
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* My books ... */
@@ -1795,19 +1814,6 @@ div#subjectLists p {
     -webkit-box-ordinal-group: 4;
     -ms-flex-order: 3;
     order: 3;
-  }
-
-  .header-bar .search-component .search-bar-component {
-    width: 300px;
-  }
-
-  .header-bar .search-component .search-justify-right {
-    min-width: 210px;
-  }
-
-  .header-bar .search-component .search-bar {
-    width: auto;
-    max-width: 310px;
   }
 
   .header-bar .header-dropdown .account__icon,
@@ -1891,6 +1897,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component {
     display: flex;
+    align-items: center;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;
@@ -1909,12 +1916,31 @@ div#subjectLists p {
     white-space: nowrap;
   }
 
+  /* Mirrors header-bar--desktop.css: restores the wide "Search 🔍" bar
+     with its faux-input chrome at desktop. Mobile/touch widths keep the
+     bare icon-only button. */
   .header-bar .search-component .search-bar-component {
     width: 100%;
+    background-color: var(--grey-fafafa);
+    border: 1px solid var(--dark-beige);
+    border-radius: 6px;
   }
 
-  .header-bar .search-component .search-bar {
-    max-width: 100%;
+  .header-bar .search-bar-trigger {
+    flex: 1;
+    min-width: 0;
+    justify-content: space-between;
+    gap: var(--spacing-inline-sm);
+    padding: 0 var(--spacing-inset-md);
+  }
+
+  .header-bar .search-bar-trigger__label {
+    display: block;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-bar .hamburger-component {

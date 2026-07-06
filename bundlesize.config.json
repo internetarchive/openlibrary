@@ -9,10 +9,6 @@
       "maxSize": "19KB"
     },
     {
-      "path": "static/build/js/markdown-editor.*.js",
-      "maxSize": "13KB"
-    },
-    {
       "path": "static/build/js/carousel.*.js",
       "maxSize": "6KB"
     },
@@ -58,24 +54,24 @@
     },
     {
       "path": "static/build/js/all.js",
-      "maxSize": "130KB"
+      "maxSize": "155KB"
     },
     {
       "path": "static/build/css/page-admin.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
 
     },
     {
       "path": "static/build/css/page-book.css",
-      "maxSize": "15.7KB"
+      "maxSize": "17KB"
     },
     {
       "path": "static/build/css/page-edit.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-form.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-home.css",
@@ -83,7 +79,7 @@
     },
     {
       "path": "static/build/css/page-plain.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-subject.css",

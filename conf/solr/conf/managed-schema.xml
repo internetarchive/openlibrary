@@ -38,7 +38,7 @@
     catchall "text" field, and use that for searching.
 -->
 
-<schema name="openlibrary-config" version="1.6">
+<schema name="openlibrary-config" version="1.7">
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and
        semantics.  It should not normally be changed by applications.
@@ -55,6 +55,7 @@
        1.5: omitNorms defaults to true for primitive field types
             (int, float, boolean, string...)
        1.6: useDocValuesAsStored defaults to true.
+       1.7: docValues defaults to true, uninvertible defaults to false.
     -->
 
     <!-- Valid attributes for fields:
@@ -116,7 +117,7 @@
 
     <!-- If you don't use child/nested documents, then you should remove the next two fields:  -->
     <!-- for nested documents (minimal; points to root document) -->
-    <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+    <field name="_root_" type="string" indexed="true" stored="false" />
     <!-- for nested documents (relationship tracking) -->
     <field name="_nest_path_" type="_nest_path_" /><fieldType name="_nest_path_" class="solr.NestPathField" />
 
@@ -135,7 +136,7 @@
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
     <field name="title_suggest" type="text_general" multiValued="false"/>
-    <field name="title_sort" type="text_title_sort" multiValued="false"/>
+    <field name="title_sort" type="text_international_sort" multiValued="false" stored="false"/>
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
@@ -145,6 +146,9 @@
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="work_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
+    <field name="cover_i" type="pint" />
+    <field name="cover_width" type="pint" />
+    <field name="cover_height" type="pint" />
     <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
     <field name="publish_year" type="pint" multiValued="true"/>
@@ -248,10 +252,12 @@
     <field name="want_to_read_count" type="pint"/>
     <field name="currently_reading_count" type="pint"/>
     <field name="already_read_count" type="pint"/>
+    <field name='stopped_reading_count' type="pint"/>
 
     <!-- Open Syllabus Project -->
     <field name="osp_count" type="pint"/>
 
+    <!-- TODO: This should probably be type text_international since it's the catchall -->
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
@@ -259,7 +265,7 @@
 
    <!-- fields used by documents of type author -->
    <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
-   <field name="name_str" type="string" indexed="true" stored="false"/>
+   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false"/>
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
@@ -335,8 +341,7 @@
     <!-- *** copyFields for OpenLibrary fields *** -->
     <!-- TODO: Can we pare this down for performance and storage? -->
 
-    <copyField source="title" dest="title_suggest"/>
-    <copyField source="title" dest="title_sort"/>
+    <copyField source="title" dest="title_suggest"/> <!-- TODO: Unused internally 3.4 GB text -->
     <copyField source="publisher" dest="publisher_facet"/>
     <copyField source="subject" dest="subject_facet"/>
     <copyField source="place" dest="place_facet"/>
@@ -371,7 +376,7 @@
 
     <!-- Copy author search fields into default search field "text" -->
     <copyField source="name" dest="text"/>
-    <copyField source="name_str" dest="text"/>
+    <copyField source="name" dest="name_sort"/>
     <copyField source="alternate_names" dest="text"/>
 
     <!-- *** END of OpenLibrary copyFields *** -->
@@ -400,8 +405,8 @@
     -->
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
-    <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true" />
-    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" docValues="true" />
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" multiValued="true" />
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
@@ -409,22 +414,23 @@
 
     <!--
       Numeric field types that index values using KD-trees.
-      Point fields don't support FieldCache, so they must have docValues="true" if needed for sorting, faceting, functions, etc.
+      Point fields don't support FieldCache, so they must have docValues enabled if needed for sorting, faceting, functions, etc.
+      This is the default, so it does not need to be set explicitly.
     -->
-    <fieldType name="pint" class="solr.IntPointField" docValues="true"/>
-    <fieldType name="pfloat" class="solr.FloatPointField" docValues="true"/>
-    <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-    <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
+    <fieldType name="pint" class="solr.IntPointField"/>
+    <fieldType name="pfloat" class="solr.FloatPointField"/>
+    <fieldType name="plong" class="solr.LongPointField"/>
+    <fieldType name="pdouble" class="solr.DoublePointField"/>
 
-    <fieldType name="pints" class="solr.IntPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
-    <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
-    <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pints" class="solr.IntPointField" multiValued="true"/>
+    <fieldType name="pfloats" class="solr.FloatPointField" multiValued="true"/>
+    <fieldType name="plongs" class="solr.LongPointField" multiValued="true"/>
+    <fieldType name="pdoubles" class="solr.DoublePointField" multiValued="true"/>
     <fieldType name="random" class="solr.RandomSortField" indexed="true"/>
 
     <!-- since fields of this type are by default not stored or indexed,
        any data added to them will be ignored outright.  -->
-    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
+    <fieldType name="ignored" stored="false" indexed="false" multiValued="true" docValues="false" class="solr.StrField" />
 
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
          is a more restricted form of the canonical representation of dateTime
@@ -446,14 +452,14 @@
 
       -->
     <!-- KD-tree versions of date fields -->
-    <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
-    <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pdate" class="solr.DatePointField"/>
+    <fieldType name="pdates" class="solr.DatePointField" multiValued="true"/>
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
 
     <!-- Custom field to allow storing sortable access -->
-    <fieldType name="ebookAccessLevel" class="solr.EnumFieldType" docValues="true" enumsConfig="enumsConfig.xml" enumName="ebookAccess"/>
+    <fieldType name="ebookAccessLevel" class="solr.EnumFieldType" enumsConfig="enumsConfig.xml" enumName="ebookAccess"/>
 
     <!--
     RankFields can be used to store scoring factors to improve document ranking. They should be used
@@ -564,18 +570,9 @@
       </analyzer>
     </fieldType>
 
-    <!-- A text field that applies standard title sorting conventions to its content -->
-    <fieldType name="text_title_sort" class="solr.SortableTextField" sortMissingLast="false" omitNorms="true">
-      <analyzer>
-        <tokenizer name="keyword" />
-        <filter name="trim" />
-        <filter name="icuFolding"/>
-        <filter name="patternReplace"
-                pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)"
-                replacement="$2, $1"
-                replace="all"
-        />
-      </analyzer>
+    <!-- A text field that uses the default ICU multi-locale (locale="") collating order -->
+    <fieldType name="text_international_sort" class="solr.ICUCollationField" locale="" strength="primary">
+        <!-- No analyzers allowed here, so field value must be pre-processed, if needed -->
     </fieldType>
 
     <!-- A text field with defaults appropriate for English: it tokenizes with StandardTokenizer,
@@ -777,7 +774,7 @@
     <fieldType name="point" class="solr.PointType" dimension="2" subFieldSuffix="_d"/>
 
     <!-- A specialized field for geospatial search filters and distance sorting. -->
-    <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
+    <fieldType name="location" class="solr.LatLonPointSpatialField"/>
 
     <!-- A geospatial field type that supports multiValued and polygon shapes.
       For more information about this and other spatial fields see:

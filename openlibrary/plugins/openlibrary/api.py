@@ -8,10 +8,12 @@ import io
 import json
 import logging
 from collections import defaultdict
+from typing import Any, Literal
+from warnings import deprecated
 
 import qrcode
 import web
-from typing_extensions import deprecated
+from starlette.datastructures import URL
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -24,19 +26,18 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.core import cache, lending, models
+from openlibrary.core import cache
 from openlibrary.core import helpers as h
-from openlibrary.core.admin import get_cached_unique_logins_since
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
-from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.core.models import (
     Booknotes,
     Work,
 )
-from openlibrary.core.observations import Observations, get_observation_metrics
+from openlibrary.core.observations import Observations
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
@@ -46,113 +47,13 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
-from openlibrary.views.loanstats import get_trending_books
+from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger(__name__)
 
 
-@deprecated("migrated to fastapi")
-class book_availability(delegate.page):
-    path = "/availability/v2"
-
-    def GET(self):
-        i = web.input(type="", ids="")
-        id_type = i.type
-        ids = i.ids.split(",")
-        result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-    def POST(self):
-        i = web.input(type="")
-        j = json.loads(web.data())
-        id_type = i.type
-        ids = j.get("ids", [])
-        result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-    @staticmethod
-    def get_book_availability(id_type, ids):
-        if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
-            return lending.get_availability(id_type, ids)
-        else:
-            return []
-
-
-@deprecated("migrated to fastapi")
-class trending_books_api(delegate.page):
-    path = "/trending(/?.*)"
-    # path = "/trending/(now|daily|weekly|monthly|yearly|forever)"
-    encoding = "json"
-
-    def GET(self, period="/daily"):
-        from openlibrary.views.loanstats import SINCE_DAYS
-
-        period = period[1:]  # remove slash
-        i = web.input(
-            page=1,
-            limit=100,
-            days=0,
-            hours=0,
-            sort_by_count=False,
-            minimum=0,
-            fields="",
-        )
-        fields = i.fields.split(",") if i.fields else None
-        days = SINCE_DAYS.get(period, int(i.days))
-        works = get_trending_books(
-            since_days=days,
-            since_hours=int(i.hours),
-            limit=int(i.limit),
-            page=int(i.page),
-            sort_by_count=i.sort_by_count != "false",
-            minimum=i.minimum,
-            fields=fields,
-        )
-        result = {
-            "query": f"/trending/{period}",
-            "works": [dict(work) for work in works],
-            "days": days,
-            "hours": i.hours,
-        }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-
-@deprecated("migrated to fastapi")
-class browse(delegate.page):
-    path = "/browse"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(q="", page=1, limit=100, subject="", sorts="")
-        sorts = i.sorts.split(",")
-        page = int(i.page)
-        limit = int(i.limit)
-        url = lending.compose_ia_url(
-            query=i.q,
-            limit=limit,
-            page=page,
-            subject=i.subject,
-            sorts=sorts,
-        )
-        works = lending.get_available(url=url) if url else []
-        result = {
-            "query": url,
-            "works": [work.dict() for work in works],
-        }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-
-@deprecated("migrated to fastapi")
-class ratings(delegate.page):
-    path = r"/works/OL(\d+)W/ratings"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self, work_id):
-        stats = self.get_ratings_summary(work_id)
-        return json.dumps(stats)
-
+class ratings:
     @staticmethod
     def get_ratings_summary(work_id):
         from openlibrary.core.ratings import Ratings
@@ -186,52 +87,6 @@ class ratings(delegate.page):
                     "5": 0,
                 },
             }
-
-    def POST(self, work_id):
-        """Registers new ratings for this work"""
-        user = accounts.get_current_user()
-        i = web.input(
-            edition_id=None,
-            rating=None,
-            redir=False,
-            redir_url=None,
-            page=None,
-            ajax=False,
-        )
-        key = i.redir_url or (i.edition_id or ("/works/OL%sW" % work_id))
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
-
-        if not user:
-            raise web.seeother("/account/login?redirect=%s" % key)
-
-        username = user.key.split("/")[2]
-
-        def response(msg, status="success"):
-            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
-
-        if i.rating is None:
-            models.Ratings.remove(username, work_id)
-            r = response("removed rating")
-
-        else:
-            try:
-                rating = int(i.rating)
-                if rating not in models.Ratings.VALID_STAR_RATINGS:
-                    raise ValueError
-            except ValueError:
-                return response("invalid rating", status="error")
-
-            models.Ratings.add(username=username, work_id=work_id, rating=rating, edition_id=edition_id)
-            r = response("rating added")
-
-        if i.redir and not i.ajax:
-            p = h.safeint(i.page, 1)
-            query_params = f"?page={p}" if p > 1 else ""
-            if i.page:
-                raise web.seeother(f"{key}{query_params}")
-
-            raise web.seeother(key)
-        return r
 
 
 @deprecated("migrated to fastapi")
@@ -278,15 +133,60 @@ class booknotes(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 
+@deprecated("migrated to fastapi")
 class work_bookshelves(delegate.page):
     path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
     @jsonapi
     def GET(self, work_id):
+        return json.dumps(self.get_bookshelves_summary(work_id))
+
+    @staticmethod
+    def get_bookshelves_summary(work_id):
         from openlibrary.core.models import Bookshelves
 
-        return json.dumps({"counts": Bookshelves.get_work_summary(work_id)})
+        return {"counts": Bookshelves.get_work_summary(str(work_id))}
+
+    @staticmethod
+    def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
+        from openlibrary.core.models import Bookshelves
+
+        if bookshelf_id is None:
+            return {"error": "Invalid bookshelf"}
+
+        work_id_str = str(work_id)
+        current_status = Bookshelves.get_users_read_status_of_work(username, work_id_str)
+
+        try:
+            bookshelf_id_val = int(bookshelf_id)
+            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
+            if bookshelf_id_val != -1 and bookshelf_id_val not in shelf_ids:
+                return {"error": "Invalid bookshelf"}
+        except TypeError, ValueError:
+            return {"error": "Invalid bookshelf"}
+
+        if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
+            from openlibrary.core.bookshelves_events import BookshelvesEvents
+
+            work_bookshelf = Bookshelves.remove(
+                username=username,
+                work_id=work_id_str,
+                bookshelf_id=str(current_status) if current_status else None,
+            )
+            BookshelvesEvents.delete_by_username_and_work(username, work_id_str)
+        else:
+            from openlibrary.utils import extract_numeric_id_from_olid
+
+            resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
+            work_bookshelf = Bookshelves.add(
+                username=username,
+                bookshelf_id=str(bookshelf_id_val),
+                work_id=work_id_str,
+                edition_id=resolved_edition_id,
+            )
+
+        return {"bookshelves_affected": work_bookshelf}
 
     def POST(self, work_id):
         """
@@ -303,8 +203,6 @@ class work_bookshelves(delegate.page):
         :rtype: json
         :return: a list of bookshelves_affected
         """
-        from openlibrary.core.models import Bookshelves
-
         user = accounts.get_current_user()
         i = web.input(
             edition_id=None,
@@ -319,61 +217,48 @@ class work_bookshelves(delegate.page):
             raise web.seeother("/account/login?redirect=%s" % key)
 
         username = user.key.split("/")[2]
-        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
-
-        try:
-            bookshelf_id = int(i.bookshelf_id)
-            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
-            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
-                raise ValueError
-        except (TypeError, ValueError):
-            return delegate.RawText(
-                json.dumps({"error": "Invalid bookshelf"}),
-                content_type="application/json",
-            )
-
-        if ((not i.dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
-            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
-            BookshelvesEvents.delete_by_username_and_work(username, work_id)
-
-        else:
-            edition_id = int(i.edition_id.split("/")[2][2:-1]) if i.edition_id else None
-            work_bookshelf = Bookshelves.add(
-                username=username,
-                bookshelf_id=bookshelf_id,
-                work_id=work_id,
-                edition_id=edition_id,
-            )
+        response = self.process_work_bookshelves(
+            username=username,
+            work_id=work_id,
+            bookshelf_id=i.bookshelf_id,
+            edition_id=i.edition_id,
+            dont_remove=i.dont_remove,
+        )
 
         if i.redir:
             raise web.seeother(key)
         return delegate.RawText(
-            json.dumps({"bookshelves_affected": work_bookshelf}),
+            json.dumps(response),
             content_type="application/json",
         )
 
 
+@deprecated("migrated to fastapi")
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/work":
+        i = web.input(limit=50, offset=0)
+        data = self.get_editions_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit) or 50,
+            offset=h.safeint(i.offset) or 0,
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
-
-            data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_editions_data(work, limit, offset):
-        limit = min(limit, 1000)
+    def get_editions_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        work = current_site.get(key)
+        if not work or work.type.key != "/type/work":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit or 50, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/edition",
                 "works": work.key,
@@ -381,44 +266,47 @@ class work_editions(delegate.page):
                 "offset": offset,
             }
         )
-        editions = web.ctx.site.get_many(keys, raw=True)
+        editions = current_site.get_many(keys, raw=True)
 
-        size = work.edition_count
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "work": work.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
+        if offset + len(editions) < work.edition_count:
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
-        if offset + len(editions) < size:
-            links["next"] = web.changequery(offset=offset + limit)
-
-        return {"links": links, "size": size, "entries": editions}
+        return {"links": links, "size": work.edition_count, "entries": editions}
 
 
+@deprecated("migrated to fastapi")
 class author_works(delegate.page):
     path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/author":
+        i = web.input(limit=50, offset=0)
+        data = self.get_works_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit, 50),
+            offset=h.safeint(i.offset, 0),
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit, 50)
-            offset = h.safeint(i.offset, 0)
-
-            data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_works_data(author, limit, offset):
-        limit = min(limit, 1000)
+    def get_works_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        author = current_site.get(key)
+        if not author or author.type.key != "/type/author":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/work",
                 "authors": {"author": {"key": author.key}},
@@ -426,77 +314,61 @@ class author_works(delegate.page):
                 "offset": offset,
             }
         )
-        works = web.ctx.site.get_many(keys, raw=True)
-
+        works = current_site.get_many(keys, raw=True)
         size = author.get_work_count()
+
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "author": author.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
-
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
         if offset + len(works) < size:
-            links["next"] = web.changequery(offset=offset + limit)
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
         return {"links": links, "size": size, "entries": works}
 
 
-class price_api(delegate.page):
-    path = r"/prices"
+async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
+    id_type_short: Literal["asin", "isbn"] = "asin" if asin else "isbn"
+    id_ = asin or (normalize_isbn(isbn) or isbn)
 
-    @jsonapi
-    def GET(self):
-        i = web.input(isbn="", asin="")
-        if not (i.isbn or i.asin):
-            return json.dumps({"error": "isbn or asin required"})
+    metadata: dict = {
+        "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
+        "betterworldbooks": {},
+    }
+    if id_type_short == "isbn":
+        metadata["betterworldbooks"] = await get_betterworldbooks_metadata(id_)
 
-        metadata = self.get_price_data(i.isbn, i.asin)
-        return json.dumps(metadata)
-
-    @staticmethod
-    def get_price_data(isbn, asin):
-        id_ = asin or normalize_isbn(isbn)
-        id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
-
-        metadata = {
-            "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            "betterworldbooks": (get_betterworldbooks_metadata(id_) if id_type.startswith("isbn_") else {}),
+    # fetch book by isbn if it exists
+    # TODO: perform existing OL lookup by ASIN if supplied, if possible
+    id_type_long = "asin" if asin else "isbn_13" if len(id_) == 13 else "isbn_10"
+    matches = site.get().things(
+        {
+            "type": "/type/edition",
+            id_type_long: id_,
         }
-        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
+    )
 
-        # if bwb fails and isbn10, try again with isbn13
-        if id_type == "isbn_10" and metadata["betterworldbooks"].get("price") is None:
-            isbn_13 = isbn_10_to_isbn_13(id_)
-            metadata["betterworldbooks"] = (isbn_13 and get_betterworldbooks_metadata(isbn_13)) or {}
+    book_key = matches[0] if matches else None
 
-        # fetch book by isbn if it exists
-        # TODO: perform existing OL lookup by ASIN if supplied, if possible
-        matches = web.ctx.site.things(
-            {
-                "type": "/type/edition",
-                id_type: id_,
-            }
-        )
+    # if no OL edition for isbn, attempt to create
+    if (not book_key) and metadata.get("amazon"):
+        book_key = create_edition_from_amazon_metadata(id_, id_type=id_type_short)
 
-        book_key = matches[0] if matches else None
+    # include ol edition metadata in response, if available
+    if book_key:
+        ed = site.get().get(book_key)
+        if ed:
+            metadata["key"] = ed.key
+            if getattr(ed, "ocaid"):  # noqa: B009
+                metadata["ocaid"] = ed.ocaid
 
-        # if no OL edition for isbn, attempt to create
-        if (not book_key) and metadata.get("amazon"):
-            book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
-
-        # include ol edition metadata in response, if available
-        if book_key:
-            ed = web.ctx.site.get(book_key)
-            if ed:
-                metadata["key"] = ed.key
-                if getattr(ed, "ocaid"):  # noqa: B009
-                    metadata["ocaid"] = ed.ocaid
-
-        return metadata
+    return metadata
 
 
+@deprecated("migrated to fastapi")
 class patrons_follows_json(delegate.page):
     path = r"(/people/[^/]+)/follows"
     encoding = "json"
@@ -518,6 +390,11 @@ class patrons_follows_json(delegate.page):
         user = accounts.get_current_user()
         if not user or user.key != key:
             raise web.seeother(f"/account/login?redir_url={i.redir_url}")
+
+        # Validate that the publisher account exists
+        publisher_account = accounts.find(username=i.publisher)
+        if not publisher_account:
+            raise web.notfound()
 
         username = user.key.split("/")[2]
         action = PubSub.subscribe if i.state == "0" else PubSub.unsubscribe
@@ -581,24 +458,6 @@ class patrons_observations(delegate.page):
         return response("Observations removed")
 
 
-@deprecated("migrated to fastapi")
-class public_observations(delegate.page):
-    """
-    Public observations fetches anonymized community reviews
-    for a list of works. Useful for decorating search results.
-    """
-
-    path = "/observations"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(olid=[])
-        works = i.olid
-        metrics = {w: get_observation_metrics(w) for w in works}
-
-        return delegate.RawText(json.dumps({"observations": metrics}), content_type="application/json")
-
-
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
@@ -652,7 +511,7 @@ class work_delete(delegate.page):
         keys_to_delete: list = [el.get("key") for el in [*editions, work.dict()]]
         delete_payload: list[dict] = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
 
-        web.ctx.site.save_many(delete_payload, comment)
+        web.ctx.site.save_many(delete_payload, comment, action="bulk-delete-books")
         return delegate.RawText(
             json.dumps(
                 {
@@ -663,6 +522,7 @@ class work_delete(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class hide_banner(delegate.page):
     path = "/hide_banner"
 
@@ -696,6 +556,7 @@ class create_qrcode(delegate.page):
             return delegate.RawText(buf.getvalue())
 
 
+@deprecated("migrated to fastapi")
 class bestbook_award(delegate.page):
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
@@ -759,6 +620,7 @@ class bestbook_award(delegate.page):
         return {"errors": ", ".join(errors)}
 
 
+@deprecated("migrated to fastapi")
 class bestbook_count(delegate.page):
     """API for award count"""
 
@@ -961,10 +823,10 @@ class opds_home(delegate.page):
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang
             key = f"home.homepage-opds.{lang}"
-            cookies = web.cookies()
-            if cookies.get("pd", False):
+            ctx = req_context.get()
+            if ctx.print_disabled:
                 key += ".pd"
-            if cookies.get("sfw", ""):
+            if ctx.sfw:
                 key += ".sfw"
             if is_bot():
                 key += ".bot"
@@ -993,55 +855,120 @@ class unlink_ia_ol(delegate.page):
         msg = i.msg
 
         try:
-            HMACToken.verify(digest, msg, "ia_sync_secret")
-        except (ValueError, ExpiredTokenError):
+            if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
+                raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
-        ocaid, ts = msg.split("|")
-
-        if not ts or not ocaid:
-            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, data=json.dumps({"error": "Invalid inputs"}))
+        parts = msg.split("|", maxsplit=1)
+        if len(parts) != 2 or not all(parts):
+            raise web.HTTPError(
+                "400 Bad Request",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": "Invalid inputs"}),
+            )
+        ocaid, _ts = parts
 
         # Fetch affected editions
-        if not (edition_keys := web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})):
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})
+        edition_keys.extend(web.ctx.site.things({"type": "/type/edition", "source_records": f"ia:{ocaid}"}))
+        edition_keys = list(set(edition_keys))
+        if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                {"Content-Type": "application/json"},
-                data=json.dumps({"error": "Multiple editions associated with given ocaid"}),
-            )
-
-        edition = editions[0]
+        logger.info(f"Disassociating {ocaid} from the following editions: {', '.join(edition_keys)}")
 
         # Update records
         try:
-            self.make_dark(edition)
+            for edition in editions:
+                self.make_dark(edition, ocaid)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
-            raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"}, data=json.dumps({"error": str(e)}))
+            raise web.HTTPError(
+                "500 Internal Server Error",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": str(e)}),
+            )
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition):
+    def make_dark(edition, ocaid):
         data = edition.dict()
-        del data["ocaid"]
+        if "ocaid" in data and data["ocaid"] == ocaid:
+            del data["ocaid"]
         source_records = data.get("source_records", [])
-        data["source_records"] = [rec for rec in source_records if not rec.startswith("ia:")]
+        data["source_records"] = [rec for rec in source_records if rec != f"ia:{ocaid}"]
         if not data["source_records"]:
             del data["source_records"]
-        web.ctx.site.save(data, "Remove OCAID: Item no longer available to borrow.")
+        with accounts.RunAs("ImportBot"):
+            web.ctx.ip = web.ctx.ip or "127.0.0.1"
+            web.ctx.site.save(
+                data,
+                "Remove OCAID: Item no longer available to borrow.",
+                action="edit-edition-ocaid",
+            )
 
 
+class link_ia_ol(delegate.page):
+    path = "/api/link"
+    encoding = "json"
+
+    def POST(self):
+        i = web.input(digest="", msg="")
+        digest = i.digest
+        msg = i.msg
+
+        try:
+            if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
+                raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+        except ValueError, ExpiredTokenError:
+            raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+
+        parts = msg.split("|", maxsplit=2)
+        if len(parts) != 3 or not all(parts):
+            raise web.HTTPError(
+                "400 Bad Request",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": "Invalid inputs"}),
+            )
+        ocaid, olid, _ts = parts
+
+        # Fetch affected edition
+        edition = web.ctx.site.get(f"/books/{olid}")
+        if not edition:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        # Update record
+        try:
+            self.link(edition, ocaid)
+        except ClientException as e:
+            logger.error(f"Failed to associate {ocaid} with {olid}", exc_info=True)
+            raise web.HTTPError(
+                "500 Internal Server Error",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": str(e)}),
+            )
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    @staticmethod
+    def link(edition, ocaid):
+        data = edition.dict()
+        data["ocaid"] = ocaid
+        with accounts.RunAs("ImportBot"):
+            web.ctx.ip = web.ctx.ip or "127.0.0.1"
+            web.ctx.site.save(data, "Associate OCAID with record", action="edit-edition-ocaid")
+
+
+@deprecated("migrated to fastapi")
 class monthly_logins(delegate.page):
     path = "/api/monthly_logins"
     encoding = "json"
 
     def GET(self):
         return delegate.RawText(
-            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            json.dumps({"loginCount": get_unique_logins_since()}),
             content_type="application/json",
         )
