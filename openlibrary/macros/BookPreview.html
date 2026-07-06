@@ -1,7 +1,15 @@
 $def with (ocaid, analytics_attr=None, show_only=False)
 $# :param str ocaid:
 
-$ analytics = analytics_attr('Preview') if analytics_attr else 'data-ol-link-track="CTAClick|Preview"'
+$ track_action = "PreviewSearchInsideBefore|PreviewOnly" if show_only else "PreviewSearchInsideBefore|Preview"
+$if analytics_attr:
+    $ default_attr = analytics_attr("Preview")
+    $if "CTAClick|Preview" in str(default_attr):
+        $ analytics = 'data-ol-link-track="%s"' % track_action
+    $else:
+        $ analytics = default_attr
+$else:
+    $ analytics = 'data-ol-link-track="%s"' % track_action
 
 $if ocaid:
   <div class="cta-button-group">
