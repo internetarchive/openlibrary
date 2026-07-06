@@ -750,6 +750,14 @@
   padding: var(--spacing-sm) var(--spacing-inset-sm);
   border-radius: var(--border-radius-button);
   display: block;
+  /* Hover color changes are instant (see docs/ai/design.md); only the
+     :active press-scale animates. Mirrors the <ol-button> press feedback. */
+  transition: transform 0.08s;
+}
+
+.drawer-menu__item a:active,
+.drawer-menu__item button:active {
+  transform: scale(0.97);
 }
 
 .drawer-menu__item button {
