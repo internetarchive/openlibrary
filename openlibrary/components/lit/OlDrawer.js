@@ -243,6 +243,13 @@ export class OlDrawer extends LitElement {
         }));
 
         this.updateComplete.then(() => {
+            // `open` may have flipped back to false before this microtask ran
+            // (e.g. a fast toggle). If so, _hide() already owns the animation
+            // state — resuming here would re-enter the drawer while open is
+            // false, stranding it open and scroll-locked with no way to close
+            // (Escape and backdrop dismissal both gate on this.open).
+            if (!this.open) return;
+
             const panel = this.shadowRoot.querySelector('.drawer');
             if (!panel) return;
 
