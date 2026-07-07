@@ -241,3 +241,15 @@ def test_get_lists_data_uses_lists_json_path_for_pagination_links():
 
     assert data["links"]["self"] == "/people/alice"
     assert data["links"]["next"] == "/people/alice/lists.json?limit=50&offset=50"
+
+
+def test_cached_list_fetchers_use_real_ttls():
+    """timeout=0 makes memcache_memoize spawn a recompute thread on every call."""
+    with patch("openlibrary.plugins.openlibrary.lists.cache.memcache_memoize") as mock_memoize:
+        mock_memoize.return_value.return_value = []
+        legacy_lists.get_cached_recently_modified_lists(20)
+        legacy_lists.get_active_lists_in_random(preload=False)
+
+    assert len(mock_memoize.call_args_list) == 2
+    for call in mock_memoize.call_args_list:
+        assert call.kwargs["timeout"] > 0

@@ -37,7 +37,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
-from openlibrary.utils import olid_to_key
+from openlibrary.utils import dateutil, olid_to_key
 from openlibrary.utils.request_context import site
 
 
@@ -1095,8 +1095,8 @@ def get_cached_recently_modified_lists(limit, offset=0):
     f = cache.memcache_memoize(
         _get_recently_modified_lists,
         key_prefix="lists.get_recently_modified_lists",
-        timeout=0,
-    )  # dateutil.HALF_HOUR_SECS)
+        timeout=dateutil.HALF_HOUR_SECS,
+    )
     return f(limit, offset=offset)
 
 
@@ -1151,7 +1151,7 @@ def get_active_lists_in_random(limit=20, preload=True):
     f = cache.memcache_memoize(
         _get_active_lists_in_random,
         key_prefix="lists.get_active_lists_in_random",
-        timeout=0,
+        timeout=5 * dateutil.MINUTE_SECS,
     )
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
