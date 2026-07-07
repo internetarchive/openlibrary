@@ -153,8 +153,9 @@
 .searchResultItem .bookcover img {
   border-radius: var(--border-radius-thumbnail);
   max-width: 100%;
-  max-height: 300px;
   width: 175px;
+  height: auto;
+  aspect-ratio: var(--cw, 2) / var(--ch, 3);
 }
 
 .searchResultItem .imageLg {
