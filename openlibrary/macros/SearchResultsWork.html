@@ -65,10 +65,13 @@ $code:
   <div class="sri__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png"
+      $ cover_w = selected_ed.get('cover_width')
+      $ cover_h = selected_ed.get('cover_height')
       <a href="$work_edition_url">
         <img
           itemprop="image"
           src="$cover"
+          $:cond(cover_w and cover_h, 'style="--cw:%s;--ch:%s;"' % (cover_w, cover_h))
           alt="$_('Cover of: %(title)s', title=full_title)"
           title="$_('Cover of: %(title)s', title=full_title)"
           $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
