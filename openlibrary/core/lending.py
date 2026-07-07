@@ -636,10 +636,14 @@ def get_loan(identifier: str, user_key: str | None = None):
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"get_loan({identifier}) 1 of 2")
 
-    try:
-        _loan = _get_ia_loan(identifier, account and account.itemname)
-    except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_loan({identifier}) 2 of 2")
+    # Only look up by the linked IA account when the OL-username lookup found
+    # nothing; an unconditional second call would duplicate the anonymous query
+    # and overwrite a loan found above.
+    if account and account.itemname and not _loan:
+        try:
+            _loan = _get_ia_loan(identifier, account.itemname)
+        except Exception:  # TODO: Narrow exception scope
+            logger.exception(f"get_loan({identifier}) 2 of 2")
 
     return _loan
 

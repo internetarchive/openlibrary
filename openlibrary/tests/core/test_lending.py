@@ -101,3 +101,54 @@ class TestGetAvailability:
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+
+class TestGetLoan:
+    """get_loan should make at most the necessary IA loan-API calls."""
+
+    @pytest.fixture(autouse=True)
+    def setup_mocks(self, monkeypatch):
+        mock_site = Mock()
+        mock_site.get.return_value.store.get.return_value = None
+        monkeypatch.setattr(lending, "site", mock_site)
+        self.mock_get_ia_loan = Mock(return_value=None)
+        monkeypatch.setattr(lending, "_get_ia_loan", self.mock_get_ia_loan)
+
+    def make_account(self, monkeypatch, username="mek", itemname="@mek"):
+        account = Mock()
+        account.username = username
+        account.itemname = itemname
+        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_key", Mock(return_value=account))
+        return account
+
+    def test_anonymous_lookup_calls_api_once(self):
+        loan = Mock()
+        self.mock_get_ia_loan.return_value = loan
+
+        assert lending.get_loan("foo00bar") is loan
+        self.mock_get_ia_loan.assert_called_once_with("foo00bar", None)
+
+    def test_loan_found_by_username_is_not_clobbered(self, monkeypatch):
+        self.make_account(monkeypatch)
+        loan = Mock()
+        self.mock_get_ia_loan.return_value = loan
+
+        assert lending.get_loan("foo00bar", user_key="/people/mek") is loan
+        self.mock_get_ia_loan.assert_called_once_with("foo00bar", "ol:mek")
+
+    def test_falls_back_to_itemname_when_username_finds_nothing(self, monkeypatch):
+        self.make_account(monkeypatch)
+        loan = Mock()
+        self.mock_get_ia_loan.side_effect = [None, loan]
+
+        assert lending.get_loan("foo00bar", user_key="/people/mek") is loan
+        assert self.mock_get_ia_loan.call_args_list == [
+            (("foo00bar", "ol:mek"),),
+            (("foo00bar", "@mek"),),
+        ]
+
+    def test_account_without_itemname_calls_api_once(self, monkeypatch):
+        self.make_account(monkeypatch, itemname=None)
+
+        assert lending.get_loan("foo00bar", user_key="/people/mek") is None
+        self.mock_get_ia_loan.assert_called_once_with("foo00bar", "ol:mek")
