@@ -151,6 +151,16 @@ class Ratings(db.CommonExtras):
         return rating
 
     @classmethod
+    def get_users_ratings_for_works(cls, username: str, work_ids: list[str] | list[int]) -> dict[int, int]:
+        """Returns a map of work_id to rating for all of work_ids the user has rated."""
+        if not work_ids:
+            return {}
+        oldb = db.get_db()
+        data = {"username": username, "work_ids": [int(work_id) for work_id in work_ids]}
+        query = "SELECT work_id, rating from ratings where username=$username AND work_id IN $work_ids"
+        return {row.work_id: row.rating for row in oldb.query(query, vars=data)}
+
+    @classmethod
     def remove(cls, username, work_id):
         oldb = db.get_db()
         where = {"username": username, "work_id": int(work_id)}

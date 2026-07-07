@@ -502,3 +502,40 @@ class TestYearlyReadingGoals:
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
         YearlyReadingGoals.delete_by_username("@billy_pilgrim")
         assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0
+
+
+class TestGetUsersRatingsForWorks:
+    @classmethod
+    def setup_class(cls):
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+        db = get_db()
+        has_ratings_table = list(db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='ratings'"))
+        if not has_ratings_table:
+            db.query(RATINGS_DDL)
+
+    def setup_method(self):
+        self.db = get_db()
+        self.db.multiple_insert(
+            "ratings",
+            [
+                {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "rating": 4},
+                {"username": "@kilgore_trout", "work_id": 3, "edition_id": 3, "rating": 5},
+                {"username": "@billy_pilgrim", "work_id": 2, "edition_id": 2, "rating": 2},
+            ],
+        )
+
+    def teardown_method(self):
+        self.db.query("delete from ratings;")
+
+    def test_batch_lookup_returns_only_users_rated_works(self):
+        ratings = Ratings.get_users_ratings_for_works("@kilgore_trout", ["1", "2", "3"])
+        assert ratings == {1: 4, 3: 5}
+
+    def test_batch_lookup_accepts_ints(self):
+        assert Ratings.get_users_ratings_for_works("@billy_pilgrim", [1, 2, 3]) == {2: 2}
+
+    def test_empty_work_ids_makes_no_query(self):
+        assert Ratings.get_users_ratings_for_works("@kilgore_trout", []) == {}
+
+    def test_unknown_user_has_no_ratings(self):
+        assert Ratings.get_users_ratings_for_works("@montana_wildhack", ["1", "2", "3"]) == {}

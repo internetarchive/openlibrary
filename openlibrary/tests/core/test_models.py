@@ -257,3 +257,29 @@ class TestWork:
             assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
         finally:
             site_var.reset(token)
+
+
+class TestLoggedBooksDataLoadRatings:
+    def test_ratings_align_with_docs_and_default_to_zero(self, monkeypatch):
+        docs = [
+            web.storage(key="/works/OL3W"),
+            web.storage(key="/works/OL1W"),
+            web.storage(key="/works/OL2W"),
+        ]
+        logged_books = models.LoggedBooksData(
+            username="@kilgore_trout",
+            page_size=25,
+            total_results=3,
+            shelf_totals={},
+            docs=docs,
+        )
+        monkeypatch.setattr(
+            models.Ratings,
+            "get_users_ratings_for_works",
+            classmethod(lambda cls, username, work_ids: {3: 5, 2: 1}),
+        )
+
+        logged_books.load_ratings()
+
+        # One rating per doc, in doc order, 0 for unrated works.
+        assert logged_books.ratings == [5, 0, 1]
