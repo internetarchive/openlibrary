@@ -8,6 +8,7 @@ import { Markdown } from 'tiptap-markdown';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import { HtmlBlock } from './html-block.js';
+import { OLHardBreak } from './hard-break.js';
 
 /**
  * Creates a configured Tiptap editor instance.
@@ -29,8 +30,12 @@ export function createEditor({ element, content, placeholder, onUpdate, onTransa
                 codeBlock: enableCode ? undefined : false,
                 code: enableCode ? undefined : false,
                 link: { openOnClick: false, autolink: true },
-                strike: false
+                strike: false,
+                // Replaced with OLHardBreak below so hard breaks serialize to
+                // OLMarkdown's dialect (a bare newline, not CommonMark "\").
+                hardBreak: false
             }),
+            OLHardBreak,
             Markdown.configure({
                 breaks: true,
                 linkify: true

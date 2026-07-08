@@ -367,7 +367,6 @@ class AmazonCreatorsAPI:
         country: str = "US",
         throttling: float = 0.9,
         proxy_url: str = "",
-        proxy_creds: str = "",
     ) -> None:
         """
         :param str credential_id: Creators API key / credential ID (OAuth 2.0)
@@ -379,7 +378,8 @@ class AmazonCreatorsAPI:
             Minimum inter-call gap is ``1 / throttling`` seconds (same semantics as
             AmazonAPI).  The library's internal throttle is disabled so this class
             is the sole source of rate-limiting.
-        :param str proxy_url: HTTP proxy URL for environments without direct internet access
+        :param str proxy_url: HTTP proxy URL with embedded credentials for environments
+            without direct internet access (e.g. ``http://user:pass@squid:3128``)
         """
         self.tag = tag
         self.throttling = throttling
@@ -389,6 +389,11 @@ class AmazonCreatorsAPI:
         # (e.g. test runners that don't have the package). Importing here means the
         # rest of vendors.py loads fine; only AmazonCreatorsAPI instantiation fails.
         from amazon_creatorsapi import AmazonCreatorsApi, Country
+
+        # The SDK's rest.py (urllib3 HTTPS CONNECT leg) and oauth2_token_manager.py
+        # (requests OAuth2 leg) both accept credentials embedded in the URL, so a
+        # single URL string (e.g. http://user:pass@squid:3128) is sufficient.
+        _proxy = proxy_url or None
 
         # Pass throttling=0 to the library so it never sleeps internally.
         # We own the throttle loop in get_products (1/throttling semantics),
@@ -401,33 +406,8 @@ class AmazonCreatorsAPI:
             tag=tag,
             country=getattr(Country, country),
             throttling=0,
+            **({"proxy": _proxy} if _proxy else {}),
         )
-
-        # Inject proxy into underlying SDK rest client, mirroring the PA-API approach.
-        # Required for ol-home0 which has no direct internet access. See #10310.
-        if proxy_url:
-            try:
-                from creatorsapi_python_sdk.configuration import (
-                    Configuration as CreatorsConfig,
-                )
-                from creatorsapi_python_sdk.rest import (
-                    RESTClientObject as CreatorsRESTClient,
-                )
-                from urllib3 import make_headers
-
-                configuration = CreatorsConfig()
-                configuration.proxy = proxy_url
-                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
-                rest_client = CreatorsRESTClient(configuration=configuration)
-                # _api_client is the ApiClient instance stored directly on
-                # AmazonCreatorsApi; replace its rest_client to route all
-                # outbound HTTP through the proxy.
-                self.api._api_client.rest_client = rest_client
-            except ImportError, AttributeError:
-                logger.warning(
-                    "AmazonCreatorsAPI: could not inject proxy — falling back to environment-level proxy (HTTPS_PROXY)",
-                    exc_info=True,
-                )
 
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
         if products := self.get_products([asin], **kwargs):
@@ -636,7 +616,7 @@ def _get_amazon_metadata(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-    timeout: float = 4.0,
+    timeout: float = 10.0,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.

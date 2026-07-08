@@ -843,7 +843,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -909,6 +909,69 @@ div#searchResults .SRPCoverBlank a {
 .authorList .cover {
   max-width: 120px;
   border-radius: 4px;
+}
+
+/* Section labels ("Authors"/"Books") shown above the work search result */
+/* groups when the query names an author. */
+/* openlibrary/templates/work_search.html */
+.search-results-section-label {
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accessible-grey);
+}
+
+/* Author suggestion row shown above work search results. */
+/* openlibrary/macros/SearchAuthorSuggestion.html */
+.search-author-suggestion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-stack-sm);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.search-author-suggestion li {
+  margin-bottom: 0;
+  max-width: none;
+  gap: var(--spacing-inline-lg);
+  /* Keep the avatar to the left of the name on mobile too; the shared */
+  /* .searchResultItem stacks (flex-direction: column) below the tablet */
+  /* breakpoint, which would center the avatar on top. */
+  flex-direction: row;
+}
+
+/* Avatar: a person-icon placeholder layered behind the author photo. The photo */
+/* covers it when it loads; a missing photo (?default=false 404) is hidden by */
+/* index.js, revealing the icon. Mirrors the modal's .result__avatar. */
+.search-author-suggestion .sas-avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: var(--accessible-grey);
+  background: var(--lightest-grey);
+  border-radius: var(--border-radius-avatar);
+}
+
+.search-author-suggestion .sas-avatar__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.search-author-suggestion .sas-avatar__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* openlibrary/templates/languages/index.html */
@@ -1833,6 +1896,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component {
     display: flex;
+    align-items: center;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;

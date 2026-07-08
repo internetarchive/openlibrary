@@ -321,11 +321,24 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
+msgstr ""
+
+#: history.html
+msgid "Rev"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -350,12 +363,18 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
-msgid "Compare"
+msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
-msgid "See Diff"
+msgid "B"
 msgstr ""
 
 #: history.html lib/history.html
@@ -364,11 +383,20 @@ msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "Compare this version..."
+msgid "Changes"
 msgstr ""
 
 #: history.html
-msgid "...to this version"
+msgid "Compare this revision with the current version"
+msgstr ""
+
+#: history.html
+msgid "vs current"
+msgstr ""
+
+#: history.html
+#, python-format
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
@@ -453,7 +481,7 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: lib/nav_head.html library_explorer.html
+#: lib/browse_popover.html lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
 msgstr ""
 
@@ -728,10 +756,10 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html
-#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/search_modal_i18n.html search/work_search_selected_facets.html
-#: status.html
+#: SearchAuthorSuggestion.html books/add.html books/edit.html
+#: books/edit/edition.html openlibrary/plugins/worksearch/code.py
+#: search/advancedsearch.html search/search_modal_i18n.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1051,6 +1079,14 @@ msgstr ""
 msgid "Filter by language"
 msgstr ""
 
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
+#, python-format
+msgid "%(count)s hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
+
 #: work_search.html
 msgid "The search engine returned an error."
 msgstr ""
@@ -1076,13 +1112,15 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html
-#: search/subjects.html work_search.html
-#, python-format
-msgid "%(count)s hit"
-msgid_plural "%(count)s hits"
-msgstr[0] ""
-msgstr[1] ""
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html work_search.html
+msgid "Authors"
+msgstr ""
+
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py work_search.html
+msgid "Books"
+msgstr ""
 
 #: work_search.html
 #, python-format
@@ -1242,6 +1280,10 @@ msgstr ""
 
 #: account/follows.html
 msgid "There is nothing to see here yet."
+msgstr ""
+
+#: account/ia_thirdparty_logins.html
+msgid "Sign in with a third-party account"
 msgstr ""
 
 #: account/import.html
@@ -1903,9 +1945,9 @@ msgid "My lists"
 msgstr ""
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/user/view.html
-#: type/work/view.html
+#: lib/browse_popover.html lib/nav_head.html lists/home.html
+#: recentchanges/index.html type/edition/view.html type/list/embed.html
+#: type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -3071,11 +3113,6 @@ msgstr ""
 msgid "None found"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
-msgid "Authors"
-msgstr ""
-
 #: authors/index.html
 msgid "Search for an Author"
 msgstr ""
@@ -3786,11 +3823,6 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
-
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "Books"
 msgstr ""
 
 #. Page title for the "Want to Read" shelf page.
@@ -4956,6 +4988,57 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+msgid "Collections"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "K-12 Student Library"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Book Talks"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Random Book"
+msgstr ""
+
+#: databarWork.html lib/browse_popover.html lib/nav_head.html
+msgid "Browse"
+msgstr ""
+
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+#: openlibrary/plugins/worksearch/code.py subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse books by topic"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Most popular right now"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse the virtual shelves"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Reader-curated collections"
+msgstr ""
+
+#: lib/dropper.html
+msgid "More options"
+msgstr ""
+
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
 msgstr ""
@@ -5151,18 +5234,8 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
-#: subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Explore collections"
-msgstr ""
-
-#: lib/nav_foot.html lib/nav_head.html
-msgid "Collections"
 msgstr ""
 
 #: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
@@ -5308,22 +5381,6 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html search/sort_options.html
-msgid "Trending"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "K-12 Student Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Book Talks"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Random Book"
-msgstr ""
-
 #: lib/nav_head.html
 msgid "Recent Community Edits"
 msgstr ""
@@ -5338,10 +5395,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "My Open Library"
-msgstr ""
-
-#: databarWork.html lib/nav_head.html
-msgid "Browse"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5902,6 +5955,15 @@ msgid ""
 "work.  Continue?"
 msgstr ""
 
+#: my_books/dropper.html
+#, python-format
+msgid "More reading options for %(title)s"
+msgstr ""
+
+#: ReadButton.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -6127,10 +6189,6 @@ msgstr ""
 
 #: publishers/view.html
 msgid "published most by this publisher"
-msgstr ""
-
-#: publishers/view.html
-msgid "Get more information about this publisher"
 msgstr ""
 
 #: reading_goals/reading_goal_form.html
@@ -6434,12 +6492,17 @@ msgid "Clear search"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "See all results"
+msgid "See results"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all %s result"
+msgid "See %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -7046,11 +7109,6 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-#, python-format
-msgid "Search for other books from %(publisher)s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7694,11 +7752,9 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
-msgid "When you buy books using these links the Internet Archive may earn a"
-msgstr ""
-
-#: AffiliateLinks.html.jinja
-msgid "small commission"
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
 #: AffiliateLinksLoadingIndicator.html
@@ -7726,6 +7782,10 @@ msgstr ""
 
 #: BookPreview.html
 msgid "Preview Book"
+msgstr ""
+
+#: BookPreview.html
+msgid "Book preview"
 msgstr ""
 
 #: DisplayCode.html
@@ -8350,6 +8410,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Korean"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/code.py

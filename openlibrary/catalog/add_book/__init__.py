@@ -30,6 +30,7 @@ import uuid
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import copy
+from html import unescape as html_unescape
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
@@ -89,6 +90,25 @@ ALLOWED_COVER_HOSTS: Final = (
     "covers.openlibrary.org",
     "m.media-amazon.com",
 )
+
+
+# Matches decimal (&#1059;) and hex (&#x41B;) HTML numeric character references only.
+# Named entities like &amp; are intentionally excluded to avoid false positives in
+# titles that legitimately contain "&" (e.g. "Tom & Jerry").
+_HTML_NUMERIC_ENTITY_RE = re.compile(r"&#(?:[0-9]{1,6}|x[0-9a-fA-F]{1,6});")
+
+
+def _unescape_html_entities(s: str) -> str:
+    """Unescape HTML entities in s, but only when a numeric/hex entity is present.
+
+    The guard (_HTML_NUMERIC_ENTITY_RE) fires on decimal (&#1059;) and hex
+    (&#x41B;) entities only — bare & and named entities (&amp;) do not trigger
+    it, so strings with only those pass through unchanged.  However, once the
+    guard fires, html.unescape() decodes ALL entities in the string, including
+    any named ones that happen to be present alongside the numeric ones.
+    Example: '&#1059; &amp; bar' -> '\\u0423 & bar'.
+    """
+    return html_unescape(s) if _HTML_NUMERIC_ENTITY_RE.search(s) else s
 
 
 type_map = {
@@ -749,6 +769,33 @@ def normalize_import_record(rec: dict) -> None:
     publication_year = get_publication_year(rec.get("publish_date"))
     if publication_year and published_in_future_year(publication_year):
         del rec["publish_date"]
+
+    # Unescape HTML numeric/hex character references introduced by some import
+    # sources (e.g. BetterWorldBooks).  Must run before subtitle split so that
+    # a colon buried inside an entity sequence doesn't produce a spurious split.
+    _EDITION_TEXT_FIELDS = (
+        "title",
+        "subtitle",
+        "full_title",
+        "by_statement",
+        "edition_name",
+        "description",
+        "pagination",
+        "first_sentence",
+        "notes",
+        "copyright_date",
+    )
+    for field in _EDITION_TEXT_FIELDS:
+        value = rec.get(field)
+        if isinstance(value, str):
+            rec[field] = _unescape_html_entities(value)
+        elif isinstance(value, dict) and isinstance(value.get("value"), str):
+            # Some fields (e.g. description) are stored as {"type": "/type/text", "value": "..."}
+            value["value"] = _unescape_html_entities(value["value"])
+    for author in rec.get("authors", []):
+        for field in ("name", "personal_name", "bio", "title", "death_date"):
+            if isinstance(author.get(field), str):
+                author[field] = _unescape_html_entities(author[field])
 
     # Split subtitle if required and not already present
     if ":" in rec.get("title", "") and not rec.get("subtitle"):

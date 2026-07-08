@@ -26,6 +26,7 @@
   --border-radius-media: var(--border-radius-lg); /* large images, videos */
   --border-radius-card: var(--border-radius-lg); /* cards */
   --border-radius-overlay: var(--border-radius-xl); /* dialogs, modals */
+  --border-radius-tooltip: var(--border-radius-md); /* tooltips */
   --border-radius-chip: var(--border-radius-xl); /* chips, pills that may wrap */
   --border-radius-badge: var(--border-radius-sm); /* badges, tags */
   --border-radius-notification: var(--border-radius-lg); /* notifications, alerts */
