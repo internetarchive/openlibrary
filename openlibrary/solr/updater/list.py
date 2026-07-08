@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import defaultdict
 from functools import cached_property
@@ -14,6 +15,8 @@ from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
 from openlibrary.utils import normalize_subject_name
+
+logger = logging.getLogger("openlibrary.solr")
 
 
 class ListSolrUpdater(AbstractSolrUpdater):
@@ -36,7 +39,12 @@ async def fetch_seeds_facets(seeds: list[str]):
 
     seeds_by_type: defaultdict[SeedType, list] = defaultdict(list)
     for seed in seeds:
-        seeds_by_type[seed_key_to_seed_type(seed)].append(seed)
+        try:
+            seeds_by_type[seed_key_to_seed_type(seed)].append(seed)
+        except ValueError:
+            # seed_key_to_seed_type throws for unrecognized seed key types
+            logger.warning(f"Unrecognized seed key type for seed {seed}")
+            continue
 
     query: list[str] = []
     for seed_type, seed_values in seeds_by_type.items():
