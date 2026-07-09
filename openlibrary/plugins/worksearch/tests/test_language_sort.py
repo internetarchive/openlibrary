@@ -85,7 +85,7 @@ class TestSortKeyNameWithLocale:
         names = ["Zulu", "Čeština", "Deutsch", "Cymraeg"]
         sorted_names = sorted(names, key=_sort_key_name)
         # Čeština and Cymraeg should appear before Deutsch and Zulu
-        c_positions = [i for i, n in enumerate(sorted_names) if n.startswith("C") or n.startswith("Č")]
+        c_positions = [i for i, n in enumerate(sorted_names) if n.startswith(("C", "Č"))]
         z_position = sorted_names.index("Zulu")
         d_position = sorted_names.index("Deutsch")
         assert all(p < d_position for p in c_positions)
