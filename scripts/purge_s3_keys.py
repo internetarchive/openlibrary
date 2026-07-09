@@ -45,6 +45,7 @@ def get_affected_keys(limit: int | None = 100_000):
 
 
 def update_record(key: str) -> bool:
+    """Key is a user account of the shape account/mekBot"""
     acct_rec_query = "SELECT id, json FROM store WHERE key = $key"
     acct_rec_update_query = "UPDATE store SET json = $json WHERE key = $key"
     store_index_delete_query = """
