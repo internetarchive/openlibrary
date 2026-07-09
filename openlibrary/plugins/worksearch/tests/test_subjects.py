@@ -142,9 +142,7 @@ class TestDecorateWithAuthorPhotos:
 
     def test_sets_photo_url_when_author_has_photo(self):
         handler = self._make_handler()
-        subject = web.storage(
-            notable_authors=[web.storage(key="/authors/OL1A", name="Isaac Asimov", count=5)]
-        )
+        subject = web.storage(notable_authors=[web.storage(key="/authors/OL1A", name="Isaac Asimov", count=5)])
         mock_thing = self._make_mock_author_thing("/authors/OL1A", "https://covers.openlibrary.org/a/id/1-M.jpg")
 
         with patch("web.ctx") as mock_ctx:
@@ -156,9 +154,7 @@ class TestDecorateWithAuthorPhotos:
     def test_falls_back_to_none_when_author_has_no_photo(self):
         """No photo on the Author thing -> photo_url is None, macro renders placeholder."""
         handler = self._make_handler()
-        subject = web.storage(
-            notable_authors=[web.storage(key="/authors/OL2A", name="Jane Doe", count=2)]
-        )
+        subject = web.storage(notable_authors=[web.storage(key="/authors/OL2A", name="Jane Doe", count=2)])
         mock_thing = self._make_mock_author_thing("/authors/OL2A", None)
 
         with patch("web.ctx") as mock_ctx:
@@ -170,9 +166,7 @@ class TestDecorateWithAuthorPhotos:
     def test_falls_back_to_none_when_author_thing_missing(self):
         """Batch fetch didn't return a matching thing at all -> still degrades to None, no crash."""
         handler = self._make_handler()
-        subject = web.storage(
-            notable_authors=[web.storage(key="/authors/OL3A", name="Missing Author", count=1)]
-        )
+        subject = web.storage(notable_authors=[web.storage(key="/authors/OL3A", name="Missing Author", count=1)])
 
         with patch("web.ctx") as mock_ctx:
             mock_ctx.site.get_many.return_value = []

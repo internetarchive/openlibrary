@@ -90,7 +90,6 @@ class subjects(delegate.page):
                 slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
                 tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
 
-
     def decorate_with_author_photos(self, subject) -> None:
         """
         Batch-fetch Author things for the notable
@@ -103,10 +102,7 @@ class subjects(delegate.page):
         if not notable_authors:
             return
 
-        authors_by_key = {
-            thing.key: thing
-            for thing in web.ctx.site.get_many([a.key for a in notable_authors])
-        }
+        authors_by_key = {thing.key: thing for thing in web.ctx.site.get_many([a.key for a in notable_authors])}
         for author in notable_authors:
             thing = authors_by_key.get(author.key)
             author.photo_url = thing.get_photo_url("M") if thing else None

@@ -1445,7 +1445,7 @@ msgid ""
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: ProlificAuthors.html account/loans.html authors/index.html
+#: SubjectAuthors.html account/loans.html authors/index.html
 #: lists/list_follow.html lists/showcase.html publishers/view.html
 #: search/authors.html search/publishers.html search/subjects.html
 #, python-format
@@ -4541,7 +4541,7 @@ msgstr ""
 msgid "Pull up a larger author photo"
 msgstr ""
 
-#: covers/author_photo.html search/authors.html
+#: SubjectAuthors.html covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
 msgstr ""
@@ -4550,7 +4550,7 @@ msgstr ""
 msgid "Click to close"
 msgstr ""
 
-#: covers/author_photo.html
+#: SubjectAuthors.html covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
 msgstr ""
@@ -6183,7 +6183,7 @@ msgstr ""
 msgid "None found."
 msgstr ""
 
-#: ProlificAuthors.html publishers/view.html
+#: SubjectAuthors.html publishers/view.html
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
@@ -7982,14 +7982,6 @@ msgstr ""
 msgid "Component"
 msgstr ""
 
-#: ProlificAuthors.html
-msgid "Prolific Authors"
-msgstr ""
-
-#: ProlificAuthors.html
-msgid "who have written the most books on this subject"
-msgstr ""
-
 #: PublishingHistory.html
 msgid ""
 "This is a chart to show the publishing history of editions of works about"
@@ -8224,6 +8216,21 @@ msgstr ""
 #: StarRatingsStats.html
 msgid "Stopped reading"
 msgstr ""
+
+#: SubjectAuthors.html
+msgid "Notable Authors"
+msgstr ""
+
+#: SubjectAuthors.html
+msgid "influential voices in this subject"
+msgstr ""
+
+#: SubjectAuthors.html
+#, python-format
+msgid " and %(count)d more"
+msgid_plural " and %(count)d more"
+msgstr[0] ""
+msgstr[1] ""
 
 #: SubjectTags.html
 msgid "Manage Subjects"
