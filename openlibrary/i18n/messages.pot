@@ -7006,6 +7006,10 @@ msgstr ""
 msgid "See more about this book on Archive.org"
 msgstr ""
 
+#: CheckWorldcat.html
+msgid "Check WorldCat"
+msgstr ""
+
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
 msgstr ""
