@@ -22,6 +22,12 @@ __all__ = ["SubjectEngine", "get_subject"]
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
+# Bounded sample of works (sorted by a popularity signal) scanned to build
+# the notable-authors list. Keeps this to a single extra Solr query instead
+# of one query per author.
+NOTABLE_AUTHORS_SAMPLE_SIZE = 100
+MAX_NOTABLE_AUTHORS = 8
+
 
 class subjects(delegate.page):
     path = "(/subjects/[^/]+)"
@@ -46,6 +52,7 @@ class subjects(delegate.page):
             page = render_template("subjects/notfound.tmpl", key)
         else:
             self.decorate_with_tags(subj)
+            self.decorate_with_author_photos(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -82,6 +89,27 @@ class subjects(delegate.page):
             for tag in subject.disambiguations:
                 slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
                 tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
+
+
+    def decorate_with_author_photos(self, subject) -> None:
+        """
+        Batch-fetch Author things for the notable
+        authors list so the SubjectAuthors macro can render a portrait,
+        falling back to None (macro shows a placeholder) when an author
+        has no photo. One site.get_many call, not one per author — same
+        pattern as decorate_with_tags above.
+        """
+        notable_authors = subject.get("notable_authors") or []
+        if not notable_authors:
+            return
+
+        authors_by_key = {
+            thing.key: thing
+            for thing in web.ctx.site.get_many([a.key for a in notable_authors])
+        }
+        for author in notable_authors:
+            thing = authors_by_key.get(author.key)
+            author.photo_url = thing.get_photo_url("M") if thing else None
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
@@ -313,6 +341,19 @@ class SubjectEngine:
             subject.publishers = result.facet_counts["publisher_facet"]
             subject.languages = result.facet_counts["language"]
 
+            # Replaces the raw author_key facet count
+            subject.notable_authors = await self.get_notable_authors_async(
+                path,
+                dict(filters),
+                request_label=request_label,
+            )
+            # Backfill exact per-subject book counts from the author_key
+            # facet the main query already computed above (subject.authors),
+            # rather than the bounded sample used to pick representative works.
+            exact_counts = {a.key: a.count for a in subject.authors}
+            for author in subject.notable_authors:
+                author.count = exact_counts.get(author.key, author.count)
+
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = date.today().year
@@ -333,6 +374,77 @@ class SubjectEngine:
                     break
 
         return subject
+
+    async def get_notable_authors_async(
+        self,
+        path: str,
+        filters: dict,
+        request_label: SolrRequestLabel = "UNLABELLED",
+    ) -> list[web.storage]:
+        """
+        Builds a signal-ranked "Notable authors" list for a subject.
+
+        Runs one extra Solr query (no facets needed — those are already
+        computed by the main query) over a bounded, popularity-sorted sample
+        of works, then walks the sample once to pick each author's first
+        (i.e. highest-signal) work as their representative work. Exact
+        per-subject book counts are merged in from the author_key facet
+        the main query already computed, so counts stay accurate even though
+        only a sample of works is scanned for representative-work selection.
+        """
+        # Circular imports are everywhere -_-
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            run_solr_query_async,
+        )
+
+        unescaped_filters = {}
+        if "publish_year" in filters:
+            unescaped_filters["publish_year"] = filters.pop("publish_year")
+
+        result = await run_solr_query_async(
+            WorkSearchScheme(),
+            {
+                "q": query_dict_to_str(
+                    {self.facet_key: self.normalize_key(path)},
+                    unescaped=unescaped_filters,
+                    phrase=True,
+                ),
+                **filters,
+            },
+            request_label=request_label,
+            rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
+            # Reuses the same popularity signal (readinglog_count) that
+            # already drives the page's default work ordering — no new
+            # infra, per the epic's Phase 1 scope note.
+            sort="readinglog",
+            facet=False,
+            fields=["key", "title", "author_key", "author_name"],
+        )
+
+        notable_authors: dict[str, web.storage] = {}
+        for doc in result.docs:
+            author_keys = doc.get("author_key") or []
+            author_names = doc.get("author_name") or []
+            for olid, name in zip(author_keys, author_names):
+                if olid in notable_authors:
+                    continue
+                notable_authors[olid] = web.storage(
+                    key=f"/authors/{olid}",
+                    name=name,
+                    representative_work=web.storage(
+                        key=doc["key"],
+                        title=doc["title"],
+                    ),
+                    # Backfilled below from the exact facet count; falls back
+                    # to 1 (this work) if the author is somehow missing from
+                    # the facet, which shouldn't normally happen.
+                    count=1,
+                )
+            if len(notable_authors) >= MAX_NOTABLE_AUTHORS:
+                break
+
+        return list(notable_authors.values())
 
     def normalize_key(self, key):
         return Tag.normalize(key)

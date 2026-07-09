@@ -1,0 +1,47 @@
+/**
+ * SubjectAuthors
+ * Card layout for the "Notable authors" widget,
+ * replacing the plain text-list styling ProlificAuthors relied on
+ * (inherited from .widget-box .unordered with no dedicated component).
+ */
+
+.subjectAuthors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.subjectAuthors-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.subjectAuthors-photoLink {
+  flex-shrink: 0;
+}
+
+.subjectAuthors-photo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--border-radius-avatar);
+}
+
+.subjectAuthors-info {
+  min-width: 0; /* allow text truncation inside a flex child */
+}
+
+.subjectAuthors-name {
+  display: block;
+  font-weight: bold;
+  color: var(--link-blue);
+}
+
+.subjectAuthors-work {
+  font-size: 12px;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
