@@ -19,7 +19,7 @@ $var title: $header_title
       $ pending_action_msg = mb.get_pending_action_banner()
       $if pending_action_msg:
         <ol-banner dismissible id="pending-action-container" class="pending-action-container">
-          $:pending_action_msg
+          <span>$:pending_action_msg</span>
         </ol-banner>
         <script>
           document.addEventListener("DOMContentLoaded", function() {

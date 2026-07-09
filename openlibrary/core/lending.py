@@ -1061,62 +1061,64 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     if not ocaid and hasattr(availability, "get"):
         ocaid = availability.get("identifier")
 
-    if user is None:
-        from openlibrary.accounts import get_current_user
-
-        user = get_current_user()
-
-    waiting_loan = None
-    if check_loan_status and ocaid and user:
-        waiting_loan = user.get_user_waiting_loans(ocaid, use_cache=True)
-
-    if not waiting_loan:
-        from openlibrary.book_providers import get_book_provider
-
-        book_provider = get_book_provider(doc)
-    else:
-        from openlibrary.book_providers import get_book_provider_by_name
-
-        book_provider = get_book_provider_by_name("ia")
-
-    bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
-
-    user_loan = None
-    if hasattr(doc, "get"):
-        user_loan = doc.get("loan")
-    else:
-        user_loan = getattr(doc, "loan", None)
-
-    if not user_loan and check_loan_status and ocaid and user:
-        user_loan = user.get_loan_for(ocaid, use_cache=True)
-
-    is_waiting = False
-    if waiting_loan:
-        if hasattr(waiting_loan, "get"):
-            status = waiting_loan.get("status")
-            position = waiting_loan.get("position")
-        else:
-            status = getattr(waiting_loan, "status", None)
-            position = getattr(waiting_loan, "position", None)
-        # It's not their turn to borrow yet if status isn't 'available' or position isn't 1
-        is_waiting = not (status == "available" and position == 1)
-
+    # 1. Cheap check: Active loan already in doc
+    user_loan = doc.get("loan") if hasattr(doc, "get") else getattr(doc, "loan", None)
     if user_loan:
         return "borrowed"
-    elif book_provider and bp_short_name != "ia":
+
+    # 2. Cheap check: Book provider is not IA
+    from openlibrary.book_providers import get_book_provider
+    book_provider = get_book_provider(doc)
+    bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
+    if book_provider and bp_short_name != "ia":
         return "partner"
-    elif availability.get("is_readable") or availability.get("status") == "open":
+
+    # 3. Cheap check: Book is open/publicly readable
+    if availability.get("is_readable") or availability.get("status") == "open":
         return "open"
-    elif ocaid and user and user.is_printdisabled():
-        return "printdisabled"
-    elif availability.get("is_lendable"):
+
+    # 4. Defer checking DB for user active loan
+    if not user_loan and check_loan_status and ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+            user = get_current_user()
+        if user:
+            user_loan = user.get_loan_for(ocaid, use_cache=True)
+            if user_loan:
+                return "borrowed"
+
+    # 5. Check print-disabled user
+    if ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+            user = get_current_user()
+        if user and user.is_printdisabled():
+            return "printdisabled"
+
+    # 6. Check lendable books
+    if availability.get("is_lendable"):
         if availability.get("available_to_borrow") or availability.get("available_to_browse"):
             return "borrowable"
-        elif availability.get("available_to_waitlist") or is_waiting:
+
+        is_waiting = False
+        if not availability.get("available_to_waitlist") and check_loan_status and ocaid:
+            if user is None:
+                from openlibrary.accounts import get_current_user
+                user = get_current_user()
+            if user:
+                waiting_loan = user.get_user_waiting_loans(ocaid, use_cache=True)
+                if waiting_loan:
+                    status = waiting_loan.get("status") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "status", None)
+                    position = waiting_loan.get("position") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "position", None)
+                    is_waiting = not (status == "available" and position == 1)
+
+        if availability.get("available_to_waitlist") or is_waiting:
             return "waitlist"
         else:
             return "checkedout"
-    elif ocaid and availability.get("is_previewable") and book_provider and bp_short_name == "ia":
+
+    # 7. Check previewable
+    if ocaid and availability.get("is_previewable") and book_provider and bp_short_name == "ia":
         return "preview_only"
-    else:
-        return "locate"
+
+    return "locate"

@@ -1096,7 +1096,6 @@ def setup_template_globals():
         get_book_provider_by_name,
         get_cover_url,
     )
-    from openlibrary.core.lending import get_lending_state
 
     def get_supported_languages():
         return {

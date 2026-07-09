@@ -198,7 +198,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
-$ lending_state = get_lending_state(edition or work, check_loan_status=True)
+$ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.user))
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
@@ -210,7 +210,7 @@ $ lending_state = get_lending_state(edition or work, check_loan_status=True)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
     </div>
 
     <div class="editionAbout">
@@ -341,7 +341,7 @@ $ lending_state = get_lending_state(edition or work, check_loan_status=True)
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit, lending_state=lending_state)
         $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
       </div>
 
