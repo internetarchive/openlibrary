@@ -97,7 +97,7 @@ def fetch_issues():
     return results
 
 
-def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: list[dict[str, str|bool]]):
+def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]):
     """
     Returns list of issues that have the following criteria:
     - Issues have at least one comment
@@ -191,7 +191,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: l
     return results
 
 
-def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: list[dict[str, str|bool]]) -> bool:
+def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]) -> bool:
     if last_commenter in (lead["githubUsername"] for lead in leads):
         return False
     bot_acct = next((bot for bot in bots if bot["githubUsername"] == last_commenter), None)
