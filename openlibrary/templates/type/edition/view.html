@@ -170,7 +170,8 @@ $if is_privileged_user:
 
 $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
-$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True)
+$# Don't include microdata twice; leads to Google SEO issues
+$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True, microdata=False)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
