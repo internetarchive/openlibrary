@@ -394,7 +394,7 @@ def start_job():
         config = read_config(args.config)
         leads = config.get("leads", [])
         bots = config.get("bots", [])
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         raise ConfigurationError("An error occurred while parsing the configuration file.")
 
     print("Fetching issues from GitHub...")
