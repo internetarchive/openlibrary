@@ -3372,7 +3372,7 @@ msgid "Read at Wikisource"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
-msgid "You might also like"
+msgid "Available books like this one"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -7820,13 +7820,6 @@ msgstr ""
 msgid ""
 "This book is currently unavailable on Open Library, check out "
 "%(link_start)savailable alternatives%(link_end)s."
-msgstr ""
-
-#: EditionNavBar.html
-#, python-format
-msgid ""
-"This book is not immediately available, check out %(link_start)savailable"
-" alternatives%(link_end)s."
 msgstr ""
 
 #: EditionNavBar.html

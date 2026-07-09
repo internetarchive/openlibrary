@@ -1068,6 +1068,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 
     # 2. Cheap check: Book provider is not IA
     from openlibrary.book_providers import get_book_provider
+
     book_provider = get_book_provider(doc)
     bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
     if book_provider and bp_short_name != "ia":
@@ -1081,6 +1082,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     if not user_loan and check_loan_status and ocaid:
         if user is None:
             from openlibrary.accounts import get_current_user
+
             user = get_current_user()
         if user:
             user_loan = user.get_loan_for(ocaid, use_cache=True)
@@ -1091,6 +1093,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     if ocaid:
         if user is None:
             from openlibrary.accounts import get_current_user
+
             user = get_current_user()
         if user and user.is_printdisabled():
             return "printdisabled"
@@ -1104,6 +1107,7 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
         if not availability.get("available_to_waitlist") and check_loan_status and ocaid:
             if user is None:
                 from openlibrary.accounts import get_current_user
+
                 user = get_current_user()
             if user:
                 waiting_loan = user.get_user_waiting_loans(ocaid, use_cache=True)
