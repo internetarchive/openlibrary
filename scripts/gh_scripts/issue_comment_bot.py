@@ -192,6 +192,10 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]], bots: l
 
 
 def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: list[dict[str, str | bool]]) -> bool:
+    """
+    Returns `True` if the last commenter's comment should trigger "Needs: Response" labeling
+    of an issue or PR.
+    """
     if last_commenter in (lead["githubUsername"] for lead in leads):
         return False
     if bot_acct := next((bot for bot in bots if bot["githubUsername"] == last_commenter), None):
