@@ -57,3 +57,5 @@ docs/wiki/
 
 # uv lockfile (we resolve from requirements*.txt; not tracked)
 uv.lock
+docs/ai/
+vendor/js/

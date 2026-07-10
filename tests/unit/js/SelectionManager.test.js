@@ -15,7 +15,7 @@ function createTestElementsForProcessClick() {
 
     listItem.appendChild(bookTitle);
 
-    return {listItem, link};
+    return { listItem, link };
 }
 
 function setupSelectionManager() {
@@ -114,7 +114,7 @@ describe('SelectionManager', () => {
     test('Merge Subjects action builds subject merge URL', () => {
         const action = SelectionManager.ACTIONS.find(action => action.name === 'Merge Subjects...');
 
-        expect(action.href(['history', 'person:tolkien'])).toBe('/subjects/merge?records=history,person:tolkien');
+        expect(action.href(['history', 'person:tolkien'])).toBe('/subject-merge?records=history,person:tolkien');
     });
 
     test('updateToolbar adds Merge Subjects action for multiple selected subjects', () => {
@@ -145,7 +145,7 @@ describe('SelectionManager', () => {
 
         const mergeAction = appendedActions.find(action => action.text() === 'Merge Subjects...');
         expect(sm.ile.setStatusText).toHaveBeenCalledWith('2 subjects selected');
-        expect(mergeAction.attr('href')).toBe('/subjects/merge?records=history,person:tolkien');
+        expect(mergeAction.attr('href')).toBe('/subject-merge?records=history,person:tolkien');
     });
 
     test('processClick - clicking on a link or button', () => {

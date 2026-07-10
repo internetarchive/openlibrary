@@ -30,6 +30,8 @@ def process_merge_request(rtype, data):
     username = user["key"].split("/")[-1]
     # Request types can be: create-request, update-request
     if rtype == "create-request":
+        if "olids" in data:
+            data["identifiers"] = data.pop("olids")
         resp = community_edits_queue.create_request(username, **data)
     elif rtype == "update-request":
         resp = community_edits_queue.update_request(username, **data)
@@ -175,7 +177,7 @@ class community_edits_queue(delegate.page):
         username,
         action="",
         mr_type=None,
-        olids="",
+        identifiers="",
         comment: str | None = None,
         primary: str | None = None,
     ):
@@ -186,14 +188,13 @@ class community_edits_queue(delegate.page):
             return mr_type in (
                 CommunityEditsQueue.TYPE["WORK_MERGE"],
                 CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
-                CommunityEditsQueue.TYPE["SUBJECT_MERGE"],
             )
 
         if is_valid_action(action):
-            olid_list = olids.split(",")
+            identifier_list = identifiers.split(",")
 
-            title = community_edits_queue.create_title(mr_type, olid_list)
-            url = community_edits_queue.create_url(mr_type, olid_list, primary=primary)
+            title = community_edits_queue.create_title(mr_type, identifier_list)
+            url = community_edits_queue.create_url(mr_type, identifier_list, primary=primary)
 
             # Validate URL
             is_valid_url = True
@@ -263,20 +264,21 @@ class community_edits_queue(delegate.page):
         return resp
 
     @staticmethod
-    def create_url(mr_type: int, olids: list[str], primary: str | None = None) -> str:
+    def create_url(mr_type: int, identifiers: list[str], primary: str | None = None) -> str:
         if mr_type == CommunityEditsQueue.TYPE["WORK_MERGE"]:
             primary_param = f"&primary={primary}" if primary else ""
-            return f"/works/merge?records={','.join(olids)}{primary_param}"
+            return f"/works/merge?records={','.join(identifiers)}{primary_param}"
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
-            return f"/authors/merge?records={','.join(olids)}"
+            return f"/authors/merge?records={','.join(identifiers)}"
         elif mr_type == CommunityEditsQueue.TYPE["SUBJECT_MERGE"]:
             primary_param = f"&primary={primary}" if primary else ""
-            return f"/subjects/merge?records={','.join(olids)}{primary_param}"
+            return f"/subject-merge?records={','.join(identifiers)}{primary_param}"
         return ""
 
     @staticmethod
-    def create_title(mr_type: int, olids: list[str]) -> str:
+    def create_title(mr_type: int, identifiers: list[str]) -> str:
         if mr_type == CommunityEditsQueue.TYPE["WORK_MERGE"]:
+<<<<<<< HEAD
             for olid in olids:
                 book = site.get().get(f"/works/{olid}")
                 if book and book.title:
@@ -284,11 +286,20 @@ class community_edits_queue(delegate.page):
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             for olid in olids:
                 author = site.get().get(f"/authors/{olid}")
+=======
+            for id in identifiers:
+                book = web.ctx.site.get(f"/works/{id}")
+                if book and book.title:
+                    return book.title
+        elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
+            for id in identifiers:
+                author = web.ctx.site.get(f"/authors/{id}")
+>>>>>>> ac60598f6 (Rename subject merge route from /subjects/merge to /subject-merge)
                 if author and author.name:
                     return author.name
         elif mr_type == CommunityEditsQueue.TYPE["SUBJECT_MERGE"]:
-            for olid in olids:
-                return olid.split(":", 1)[-1].replace("_", " ")
+            for id in identifiers:
+                return id.split(":", 1)[-1].replace("_", " ")
         return "Unknown record"
 
 

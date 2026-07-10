@@ -68,7 +68,7 @@ def get_subject_merge_record(record_id: str) -> web.storage:
 
 
 class merge_subjects(delegate.page):
-    path = "/subjects/merge"
+    path = "/subject-merge"
 
     def require_access(self):
         user = accounts.get_current_user()
@@ -107,7 +107,7 @@ class merge_subjects(delegate.page):
         data = {
             "mr_type": CommunityEditsQueue.TYPE["SUBJECT_MERGE"],
             "action": "create-pending",
-            "olids": ",".join(selected),
+            "identifiers": ",".join(selected),
             "primary": i.master,
         }
         if i.comment:
@@ -123,7 +123,7 @@ class merge_subjects(delegate.page):
 
 
 class subjects(delegate.page):
-    path = "(/subjects/(?!merge$)[^/]+)"
+    path = "(/subjects/[^/]+)"
 
     def GET(self, key):
         if (nkey := self.normalize_key(key)) != key:

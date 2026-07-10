@@ -281,7 +281,7 @@ class merge_authors(delegate.page):
             data = {
                 "mr_type": 2,
                 "action": "create-pending",
-                "olids": ",".join(selected),
+                "identifiers": ",".join(selected),
             }
 
             if i.comment:
@@ -327,7 +327,7 @@ class merge_authors_json(delegate.page):
         duplicates = data["duplicates"]
         mrid = data.get("mrid", None)
         comment = data.get("comment", None)
-        olids = data.get("olids", "")
+        identifiers = data.get("identifiers", "") or data.get("olids", "")
 
         def merge_records() -> Any:
             try:

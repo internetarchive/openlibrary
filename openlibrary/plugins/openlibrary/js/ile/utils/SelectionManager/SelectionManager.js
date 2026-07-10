@@ -17,7 +17,7 @@ export default class SelectionManager {
     /**
      * @param {import('../../index.js').IntegratedLibrarianEnvironment} ile
      */
-    constructor(ile, curpath=location.pathname) {
+    constructor(ile, curpath = location.pathname) {
         this.ile = ile;
         this.curpath = curpath;
         this.inited = false;
@@ -33,7 +33,7 @@ export default class SelectionManager {
         this.allowDrop = this.allowDrop.bind(this);
 
         // Collator used to naturally order OLIDs before constructing URL
-        this.collator = new Intl.Collator('en-US', {numeric: true});
+        this.collator = new Intl.Collator('en-US', { numeric: true });
     }
 
     init() {
@@ -87,11 +87,10 @@ export default class SelectionManager {
         // If there is text selection or the click is on a link that isn't a select handle, don't do anything
         if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
             ($(clickEvent.target).closest('a, button, details').length > 0 &&
-            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
+                $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
-        if (clickEvent.shiftKey && this.lastClicked)
-        {
+        if (clickEvent.shiftKey && this.lastClicked) {
             // clear selection ranges created by shift-clicking since they're not suppressed by preventDefault().
             clearTextSelection();
             const siblingSet = this.getSelectableRange(el);
@@ -234,7 +233,7 @@ export default class SelectionManager {
             if (sessionStorage.getItem('ile-items')) {
                 this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
             } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
+                SelectionManager.TYPES.forEach(type => { this.selectedItems[type.singular] = []; });
             }
         }
         SelectionManager.TYPES.forEach(type => {
@@ -542,6 +541,6 @@ SelectionManager.ACTIONS = [
         requires_type: ['subject'],
         multiple_only: true,
         name: 'Merge Subjects...',
-        href: subjects => `/subjects/merge?records=${subjects.join(',')}`,
+        href: subjects => `/subject-merge?records=${subjects.join(',')}`,
     },
 ];

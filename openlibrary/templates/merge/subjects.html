@@ -23,9 +23,9 @@ $if formdata:
     <li>$_("Press Request Merge.")</li>
 </ol>
 
-<form method="POST" id="mergeForm" name="mergeForm" action="/subjects/merge">
+<form method="POST" id="mergeForm" name="mergeForm" action="/subject-merge">
     $if mrid:
-        <input type="hidden" id="mrid-input" name="mrid" value="$mrid"/>
+        <input type="hidden" id="mrid-input" name="mrid" value="$mrid" />
     <div class="merge" id="include">
         <div class="entry header">
             <div class="data input smaller center">$_("Primary")</div>
@@ -41,13 +41,13 @@ $if formdata:
 
         $for subject in records:
             $ checked = "checked" if not formdata or subject.id in formdata.selected else ""
-            <input type="hidden" name="key" value="$subject.id"/>
+            <input type="hidden" name="key" value="$subject.id" />
             <div class="entry subject">
                 <div class="data input radio">
                     $:radio_input(checked=(subject.id==master), name="master", value=subject.id)
                 </div>
                 <div class="data input checkbox">
-                    <input type="checkbox" value="$subject.id" name="merge_key" id="$subject.id" $checked/>
+                    <input type="checkbox" value="$subject.id" name="merge_key" id="$subject.id" $checked />
                 </div>
                 <div class="data record">
                     <span class="ol-num">$subject.subject_type</span>
