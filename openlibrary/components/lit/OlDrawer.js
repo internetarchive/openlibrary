@@ -279,8 +279,16 @@ export class OlDrawer extends LitElement {
     _hide() {
         if (this._animState === 'closed') return;
 
+        // Two cases finish synchronously because there's no exit transition to
+        // wait on:
+        //   - reduced motion: animations are suppressed entirely.
+        //   - 'preparing': a synchronous open→close (before the enter transition
+        //     was armed) leaves the panel parked in its closed position. Animating
+        //     to 'exiting' would be a no-op transition (closed → closed) that never
+        //     fires transitionend, stranding the drawer scroll-locked with its
+        //     listeners still attached. Close it out here instead.
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reducedMotion) {
+        if (reducedMotion || this._animState === 'preparing') {
             this._animState = 'closed';
             this._cleanup();
             this.dispatchEvent(new CustomEvent('ol-drawer-after-hide', {
