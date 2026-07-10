@@ -1647,6 +1647,11 @@
             },
             {
               "kind": "method",
+              "name": "_onIntent",
+              "description": "First-engagement handler: deepen the cover lookahead by one page and\nre-run the swap so the extra page is warmed immediately. Skipped on\ndata-saver / very slow connections, where eagerly pulling covers the\npatron may never reach is the wrong trade. Fires at most once."
+            },
+            {
+              "kind": "method",
               "name": "_emitPageChange"
             },
             {
@@ -1732,6 +1737,21 @@
               "kind": "method",
               "name": "_applyTrackLayout",
               "description": "Set layout CSS custom properties on the host element.\nThese cascade into the shadow DOM for ::slotted(*) and .arrow sizing.\nKept separate from the track's inline style so Lit re-renders\nnever overwrite the imperatively-set transform."
+            },
+            {
+              "kind": "method",
+              "name": "_onIndicatorKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ],
+              "description": "Arrow-key navigation for the indicator tablist (APG \"Tabs\" pattern,\nhorizontal orientation). The indicators carry a roving tabindex so the\ntablist is a single Tab stop; ←/→ and Home/End move between pages and\ncarry focus to the newly-active indicator. Scoped to the indicators\nrather than the whole region on purpose: paging inert-hides the\noff-page slotted items, so stealing arrow keys while a book link is\nfocused would strand that focus on a now-inert element. The arrow\nbuttons remain the keyboard affordance when indicators are hidden."
+            },
+            {
+              "kind": "method",
+              "name": "_focusActiveIndicator",
+              "description": "Move focus to the active indicator after the roving tabindex updates.\nWaits for the Lit re-render so the target has tabindex=\"0\"."
             },
             {
               "kind": "method",
@@ -1842,6 +1862,14 @@
               },
               "default": "0",
               "attribute": "_itemCount"
+            },
+            {
+              "kind": "field",
+              "name": "_lookaheadPages",
+              "type": {
+                "text": "number"
+              },
+              "default": "1"
             },
             {
               "kind": "field",

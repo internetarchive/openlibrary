@@ -315,6 +315,11 @@ export class OlCarousel extends LitElement {
         this._columns = 6;
         this._itemCount = 0;
 
+        // Cover-prefetch depth, in pages beyond the visible page. Starts at one
+        // page (the structural lookahead) and deepens to two on the first sign
+        // of engagement (hover / keyboard focus) — see _onIntent.
+        this._lookaheadPages = 1;
+
         // Current track position in % (source of truth for rendering)
         this._currentPos = 0;
 
@@ -352,6 +357,8 @@ export class OlCarousel extends LitElement {
         this._onPointerCancel = this._onPointerCancel.bind(this);
         this._onTouchMove = this._onTouchMove.bind(this);
         this._onClickCapture = this._onClickCapture.bind(this);
+        this._onIntent = this._onIntent.bind(this);
+        this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
     }
 
     connectedCallback() {
@@ -363,6 +370,15 @@ export class OlCarousel extends LitElement {
         // tags) bubble up through the shadow boundary. By listening in
         // capture on the host, we fire before the click reaches any <a>.
         this.addEventListener('click', this._onClickCapture, true);
+
+        // ── Engagement-driven cover prefetch ──
+        // Hovering anywhere on the carousel (or tabbing into it) is the
+        // earliest, cheapest signal that the patron intends to browse. On the
+        // first such signal we deepen the cover lookahead by one page so fast
+        // page-flipping never catches up to the edge of the warmed range.
+        // { once: true } — the deepening is one-way, so we self-remove.
+        this.addEventListener('pointerenter', this._onIntent, { once: true });
+        this.addEventListener('focusin', this._onIntent, { once: true });
 
         this._resizeObserver = new ResizeObserver((entries) => {
             const width = entries[0]?.contentRect.width ?? this.clientWidth;
@@ -380,6 +396,10 @@ export class OlCarousel extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('click', this._onClickCapture, true);
+        // No-ops if they already fired (once: true), but needed when the
+        // element is removed before any engagement.
+        this.removeEventListener('pointerenter', this._onIntent);
+        this.removeEventListener('focusin', this._onIntent);
         this._removeDragListeners();
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
@@ -605,7 +625,10 @@ export class OlCarousel extends LitElement {
      *  <ol-carousel> uses a transform-based track (not native scroll), so it
      *  must do the swap itself or paged-in covers never load. */
     _loadVisibleImages(items, endVisible) {
-        const loadThrough = Math.min(items.length - 1, endVisible + this._columns);
+        const loadThrough = Math.min(
+            items.length - 1,
+            endVisible + this._columns * this._lookaheadPages
+        );
         for (let i = 0; i <= loadThrough; i++) {
             const imgs = items[i].querySelectorAll?.('img[data-lazy]');
             if (!imgs) continue;
@@ -614,6 +637,20 @@ export class OlCarousel extends LitElement {
                 img.removeAttribute('data-lazy');
             });
         }
+    }
+
+    /** First-engagement handler: deepen the cover lookahead by one page and
+     *  re-run the swap so the extra page is warmed immediately. Skipped on
+     *  data-saver / very slow connections, where eagerly pulling covers the
+     *  patron may never reach is the wrong trade. Fires at most once. */
+    _onIntent() {
+        const conn = navigator.connection;
+        if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
+            return;
+        }
+        if (this._lookaheadPages >= 2) return;
+        this._lookaheadPages = 2;
+        this._updateInert();
     }
 
     _emitPageChange() {
@@ -936,12 +973,61 @@ export class OlCarousel extends LitElement {
         this.style.setProperty('--_gap', `${gap}px`);
     }
 
+    // ── Keyboard ──
+
+    /** Arrow-key navigation for the indicator tablist (APG "Tabs" pattern,
+     *  horizontal orientation). The indicators carry a roving tabindex so the
+     *  tablist is a single Tab stop; ←/→ and Home/End move between pages and
+     *  carry focus to the newly-active indicator. Scoped to the indicators
+     *  rather than the whole region on purpose: paging inert-hides the
+     *  off-page slotted items, so stealing arrow keys while a book link is
+     *  focused would strand that focus on a now-inert element. The arrow
+     *  buttons remain the keyboard affordance when indicators are hidden. */
+    _onIndicatorKeydown(e) {
+        let target;
+        switch (e.key) {
+        case 'ArrowLeft':
+            target = this._page - 1;
+            break;
+        case 'ArrowRight':
+            target = this._page + 1;
+            break;
+        case 'Home':
+            target = 0;
+            break;
+        case 'End':
+            target = this._totalPages - 1;
+            break;
+        default:
+            return;
+        }
+        e.preventDefault();
+        const clamped = Math.max(0, Math.min(target, this._totalPages - 1));
+        if (clamped !== this._page) {
+            this.goToPage(clamped);
+        }
+        this._focusActiveIndicator();
+    }
+
+    /** Move focus to the active indicator after the roving tabindex updates.
+     *  Waits for the Lit re-render so the target has tabindex="0". */
+    _focusActiveIndicator() {
+        this.updateComplete?.then?.(() => {
+            this.shadowRoot?.querySelector('.indicator[aria-current="true"]')?.focus();
+        });
+    }
+
     // ── Render ──
 
     _renderIndicators() {
         if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
-            <div class="indicators" role="tablist" aria-label="Carousel pages">
+            <div
+                class="indicators"
+                role="tablist"
+                aria-label="Carousel pages"
+                @keydown=${this._onIndicatorKeydown}
+            >
                 ${Array.from({ length: this._totalPages }, (_, i) => html`
                     <button
                         class="indicator"
@@ -949,6 +1035,7 @@ export class OlCarousel extends LitElement {
                         aria-label="Go to page ${i + 1} of ${this._totalPages}"
                         aria-current=${i === this._page ? 'true' : 'false'}
                         aria-selected=${i === this._page ? 'true' : 'false'}
+                        tabindex=${i === this._page ? '0' : '-1'}
                         @click=${() => this.goToPage(i)}
                     ></button>
                 `)}

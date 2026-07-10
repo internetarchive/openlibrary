@@ -43,6 +43,10 @@ function pointerEvent(clientX, clientY, overrides = {}) {
     return { button: 0, pointerId: 1, pointerType: 'touch', clientX, clientY, ...overrides };
 }
 
+function keyEvent(key) {
+    return { key, preventDefault: jest.fn() };
+}
+
 afterEach(() => {
     jest.restoreAllMocks();
 });
@@ -210,5 +214,71 @@ describe('OlCarousel consecutive swipes', () => {
 
         expect(el._page).toBe(2);
         expect(pageChanges.map((d) => d.page)).toEqual([1, 2]);
+    });
+});
+
+describe('OlCarousel indicator keyboard navigation', () => {
+    test('ArrowRight advances a page and preventDefaults', () => {
+        const { el, pageChanges } = createCarousel();
+
+        const e = keyEvent('ArrowRight');
+        el._onIndicatorKeydown(e);
+
+        expect(el._page).toBe(1);
+        expect(pageChanges).toEqual([{ page: 1, totalPages: 4 }]);
+        expect(e.preventDefault).toHaveBeenCalled();
+    });
+
+    test('ArrowLeft goes to the previous page', () => {
+        const { el, pageChanges } = createCarousel();
+        el._page = 2;
+        el._currentPos = el._getOffsetForPage(2);
+
+        el._onIndicatorKeydown(keyEvent('ArrowLeft'));
+
+        expect(el._page).toBe(1);
+        expect(pageChanges).toEqual([{ page: 1, totalPages: 4 }]);
+    });
+
+    test('Home and End jump to the first and last pages', () => {
+        const { el } = createCarousel();
+
+        el._onIndicatorKeydown(keyEvent('End'));
+        expect(el._page).toBe(3);
+
+        el._onIndicatorKeydown(keyEvent('Home'));
+        expect(el._page).toBe(0);
+    });
+
+    test('ArrowLeft at the first page is a no-op (no navigation, still consumed)', () => {
+        const { el, pageChanges } = createCarousel();
+
+        const e = keyEvent('ArrowLeft');
+        el._onIndicatorKeydown(e);
+
+        expect(el._page).toBe(0);
+        expect(pageChanges).toEqual([]);
+        expect(e.preventDefault).toHaveBeenCalled();
+    });
+
+    test('ArrowRight at the last page is a no-op', () => {
+        const { el, pageChanges } = createCarousel();
+        el._page = 3;
+        el._currentPos = el._getOffsetForPage(3);
+
+        el._onIndicatorKeydown(keyEvent('ArrowRight'));
+
+        expect(el._page).toBe(3);
+        expect(pageChanges).toEqual([]);
+    });
+
+    test('unrelated keys are ignored and not consumed', () => {
+        const { el } = createCarousel();
+
+        const e = keyEvent('Enter');
+        el._onIndicatorKeydown(e);
+
+        expect(el._page).toBe(0);
+        expect(e.preventDefault).not.toHaveBeenCalled();
     });
 });
