@@ -199,7 +199,8 @@ def should_label_issue(last_commenter: str, leads: list[dict[str, str]], bots: l
     if last_commenter in (lead["githubUsername"] for lead in leads):
         return False
     if bot_acct := next((bot for bot in bots if bot["githubUsername"] == last_commenter), None):
-        return bot_acct["triggersNeedsResponse"]
+        needs_response: bool = bot_acct["triggersNeedsResponse"]
+        return needs_response
     return True
 
 
