@@ -5,6 +5,7 @@ from datetime import date
 from typing import TYPE_CHECKING, cast
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core import cache
