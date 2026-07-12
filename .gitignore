@@ -57,7 +57,3 @@ docs/wiki/
 
 # uv lockfile (we resolve from requirements*.txt; not tracked)
 uv.lock
-
-venv310/
-.env
-vendor/js/
