@@ -669,30 +669,6 @@ msgstr ""
 msgid "Incorrect. Please try again."
 msgstr ""
 
-#: scorecard.html
-#, python-format
-msgid "%d points"
-msgstr ""
-
-#: scorecard.html
-msgid "Score"
-msgstr ""
-
-#: scorecard.html
-#, python-format
-msgid "Penalties (%d)"
-msgstr ""
-
-#: scorecard.html
-#, python-format
-msgid "Failing Checks (%d)"
-msgstr ""
-
-#: scorecard.html
-#, python-format
-msgid "Passing Checks (%d)"
-msgstr ""
-
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
 msgstr ""
@@ -3994,6 +3970,21 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "This Edition"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "Failing Checks ({count})"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "Passing Checks ({count})"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "{score} points"
 msgstr ""
 
 #: books/edit/edition.html

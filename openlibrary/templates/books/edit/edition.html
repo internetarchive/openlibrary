@@ -61,7 +61,13 @@ $jsdef render_work_autocomplete_item(item):
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
 
-    $:render_template("scorecard", book.scorecard)
+    $if book.scorecard:
+        <ol-scorecard
+            results="$json_encode(book.scorecard.to_dict())"
+            label-failing-checks="$_('Failing Checks ({count})')"
+            label-passing-checks="$_('Passing Checks ({count})')"
+            label-points="$_('{score} points')"
+        ></ol-scorecard>
 
     <div class="formBack">
 

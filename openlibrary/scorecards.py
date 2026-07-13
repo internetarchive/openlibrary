@@ -16,6 +16,14 @@ class ScorecardCheck:
     description: str
     details: str
 
+    def to_dict(self, passing: bool) -> dict:
+        return {
+            "description": self.description,
+            "details": self.details,
+            "score": self.score,
+            "passing": passing,
+        }
+
 
 @dataclass
 class ScorecardSection:
@@ -58,6 +66,14 @@ class ScorecardSection:
                 checks.append(attr_value)
         return checks
 
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "score": self.score,
+            "maxScore": self.max_score,
+            "checks": [check.to_dict(passing=check in self.passing_checks) for check in self.get_checks()],
+        }
+
 
 @dataclass
 class Scorecard(ScorecardSection):
@@ -93,6 +109,15 @@ class Scorecard(ScorecardSection):
             if isinstance(attr_value, ScorecardSection):
                 sections.append(attr_value)
         return sections
+
+    @typing.override
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "score": self.score,
+            "maxScore": self.max_score,
+            "sections": [section.to_dict() for section in self.get_sections()],
+        }
 
 
 class ScorecardEvaluator[S: Scorecard]:
