@@ -240,8 +240,6 @@ class Edition(models.Edition):
             "lccn",
             "oclc_numbers",
             "ocaid",
-            "dewey_decimal_class",
-            "lc_classifications",
         )
 
         d = {}
