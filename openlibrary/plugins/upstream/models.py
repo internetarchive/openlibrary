@@ -271,7 +271,7 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-        if not d.items():
+        if not self.identifiers:
             self.identifiers = None
 
     def get_classifications(self):
