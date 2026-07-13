@@ -1,7 +1,6 @@
 import logging
 import re
 import sys
-import typing
 from collections import defaultdict
 from functools import cached_property
 from typing import cast
@@ -11,7 +10,6 @@ from isbnlib import NotValidISBNError, canonical, mask
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
-from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
@@ -19,7 +17,9 @@ from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
@@ -27,9 +27,6 @@ from openlibrary.utils.isbn import (
     normalize_isbn,
 )
 from openlibrary.utils.lccn import normalize_lccn
-
-if typing.TYPE_CHECKING:
-    from openlibrary.solr.updater.edition import EditionSolrBuilder
 
 
 def follow_redirect(doc):
@@ -47,18 +44,34 @@ def follow_redirect(doc):
 
 class Edition(models.Edition):
     @cached_property
-    def edition_solr_builder(self) -> "EditionSolrBuilder":
+    def scorecard(self):
+        from openlibrary.book_providers import get_solr_keys
         from openlibrary.solr.updater.edition import EditionSolrBuilder
 
-        return EditionSolrBuilder(
-            self.dict(),
-            # FIXME: Slow, we should give it the ebook access in solr?
-            ia_metadata=self.get_ia_meta_fields(),
-        )
+        work = self.works[0] if self.works else None
+        if work:
+            solr_work = work._solr_data
+        else:
+            edition_olid = self.key.split("/")[-1]
+            solr_work = cast(
+                SolrDocument | None,
+                get_solr().get(
+                    f"/works/{edition_olid}",
+                    fields=list(WorkSearchScheme.default_fetched_fields) + get_solr_keys(),
+                    request_label="GET_WORK_SOLR_DATA",
+                ),
+            )
 
-    @cached_property
-    def metadata_scorecard(self):
-        return self.edition_solr_builder.get_scorecard()
+        if not solr_work:
+            return None
+
+        edition_solr_builder = EditionSolrBuilder(
+            edition=self.dict(),
+            solr_work=solr_work,
+            db_work=self.works[0].dict() if self.works else None,
+            db_authors=[a.dict() for a in self.get_authors()] if self.get_authors() else [],
+        )
+        return edition_solr_builder.get_scorecard()
 
     def get_title(self):
         if self["title_prefix"]:
@@ -523,14 +536,7 @@ class Work(models.Work):
             "public_scan_b",
         ] + get_solr_keys()
         solr = get_solr()
-        stats.begin("solr", get=self.key, fields=fields)
-        try:
-            return solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA")
-        except Exception:
-            logging.getLogger("openlibrary").exception("Failed to get solr data")
-            return None
-        finally:
-            stats.end()
+        return cast(SolrDocument | None, solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA"))
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)

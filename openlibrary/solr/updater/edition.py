@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 import requests
 
 import openlibrary.book_providers as bp
-from openlibrary.scorecards import EditionScorecard
+from openlibrary.edition_scorecard import EditionScorecard, EditionScorecardEvaluator
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
@@ -115,12 +115,16 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
         edition: dict,
-        solr_work: WorkSolrBuilder | None = None,
+        solr_work: WorkSolrBuilder | SolrDocument,
+        db_work: dict | None,
+        db_authors: list[dict],
         ia_metadata: bp.IALiteMetadata | None = None,
         data_provider: DataProvider | None = None,
     ):
         self._edition = edition
         self._solr_work = solr_work
+        self._db_work = db_work
+        self._authors = db_authors
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._providers = list(bp.get_book_providers(edition))
@@ -317,7 +321,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return uniq(boxids, key=lambda x: x.lower())
 
     @property
-    def identifiers(self) -> dict:
+    def _identifiers(self) -> dict:
         identifiers = {}
         for key, id_list in self._edition.get("identifiers", {}).items():
             solr_key = key.replace(".", "_").replace(",", "_").replace("(", "").replace(")", "").replace(":", "_").replace("/", "").replace("#", "").lower()
@@ -354,149 +358,46 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     def _get_description_text(self) -> str:
         """Extract description text, handling both plain strings and text_block dicts."""
-        desc = self._edition.get('description')
+        desc = self._edition.get("description")
         if isinstance(desc, dict):
-            return desc.get('value', '')
-        return desc or ''
-
-    def _has_series(self) -> bool:
-        """Check if the edition or its parent work has series information."""
-        if self._edition.get('series'):
-            return True
-        if self._solr_work and self._solr_work.series_key:
-            return True
-        return False
-
-    def _get_work_links(self) -> list[dict]:
-        """Get links from the parent work, if available."""
-        if self._solr_work:
-            return self._solr_work._work.get('links', [])
-        return []
+            return desc.get("value", "")
+        return desc or ""
 
     def get_scorecard(self) -> EditionScorecard:
-        scorecard = EditionScorecard()
-        acc = scorecard.access
-        dsc = scorecard.discovery
-        evl = scorecard.evaluation
+        if isinstance(self._solr_work, dict):
+            solr_work = self._solr_work
+        else:
+            # Don't include editions or we'll get an infinite loop!
+            solr_work = self._solr_work.build(exclude=["editions"])
 
-        # --- Access checks ---
-        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
-            acc.passing_checks.add(acc.read_access)
-        if self.ebook_access >= bp.EbookAccess.PRINTDISABLED:
-            acc.passing_checks.add(acc.search_inside_access)
-        if self.ebook_access == bp.EbookAccess.PUBLIC:
-            acc.passing_checks.add(acc.programatic_access)
-        if self.isbn:
-            acc.passing_checks.add(acc.purchase_options)
-        if self.isbn or self.oclc:
-            acc.passing_checks.add(acc.library_options)
-        if self._edition.get('first_sentence'):
-            acc.passing_checks.add(acc.first_sentence)
-
-        # Work-context access checks (links on the Work)
-        work_links = self._get_work_links()
-        if any('archiveofourown.org' in (link.get('url', '') if isinstance(link, dict) else '') for link in work_links):
-            acc.passing_checks.add(acc.fan_fiction)
-        if any('wikipedia.org' in (link.get('url', '') if isinstance(link, dict) else '') for link in work_links):
-            acc.passing_checks.add(acc.wikipedia)
-
-        # --- Discovery checks ---
-        if self.title:
-            dsc.passing_checks.add(dsc.title)
-        if self._edition.get('authors'):
-            dsc.passing_checks.add(dsc.author_name)
-        if self._edition.get('genres'):
-            dsc.passing_checks.add(dsc.genre_tags)
-        if self._has_series():
-            dsc.passing_checks.add(dsc.series)
-        if self.chapter:
-            dsc.passing_checks.add(dsc.table_of_contents)
-        if self._edition.get('dewey_decimal_class') or self._edition.get('lc_classifications'):
-            dsc.passing_checks.add(dsc.classifications)
-        if self.language:
-            dsc.passing_checks.add(dsc.language)
-        if self.isbn:
-            dsc.passing_checks.add(dsc.isbn)
-        if self.lexile:
-            dsc.passing_checks.add(dsc.lexile)
-        if self._edition.get('contributions'):
-            dsc.passing_checks.add(dsc.contributor_names)
-        if self._solr_work:
-            ratings = self._solr_work.build_ratings()
-            reading_log = self._solr_work.build_reading_log()
-
-            if ratings and ratings.get('ratings_count', 0) > 0:
-                dsc.passing_checks.add(dsc.star_ratings)
-            if reading_log and reading_log.get('readinglog_count', 0) > 0:
-                dsc.passing_checks.add(dsc.on_readinglogs)
-            # on_lists: skipped for now — no easy path to list counts from Solr builder
-
-        # --- Evaluation checks ---
-        desc_text = self._get_description_text()
-        if desc_text:
-            evl.passing_checks.add(evl.basic_description)
-        if self.cover_i:
-            evl.passing_checks.add(evl.cover)
-        if self.chapter:
-            evl.passing_checks.add(evl.table_of_contents)
-        if self._edition.get('genres'):
-            evl.passing_checks.add(evl.genre_tags)
-        if len(desc_text) > 50:
-            evl.passing_checks.add(evl.rich_description)
-        if self.number_of_pages:
-            evl.passing_checks.add(evl.page_count)
-        if self.publish_year:
-            evl.passing_checks.add(evl.publish_year)
-        if self.publisher and not all(is_sine_nomine(p) for p in self.publisher):
-            evl.passing_checks.add(evl.publisher)
-        if self._has_series():
-            evl.passing_checks.add(evl.series)
-
-        # Work-context evaluation checks
-        if self._solr_work:
-            if ratings and ratings.get('ratings_count', 0) > 0:
-                evl.passing_checks.add(evl.star_ratings)
-            if reading_log and reading_log.get('readinglog_count', 0) > 0:
-                evl.passing_checks.add(evl.readinglog_counts)
-            # list_count: skipped for now
-            if self._solr_work._authors and any(
-                a.get('photos') for a in self._solr_work._authors
-            ):
-                evl.passing_checks.add(evl.author_photo)
-            if self._solr_work.first_publish_year:
-                evl.passing_checks.add(evl.first_publish_year)
-            if self._solr_work._authors and any(
-                a.get('bio') or a.get('description') for a in self._solr_work._authors
-            ):
-                evl.passing_checks.add(evl.author_bio)
-            if self._solr_work._authors and any(
-                a.get('links') for a in self._solr_work._authors
-            ):
-                evl.passing_checks.add(evl.author_links)
-
-        return scorecard
+        return EditionScorecardForSolr(
+            solr_edition=self,
+            solr_work=solr_work,
+            db_work=self._db_work,
+            authors=self._authors or [],
+        ).evaluate()
 
     @cached_property
     def _scorecard(self) -> EditionScorecard:
         return self.get_scorecard()
 
-    @cached_property
+    @property
     def access_score(self) -> int:
         return self._scorecard.access.score
 
-    @cached_property
+    @property
     def discovery_score(self) -> int:
         return self._scorecard.discovery.score
 
-    @cached_property
+    @property
     def evaluation_score(self) -> int:
         return self._scorecard.evaluation.score
 
-    @cached_property
+    @property
     def usefulness_score(self) -> int:
         return self.access_score + self.discovery_score + self.evaluation_score
 
-    def build(self) -> SolrDocument:
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
         """
         Build the solr document for the given edition to store as a nested
         document
@@ -504,64 +405,226 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         Completely override parent class method to handle some peculiar
         fields
         """
-        solr_doc: SolrDocument = cast(
-            SolrDocument,
-            {
-                "key": self.key,
-                "work_key": self.work_key,
-                "type": "edition",
-                # Display data
-                "title": self.title,
-                "subtitle": self.subtitle,
-                "alternative_title": list(self.alternative_title),
-                "chapter": self.chapter,
-                "cover_i": self.cover_i,
-                "cover_width": self.cover_width,
-                "cover_height": self.cover_height,
-                "language": self.language,
-                # Duplicate the author data from the work
-                **(
-                    {
-                        "author_name": self._solr_work.author_name,
-                        "author_key": self._solr_work.author_key,
-                        "author_alternative_name": list(self._solr_work.author_alternative_name),
-                        "author_facet": self._solr_work.author_facet,
-                    }
-                    if self._solr_work
-                    else {}
-                ),
-                "edition_name": ([self.edition_name] if self.edition_name else None),
-                # Misc useful data
-                "publisher": self.publisher,
-                "format": [self.format] if self.format else None,
-                "publish_date": [self.publish_date] if self.publish_date else None,
-                "publish_year": [self.publish_year] if self.publish_year else None,
-                "access_score": self.access_score,
-                "discovery_score": self.discovery_score,
-                "evaluation_score": self.evaluation_score,
-                "usefulness_score": self.usefulness_score,
-                # Identifiers
-                "isbn": self.isbn,
-                "lccn": self.lccn,
-                "oclc": self.oclc,
-                **self.identifiers,
-                # IA
-                "ia": [self.ia] if self.ia else None,
-                "ia_collection": self.ia_collection,
-                "ia_box_id": self.ia_box_id,
-                # Ebook access
-                "ebook_access": self.ebook_access.to_solr_str(),
-                "ebook_provider": self.ebook_provider,
-                "has_fulltext": self.has_fulltext,
-                "public_scan_b": self.public_scan_b,
-            },
-        )
+        from openlibrary.solr.updater.work import WorkSolrBuilder  # noqa: PLC0415
+
+        exclude = exclude or []
+
+        # Avoid calling self._solr_work.build(), since that makes db requests for eg ratings
+        if self._solr_work and isinstance(self._solr_work, WorkSolrBuilder):
+            author_fields = {
+                "author_name": self._solr_work.author_name,
+                "author_key": self._solr_work.author_key,
+                "author_alternative_name": list(self._solr_work.author_alternative_name),
+                "author_facet": self._solr_work.author_facet,
+            }
+        elif self._solr_work and isinstance(self._solr_work, dict):
+            author_fields = {
+                "author_name": self._solr_work.get("author_name") or [],
+                "author_key": self._solr_work.get("author_key") or [],
+                "author_alternative_name": self._solr_work.get("author_alternative_name") or [],
+                "author_facet": self._solr_work.get("author_facet") or [],
+            }
+        else:
+            author_fields = {}
+
+        solr_doc = {
+            "key": self.key,
+            "work_key": self.work_key,
+            "type": "edition",
+            # Display data
+            "title": self.title,
+            "subtitle": self.subtitle,
+            "alternative_title": list(self.alternative_title),
+            "chapter": self.chapter,
+            "cover_i": self.cover_i,
+            "cover_width": self.cover_width,
+            "cover_height": self.cover_height,
+            "language": self.language,
+            # Duplicate the author data from the work
+            **author_fields,
+            "edition_name": ([self.edition_name] if self.edition_name else None),
+            # Misc useful data
+            "publisher": self.publisher,
+            "format": [self.format] if self.format else None,
+            "publish_date": [self.publish_date] if self.publish_date else None,
+            "publish_year": [self.publish_year] if self.publish_year else None,
+            "access_score": self.access_score,
+            "discovery_score": self.discovery_score,
+            "evaluation_score": self.evaluation_score,
+            "usefulness_score": self.usefulness_score,
+            # Identifiers
+            "isbn": self.isbn,
+            "lccn": self.lccn,
+            "oclc": self.oclc,
+            **self._identifiers,
+            # IA
+            "ia": [self.ia] if self.ia else None,
+            "ia_collection": self.ia_collection,
+            "ia_box_id": self.ia_box_id,
+            # Ebook access
+            "ebook_access": self.ebook_access.to_solr_str(),
+            "ebook_provider": self.ebook_provider,
+            "has_fulltext": self.has_fulltext,
+            "public_scan_b": self.public_scan_b,
+        }
 
         return cast(
             SolrDocument,
-            {
-                key: solr_doc[key]  # type: ignore
-                for key in solr_doc
-                if solr_doc[key] not in (None, [], "")  # type: ignore
-            },
+            {key: solr_doc[key] for key in solr_doc if solr_doc[key] not in (None, [], "") and key not in exclude},
         )
+
+
+class EditionScorecardForSolr(EditionScorecardEvaluator):
+    """Evaluates an EditionScorecard using an EditionSolrBuilder as the data source."""
+
+    def __init__(
+        self,
+        solr_edition: EditionSolrBuilder,
+        solr_work: SolrDocument,
+        db_work: dict | None,
+        authors: list[dict],
+    ):
+        self.solr_edition = solr_edition
+        self.solr_work = solr_work
+        self.db_work = db_work or {}
+        self.authors = authors
+
+    # --- Access ---
+
+    @property
+    def read_access(self) -> bool:
+        return self.solr_edition.ebook_access >= bp.EbookAccess.BORROWABLE
+
+    @property
+    def search_inside_access(self) -> bool:
+        return self.solr_edition.ebook_access >= bp.EbookAccess.PRINTDISABLED
+
+    @property
+    def programatic_access(self) -> bool:
+        return self.solr_edition.ebook_access == bp.EbookAccess.PUBLIC
+
+    @property
+    def purchase_options(self) -> bool:
+        return bool(self.solr_edition.isbn)
+
+    @property
+    def library_options(self) -> bool:
+        return bool(self.solr_edition.isbn or self.solr_edition.oclc)
+
+    @property
+    def fan_fiction(self) -> bool:
+        return any("archiveofourown.org" in (link.get("url", "") if isinstance(link, dict) else "") for link in self.db_work.get("links", []))
+
+    @property
+    def wikipedia(self) -> bool:
+        return bool(self.solr_work.get("id_wikidata")) or any(
+            "wikipedia.org" in (link.get("url", "") if isinstance(link, dict) else "") for link in self.db_work.get("links", [])
+        )
+
+    @property
+    def first_sentence(self) -> bool:
+        return bool(self.solr_edition._edition.get("first_sentence"))
+
+    # --- Discovery ---
+
+    @property
+    def title(self) -> bool:
+        return bool(self.solr_edition.title)
+
+    @property
+    def author_name(self) -> bool:
+        return bool(self.solr_work.get("author_name"))
+
+    @property
+    def genre_tags(self) -> bool:
+        return bool(self.solr_edition._edition.get("genres"))
+
+    @property
+    def series(self) -> bool:
+        return bool(self.solr_work.get("series_key"))
+
+    @property
+    def table_of_contents(self) -> bool:
+        return bool(self.solr_edition.chapter)
+
+    @property
+    def classifications(self) -> bool:
+        return bool(self.solr_edition._edition.get("dewey_decimal_class") or self.solr_edition._edition.get("lc_classifications"))
+
+    @property
+    def language(self) -> bool:
+        return bool(self.solr_edition.language)
+
+    @property
+    def isbn(self) -> bool:
+        return bool(self.solr_edition.isbn)
+
+    @property
+    def lexile(self) -> bool:
+        return self.solr_edition.lexile is not None
+
+    @property
+    def star_ratings(self) -> bool:
+        return (self.solr_work.get("ratings_count") or 0) > 0
+
+    @property
+    def on_readinglogs(self) -> bool:
+        return (self.solr_work.get("readinglog_count") or 0) > 0
+
+    @property
+    def on_lists(self) -> bool:
+        return False  # not yet available in Solr builder
+
+    @property
+    def contributor_names(self) -> bool:
+        return bool(self.solr_edition._edition.get("contributions"))
+
+    # --- Evaluation ---
+
+    @property
+    def basic_description(self) -> bool:
+        return bool(self.solr_edition._get_description_text())
+
+    @property
+    def cover(self) -> bool:
+        return bool(self.solr_edition.cover_i)
+
+    @property
+    def rich_description(self) -> bool:
+        return len(self.solr_edition._get_description_text()) > 50
+
+    @property
+    def readinglog_counts(self) -> bool:
+        return (self.solr_work.get("readinglog_count") or 0) > 0
+
+    @property
+    def list_count(self) -> bool:
+        return False  # not yet available in Solr builder
+
+    @property
+    def page_count(self) -> bool:
+        return bool(self.solr_edition.number_of_pages)
+
+    @property
+    def author_photo(self) -> bool:
+        return any(p for a in self.authors for p in (a.get("photos") or []) if p != -1)
+
+    @property
+    def first_publish_year(self) -> bool:
+        return bool(self.solr_work.get("first_publish_year"))
+
+    @property
+    def publish_year(self) -> bool:
+        return bool(self.solr_edition.publish_year)
+
+    @property
+    def author_bio(self) -> bool:
+        return any(a.get("bio") or a.get("description") for a in self.authors)
+
+    @property
+    def publisher(self) -> bool:
+        return bool(self.solr_edition.publisher) and not all(is_sine_nomine(p) for p in self.solr_edition.publisher)
+
+    @property
+    def author_links(self) -> bool:
+        return any(a.get("links") for a in self.authors)

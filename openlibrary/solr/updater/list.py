@@ -84,8 +84,8 @@ class ListSolrBuilder(AbstractSolrBuilder):
         self._list = list
         self._solr_reply = solr_reply
 
-    def build(self) -> SolrDocument:
-        doc = cast(dict, super().build())
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        doc = cast(dict, super().build(exclude=exclude))
         doc |= self.build_subjects()
         return cast(SolrDocument, doc)
 

@@ -287,29 +287,40 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._trending_data = trending_data
+        self._as_solr_edition = EditionSolrBuilder(
+            edition=self._work,
+            solr_work=self,
+            db_work=self._work,
+            db_authors=authors,
+            data_provider=self._data_provider,
+        )
         self._solr_editions = [
             EditionSolrBuilder(
                 edition=e,
                 solr_work=self,
+                db_work=self._work,
+                db_authors=authors,
                 ia_metadata=self._ia_metadata.get(e.get("ocaid", "").strip()),
                 data_provider=self._data_provider,
             )
             for e in self._editions
         ]
-        self._as_solr_edition = EditionSolrBuilder(
-            edition=self._work,
-            data_provider=self._data_provider,
-        )
 
-    def build(self) -> SolrDocument:
-        doc = cast(dict, super().build())
-        doc |= self.build_identifiers()
-        doc |= self.build_subjects()
-        doc |= self.build_legacy_ia_fields()
-        doc |= self.build_ratings() or {}
-        doc |= self.build_reading_log() or {}
-        doc |= self._trending_data
-        return cast(SolrDocument, doc)
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        exclude = exclude or []
+
+        return cast(
+            SolrDocument,
+            {
+                **super().build(exclude=exclude),
+                **self._identifiers,
+                **self._subjects,
+                **self._legacy_ia_fields,
+                **(self._ratings or {}),
+                **(self._reading_log or {}),
+                **self._trending_data,
+            },
+        )
 
     @property
     def key(self):
@@ -567,10 +578,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     # ^^^ These should be deprecated and removed ^^^
 
-    def build_ratings(self) -> WorkRatingsSummary | None:
+    @cached_property
+    def _ratings(self) -> WorkRatingsSummary | None:
         return self._data_provider.get_work_ratings(self._work["key"])
 
-    def build_reading_log(self) -> WorkReadingLogSolrSummary | None:
+    @cached_property
+    def _reading_log(self) -> WorkReadingLogSolrSummary | None:
         return self._data_provider.get_work_reading_log(self._work["key"])
 
     @cached_property
@@ -623,7 +636,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def language(self) -> set[str]:
         return {lang for ed in self._solr_editions for lang in ed.language}
 
-    def build_legacy_ia_fields(self) -> dict:
+    @property
+    def _legacy_ia_fields(self) -> dict:
         ia_box_id = set()
 
         for e in self._editions:
@@ -672,23 +686,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             score += 20
         if self._authors:
             score += 15
-        if self._authors and self._authors[0].get('photos'):
+        if self._authors and self._authors[0].get("photos"):
             score += 5
-        if self._authors and self._authors[0].get('description'):
+        if self._authors and self._authors[0].get("description"):
             score += 5
-        if self._work.get('description') or any(
-            ed.get('description') for ed in self._editions
-        ):
+        if self._work.get("description") or any(ed.get("description") for ed in self._editions):
             score += 10
         if self.first_publish_year:
             score += 10
         if self.edition_count >= 2:
             score += 10
-        subjects = self.build_subjects()
-        pure_subject_count = len(subjects.get('subject', []))
-        other_subject_count = (
-            sum(len(s) for s in subjects.values()) - pure_subject_count
-        )
+        subjects = self._subjects
+        pure_subject_count = len(subjects.get("subject", []))
+        other_subject_count = sum(len(s) for s in subjects.values()) - pure_subject_count
         if pure_subject_count:
             score += 10
         if 4 <= pure_subject_count < 10:
@@ -701,7 +711,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             score += 10
         if self.chapter:
             score += 10
-        if self.isbn or self.build_identifiers() or self.ia or self.lccn or self.oclc:
+        if self.isbn or self._identifiers or self.ia or self.lccn or self.oclc:
             score += 10
         if self.lexile:
             score += 10
@@ -725,14 +735,16 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
         return score
 
-    def build_identifiers(self) -> dict[str, list[str]]:
+    @property
+    def _identifiers(self) -> dict[str, list[str]]:
         identifiers: dict[str, list[str]] = defaultdict(list)
         for ed in self._solr_editions:
-            for k, v in ed.identifiers.items():
+            for k, v in ed._identifiers.items():
                 identifiers[k] += v
         return dict(identifiers)
 
-    def build_subjects(self) -> dict:
+    @property
+    def _subjects(self) -> dict:
         doc: dict = {}
         field_map = {
             "subjects": "subject",
