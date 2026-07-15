@@ -1,0 +1,61 @@
+name: Code Review Action
+
+on:
+  pull_request:
+    types: [review_requested]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: code-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    # Placeholder scaffold for #13163 -- trigger wiring only, no review logic yet.
+    # Both paths are staff-gated: requesting @openlibrary-bot as a reviewer, or
+    # @-mentioning it in a PR comment. Staff list mirrors pr_autoresponder.yml /
+    # issue_enrichment.md's blessed list. openlibrary-bot's own account type is
+    # "User", not "Bot" (see #13161/#13165) -- excluded explicitly by login,
+    # not by type/is_bot, which we've already found unreliable for this account.
+    if: >
+      (
+        github.event_name == 'pull_request' &&
+        github.event.requested_reviewer.login == 'openlibrary-bot' &&
+        contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.sender.login)
+      ) || (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '@openlibrary-bot') &&
+        github.event.comment.user.login != 'openlibrary-bot' &&
+        contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.comment.user.login)
+      )
+    steps:
+      - name: Acknowledge trigger (placeholder -- no review logic yet)
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const prNumber = context.payload.pull_request
+              ? context.payload.pull_request.number
+              : context.payload.issue.number;
+            const trigger = context.eventName === 'pull_request'
+              ? 'a reviewer request'
+              : 'an @-mention';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: [
+                `👀 Code review was requested via ${trigger}, but the automated reviewer isn't built yet — tracked in #13163.`,
+                '',
+                'This comment only confirms the trigger fired correctly. No review was performed.',
+                '',
+                '<!-- ol-pr-review-bot -->',
+              ].join('\n'),
+            });
