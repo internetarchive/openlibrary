@@ -219,7 +219,7 @@
         },
         {
             "expected_type": {
-                "key": "/type/string"
+                "key": "/type/tag"
             },
             "unique": false,
             "type": {
@@ -229,7 +229,7 @@
         },
         {
             "expected_type": {
-                "key": "/type/string"
+                "key": "/type/tag"
             },
             "unique": false,
             "type": {
