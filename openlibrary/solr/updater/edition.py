@@ -478,15 +478,12 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
     """Evaluates an EditionScorecard using an EditionSolrBuilder as the data source."""
 
     REQUIRED_SOLR_WORK_FIELDS = (
-        "author_name",
         "ddc_sort",
         "first_publish_year",
-        "id_wikidata",
         "lcc_sort",
         "lexile",
         "ratings_count",
         "readinglog_count",
-        "series_key",
     )
 
     def __init__(
@@ -529,7 +526,7 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def wikipedia(self) -> bool:
-        return bool(self.solr_work.get("id_wikidata")) or any(
+        return bool(self.db_work.get("identifiers", {}).get("wikidata")) or any(
             "wikipedia.org" in (link.get("url", "") if isinstance(link, dict) else "") for link in self.db_work.get("links", [])
         )
 
@@ -545,7 +542,7 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def author_name(self) -> bool:
-        return bool(self.solr_work.get("author_name"))
+        return bool(self.db_work.get("authors"))
 
     @property
     def genre_tags(self) -> bool:
@@ -555,7 +552,7 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def series(self) -> bool:
-        return bool(self.solr_work.get("series_key"))
+        return bool(self.db_work.get("series"))
 
     @property
     def table_of_contents(self) -> bool:

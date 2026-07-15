@@ -165,13 +165,18 @@ def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IAL
     if len(ia) == 1:
         return None
 
-    def get_list(d, key):
+    metadata = data_provider.get_metadata(ia)
+    if metadata is None:
+        # It's none when the IA id is not found/invalid.
+        # TODO: It would be better if get_metadata raised an error.
+        return None
+    return full_ia_metadata_to_lite_metadata(metadata)
+
+
+def full_ia_metadata_to_lite_metadata(metadata: dict) -> bp.IALiteMetadata:
+    def get_list(d: dict | None, key: str) -> list:
         """
         Return d[key] as some form of list, regardless of if it is or isn't.
-
-        :param dict or None d:
-        :param str key:
-        :rtype: list
         """
         if not d:
             return []
@@ -183,11 +188,6 @@ def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IAL
         else:
             return value
 
-    metadata = data_provider.get_metadata(ia)
-    if metadata is None:
-        # It's none when the IA id is not found/invalid.
-        # TODO: It would be better if get_metadata raised an error.
-        return None
     return {
         "boxid": set(get_list(metadata, "boxid")),
         "collection": set(get_list(metadata, "collection")),

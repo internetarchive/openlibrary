@@ -45,6 +45,29 @@ def follow_redirect(doc):
 
 class Edition(models.Edition):
     @cached_property
+    def solr_work_data(self) -> SolrDocument | None:
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
+
+        work = cast(Work, self.works[0]) if self.works else None
+        if work:
+            return work._solr_data
+        else:
+            edition_olid = self.key.split("/")[-1]
+            return cast(
+                SolrDocument | None,
+                get_solr().get(
+                    f"/works/{edition_olid}",
+                    fields=[
+                        *list(WorkSearchScheme.default_fetched_fields),
+                        *bp.get_solr_keys(),
+                        *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+                    ],
+                    request_label="GET_WORK_SOLR_DATA",
+                ),
+            )
+
+    @cached_property
     def solr_last_modified(self) -> datetime | None:
         work = cast(Work, self.works[0]) if self.works else None
         if not work:
@@ -67,22 +90,10 @@ class Edition(models.Edition):
 
     @cached_property
     def scorecard(self):
-        from openlibrary.book_providers import get_solr_keys
         from openlibrary.solr.updater.edition import EditionSolrBuilder
+        from openlibrary.solr.updater.work import full_ia_metadata_to_lite_metadata
 
-        work = self.works[0] if self.works else None
-        if work:
-            solr_work = work._solr_data
-        else:
-            edition_olid = self.key.split("/")[-1]
-            solr_work = cast(
-                SolrDocument | None,
-                get_solr().get(
-                    f"/works/{edition_olid}",
-                    fields=list(WorkSearchScheme.default_fetched_fields) + get_solr_keys(),
-                    request_label="GET_WORK_SOLR_DATA",
-                ),
-            )
+        solr_work = self.solr_work_data
 
         if not solr_work:
             return None
@@ -92,6 +103,8 @@ class Edition(models.Edition):
             solr_work=solr_work,
             db_work=self.works[0].dict() if self.works else None,
             db_authors=[a.dict() for a in self.get_authors()] if self.get_authors() else [],
+            # TODO: Switch to using solr instead of IA for metadata
+            ia_metadata=full_ia_metadata_to_lite_metadata(self.get_ia_meta_fields()),
         )
         return edition_solr_builder.get_scorecard()
 
