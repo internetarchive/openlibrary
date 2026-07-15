@@ -11,7 +11,7 @@ sections:
         score: 50
         description: Can view snippets via search inside
         details: Books that allow search inside enable patrons to quickly find relevant content within the book.
-      programatic_access:
+      programmatic_access:
         score: 25
         description: Open access (can analyze in full)
         details: Fully public books can be read online or downloaded without any restrictions, providing excellent access for patrons.

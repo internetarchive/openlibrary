@@ -23,8 +23,8 @@ class EditionScorecardAccessSection(ScorecardSection):
         description=_("Can view snippets via search inside"),
         details=_("Books that allow search inside enable patrons to quickly find relevant content within the book."),
     )
-    programatic_access = ScorecardCheck(
-        name="programatic_access",
+    programmatic_access = ScorecardCheck(
+        name="programmatic_access",
         score=25,
         description=_("Open access (can analyze in full)"),
         details=_("Fully public books can be read online or downloaded without any restrictions, providing excellent access for patrons."),
@@ -270,7 +270,7 @@ class EditionScorecardEvaluator(ScorecardEvaluator[EditionScorecard], ABC):
 
     @property
     @abstractmethod
-    def programatic_access(self) -> bool: ...
+    def programmatic_access(self) -> bool: ...
 
     @property
     @abstractmethod

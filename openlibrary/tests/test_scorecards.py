@@ -32,7 +32,7 @@ def test_scorecard_section_to_dict():
         "score": 10,
         "maxScore": 15,
         "checks": [
-            {"description": "Passing", "details": "Passing details", "score": 10, "passing": True},
             {"description": "Failing", "details": "Failing details", "score": 5, "passing": False},
+            {"description": "Passing", "details": "Passing details", "score": 10, "passing": True},
         ],
     }

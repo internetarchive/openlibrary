@@ -523,18 +523,21 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
-        from openlibrary.book_providers import get_solr_keys
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
 
         fields = [
             "key",
             "cover_edition_key",
-            "cover_id",
             "edition_key",
             "first_publish_year",
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
-        ] + get_solr_keys()
+            *bp.get_solr_keys(),
+            *list(WorkSearchScheme.default_fetched_fields),
+            *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+        ]
         solr = get_solr()
         return cast(SolrDocument | None, solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA"))
 

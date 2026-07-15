@@ -477,6 +477,18 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 class EditionScorecardForSolr(EditionScorecardEvaluator):
     """Evaluates an EditionScorecard using an EditionSolrBuilder as the data source."""
 
+    REQUIRED_SOLR_WORK_FIELDS = (
+        "author_name",
+        "ddc_sort",
+        "first_publish_year",
+        "id_wikidata",
+        "lcc_sort",
+        "lexile",
+        "ratings_count",
+        "readinglog_count",
+        "series_key",
+    )
+
     def __init__(
         self,
         solr_edition: EditionSolrBuilder,
@@ -500,7 +512,7 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
         return self.solr_edition.ebook_access >= bp.EbookAccess.PRINTDISABLED
 
     @property
-    def programatic_access(self) -> bool:
+    def programmatic_access(self) -> bool:
         return self.solr_edition.ebook_access == bp.EbookAccess.PUBLIC
 
     @property
@@ -537,7 +549,9 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def genre_tags(self) -> bool:
-        return bool(self.solr_edition._edition.get("genres"))
+        # Not a thing yet
+        # return bool(self.solr_work.get("genres"))
+        return False
 
     @property
     def series(self) -> bool:
@@ -549,7 +563,8 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def classifications(self) -> bool:
-        return bool(self.solr_edition._edition.get("dewey_decimal_class") or self.solr_edition._edition.get("lc_classifications"))
+        # Doesn't matter which edition has the classification
+        return bool(self.solr_work.get("ddc_sort") or self.solr_work.get("lcc_sort"))
 
     @property
     def language(self) -> bool:
@@ -561,7 +576,8 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def lexile(self) -> bool:
-        return self.solr_edition.lexile is not None
+        # Doesn't matter which edition has the lexile score
+        return bool(self.solr_work.get("lexile"))
 
     @property
     def star_ratings(self) -> bool:
@@ -627,4 +643,4 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def author_links(self) -> bool:
-        return any(a.get("links") for a in self.authors)
+        return any(a.get("remote_ids") for a in self.authors)
