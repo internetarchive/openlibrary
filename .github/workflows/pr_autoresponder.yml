@@ -1,0 +1,54 @@
+name: PR Auto-Responder
+
+on:
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Debug: manually run the auto-responder on a specific existing PR"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: pr-autoresponder-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  respond:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.user.type != 'Bot' && !github.event.pull_request.draft)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: First-touch PR response
+        uses: anthropics/claude-code-action@v1
+        with:
+          prompt: |
+            @.github/workflows/pr_autoresponder.md
+
+            ${{ github.event_name == 'workflow_dispatch' && format('Manual test dispatch: run the first-touch flow on PR #{0}. Fetch its data yourself in Step 1 -- do not assume anything about it from this line.', inputs.pr_number) || format('PR #{0} was just opened by @{1}.\nTitle: {2}', github.event.pull_request.number, github.event.pull_request.user.login, github.event.pull_request.title) }}
+          claude_args: >-
+            --max-turns 30
+            --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh pr view:*)
+            Bash(gh pr diff:*) Bash(gh pr checks:*) Bash(gh pr comment:*) Bash(gh pr edit:*)
+            Bash(gh issue view:*) Bash(gh issue list:*) Bash(gh pr list:*)
+            Bash(gh api:*) Bash(gh label list:*)"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.OL_BOT_PAT }}
+          # PR authors on a public repo mostly have only read access, same reasoning
+          # as issue_enrichment.yml. NOTE: #13161 found this bypass unreliable for
+          # issues due to a GitHub Actions workflow-resolution lag for non-ref-tied
+          # events -- pull_request events ARE ref-tied (unlike issues), so this
+          # workflow is less exposed to that specific failure mode, but it hasn't
+          # been independently verified. Re-check if PRs start showing the same
+          # "insufficient permissions" rejection issue #13161 documented.
+          allowed_non_write_users: "*"
