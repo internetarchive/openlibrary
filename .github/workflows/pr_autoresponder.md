@@ -17,7 +17,8 @@ Blessed staff list: `mekarpeles`, `cdrini`, `jimchamp`, `hornc`, `scottbarnes`, 
 
 **Always skip if**:
 - The PR is a draft
-- The author login ends in `[bot]`, or `author.is_bot` is true (`gh pr view --json author`) — e.g. a PAM-authored PR opened via the bot account itself; commenting on our own PR is nonsensical
+- The author login is `openlibrary-bot` — our own bot account. **Note**: `openlibrary-bot`'s account `type` is `"User"`, not `"Bot"`, and `author.is_bot` is `false` for it — do not rely on either field to detect it. Always check the literal login string.
+- The author login ends in `[bot]`, or `author.is_bot` is true (`gh pr view --json author`) — catches genuine GitHub Apps (dependabot, renovate, etc.)
 - Any existing comment contains `<!-- ol-pr-bot -->`
 - A human other than the PR author has already commented (author self-pings and Copilot comments do not count) — the PR has already been attended to
 

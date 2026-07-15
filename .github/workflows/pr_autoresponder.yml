@@ -23,9 +23,15 @@ concurrency:
 jobs:
   respond:
     runs-on: ubuntu-latest
+    # openlibrary-bot's account type is "User", not "Bot" (GitHub API confirms
+    # this), so `user.type != 'Bot'` alone does NOT exclude it -- it only
+    # catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc). The
+    # explicit login check below is required to skip our own bot's PRs.
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.user.type != 'Bot' && !github.event.pull_request.draft)
+      (github.event.pull_request.user.type != 'Bot' &&
+       github.event.pull_request.user.login != 'openlibrary-bot' &&
+       !github.event.pull_request.draft)
     steps:
       - uses: actions/checkout@v4
 
