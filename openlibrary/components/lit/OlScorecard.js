@@ -2,12 +2,6 @@ import { LitElement, html, css, nothing } from 'lit';
 
 let _idCounter = 0;
 
-const TAB_GAUGE_SIZE = 64;
-const TAB_GAUGE_STROKE_WIDTH = 6;
-const TAB_GAUGE_FONT_SIZE = 'var(--font-size-headline-small, 24px)';
-const COLLAPSED_GAUGE_SIZE = 28;
-const COLLAPSED_GAUGE_STROKE_WIDTH = 4;
-
 /**
  * OlScoreGauge - Circular gauge for OlScorecard: arc length and color track
  * a 0-100 percentage. Used for the collapsed badge, the Total indicator, and
@@ -16,9 +10,7 @@ const COLLAPSED_GAUGE_STROKE_WIDTH = 4;
 class OlScoreGauge extends LitElement {
     static properties = {
         percentage: { type: Number },
-        size: { type: Number },
-        strokeWidth: { type: Number, attribute: 'stroke-width' },
-        fontSize: { type: String, attribute: 'font-size' },
+        size: { type: String, reflect: true },
         showPercent: { type: Boolean, attribute: 'show-percent' },
     };
 
@@ -30,6 +22,7 @@ class OlScoreGauge extends LitElement {
         .gauge {
             position: relative;
             border-radius: var(--border-radius-circle, 50%);
+            background-color: color-mix(in srgb, currentColor 18%, transparent);
         }
 
         .gauge svg {
@@ -39,11 +32,13 @@ class OlScoreGauge extends LitElement {
 
         .track {
             fill: none;
+            stroke: currentColor;
             stroke-opacity: 0.1;
         }
 
         .arc {
             fill: none;
+            stroke: currentColor;
             stroke-linecap: round;
             transition: stroke-dashoffset 0.3s;
         }
@@ -54,16 +49,20 @@ class OlScoreGauge extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: var(--font-size-headline-small, 24px);
             font-weight: normal;
+        }
+
+        :host([size="small"]) .value {
+            font-size: var(--font-size-label-medium, 12px);
+            font-weight: bold;
         }
     `;
 
     constructor() {
         super();
         this.percentage = 0;
-        this.size = 64;
-        this.strokeWidth = 6;
-        this.fontSize = 'var(--font-size-label-medium, 12px)';
+        this.size = 'default';
         this.showPercent = false;
     }
 
@@ -83,20 +82,22 @@ class OlScoreGauge extends LitElement {
 
     /** @returns {import('lit').TemplateResult} */
     render() {
-        const { size, strokeWidth, percentage, fontSize, showPercent } = this;
-        const radius = (size - strokeWidth) / 2;
+        const { percentage, showPercent, size } = this;
+        const diameter = size === 'small' ? 28 : 64;
+        const strokeWidth = size === 'small' ? 4 : 6;
+        const radius = (diameter - strokeWidth) / 2;
         const circumference = 2 * Math.PI * radius;
         const dashoffset = circumference * (1 - percentage / 100);
-        const center = size / 2;
+        const center = diameter / 2;
         const color = this._colorVar();
 
         return html`
             <div
                 class="gauge"
-                style="width: ${size}px; height: ${size}px; background-color: color-mix(in srgb, ${color} 18%, transparent)"
+                style="width: ${diameter}px; height: ${diameter}px; color: ${color}"
             >
-                <svg viewBox="0 0 ${size} ${size}" width=${size} height=${size} aria-hidden="true">
-                    <circle class="track" cx=${center} cy=${center} r=${radius} stroke-width=${strokeWidth} style="stroke: ${color}"></circle>
+                <svg viewBox="0 0 ${diameter} ${diameter}" width=${diameter} height=${diameter} aria-hidden="true">
+                    <circle class="track" cx=${center} cy=${center} r=${radius} stroke-width=${strokeWidth}></circle>
                     <circle
                         class="arc"
                         cx=${center}
@@ -105,10 +106,9 @@ class OlScoreGauge extends LitElement {
                         stroke-width=${strokeWidth}
                         stroke-dasharray=${circumference}
                         stroke-dashoffset=${dashoffset}
-                        style="stroke: ${color}"
                     ></circle>
                 </svg>
-                <span class="value" style="color: ${color}; font-size: ${fontSize}">${percentage}${showPercent ? '%' : ''}</span>
+                <span class="value">${percentage}${showPercent ? '%' : ''}</span>
             </div>
         `;
     }
@@ -480,7 +480,7 @@ export class OlScorecard extends LitElement {
                 aria-label=${ariaLabel}
                 @click=${() => { this.expanded = true; }}
             >
-                <ol-score-gauge percentage=${percentage} size=${COLLAPSED_GAUGE_SIZE} stroke-width=${COLLAPSED_GAUGE_STROKE_WIDTH}></ol-score-gauge>
+                <ol-score-gauge percentage=${percentage} size="small"></ol-score-gauge>
                 <span class="collapsed-label" aria-hidden="true">${name}</span>
                 <span class="collapsed-chevron" aria-hidden="true">${OlScorecard._chevronIcon}</span>
             </button>
@@ -507,7 +507,7 @@ export class OlScorecard extends LitElement {
 
             <div class="tabs" role="tablist">
                 <div class="tab tab--total" role="presentation">
-                    <ol-score-gauge percentage=${percentage} size=${TAB_GAUGE_SIZE} stroke-width=${TAB_GAUGE_STROKE_WIDTH} font-size=${TAB_GAUGE_FONT_SIZE} show-percent></ol-score-gauge>
+                    <ol-score-gauge percentage=${percentage} show-percent></ol-score-gauge>
                     <span class="tab-label">${this.labelTotal}</span>
                     <span class="tab-points">${score}/${maxScore}</span>
                 </div>
@@ -531,7 +531,7 @@ export class OlScorecard extends LitElement {
                             @click=${() => { this._activeSection = i; }}
                             @keydown=${(e) => this._onTabKeydown(e, i)}
                         >
-                            <ol-score-gauge percentage=${sectionPct} size=${TAB_GAUGE_SIZE} stroke-width=${TAB_GAUGE_STROKE_WIDTH} font-size=${TAB_GAUGE_FONT_SIZE} show-percent></ol-score-gauge>
+                            <ol-score-gauge percentage=${sectionPct} show-percent></ol-score-gauge>
                             <span class="tab-label">${section.name}</span>
                             <span class="tab-points">${section.score}/${section.maxScore}</span>
                         </button>
