@@ -3988,6 +3988,12 @@ msgid "{score} points"
 msgstr ""
 
 #: books/edit/edition.html
+msgid ""
+"This record was recently edited and this scorecard is outdated. It should"
+" update in a minute or so."
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Enter the title of this specific edition."
 msgstr ""
 

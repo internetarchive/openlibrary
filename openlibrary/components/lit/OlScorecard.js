@@ -140,6 +140,8 @@ if (!customElements.get('ol-score-gauge')) {
  * @prop {String} labelPoints - Check point-value template, use `{score}` (default: "{score} points")
  * @prop {String} labelExpand - Accessible label for the collapsed badge button, use `{name}`, `{percentage}` (default: "{name}: {percentage}%. Click to expand.")
  * @prop {String} labelCollapse - Accessible label for the header collapse button (default: "Collapse")
+ * @prop {Boolean} outdated - Whether the solr record is stale relative to the database. Default `false`. Presence of the attribute shows a warning banner at the top of the expanded card; no banner is shown otherwise.
+ * @prop {String} labelOutdated - Warning banner text shown when outdated (default: "This record has been edited and is not yet reflected in Solr. It should update in a minute or so.")
  *
  * @example
  * <ol-scorecard expanded results='{"name":"Edition Scorecard","score":40,"maxScore":100,"sections":[{"name":"Access","score":40,"maxScore":100,"checks":[{"description":"Has title","details":"...","score":40,"passing":true}]}]}'></ol-scorecard>
@@ -154,11 +156,16 @@ export class OlScorecard extends LitElement {
         labelPoints: { type: String, attribute: 'label-points' },
         labelExpand: { type: String, attribute: 'label-expand' },
         labelCollapse: { type: String, attribute: 'label-collapse' },
+        outdated: { type: Boolean },
+        labelOutdated: { type: String, attribute: 'label-outdated' },
         _activeSection: { type: Number, state: true },
     };
 
     /** Chevron icon; rotated by callers to indicate open/closed state. */
     static _chevronIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+
+    /** Clock icon; shown in the outdated-data warning banner. */
+    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
 
     static styles = css`
         :host {
@@ -379,6 +386,24 @@ export class OlScorecard extends LitElement {
             font-size: var(--font-size-label-medium, 12px);
             color: color-mix(in srgb, currentColor 65%, transparent);
         }
+
+        .outdated-banner {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-inline-md, 8px);
+            margin: 0 var(--spacing-inset-md, 16px) var(--spacing-inset-md, 16px);
+            padding: var(--spacing-inset-sm, 8px);
+            border-radius: var(--border-radius-md, 6px);
+            font-size: var(--font-size-label-medium, 12px);
+            background-color: var(--scorecard-warning-bg, hsl(32deg 100% 90%));
+            color: var(--scorecard-warning-text, hsl(32deg 100% 35%));
+        }
+
+        .outdated-banner-icon {
+            width: 1.2em;
+            height: 1.2em;
+            flex-shrink: 0;
+        }
     `;
 
     constructor() {
@@ -391,6 +416,8 @@ export class OlScorecard extends LitElement {
         this.labelPoints = '{score} points';
         this.labelExpand = '{name}: {percentage}%. Click to expand.';
         this.labelCollapse = 'Collapse';
+        this.outdated = false;
+        this.labelOutdated = 'This record has been edited and is not yet reflected in Solr. It should update in a minute or so.';
         this._activeSection = 0;
         this._panelIdPrefix = `ol-scorecard-${++_idCounter}`;
     }
@@ -476,6 +503,8 @@ export class OlScorecard extends LitElement {
                 <span class="header-chevron" aria-label=${this.labelCollapse}>${OlScorecard._chevronIcon}</span>
             </button>
 
+            ${this._renderOutdatedBanner()}
+
             <div class="tabs" role="tablist">
                 <div class="tab tab--total" role="presentation">
                     <ol-score-gauge percentage=${percentage} size=${TAB_GAUGE_SIZE} stroke-width=${TAB_GAUGE_STROKE_WIDTH} font-size=${TAB_GAUGE_FONT_SIZE} show-percent></ol-score-gauge>
@@ -511,6 +540,18 @@ export class OlScorecard extends LitElement {
             </div>
 
             ${sections.map((section, i) => this._renderSectionPanel(section, i))}
+        `;
+    }
+
+    /** @returns {import('lit').TemplateResult|typeof nothing} */
+    _renderOutdatedBanner() {
+        if (!this.outdated) return nothing;
+
+        return html`
+            <div class="outdated-banner">
+                <span class="outdated-banner-icon">${OlScorecard._clockIcon}</span>
+                <span>${this.labelOutdated}</span>
+            </div>
         `;
     }
 

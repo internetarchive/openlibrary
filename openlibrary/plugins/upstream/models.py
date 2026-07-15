@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 from collections import defaultdict
+from datetime import datetime
 from functools import cached_property
 from typing import cast
 
@@ -43,6 +44,27 @@ def follow_redirect(doc):
 
 
 class Edition(models.Edition):
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        work = cast(Work, self.works[0]) if self.works else None
+        if not work:
+            return None
+
+        return work.solr_last_modified
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        work = cast(Work, self.works[0]) if self.works else None
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0) or (work.is_solr_data_outdated() if work else False)
+
     @cached_property
     def scorecard(self):
         from openlibrary.book_providers import get_solr_keys
@@ -534,12 +556,36 @@ class Work(models.Work):
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
+            "last_modified_i",
             *bp.get_solr_keys(),
             *list(WorkSearchScheme.default_fetched_fields),
             *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
         ]
         solr = get_solr()
         return cast(SolrDocument | None, solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA"))
+
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        if not self._solr_data:
+            return None
+        last_modified_i = self._solr_data["last_modified_i"]
+        if last_modified_i is None:
+            raise ValueError("Work missing last_modified_i solr field")
+        return datetime.fromtimestamp(last_modified_i)
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+
+        Note this only checks the current work; it might still be outdated because
+        one of the editions has been edited.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0)
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
