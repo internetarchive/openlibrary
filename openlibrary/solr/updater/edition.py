@@ -514,7 +514,8 @@ class EditionScorecardForSolr(EditionScorecardEvaluator):
 
     @property
     def purchase_options(self) -> bool:
-        return bool(self.solr_edition.isbn)
+        identifiers = self.solr_edition._edition.get("identifiers", {})
+        return bool(self.solr_edition.isbn or identifiers.get("amazon") or identifiers.get("better_world_books"))
 
     @property
     def library_options(self) -> bool:

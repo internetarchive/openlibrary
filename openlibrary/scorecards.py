@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import typing
 from dataclasses import dataclass, field
 from functools import cached_property

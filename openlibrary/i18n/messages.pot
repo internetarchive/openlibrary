@@ -8417,13 +8417,13 @@ msgid ""
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid "Has purchase options (ISBN available)"
+msgid "Has purchase options"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
 msgid ""
-"An ISBN enables patrons to purchase the book from retailers such as "
-"Amazon, BWB, and Bookshop."
+"An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to "
+"purchase the book from retailers."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py

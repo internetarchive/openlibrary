@@ -17,8 +17,8 @@ sections:
         details: Fully public books can be read online or downloaded without any restrictions, providing excellent access for patrons.
       purchase_options:
         score: 25
-        description: Has purchase options (ISBN available)
-        details: An ISBN enables patrons to purchase the book from retailers such as Amazon, BWB, and Bookshop.
+        description: Has purchase options
+        details: An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to purchase the book from retailers.
       library_options:
         score: 25
         description: Has library options (ISBN or OCLC)

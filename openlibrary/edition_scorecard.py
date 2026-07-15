@@ -32,8 +32,8 @@ class EditionScorecardAccessSection(ScorecardSection):
     purchase_options = ScorecardCheck(
         name="purchase_options",
         score=25,
-        description=_("Has purchase options (ISBN available)"),
-        details=_("An ISBN enables patrons to purchase the book from retailers such as Amazon, BWB, and Bookshop."),
+        description=_("Has purchase options"),
+        details=_("An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to purchase the book from retailers."),
     )
     library_options = ScorecardCheck(
         name="library_options",
