@@ -2,9 +2,15 @@ name: Code Review Action
 
 on:
   pull_request:
-    types: [review_requested]
+    types: [review_requested, opened, ready_for_review]
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Debug: manually run the code review trigger on a specific existing PR"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -12,23 +18,40 @@ permissions:
   issues: write
 
 concurrency:
-  group: code-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  group: code-review-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
   respond:
     runs-on: ubuntu-latest
     # Placeholder scaffold for #13163 -- trigger wiring only, no review logic yet.
-    # Both paths are staff-gated: requesting @openlibrary-bot as a reviewer, or
-    # @-mentioning it in a PR comment. Staff list mirrors pr_autoresponder.yml /
-    # issue_enrichment.md's blessed list. openlibrary-bot's own account type is
-    # "User", not "Bot" (see #13161/#13165) -- excluded explicitly by login,
-    # not by type/is_bot, which we've already found unreliable for this account.
+    #
+    # Three trigger paths:
+    #   1. review_requested with openlibrary-bot as the reviewer -- covers both a
+    #      human manually requesting it, and auto_assign_reviewer.yml's automated
+    #      request. No staff-login check here: requesting *any* reviewer already
+    #      requires write/triage access on GitHub's side, so this isn't an open door.
+    #   2. opened / ready_for_review where the PR's own author is openlibrary-bot --
+    #      GitHub rejects requesting a PR's own author as a reviewer (422), so a
+    #      self-authored PR can never reach this workflow via path 1. This is the
+    #      direct substitute for "add openlibrary-bot as a reviewer on its own PR",
+    #      which is not literally possible.
+    #   3. issue_comment @-mention on a PR -- open to any commenter, including
+    #      external contributors with only read access, so this path keeps an
+    #      explicit staff allowlist (mirrors pr_autoresponder.yml / issue_enrichment.md).
+    #
+    # Draft PRs never trigger a review, on any path -- enforced again defensively
+    # inside the job itself (see Step 1), since issue_comment's payload has no
+    # PR draft field to check at the `if:` level.
     if: >
+      github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'pull_request' &&
-        github.event.requested_reviewer.login == 'openlibrary-bot' &&
-        contains(fromJSON('["mekarpeles","cdrini","jimchamp","hornc","scottbarnes","seabelis","RayBB","lokesh"]'), github.event.sender.login)
+        !github.event.pull_request.draft &&
+        (
+          github.event.requested_reviewer.login == 'openlibrary-bot' ||
+          github.event.pull_request.user.login == 'openlibrary-bot'
+        )
       ) || (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
@@ -41,16 +64,49 @@ jobs:
         uses: actions/github-script@v9
         with:
           script: |
-            const prNumber = context.payload.pull_request
-              ? context.payload.pull_request.number
-              : context.payload.issue.number;
-            const trigger = context.eventName === 'pull_request'
-              ? 'a reviewer request'
-              : 'an @-mention';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.eventName === 'workflow_dispatch'
+              ? Number(context.payload.inputs.pr_number)
+              : (context.payload.pull_request
+                  ? context.payload.pull_request.number
+                  : context.payload.issue.number);
+
+            // Defensive draft check -- issue_comment's payload has no PR draft
+            // field, and this also re-confirms the pull_request-path checks
+            // above in case GitHub's payload state lagged the actual PR state.
+            const { data: pr } = await github.rest.pulls.get({
+              owner, repo, pull_number: prNumber,
+            });
+            if (pr.draft) {
+              core.info(`PR #${prNumber} is a draft -- skipping.`);
+              return;
+            }
+
+            // Idempotency: this workflow can be reached by multiple overlapping
+            // paths (e.g. opened -> auto-assign -> review_requested), so guard
+            // against posting more than one placeholder.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber, per_page: 100,
+            });
+            if (comments.some((c) => (c.body || '').includes('<!-- ol-pr-review-bot -->'))) {
+              core.info(`PR #${prNumber} already has a placeholder comment -- skipping.`);
+              return;
+            }
+
+            let trigger;
+            if (context.eventName === 'workflow_dispatch') {
+              trigger = 'a manual debug dispatch';
+            } else if (context.eventName === 'issue_comment') {
+              trigger = 'an @-mention';
+            } else if (pr.user.login === 'openlibrary-bot') {
+              trigger = 'its own PR being opened (self-authored, cannot request itself as reviewer)';
+            } else {
+              trigger = 'a reviewer request';
+            }
+
             await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
+              owner, repo, issue_number: prNumber,
               body: [
                 `👀 Code review was requested via ${trigger}, but the automated reviewer isn't built yet — tracked in #13163.`,
                 '',
