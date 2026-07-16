@@ -193,3 +193,12 @@
     top: 35px; /* @compact-title-height */
   }
 }
+
+.nav-bar-banner.desktop-only {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.nav-bar-banner.mobile-only {
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
+}

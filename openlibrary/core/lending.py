@@ -1045,3 +1045,84 @@ class IA_Lending_API:
 
 
 ia_lending_api = IA_Lending_API()
+
+
+@public
+def get_lending_state(doc, user=None, check_loan_status=False) -> str:
+    """Resolves the user-facing lending/availability state of a document (Work, Edition, or Solr dict).
+
+    Returns one of: "borrowed", "partner", "open", "printdisabled", "borrowable", "waitlist", "checkedout", "preview_only", "locate"
+    """
+    availability = doc.availability if hasattr(doc, "availability") else (doc.get("availability") if hasattr(doc, "get") else None)
+    if not availability:
+        availability = {}
+
+    ocaid = doc.get("ocaid") if hasattr(doc, "get") else getattr(doc, "ocaid", None)
+    if not ocaid and hasattr(availability, "get"):
+        ocaid = availability.get("identifier")
+
+    # 1. Cheap check: Active loan already in doc
+    user_loan = doc.get("loan") if hasattr(doc, "get") else getattr(doc, "loan", None)
+    if user_loan:
+        return "borrowed"
+
+    # 2. Cheap check: Book provider is not IA
+    from openlibrary.book_providers import get_book_provider
+
+    book_provider = get_book_provider(doc)
+    bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
+    if book_provider and bp_short_name != "ia":
+        return "partner"
+
+    # 3. Cheap check: Book is open/publicly readable
+    if availability.get("is_readable") or availability.get("status") == "open":
+        return "open"
+
+    # 4. Defer checking DB for user active loan
+    if not user_loan and check_loan_status and ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+
+            user = get_current_user()
+        if user:
+            user_loan = user.get_loan_for(ocaid, use_cache=True)
+            if user_loan:
+                return "borrowed"
+
+    # 5. Check print-disabled user
+    if ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+
+            user = get_current_user()
+        if user and user.is_printdisabled():
+            return "printdisabled"
+
+    # 6. Check lendable books
+    if availability.get("is_lendable"):
+        if availability.get("available_to_borrow") or availability.get("available_to_browse"):
+            return "borrowable"
+
+        is_waiting = False
+        if not availability.get("available_to_waitlist") and check_loan_status and ocaid:
+            if user is None:
+                from openlibrary.accounts import get_current_user
+
+                user = get_current_user()
+            if user:
+                waiting_loan = user.get_user_waiting_loans(ocaid, use_cache=True)
+                if waiting_loan:
+                    status = waiting_loan.get("status") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "status", None)
+                    position = waiting_loan.get("position") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "position", None)
+                    is_waiting = not (status == "available" and position == 1)
+
+        if availability.get("available_to_waitlist") or is_waiting:
+            return "waitlist"
+        else:
+            return "checkedout"
+
+    # 7. Check previewable
+    if ocaid and availability.get("is_previewable") and book_provider and bp_short_name == "ia":
+        return "preview_only"
+
+    return "locate"
