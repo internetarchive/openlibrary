@@ -28,7 +28,7 @@ services:
         condition: service_healthy
       infobase:
         condition: service_started
-      ghostwriter:
+      mockservices:
         condition: service_healthy
 
   fast_web:
@@ -165,10 +165,10 @@ services:
       db:
         condition: service_healthy
 
-  ghostwriter:
+  mockservices:
     build:
       context: .
-      dockerfile: docker/ghostwriter/Dockerfile
+      dockerfile: docker/mockservices/Dockerfile
     networks:
       - webnet
     ports:

@@ -1,17 +1,17 @@
 """
-End-to-end tests against the live ghostwriter container.
+End-to-end tests against the live mockservices container.
 
-Requires the ghostwriter container to be up and reachable. Starting `web`
-also starts `ghostwriter` (see compose.override.yaml's `depends_on`):
+Requires the mockservices container to be up and reachable. Starting `web`
+also starts `mockservices` (see compose.override.yaml's `depends_on`):
 
     OL_MOUNT_DIR=$(pwd) docker compose up -d web
 
 Run from a container on the `webnet` docker network (e.g. `home`), which
-can reach ghostwriter directly by service name:
+can reach mockservices directly by service name:
 
-    docker compose run --rm home pytest docker/ghostwriter/tests/test_e2e.py -v
+    docker compose run --rm home pytest docker/mockservices/tests/test_e2e.py -v
 
-Each test hits ghostwriter with the exact wire format the real OL client
+Each test hits mockservices with the exact wire format the real OL client
 code sends (see openlibrary/accounts/model.py, openlibrary/core/lending.py),
 not just what's convenient to construct.
 """
@@ -21,31 +21,31 @@ import os
 import pytest
 import requests
 
-GHOSTWRITER_URL = os.environ.get("GHOSTWRITER_URL", "http://ghostwriter:8090")
+MOCKSERVICES_URL = os.environ.get("MOCKSERVICES_URL", "http://mockservices:8090")
 
 
 def _get(path, **kwargs):
-    return requests.get(f"{GHOSTWRITER_URL}{path}", timeout=5, **kwargs)
+    return requests.get(f"{MOCKSERVICES_URL}{path}", timeout=5, **kwargs)
 
 
 def _post(path, **kwargs):
-    return requests.post(f"{GHOSTWRITER_URL}{path}", timeout=5, **kwargs)
+    return requests.post(f"{MOCKSERVICES_URL}{path}", timeout=5, **kwargs)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _require_ghostwriter():
+def _require_mockservices():
     try:
         resp = _get("/health")
     except requests.ConnectionError:
-        pytest.skip(f"ghostwriter not reachable at {GHOSTWRITER_URL} — is docker compose up?")
+        pytest.skip(f"mockservices not reachable at {MOCKSERVICES_URL} — is docker compose up?")
     if resp.status_code != 200:
-        pytest.skip("ghostwriter did not report healthy")
+        pytest.skip("mockservices did not report healthy")
 
 
 def test_health():
     resp = _get("/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "ok", "service": "ol-ghostwriter"}
+    assert resp.json() == {"status": "ok", "service": "ol-mockservices"}
 
 
 class TestXauthn:
