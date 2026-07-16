@@ -30,12 +30,9 @@ class subjects(delegate.page):
         if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
-        # this needs to be updated to include:
-        # q=public_scan_b:true+OR+lending_edition_s:*
         subj = get_subject(
             key,
             details=True,
-            filters={"public_scan_b": "false", "lending_edition_s": "*"},
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -247,7 +244,7 @@ class SubjectEngine:
                 "has_fulltext",
                 "subject",
                 "ia_collection",
-                "public_scan_b",
+                "ebook_access",
                 "lending_edition_s",
                 "lending_identifier_s",
             ],
@@ -379,7 +376,7 @@ class SubjectEngine:
             authors=[web.storage(key=f"/authors/{olid}", name=name) for olid, name in zip(w.get("author_key", []), w.get("author_name", []))],
             first_publish_year=w.get("first_publish_year"),
             ia=w.get("ia", [None])[0],
-            public_scan=w.get("public_scan_b", bool(w.get("ia"))),
+            public_scan=w.get("ebook_access") == "public",
             has_fulltext=w.get("has_fulltext", False),
         )
 

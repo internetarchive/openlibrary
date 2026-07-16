@@ -347,10 +347,6 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def has_fulltext(self) -> bool:
         return self.ebook_access > bp.EbookAccess.UNCLASSIFIED
 
-    @property
-    def public_scan_b(self) -> bool:
-        return self.ebook_access == bp.EbookAccess.PUBLIC
-
     def build(self) -> SolrDocument:
         """
         Build the solr document for the given edition to store as a nested
@@ -404,7 +400,6 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "ebook_access": self.ebook_access.to_solr_str(),
                 "ebook_provider": self.ebook_provider,
                 "has_fulltext": self.has_fulltext,
-                "public_scan_b": self.public_scan_b,
             },
         )
 

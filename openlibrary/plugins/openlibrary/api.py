@@ -745,7 +745,7 @@ class opds_home(delegate.page):
                     Catalog.create(
                         metadata=Metadata(title=_("Classic Books")),
                         response=provider.search(
-                            query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false -subject:"content_warning:cover"',
+                            query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] ebook_access:public -subject:"content_warning:cover"',
                             sort="trending",
                             limit=25,
                         ),

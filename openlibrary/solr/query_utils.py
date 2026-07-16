@@ -34,10 +34,35 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         raise NotImplementedError(f"Not implemented for Item subclass: {parent.__class__.__name__}")
 
 
+def luqum_get_head(item: Item) -> str:
+    """
+    Whitespace could be attached anywhere recursively
+    """
+    head = item.head
+    if item.children:
+        head += luqum_get_head(item.children[0])
+    return head
+
+
+def luqum_get_tail(item: Item) -> str:
+    """
+    Whitespace could be attached anywhere recursively
+    """
+    tail = item.tail
+    if item.children:
+        tail = luqum_get_tail(item.children[-1]) + tail
+    return tail
+
+
 def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
     """
     Replaces a child in a luqum parse tree.
     """
+    # Preserve the old child's surrounding whitespace so re-serializing the
+    # tree doesn't concatenate tokens together.
+    new_child.head = luqum_get_head(old_child)
+    new_child.tail = luqum_get_tail(old_child)
+
     if isinstance(parent, (BaseOperation, Group, Unary)):
         new_children = tuple(new_child if c == old_child else c for c in parent.children)
         parent.children = new_children

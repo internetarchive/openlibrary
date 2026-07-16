@@ -502,7 +502,7 @@ class Work(models.Work):
             "first_publish_year",
             "has_fulltext",
             "lending_edition_s",
-            "public_scan_b",
+            "ebook_access",
         ] + get_solr_keys()
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)

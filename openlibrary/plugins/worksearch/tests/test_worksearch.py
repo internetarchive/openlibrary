@@ -33,7 +33,6 @@ def test_get_doc():
             "ia": ["computerglossary00free"],
             "key": "/works/OL1820355W",
             "lending_edition_s": "OL1111795M",
-            "public_scan_b": False,
             "title": "The computer glossary",
             "ratings_average": None,
             "ratings_count": None,

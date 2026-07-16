@@ -117,7 +117,6 @@ def get_facet_map() -> tuple[tuple[str, str]]:
         ("person_facet", _("People")),
         ("place_facet", _("Places")),
         ("time_facet", _("Times")),
-        ("public_scan_b", _("Classic eBooks")),
     )
 
 
@@ -659,7 +658,7 @@ def get_doc(doc: SolrDocument):
         ia=doc.get("ia", []),
         collections=(doc.get("ia_collection") or []),
         has_fulltext=doc.get("has_fulltext", False),
-        public_scan=doc.get("public_scan_b", bool(doc.get("ia"))),
+        public_scan=doc.get("ebook_access") == "public",
         lending_edition=doc.get("lending_edition_s", None),
         lending_identifier=doc.get("lending_identifier_s", None),
         authors=[
@@ -785,7 +784,6 @@ class search(delegate.page):
             person_facet=[],
             place_facet=[],
             time_facet=[],
-            public_scan_b=[],
         )
 
         # Send to full-text Search Inside if checkbox checked

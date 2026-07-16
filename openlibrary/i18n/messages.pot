@@ -6724,14 +6724,6 @@ msgid "Published by"
 msgstr ""
 
 #: search/work_search_selected_facets.html
-msgid "Only Classic eBooks"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBooks hidden"
-msgstr ""
-
-#: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
 msgstr ""
@@ -8755,9 +8747,5 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "First published"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/code.py
-msgid "Classic eBooks"
 msgstr ""
 

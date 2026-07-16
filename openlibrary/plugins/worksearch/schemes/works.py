@@ -77,6 +77,7 @@ class WorkSearchScheme(SearchScheme):
             "place",
             "time",
             "has_fulltext",
+            "public_scan_b",
             "title_suggest",
             "publish_year",
             "language",
@@ -129,7 +130,6 @@ class WorkSearchScheme(SearchScheme):
             "person_facet",
             "place_facet",
             "time_facet",
-            "public_scan_b",
         }
     )
     field_name_map = MappingProxyType(
@@ -211,7 +211,6 @@ class WorkSearchScheme(SearchScheme):
             "first_publish_year",
             "cover_i",
             "cover_edition_key",
-            "public_scan_b",
             "lending_edition_s",
             "lending_identifier_s",
             "language",
@@ -231,6 +230,8 @@ class WorkSearchScheme(SearchScheme):
         {
             ("public_scan", "true"): "ebook_access:public",
             ("public_scan", "false"): "-ebook_access:public",
+            ("public_scan_b", "true"): "ebook_access:public",
+            ("public_scan_b", "false"): "-ebook_access:public",
             ("print_disabled", "true"): "ebook_access:printdisabled",
             ("print_disabled", "false"): "-ebook_access:printdisabled",
             (
@@ -280,12 +281,27 @@ class WorkSearchScheme(SearchScheme):
                 has_search_fields = True
                 if node.name.lower() in self.field_name_map:
                     node.name = self.field_name_map[node.name.lower()]
+
                 if node.name == "isbn":
                     isbn_transform(node)
-                if node.name in ("lcc", "lcc_sort"):
+                elif node.name in ("lcc", "lcc_sort"):
                     lcc_transform(node)
-                if node.name in ("dcc", "dcc_sort"):
+                elif node.name in ("dcc", "dcc_sort"):
                     ddc_transform(node)
+
+                field_val = node.children[0]
+                if isinstance(field_val, (luqum.tree.Word, luqum.tree.Phrase)):
+                    val = str(field_val.value).strip('"').lower()
+                    if rewrite := self.facet_rewrites.get((node.name, val)):
+                        if callable(rewrite):
+                            rewrite = rewrite()
+                        if not rewrite.startswith("("):
+                            rewrite = f"({rewrite})"
+                        new_node = luqum_parser(rewrite)
+                        if parents:
+                            luqum_replace_child(parents[-1], node, new_node)
+                        else:
+                            q_tree = new_node
 
         if not has_search_fields:
             # If there are no search fields, maybe we want just an isbn?
@@ -413,7 +429,6 @@ class WorkSearchScheme(SearchScheme):
                 "ia": "ia",
                 "ia_collection": "ia_collection",
                 "ia_box_id": "ia_box_id",
-                "public_scan_b": "public_scan_b",
             }
 
             def convert_work_field_to_edition_field(
