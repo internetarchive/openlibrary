@@ -15,11 +15,11 @@ import sys
 from time import time
 from urllib.parse import parse_qs, quote, urlencode
 
+import infogami
 import requests
 import web
 import yaml
 
-import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -39,7 +39,6 @@ if not hasattr(infogami.config, "features"):
     infogami.config.features = []  # type: ignore[attr-defined]
 
 
-import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features, i18n, macro, template
@@ -51,6 +50,8 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+
+import openlibrary.core.stats
 from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
@@ -1142,7 +1143,6 @@ def setup_template_globals():
             "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
-            "get_lending_state": get_lending_state,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
