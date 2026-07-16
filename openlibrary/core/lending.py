@@ -195,6 +195,43 @@ def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
 
+def get_loan_changes(
+    after_uid: int,
+    limit: int = 1000,
+    s3_keys: dict | None = None,
+) -> dict:
+    """Fetch loan events with uid > after_uid from IA's loan changes API.
+
+    Returns a dict with 'status', 'latest_uid', and 'rows'.
+    Each row: {'time', 'identifier', 'username', 'loan_id', 'event_type', 'extra', 'uid'}.
+    The 'extra' field is a JSON string; parse it for 'until' (loan expiry).
+
+    :param after_uid: Return events with uid strictly greater than this value.
+    :param limit: Max rows per page (max 1000 per IA API contract).
+    :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
+                    defaults to config_ia_ol_metadata_write_s3.
+    """
+    url = S3_LOAN_URL % config_bookreader_host
+    params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
+
+    if s3_keys:
+        auth = "LOW {access}:{secret}".format(**s3_keys)
+    elif config_ia_ol_metadata_write_s3:
+        auth = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+    else:
+        auth = None
+
+    headers = {"Authorization": auth} if auth else {}
+    response = requests.get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=config_http_request_timeout or 10,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
