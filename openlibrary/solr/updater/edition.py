@@ -378,24 +378,24 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         ).evaluate()
 
     @cached_property
-    def _scorecard(self) -> EditionScorecard:
+    def _usefulness_scorecard(self) -> EditionScorecard:
         return self.get_scorecard()
 
     @property
     def access_score(self) -> int:
-        return self._scorecard.access.score
+        return self._usefulness_scorecard.access.score_normalized
 
     @property
     def discovery_score(self) -> int:
-        return self._scorecard.discovery.score
+        return self._usefulness_scorecard.discovery.score_normalized
 
     @property
     def evaluation_score(self) -> int:
-        return self._scorecard.evaluation.score
+        return self._usefulness_scorecard.evaluation.score_normalized
 
     @property
     def usefulness_score(self) -> int:
-        return self.access_score + self.discovery_score + self.evaluation_score
+        return self._usefulness_scorecard.score_normalized
 
     def build(self, exclude: list[str] | None = None) -> SolrDocument:
         """

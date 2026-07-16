@@ -3,7 +3,7 @@ import typing
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import yaml
 
@@ -42,6 +42,11 @@ class ScorecardSection:
         """Calculates the total score based on the passing checks."""
         return sum(check.score for check in self.passing_checks)
 
+    @property
+    def score_normalized(self) -> int:
+        """Calculates the total score based on the passing checks, normalized to be out of 100."""
+        return 100 * self.score // self.max_score
+
     @cached_property
     def max_score(self) -> int:
         """Calculates the maximum possible score based on the defined checks."""
@@ -59,7 +64,7 @@ class ScorecardSection:
         """Returns a list of ScorecardCheck instances representing the metadata quality checks."""
         checks = []
         for attr_name in dir(self):
-            if attr_name in ("score", "max_score", "passing_checks"):
+            if attr_name in ("score", "score_normalized", "max_score", "passing_checks"):
                 continue
 
             attr_value = getattr(self, attr_name)
@@ -89,7 +94,7 @@ class Scorecard(ScorecardSection):
         # Handle nested sections by recursively gathering checks from any ScorecardSection attributes
         checks = []
         for attr_name in dir(self):
-            if attr_name in ("score", "max_score", "passing_checks"):
+            if attr_name in ("score", "score_normalized", "max_score", "passing_checks"):
                 continue
 
             attr_value = getattr(self, attr_name)
@@ -103,7 +108,7 @@ class Scorecard(ScorecardSection):
         """Returns a list of ScorecardSection instances representing the different sections of the scorecard."""
         sections = []
         for attr_name in dir(self):
-            if attr_name in ("score", "max_score", "passing_checks"):
+            if attr_name in ("score", "score_normalized", "max_score", "passing_checks"):
                 continue
 
             attr_value = getattr(self, attr_name)
@@ -125,7 +130,7 @@ class ScorecardEvaluator[S: Scorecard]:
     scorecard_cls: ClassVar[type]
 
     def evaluate(self) -> S:
-        scorecard = self.scorecard_cls()
+        scorecard = cast(S, self.scorecard_cls())
         for section in scorecard.get_sections():
             for check in section.get_checks():
                 section.set_check(check, getattr(self, check.name))
