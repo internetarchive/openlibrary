@@ -382,20 +382,36 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return self.get_scorecard()
 
     @property
+    def usefulness_score(self) -> int:
+        return self._usefulness_scorecard.score
+
+    @property
+    def usefulness_score_normalized(self) -> int:
+        return self._usefulness_scorecard.score_normalized
+
+    @property
     def access_score(self) -> int:
+        return self._usefulness_scorecard.access.score
+
+    @property
+    def access_score_normalized(self) -> int:
         return self._usefulness_scorecard.access.score_normalized
 
     @property
     def discovery_score(self) -> int:
+        return self._usefulness_scorecard.discovery.score
+
+    @property
+    def discovery_score_normalized(self) -> int:
         return self._usefulness_scorecard.discovery.score_normalized
 
     @property
     def evaluation_score(self) -> int:
-        return self._usefulness_scorecard.evaluation.score_normalized
+        return self._usefulness_scorecard.evaluation.score
 
     @property
-    def usefulness_score(self) -> int:
-        return self._usefulness_scorecard.score_normalized
+    def evaluation_score_normalized(self) -> int:
+        return self._usefulness_scorecard.evaluation.score_normalized
 
     def build(self, exclude: list[str] | None = None) -> SolrDocument:
         """
@@ -448,10 +464,15 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             "format": [self.format] if self.format else None,
             "publish_date": [self.publish_date] if self.publish_date else None,
             "publish_year": [self.publish_year] if self.publish_year else None,
-            "access_score": self.access_score,
-            "discovery_score": self.discovery_score,
-            "evaluation_score": self.evaluation_score,
+            # Usefulness scores
             "usefulness_score": self.usefulness_score,
+            "usefulness_score_normalized": self.usefulness_score_normalized,
+            "access_score": self.access_score,
+            "access_score_normalized": self.access_score_normalized,
+            "discovery_score": self.discovery_score,
+            "discovery_score_normalized": self.discovery_score_normalized,
+            "evaluation_score": self.evaluation_score,
+            "evaluation_score_normalized": self.evaluation_score_normalized,
             # Identifiers
             "isbn": self.isbn,
             "lccn": self.lccn,
