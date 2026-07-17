@@ -9,6 +9,7 @@ OVERRIDES = {
     "printdisabled_s": "Optional[str]",
     "lending_edition_s": "Optional[str]",
     "ebook_count_i": "Optional[int]",
+    "last_modified_i": "Optional[int]",
 }
 
 

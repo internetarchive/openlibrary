@@ -22,9 +22,14 @@ concurrency:
 jobs:
   enrich:
     runs-on: ubuntu-latest
+    # openlibrary-bot's account type is "User", not "Bot" (confirmed via the
+    # GitHub API), so `user.type != 'Bot'` alone does NOT exclude it -- it
+    # only catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc).
+    # The explicit login check below is required to skip our own bot's issues.
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.issue.user.type != 'Bot' &&
+       github.event.issue.user.login != 'openlibrary-bot' &&
        !contains(github.event.issue.labels.*.name, 'agentic-workflows'))
     steps:
       - uses: actions/checkout@v4
@@ -43,3 +48,9 @@ jobs:
             Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh api:*) Bash(gh label list:*)"
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.OL_BOT_PAT }}
+          # Issues are opened by any public contributor, most of whom have only
+          # read access. claude-code-action's default actor-permission check
+          # requires write access, so it rejects every issue except ones filed
+          # by maintainers -- defeating the workflow's purpose. Bypass is safe
+          # here since --allowedTools is already scoped to issue-only operations.
+          allowed_non_write_users: "*"

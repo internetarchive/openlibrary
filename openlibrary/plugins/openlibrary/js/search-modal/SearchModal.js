@@ -7,7 +7,6 @@ import { repeat } from 'lit/directives/repeat.js';
 // modules here — re-running customElements.define() throws NotSupportedError.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
-import { mode as searchMode } from '../SearchUtils.js';
 import { trackEvent } from '../ol.analytics.js';
 import {
     AVAILABILITY_OPTIONS,
@@ -1724,13 +1723,12 @@ export class SearchModal extends LitElement {
             });
     }
 
-    // q + mode + spellcheck shared by every /search.json request the modal makes;
+    // q + spellcheck shared by every /search.json request the modal makes;
     // callers layer on limit/fields and the availability/language filters.
     _baseSearchParams(query) {
         const params = new URLSearchParams();
         params.set('q', query);
         params.set('_spellcheck_count', '0');
-        params.set('mode', searchMode.read());
         return params;
     }
 
@@ -1758,7 +1756,6 @@ export class SearchModal extends LitElement {
 
         const params = new URLSearchParams();
         params.set('q', trimmed);
-        params.set('mode', searchMode.read());
         this._appendFilterParams(params);
         return `/search?${params.toString()}`;
     }

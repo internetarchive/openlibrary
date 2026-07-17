@@ -321,8 +321,6 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
         assert existing.type.key == "/type/author"
-        for k in "last_modified", "id", "revision", "created":
-            existing._data.pop(k, None)
         new = existing
         if "death_date" in author_import_record and "death_date" not in existing:
             new["death_date"] = author_import_record["death_date"]
