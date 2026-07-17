@@ -5,7 +5,8 @@ import { LitElement, html, css, nothing } from 'lit';
  *
  * Items are passed as direct children. The component controls their width
  * based on responsive breakpoints, shows peek areas at the edges, and
- * provides arrow buttons and bar-segment indicators for navigation.
+ * provides arrow buttons and bar-segment indicators for navigation. Pointer
+ * drag, touch swipe, and a two-finger horizontal trackpad swipe all page too.
  *
  * All motion (button clicks, swipe release) uses spring physics via
  * requestAnimationFrame for natural momentum and deceleration.
@@ -285,6 +286,18 @@ export class OlCarousel extends LitElement {
      *  faster than any real finger could. */
     static _maxVelocity = 4;
 
+    /** Net horizontal wheel distance (px) a two-finger trackpad swipe must
+     *  accumulate within one gesture before it flips a page. Higher = the
+     *  swipe has to be more deliberate; lower = the carousel pages on the
+     *  slightest sideways drift. See _onWheel. */
+    static _wheelPageThreshold = 40;
+
+    /** Idle gap (ms) with no wheel event that marks a trackpad gesture as
+     *  finished, freeing the next swipe to page again. Must outlast the
+     *  trackpad's post-release momentum tail — otherwise one hard flick keeps
+     *  paging as inertia events keep arriving. */
+    static _wheelGestureEndDelay = 150;
+
     /** Apply rubber-band resistance when position exceeds bounds.
      *  Uses an iOS-style formula: overscroll is dampened asymptotically
      *  so the track resists increasingly as you drag further out.
@@ -354,11 +367,20 @@ export class OlCarousel extends LitElement {
         this._animationFrame = null;
         this._springVel = 0;
 
+        // Horizontal wheel (two-finger trackpad swipe) paging state. Discrete:
+        // one page per gesture. _wheelLocked flips true once a gesture has
+        // paged, swallowing the rest of it (including the momentum tail);
+        // _wheelEndTimer clears both after the gesture goes idle. See _onWheel.
+        this._wheelAccumX = 0;
+        this._wheelLocked = false;
+        this._wheelEndTimer = null;
+
         this._onPointerDown = this._onPointerDown.bind(this);
         this._onPointerMove = this._onPointerMove.bind(this);
         this._onPointerUp = this._onPointerUp.bind(this);
         this._onPointerCancel = this._onPointerCancel.bind(this);
         this._onTouchMove = this._onTouchMove.bind(this);
+        this._onWheel = this._onWheel.bind(this);
         this._onClickCapture = this._onClickCapture.bind(this);
         this._onIntent = this._onIntent.bind(this);
         this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
@@ -407,6 +429,7 @@ export class OlCarousel extends LitElement {
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
         this._cancelAnimation();
+        clearTimeout(this._wheelEndTimer);
     }
 
     firstUpdated() {
@@ -769,6 +792,59 @@ export class OlCarousel extends LitElement {
         }
     }
 
+    // ── Horizontal wheel / two-finger trackpad swipe ──
+    //
+    // A two-finger horizontal trackpad swipe reaches the page as `wheel`
+    // events carrying deltaX. (A plain mouse wheel reports deltaX ≈ 0, so it
+    // never triggers this and keeps scrolling the page vertically — we get the
+    // trackpad-vs-mouse split for free without sniffing the device.)
+    //
+    // Discrete paging (Approach A): one page per gesture, however far the
+    // swipe travels. We don't map the swipe onto a live track offset — that's
+    // the higher-risk free-scroll model. Here a gesture just decides a
+    // direction and flips one page, reusing the same spring as the arrows.
+    //
+    // Owning the gesture (preventDefault) matters on macOS, where a horizontal
+    // two-finger swipe over the page otherwise triggers browser history
+    // back/forward. We only claim events whose horizontal component dominates,
+    // so vertical page scrolling is never disturbed.
+    _onWheel(e) {
+        // A pointer drag and a wheel gesture must not run at once.
+        if (this._dragging) return;
+
+        // Only claim clearly-horizontal intent; let vertical scroll through.
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+
+        // Own the horizontal gesture: no sideways page scroll, no history swipe.
+        e.preventDefault();
+
+        // Every event — including the post-release momentum tail — pushes the
+        // "gesture ended" debounce out, so one physical swipe stays one gesture.
+        clearTimeout(this._wheelEndTimer);
+        this._wheelEndTimer = setTimeout(() => {
+            this._wheelLocked = false;
+            this._wheelAccumX = 0;
+        }, OlCarousel._wheelGestureEndDelay);
+
+        // Once the gesture has paged, swallow the rest of it (incl. momentum).
+        if (this._wheelLocked) return;
+
+        // Normalise line/page deltas to pixels so non-pixel wheels still accrue
+        // toward the threshold. Trackpads report pixels (deltaMode 0) already.
+        const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? this.clientWidth : 1;
+        this._wheelAccumX += e.deltaX * unit;
+
+        if (Math.abs(this._wheelAccumX) < OlCarousel._wheelPageThreshold) return;
+
+        this._wheelLocked = true;
+        // deltaX > 0 is a rightward swipe (reveal content to the right) → next.
+        if (this._wheelAccumX > 0) {
+            this.next();
+        } else {
+            this.prev();
+        }
+    }
+
     _onPointerMove(e) {
         if (!this._dragging || e.pointerId !== this._pointerId) return;
 
@@ -1063,6 +1139,7 @@ export class OlCarousel extends LitElement {
                     aria-live="polite"
                     aria-atomic="false"
                     @pointerdown=${this._onPointerDown}
+                    @wheel=${this._onWheel}
                     @dragstart=${(e) => e.preventDefault()}
                 >
                     <div class="edge-fade prev" ?hidden=${!showPrev}></div>

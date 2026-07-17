@@ -47,6 +47,10 @@ function keyEvent(key) {
     return { key, preventDefault: jest.fn() };
 }
 
+function wheelEvent(deltaX, deltaY = 0, overrides = {}) {
+    return { deltaX, deltaY, deltaMode: 0, preventDefault: jest.fn(), ...overrides };
+}
+
 afterEach(() => {
     jest.restoreAllMocks();
 });
@@ -280,5 +284,83 @@ describe('OlCarousel indicator keyboard navigation', () => {
 
         expect(el._page).toBe(0);
         expect(e.preventDefault).not.toHaveBeenCalled();
+    });
+});
+
+describe('OlCarousel horizontal wheel (trackpad swipe)', () => {
+    test('a horizontal swipe past the threshold pages forward and is consumed', () => {
+        const { el, pageChanges } = createCarousel();
+
+        const e = wheelEvent(50, 2); // dx 50 ≫ dy 2, over 40px threshold
+        el._onWheel(e);
+
+        expect(el._page).toBe(1);
+        expect(pageChanges).toEqual([{ page: 1, totalPages: 4 }]);
+        expect(e.preventDefault).toHaveBeenCalled();
+    });
+
+    test('a leftward swipe pages backward', () => {
+        const { el } = createCarousel();
+        el._page = 2;
+        el._currentPos = el._getOffsetForPage(2);
+
+        el._onWheel(wheelEvent(-50));
+
+        expect(el._page).toBe(1);
+    });
+
+    test('vertical-dominant wheel is left to the page (not consumed, no paging)', () => {
+        const { el, pageChanges } = createCarousel();
+
+        const e = wheelEvent(5, 60); // dy 60 ≫ dx 5
+        el._onWheel(e);
+
+        expect(el._page).toBe(0);
+        expect(pageChanges).toEqual([]);
+        expect(e.preventDefault).not.toHaveBeenCalled();
+    });
+
+    test('accumulated horizontal drift under the threshold does not page', () => {
+        const { el } = createCarousel();
+
+        el._onWheel(wheelEvent(12, 1));
+        el._onWheel(wheelEvent(12, 1));
+        el._onWheel(wheelEvent(12, 1)); // 36px total, still under 40
+
+        expect(el._page).toBe(0);
+    });
+
+    test('one gesture pages once even as momentum keeps firing events', () => {
+        const { el } = createCarousel();
+
+        el._onWheel(wheelEvent(50)); // crosses threshold → page 1, locks
+        el._onWheel(wheelEvent(50)); // momentum tail
+        el._onWheel(wheelEvent(50)); // momentum tail
+
+        expect(el._page).toBe(1);
+    });
+
+    test('after the gesture goes idle, a fresh swipe pages again', () => {
+        jest.useFakeTimers();
+        const { el } = createCarousel();
+
+        el._onWheel(wheelEvent(50)); // → page 1, locks
+        el._onWheel(wheelEvent(50)); // swallowed
+        expect(el._page).toBe(1);
+
+        jest.advanceTimersByTime(200); // outlast _wheelGestureEndDelay (150ms)
+
+        el._onWheel(wheelEvent(50)); // new gesture → page 2
+        expect(el._page).toBe(2);
+
+        jest.useRealTimers();
+    });
+
+    test('line-mode deltas are normalised so a small line count still pages', () => {
+        const { el } = createCarousel();
+
+        el._onWheel(wheelEvent(3, 0, { deltaMode: 1 })); // 3 lines × 16 = 48px
+
+        expect(el._page).toBe(1);
     });
 });
