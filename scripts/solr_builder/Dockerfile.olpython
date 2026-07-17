@@ -1,14 +1,15 @@
 FROM openlibrary/olbase:latest
-ARG PIP_INDEX_URL
-ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
+ARG UV_DEFAULT_INDEX
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
+USER openlibrary
+COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
+# .venv already exists from olbase; just install the extra test dependencies
+RUN uv sync --frozen --no-install-project --extra test
 USER root
-COPY requirements*.txt ./
-RUN uv pip install -r requirements_test.txt
 
 WORKDIR /openlibrary/scripts/solr_builder
 

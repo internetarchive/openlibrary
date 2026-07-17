@@ -8,11 +8,6 @@
   "git-submodules": {
     "enabled": true
   },
-  "pip_requirements": {
-    "managerFilePatterns": [
-      "/(^|/)requirements[^/]*\\.txt$/"
-    ]
-  },
   "packageRules": [
     {
       "matchCategories": ["security"],
@@ -21,7 +16,7 @@
       "prConcurrentLimit": 0
     },
     {
-      "matchManagers": ["pip_requirements"],
+      "matchManagers": ["uv"],
       "matchUpdateTypes": ["patch", "minor"],
       "groupName": "Python dependencies (non-major)",
       "groupSlug": "python-non-major",

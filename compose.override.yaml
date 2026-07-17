@@ -17,6 +17,8 @@ services:
       - ol-build:/openlibrary/static/build
       # Persistent volume mount for node_modules
       - ol-nodemodules:/openlibrary/node_modules
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -39,6 +41,8 @@ services:
       # Debugger
       - 127.0.0.1:3001:3000
     volumes:
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -84,6 +88,8 @@ services:
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
@@ -116,6 +122,8 @@ services:
       - 7075:7075
     volumes:
       - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   infobase:
@@ -131,6 +139,8 @@ services:
     #  - 7000:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     depends_on:
       db:
@@ -156,6 +166,8 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
@@ -187,4 +199,5 @@ volumes:
   ol-vendor:
   ol-build:
   ol-nodemodules:
+  ol-venv:
   ol-postgres:
