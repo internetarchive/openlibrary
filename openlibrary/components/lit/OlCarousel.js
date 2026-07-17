@@ -104,12 +104,11 @@ export class OlCarousel extends LitElement {
         }
 
         /* ── Viewport ── */
-        /* The viewport owns the swipe gesture (pointerdown listener,
-           touch-action, user-select) rather than the track: once the track
-           is translated to another page, its own hit-box only covers the
-           peek sliver — gaps, padding, and inert off-page items would fall
-           through it, and iOS Safari hit-testing of overflowing children of
-           transformed elements is unreliable. The viewport never moves. */
+        /* The swipe gesture (pointerdown, touch-action, user-select) lives on
+           the viewport, which never moves, rather than the track, which slides
+           sideways when you page. A touch can land anywhere in the viewport and
+           still start a swipe; on the track it could miss (gaps, padding, items
+           slid off-page) or hit an iOS Safari bug with transformed elements. */
         .viewport {
             position: relative;
             overflow: hidden;
@@ -262,24 +261,28 @@ export class OlCarousel extends LitElement {
         precision: 0.02, // Threshold to snap to final position; lower = smoother finish, higher = earlier cutoff
     };
 
-    /** Movement (px) before a touch gesture is locked to an axis.
-     *  Kept small so the carousel claims horizontal swipes before the
-     *  browser commits the gesture to vertical page scrolling. */
+    /** How far a finger travels (px) before we decide whether it's a swipe
+     *  or a page scroll. Lower = the carousel commits to swipes faster, but
+     *  taps that wobble slightly can be mistaken for swipes. Higher = the
+     *  carousel feels less responsive to start a swipe. */
     static _axisLockThreshold = 8;
 
-    /** Horizontal bias for the axis lock. A gesture only goes to page
-     *  scrolling when |dy| > |dx| × this factor, so the carousel catches
-     *  angled swipes (2 ≈ anything within ~63° of horizontal) instead of
-     *  splitting at an unforgiving 45° — real thumb swipes drift vertically. */
+    /** How forgiving we are about diagonal swipes. Higher = angled swipes
+     *  still move the carousel instead of scrolling the page (2 catches
+     *  swipes up to ~63° off horizontal, which suits real thumb drags that
+     *  drift vertically). Lower = swipes must be more strictly horizontal. */
     static _horizontalBias = 2;
 
-    /** Minimum window (ms) between velocity samples. Coalesced pointer
-     *  events can arrive microseconds apart; dividing by such a tiny dt
-     *  produces absurd velocity spikes, so short gaps accumulate instead. */
+    /** Smallest time gap (ms) we'll use to gauge swipe speed. Raise it if
+     *  release momentum feels jumpy or unpredictable (very rapid-fire touch
+     *  events can otherwise register a wild, meaningless speed). Lower risks
+     *  those spikes; there's rarely a reason to go below this. */
     static _velocitySampleWindow = 4;
 
-    /** Release velocity is capped here (px/ms) so a single noisy sample
-     *  can never fling the track further than a hard real-world flick. */
+    /** Ceiling on how fast a swipe-release can fling the carousel (px/ms).
+     *  Lower = flings feel tamer and travel fewer pages. Higher = a hard
+     *  flick throws further, but a single glitchy reading can launch it
+     *  faster than any real finger could. */
     static _maxVelocity = 4;
 
     /** Apply rubber-band resistance when position exceeds bounds.
@@ -710,7 +713,7 @@ export class OlCarousel extends LitElement {
     //  - Preserve native click target resolution so <a> tags work normally
     //  - Work for both mouse and touch (touch has implicit capture anyway)
     //
-    // TOUCH GESTURE OWNERSHIP: the track's `touch-action: pan-y pinch-zoom`
+    // TOUCH GESTURE OWNERSHIP: the viewport's `touch-action: pan-y pinch-zoom`
     // leaves vertical panning to the browser, so a touch gesture starts out
     // ambiguous — it could become a carousel swipe or a page scroll. We
     // resolve it with an axis lock: the first _axisLockThreshold px of
