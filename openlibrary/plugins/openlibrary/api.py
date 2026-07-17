@@ -912,6 +912,7 @@ class unlink_ia_ol(delegate.page):
             )
 
 
+@deprecated("migrated to fastapi")
 class link_ia_ol(delegate.page):
     path = "/api/link"
     encoding = "json"
