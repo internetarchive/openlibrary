@@ -18,4 +18,4 @@
 # Remove this file once the associated PR branch is merged and the new
 # image has been published.
 
-python -c "import pydantic_settings" 2>/dev/null || python -m pip install -q --user 'pydantic-settings==2.9.1'
+python -c "import pydantic_settings" 2>/dev/null || python -m pip install -q --user --index-url "${PIP_INDEX_URL:-https://pypi.org/simple/}" 'pydantic-settings==2.9.1'
