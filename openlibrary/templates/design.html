@@ -24,6 +24,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#options-popover">Options Popover</a></li>
         <li><a href="#dialog">Dialog</a></li>
         <li><a href="#read-more">Read More</a></li>
+        <li><a href="#scorecard">Scorecard</a></li>
         <li>
           <a href="#chip-group">Chip Group</a>
           <ul class="design-pattern-nav__sublist">
@@ -235,6 +236,36 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         $:render_template("design/api_tables", components.get("ol-read-more"))
+      </article>
+
+      <article class="design-pattern" id="scorecard">
+        <h2 class="design-pattern__title">Scorecard</h2>
+        <p class="design-pattern__description">The ol-scorecard component displays a metadata quality scorecard as a tabbed set of sections, each listing the checks that make up its score.</p>
+
+        <section class="example">
+          <h3 class="example__title">Collapsed (default)</h3>
+          <p>Data is passed as a JSON <code>results</code> attribute (or property). Labels are individually translatable. Collapsed by default, showing a small ring proportional to the overall percentage — click it to expand.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-scorecard
+  results='{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[...]}'&gt;
+&lt;/ol-scorecard&gt;</code></pre>
+          <div class="example__output">
+            <ol-scorecard results='{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[{"name":"Access","score":75,"maxScore":100,"checks":[{"description":"Can be accessed in full online","details":"Borrowable and readable books can be accessed by readers, researchers, and all patrons alike.","score":50,"passing":true},{"description":"Has purchase options (ISBN available)","details":"An ISBN enables patrons to purchase the book from retailers.","score":25,"passing":true},{"description":"Has Wikipedia link","details":"A Wikipedia link provides additional context.","score":25,"passing":false}]},{"name":"Discovery","score":40,"maxScore":125,"checks":[{"description":"Has title field","details":"A title is essential for discovery.","score":50,"passing":true},{"description":"Has ISBN","details":"An ISBN enables discovery through library catalogs.","score":40,"passing":true},{"description":"Has genre tags","details":"Genre tags help patrons find similar books.","score":35,"passing":false}]}]}'></ol-scorecard>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Expanded</h3>
+          <p>Add the <code>expanded</code> attribute to render the full tabbed UI directly. Clicking the header collapses it back.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-scorecard
+  expanded
+  results='{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[...]}'&gt;
+&lt;/ol-scorecard&gt;</code></pre>
+          <div class="example__output">
+            <ol-scorecard expanded results='{"name":"Edition Scorecard","score":115,"maxScore":225,"sections":[{"name":"Access","score":75,"maxScore":100,"checks":[{"description":"Can be accessed in full online","details":"Borrowable and readable books can be accessed by readers, researchers, and all patrons alike.","score":50,"passing":true},{"description":"Has purchase options (ISBN available)","details":"An ISBN enables patrons to purchase the book from retailers.","score":25,"passing":true},{"description":"Has Wikipedia link","details":"A Wikipedia link provides additional context.","score":25,"passing":false}]},{"name":"Discovery","score":40,"maxScore":125,"checks":[{"description":"Has title field","details":"A title is essential for discovery.","score":50,"passing":true},{"description":"Has ISBN","details":"An ISBN enables discovery through library catalogs.","score":40,"passing":true},{"description":"Has genre tags","details":"Genre tags help patrons find similar books.","score":35,"passing":false}]}]}'></ol-scorecard>
+          </div>
+        </section>
+
+        $:render_template("design/api_tables", components.get("ol-scorecard"))
       </article>
 
       <article class="design-pattern" id="chip-group">
