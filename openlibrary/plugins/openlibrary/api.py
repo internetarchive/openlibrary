@@ -542,6 +542,7 @@ class hide_banner(delegate.page):
         return delegate.RawText(json.dumps({"success": "Preference saved"}), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class create_qrcode(delegate.page):
     path = "/qrcode"
 
