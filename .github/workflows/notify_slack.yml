@@ -50,7 +50,7 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.slack_token }}
           payload: |
-            channel: ${{ toJson(secrets.channel) }}
+            channel: ${{ secrets.channel }}
             text: ${{ toJson(inputs.message) }}
       - name: Reply into an existing thread
         if: ${{ inputs.thread_ts != '' && inputs.message != '' }}
@@ -59,7 +59,7 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.slack_token }}
           payload: |
-            channel: ${{ toJson(secrets.channel) }}
+            channel: ${{ secrets.channel }}
             thread_ts: ${{ toJson(inputs.thread_ts) }}
             text: ${{ toJson(inputs.message) }}
       - id: resolve
@@ -87,6 +87,6 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.slack_token }}
           payload: |
-            channel: ${{ toJson(secrets.channel) }}
+            channel: ${{ secrets.channel }}
             thread_ts: ${{ toJson(needs.publish_parent.outputs.ts) }}
             text: ${{ toJson(matrix.reply) }}
