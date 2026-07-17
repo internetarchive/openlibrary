@@ -45,7 +45,7 @@ jobs:
     if: ${{ needs.build_message.outputs.message != '' }}
     uses: ./.github/workflows/notify_slack.yml
     with:
-      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
       message: ${{ needs.build_message.outputs.message }}
     secrets:
       slack_token: ${{ secrets.SLACK_TOKEN }}
+      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
