@@ -28,7 +28,7 @@ $ page = int(input(page=1).page)
           $else:
             $ extra = ungettext('Logged %(count)i time %(time_unit)s', 'Logged %(count)i times %(time_unit)s', entry['cnt'], count=entry['cnt'], time_unit=pages[mode])
 
-          $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0)
+          $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0, include_dropper=True)
     </ul>
   </div>
   $:macros.OlPagination(page, total_pages=200 // 20)

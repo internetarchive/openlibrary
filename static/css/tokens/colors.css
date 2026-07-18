@@ -97,6 +97,18 @@
   --color-link-hover: var(--blue-700);
   --color-link-visited: var(--blue-800);
 
+  /* Environment badge & favicon (localhost / testing.openlibrary.org) —
+     values match the static/images/openlibrary-{development,testing}-*.png favicons */
+  --env-badge-development: hsl(136, 50%, 46%);
+  --env-badge-testing: hsl(30, 53%, 50%);
+
+  /* Book cover carousel */
+  --book-cover-carousel-background: hsl(47, 54%, 90%);
+  --book-cover-carousel-border-top: hsl(51, 32%, 88%);
+  --book-cover-carousel-border-bottom: hsl(50, 32%, 85%);
+  --book-cover-carousel-cards: hsl(47, 54%, 98%);
+  --book-cover-shadow-color: hsl(48, 35%, 64%);
+
   /* Primary action */
   --color-primary: var(--blue-500);
   --color-primary-hover: var(--blue-600);

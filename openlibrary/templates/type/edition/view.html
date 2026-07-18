@@ -170,7 +170,8 @@ $if is_privileged_user:
 
 $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
-$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True)
+$# Don't include microdata twice; leads to Google SEO issues
+$ star_ratings_stats_mobile = macros.StarRatingsStats(work, mobile=True, microdata=False)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
 $ component_times['get_observation_metrics'] = time()
@@ -197,21 +198,24 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
-<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
+$ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.user))
+
+<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <!-- (mobile only) -->
-    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, lending_state=lending_state)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times, lending_state=lending_state)
     </div>
 
     <div class="editionAbout">
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True, lending_state=lending_state)
+
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
@@ -337,7 +341,7 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit, lending_state=lending_state)
         $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
       </div>
 
@@ -527,7 +531,7 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
       <a id="lists-section" class="section-anchor"></a>
       $# pages like /books/ia:foo00bar are fake records created from metadata API.
       $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-      $if "lists" in ctx.features and not page.is_fake_record():
+      $if not page.is_fake_record():
         $ component_times['Lists section'] = time()
         $code:
           data_ids = {}
@@ -547,15 +551,14 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
         </div>
         $ component_times['Lists section'] = time() - component_times['Lists section']
 
-      <a id="related-work-carousel" class="section-anchor"></a>
+        <a id="related-work-carousel" class="section-anchor"></a>
     </div>
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    $:render_template("books/RelatedWorksCarousel", work)
-  </div>
-  $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
+  $:render_template("books/RelatedWorksCarousel", work)
+  $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 

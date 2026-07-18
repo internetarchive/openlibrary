@@ -265,6 +265,14 @@ a.cta-btn__badge {
   overflow: hidden;
 }
 
+.return-form {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+form.return-form .cta-btn {
+  margin-bottom: var(--spacing-stack-xs);
+}
+
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:first-child:not(:last-child) {
   border-radius: 6px 2px 2px 6px;
@@ -282,4 +290,96 @@ a.cta-btn__badge {
   /* Not tokenized: 1px gap is intentional for connected button group appearance */
   margin-left: 1px;
   border-radius: 2px 6px 6px 2px;
+}
+
+/**
+ * Preview + Search Inside Buttons
+ */
+
+.book-preview-buttons {
+  gap: 6px;
+}
+
+/* stylelint-disable selector-max-specificity */
+.book-preview-buttons ol-button > button > .ol-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/* stylelint-enable selector-max-specificity */
+
+/**
+ * Search Inside Form
+ */
+
+.search-inside-form {
+  position: relative;
+  width: 100%;
+}
+
+.search-inside-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 50px 6px 10px;
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: 4px;
+  font-size: var(--font-size-body-medium);
+}
+
+.search-submit-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 28px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.search-cancel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--dark-grey);
+  display: flex;
+  align-items: center;
+}
+
+.search-cancel-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+/**
+ * Book Preview Modal Content
+ */
+
+.book-preview {
+  display: flex;
+  flex-direction: column;
+  /* Max height of content fits viewport without scrolling the dialog body */
+  height: calc(100dvh - var(--ol-dialog-top-offset, 64px) - 160px);
+  min-height: 380px;
+  max-height: 515px;
+}
+
+.book-preview iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.book-preview .learn-more {
+  margin-top: var(--spacing-md);
+  margin-bottom: 0;
+  text-align: center;
 }
