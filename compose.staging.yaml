@@ -10,6 +10,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
@@ -35,6 +37,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
