@@ -1,4 +1,4 @@
-$def with (q_param, search_response, get_doc, param, page, rows, readable_count, has_solr_editions_enabled)
+$def with (q_param, search_response, get_doc, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -10,17 +10,17 @@ $ bodyclass.append('search-page')
     </div>
 
 <div id="contentBody">
-  $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+  $ show_dashboard = ctx.user and ctx.user.is_librarian_or_higher()
   $if show_dashboard:
     $:render_template("librarian_dashboard/data_quality_table", search_response.num_found)
 
   $:macros.SearchNavigation()
-  <div class="section">
+  <div class="search-controls">
 
     <form method="get" action="/search" class="siteSearch search-row olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       $:render_template("search/searchbox", q=q_param, autofocus=True)
-      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
+      $if ctx.user and ctx.user.is_librarian_or_higher():
         <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
             <label
             style="padding: 4px; display: inline-block;"
@@ -75,6 +75,17 @@ $ bodyclass.append('search-page')
         <span class="selected-search-facets-container">
             $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
         </span>
+
+        $if param and not search_response.error and len(search_response.docs):
+          <div class="search-results-stats">
+            $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
+
+            $if search_response.num_found > 1:
+              $:render_template("search/sort_options.html", search_response.sort)
+
+            $if search_response.num_found > 0:
+              $:render_template("search/layout_options.html", selected_layout=layout)
+          </div>
     </div>
 
 
@@ -111,17 +122,16 @@ $ bodyclass.append('search-page')
         </div>
 
     $elif param and not search_response.error and len(search_response.docs):
-        <div class="search-results-stats">
-          $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
-
-          $if search_response.num_found > 1:
-            $:render_template("search/sort_options.html", search_response.sort)
-
-          $if search_response.num_found > 0:
-            $:render_template("search/layout_options.html", selected_layout=layout)
-        </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
+          $# When the query names an author, label the two result groups so the
+          $# author row and the work list read as distinct sections. Skip the
+          $# labels entirely when there are no author suggestions to keep the
+          $# common case (just books) unchanged.
+          $if author_suggestions:
+            <h2 class="search-results-section-label">$_("Authors")</h2>
+            $:macros.SearchAuthorSuggestion(author_suggestions)
+            <h2 class="search-results-section-label">$_("Books")</h2>
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])

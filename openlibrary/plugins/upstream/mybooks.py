@@ -527,15 +527,17 @@ class MyBooksTemplate:
 
             action_translated = _(action)
 
-            msg_template = _(
-                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>'
-            )
+            msg_template = _("Continue %(link_start)s%(action)s%(link_mid)s%(name)s%(link_end)s")
+
+            safe_url = web.net.websafe(url if is_safe_redirect(url) else "/")
+            safe_action = web.net.websafe(action)
 
             msg = msg_template % {
-                "url": web.net.websafe(url if is_safe_redirect(url) else "/"),
-                "raw_action": web.net.websafe(action),
+                "link_start": f'<a href="{safe_url}" class="pending-action-link" data-action="{safe_action}"><strong>',
+                "link_mid": "</strong> <em>" if name else "</strong>",
+                "name": web.net.websafe(name) if name else "",
+                "link_end": "</em></a>" if name else "</a>",
                 "action": web.net.websafe(action_translated),
-                "name": web.net.websafe(name),
             }
             return msg
 

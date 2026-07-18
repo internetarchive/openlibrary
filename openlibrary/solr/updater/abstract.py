@@ -31,13 +31,18 @@ class AbstractSolrUpdater:
 
 
 class AbstractSolrBuilder:
-    def build(self) -> SolrDocument:
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        if exclude is None:
+            exclude = []
+
         # Iterate over all non-_ properties of this instance and add them to the
         # document.
         # Allow @property and @cached_property though!
         doc: dict = {}
         for field in dir(self):
             if field.startswith("_"):
+                continue
+            if field in exclude:
                 continue
             val = getattr(self, field)
 

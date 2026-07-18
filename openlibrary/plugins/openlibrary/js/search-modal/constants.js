@@ -69,8 +69,13 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inputAria: 'Search',
     closeAria: 'Close search',
     clearAria: 'Clear search',
-    seeAll: 'See all results',
-    seeAllOne: 'See all %s result',
+    // Footer button label. "all" only appears when there are more matches than
+    // the modal renders inline — when every hit is already shown there's nothing
+    // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
+    // the there's-more case (always plural, since a lone result is always shown).
+    seeAll: 'See results',
+    seeOne: 'See %s result',
+    seeMany: 'See %s results',
     seeAllMany: 'See all %s results',
     clearAll: 'Clear all',
     filtersAria: 'Search filters',

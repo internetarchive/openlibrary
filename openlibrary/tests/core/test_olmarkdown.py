@@ -18,6 +18,63 @@ def test_olmarkdown():
     assert md("a\nb") == p("a<br/>\n   b")
 
 
+def test_olmarkdown_no_br_leak_into_reference_block():
+    """Regression: a hard line break must not be glued onto a line that
+    immediately precedes a markdown link-reference definition.
+
+    LineBreaksPreprocessor runs before REFERENCE_PREPROCESSOR strips the
+    ``[id]: url`` definitions, so a ``<br />`` appended to the line above a
+    reference block gets orphaned inside it and leaks into the rendered page
+    as literal markup. This was visible at the bottom of /help/faq/editing
+    (internetarchive/openlibrary#13074), where a wrapped/malformed footnote
+    block rendered ``...Tortilla<br /> [24]:`` etc.
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    # Text line immediately followed by a reference definition: no <br>.
+    assert md("foo\n  [1]: https://example.com") == "<p>foo\n</p>"
+
+    # A wrapped reference value (continuation line sitting between two
+    # definitions, carrying the editor's "\" hard-break marker) must come out
+    # clean: no leaked <br /> and no stray backslash.
+    body = (
+        "intro\n\n"
+        "  [23]: https://openlibrary.org/works/OL23185W/Short_Novels\n"
+        "(Cannery_Row_Of_Mice_and_Men_Tortilla\\\n"
+        "  [24]: https://openlibrary.org/works/OL14876179W/Adventures\n"
+    )
+    rendered = md(body)
+    assert "<br" not in rendered
+    assert "\\" not in rendered
+
+    # Sanity: an ordinary line break between two plain lines is untouched.
+    assert md("a\nb") == "<p>a<br/>\n   b\n</p>"
+
+
+def test_olmarkdown_commonmark_hard_break_does_not_leak_br():
+    """Regression: a CommonMark hard break (trailing ``\\``) must render as a
+    line break, not the literal text ``<br />``.
+
+    The Tiptap WYSIWYG editor serializes hard breaks as ``\\`` + newline. With
+    no handling, OLMarkdown appends its own ``<br />`` right after the
+    backslash, the backslash escapes the ``<``, and readers see the literal
+    string ``<br />`` (internetarchive/openlibrary#13074).
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    out = md("first line\\\nsecond line")
+    assert "&lt;br" not in out  # no escaped/literal <br /> shown to the reader
+    assert "\\" not in out  # the hard-break backslash is consumed
+    assert out == "<p>first line<br/>\n   second line\n</p>"
+
+    # A genuine escaped backslash (``\\``) is preserved, not swallowed.
+    assert "\\" in md("a\\\\b\nc")
+
+
 def test_fenced_code_preprocessor():
     pre = FencedCodePreprocessor()
 

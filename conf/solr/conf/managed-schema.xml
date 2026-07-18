@@ -166,6 +166,16 @@
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
 
+    <!-- Usefulness scores -->
+    <field name="usefulness_score" type="pint" multiValued="false"/>
+    <field name="usefulness_score_normalized" type="pint" multiValued="false"/>
+    <field name="access_score" type="pint" multiValued="false"/>
+    <field name="access_score_normalized" type="pint" multiValued="false"/>
+    <field name="discovery_score" type="pint" multiValued="false"/>
+    <field name="discovery_score_normalized" type="pint" multiValued="false"/>
+    <field name="evaluation_score" type="pint" multiValued="false"/>
+    <field name="evaluation_score_normalized" type="pint" multiValued="false"/>
+
     <!-- Reading Levels -->
     <field name="lexile" type="pint" multiValued="true"/>
 

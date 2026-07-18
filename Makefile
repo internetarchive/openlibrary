@@ -15,14 +15,17 @@ all: git css js components lit-components i18n
 
 frontend: css js components lit-components
 
-css:
+node_modules: package-lock.json package.json
+	npm ci --no-audit --no-fund
+
+css: node_modules
 	mkdir -p $(BUILD)/css_new
 	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
 	mkdir -p $(BUILD)/css
 	rm -rf $(BUILD)/css
 	mv $(BUILD)/css_new $(BUILD)/css
 
-js:
+js: node_modules
 	mkdir -p $(BUILD)/js_new
 	BUILD_DIR=$(BUILD)/js_new NODE_ENV=production npx webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
@@ -34,14 +37,14 @@ js:
 	rm -rf $(BUILD)/js
 	mv $(BUILD)/js_new $(BUILD)/js
 
-components:
+components: node_modules
 	mkdir -p $(BUILD)/components_new
 	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
 	mkdir -p $(BUILD)/components
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
-lit-components:
+lit-components: node_modules
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new

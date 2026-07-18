@@ -82,6 +82,31 @@ div.siteSearch.darker {
   margin-left: auto;
 }
 
+/* Stack the search box, filter row, selected-facet chips, and results stats */
+/* with a single gap; the rows carry no vertical margins of their own. */
+.search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
+}
+
+/* The chips container renders empty (whitespace, then an empty async wrapper) */
+/* when no facets are selected; drop it so it doesn't claim a gap slot. */
+.search-controls
+  .selected-search-facets-container:not(:has(.selected-search-facets)) {
+  display: none;
+}
+
+/* Spacing between the rows is owned by the parent's gap. */
+.search-controls > form {
+  margin-bottom: 0;
+}
+
+.search-controls .search-results-stats {
+  padding-bottom: 0;
+}
+
 /* Availability + language filter popovers (also used standalone on /search,
    where there's no .search-controls-row wrapper so they stay inline). */
 .search-filter-row {
@@ -89,7 +114,7 @@ div.siteSearch.darker {
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
-  margin: var(--spacing-md) 0;
+  margin: 0;
 }
 
 /* Mobile-first: inside the results toolbar the filters collapse behind the

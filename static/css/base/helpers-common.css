@@ -61,5 +61,4 @@ a.hoverlink {
   color: var(--dark-green);
   font-size: var(--font-size-label-small);
   text-align: center;
-  padding: var(--spacing-inset-xs) 0 0;
 }
