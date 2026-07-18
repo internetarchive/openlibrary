@@ -3639,9 +3639,7 @@ msgid "{score} points"
 msgstr ""
 
 #: books/edit/edition.html
-msgid ""
-"This record was recently edited and this scorecard is outdated. It should"
-" update in a minute or so."
+msgid "This record was recently edited and this scorecard is outdated. It should update in a minute or so."
 msgstr ""
 
 #: books/edit/edition.html
@@ -7299,9 +7297,7 @@ msgstr ""
 
 #: EditionNavBar.html
 #, python-format
-msgid ""
-"This book is currently unavailable on Open Library, check out "
-"%(link_start)savailable alternatives%(link_end)s."
+msgid "This book is currently unavailable on Open Library, check out %(link_start)savailable alternatives%(link_end)s."
 msgstr ""
 
 #: EditionNavBar.html
@@ -7865,9 +7861,7 @@ msgid "Can be accessed in full online (read / borrowed)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Borrowable and readable books can be accessed by readers, researchers, "
-"and all patrons alike."
+msgid "Borrowable and readable books can be accessed by readers, researchers, and all patrons alike."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7875,9 +7869,7 @@ msgid "Can view snippets via search inside"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Books that allow search inside enable patrons to quickly find relevant "
-"content within the book."
+msgid "Books that allow search inside enable patrons to quickly find relevant content within the book."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7885,9 +7877,7 @@ msgid "Open access (can analyze in full)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Fully public books can be read online or downloaded without any "
-"restrictions, providing excellent access for patrons."
+msgid "Fully public books can be read online or downloaded without any restrictions, providing excellent access for patrons."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7895,9 +7885,7 @@ msgid "Has purchase options"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to "
-"purchase the book from retailers."
+msgid "An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to purchase the book from retailers."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7905,9 +7893,7 @@ msgid "Has library options (ISBN or OCLC)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"ISBN or OCLC numbers enable patrons to find the book through library "
-"catalogs."
+msgid "ISBN or OCLC numbers enable patrons to find the book through library catalogs."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7915,9 +7901,7 @@ msgid "Has fan fiction link (Archive of Our Own)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A link to Archive of Our Own helps readers discover related fan-created "
-"works."
+msgid "A link to Archive of Our Own helps readers discover related fan-created works."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7925,9 +7909,7 @@ msgid "Has Wikipedia link"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A Wikipedia link provides additional context and encyclopedic information"
-" about the work."
+msgid "A Wikipedia link provides additional context and encyclopedic information about the work."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7943,9 +7925,7 @@ msgid "Has title field"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A title is essential for discovery and helps patrons identify the book in"
-" search results and catalogs."
+msgid "A title is essential for discovery and helps patrons identify the book in search results and catalogs."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7953,9 +7933,7 @@ msgid "Has author information"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Author information is crucial for discovery and helps patrons find other "
-"works by the same author."
+msgid "Author information is crucial for discovery and helps patrons find other works by the same author."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7963,9 +7941,7 @@ msgid "Has genre/category tags"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Genre tags help patrons search by genre or category to discover relevant "
-"books."
+msgid "Genre tags help patrons search by genre or category to discover relevant books."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7973,9 +7949,7 @@ msgid "Has series information"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Series information helps patrons search by series and discover related "
-"books."
+msgid "Series information helps patrons search by series and discover related books."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7983,9 +7957,7 @@ msgid "Has table of contents"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Table of contents entries are indexed and searchable, improving "
-"discoverability."
+msgid "Table of contents entries are indexed and searchable, improving discoverability."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -7993,9 +7965,7 @@ msgid "Has DDC or LCC classification"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Dewey Decimal or Library of Congress classifications help with "
-"organization and shelf browsing."
+msgid "Dewey Decimal or Library of Congress classifications help with organization and shelf browsing."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8003,9 +7973,7 @@ msgid "Has language information"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Language information helps patrons filter and find books in their "
-"preferred language."
+msgid "Language information helps patrons filter and find books in their preferred language."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8021,9 +7989,7 @@ msgid "Has Lexile measure"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Lexile measures help educators and parents find books at the appropriate "
-"reading level."
+msgid "Lexile measures help educators and parents find books at the appropriate reading level."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8031,9 +7997,7 @@ msgid "Has star ratings (ranking signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Star ratings contribute to search ranking so better-rated books surface "
-"higher."
+msgid "Star ratings contribute to search ranking so better-rated books surface higher."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8041,9 +8005,7 @@ msgid "Appears on reading logs (ranking signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Presence on reading logs is a popularity signal that helps with search "
-"ranking."
+msgid "Presence on reading logs is a popularity signal that helps with search ranking."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8051,9 +8013,7 @@ msgid "Appears on lists (ranking signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Presence on user lists is a popularity signal that helps with search "
-"ranking."
+msgid "Presence on user lists is a popularity signal that helps with search ranking."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8061,9 +8021,7 @@ msgid "Has contributor names"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Contributor names (editors, illustrators, translators) enable searching "
-"by contributor."
+msgid "Contributor names (editors, illustrators, translators) enable searching by contributor."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8071,9 +8029,7 @@ msgid "Has a description"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A description helps patrons understand what the book is about before "
-"accessing it."
+msgid "A description helps patrons understand what the book is about before accessing it."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8081,21 +8037,15 @@ msgid "Has cover image"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A cover image helps patrons visually identify the book and makes it more "
-"appealing in search results."
+msgid "A cover image helps patrons visually identify the book and makes it more appealing in search results."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A table of contents helps patrons evaluate the structure and scope of the"
-" book."
+msgid "A table of contents helps patrons evaluate the structure and scope of the book."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Genre tags help patrons quickly assess whether a book matches their "
-"interests."
+msgid "Genre tags help patrons quickly assess whether a book matches their interests."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8103,9 +8053,7 @@ msgid "Has star ratings (popularity signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Star ratings from other readers help patrons gauge the quality and "
-"reception of the book."
+msgid "Star ratings from other readers help patrons gauge the quality and reception of the book."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8113,9 +8061,7 @@ msgid "Has a rich description (50+ characters)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"A detailed description (50+ characters) provides more context to help "
-"patrons evaluate relevance."
+msgid "A detailed description (50+ characters) provides more context to help patrons evaluate relevance."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8123,9 +8069,7 @@ msgid "Has reading log activity (popularity signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Reading log activity from other patrons signals the book is being "
-"actively read."
+msgid "Reading log activity from other patrons signals the book is being actively read."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8133,9 +8077,7 @@ msgid "Appears on lists (popularity signal)"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Presence on curated lists helps patrons gauge relevance and community "
-"interest."
+msgid "Presence on curated lists helps patrons gauge relevance and community interest."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8143,15 +8085,11 @@ msgid "Has page count"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Page count helps patrons estimate the length and time commitment of the "
-"book."
+msgid "Page count helps patrons estimate the length and time commitment of the book."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Series information helps patrons understand the book's place in a broader"
-" narrative."
+msgid "Series information helps patrons understand the book's place in a broader narrative."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8167,20 +8105,15 @@ msgid "Has first publication year"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"The first publication year helps patrons understand when the work "
-"originally appeared."
+msgid "The first publication year helps patrons understand when the work originally appeared."
 msgstr ""
 
-#: openlibrary/edition_scorecard.py
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+#: openlibrary/edition_scorecard.py openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publication year"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Publication year helps patrons understand the context and currency of the"
-" content."
+msgid "Publication year helps patrons understand the context and currency of the content."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8188,20 +8121,15 @@ msgid "Has author biography"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"An author biography helps patrons understand the author's background and "
-"expertise."
+msgid "An author biography helps patrons understand the author's background and expertise."
 msgstr ""
 
-#: openlibrary/edition_scorecard.py
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+#: openlibrary/edition_scorecard.py openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publisher"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Publisher information helps patrons evaluate the credibility and source "
-"of the book."
+msgid "Publisher information helps patrons evaluate the credibility and source of the book."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8209,9 +8137,7 @@ msgid "Has author links"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"Links to author websites or profiles provide additional context about the"
-" author."
+msgid "Links to author websites or profiles provide additional context about the author."
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8227,9 +8153,7 @@ msgid "Discovery"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"How well can this edition be accurately surfaced in searches and "
-"recommendations?"
+msgid "How well can this edition be accurately surfaced in searches and recommendations?"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
@@ -8237,9 +8161,7 @@ msgid "Evaluation"
 msgstr ""
 
 #: openlibrary/edition_scorecard.py
-msgid ""
-"How well can a patron determine if this edition is relevant to their "
-"needs before accessing it?"
+msgid "How well can a patron determine if this edition is relevant to their needs before accessing it?"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/api.py
