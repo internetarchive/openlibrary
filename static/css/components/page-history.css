@@ -15,8 +15,12 @@
 
 .pageHistory__tools {
   font-size: 0.7em;
-  float: right;
-  padding-top: 8px;
+  padding-top: var(--spacing-inset-sm);
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: var(--spacing-inline-sm);
+  margin-bottom: calc(-1 * var(--spacing-sm));
 }
 
 /* We assume list items in page history will only have 2 items */

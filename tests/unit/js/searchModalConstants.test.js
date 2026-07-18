@@ -101,7 +101,7 @@ describe('searchModalStringsFromElement', () => {
 
     test('does not mutate the shared defaults', () => {
         searchModalStringsFromElement(elWith(JSON.stringify({ seeAll: 'X' })));
-        expect(DEFAULT_SEARCH_MODAL_STRINGS.seeAll).toBe('See all results');
+        expect(DEFAULT_SEARCH_MODAL_STRINGS.seeAll).toBe('See results');
     });
 });
 

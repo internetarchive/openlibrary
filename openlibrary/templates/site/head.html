@@ -23,8 +23,14 @@ $def with (title)
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
     <link href="/static/images/openlibrary-167x167.png" rel="apple-touch-icon" sizes="167x167" />
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
-    <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
-    <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
+    $ ol_env = get_ol_env()
+    $if ol_env == 'production':
+        <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
+        <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
+    $else:
+        $# Env-specific favicons (green "D" / orange "T") so dev and testing tabs stand out
+        <link href="/static/images/openlibrary-$(ol_env)-192x192.png" rel="icon" sizes="192x192" />
+        <link href="/static/images/openlibrary-$(ol_env)-128x128.png" rel="icon" sizes="128x128" />
     $# Loaded separately from page-*.css so they cache once and serve every page from cache.
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
     <link href="$static_url('build/css/ol-components.css')" rel="stylesheet" type="text/css" />
@@ -111,4 +117,11 @@ $def with (title)
 
     $for tag in ctx.get("metatags", []):
         $:tag
+
+    $ sentry = get_sentry()
+    $if sentry and sentry.enabled:
+        <meta name="sentry-trace" content="$sentry.get_traceparent()">
+        <meta name="baggage" content="$sentry.get_baggage()">
+        $# detect-missing-i18n-skip-line
+        <script>window.OL_SENTRY = $:json_encode(sentry.get_frontend_config());</script>
 </head>

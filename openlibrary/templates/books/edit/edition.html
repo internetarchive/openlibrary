@@ -4,7 +4,7 @@ $ edition_config = get_identifier_config('edition')
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 $ is_admin = ctx.user and ctx.user.is_admin()
 $ is_super_librarian = ctx.user and ctx.user.is_super_librarian()
-$ is_privileged_user = is_librarian or is_super_librarian or is_admin
+$ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -36,6 +36,16 @@ $jsdef render_work_autocomplete_item(item):
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
+
+    $if book.scorecard:
+        <ol-scorecard
+            results="$json_encode(book.scorecard.to_dict())"
+            $cond(book.is_solr_data_outdated(), 'outdated')
+            label-failing-checks="$_('Failing Checks ({count})')"
+            label-passing-checks="$_('Passing Checks ({count})')"
+            label-points="$_('{score} points')"
+            label-outdated="$_('This record was recently edited and this scorecard is outdated. It should update in a minute or so.')"
+        ></ol-scorecard>
 
     <div class="formBack">
 

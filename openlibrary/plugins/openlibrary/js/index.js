@@ -1,3 +1,4 @@
+import initSentry from './sentry';
 import 'jquery';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -5,8 +6,6 @@ import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
 import './experiments.js';
 import '../../../../static/css/js-all.css';
-// polyfill Promise support for IE11
-import Promise from 'promise-polyfill';
 import { queueAction } from './utils';
 
 // Eventually we will export all these to a single global ol, but in the mean time
@@ -15,8 +14,6 @@ exposeGlobally();
 
 window.jQuery = jQuery;
 window.$ = jQuery;
-
-window.Promise = Promise;
 
 // Global listener for login intent buttons
 document.addEventListener('click', function(e) {
@@ -38,6 +35,8 @@ document.addEventListener('click', function(e) {
     }
 }, true);
 
+initSentry();
+
 // Init the service worker first since it does caching
 initServiceWorker();
 
@@ -47,31 +46,6 @@ initAnalytics();
 
 // Initialise some things
 jQuery(function() {
-    // conditionally load polyfill for <details> tags (IE11)
-    // See http://diveintohtml5.info/everything.html#details
-    if (!('open' in document.createElement('details'))) {
-        import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
-    }
-
-    // Polyfill for .matches()
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-          Element.prototype.msMatchesSelector ||
-          Element.prototype.webkitMatchesSelector;
-    }
-
-    // Polyfill for .closest()
-    if (!Element.prototype.closest) {
-        Element.prototype.closest = function(s) {
-            let el = this;
-            do {
-                if (Element.prototype.matches.call(el, s)) return el;
-                el = el.parentElement || el.parentNode;
-            } while (el !== null && el.nodeType === 1);
-            return null;
-        };
-    }
-
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import(/* webpackChunkName: "tabs" */ './tabs')
@@ -338,6 +312,17 @@ jQuery(function() {
             .then((module) => module.initSearchFilterBar(searchFilterBar));
     }
 
+    // Author-suggestion avatars request photos with ?default=false, so a missing
+    // photo 404s; hide the broken <img> to reveal the placeholder icon behind it
+    // (mirrors the header search modal's _onAvatarError).
+    for (const img of document.querySelectorAll('.search-author-suggestion .sas-avatar__photo')) {
+        if (img.complete && img.naturalWidth === 0) {
+            img.hidden = true;
+        } else {
+            img.addEventListener('error', () => { img.hidden = true; }, { once: true });
+        }
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
@@ -451,6 +436,24 @@ jQuery(function() {
         }
     });
 
+    // Browse menu: send one analytics event each time the popover opens
+    // (pointer or keyboard), so we can measure open-rate and click-through.
+    // Scoped to the browse popover on purpose rather than a global
+    // ol-popover-open listener — other popovers can opt into tracking with
+    // their own wiring once we know how we want to measure them. The
+    // "category|action|label" string is set server-side per surface (desktop
+    // vs. mobile tray) in browse_popover.html.
+    document.querySelectorAll('.browse-popover[data-ol-open-track]').forEach((popover) => {
+        popover.addEventListener('ol-popover-open', () => {
+            const ping = popover.getAttribute('data-ol-open-track').split('|');
+            window.archive_analytics?.ol_send_event_ping?.({
+                category: ping[0],
+                action: ping[1],
+                label: ping[2],
+            });
+        });
+    });
+
     $('.dropdown-menu').each(function() {
         $(this).find('a').last().on('focusout', function() {
             $('.header-dropdown > details[open]').removeAttr('open');
@@ -525,7 +528,7 @@ jQuery(function() {
     }
 
     // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
-    if (document.querySelector('ol-banner[dismiss-id]')) {
+    if (document.querySelector('ol-banner[dismiss-id], ol-banner[dismissible]')) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initOlBannerDismissals());
     }

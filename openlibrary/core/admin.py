@@ -166,6 +166,7 @@ def get_stats(ndays=30, use_mock_data=False):
     }
 
 
+@cache.memoize(engine="memcache", key="logins_since", expires=12 * 60 * 60)
 def get_unique_logins_since(since_days=30):
     since_date = datetime.now() - timedelta(days=since_days)
     date_str = since_date.strftime("%Y-%m-%d")
@@ -183,20 +184,6 @@ def get_unique_logins_since(since_days=30):
     if not results:
         return 0
     return results[0].get("count", 0)
-
-
-def get_cached_unique_logins_since(since_days=30):
-    from openlibrary.plugins.openlibrary.home import caching_prethread
-
-    twelve_hours = 60 * 60 * 12
-    key_prefix = "logins_since"
-    mc = cache.memcache_memoize(
-        get_unique_logins_since,
-        key_prefix=key_prefix,
-        timeout=twelve_hours,
-        prethread=caching_prethread(),
-    )
-    return mc(since_days=since_days)
 
 
 def mock_get_stats():

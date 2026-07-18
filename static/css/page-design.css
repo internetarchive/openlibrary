@@ -341,4 +341,18 @@ pre.example__code code[class*="language-"] {
   color: var(--mid-grey);
 }
 
+/* Placeholder cards for the ol-carousel demos. The carousel sets each item's
+   width; these just give the slotted children a visible 2:3 box. */
+.design-carousel-demo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 3;
+  background: var(--off-white);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  color: var(--mid-grey);
+  font-size: 1.25rem;
+}
+
 @import "legacy.css";

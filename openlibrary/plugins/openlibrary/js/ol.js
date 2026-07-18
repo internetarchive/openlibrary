@@ -1,6 +1,4 @@
-import { getJsonFromUrl } from './Browser';
 import { initSearchModal } from './search-modal/SearchModal';
-import { mode as searchMode } from './SearchUtils';
 
 /*
 Sets the key in the website cookie to the specified value
@@ -10,10 +8,6 @@ function setValueInCookie(key, value) {
 }
 
 export default function init() {
-    const urlParams = getJsonFromUrl(location.search);
-    if (urlParams.mode) {
-        searchMode.write(urlParams.mode);
-    }
     const $searchComponent = $('header#header-bar .search-component');
     initSearchModal($searchComponent.find('.search-bar-trigger')[0]);
 

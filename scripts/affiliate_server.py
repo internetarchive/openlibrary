@@ -631,8 +631,8 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
-    # Should be auto-loaded in by setup_requests()
-    http_proxy_url = config.get("http_proxy")
+
+    http_proxy_url = config.get("http_proxy", "")
 
     stats.client = stats.create_stats_client(cfg=config)
 
@@ -654,10 +654,7 @@ def load_config(configfile):
         legacy_cfg.get("id"),
     ]
 
-    if all(legacy_args):
-        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
-        logger.info("AmazonAPI (legacy PA-API) Initialized")
-    elif all(creators_args):
+    if all(creators_args):
         web.amazon_api = AmazonCreatorsAPI(
             *creators_args,
             version=creators_version,
@@ -665,6 +662,9 @@ def load_config(configfile):
             proxy_url=http_proxy_url,
         )
         logger.info("AmazonCreatorsAPI Initialized")
+    elif all(legacy_args):
+        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
+        logger.info("AmazonAPI (legacy PA-API) Initialized")
     else:
         raise RuntimeError(f"{configfile} is missing required amazon_creators_api or amazon_api keys.")
 
