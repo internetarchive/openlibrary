@@ -15,14 +15,11 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Dockerfile.olbase PYTHONPATH + booklending_utils .
-      # Keep in sync with Dockerfile.olbase + other compose files
-      - PYTHONPATH=/openlibrary:/booklending_utils
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
       - ../olsystem:/olsystem
-      - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -43,6 +40,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:

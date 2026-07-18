@@ -58,7 +58,7 @@
   --beige-bright: #f6f1e6;
   --beige-deep: #ebdfc5;
   --beige-two: hsl(63, 26%, 84%);
-  --beige-three: hsl(48, 15%, 74%);
+  --beige-three: hsl(48, 15%, 80%);
   --beige: hsl(48, 33%, 83%);
   --beige-pale: hsl(52, 31%, 95%);
   --brown: hsl(40, 32%, 29%);
@@ -105,6 +105,11 @@
   --header-bar-gradient-start: hsl(41.2, 47.1%, 93.3%);
   --header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);
   --account-icon-background: hsla(37, 24%, 79%, 0.761);
+
+  /* Environment badge & favicon (localhost / testing.openlibrary.org) —
+     values match the static/images/openlibrary-{development,testing}-*.png favicons */
+  --env-badge-development: hsl(136, 50%, 46%);
+  --env-badge-testing: hsl(30, 53%, 50%);
 
   /* Book cover carousel */
   --book-cover-carousel-background: hsl(47, 54%, 90%);

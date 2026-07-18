@@ -14,11 +14,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Dockerfile.olbase PYTHONPATH + booklending_utils .
-      # Keep in sync with Dockerfile.olbase + other compose files
-      - PYTHONPATH=/openlibrary:/booklending_utils
     volumes:
-      - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
@@ -31,7 +27,6 @@ services:
       - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
-      - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
@@ -160,6 +155,8 @@ services:
     hostname: "$HOSTNAME"
     user: root
     command: docker/ol-cron-start.sh
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
     restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro

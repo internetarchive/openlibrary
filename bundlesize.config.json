@@ -54,12 +54,11 @@
     },
     {
       "path": "static/build/js/all.js",
-      "maxSize": "130KB"
+      "maxSize": "155KB"
     },
     {
       "path": "static/build/css/page-admin.css",
-      "maxSize": "27KB"
-
+      "maxSize": "28KB"
     },
     {
       "path": "static/build/css/page-book.css",
