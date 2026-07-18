@@ -106,6 +106,11 @@
   --header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);
   --account-icon-background: hsla(37, 24%, 79%, 0.761);
 
+  /* Environment badge & favicon (localhost / testing.openlibrary.org) —
+     values match the static/images/openlibrary-{development,testing}-*.png favicons */
+  --env-badge-development: hsl(136, 50%, 46%);
+  --env-badge-testing: hsl(30, 53%, 50%);
+
   /* Book cover carousel */
   --book-cover-carousel-background: hsl(47, 54%, 90%);
   --book-cover-carousel-border-top: hsl(51, 32%, 88%);
