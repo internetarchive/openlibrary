@@ -8,11 +8,13 @@ its experience. This does not include public facing APIs with LTS
 
 from __future__ import annotations
 
+import io
 import os
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
+import qrcode
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response, status
 from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
@@ -336,6 +338,22 @@ def author_works(
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return PaginatedGroupEntryResponse(**data)
+
+
+@router.get("/qrcode")
+def create_qrcode(
+    request: Request,
+    path: Annotated[str, Query()] = "/",
+) -> Response:
+    """Create a QR code PNG for an Open Library path."""
+    qr_url = f"{request.url.scheme}://{request.url.netloc}{path}"
+    img = qrcode.make(qr_url)
+    with io.BytesIO() as buf:
+        img.save(buf, format="PNG")
+        return Response(
+            content=buf.getvalue(),
+            media_type="image/png",
+        )
 
 
 class PriceResponse(BaseModel):

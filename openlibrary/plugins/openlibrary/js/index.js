@@ -528,7 +528,7 @@ jQuery(function() {
     }
 
     // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
-    if (document.querySelector('ol-banner[dismiss-id]')) {
+    if (document.querySelector('ol-banner[dismiss-id], ol-banner[dismissible]')) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initOlBannerDismissals());
     }

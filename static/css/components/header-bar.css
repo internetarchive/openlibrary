@@ -161,6 +161,43 @@
   align-self: center;
 }
 
+/* Environment badge over the logo, styled to match ol-tooltip. The modifier
+   class is only rendered on non-production hosts (localhost,
+   testing.openlibrary.org) — see get_ol_env(). */
+.logo-txt--env-development,
+.logo-txt--env-testing {
+  position: relative;
+}
+
+.logo-txt--env-development::after,
+.logo-txt--env-testing::after {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  width: max-content;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  line-height: var(--line-height-chip);
+  border-radius: var(--border-radius-tooltip);
+  color: var(--white);
+  left: 40px;
+  top: 44px;
+  z-index: var(--z-index-level-2);
+}
+
+.logo-txt--env-development::after {
+  content: "Development";
+  background: var(--env-badge-development);
+}
+
+.logo-txt--env-testing::after {
+  content: "Testing";
+  background: var(--env-badge-testing);
+}
+
 .header-bar .navigation-component.mobile {
   display: flex;
   align-items: center;
