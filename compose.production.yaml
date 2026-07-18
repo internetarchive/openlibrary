@@ -155,6 +155,8 @@ services:
     hostname: "$HOSTNAME"
     user: root
     command: docker/ol-cron-start.sh
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
     restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
