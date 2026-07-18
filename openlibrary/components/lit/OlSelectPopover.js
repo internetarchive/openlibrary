@@ -310,6 +310,15 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     /** Search icon for the filter input */
     static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
+    connectedCallback() {
+        super.connectedCallback();
+        // role="group" allows aria-label on the host (axe: aria-prohibited-attr).
+        // Only set if the consumer hasn't specified an explicit role.
+        if (!this.getAttribute('role')) {
+            this.setAttribute('role', 'group');
+        }
+    }
+
     constructor() {
         super();
         this.items = [];

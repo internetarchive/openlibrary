@@ -964,7 +964,7 @@ class InternetArchiveAccount(web.storage):
         if itemname:
             kwargs["itemname"] = itemname
         if token:
-            kwargs["token"] = token
+            kwargs["issuer_token"] = token
         response = cls.xauth(**kwargs)
         return response.get("s3") or None
 

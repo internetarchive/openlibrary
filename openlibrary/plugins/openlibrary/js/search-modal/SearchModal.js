@@ -7,7 +7,6 @@ import { repeat } from 'lit/directives/repeat.js';
 // modules here — re-running customElements.define() throws NotSupportedError.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
-import { mode as searchMode } from '../SearchUtils.js';
 import { trackEvent } from '../ol.analytics.js';
 import {
     AVAILABILITY_OPTIONS,
@@ -969,6 +968,11 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
+        // Search-outcome analytics (NoResults / ResultsShown): keys already
+        // counted this modal session, so re-settling the same query — a filter
+        // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
+        this._outcomeTracked = new Set();
+        this._outcomeTimer   = null;
     }
 
     connectedCallback() {
@@ -985,6 +989,7 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
+        clearTimeout(this._outcomeTimer);
         super.disconnectedCallback();
     }
 
@@ -1008,6 +1013,7 @@ export class SearchModal extends LitElement {
 
     _openModal(trigger = 'click') {
         this.open = true;
+        this._outcomeTracked.clear();
         this._track('Open', trigger);
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
@@ -1029,6 +1035,7 @@ export class SearchModal extends LitElement {
     // (false); `clearReadableCount` is false in the main fetch's error path,
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
+        clearTimeout(this._outcomeTimer);
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
@@ -1501,6 +1508,33 @@ export class SearchModal extends LitElement {
         trackEvent('SearchModal', action, label);
     }
 
+    // Fire a search-outcome event — `ResultsShown` or `NoResults` — only for a
+    // query the patron has settled on. Deferring behind a short idle window (and
+    // re-checking _activeFetchKey when it fires) drops the transient states a
+    // query passes through while being typed: each keystroke starts a fresh fetch
+    // that supersedes this key, so only the query left standing counts (rather
+    // than every partial string on the way to it). The per-session Set collapses
+    // repeat settles of the same key — a filter toggled off and back, an
+    // edit-and-undo — to one event. Both outcomes carry the same active-filter
+    // *category* label (never the filter values or query text; that catalog-gap
+    // detail belongs in the server search logs) so a genuine catalog gap
+    // (`unfiltered`) reads apart from an over-constrained search — and so the
+    // no-results rate NoResults / (NoResults + ResultsShown) is sliceable by
+    // filter state.
+    _scheduleOutcomeTrack(action, fetchKey) {
+        clearTimeout(this._outcomeTimer);
+        this._outcomeTimer = setTimeout(() => {
+            if (this._activeFetchKey !== fetchKey) return;   // query moved on
+            const key = `${action}:${fetchKey}`;
+            if (this._outcomeTracked.has(key)) return;
+            this._outcomeTracked.add(key);
+            const active = [];
+            if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+            if (this._languages.length > 0) active.push('language');
+            this._track(action, active.length ? active.join('+') : 'unfiltered');
+        }, 1200);
+    }
+
     _onDialogOpened() {
         this.renderRoot.querySelector('.search-input')?.focus();
     }
@@ -1508,6 +1542,9 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
+        // Drop any pending outcome timer so a search interrupted by closing the
+        // modal doesn't fire a phantom event after the fact.
+        clearTimeout(this._outcomeTimer);
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
@@ -1713,18 +1750,10 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
-                // A settled autocomplete that came back empty. Label by which
-                // filter *category* was active so we can tell a genuine catalog
-                // gap (`unfiltered`) from a user who over-constrained themselves
-                // (`availability`/`language`/`availability+language`). Categories
-                // only — never the filter values or query text; that catalog-gap
-                // detail belongs in the server search logs, not analytics labels.
-                if (this._results.length === 0) {
-                    const active = [];
-                    if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
-                    if (this._languages.length > 0) active.push('language');
-                    this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
-                }
+                // Record the settled outcome — ResultsShown or NoResults —
+                // deferred so only a query the patron actually stops on counts
+                // (not each partial typed on the way). See _scheduleOutcomeTrack.
+                this._scheduleOutcomeTrack(this._results.length === 0 ? 'NoResults' : 'ResultsShown', fetchKey);
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
@@ -1754,13 +1783,12 @@ export class SearchModal extends LitElement {
             });
     }
 
-    // q + mode + spellcheck shared by every /search.json request the modal makes;
+    // q + spellcheck shared by every /search.json request the modal makes;
     // callers layer on limit/fields and the availability/language filters.
     _baseSearchParams(query) {
         const params = new URLSearchParams();
         params.set('q', query);
         params.set('_spellcheck_count', '0');
-        params.set('mode', searchMode.read());
         return params;
     }
 
@@ -1788,7 +1816,6 @@ export class SearchModal extends LitElement {
 
         const params = new URLSearchParams();
         params.set('q', trimmed);
-        params.set('mode', searchMode.read());
         this._appendFilterParams(params);
         return `/search?${params.toString()}`;
     }

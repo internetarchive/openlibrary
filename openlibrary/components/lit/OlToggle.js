@@ -70,7 +70,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                by [checked] and by the [variant="button"] container states. */
             --_toggle-bg: transparent;
             --_toggle-fg: var(--dark-grey);
-            --_toggle-sublabel-fg: #777;
+            --_toggle-sublabel-fg: var(--accessible-grey);
             --_toggle-border: transparent;
             --_toggle-track: var(--lighter-grey);
             --_toggle-knob: var(--white);

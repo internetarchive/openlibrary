@@ -1,4 +1,4 @@
-$def with(work, mobile=False)
+$def with(work, mobile=False, ratings=True, microdata=True)
 
 $ rating_stats = work and work.get_rating_stats() or {}
 $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
@@ -12,9 +12,9 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
 $ id = '--mobile' if mobile else ''
 
 <ul class="readers-stats $review_count_class">
-  $if ratings_average:
+  $if ratings and ratings_average:
     <li class="avg-ratings" onclick="location.href='#starRatingSection';" data-ol-link-track="StarRating|StatsComponentClick">
-      $:macros.StarRatingsComponent(ratings_count, ratings_average)
+      $:macros.StarRatingsComponent(ratings_count, ratings_average, microdata=microdata)
     </li>
   $if want_to_read_count:
     $code: pass  # NOTE: Short label displayed next to the count of readers who want to read this book, shown in the stats bar on a book page. Example: "2,389 Want to read".

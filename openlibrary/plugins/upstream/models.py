@@ -2,6 +2,7 @@ import logging
 import re
 import sys
 from collections import defaultdict
+from datetime import datetime
 from functools import cached_property
 from typing import cast
 
@@ -10,7 +11,6 @@ from isbnlib import NotValidISBNError, canonical, mask
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
-from infogami.utils import stats
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
@@ -18,7 +18,9 @@ from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import dateutil  # noqa: F401 side effects may be needed
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
@@ -42,6 +44,70 @@ def follow_redirect(doc):
 
 
 class Edition(models.Edition):
+    @cached_property
+    def solr_work_data(self) -> SolrDocument | None:
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
+
+        work = cast(Work, self.works[0]) if self.works else None
+        if work:
+            return work._solr_data
+        else:
+            edition_olid = self.key.split("/")[-1]
+            return cast(
+                SolrDocument | None,
+                get_solr().get(
+                    f"/works/{edition_olid}",
+                    fields=[
+                        *list(WorkSearchScheme.default_fetched_fields),
+                        *bp.get_solr_keys(),
+                        *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+                    ],
+                    request_label="GET_WORK_SOLR_DATA",
+                ),
+            )
+
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        work = cast(Work, self.works[0]) if self.works else None
+        if not work:
+            return None
+
+        return work.solr_last_modified
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        work = cast(Work, self.works[0]) if self.works else None
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0) or (work.is_solr_data_outdated() if work else False)
+
+    @cached_property
+    def scorecard(self):
+        from openlibrary.solr.updater.edition import EditionSolrBuilder
+        from openlibrary.solr.updater.work import full_ia_metadata_to_lite_metadata
+
+        solr_work = self.solr_work_data
+
+        if not solr_work:
+            return None
+
+        edition_solr_builder = EditionSolrBuilder(
+            edition=self.dict(),
+            solr_work=solr_work,
+            db_work=self.works[0].dict() if self.works else None,
+            db_authors=[a.dict() for a in self.get_authors()] if self.get_authors() else [],
+            # TODO: Switch to using solr instead of IA for metadata
+            ia_metadata=full_ia_metadata_to_lite_metadata(self.get_ia_meta_fields()),
+        )
+        return edition_solr_builder.get_scorecard()
+
     def get_title(self):
         if self["title_prefix"]:
             return self["title_prefix"] + " " + self["title"]
@@ -492,27 +558,47 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
-        from openlibrary.book_providers import get_solr_keys
+        import openlibrary.book_providers as bp
+        from openlibrary.solr.updater.edition import EditionScorecardForSolr
 
         fields = [
             "key",
             "cover_edition_key",
-            "cover_id",
             "edition_key",
             "first_publish_year",
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
-        ] + get_solr_keys()
+            "last_modified_i",
+            *bp.get_solr_keys(),
+            *list(WorkSearchScheme.default_fetched_fields),
+            *list(EditionScorecardForSolr.REQUIRED_SOLR_WORK_FIELDS),
+        ]
         solr = get_solr()
-        stats.begin("solr", get=self.key, fields=fields)
-        try:
-            return solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA")
-        except Exception:
-            logging.getLogger("openlibrary").exception("Failed to get solr data")
+        return cast(SolrDocument | None, solr.get(self.key, fields=fields, request_label="GET_WORK_SOLR_DATA"))
+
+    @cached_property
+    def solr_last_modified(self) -> datetime | None:
+        if not self._solr_data:
             return None
-        finally:
-            stats.end()
+        last_modified_i = self._solr_data["last_modified_i"]
+        if last_modified_i is None:
+            raise ValueError("Work missing last_modified_i solr field")
+        return datetime.fromtimestamp(last_modified_i)
+
+    def is_solr_data_outdated(self) -> bool:
+        """
+        Returns True if the solr data is outdated compared to the database data.
+
+        Note this only checks the current work; it might still be outdated because
+        one of the editions has been edited.
+        """
+        if not self.solr_last_modified:
+            # Not in solr yet?
+            return True
+
+        # Stored as a plain int in solr, so need to drop ms
+        return self.solr_last_modified < self.last_modified.replace(microsecond=0)
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
