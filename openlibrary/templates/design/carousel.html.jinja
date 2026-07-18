@@ -1,0 +1,71 @@
+{% from "CodeBlock.html.jinja" import code_block %}
+<article class="design-pattern" id="carousel">
+    <h2 class="design-pattern__title">Carousel</h2>
+    <p class="design-pattern__description">
+        The <code>ol-carousel</code> component is a paged, Netflix-style horizontal carousel. Items are passed as direct children; the component sets their width from responsive breakpoints and provides arrow buttons, edge peek, and bar-segment page indicators. All motion uses spring physics.
+    </p>
+    <section class="example">
+        <h3 class="example__title">Basic usage</h3>
+        <p>Pass each item as a direct child. Set an accessible <code>label</code> for the carousel region.</p>
+        {% call code_block() %}
+            <ol-carousel label="Trending">
+                <div>...item...</div>
+                <div>...item...</div>
+            </ol-carousel>
+        {% endcall %}
+        <div class="example__output">
+            <ol-carousel label="Trending">
+                {% for i in range(1, 16) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
+            </ol-carousel>
+        </div>
+    </section>
+    <section class="example">
+        <h3 class="example__title">Page indicators</h3>
+        <p>Indicators are hidden by default. Add <code>show-indicators</code> to display the page indicator bar.</p>
+        {% call code_block() %}
+            <ol-carousel label="New releases" show-indicators>
+                ...items...
+            </ol-carousel>
+        {% endcall %}
+        <div class="example__output">
+            <ol-carousel label="New releases" show-indicators>
+                {% for i in range(1, 13) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
+            </ol-carousel>
+        </div>
+    </section>
+    <section class="example">
+        <h3 class="example__title">Page-change event</h3>
+        <p>
+            The carousel fires an <code>ol-carousel-page-change</code> event after each page transition, with <code>{ page, totalPages }</code> in <code>event.detail</code>.
+        </p>
+        {% call code_block() %}
+            <ol-carousel id="demo-carousel" label="Popular">
+                ...items...
+            </ol-carousel>
+            <script>
+                carousel.addEventListener('ol-carousel-page-change', (e) => {
+                    console.log(e.detail.page, e.detail.totalPages);
+                });
+            </script>
+        {% endcall %}
+        <div class="example__output">
+            <ol-carousel id="demo-carousel" label="Popular">
+                {% for i in range(1, 19) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
+            </ol-carousel>
+        </div>
+        <p>Page <strong id="demo-carousel-page">1</strong> of <strong id="demo-carousel-total">?</strong></p>
+        <script>
+            (() => {
+                const carousel = document.getElementById('demo-carousel');
+                const setLabel = () => {
+                    document.getElementById('demo-carousel-page').textContent = carousel.page + 1;
+                    document.getElementById('demo-carousel-total').textContent = carousel.totalPages;
+                };
+                // Seed once the component has upgraded and measured its width.
+                customElements.whenDefined('ol-carousel').then(() => carousel.updateComplete.then(setLabel));
+                carousel.addEventListener('ol-carousel-page-change', setLabel);
+            })();
+        </script>
+    </section>
+    {% if api %}{{ render_templetor_template("design/api_tables", api) | safe }}{% endif %}
+</article>

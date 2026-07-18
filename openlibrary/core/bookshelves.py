@@ -719,3 +719,40 @@ class Bookshelves(db.CommonExtras):
         )
         result = oldb.query(query)
         return list(result)
+
+    @classmethod
+    def calc_reading_log_counts(cls) -> dict[str, dict[str, int]]:
+        def normalize_shelf_name(shelf_name: str) -> str:
+            return shelf_name.lower().replace(" ", "_")
+
+        results = {}
+        oldb = db.get_db()
+        total_books_logged_query = """
+            select count(bb.bookshelf_id) as cnt,
+                   b.name as bookshelf_name
+            from bookshelves b
+            left join bookshelves_books bb
+                on bb.bookshelf_id = b.id
+                and bb.created >= date_trunc('hour', now() - interval '1 hour')
+                and bb.created <  date_trunc('hour', now())
+            group by b.id, b.name
+            order by b.id;
+        """
+        totals = oldb.query(total_books_logged_query)
+        results["reading_logs"] = {normalize_shelf_name(i.bookshelf_name): i.cnt for i in totals}
+
+        distinct_readers_logging_query = """
+            select count(distinct bb.username) as cnt,
+                b.name as bookshelf_name
+            from bookshelves b
+            left join bookshelves_books bb
+                on bb.bookshelf_id = b.id
+                and bb.created >= date_trunc('hour', now() - interval '1 hour')
+                and bb.created <  date_trunc('hour', now())
+            group by b.id, b.name
+            order by b.id;
+        """
+        distinct_totals = oldb.query(distinct_readers_logging_query)
+        results["distinct_reading_logs"] = {normalize_shelf_name(i.bookshelf_name): i.cnt for i in distinct_totals}
+
+        return results

@@ -19,8 +19,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
             $ ctx.links.append('<link rel="alternate" type="application/rdf+xml" href="' + request.home + page.key + '.rdf"/>')
             $ ctx.links.append('<link rel="canonical" type="text/html" href="' + request.home + page.url() + '"/>')
 
-$if "superfast" in ctx.features:
-    $page.prefetch()
+$page.prefetch()
 
 $ view = thingview(page)
 

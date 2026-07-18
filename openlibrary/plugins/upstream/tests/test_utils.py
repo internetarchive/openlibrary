@@ -386,3 +386,10 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
+
+
+def test_json_encode():
+    assert utils.json_encode({"a": 1, "b": 2}) == '{"a": 1, "b": 2}'
+    assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
+        '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
+    )

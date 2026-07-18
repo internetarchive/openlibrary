@@ -28,6 +28,8 @@ services:
         condition: service_healthy
       infobase:
         condition: service_started
+      mockservices:
+        condition: service_healthy
 
   fast_web:
     build:
@@ -162,6 +164,24 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+
+  mockservices:
+    build:
+      context: .
+      dockerfile: docker/mockservices/Dockerfile
+    networks:
+      - webnet
+    ports:
+      # mailpit web UI — browse captured email at http://localhost:8025
+      - 8025:8025
+    healthcheck:
+      # wget is purged from the image after installing mailpit (see Dockerfile);
+      # use python, which is always present in the python:3.12-slim base, instead.
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health', timeout=2)"]
+      interval: 10s
+      start_period: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   ol-vendor:

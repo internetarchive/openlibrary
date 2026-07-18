@@ -315,8 +315,8 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html import_preview.html
+#: BookPreview.html PreviewSearchInside.html book_providers/read_button.html
+#: books/edit/edition.html editpage.html import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -469,11 +469,12 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/series/edit.html type/tag/form.html
+#: CreateListModal.html EditButtons.html PreviewSearchInside.html
+#: account/notifications.html account/password/reset.html account/privacy.html
+#: admin/imports-add.html admin/permissions.html books/add.html
+#: databarEdit.html interstitial.html merge/authors.html
+#: my_books/dropdown_content.html type/list/edit.html type/series/edit.html
+#: type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -481,7 +482,7 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: lib/nav_head.html library_explorer.html
+#: lib/browse_popover.html lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
 msgstr ""
 
@@ -586,9 +587,9 @@ msgstr ""
 msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
-#: ShareModal.html covers/author_photo.html covers/book_cover.html
-#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html
+#: covers/author_photo.html covers/book_cover.html covers/change.html
+#: lib/exports.html my_books/check_ins/check_in_prompt.html
 #: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
@@ -756,10 +757,10 @@ msgstr ""
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html
-#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/search_modal_i18n.html search/work_search_selected_facets.html
-#: status.html
+#: SearchAuthorSuggestion.html books/add.html books/edit.html
+#: books/edit/edition.html openlibrary/plugins/worksearch/code.py
+#: search/advancedsearch.html search/search_modal_i18n.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1079,6 +1080,14 @@ msgstr ""
 msgid "Filter by language"
 msgstr ""
 
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
+#, python-format
+msgid "%(count)s hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
+
 #: work_search.html
 msgid "The search engine returned an error."
 msgstr ""
@@ -1104,13 +1113,15 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html
-#: search/subjects.html work_search.html
-#, python-format
-msgid "%(count)s hit"
-msgid_plural "%(count)s hits"
-msgstr[0] ""
-msgstr[1] ""
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html work_search.html
+msgid "Authors"
+msgstr ""
+
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py work_search.html
+msgid "Books"
+msgstr ""
 
 #: work_search.html
 #, python-format
@@ -1272,6 +1283,10 @@ msgstr ""
 msgid "There is nothing to see here yet."
 msgstr ""
 
+#: account/ia_thirdparty_logins.html
+msgid "Sign in with a third-party account"
+msgstr ""
+
 #: account/import.html
 msgid "Import from Goodreads"
 msgstr ""
@@ -1386,10 +1401,6 @@ msgid_plural "%(count)d Current Loans"
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html admin/loans_table.html
-msgid "Loan Expires"
-msgstr ""
-
 #: account/loans.html
 msgid "Loan actions"
 msgstr ""
@@ -1401,11 +1412,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: ManageLoansButtons.html account/loans.html
+#: account/loans.html
 msgid "Not yet downloaded."
 msgstr ""
 
-#: ManageLoansButtons.html account/loans.html
+#: account/loans.html
 msgid "Download Now"
 msgstr ""
 
@@ -1931,9 +1942,9 @@ msgid "My lists"
 msgstr ""
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/user/view.html
-#: type/work/view.html
+#: lib/browse_popover.html lib/nav_head.html lists/home.html
+#: recentchanges/index.html type/edition/view.html type/list/embed.html
+#: type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -2533,6 +2544,10 @@ msgid_plural "%d Current Loans"
 msgstr[0] ""
 msgstr[1] ""
 
+#: admin/loans_table.html
+msgid "Loan Expires"
+msgstr ""
+
 #: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
 #: admin/loans_table.html admin/people/edits.html recentchanges/render.html
 #: recentchanges/updated_records.html
@@ -2549,7 +2564,7 @@ msgstr ""
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr ""
 
-#: ManageLoansButtons.html admin/loans_table.html
+#: admin/loans_table.html
 #, python-format
 msgid "Borrowed %(date)s"
 msgstr ""
@@ -3099,19 +3114,14 @@ msgstr ""
 msgid "None found"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
-msgid "Authors"
-msgstr ""
-
 #: authors/index.html
 msgid "Search for an Author"
 msgstr ""
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
-#: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/search_modal_i18n.html search/searchbox.html
-#: type/local_id/view.html
+#: PreviewSearchInside.html authors/index.html lib/nav_head.html
+#: lists/home.html publishers/index.html publishers/notfound.html
+#: publishers/view.html search/advancedsearch.html search/publishers.html
+#: search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3363,7 +3373,7 @@ msgid "Read at Wikisource"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
-msgid "You might also like"
+msgid "Available books like this one"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -3816,11 +3826,6 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: openlibrary/plugins/upstream/mybooks.py
-msgid "Books"
-msgstr ""
-
 #. Page title for the "Want to Read" shelf page.
 #. Example: "Want to Read (17)". %(count)d is the number of books on this
 #. shelf.
@@ -3966,6 +3971,27 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "This Edition"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "Failing Checks ({count})"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "Passing Checks ({count})"
+msgstr ""
+
+#: books/edit/edition.html
+#, python-brace-format
+msgid "{score} points"
+msgstr ""
+
+#: books/edit/edition.html
+msgid ""
+"This record was recently edited and this scorecard is outdated. It should"
+" update in a minute or so."
 msgstr ""
 
 #: books/edit/edition.html
@@ -4984,6 +5010,57 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+msgid "Collections"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "K-12 Student Library"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Book Talks"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html
+msgid "Random Book"
+msgstr ""
+
+#: databarWork.html lib/browse_popover.html lib/nav_head.html
+msgid "Browse"
+msgstr ""
+
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+#: openlibrary/plugins/worksearch/code.py subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse books by topic"
+msgstr ""
+
+#: lib/browse_popover.html lib/nav_head.html search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Most popular right now"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Browse the virtual shelves"
+msgstr ""
+
+#: lib/browse_popover.html
+msgid "Reader-curated collections"
+msgstr ""
+
+#: lib/dropper.html
+msgid "More options"
+msgstr ""
+
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
 msgstr ""
@@ -5179,18 +5256,8 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
-#: subjects/notfound.html type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Explore collections"
-msgstr ""
-
-#: lib/nav_foot.html lib/nav_head.html
-msgid "Collections"
 msgstr ""
 
 #: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
@@ -5336,22 +5403,6 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html search/sort_options.html
-msgid "Trending"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "K-12 Student Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Book Talks"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Random Book"
-msgstr ""
-
 #: lib/nav_head.html
 msgid "Recent Community Edits"
 msgstr ""
@@ -5366,10 +5417,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "My Open Library"
-msgstr ""
-
-#: databarWork.html lib/nav_head.html
-msgid "Browse"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5930,6 +5977,15 @@ msgid ""
 "work.  Continue?"
 msgstr ""
 
+#: my_books/dropper.html
+#, python-format
+msgid "More reading options for %(title)s"
+msgstr ""
+
+#: ReadButton.html my_books/dropper.html
+msgid "More reading options"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -6155,10 +6211,6 @@ msgstr ""
 
 #: publishers/view.html
 msgid "published most by this publisher"
-msgstr ""
-
-#: publishers/view.html
-msgid "Get more information about this publisher"
 msgstr ""
 
 #: reading_goals/reading_goal_form.html
@@ -6394,8 +6446,8 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
-#: search/inside.html search/snippets.html
+#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
+#: search/snippets.html
 msgid "Search Inside"
 msgstr ""
 
@@ -6462,12 +6514,17 @@ msgid "Clear search"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "See all results"
+msgid "See results"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all %s result"
+msgid "See %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -7074,11 +7131,6 @@ msgstr ""
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-#, python-format
-msgid "Search for other books from %(publisher)s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7750,14 +7802,29 @@ msgstr ""
 msgid "Preview Only"
 msgstr ""
 
-#: BookPreview.html
+#: BookPreviewFloater.html
 msgid "Preview Book"
+msgstr ""
+
+#: BookPreviewFloater.html
+msgid "Book Preview"
+msgstr ""
+
+#: BookPreviewFloater.html
+msgid "See more about this book on Archive.org"
 msgstr ""
 
 #: DisplayCode.html
 msgid ""
 "Templates in the website are disabled now. Editing them will not have any"
 " effect on the live website."
+msgstr ""
+
+#: EditionNavBar.html
+#, python-format
+msgid ""
+"This book is currently unavailable on Open Library, check out "
+"%(link_start)savailable alternatives%(link_end)s."
 msgstr ""
 
 #: EditionNavBar.html
@@ -7884,13 +7951,6 @@ msgstr ""
 msgid "Locate"
 msgstr ""
 
-#: ManageLoansButtons.html
-#, python-format
-msgid "There is one person waiting for this book."
-msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
-
 #: ManageWaitlistButton.html
 #, python-format
 msgid "Waiting for %d day"
@@ -7942,6 +8002,14 @@ msgstr ""
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
+msgstr ""
+
+#: PreviewSearchInside.html
+msgid "Search inside book"
+msgstr ""
+
+#: PreviewSearchInside.html
+msgid "Search inside"
 msgstr ""
 
 #: Profile.html
@@ -8338,6 +8406,388 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
+#: openlibrary/edition_scorecard.py
+msgid "Can be accessed in full online (read / borrowed)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Borrowable and readable books can be accessed by readers, researchers, "
+"and all patrons alike."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Can view snippets via search inside"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Books that allow search inside enable patrons to quickly find relevant "
+"content within the book."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Open access (can analyze in full)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Fully public books can be read online or downloaded without any "
+"restrictions, providing excellent access for patrons."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has purchase options"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to "
+"purchase the book from retailers."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has library options (ISBN or OCLC)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"ISBN or OCLC numbers enable patrons to find the book through library "
+"catalogs."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has fan fiction link (Archive of Our Own)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A link to Archive of Our Own helps readers discover related fan-created "
+"works."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has Wikipedia link"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A Wikipedia link provides additional context and encyclopedic information"
+" about the work."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has first sentence"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "The first sentence gives patrons an immediate taste of the writing style."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has title field"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A title is essential for discovery and helps patrons identify the book in"
+" search results and catalogs."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has author information"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Author information is crucial for discovery and helps patrons find other "
+"works by the same author."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has genre/category tags"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Genre tags help patrons search by genre or category to discover relevant "
+"books."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has series information"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Series information helps patrons search by series and discover related "
+"books."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has table of contents"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Table of contents entries are indexed and searchable, improving "
+"discoverability."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has DDC or LCC classification"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Dewey Decimal or Library of Congress classifications help with "
+"organization and shelf browsing."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has language information"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Language information helps patrons filter and find books in their "
+"preferred language."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has ISBN"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "ISBNs allow searching by barcode scanner and help with identification."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has Lexile measure"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Lexile measures help educators and parents find books at the appropriate "
+"reading level."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has star ratings (ranking signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Star ratings contribute to search ranking so better-rated books surface "
+"higher."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Appears on reading logs (ranking signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Presence on reading logs is a popularity signal that helps with search "
+"ranking."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Appears on lists (ranking signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Presence on user lists is a popularity signal that helps with search "
+"ranking."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has contributor names"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Contributor names (editors, illustrators, translators) enable searching "
+"by contributor."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has a description"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A description helps patrons understand what the book is about before "
+"accessing it."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has cover image"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A cover image helps patrons visually identify the book and makes it more "
+"appealing in search results."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A table of contents helps patrons evaluate the structure and scope of the"
+" book."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Genre tags help patrons quickly assess whether a book matches their "
+"interests."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has star ratings (popularity signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Star ratings from other readers help patrons gauge the quality and "
+"reception of the book."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has a rich description (50+ characters)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"A detailed description (50+ characters) provides more context to help "
+"patrons evaluate relevance."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has reading log activity (popularity signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Reading log activity from other patrons signals the book is being "
+"actively read."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Appears on lists (popularity signal)"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Presence on curated lists helps patrons gauge relevance and community "
+"interest."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has page count"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Page count helps patrons estimate the length and time commitment of the "
+"book."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Series information helps patrons understand the book's place in a broader"
+" narrative."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has author photo"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "An author photo helps patrons visually recognize the author."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has first publication year"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"The first publication year helps patrons understand when the work "
+"originally appeared."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publication year"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Publication year helps patrons understand the context and currency of the"
+" content."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has author biography"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"An author biography helps patrons understand the author's background and "
+"expertise."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publisher"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Publisher information helps patrons evaluate the credibility and source "
+"of the book."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Has author links"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"Links to author websites or profiles provide additional context about the"
+" author."
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Edition Scorecard"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Access"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Discovery"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"How well can this edition be accurately surfaced in searches and "
+"recommendations?"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid "Evaluation"
+msgstr ""
+
+#: openlibrary/edition_scorecard.py
+msgid ""
+"How well can a patron determine if this edition is relevant to their "
+"needs before accessing it?"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
 msgstr ""
@@ -8475,19 +8925,11 @@ msgid "Has work (orphaned)"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has publication year"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has cover"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has language"
-msgstr ""
-
-#: openlibrary/plugins/openlibrary/librarian_dashboard.py
-msgid "Has publisher"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
@@ -8716,10 +9158,7 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
-msgid ""
-"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
-"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
-"<em>%(name)s</em></a>"
+msgid "Continue %(link_start)s%(action)s%(link_mid)s%(name)s%(link_end)s"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py

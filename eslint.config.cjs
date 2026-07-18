@@ -25,6 +25,7 @@ module.exports = [
       "vendor/",
       "tests/screenshots/",
       "venv/",
+      ".venv/",
       "eslint.config.cjs",
     ],
   },

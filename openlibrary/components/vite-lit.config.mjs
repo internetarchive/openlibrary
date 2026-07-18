@@ -1,31 +1,24 @@
 /**
  * Vite config for Lit web components. (for Vue components see vite.config.mjs)
  *
- * This creates a bundled build of all Lit components in a single file
- * with legacy browser support via polyfills.
+ * This creates a bundled build of all Lit components in a single file.
  *
  * Output:
- * - ol-components.js (modern ES modules)
- * - ol-components-legacy.js (transpiled for older browsers)
+ * - ol-components.js (ES modules)
  */
 
 import { defineConfig } from 'vite';
-import legacy from '@vitejs/plugin-legacy';
 import { join } from 'path';
 
 const BUILD_DIR = process.env.BUILD_DIR || 'static/build/components';
 
 export default defineConfig({
-    plugins: [
-        // Provides legacy browser support
-        // Creates both modern and legacy builds
-        legacy({
-            targets: ['defaults', 'not IE 11'],
-            // Generate polyfills for older browsers
-            modernPolyfills: true
-        })
-    ],
     build: {
+        // Keep syntax compatible with our supported floor (see browserslist in
+        // package.json). Without this, Vite defaults to 'baseline-widely-available'
+        // (~Safari 16), which would ship untranspiled ES2021+ syntax.
+        target: ['es2019', 'safari13'],
+
         // Output directory for built files
         outDir: join(BUILD_DIR, '/production'),
 
