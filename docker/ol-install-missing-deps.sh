@@ -18,4 +18,11 @@
 # Remove this file once the associated PR branch is merged and the new
 # image has been published.
 
+# Don't rely on the host shell having sourced build_env.sh before `docker
+# compose up` — /olsystem is already bind-mounted into the container, so
+# pick up PIP_INDEX_URL directly from there if it wasn't already set.
+if [ -z "$PIP_INDEX_URL" ] && [ -f /olsystem/bin/build_env.sh ]; then
+  source /olsystem/bin/build_env.sh
+fi
+
 python -c "import pydantic_settings" 2>/dev/null || python -m pip install -q --user --index-url "${PIP_INDEX_URL:-https://pypi.org/simple/}" 'pydantic-settings==2.9.1'
