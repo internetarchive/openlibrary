@@ -32,30 +32,36 @@ export function initAddBookImport() {
         addBookForm.trigger('submit');
     });
 
-    i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
+    // `data-i18n` (and everything below that depends on it) is only rendered on
+    // add.html's form. check.html reuses the same #addbook/form[name=edit] markup
+    // for its "possible matches" page, but has none of the ID-validation or
+    // publish-date fields this block wires up.
+    if (addBookForm[0].dataset.i18n) {
+        i18nStrings = JSON.parse(addBookForm[0].dataset.i18n);
 
-    invalidChecksum = i18nStrings.invalid_checksum;
-    invalidIsbn10 = i18nStrings.invalid_isbn10;
-    invalidIsbn13 = i18nStrings.invalid_isbn13;
-    invalidLccn = i18nStrings.invalid_lccn;
-    invalidOclc = i18nStrings.invalid_oclc;
-    emptyId = i18nStrings.empty_id;
+        invalidChecksum = i18nStrings.invalid_checksum;
+        invalidIsbn10 = i18nStrings.invalid_isbn10;
+        invalidIsbn13 = i18nStrings.invalid_isbn13;
+        invalidLccn = i18nStrings.invalid_lccn;
+        invalidOclc = i18nStrings.invalid_oclc;
+        emptyId = i18nStrings.empty_id;
 
-    $('#id_value').on('change', autoCompleteIdName);
-    $('#addbook').on('submit', parseAndValidateId);
-    $('#id_value').on('input', clearErrors);
-    $('#id_name').on('change', clearErrors);
+        $('#id_value').on('change', autoCompleteIdName);
+        $('#addbook').on('submit', parseAndValidateId);
+        $('#id_value').on('input', clearErrors);
+        $('#id_name').on('change', clearErrors);
 
-    $('#publish_date').on('blur', validatePublishDate);
+        $('#publish_date').on('blur', validatePublishDate);
 
-    trimInputValues('input');
+        trimInputValues('input');
 
-    // Prevents submission if the publish date is > 1 year in the future
-    addBookForm.on('submit', function() {
-        if ($('#publish-date-errors').hasClass('hidden')) {
-            return true;
-        } else return false;
-    });
+        // Prevents submission if the publish date is > 1 year in the future
+        addBookForm.on('submit', function() {
+            if ($('#publish-date-errors').hasClass('hidden')) {
+                return true;
+            } else return false;
+        });
+    }
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
