@@ -2486,6 +2486,334 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlDrawer.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A slide-in drawer component that overlays the page from a viewport edge.\n\nThe drawer uses `position: fixed` to cover the full viewport, independent\nof its position in the DOM tree. It traps focus while open, locks body\nscroll, and supports swipe-to-dismiss on touch devices.\n\nPlace the element near the document root to avoid stacking-context issues.\nContent is projected via the default slot (light DOM), so it can be\nserver-rendered and styled with your existing stylesheets.",
+          "name": "OlDrawer",
+          "cssProperties": [
+            {
+              "description": "Width of the drawer panel.",
+              "name": "--ol-drawer-width",
+              "default": "300px"
+            },
+            {
+              "description": "Backdrop scrim color.",
+              "name": "--ol-drawer-backdrop-color",
+              "default": "hsla(0, 0%, 0%, 0.5)"
+            },
+            {
+              "description": "Slide-in animation duration.",
+              "name": "--ol-drawer-enter-duration",
+              "default": "400ms"
+            },
+            {
+              "description": "Slide-out animation duration.",
+              "name": "--ol-drawer-exit-duration",
+              "default": "300ms"
+            }
+          ],
+          "slots": [
+            {
+              "description": "Default slot for drawer content.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "method",
+              "name": "_show"
+            },
+            {
+              "kind": "method",
+              "name": "_hide"
+            },
+            {
+              "kind": "method",
+              "name": "_onTransitionEnd",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_cleanup"
+            },
+            {
+              "kind": "method",
+              "name": "_releaseScrollLock",
+              "description": "Releases the body scroll lock if this drawer holds one. Idempotent."
+            },
+            {
+              "kind": "method",
+              "name": "_restoreFocus"
+            },
+            {
+              "kind": "method",
+              "name": "_getFocusableElements",
+              "description": "Focusable elements slotted into the drawer, in DOM order. Filtered to\ncurrently-rendered elements by getFocusableFromSlot.",
+              "return": {
+                "type": {
+                  "text": "HTMLElement[]"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ],
+              "description": "Handles Escape (dismiss) and Tab (manual focus trap). A manual trap is\nneeded because Safari doesn't trap focus across shadow DOM boundaries\nfor slotted content."
+            },
+            {
+              "kind": "method",
+              "name": "_onBackdropClick"
+            },
+            {
+              "kind": "method",
+              "name": "_requestClose",
+              "parameters": [
+                {
+                  "name": "reason"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_dismissDirection",
+              "return": {
+                "type": {
+                  "text": "number"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchStart",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchMove",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchEnd"
+            },
+            {
+              "kind": "method",
+              "name": "_clearDragStyles"
+            },
+            {
+              "kind": "method",
+              "name": "_removeListeners"
+            },
+            {
+              "kind": "field",
+              "name": "open",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the drawer is currently visible.",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'end'",
+              "description": "Which edge the drawer slides from: `'start'` (left in LTR) or `'end'` (right in LTR). Default: `'end'`",
+              "attribute": "placement"
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Accessible label for the drawer dialog.",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "_animState",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'closed'",
+              "attribute": "_animState"
+            },
+            {
+              "kind": "field",
+              "name": "_prevFocus",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_scrollLocked",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether this drawer currently holds a body scroll lock",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_touchStartX",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_touchStartTime",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_isDragging",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_lastDragX",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-drawer-show",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the drawer begins opening."
+            },
+            {
+              "name": "ol-drawer-after-show",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired after the enter animation completes."
+            },
+            {
+              "name": "ol-drawer-after-hide",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired after the exit animation completes."
+            },
+            {
+              "name": "ol-drawer-hide",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when a close is requested. detail: { reason: 'escape' | 'backdrop' | 'swipe' }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "open",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the drawer is currently visible.",
+              "fieldName": "open"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "String"
+              },
+              "default": "'end'",
+              "description": "Which edge the drawer slides from: `'start'` (left in LTR) or `'end'` (right in LTR). Default: `'end'`",
+              "fieldName": "placement"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Accessible label for the drawer dialog.",
+              "fieldName": "label"
+            },
+            {
+              "name": "_animState",
+              "type": {
+                "text": "string"
+              },
+              "default": "'closed'",
+              "fieldName": "_animState"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-drawer",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlDrawer",
+          "declaration": {
+            "name": "OlDrawer",
+            "module": "openlibrary/components/lit/OlDrawer.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-drawer",
+          "declaration": {
+            "name": "OlDrawer",
+            "module": "openlibrary/components/lit/OlDrawer.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlOptionsPopover.js",
       "declarations": [
         {
@@ -5494,6 +5822,27 @@
           "declaration": {
             "name": "OpenLibraryOTP",
             "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/hard-break.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "OLHardBreak",
+          "description": "OLHardBreak – a hard-break node that serializes to OLMarkdown's dialect.\n\nThe server-side display renderer (OLMarkdown, a vendored Python-Markdown)\ntreats every newline inside a paragraph as a `<br>` and has no escape syntax\nfor hard breaks. tiptap-markdown's default serializer emits CommonMark's\n`\\<newline>`; that trailing backslash makes OLMarkdown escape the `<` of the\n`<br/>` it injects, so readers see the literal text `<br />`.\n\nEmitting a bare newline instead keeps the two renderers in agreement, and\nre-saving a page through the editor cleans up any legacy backslash/`<br>`\ncruft. See internetarchive/openlibrary#13074."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLHardBreak",
+          "declaration": {
+            "name": "OLHardBreak",
+            "module": "openlibrary/components/lit/hard-break.js"
           }
         }
       ]

@@ -12,7 +12,6 @@ $# @param {string} props.label for menu, also used as alt text for dropdown icon
 $# @param {string|null} props.image URL for image (optional)
 $# @param {DropdownLink[]} props.links
 $ singleton = len(props.get('links', [])) == 1
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
@@ -21,13 +20,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
     <a href="$link['href']" $tracker>$(props['label'])</a>
   $else:
     <details>
-      <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
-        $if props['name'] == 'hamburger' and ctx.user:
-            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
-            $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
-              <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
-            <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
-        $elif 'image' in props:
+      <summary>
+        $if 'image' in props:
             <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'label' in props:
             $(props['label'])
@@ -35,12 +29,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
         <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
       </summary>
-      $if 'show_mask' in props:
-        <div class="mask-menu"></div>
       <div
-      $if props['name'] == 'hamburger':
-        class="app-drawer"
-      $elif not singleton:
+      $if not singleton:
         class="$(props['name'])-dropdown-component navigation-dropdown-component"
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
@@ -63,13 +53,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
                   <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
-                $if is_privileged_user:
-                  $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
-                    <div class="app-drawer__badge">$(cached_get_counts_by_mode(mode='open'))</div>
                 <a href="$(link['href'])" $(tracker)>
-                  $if 'new' in link and props['name'] == 'hamburger':
-                    <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
-                  $else:
                     $(link['text'])
                     $if 'subheading' in link:
                       <br>

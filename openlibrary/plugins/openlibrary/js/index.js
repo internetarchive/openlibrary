@@ -430,10 +430,6 @@ jQuery(function() {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
-    $('.hamburger-component .mask-menu').on('click', function() {
-        $('details[open]').not(this).removeAttr('open');
-    });
-
     $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
             $('.header-dropdown > details[open]').removeAttr('open');
