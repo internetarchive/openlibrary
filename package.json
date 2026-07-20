@@ -53,7 +53,7 @@
     "core-js": "^3.37.1",
     "css-loader": "^7.1.4",
     "css-minimizer-webpack-plugin": "^8.0.0",
-    "datatables.net-dt": "1.13.11",
+    "datatables.net-dt": "2.3.8",
     "diff": "^4.0.4",
     "eslint": "^9.39.4",
     "eslint-plugin-no-jquery": "^3.1.1",
