@@ -76,6 +76,12 @@ div.chartHome a:hover,
   cursor: pointer;
 }
 
+/* stylelint-disable-next-line max-nesting-depth */
+#home-stats-charts .statschart .chartShow .chart-graph {
+  width: 150px;
+  height: 60px;
+}
+
 /* stylelint-disable no-descending-specificity */
 /* stylelint-disable max-nesting-depth */
 #home-stats-charts .statschart a {
