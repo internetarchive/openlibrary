@@ -845,10 +845,7 @@ class opds_home(delegate.page):
         return delegate.RawText(json.dumps(get_cached_homepage()))
 
 
-UNLINK_COMMENTS = {
-    "dark": "Unlink OCAID: Item no longer available",
-    "mismatch": "Unlink OCAID: Wrong Item",
-}
+DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
 
 
 class unlink_ia_ol(delegate.page):
@@ -856,7 +853,7 @@ class unlink_ia_ol(delegate.page):
     encoding = "json"
 
     def POST(self):
-        i = web.input(digest="", msg="", op="dark")
+        i = web.input(digest="", msg="", comment="")
 
         digest = i.digest
         msg = i.msg
@@ -889,7 +886,7 @@ class unlink_ia_ol(delegate.page):
         # Update records
         try:
             for edition in editions:
-                self.make_dark(edition, ocaid, i.op)
+                self.make_dark(edition, ocaid, i.comment)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
             raise web.HTTPError(
@@ -901,7 +898,7 @@ class unlink_ia_ol(delegate.page):
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition, ocaid, op="dark"):
+    def make_dark(edition, ocaid, comment=""):
         data = edition.dict()
         if "ocaid" in data and data["ocaid"] == ocaid:
             del data["ocaid"]
@@ -909,12 +906,11 @@ class unlink_ia_ol(delegate.page):
         data["source_records"] = [rec for rec in source_records if rec != f"ia:{ocaid}"]
         if not data["source_records"]:
             del data["source_records"]
-        comment = UNLINK_COMMENTS.get(op, UNLINK_COMMENTS["dark"])
         with accounts.RunAs("ImportBot"):
             web.ctx.ip = web.ctx.ip or "127.0.0.1"
             web.ctx.site.save(
                 data,
-                comment,
+                comment or DEFAULT_UNLINK_COMMENT,
                 action="edit-edition-ocaid",
             )
 
