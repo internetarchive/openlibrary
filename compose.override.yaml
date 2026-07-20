@@ -9,7 +9,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     ports:
       # Debugger
-      - 127.0.0.1:3000:3000
+      - 127.0.0.1:${WEB_DEBUG_PORT:-3000}:3000
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -37,7 +37,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     ports:
       # Debugger
-      - 127.0.0.1:3001:3000
+      - 127.0.0.1:${FAST_WEB_DEBUG_PORT:-3001}:3000
     volumes:
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
@@ -67,7 +67,7 @@ services:
     volumes:
       - ./docker/ol-local-solr-start.sh:/docker/ol-solr-start.sh:ro
     ports:
-      - 8983:8983
+      - ${SOLR_PORT:-8983}:8983
     # Run the wrapper script which handles schema migrations in dev mode
     command: /docker/ol-solr-start.sh
 
@@ -113,7 +113,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     ports:
-      - 7075:7075
+      - ${COVERS_PORT:-7075}:7075
     volumes:
       - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -173,7 +173,7 @@ services:
       - webnet
     ports:
       # mailpit web UI — browse captured email at http://localhost:8025
-      - 8025:8025
+      - ${MOCKSERVICES_PORT:-8025}:8025
     healthcheck:
       # wget is purged from the image after installing mailpit (see Dockerfile);
       # use python, which is always present in the python:3.12-slim base, instead.
