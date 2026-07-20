@@ -240,9 +240,9 @@ def find_author(author: AuthorImportDict) -> list[Author]:
     # If author has dates, we only consider dated candidates,
     # otherwise only include undated candidates.
     for a in things:
-        if key := a["key"] in seen:
+        if a["key"] in seen:
             continue
-        seen.add(key)
+        seen.add(a["key"])
         if has_dates(author) != has_dates(a):
             continue
         assert a.type.key == "/type/author"
