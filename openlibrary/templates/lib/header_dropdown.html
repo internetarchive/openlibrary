@@ -17,8 +17,11 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
     $ link = props['links'][0]
-    $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
-    <a href="$link['href']" $tracker>$(props['label'])</a>
+    $ tracker_value = '%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
+    <a href="$link['href']"
+      $if tracker_value:
+        data-ol-link-track="$tracker_value"
+    >$(props['label'])</a>
   $else:
     <details>
       <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
@@ -45,7 +48,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
-            $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
+            $ tracker_value = '%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
@@ -60,13 +63,19 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
               $if 'post' in link:
                 $ name = 'name=%s' % link['name'] if 'name' in link else ''
                 <form $name action="$(link['post'])" method="post">
-                  <button $(tracker)>$(link["text"])</button>
+                  <button
+                    $if tracker_value:
+                      data-ol-link-track="$tracker_value"
+                  >$(link["text"])</button>
                 </form>
               $else:
                 $if is_privileged_user:
                   $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
                     <div class="app-drawer__badge">$(cached_get_counts_by_mode(mode='open'))</div>
-                <a href="$(link['href'])" $(tracker)>
+                <a href="$(link['href'])"
+                  $if tracker_value:
+                    data-ol-link-track="$tracker_value"
+                >
                   $if 'new' in link and props['name'] == 'hamburger':
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
                   $else:
