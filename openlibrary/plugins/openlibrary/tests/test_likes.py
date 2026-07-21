@@ -4,6 +4,7 @@ from openlibrary.plugins.openlibrary.tests.test_followsapi import FakeUser
 from openlibrary.plugins.upstream.likes import likes_control
 import pytest
 import web
+import re
 
 from openlibrary.core.likes import Likes
 
@@ -44,7 +45,7 @@ def test_double_like():
         assert oldb.update.call_count == 1
 
 def test_like_invalid_value():
-    with pytest.raises(ValueError, match = "value must be 1 (like) or -1 (dislike)"):
+    with pytest.raises(ValueError, match = re.escape("value must be 1 (like) or -1 (dislike)")):
         Likes.like("user1", "/works/OL1W", 99)
 
 def test_like_unauthenticated():
