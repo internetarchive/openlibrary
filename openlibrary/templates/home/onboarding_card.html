@@ -9,15 +9,12 @@ $# href           : str : `href` for the card
 $# ol_link_track  : str : Event name for analytics
 $# attribution    : str : Attribution for the image used in the card
 
-$ data_ol_link_track = ''
-$if ol_link_track:
-  $ data_ol_link_track = 'data-ol-link-track="%s"' % ol_link_track
-
 <div class="carousel__item tutorial__item">
   <a
     href="$href"
     tabindex="0"
-    $data_ol_link_track
+    $if ol_link_track:
+      data-ol-link-track="$ol_link_track"
   >
     <img src="$img_src"
       alt=""

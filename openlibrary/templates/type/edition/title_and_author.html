@@ -3,8 +3,10 @@ $def with (page, work, edition, ocaid, work_title, star_ratings_stats, for_deskt
 $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
   $ href = 'javascript:;'
 
-  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
-  <a href="$href" class="$link_class icon-link" $ga_attr>
+  <a href="$href" class="$link_class icon-link"
+    $if ga_data:
+      data-ol-link-track="$ga_data"
+    >
     <img class="icon-link__image" src="$img_src" alt="">
     <div class="icon-link__text">$link_text</div>
   </a>
