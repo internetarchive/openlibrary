@@ -4,6 +4,7 @@ import csv
 import io
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from math import ceil
@@ -67,6 +68,26 @@ logger = logging.getLogger("openlibrary.account")
 CONFIG_IA_DOMAIN: Final = config.get("ia_base_url", "https://archive.org")
 USERNAME_RETRIES = 3
 RESULTS_PER_PAGE: Final = 25
+
+_MOBILE_UA_RE = re.compile(
+    r"Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini",
+    re.IGNORECASE,
+)
+
+
+def get_device_label() -> str:
+    """Returns 'mobile', 'desktop', or 'unknown' based on the User-Agent header.
+
+    'unknown' is returned when the UA is absent or the header cannot be read,
+    so that missing-UA requests don't silently inflate the 'desktop' bucket.
+    """
+    try:
+        ua = str(web.ctx.env.get("HTTP_USER_AGENT", "") or "")
+        if not ua:
+            return "unknown"
+        return "mobile" if _MOBILE_UA_RE.search(ua) else "desktop"
+    except Exception:
+        return "unknown"
 
 
 def get_login_error(error_key):
@@ -376,6 +397,8 @@ class account_create(delegate.page):
                     verified=False,
                     retries=USERNAME_RETRIES,
                 )
+                stats.increment("ol.account.created")
+                stats.increment(f"ol.account.created.{get_device_label()}")
                 if "pd_request" in web.input() and web.input().get("pd_program"):
                     web.setcookie("pda", web.input().get("pd_program"))
                 return render["account/verify"](username=f.username.value, email=f.email.value)
@@ -817,6 +840,8 @@ class account_verify(delegate.page):
             )
             raise web.seeother("/account/create")
         add_flash_message("success", _("Your email has been verified. You are now logged in."))
+        stats.increment("ol.account.email_verified")
+        stats.increment(f"ol.account.email_verified.{get_device_label()}")
         kwargs = {"access": r["s3"]["access"], "secret": r["s3"]["secret"]}
         if i.redirect:
             kwargs["redirect"] = i.redirect
