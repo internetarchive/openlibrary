@@ -31,7 +31,6 @@ from openlibrary.plugins.upstream import (
     checkins,
     covers,
     edits,
-    likes,
     merge_authors,
     models,
     recentchanges,  # noqa: F401 side effects may be needed
@@ -343,7 +342,7 @@ def setup():
     yearly_reading_goals.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
-    
+
     data.setup()
 
     # setup template globals
