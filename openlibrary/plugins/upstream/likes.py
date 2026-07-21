@@ -15,7 +15,11 @@ class likes_control(delegate.page):
             raise web.unauthorized()
         value = data.get("value", 1)
         username = user.key.split("/")[-1]
-        Likes.like(username, key, value)
+        try:
+            Likes.like(username, key, value)
+        except ValueError as e:
+            raise web.badrequest(str(e))
+        
         return delegate.RawText(json.dumps({"key": key, "value": value}))
 
     def DELETE(self):
@@ -40,6 +44,11 @@ class get_likes_record(delegate.page):
         if user:
             username = user.key.split("/")[-1]
             patron_liked=Likes.patron_liked(username, key)
+            result = {
+                "likes": count["likes"],
+                "dislikes": count["dislikes"],
+                "patron_liked": patron_liked,
+            }
         else:
             patron_liked = False
             result = {
@@ -55,4 +64,4 @@ class get_patron_likes(delegate.page):
     def GET(self):
         i = web.input(username="", limit=50, offset=0)
         likes = Likes.get_for_patron(i.username, int(i.limit), int(i.offset))
-        return delegate.RawText(json.dumps(list(likes)))
+        return delegate.RawText(json.dumps(list(likes), default=str))

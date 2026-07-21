@@ -44,15 +44,15 @@ def test_double_like():
         assert oldb.update.call_count == 1
 
 def test_like_invalid_value():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match = "value must be 1 (like) or -1 (dislike)"):
         Likes.like("user1", "/works/OL1W", 99)
 
 def test_like_unauthenticated():
     with (
         patch("web.data", return_value=b'{"key": "/works/OL1W", "value": 1}'),
-        patch("web.ctx") as mock_ctx,
+        patch.object(web.ctx,"site") as mock_site
     ):
-        mock_ctx.site.get_user.return_value = None
-
+        mock_site.get_user.return_value = None
+        web.ctx.headers = []
         with pytest.raises(web.HTTPError):
             likes_control().POST()
