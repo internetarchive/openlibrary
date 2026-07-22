@@ -1,5 +1,6 @@
 """Language pages"""
 
+import locale
 import logging
 from dataclasses import dataclass
 from typing import Literal, override
@@ -15,6 +16,21 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
+
+
+def _sort_key_name(name: str) -> str:
+    """Return a locale-aware collation key for sorting language names.
+
+    Uses ``locale.strxfrm`` with the current locale to produce a sort key
+    that respects Unicode character decomposition (diacritics sort with
+    their base characters) and is case-insensitive. Falls back to
+    ``casefold()`` if the locale cannot handle the string — the sysadmin
+    perspective is to prefer a degraded sort over a crash.
+    """
+    try:
+        return locale.strxfrm(name.casefold())
+    except (ValueError, locale.Error):  # fmt: skip
+        return name.casefold()
 
 
 async def get_top_languages(
@@ -33,7 +49,7 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    results.sort(key=lambda x: x[sort].casefold() if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
+    results.sort(key=lambda x: _sort_key_name(x[sort]) if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
     return results[:limit]
 
 
