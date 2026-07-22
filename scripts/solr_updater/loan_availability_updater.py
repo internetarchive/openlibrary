@@ -15,10 +15,12 @@ import datetime
 import json
 import logging
 import time
-#remove after testing. 
-import urllib3
-import requests 
 from pathlib import Path
+
+import requests
+
+# remove after testing.
+import urllib3
 
 import infogami
 from openlibrary.config import load_config
@@ -30,21 +32,22 @@ logger = logging.getLogger("openlibrary.loan-availability-updater")
 
 LOAN_ACTIVE_EVENTS = frozenset({"borrow", "browse", "renew_borrow", "renew_browse"})
 LOAN_ENDED_EVENTS = frozenset({"return", "expire_borrow", "expire_browse"})
-#Used to indicate when no learn has been returned. 
-#It's necessary, as in-place updates do not allow us to delete the value of a field or set it to None. 
-NO_LOAN_VAL = 0 
+# Used to indicate when no learn has been returned.
+# It's necessary, as in-place updates do not allow us to delete the value of a field or set it to None.
+NO_LOAN_VAL = 0
 LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
 POLL_INTERVAL = 30  # seconds between polls when caught up
 
-#remove after testing. 
-LOCAL_DEV  = True 
+# remove after testing.
+LOCAL_DEV = True
+
 
 def read_state(path: Path) -> int:
     """Return last processed uid, or 0 if the state file is absent/corrupt."""
     try:
         return int(path.read_text().strip())
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return 0
 
 
@@ -59,15 +62,13 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     is newer than target_age_days.
     """
 
-    #--------------Remove these lines when I'm finished.
+    # --------------Remove these lines when I'm finished.
     session = requests.Session()
-    adapter = requests.adapters.HTTPAdapter(
-       max_retries=urllib3.Retry(total=3, backoff_factor=0.5, allowed_methods=None)
-    )
+    adapter = requests.adapters.HTTPAdapter(max_retries=urllib3.Retry(total=3, backoff_factor=0.5, allowed_methods=None))
     session.mount("http://", adapter)
-    #---------------------------
+    # ---------------------------
     try:
-        if not LOCAL_DEV:   
+        if not LOCAL_DEV:
             resp = lending.get_loan_changes(after_uid=0, limit=1)
         else:
             resp = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": 0, "limit": 1}).json()
@@ -91,7 +92,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
             break
         mid = (low + high) // 2
         try:
-            if not LOCAL_DEV:   
+            if not LOCAL_DEV:
                 rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
             else:
                 rows = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": mid, "limit": 1}).json().get("rows", [])
@@ -137,10 +138,11 @@ def ia_until_to_epoch(until: str | None) -> int | None:
     if not until:
         return None
     try:
-        return int(datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp())
+        return int(datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC).timestamp())
     except ValueError:
         logger.debug("Could not parse 'until' value: %r", until)
         return None
+
 
 def resolve_edition_keys(identifiers: list[str]) -> dict[str, str]:
     """Batch-resolve IA identifiers to Solr edition keys via the ia field."""
@@ -150,13 +152,22 @@ def resolve_edition_keys(identifiers: list[str]) -> dict[str, str]:
     quoted = ",".join(f'"{id_}"' for id_ in identifiers)
     logger.info("Resolving %s identifiers to edition keys via Solr", quoted)
     result = get_solr().select(
-        query=f'ia:({quoted})',
+        query=f"ia:({quoted})",
         fields=["key", "ia", "_version_", "_root_"],
         rows=len(identifiers) * 3,
     )
     id_set = set(identifiers)
     logger.info(f"returned docs: {result.docs}")
-    return {ia_id: {"key":doc["key"], "_version_": doc["_version_"], "_root_": doc["_root_"], } for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set and doc["key"].startswith("/books/")}
+    return {
+        ia_id: {
+            "key": doc["key"],
+            "_version_": doc["_version_"],
+            "_root_": doc["_root_"],
+        }
+        for doc in result.docs
+        for ia_id in doc.get("ia", [])
+        if ia_id in id_set and doc["key"].startswith("/books/")
+    }
 
 
 def query_solr_uid() -> int:
@@ -179,7 +190,7 @@ def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, str])
     """Build Solr atomic-update documents from the latest per-identifier loan state."""
     updates = []
     for identifier, state in id_state.items():
-        edition_data= id_to_edition.get(identifier)
+        edition_data = id_to_edition.get(identifier)
         if not edition_data:
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
@@ -227,7 +238,8 @@ def build_eviction_updates() -> list[dict]:
             "ebook_availability": {"set": 1},
             "ebook_becomes_available": {"set": NO_LOAN_VAL},
         }
-        for doc in result.docs if doc["key"].startswith("/books/")
+        for doc in result.docs
+        if doc["key"].startswith("/books/")
     ]
 
 
@@ -309,7 +321,7 @@ def main(
                     new_uid,
                 )
                 if not dry_run:
-                    response =get_solr().update_in_place(updates, commit=True)
+                    response = get_solr().update_in_place(updates, commit=True)
                     logger.info(f"Solr update response #1: {response}")
                 did_updates = True
 
@@ -343,7 +355,7 @@ def main(
             continue
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
-        #Delete after testing. 
+        # Delete after testing.
         break
         time.sleep(poll_interval)
 

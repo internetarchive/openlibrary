@@ -125,7 +125,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     networks:
-      - webnet 
+      - webnet
     environment:
       - OL_CONFIG=conf/openlibrary.yml
       - STATE_FILE=solr-loan-updater.last_uuid
@@ -144,13 +144,13 @@ services:
         max-file: "4"
 
   #delete when finished
-  dummy_provider: 
+  dummy_provider:
     image: "${OLIMAGE:-oldev:latest}"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
     networks:
-      - webnet 
+      - webnet
     environment:
       - LOCAL_DEV=true
     healthcheck:
@@ -166,7 +166,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-      
+
 networks:
   webnet:
   dbnet:

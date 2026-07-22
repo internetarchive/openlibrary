@@ -186,18 +186,18 @@ services:
 
 =======
 
-  #remove before committing: 
-  dummy_provider: 
+  #remove before committing:
+  dummy_provider:
      build:
         context: .
         dockerfile: docker/Dockerfile.oldev
      image: "${OLIMAGE:-oldev:latest}"
-     volumes: 
+     volumes:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
      command:  python3 ./openlibrary/temp/dummy_api.py
-     networks: 
+     networks:
       - webnet
-    
+
 >>>>>>> 9cb813a72 (Temporary commit for switching laptops)
 volumes:
   ol-vendor:

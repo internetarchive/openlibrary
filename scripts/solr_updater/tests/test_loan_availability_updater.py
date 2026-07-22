@@ -1,9 +1,9 @@
 """Tests for loan_availability_updater.py"""
 
 import datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import MagicMock, patch
 
 from scripts.solr_updater.loan_availability_updater import (
     build_eviction_updates,
