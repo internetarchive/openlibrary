@@ -1,10 +1,14 @@
+import asyncio
 from unittest.mock import patch
 
 import web
 
+from openlibrary.core import cache
 from openlibrary.plugins.worksearch.code import (
+    SearchResponse,
     _get_readable_count,
     _prepare_solr_query_params,
+    _process_solr_search_response,
     get_doc,
     process_facet,
 )
@@ -232,3 +236,129 @@ def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
     assert readable_param["has_fulltext"] == "true"
     assert "public_scan" not in readable_param
     assert mock_query.call_args.kwargs["rows"] == 0
+
+
+def test_process_solr_search_response_surfaces_solr_timeout():
+    """A missing or failed Solr response should surface as an error, not as an
+    empty cacheable result."""
+    response = SearchResponse.from_solr_result(None, sort="new", solr_select="/select", time=0.1)
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed["error"] == "solr_request_failed"
+    assert processed["num_found"] == 0
+
+
+def test_process_solr_search_response_marks_timeout_as_error():
+    response = SearchResponse.from_solr_result(None, sort="new", solr_select="/select", time=0.1)
+    assert response.error == "solr_request_failed"
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed == {"error": "solr_request_failed", "docs": [], "num_found": 0}
+
+
+def test_process_solr_search_response_surfaces_solr_timeout_when_cacheable():
+    """A Solr timeout should surface as an error even if the response is
+    cacheable, to avoid returning stale results."""
+    response = SearchResponse.from_solr_result({"responseHeader": {"status": 200, "QTime": 10}}, sort="new", solr_select="/select", time=0.1)
+    cache.set(response.cache_key, {"foo": "bar"}, 60)
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed["error"] == "solr_request_failed"
+    assert processed["num_found"] == 0
+
+
+def test_process_solr_search_response_allows_explicit_error_response():
+    """If the Solr response explicitly encodes an error, it should be surfaced
+    as-is, without triggering a 500 error."""
+    response = SearchResponse.from_solr_result(
+        {
+            "responseHeader": {"status": 500, "QTime": 10},
+            "error": {"msg": "Solr internal error", "code": "500"},
+        },
+        sort="new",
+        solr_select="/select",
+        time=0.1,
+    )
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed["error"] == "solr_request_failed"
+    assert processed["num_found"] == 0
+
+
+def test_process_solr_search_response_allows_partial_results_with_error():
+    """If the Solr response contains partial results but also an error, the
+    results should be surfaced with the error, and not cached as a complete
+    success."""
+    response = SearchResponse.from_solr_result(
+        {
+            "responseHeader": {"status": 200, "QTime": 10},
+            "response": {"numFound": 1, "start": 0, "docs": [{}]},
+            "error": {"msg": "Solr internal error", "code": "500"},
+        },
+        sort="new",
+        solr_select="/select",
+        time=0.1,
+    )
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed["error"] == "solr_request_failed"
+    assert processed["num_found"] == 1
+
+
+def test_search_response_from_solr_result_scenarios():
+    """Five regression scenarios for missing/failed/healthy Solr responses."""
+    scenarios = [
+        (None, "solr_request_failed", [], None),
+        ({"error": "Solr timeout"}, "Solr timeout", [], None),
+        ({"response": {"docs": [{"key": "/works/OL1W"}], "numFound": 1}}, None, [{"key": "/works/OL1W"}], 1),
+    ]
+
+    for solr_result, expected_error, expected_docs, expected_num_found in scenarios:
+        response = SearchResponse.from_solr_result(solr_result, sort="new", solr_select="/select", time=0.1)
+        assert response.error == expected_error
+        assert response.docs == expected_docs
+        assert response.num_found == expected_num_found
+
+
+def test_process_solr_search_response_returns_error_payload_for_missing_solr_result():
+    response = SearchResponse.from_solr_result(None, sort="new", solr_select="/select", time=0.1)
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed == {"error": "solr_request_failed", "docs": [], "num_found": 0}
+
+
+def test_process_solr_search_response_returns_error_payload_for_solr_error_dict():
+    response = SearchResponse.from_solr_result({"error": "Solr timeout"}, sort="new", solr_select="/select", time=0.1)
+
+    processed = asyncio.run(_process_solr_search_response(response, fields="*"))
+
+    assert processed == {"error": "Solr timeout", "docs": [], "num_found": 0}
+
+
+def test_cache_memoize_skips_caching_error_payload():
+    """Error payloads must not be memoized as a successful cache entry."""
+    calls = 0
+
+    @cache.memoize(
+        engine="memory",
+        key="test-solr-timeout-cache",
+        expires=60,
+        cacheable=lambda key, value: "error" not in value,
+    )
+    def get_error_payload():
+        nonlocal calls
+        calls += 1
+        return {"error": "solr_request_failed", "docs": [], "num_found": 0}
+
+    first = get_error_payload()
+    second = get_error_payload()
+
+    assert first == {"error": "solr_request_failed", "docs": [], "num_found": 0}
+    assert second == {"error": "solr_request_failed", "docs": [], "num_found": 0}
+    assert calls == 2
