@@ -4345,7 +4345,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -4778,7 +4778,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
+#: home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -7149,10 +7149,6 @@ msgstr ""
 msgid "ISBNs"
 msgstr ""
 
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
-msgstr ""
-
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
 msgstr ""
@@ -8396,6 +8392,10 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py
