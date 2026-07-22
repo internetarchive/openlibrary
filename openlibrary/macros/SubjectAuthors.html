@@ -1,0 +1,50 @@
+$def with (authors)
+
+$# Replaces ProlificAuthors (raw author_key facet count)
+$# with signal-ranked "Notable authors". Each author (web.storage,
+$# rehydrated from cache in subjects.decorate_with_notable_authors) is
+$# rendered as a compact card: portrait, name, and a representative work +
+$# count. The whole card links to the author. Every field degrades
+$# gracefully so a sparse / under-configured subject never looks broken:
+$#   - no photo_url            -> CSS avatar placeholder shows through
+$#   - no representative_work  -> falls back to a plain "N books" count line
+$#   - no work cover_id        -> the trailing cover thumbnail is simply omitted
+
+$if authors:
+  <div id="resultsAuthors" class="widget-box">
+    <div class="head">
+      <h3>$_("Notable Authors")</h3>
+    </div>
+    <ul class="subjectAuthors unordered">
+      $for author in authors:
+        $ photo_url = author.get('photo_url')
+        $ rep_work = author.get('representative_work')
+        $ remaining = max(author.get('count', 1) - 1, 0)
+        $ cover_id = rep_work.get('cover_id') if rep_work else None
+        $if rep_work and remaining > 0:
+          $ blurb = "%s %s" % (rep_work.title, ungettext("and %(count)d more", "and %(count)d more", remaining, count=remaining))
+        $elif rep_work:
+          $ blurb = rep_work.title
+        $else:
+          $# Graceful fallback: no clear representative work found for this
+          $# author within the sampled works -- fall back to the old
+          $# ProlificAuthors-style count line rather than hiding the card.
+          $ blurb = ungettext("%(count)d book", "%(count)d books", author.get('count', 1), count=author.get('count', 1))
+        <li class="subjectAuthors-item">
+          <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
+            <span class="subjectAuthors-avatar">
+              $if photo_url:
+                <img src="$photo_url" loading="lazy" alt="" aria-hidden="true" />
+            </span>
+            <span class="subjectAuthors-text">
+              <span class="subjectAuthors-name">$author.name</span>
+              <span class="subjectAuthors-blurb">$blurb</span>
+            </span>
+            $if cover_id:
+              <span class="subjectAuthors-cover">
+                <img src="$(get_coverstore_public_url())/b/id/$(cover_id)-S.jpg" loading="lazy" alt="" aria-hidden="true" />
+              </span>
+          </a>
+        </li>
+    </ul>
+  </div>

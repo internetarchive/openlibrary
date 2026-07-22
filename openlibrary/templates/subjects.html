@@ -64,7 +64,7 @@ $ q = query_param('q')
     $:macros.RelatedSubjects(page)
 
     <div class="clearfix"></div>
-    $:macros.ProlificAuthors(page.authors)
+    $:macros.SubjectAuthors(page.get('notable_authors', []))
 
     <div class="section clearfix"></div>
 </div>

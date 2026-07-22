@@ -8,6 +8,7 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from openlibrary.core import cache
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
@@ -21,6 +22,20 @@ __all__ = ["SubjectEngine", "get_subject"]
 
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
+
+# Signal-ranked "Notable authors"
+# Bounded sample of works (sorted by a popularity signal) scanned to build
+# the notable-authors list. Keeps this to a single extra Solr query instead
+# of one query per author. Trimmed from 100->40 per review: with
+# MAX_NOTABLE_AUTHORS=8 over a readinglog-sorted list, 8 unique authors are
+# almost always found within the first ~20-30 rows, so 40 cuts scan/payload
+# with no realistic quality loss.
+NOTABLE_AUTHORS_SAMPLE_SIZE = 40
+MAX_NOTABLE_AUTHORS = 8
+# Long TTL: this list changes infrequently, and memcache_memoize is
+# stale-while-revalidate, so a stale value is served instantly while a
+# background thread recomputes -- no request ever blocks on a refresh.
+NOTABLE_AUTHORS_CACHE_TIMEOUT = 12 * 60 * 60  # 12h
 
 
 class subjects(delegate.page):
@@ -46,6 +61,7 @@ class subjects(delegate.page):
             page = render_template("subjects/notfound.tmpl", key)
         else:
             self.decorate_with_tags(subj)
+            self.decorate_with_notable_authors(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -82,6 +98,105 @@ class subjects(delegate.page):
             for tag in subject.disambiguations:
                 slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
                 tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
+
+    def decorate_with_notable_authors(self, subject) -> None:
+        """
+        Phase 1 (epic #13135): fetches the cached "Notable authors" list
+        (ranking + representative works + photos, all computed together in
+        _compute_notable_authors_with_photos and memoized -- see that
+        function's docstring) and attaches it to the subject for the
+        SubjectAuthors macro.
+
+        Two things happen here rather than in the cached function itself:
+        - Rehydration: memcache round-trips through JSON, so cached authors
+          come back as plain dicts, not web.storage. The Templetor macro
+          does $author.key / $author.representative_work.title, which fails
+          on a bare dict -- so we rebuild web.storage here, on every read.
+        - Exact count merge: subject.authors (the author_key facet) is
+          already computed fresh on *every* request as part of the main
+          query, so merging it in here (rather than caching it) keeps
+          displayed counts accurate even while the cached ranking/
+          representative-work data is intentionally left stale for up to
+          NOTABLE_AUTHORS_CACHE_TIMEOUT.
+        """
+        engine = next((e for e in SUBJECTS if e.name == subject.subject_type), None)
+        if engine is None:
+            return
+
+        path = subject.key.removeprefix(engine.prefix)
+        raw_authors = get_cached_notable_authors(subject.subject_type, path)
+        if not raw_authors:
+            subject.notable_authors = []
+            return
+
+        exact_counts = {a.key: a.count for a in subject.get("authors") or []}
+        notable_authors = []
+        for raw in raw_authors:
+            rep_work = raw.get("representative_work")
+            author = web.storage(
+                key=raw["key"],
+                name=raw["name"],
+                photo_url=raw.get("photo_url"),
+                representative_work=(
+                    web.storage(
+                        key=rep_work["key"],
+                        title=rep_work["title"],
+                        cover_id=rep_work.get("cover_id"),
+                    )
+                    if rep_work
+                    else None
+                ),
+                count=exact_counts.get(raw["key"], raw.get("count", 1)),
+            )
+            notable_authors.append(author)
+        subject.notable_authors = notable_authors
+
+
+def _compute_notable_authors_with_photos(subject_type: str, path: str) -> list[dict]:
+    """
+    Sync seam for cache.memcache_memoize (memcache_memoize is sync-only;
+    SubjectEngine.get_notable_authors_async is async). Bridges via
+    async_bridge, then folds in author-photo decoration here too, so
+    photos are cached alongside the ranking/representative-work data
+    instead of being re-fetched from the site store on every cache hit.
+
+    Args are plain strings (subject_type + path) rather than a
+    SubjectEngine instance or dict, since memcache_memoize needs
+    JSON-encodable args to build a stable, cacheable key. subject_type is
+    used here to re-look-up the right SubjectEngine from SUBJECTS.
+
+    Returns a list of plain dicts -- see decorate_with_notable_authors for
+    why (memcache round-trips through JSON) and where rehydration happens.
+    """
+    if "site" not in web.ctx:
+        # The stale-while-revalidate background refresh
+        # (memcache_memoize.update_async) runs this on its own thread,
+        # which doesn't have a normal request's web.ctx.site set up.
+        # Mirrors the identical guard in core/lending.get_user_waiting_loans
+        # for the same reason.
+        delegate.fakeload()
+
+    engine = next((e for e in SUBJECTS if e.name == subject_type), None)
+    if engine is None:
+        return []
+
+    authors = async_bridge.run(engine.get_notable_authors_async(path, {}))
+    if not authors:
+        return []
+
+    authors_by_key = {thing.key: thing for thing in web.ctx.site.get_many([a.key for a in authors])}
+    for author in authors:
+        thing = authors_by_key.get(author.key)
+        author.photo_url = thing.get_photo_url("M") if thing else None
+
+    return [dict(a) for a in authors]
+
+
+get_cached_notable_authors = cache.memcache_memoize(
+    _compute_notable_authors_with_photos,
+    key_prefix="subjects.notable_authors",
+    timeout=NOTABLE_AUTHORS_CACHE_TIMEOUT,
+)
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
@@ -313,6 +428,12 @@ class SubjectEngine:
             subject.publishers = result.facet_counts["publisher_facet"]
             subject.languages = result.facet_counts["language"]
 
+            # Phase 1 (epic #13135): "Notable authors" is computed and
+            # cached separately -- see get_cached_notable_authors and
+            # subjects.decorate_with_notable_authors -- rather than fetched
+            # unconditionally here on every request. It still uses
+            # subject.authors (the facet above) for exact per-author counts.
+
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = date.today().year
@@ -333,6 +454,93 @@ class SubjectEngine:
                     break
 
         return subject
+
+    async def get_notable_authors_async(
+        self,
+        path: str,
+        filters: dict,
+        request_label: SolrRequestLabel = "UNLABELLED",
+    ) -> list[web.storage]:
+        """
+        Builds a signal-ranked "Notable authors" list for a subject.
+
+        Runs one extra Solr query (no facets needed — those are already
+        computed by the main query) over a bounded, popularity-sorted sample
+        of works, then walks the sample once to pick each author's first
+        (i.e. highest-signal) work as their representative work. The `count`
+        on each returned author is a placeholder (1); callers should backfill
+        exact per-subject book counts from the author_key facet the main
+        query already computes -- see decorate_with_notable_authors.
+        """
+        # Circular imports are everywhere -_-
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            run_solr_query_async,
+        )
+
+        unescaped_filters = {}
+        if "publish_year" in filters:
+            unescaped_filters["publish_year"] = filters.pop("publish_year")
+
+        result = await run_solr_query_async(
+            WorkSearchScheme(),
+            {
+                "q": query_dict_to_str(
+                    {self.facet_key: self.normalize_key(path)},
+                    unescaped=unescaped_filters,
+                    phrase=True,
+                ),
+                **filters,
+            },
+            request_label=request_label,
+            rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
+            # Reuses the same popularity signal (readinglog_count) that
+            # already drives the page's default work ordering — no new
+            # infra, per the epic's Phase 1 scope note.
+            sort="readinglog",
+            facet=False,
+            fields=["key", "title", "author_key", "author_name", "cover_i"],
+        )
+
+        notable_authors: dict[str, web.storage] = {}
+        for doc in result.docs:
+            # Defensive guard: a work doc without a key or title can't be a
+            # representative work (nothing to link to / display) -- skip it
+            # rather than let a malformed/incomplete Solr doc propagate into
+            # the template or crash on the dict-index below.
+            if not doc.get("key") or not doc.get("title"):
+                continue
+
+            author_keys = doc.get("author_key") or []
+            author_names = doc.get("author_name") or []
+            for olid, name in zip(author_keys, author_names):
+                if olid not in notable_authors:
+                    notable_authors[olid] = web.storage(
+                        key=f"/authors/{olid}",
+                        name=name,
+                        representative_work=web.storage(
+                            key=doc["key"],
+                            title=doc["title"],
+                            cover_id=doc.get("cover_i"),
+                        ),
+                        # Backfilled below from the exact facet count; falls
+                        # back to 1 (this work) if the author is somehow
+                        # missing from the facet, which shouldn't normally
+                        # happen.
+                        count=1,
+                    )
+                    # Check the cap right after each *addition*, not just
+                    # once per doc: a single work can have several
+                    # co-authors, and without this inner check a work that
+                    # pushes us from e.g. 7 to 10 unique authors would blow
+                    # past MAX_NOTABLE_AUTHORS before the outer per-doc
+                    # check below ever runs.
+                    if len(notable_authors) >= MAX_NOTABLE_AUTHORS:
+                        break
+            if len(notable_authors) >= MAX_NOTABLE_AUTHORS:
+                break
+
+        return list(notable_authors.values())
 
     def normalize_key(self, key):
         return Tag.normalize(key)
