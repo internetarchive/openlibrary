@@ -24,6 +24,7 @@ from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.features import features as ol_features
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
@@ -369,7 +370,7 @@ class robotstxt(delegate.page):
 
     def GET(self):
         web.header("Content-Type", "text/plain")
-        is_dev = "dev" in infogami.config.features or web.ctx.host != "openlibrary.org"
+        is_dev = get_ol_env().LOCAL_DEV or web.ctx.host != "openlibrary.org"
         robots_file = "norobots.txt" if is_dev else "robots.txt"
         return web.ok(open(f"static/{robots_file}").read())
 
@@ -1142,6 +1143,7 @@ def setup_template_globals():
             "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
+            "get_ol_env": get_ol_env,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,

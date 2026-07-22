@@ -6,8 +6,8 @@ from datetime import date, datetime, timedelta
 import requests
 import web
 
-from infogami import config
 from openlibrary.core import cache
+from openlibrary.core.env import get_ol_env
 
 from . import db
 
@@ -88,7 +88,7 @@ class LoanStats(Stats):
 
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
-        if "dev" in config.features:
+        if get_ol_env().LOCAL_DEV:
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):

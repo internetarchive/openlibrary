@@ -8,14 +8,14 @@ This is temporary while we migrate to fastapi and have two containers running.
 import httpx
 import web
 
-import infogami
 from infogami.utils import delegate
+from openlibrary.core.env import get_ol_env
 
 
 def handle_deprecated_request():
     """Handle the deprecated endpoint request."""
     # Check if we're in dev environment
-    if "dev" in infogami.config.features:
+    if get_ol_env().LOCAL_DEV:
         return proxy_to_fastapi()
     else:
         # Raise a loud error in production

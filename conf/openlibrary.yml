@@ -61,7 +61,6 @@ http_request_timeout: 10
 
 features:
     debug: enabled
-    dev: enabled
     stats: enabled
     stats-header: enabled
     undo: enabled
