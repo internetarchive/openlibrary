@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, lending_state=None)
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', editions_page=False, analytics_override=None, lending_state=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -153,19 +153,20 @@ $elif lending_state == 'preview_only':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
 
-$else:
-  $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.
-  $# secondary_action means we're on a book page and it's the button under the cover image.
-  $ edition_key = doc.key.split('/')[2]
-  $if secondary_action:
-      $:macros.LocateButton(edition_key)
-  $elif is_edition:
-      $# Wrapper if locate button is not in read panel
-      <div class="cta-button-group">
-        $:macros.LocateButton(edition_key)
-      </div>
+$elif is_edition:
+  $if editions_page:
+      $:macros.CheckWorldcat(edition_key)
   $else:
-      $:macros.NotInLibrary(None, analytics_attr)
+      <div class="cta-button-group">
+        <a
+            href="$work_key"
+            class="cta-btn cta-btn--unavailable"
+            title="$_('Check options for this book.')"
+        >$_("Check Options")</a>
+      </div>
+
+$else:
+  $:macros.NotInLibrary(None, analytics_attr)
 
 $:post
 
