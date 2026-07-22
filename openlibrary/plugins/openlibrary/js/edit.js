@@ -13,7 +13,7 @@ import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
 import { trimInputValues } from './utils.js';
 
-/* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
+/* global render_seed_field, render_lazy_work_preview, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
 /* global render_author, render_author_autocomplete_item */
@@ -260,25 +260,6 @@ export function initClassificationValidation() {
             $('#select-classification, #classification-value').val('');
             return true;
         }
-    });
-}
-
-export function initLanguageMultiInputAutocomplete() {
-    initAutocomplete();
-    $(function() {
-        getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
-            jqueryElement.setup_multi_input_autocomplete(
-                render_language_field,
-                {
-                    endpoint: '/languages/_autocomplete',
-                    sortable: true,
-                },
-                {
-                    max: 6,
-                    formatItem: render_language_autocomplete_item
-                }
-            );
-        });
     });
 }
 

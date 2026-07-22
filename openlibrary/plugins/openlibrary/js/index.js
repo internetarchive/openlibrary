@@ -71,7 +71,6 @@ jQuery(function() {
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteSeries = document.querySelector('.multi-input-autocomplete--series');
-    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
     const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
@@ -84,7 +83,7 @@ jQuery(function() {
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
+        autocompleteAuthor || autocompleteSeries || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
         excerpts || links
@@ -114,9 +113,6 @@ jQuery(function() {
                 }
                 if (classifications) {
                     module.initClassificationValidation();
-                }
-                if (autocompleteLanguage) {
-                    module.initLanguageMultiInputAutocomplete();
                 }
                 if (autocompleteWorks) {
                     module.initWorksMultiInputAutocomplete();
