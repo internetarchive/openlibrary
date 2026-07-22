@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Shared pytest fixtures for FastAPI and API contract tests."""
 
 from unittest.mock import patch
@@ -146,6 +148,44 @@ def _default_search_response():
         "q": "",
         "offset": None,
     }
+
+
+@pytest.fixture
+def mock_run_solr_query_async():
+    """Mock run_solr_query_async to avoid actual Solr calls.
+
+    Used by FastAPI search/facets endpoint tests.
+    Returns a SearchResponse with sample facet_counts.
+    """
+    with patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock:
+        mock.return_value = _default_facets_response()
+        yield mock
+
+
+def _default_facets_response():
+    """Default mock SearchResponse for facets tests."""
+    return SearchResponse(
+        # process_facet_counts renames author_facet → author_key in this dict
+        facet_counts={
+            "language": [
+                ("English", "English", 665),
+                ("German", "German", 32),
+                ("Spanish", "Spanish", 18),
+                ("Latin", "Latin", 0),  # zero-count entry — should be filtered out
+            ],
+            "author_key": [
+                ("J.R.R. Tolkien", "OL9A", 123),
+            ],
+            "subject_facet": [
+                ("Fantasy", "Fantasy", 89),
+            ],
+        },
+        sort="",
+        docs=[],
+        num_found=0,
+        raw_resp={"response": {"docs": []}},
+        solr_select="mock",
+    )
 
 
 def _default_subjects_response():
