@@ -138,12 +138,6 @@
     "publish_places":      { "$ref": "shared_definitions.json#/string_array" },
     "publishers":          { "$ref": "shared_definitions.json#/string_array" },
     "contributions":       { "$ref": "shared_definitions.json#/string_array" },
-    "dewey_decimal_class": { "$ref": "shared_definitions.json#/string_array" },
-    "genres":              { "$ref": "shared_definitions.json#/string_array" },
-    "lc_classifications":  {
-      "type": "array",
-      "items": { "$ref": "shared_definitions.json#/lc_classification" }
-    },
     "other_titles":        { "$ref": "shared_definitions.json#/string_array" },
     "series":              { "$ref": "shared_definitions.json#/string_array" },
     "source_records":      { "$ref": "shared_definitions.json#/string_array" },

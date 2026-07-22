@@ -137,16 +137,6 @@
         },
         {
             "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": false,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "genres"
-        },
-        {
-            "expected_type": {
                 "key": "/type/toc_item"
             },
             "unique": false,
@@ -274,26 +264,6 @@
                 "key": "/type/property"
             },
             "name": "isbn_13"
-        },
-        {
-            "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": false,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "dewey_decimal_class"
-        },
-        {
-            "expected_type": {
-                "key": "/type/string"
-            },
-            "unique": false,
-            "type": {
-                "key": "/type/property"
-            },
-            "name": "lc_classifications"
         },
         {
             "expected_type": {
