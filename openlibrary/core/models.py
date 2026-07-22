@@ -1194,6 +1194,8 @@ class Subject(web.storage):
     subject_type: str
     solr_query: str
     """Query with normalized subject key to get matching books; eg 'person_key:ned_wilcox'"""
+    error: str | None
+    """Set when the underlying Solr query itself errored; work_count is None in that case."""
 
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {

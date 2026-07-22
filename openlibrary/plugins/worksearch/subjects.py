@@ -41,7 +41,10 @@ class subjects(delegate.page):
         )
 
         delegate.context.setdefault("cssfile", "subject")
-        if not subj or subj.work_count == 0:
+        if not subj or subj.error:
+            web.ctx.status = "503 Service Unavailable"
+            page = render_template("subjects/unavailable.tmpl", key)
+        elif subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template("subjects/notfound.tmpl", key)
         else:
@@ -284,6 +287,7 @@ class SubjectEngine:
                 phrase=True,
             ),
             work_count=result.num_found,
+            error=result.error,
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
