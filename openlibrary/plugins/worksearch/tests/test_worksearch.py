@@ -1,6 +1,4 @@
 import asyncio
-import pytest
-
 from unittest.mock import patch
 
 import web
@@ -263,9 +261,7 @@ def test_process_solr_search_response_marks_timeout_as_error():
 def test_process_solr_search_response_surfaces_solr_timeout_when_cacheable():
     """A Solr timeout should surface as an error even if the response is
     cacheable, to avoid returning stale results."""
-    response = SearchResponse.from_solr_result(
-        {"responseHeader": {"status": 200, "QTime": 10}}, sort="new", solr_select="/select", time=0.1
-    )
+    response = SearchResponse.from_solr_result({"responseHeader": {"status": 200, "QTime": 10}}, sort="new", solr_select="/select", time=0.1)
     cache.set(response.cache_key, {"foo": "bar"}, 60)
 
     processed = asyncio.run(_process_solr_search_response(response, fields="*"))
