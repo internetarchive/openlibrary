@@ -57,6 +57,14 @@
       "maxSize": "155KB"
     },
     {
+      "path": "static/build/css/tokens.css",
+      "maxSize": "6KB"
+    },
+    {
+      "path": "static/build/css/ol-components.css",
+      "maxSize": "8KB"
+    },
+    {
       "path": "static/build/css/page-admin.css",
       "maxSize": "28KB"
     },

@@ -32,7 +32,7 @@ h1 {
 body,
 p,
 li {
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 body {
   font-size: 100%;
@@ -49,36 +49,42 @@ p {
 hr {
   height: 1px;
   border: none;
-  /* fade(@beige, 66) */
-  background: hsla(48, 44%, 84%, 0.66);
+  background: var(--color-border-subtle);
 }
 li {
   list-style: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 a:link {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a:hover {
-  color: var(--dark-blue);
+  color: var(--color-link-hover);
   text-decoration: underline;
 }
 a:visited {
-  color: var(--dark-blue);
+  color: var(--color-link-visited);
   text-decoration: underline;
 }
 /* Note more heading styles can be found in base/headings
-   This provides the minimum possible */
+   This provides the minimum possible.
+   One ink color for all headings; hierarchy comes from size and the
+   serif (h1-h3) / sans (h4-h6) split, not from greying out. */
 h1,
 h2,
-h3,
+h3 {
+  font-family: var(--font-family-heading);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  text-wrap: balance;
+}
 h4,
 h5,
 h6 {
-  font-family: var(--font-family-body);
-  color: var(--grey);
-  font-weight: 600;
+  font-family: var(--font-family-subheading);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
 }
 div.head {
   margin-bottom: var(--spacing-stack-sm);
@@ -90,7 +96,7 @@ div.head span {
 pre,
 code {
   font-family: var(--font-family-code);
-  font-size: 0.875em;
+  font-size: var(--font-size-body-medium);
   font-weight: normal;
   white-space: pre-wrap;
 }

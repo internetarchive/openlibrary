@@ -1,110 +1,101 @@
 /**
  * Colors
  * ======
+ * Two-tier token system (see docs/ai/design.md):
+ *
+ *   1. Primitives — raw ramps, no semantic meaning. Never use directly
+ *      in component styles.
+ *   2. Semantic tokens — purpose-named (`--color-*`), reference primitives
+ *      only. This is the layer components consume, and the seam where a
+ *      future dark mode swaps values.
+ *   3. Deprecated aliases — every legacy token name, re-pointed at the
+ *      ramps so existing consumers migrate without edits. Do not use in
+ *      new code; migrate to a semantic token when touching a file.
+ */
+
+/**
+ * 1. Primitives
+ * -------------
  */
 :root {
-  /* Blues */
-  --primary-blue: hsl(202, 96%, 37%);
-  --link-blue: hsl(202, 96%, 28%);
-  --lightest-blue: hsl(201, 100%, 96%);
-  --mid-blue: hsl(204, 70%, 53%);
-  --dark-blue: hsl(210, 100%, 20%);
-  --darker-brand-blue: hsl(198, 100%, 36%);
-  --header-nav-hover-color: hsl(207, 83%, 33%);
-  --blue-b0bed9: hsl(220, 35%, 77%);
-  --count-blue-grey: hsl(211, 28%, 41%);
-  --grey-blue: hsl(211, 37%, 89%);
-  --teal: hsl(184, 100%, 21%);
-  --button-hover-blue: hsl(202, 57%, 61%);
-  --dark-baby-blue: hsl(240, 100%, 75%);
-  --mid-baby-blue: hsl(240, 100%, 88%);
-  --baby-blue: hsl(240, 100%, 93%);
-  --blue-9fafd1: hsl(221, 35%, 72%);
-  --blue-3366ff: hsl(225, 100%, 60%);
-  --blue-5e88B9: hsl(212, 39%, 55%);
+  /* Warm neutral ramp — "paper to ink" (hue 40–45).
+     Replaces the legacy grey + beige families with one warm ramp. */
+  --neutral-50: hsl(45, 40%, 97%); /* page canvas */
+  --neutral-100: hsl(45, 32%, 94%); /* tinted surface, header chrome */
+  --neutral-200: hsl(44, 26%, 88%); /* subtle borders, dividers */
+  --neutral-300: hsl(43, 18%, 78%); /* strong dividers, disabled bg */
+  --neutral-400: hsl(42, 11%, 62%); /* icons, placeholder (non-text) */
+  --neutral-500: hsl(41, 9%, 42%); /* muted text — 5.0:1 on white */
+  --neutral-600: hsl(40, 10%, 37%); /* secondary text — 6.1:1 on white */
+  --neutral-700: hsl(40, 11%, 29%);
+  --neutral-800: hsl(40, 13%, 21%); /* primary text "ink" — 11.7:1 on white */
+  --neutral-900: hsl(40, 16%, 12%); /* near-black; dark-mode surfaces later */
+  --white: hsl(0, 0%, 100%); /* raised surfaces stay pure white */
 
-  /* Greens */
-  --green: hsl(130, 61%, 33%);
-  --mid-baby-green: hsl(120, 100%, 88%);
-  --baby-green: hsl(120, 100%, 93%);
-  --dark-green: hsl(113, 38%, 29%);
-  --soft-green: hsl(97, 51%, 77%);
-  --soft-green-two: hsl(97, 40%, 70%);
-  --olive: hsl(81, 39%, 35%);
-  --light-olive-2: hsl(78, 34%, 63%);
-  --lime-green: hsl(75, 100%, 85%);
-  --check-green: hsl(126, 100%, 36%);
+  /* Blue ramp — the single brand accent. 500/600 are bit-identical to the
+     legacy --primary-blue / --link-blue, so the brand does not drift. */
+  --blue-50: hsl(202, 80%, 95%);
+  --blue-100: hsl(202, 80%, 91%);
+  --blue-200: hsl(202, 70%, 83%);
+  --blue-300: hsl(203, 55%, 70%);
+  --blue-400: hsl(204, 70%, 53%);
+  --blue-500: hsl(202, 96%, 37%); /* == legacy --primary-blue */
+  --blue-600: hsl(202, 96%, 28%); /* == legacy --link-blue — 7.4:1 on white */
+  --blue-700: hsl(203, 95%, 22%);
+  --blue-800: hsl(206, 90%, 18%); /* visited links */
 
-  /* Oranges */
-  --orange: hsl(32, 100%, 61%);
-  --orange-three: hsl(32, 100%, 78%);
-  --orange-four: hsl(23, 51%, 77%);
-  --orange-five: hsl(23, 100%, 50%);
-  --burnt-sienna: hsl(19, 95%, 40%);
+  /* Muted status ramps. The 600/700 steps are the text-safe foregrounds
+     (AA on white and on their own 50/100 tints); 500 is the object color. */
+  --red-50: hsl(8, 75%, 96%);
+  --red-100: hsl(8, 72%, 92%);
+  --red-200: hsl(8, 64%, 84%);
+  --red-500: hsl(8, 64%, 42%);
+  --red-600: hsl(8, 70%, 36%);
+  --red-700: hsl(8, 72%, 29%);
 
-  /* Reds */
-  --red: hsl(8, 78%, 49%);
-  --dark-red: hsl(8, 70%, 44%);
-  --red-two: hsl(4, 90%, 58%);
-  --red-three: hsl(0, 100%, 50%);
+  --green-50: hsl(128, 45%, 94%);
+  --green-100: hsl(128, 45%, 90%);
+  --green-200: hsl(128, 38%, 80%);
+  --green-300: hsl(128, 32%, 62%);
+  --green-500: hsl(130, 50%, 30%);
+  --green-600: hsl(130, 48%, 26%);
+  --green-700: hsl(131, 50%, 20%);
 
-  /* Pinks */
-  --mid-baby-pink: hsl(0, 100%, 88%);
-  --baby-pink: hsl(0, 100%, 93%);
-  --magenta: hsl(300, 100%, 50%);
+  --amber-50: hsl(46, 90%, 95%);
+  --amber-100: hsl(48, 90%, 89%);
+  --amber-200: hsl(48, 85%, 78%);
+  --amber-400: hsl(45, 93%, 54%); /* star gold — non-text only */
+  --amber-500: hsl(38, 90%, 38%);
+  --amber-600: hsl(36, 85%, 32%);
+  --amber-700: hsl(33, 80%, 26%);
+}
 
-  /* Yellows & Beiges */
-  --dark-yellow: hsl(57, 60%, 72%);
-  --beige-bright: #f6f1e6;
-  --beige-deep: #ebdfc5;
-  --beige-two: hsl(63, 26%, 84%);
-  --beige-three: hsl(48, 15%, 80%);
-  --beige: hsl(48, 33%, 83%);
-  --beige-pale: hsl(52, 31%, 95%);
-  --brown: hsl(40, 32%, 29%);
-  --account-icon-border: hsl(45, 7%, 79%);
-  --light-yellow: hsl(58, 100%, 90%);
-  --lighter-yellow: hsl(58, 92%, 95%);
-  --dark-beige: hsl(64, 9%, 71%);
-  --light-beige: hsl(48, 29%, 93%);
-  --cream: hsl(49, 30%, 93%);
-  --off-white: hsl(45, 100%, 98%);
-  --gold: hsl(50, 100%, 50%);
+/**
+ * 2. Semantic tokens
+ * ------------------
+ * What components consume. Each references a primitive only — this is the
+ * dark-mode seam: a future `[data-theme="dark"]` block re-points these.
+ */
+:root {
+  color-scheme: light;
 
-  /* Greyscale */
-  --black: hsl(0, 0%, 0%);
-  --boxshadow-black: hsla(0, 0%, 0%, 0.15);
-  --icon-link-grey: hsla(0, 0%, 0%, 0.1);
-  --dark-grey: hsl(0, 0%, 20%);
-  --grey-464646: hsl(0, 0%, 27%);
-  --darker-grey: hsl(0, 0%, 27%);
-  --grey-555: hsl(0, 0%, 33%);
-  --dark-grey-two: hsl(0, 0%, 35%);
-  --grey: hsl(0, 0%, 40%);
-  --accessible-grey: hsl(0, 0%, 46.3%); /* minimum grey for white background to be accessible */
-  --mid-grey: hsl(0, 0%, 60%);
-  --light-mid-grey: hsl(0, 0%, 67%);
-  --background-grey: hsla(0, 0%, 78%, 0.23);
-  --light-grey: hsl(0, 0%, 80%);
-  --lighter-grey: hsl(0, 0%, 87%);
-  --grey-e7e7e7: hsl(0, 0%, 91%);
-  --lightest-grey: hsl(0, 0%, 93%);
-  --grey-f3f3f3: hsl(0, 0%, 95%);
-  --grey-fafafa: hsl(0, 0%, 98%);
-  --white: hsl(0, 0%, 100%);
-  --gray-a19b9e: hsl(330, 3%, 62%);
-  --gray-d1cfd0: hsl(330, 2%, 82%);
-  --grey-f4f4f4: hsl(0, 0%, 96%);
+  /* Text */
+  --color-text: var(--neutral-800);
+  --color-text-secondary: var(--neutral-600);
+  --color-text-muted: var(--neutral-500); /* AA only on white / neutral-50 */
+  --color-text-inverse: var(--white);
 
-  /* Component-specific */
-  --admin-row-background: hsl(58, 66%, 81%);
-  --admin-table-border: hsl(48, 26%, 73%);
-  --heart-color: hsl(358, 100%, 74%);
-  --blue: hsl(240, 100%, 50%);
-  --purple: hsl(283, 97%, 61%);
-  --header-bar-gradient-start: hsl(41.2, 47.1%, 93.3%);
-  --header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);
-  --account-icon-background: hsla(37, 24%, 79%, 0.761);
+  /* Surfaces */
+  --color-background: var(--neutral-50); /* page canvas */
+  --color-surface: var(--white); /* cards, inputs, dropdowns */
+  --color-surface-raised: var(--white);
+  --color-surface-sunken: var(--neutral-100); /* troughs, wells */
+  --color-surface-header: var(--neutral-100); /* header / footer chrome */
+
+  /* Links */
+  --color-link: var(--blue-600);
+  --color-link-hover: var(--blue-700);
+  --color-link-visited: var(--blue-800);
 
   /* Environment badge & favicon (localhost / testing.openlibrary.org) —
      values match the static/images/openlibrary-{development,testing}-*.png favicons */
@@ -118,33 +109,55 @@
   --book-cover-carousel-cards: hsl(47, 54%, 98%);
   --book-cover-shadow-color: hsl(48, 35%, 64%);
 
-  /* Status colors */
-  --nagios-green: hsl(108, 100%, 50%);
-  --open-green: hsl(126, 100%, 30%);
-  --closed-red: hsl(0, 100%, 50%);
-  --merged-purple: hsl(266, 100%, 75%);
+  /* Primary action */
+  --color-primary: var(--blue-500);
+  --color-primary-hover: var(--blue-600);
+  --color-primary-active: var(--blue-700);
+  --color-primary-subtle: var(--blue-50);
+  --color-on-primary: var(--white);
 
-  /* Border & outline roles */
-  --color-border: hsl(0, 0%, 40%);
-  --color-border-hovered: hsl(0, 0%, 40%);
-  --color-border-focused: hsl(202, 96%, 37%);
-  --color-border-error: hsl(8, 78%, 49%);
-  --color-border-subtle: hsl(0, 0%, 87%);
-  --color-focus-ring: hsl(202, 96%, 37%);
+  /* Disabled */
+  --color-disabled-bg: var(--neutral-300);
+  --color-disabled-fg: var(--neutral-500);
 
+  /* Borders & outline roles */
+  --color-border: var(--neutral-500);
+  --color-border-hovered: var(--neutral-600);
+  --color-border-focused: var(--blue-500);
+  --color-border-error: var(--red-500);
+  --color-border-subtle: var(--neutral-200);
+  --color-focus-ring: var(--blue-500);
+
+  /* Status */
+  --color-success-fg: var(--green-600);
+  --color-success-bg: var(--green-50);
+  --color-success-border: var(--green-200);
+  --color-error-fg: var(--red-600);
+  --color-error-bg: var(--red-50);
+  --color-error-border: var(--red-200);
+  --color-warning-fg: var(--amber-600);
+  --color-warning-bg: var(--amber-50);
+  --color-warning-border: var(--amber-200);
+}
+
+/**
+ * Component-specific semantic tokens
+ * ----------------------------------
+ */
+:root {
   /* Chip / tag variants — soft-tint palette (pale background, saturated text
      & border) used to color a chip by the *kind* of thing it represents.
      Consumed via the `variant` attribute on <ol-chip>; see OLChip.js. Each
      variant defines bg / fg / border and a slightly darker bg for hover. */
-  --color-chip-language-bg: hsl(128, 45%, 94%);
-  --color-chip-language-bg-hover: hsl(128, 45%, 90%);
-  --color-chip-language-fg: hsl(130, 50%, 26%);
-  --color-chip-language-border: hsl(128, 38%, 80%);
+  --color-chip-language-bg: var(--green-50);
+  --color-chip-language-bg-hover: var(--green-100);
+  --color-chip-language-fg: var(--green-600);
+  --color-chip-language-border: var(--green-200);
 
-  --color-chip-subject-bg: hsl(202, 80%, 95%);
-  --color-chip-subject-bg-hover: hsl(202, 80%, 91%);
-  --color-chip-subject-fg: hsl(202, 96%, 28%);
-  --color-chip-subject-border: hsl(202, 70%, 83%);
+  --color-chip-subject-bg: var(--blue-50);
+  --color-chip-subject-bg-hover: var(--blue-100);
+  --color-chip-subject-fg: var(--blue-600);
+  --color-chip-subject-border: var(--blue-200);
 
   --color-chip-genre-bg: hsl(283, 55%, 96%);
   --color-chip-genre-bg-hover: hsl(283, 55%, 93%);
@@ -162,8 +175,137 @@
   --color-chip-place-border: hsl(184, 45%, 77%);
 
   /* Neutral facet chip (e.g. availability) — no category color. */
-  --color-chip-neutral-bg: hsl(0, 0%, 95%);
-  --color-chip-neutral-bg-hover: hsl(0, 0%, 92%);
-  --color-chip-neutral-fg: hsl(0, 0%, 20%);
-  --color-chip-neutral-border: hsl(0, 0%, 85%);
+  --color-chip-neutral-bg: var(--neutral-100);
+  --color-chip-neutral-bg-hover: var(--neutral-200);
+  --color-chip-neutral-fg: var(--neutral-800);
+  --color-chip-neutral-border: var(--neutral-300);
+
+  /* Book cover carousel shelf */
+  --book-cover-carousel-background: var(--neutral-100);
+  --book-cover-carousel-border-top: var(--neutral-200);
+  --book-cover-carousel-border-bottom: var(--neutral-200);
+  --book-cover-carousel-cards: var(--neutral-50);
+  --book-cover-shadow-color: var(--neutral-300);
+
+  /* Admin & merge UI (out of redesign scope — kept verbatim) */
+  --admin-row-background: hsl(58, 66%, 81%);
+  --admin-table-border: hsl(48, 26%, 73%);
+  --nagios-green: hsl(108, 100%, 50%);
+  --merged-purple: hsl(266, 100%, 75%);
+  --heart-color: hsl(358, 100%, 74%);
+}
+
+/**
+ * 3. Deprecated aliases
+ * ---------------------
+ * Legacy token names re-pointed at the ramps so all existing var() consumers
+ * pick up the new palette with zero edits. Do not use these in new code —
+ * reach for a semantic token instead. Migrate consumers opportunistically,
+ * then delete the alias once its consumer count hits zero.
+ */
+:root {
+  /* Blues → blue ramp @deprecated */
+  --primary-blue: var(--blue-500);
+  --link-blue: var(--blue-600);
+  --lightest-blue: var(--blue-50);
+  --mid-blue: var(--blue-400);
+  --dark-blue: var(--blue-800);
+  --darker-brand-blue: var(--blue-500);
+  --header-nav-hover-color: var(--blue-600);
+  --blue-b0bed9: var(--blue-200);
+  --count-blue-grey: var(--neutral-600);
+  --grey-blue: var(--blue-100);
+  --button-hover-blue: var(--blue-400);
+  --dark-baby-blue: var(--blue-200);
+  --mid-baby-blue: var(--blue-100);
+  --baby-blue: var(--blue-50);
+  --blue-9fafd1: var(--blue-300);
+  --blue-3366ff: var(--blue-500);
+  --blue-5e88B9: var(--blue-400);
+
+  /* Greens → green ramp @deprecated */
+  --green: var(--green-500);
+  --mid-baby-green: var(--green-100);
+  --baby-green: var(--green-50);
+  --dark-green: var(--green-600);
+  --soft-green: var(--green-200);
+  --soft-green-two: var(--green-300);
+  --olive: var(--green-600);
+  --light-olive-2: var(--green-300);
+  --lime-green: var(--green-100);
+  --check-green: var(--green-500);
+
+  /* Oranges → amber ramp @deprecated */
+  --orange: var(--amber-400);
+  --orange-three: var(--amber-200);
+  --orange-four: var(--amber-200);
+  --orange-five: var(--amber-500);
+  --burnt-sienna: var(--amber-600);
+
+  /* Reds → red ramp @deprecated */
+  --red: var(--red-500);
+  --dark-red: var(--red-600);
+  --red-two: var(--red-500);
+  --red-three: var(--red-500);
+
+  /* Pinks @deprecated */
+  --mid-baby-pink: var(--red-100);
+  --baby-pink: var(--red-50);
+
+  /* Yellows & beiges → neutral / amber ramps @deprecated */
+  --dark-yellow: var(--amber-200);
+  --beige-deep: var(--neutral-200);
+  --beige-two: var(--neutral-200);
+  --beige-three: var(--neutral-300);
+  --beige: var(--neutral-200);
+  --beige-pale: var(--neutral-100);
+  --brown: var(--neutral-700);
+  --account-icon-border: var(--neutral-300);
+  --light-yellow: var(--amber-100);
+  --lighter-yellow: var(--amber-50);
+  --dark-beige: var(--neutral-300);
+  --light-beige: var(--neutral-100);
+  --cream: var(--neutral-100);
+  --off-white: var(--neutral-50);
+  --gold: var(--amber-400);
+
+  /* Greyscale → warm neutral ramp @deprecated */
+  --black: var(--neutral-900);
+  --dark-grey: var(--neutral-800);
+  --grey-464646: var(--neutral-700);
+  --darker-grey: var(--neutral-700);
+  --grey-555: var(--neutral-700);
+  --dark-grey-two: var(--neutral-600);
+  --grey: var(--neutral-600);
+  --accessible-grey: var(--neutral-500);
+  --mid-grey: var(--neutral-400);
+  --light-mid-grey: var(--neutral-400);
+  --light-grey: var(--neutral-300);
+  --lighter-grey: var(--neutral-200);
+  --grey-e7e7e7: var(--neutral-200);
+  --lightest-grey: var(--neutral-100);
+  --grey-f3f3f3: var(--neutral-100);
+  --grey-fafafa: var(--neutral-50);
+  --gray-a19b9e: var(--neutral-400);
+  --gray-d1cfd0: var(--neutral-300);
+  --grey-f4f4f4: var(--neutral-100);
+
+  /* Header chrome — gradient flattens to paper tints @deprecated */
+  --header-bar-gradient-start: var(--neutral-100);
+  --header-bar-gradient-end: var(--neutral-200);
+
+  /* Status @deprecated */
+  --open-green: var(--green-500);
+  --closed-red: var(--red-500);
+
+  /* Kept literals @deprecated — niche hues with no ramp home (admin, merge
+     UI, charts) and alpha tokens (var() indirection can't carry the alpha). */
+  --teal: hsl(184, 100%, 21%);
+  --purple: hsl(283, 97%, 61%);
+  --magenta: hsl(300, 100%, 50%);
+  --blue: hsl(240, 100%, 50%);
+  --boxshadow-black: hsla(0, 0%, 0%, 0.15);
+  --icon-link-grey: hsla(0, 0%, 0%, 0.1);
+  --background-grey: hsla(0, 0%, 78%, 0.23);
+  --account-icon-background: hsla(37, 24%, 79%, 0.761);
 }

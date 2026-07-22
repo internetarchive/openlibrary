@@ -42,5 +42,30 @@
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "static/css/base/common.css",
+        "static/css/base/headings.css"
+      ],
+      "rules": {
+        "scale-unlimited/declaration-strict-value": [
+          [
+            "font-family",
+            "background-color",
+            "z-index",
+            "color",
+            "font-size"
+          ],
+          {
+            "disableFix": true,
+            "ignoreValues": [
+              "inherit", "transparent", "none", "100%"
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
