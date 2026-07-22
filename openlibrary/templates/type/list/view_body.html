@@ -87,10 +87,18 @@ $def seed_attrs(seed):
             $:format(list.description)
             <div class="clearfix"></div>
 
-        <div class="search-results-stats">
+        $ layout = get_remembered_layout()
+        $# Controls row: sort (left) and the Details/Grid toggle (right-aligned).
+        $# The availability + language filter is intentionally NOT shown here: a list
+        $# isn't Solr-indexed by membership, so the filter can't be pushed into the
+        $# seed query — a per-page client-side filter breaks pagination and counts
+        $# (and silently dropped edition/non-book seeds). It returns once list
+        $# membership is indexed (Phase 4); the author page and reading log, which are
+        $# Solr-backed, keep the filter.
+        <div class="search-controls-row">
             $if not list.key.startswith('/series/'):
                 $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
-            $ layout = get_remembered_layout()
+
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
 
@@ -99,9 +107,6 @@ $def seed_attrs(seed):
             <div class="ol-message ol-message--warning" role="alert">
                 $_("This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed.", limit=series_display_limit)
             </div>
-
-        $:macros.OlPagination(page+1, ceil(len(list.seeds) / page_size))
-        <div class="clearfix"></div>
 
         <ul id="listResults" class="list-books clearfix $cond(layout == 'grid', 'list-books--grid')">
             $ component_times['get_seeds'] = time()
@@ -118,6 +123,7 @@ $def seed_attrs(seed):
         $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
         $ work_key_to_solr_edition = {key: work_doc['editions']['docs'][0] for key, work_doc in solr_works.items() if work_doc and work_doc.get('editions', {}).get('docs', [])}
         $ availabilities = get_availabilities([work_key_to_solr_edition.get(seed.key) or solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
+
         $for seed in seeds:
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document

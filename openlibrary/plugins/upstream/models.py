@@ -17,7 +17,7 @@ from openlibrary.core.models import Image
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import get_active_availability, works_by_author
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
@@ -487,19 +487,28 @@ class Author(models.Author):
         return self.key.split("/")[-1]
 
     def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+        i = web.input(sort="editions", page=1, rows=20, mode="", language=[])
         try:
             # safeguard from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1
+        # web.input gives `language` back as a list (its default is []) but a
+        # single ?language=eng can arrive as a scalar; normalize and drop blanks.
+        languages = i.language if isinstance(i.language, list) else [i.language]
+        languages = [lang for lang in languages if lang]
         return works_by_author(
             self.get_olid(),
             sort=i.sort,
             page=page,
             rows=i.rows,
+            # The legacy ?mode=ebooks link is the readable availability filter;
+            # an explicit availability filter in the URL (has_fulltext/public_scan)
+            # is picked up by get_active_availability and takes precedence.
             has_fulltext=i.mode == "ebooks",
             query=q,
+            availability=get_active_availability(i),
+            languages=languages,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
         )
