@@ -12,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
@@ -218,6 +219,32 @@ def render_component(
 
     html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
     return html
+
+
+@functools.cache
+def _read_icon_sprite() -> str:
+    sprite_path = Path(__file__).parents[3] / "static" / "build" / "icons" / "sprite.svg"
+    try:
+        return sprite_path.read_text(encoding="utf-8")
+    except OSError:
+        logger.warning("Icon sprite not found at %s; run `make icons`", sprite_path)
+        return ""
+
+
+@public
+def icon_sprite() -> str:
+    """Return the inline icon sprite markup, included once near the end of the
+    page body (see site/footer).
+
+    Icons are referenced with same-document ``<use href="#name">`` by the
+    ``$:icon()`` macro and the ``<ol-icon>`` component. Same-document references
+    work in every browser Open Library supports; external references
+    (``<use href="file.svg#name">``) are unreliable in the older Safari/iOS
+    versions in our browserslist, so the sprite is inlined rather than fetched.
+    Cached for the process lifetime — a rebuild plus web restart picks up
+    changes.
+    """
+    return _read_icon_sprite()
 
 
 def render_macro(name, args, **kwargs):

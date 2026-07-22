@@ -9,11 +9,11 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
 
-all: git css js components lit-components i18n
+all: git css js components icons lit-components i18n
 
-frontend: css js components lit-components
+frontend: css js components icons lit-components
 
 node_modules: package-lock.json package.json
 	npm ci --no-audit --no-fund
@@ -52,6 +52,14 @@ lit-components: node_modules
 	mkdir -p $(BUILD)/lit-components
 	rm -rf $(BUILD)/lit-components
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
+
+icons:
+	# Build the icon sprite (and regenerate the committed static/icons/manifest.json)
+	mkdir -p $(BUILD)/icons_new
+	node scripts/build_icon_sprite.mjs --out $(BUILD)/icons_new
+	mkdir -p $(BUILD)/icons
+	rm -rf $(BUILD)/icons
+	mv $(BUILD)/icons_new $(BUILD)/icons
 
 i18n:
 	python ./scripts/i18n-messages compile
