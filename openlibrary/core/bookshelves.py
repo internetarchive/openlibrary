@@ -279,7 +279,7 @@ class Bookshelves(db.CommonExtras):
         for key in missing_keys.copy():
             if not work_to_edition_keys.get(key):
                 missing_keys.remove(key)
-                solr_docs.append(web.storage({"key": key}))
+                solr_docs.append(web.storage({"key": key, "title": ""}))
 
         edition_keys_to_query = [work_to_edition_keys[key].split("/")[2] for key in missing_keys]
         fq = f"edition_key:({' OR '.join(edition_keys_to_query)})"
