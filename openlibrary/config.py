@@ -1,5 +1,6 @@
 """Utility for loading config file."""
 
+import logging
 import os
 import sys
 from typing import Any
@@ -12,6 +13,8 @@ from infogami import config
 from infogami.infobase import server
 
 runtime_config: dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
 
 
 def load(config_file):
@@ -40,6 +43,7 @@ def load_config(config_file):
         # During pytest ensure we're not using like olsystem or something
         assert config_file == "conf/openlibrary.yml"
     infogami.load_config(config_file)
+    _apply_infobase_server_override()
     setup_infobase_config(config_file)
 
     # infogami.load_config() forwards smtp_server to web.config but not
@@ -50,6 +54,27 @@ def load_config(config_file):
 
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
+
+
+def _apply_infobase_server_override():
+    """Overrides infobase_server when INFOBASE_SERVER_OVERRIDE is set.
+
+    Containers on ol-home0 (cron-jobs, solr-updater, import-bot,
+    affiliate-server) must reach Infobase via the local docker-compose
+    service name rather than the shared `ol-home:7000` value in
+    olsystem/etc/openlibrary.yml -- otherwise the request bounces out to
+    ol-home's proxy and back, looping on the host it started from.
+    compose.production.yaml sets INFOBASE_SERVER_OVERRIDE=infobase:7000
+    for exactly those services; every other host leaves it unset. See #5143.
+    """
+    override = os.environ.get("INFOBASE_SERVER_OVERRIDE")
+    if config.get("infobase_server") and override:
+        logger.info(
+            "INFOBASE_SERVER_OVERRIDE set; overriding infobase_server %r -> %r",
+            config.infobase_server,
+            override,
+        )
+        config.infobase_server = override
 
 
 def setup_infobase_config(config_file):
