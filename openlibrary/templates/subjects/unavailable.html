@@ -9,7 +9,7 @@ $ q = query_param('q')
     <h1>$name</h1>
     <p>$_("We're having trouble loading this subject right now. Please try again in a moment.")</p>
 
-    <h3 class="collapse">$_("Try something else?")</h3>
+    <h2 class="collapse">$_("Try something else?")</h2>
 
     <form action="/search/subjects" class="olform">
         $:render_template("search/searchbox", q=q)
