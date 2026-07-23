@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Install mailpit (SMTP capture + web UI)
 ARG MAILPIT_VERSION=1.21.6
