@@ -5,10 +5,9 @@ import os
 import sys
 from typing import Any
 
+import infogami
 import web
 import yaml
-
-import infogami
 from infogami import config
 from infogami.infobase import server
 
@@ -64,7 +63,7 @@ def _apply_infobase_server_override():
     service name rather than the shared `ol-home:7000` value in
     olsystem/etc/openlibrary.yml -- otherwise the request bounces out to
     ol-home's proxy and back, looping on the host it started from.
-    compose.production.yaml sets INFOBASE_SERVER_OVERRIDE=infobase:7000
+    compose.production.yaml sets INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     for exactly those services; every other host leaves it unset. See #5143.
     """
     override = os.environ.get("INFOBASE_SERVER_OVERRIDE")

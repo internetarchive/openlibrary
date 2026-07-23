@@ -160,7 +160,7 @@ services:
       # Runs on ol-home0 itself -- talk to Infobase via the local
       # docker-compose service name, not the shared ol-home:7000 value,
       # to avoid a network loop back through ol-home's proxy. See #5143.
-      - INFOBASE_SERVER_OVERRIDE=infobase:7000
+      - INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
@@ -267,7 +267,7 @@ services:
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
       # See #5143 -- runs on ol-home0, avoid the ol-home proxy loop.
-      - INFOBASE_SERVER_OVERRIDE=infobase:7000
+      - INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     command: docker/ol-affiliate-server-start.sh
     ports:
       - 31337:31337
@@ -293,7 +293,7 @@ services:
       - OL_SOLR_BASE_URL=http://ol-solr0:8983/solr/openlibrary
       - OL_SOLR_NEXT=false
       # See #5143 -- runs on ol-home0, avoid the ol-home proxy loop.
-      - INFOBASE_SERVER_OVERRIDE=infobase:7000
+      - INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     volumes:
       - ../olsystem:/olsystem
       # See https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing
@@ -321,7 +321,7 @@ services:
       - TRENDING_OFFSET_FILE=trending-next-update.offset
       - OL_SENTRY_ENVIRONMENT=testing
       # See #5143 -- runs on ol-home0, avoid the ol-home proxy loop.
-      - INFOBASE_SERVER_OVERRIDE=infobase:7000
+      - INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
@@ -342,7 +342,7 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
       # See #5143 -- runs on ol-home0, avoid the ol-home proxy loop.
-      - INFOBASE_SERVER_OVERRIDE=infobase:7000
+      - INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     volumes:
       - ../olsystem:/olsystem
     networks:
