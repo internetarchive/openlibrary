@@ -202,6 +202,33 @@ class TestSubjectsGetSolrError:
         mock_render.assert_called_once_with("subjects/unavailable.tmpl", "/subjects/fiction")
         assert mock_ctx.status == "503 Service Unavailable"
 
+    def test_solr_connection_failure_with_no_error_message_still_renders_unavailable(self):
+        """A total Solr connection failure/timeout -- the "cold cache" trigger described
+        in #13192 -- leaves result.error itself None (see execute_solr_query_async's
+        httpx.HTTPError handling), so the branch must key off work_count, not error."""
+        handler = self._make_handler()
+        error_subject = web.storage(
+            name="fiction",
+            subject_type="subject",
+            solr_query="subject_key:fiction",
+            work_count=None,
+            error=None,
+        )
+
+        with (
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_subject",
+                return_value=error_subject,
+            ),
+            patch("openlibrary.plugins.worksearch.subjects.render_template") as mock_render,
+            patch("web.ctx") as mock_ctx,
+            patch("web.input", return_value=web.storage(sort="readinglog")),
+        ):
+            handler.GET("/subjects/fiction")
+
+        mock_render.assert_called_once_with("subjects/unavailable.tmpl", "/subjects/fiction")
+        assert mock_ctx.status == "503 Service Unavailable"
+
     def test_zero_work_count_without_error_still_renders_notfound(self):
         """Regression: a genuine zero-result subject (no Solr error) must still 404."""
         handler = self._make_handler()

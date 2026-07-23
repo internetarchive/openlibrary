@@ -41,7 +41,10 @@ class subjects(delegate.page):
         )
 
         delegate.context.setdefault("cssfile", "subject")
-        if not subj or subj.error:
+        if not subj or subj.work_count is None:
+            # work_count is None exactly when the underlying Solr query errored
+            # (see SearchResponse.from_solr_result) -- including a connection
+            # failure/timeout, where result.error itself is also None.
             web.ctx.status = "503 Service Unavailable"
             page = render_template("subjects/unavailable.tmpl", key)
         elif subj.work_count == 0:
