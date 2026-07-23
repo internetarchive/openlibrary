@@ -7,6 +7,7 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import infogami
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-import infogami
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
@@ -59,6 +59,10 @@ def _load_legacy_wsgi():
     config.site = "openlibrary.org"
 
     infogami.load_config(ol_config_file)
+    # NOTE: does not call openlibrary.config.apply_infobase_server_override().
+    # Harmless today -- fast_web only runs on ol-web0-3, never ol-home0 -- but
+    # if a FastAPI service is ever added to ol-home0, it needs that call too.
+    # See #5143.
 
     # Configure infobase from YAML reference in openlibrary.yml
     if config.get("infobase_config_file"):

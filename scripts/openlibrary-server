@@ -32,10 +32,13 @@ def load_infogami(config_file):
     from infogami import config
     from infogami.utils import delegate  # noqa: F401 side effects may be needed
 
+    from openlibrary.config import apply_infobase_server_override
+
     config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
 
     infogami.load_config(config_file)
+    apply_infobase_server_override()
     setup_infobase_config(config_file)
     config.middleware.append(https_middleware)
 

@@ -43,7 +43,7 @@ def load_config(config_file):
         # During pytest ensure we're not using like olsystem or something
         assert config_file == "conf/openlibrary.yml"
     infogami.load_config(config_file)
-    _apply_infobase_server_override()
+    apply_infobase_server_override()
     setup_infobase_config(config_file)
 
     # infogami.load_config() forwards smtp_server to web.config but not
@@ -56,7 +56,7 @@ def load_config(config_file):
     server.update_config(config.infobase)
 
 
-def _apply_infobase_server_override():
+def apply_infobase_server_override():
     """Overrides infobase_server when INFOBASE_SERVER_OVERRIDE is set.
 
     Containers on ol-home0 (cron-jobs, solr-updater, import-bot,
@@ -66,6 +66,11 @@ def _apply_infobase_server_override():
     ol-home's proxy and back, looping on the host it started from.
     compose.production.yaml sets INFOBASE_SERVER_OVERRIDE=infobase_nginx:7000
     for exactly those services; every other host leaves it unset. See #5143.
+
+    Public (no leading underscore) because scripts/openlibrary-server and
+    openlibrary/admin/stats.py call it directly -- they load config via
+    infogami.load_config() rather than this module's load_config(), so they
+    don't get the override applied unless they call this themselves.
     """
     override = os.environ.get("INFOBASE_SERVER_OVERRIDE")
     if config.get("infobase_server") and override:
