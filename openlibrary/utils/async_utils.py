@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
@@ -24,7 +25,12 @@ class AsyncBridge:
         self._thread.start()
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
-        return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
+        ctx = contextvars.copy_context()
+
+        async def _in_ctx() -> T:
+            return await asyncio.get_running_loop().create_task(coro, context=ctx)
+
+        return asyncio.run_coroutine_threadsafe(_in_ctx(), self._loop).result()
 
     def wrap(
         self,
