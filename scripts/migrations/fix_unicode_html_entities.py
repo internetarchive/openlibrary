@@ -4,13 +4,18 @@ One-time script to fix HTML entity encoding errors in Open Library records.
 
 Example of the problem:
     &#1057;&#1077;&#1088;&#1075;&#1077;&#1081; -> Сергей
+    &amp;amp; -> &
 
 Usage:
     Phase 1 - Scan dump and output affected keys:
     python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_authors_latest.txt.gz > author_keys.txt
+    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_works_latest.txt.gz --fields title subtitle > works_keys.txt
+    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_editions_latest.txt.gz --fields title subtitle > editions_keys.txt
 
     Phase 2 - Fetch, fix, and save records:
     python3 scripts/migrations/fix_unicode_html_entities.py --keys author_keys.txt --config /path/to/openlibrary.yml
+    python3 scripts/migrations/fix_unicode_html_entities.py --keys works_keys.txt --fields title subtitle --config /path/to/openlibrary.yml
+    python3 scripts/migrations/fix_unicode_html_entities.py --keys editions_keys.txt --fields title subtitle --config /path/to/openlibrary.yml
 """
 
 import argparse
@@ -41,15 +46,20 @@ def has_entities(value: str) -> bool:
     return bool(HTML_ENTITY_PATTERN.search(value))
 
 
-def get_field_updates(record: dict) -> dict:
+def get_field_updates(record: dict, fields: list[str] | None = None) -> dict:
     """
     Return only the fields that contain HTML entities, with entities fixed.
-    Checks all string fields rather than a fixed list.
     Handles fields that can be a plain string, an object with a value
     property, or a list of such objects.
+
+    Args:
+        record: The OL record dict to inspect.
+        fields: If provided, only check these field names. Otherwise check all string fields.
     """
     updates: dict[str, str | dict | list] = {}
     for key, value in record.items():
+        if fields and key not in fields:
+            continue
         if isinstance(value, str) and has_entities(value):
             fixed = html.unescape(value)
             if fixed != value:
@@ -74,13 +84,14 @@ def get_field_updates(record: dict) -> dict:
     return updates
 
 
-def process_dump(dump_path: str) -> None:
+def process_dump(dump_path: str, fields: list[str] | None = None) -> None:
     """
     Scan a gzipped OL dump file and print keys of records that contain
     HTML entity encoding errors, one key per line.
 
     Args:
         dump_path: Path to a gzipped tab-separated OL dump file (.txt.gz).
+        fields: If provided, only check these field names.
     """
     with gzip.open(dump_path, "rt", encoding="utf-8") as f:
         for line in f:
@@ -99,7 +110,7 @@ def process_dump(dump_path: str) -> None:
             except json.JSONDecodeError:
                 continue
 
-            updates = get_field_updates(record)
+            updates = get_field_updates(record, fields)
 
             if not updates:
                 continue
@@ -123,7 +134,12 @@ def setup(config_path: str) -> None:
     setup_for_script(config_path)
 
 
-def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None:
+def fix_records(
+    keys_path: str,
+    config_path: str,
+    dry_run: bool = False,
+    fields: list[str] | None = None,
+) -> None:
     """
     Read record keys from a file, fetch each from the OL database, fix
     any HTML entity encoding errors, and save the updated record.
@@ -135,6 +151,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
         keys_path: Path to a file containing one OL key per line.
         config_path: Path to the openlibrary.yml config file.
         dry_run: If True, detect and log changes without saving.
+        fields: If provided, only fix these field names.
     """
     setup(config_path)
 
@@ -168,7 +185,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
             continue
 
         data = record.dict()
-        updates = get_field_updates(data)
+        updates = get_field_updates(data, fields)
 
         if updates and not dry_run:
             data.update(updates)
@@ -199,12 +216,19 @@ def main():
 
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without saving")
 
+    parser.add_argument(
+        "--fields",
+        nargs="+",
+        metavar="FIELD",
+        help="Only check/fix these field names (e.g. --fields title subtitle). Checks all fields if omitted.",
+    )
+
     args = parser.parse_args()
 
     if args.dump:
-        process_dump(args.dump)
+        process_dump(args.dump, args.fields)
     elif args.keys:
-        fix_records(args.keys, args.config, args.dry_run)
+        fix_records(args.keys, args.config, args.dry_run, args.fields)
     else:
         parser.error("Either --dump or --keys is required")
 
