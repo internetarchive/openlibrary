@@ -44,6 +44,8 @@ jobs:
       - run: make git
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
+      - name: A11y tests (WCAG 2.1 AA)
+        run: npm run test:a11y
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v6
         env:

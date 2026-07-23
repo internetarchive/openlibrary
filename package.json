@@ -26,6 +26,7 @@
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "test:js": "jest",
+    "test:a11y": "jest --testPathPatterns='components/__tests__/.*\\.a11y\\.test\\.js$'",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
@@ -63,6 +64,7 @@
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
     "jest": "^30.4.2",
+    "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.4.1",
     "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
@@ -96,6 +98,7 @@
   "jest": {
     "roots": [
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
+      "<rootDir>/openlibrary/components/",
       "<rootDir>/tests/unit/js/"
     ],
     "moduleNameMapper": {
