@@ -1,4 +1,4 @@
-fastapi==0.115.0
-httpx==0.27.2
+fastapi==0.139.2
+httpx==0.28.1
 python-multipart==0.0.20
-uvicorn[standard]==0.30.6
+uvicorn[standard]==0.51.0
