@@ -257,6 +257,142 @@ msgstr ""
 msgid "Not yet imported"
 msgstr ""
 
+#: design.html
+msgid "Tokens"
+msgstr ""
+
+#: design.html
+msgid "Font Sizes"
+msgstr ""
+
+#: design.html
+msgid "Font Weights"
+msgstr ""
+
+#: design.html
+msgid "Components"
+msgstr ""
+
+#: design.html
+msgid ""
+"A 9-step t-shirt scale plus semantic tokens. Use semantic tokens in new "
+"code; primitives are escape hatches. Pick heading tokens by visual "
+"weight, not HTML element — \"--font-size-heading-md\" is a visual style, "
+"independent of <h1>/<h2>/etc."
+msgstr ""
+
+#: design.html
+msgid "Primitives"
+msgstr ""
+
+#: design.html
+msgid "Raw scale steps. Prefer the semantic tokens below."
+msgstr ""
+
+#: design.html
+msgid "The quick brown fox"
+msgstr ""
+
+#: design.html
+msgid "Semantic — Headings"
+msgstr ""
+
+#: design.html
+msgid ""
+"Visual heading hierarchy. Decoupled from HTML element: pick the heading "
+"level based on document outline, pick the token based on visual weight."
+msgstr ""
+
+#: design.html
+msgid "Card titles, tiny section labels"
+msgstr ""
+
+#: design.html
+msgid "Small section headings"
+msgstr ""
+
+#: design.html
+msgid "Section headings"
+msgstr ""
+
+#: design.html
+msgid "Page section headers"
+msgstr ""
+
+#: design.html
+msgid "Large page headings"
+msgstr ""
+
+#: design.html
+msgid "Hero / banner"
+msgstr ""
+
+#: design.html
+msgid "Semantic — Body"
+msgstr ""
+
+#: design.html
+msgid "Paragraph text and prose."
+msgstr ""
+
+#: design.html
+msgid "Small print, footnotes"
+msgstr ""
+
+#: design.html
+msgid "Default paragraph text"
+msgstr ""
+
+#: design.html
+msgid "Lead paragraph, prominent body"
+msgstr ""
+
+#: design.html
+msgid "Semantic — UI"
+msgstr ""
+
+#: design.html
+msgid "Controls, labels, and metadata."
+msgstr ""
+
+#: design.html
+msgid "Bylines, counts, timestamps"
+msgstr ""
+
+#: design.html
+msgid "Pills, tags, badges"
+msgstr ""
+
+#: design.html
+msgid "Form labels"
+msgstr ""
+
+#: design.html
+msgid "Buttons, CTAs"
+msgstr ""
+
+#: design.html
+msgid ""
+"Four primitive weights plus semantic tokens for body, headings, emphasis,"
+" and buttons."
+msgstr ""
+
+#: design.html
+msgid "Semantic"
+msgstr ""
+
+#: design.html
+msgid "Paragraphs, default text"
+msgstr ""
+
+#: design.html
+msgid "Inline emphasis"
+msgstr ""
+
+#: design.html
+msgid "Headings"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"

@@ -15,6 +15,12 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
+      <h2 class="design-pattern-nav__title">$_("Tokens")</h2>
+      <ul class="design-pattern-nav__list">
+        <li><a href="#font-sizes">$_("Font Sizes")</a></li>
+        <li><a href="#font-weights">$_("Font Weights")</a></li>
+      </ul>
+      <h2 class="design-pattern-nav__title">$_("Components")</h2>
       <ul class="design-pattern-nav__list">
         <li><a href="#tooltip">Tooltip</a></li>
         <li><a href="#pagination">Pagination</a></li>
@@ -40,6 +46,210 @@ $ _x = ctx.setdefault('cssfile', 'design')
     </nav>
 
     <main class="design-pattern-main">
+      <article class="design-pattern" id="font-sizes">
+        <h2 class="design-pattern__title">$_("Font Sizes")</h2>
+        <p class="design-pattern__description">$_("A 9-step t-shirt scale plus semantic tokens. Use semantic tokens in new code; primitives are escape hatches. Pick heading tokens by visual weight, not HTML element — \"--font-size-heading-md\" is a visual style, independent of <h1>/<h2>/etc.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Primitives")</h3>
+          <p>$_("Raw scale steps. Prefer the semantic tokens below.")</p>
+          <div class="token-list">
+            <div class="token-row" style="font-size: var(--font-size-2xs);">
+              <code class="token-row__name">--font-size-2xs</code>
+              <span class="token-row__value">0.6875rem · 11px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-xs);">
+              <code class="token-row__name">--font-size-xs</code>
+              <span class="token-row__value">0.75rem · 12px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-sm);">
+              <code class="token-row__name">--font-size-sm</code>
+              <span class="token-row__value">0.875rem · 14px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-base);">
+              <code class="token-row__name">--font-size-base</code>
+              <span class="token-row__value">1rem · 16px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-md);">
+              <code class="token-row__name">--font-size-md</code>
+              <span class="token-row__value">1.125rem · 18px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-lg);">
+              <code class="token-row__name">--font-size-lg</code>
+              <span class="token-row__value">1.5rem · 24px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-xl);">
+              <code class="token-row__name">--font-size-xl</code>
+              <span class="token-row__value">1.75rem · 28px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-2xl);">
+              <code class="token-row__name">--font-size-2xl</code>
+              <span class="token-row__value">2rem · 32px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-3xl);">
+              <code class="token-row__name">--font-size-3xl</code>
+              <span class="token-row__value">2.25rem · 36px</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Semantic — Headings")</h3>
+          <p>$_("Visual heading hierarchy. Decoupled from HTML element: pick the heading level based on document outline, pick the token based on visual weight.")</p>
+          <div class="token-list">
+            <div class="token-row" style="font-size: var(--font-size-heading-xs);">
+              <code class="token-row__name">--font-size-heading-xs</code>
+              <span class="token-row__value">14px</span>
+              <span class="token-row__sample">$_("Card titles, tiny section labels")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-heading-sm);">
+              <code class="token-row__name">--font-size-heading-sm</code>
+              <span class="token-row__value">18px</span>
+              <span class="token-row__sample">$_("Small section headings")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-heading-md);">
+              <code class="token-row__name">--font-size-heading-md</code>
+              <span class="token-row__value">24px</span>
+              <span class="token-row__sample">$_("Section headings")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-heading-lg);">
+              <code class="token-row__name">--font-size-heading-lg</code>
+              <span class="token-row__value">28px</span>
+              <span class="token-row__sample">$_("Page section headers")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-heading-xl);">
+              <code class="token-row__name">--font-size-heading-xl</code>
+              <span class="token-row__value">32px</span>
+              <span class="token-row__sample">$_("Large page headings")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-heading-xxl);">
+              <code class="token-row__name">--font-size-heading-xxl</code>
+              <span class="token-row__value">36px</span>
+              <span class="token-row__sample">$_("Hero / banner")</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Semantic — Body")</h3>
+          <p>$_("Paragraph text and prose.")</p>
+          <div class="token-list">
+            <div class="token-row" style="font-size: var(--font-size-body-small);">
+              <code class="token-row__name">--font-size-body-small</code>
+              <span class="token-row__value">12px</span>
+              <span class="token-row__sample">$_("Small print, footnotes")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-body);">
+              <code class="token-row__name">--font-size-body</code>
+              <span class="token-row__value">14px</span>
+              <span class="token-row__sample">$_("Default paragraph text")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-body-large);">
+              <code class="token-row__name">--font-size-body-large</code>
+              <span class="token-row__value">16px</span>
+              <span class="token-row__sample">$_("Lead paragraph, prominent body")</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Semantic — UI")</h3>
+          <p>$_("Controls, labels, and metadata.")</p>
+          <div class="token-list">
+            <div class="token-row" style="font-size: var(--font-size-meta);">
+              <code class="token-row__name">--font-size-meta</code>
+              <span class="token-row__value">12px</span>
+              <span class="token-row__sample">$_("Bylines, counts, timestamps")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-chip);">
+              <code class="token-row__name">--font-size-chip</code>
+              <span class="token-row__value">12px</span>
+              <span class="token-row__sample">$_("Pills, tags, badges")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-label);">
+              <code class="token-row__name">--font-size-label</code>
+              <span class="token-row__value">14px</span>
+              <span class="token-row__sample">$_("Form labels")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-button);">
+              <code class="token-row__name">--font-size-button</code>
+              <span class="token-row__value">14px</span>
+              <span class="token-row__sample">$_("Buttons, CTAs")</span>
+            </div>
+            <div class="token-row" style="font-size: var(--font-size-code); font-family: var(--font-family-code);">
+              <code class="token-row__name">--font-size-code</code>
+              <span class="token-row__value">14px</span>
+              <span class="token-row__sample">const fox = "quick";</span>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <article class="design-pattern" id="font-weights">
+        <h2 class="design-pattern__title">$_("Font Weights")</h2>
+        <p class="design-pattern__description">$_("Four primitive weights plus semantic tokens for body, headings, emphasis, and buttons.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Primitives")</h3>
+          <div class="token-list">
+            <div class="token-row" style="font-weight: var(--font-weight-regular);">
+              <code class="token-row__name">--font-weight-regular</code>
+              <span class="token-row__value">400</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-medium);">
+              <code class="token-row__name">--font-weight-medium</code>
+              <span class="token-row__value">500</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-semibold);">
+              <code class="token-row__name">--font-weight-semibold</code>
+              <span class="token-row__value">600</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-bold);">
+              <code class="token-row__name">--font-weight-bold</code>
+              <span class="token-row__value">700</span>
+              <span class="token-row__sample">$_("The quick brown fox")</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Semantic")</h3>
+          <div class="token-list">
+            <div class="token-row" style="font-weight: var(--font-weight-body);">
+              <code class="token-row__name">--font-weight-body</code>
+              <span class="token-row__value">400</span>
+              <span class="token-row__sample">$_("Paragraphs, default text")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-emphasis);">
+              <code class="token-row__name">--font-weight-emphasis</code>
+              <span class="token-row__value">600</span>
+              <span class="token-row__sample">$_("Inline emphasis")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-button);">
+              <code class="token-row__name">--font-weight-button</code>
+              <span class="token-row__value">600</span>
+              <span class="token-row__sample">$_("Buttons, CTAs")</span>
+            </div>
+            <div class="token-row" style="font-weight: var(--font-weight-heading);">
+              <code class="token-row__name">--font-weight-heading</code>
+              <span class="token-row__value">700</span>
+              <span class="token-row__sample">$_("Headings")</span>
+            </div>
+          </div>
+        </section>
+      </article>
       $:render_template("design/tooltip")
 
       <article class="design-pattern" id="pagination">

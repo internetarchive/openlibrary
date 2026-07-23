@@ -209,6 +209,48 @@ pre.example__code code[class*="language-"] {
 .color-block-link-unclicked {
   background-color: var(--link-blue);
 }
+
+/* Token showcase rows (font sizes, font weights, etc.) */
+.token-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+}
+
+.token-row {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, max-content) minmax(110px, max-content)
+    1fr;
+  gap: var(--spacing-inline-xl);
+  align-items: baseline;
+  padding: var(--spacing-inset-sm) 0;
+  border-bottom: var(--border-divider);
+}
+
+.token-row:last-child {
+  border-bottom: none;
+}
+
+.token-row__name {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-body-small);
+  color: var(--dark-grey);
+  background: none;
+  padding: 0;
+}
+
+.token-row__value {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-body-small);
+  color: var(--mid-grey);
+}
+
+.token-row__sample {
+  color: var(--dark-grey);
+  line-height: var(--line-height-tight);
+}
+
 .demo-btn {
   padding: var(--spacing-sm) var(--spacing-xl);
   border-radius: var(--border-radius-button);
