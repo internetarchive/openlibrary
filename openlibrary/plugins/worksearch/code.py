@@ -1162,6 +1162,8 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
     """
+    if response.raw_resp is None:
+        return {"error": "Something went wrong"}
     processed_response = response.raw_resp["response"]
 
     if response.highlighting is not None:

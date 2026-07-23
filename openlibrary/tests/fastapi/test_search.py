@@ -1,12 +1,13 @@
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import pytest
 
 from openlibrary.fastapi.search import PublicQueryOptions
-from openlibrary.plugins.worksearch.code import WorkSearchScheme
+from openlibrary.plugins.worksearch.code import SearchResponse, WorkSearchScheme
 
 
 @pytest.fixture
@@ -313,6 +314,42 @@ class TestSearchEndpoint:
         assert "fields" in call_kwargs
         assert isinstance(call_kwargs["fields"], list)
         assert call_kwargs["fields"] == expected_fields
+
+
+@pytest.fixture
+def solr_error_response():
+    """A SearchResponse with raw_resp=None, simulating a Solr error."""
+    return SearchResponse(
+        facet_counts=None,
+        sort="",
+        docs=[],
+        num_found=None,
+        solr_select="mock",
+        raw_resp=None,
+        error="Solr error",
+    )
+
+
+class TestSolrErrorHandling:
+    """Tests that search endpoints explicitly return an error when Solr errors."""
+
+    def test_subjects_json_solr_error(self, client, solr_error_response):
+        with patch("openlibrary.fastapi.search.run_solr_query_async", return_value=solr_error_response):
+            response = client.get("/search/subjects.json?q=test")
+        assert response.status_code == 200
+        assert response.json() == {"error": "Something went wrong"}
+
+    def test_authors_json_solr_error(self, client, solr_error_response):
+        with patch("openlibrary.fastapi.search.run_solr_query_async", return_value=solr_error_response):
+            response = client.get("/search/authors.json?q=test")
+        assert response.status_code == 200
+        assert response.json() == {"error": "Something went wrong"}
+
+    def test_lists_json_solr_error_next_api(self, client, solr_error_response):
+        with patch("openlibrary.fastapi.search.run_solr_query_async", return_value=solr_error_response):
+            response = client.get("/search/lists.json?q=test&api=next")
+        assert response.status_code == 200
+        assert response.json() == {"error": "Something went wrong"}
 
 
 def test_public_api_params():
