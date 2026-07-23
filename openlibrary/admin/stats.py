@@ -101,7 +101,6 @@ def setup_ol_config(openlibrary_config_file):
     """
     import infogami
     from infogami import config
-
     from openlibrary.config import apply_infobase_server_override
 
     config.plugin_path += ["openlibrary.plugins"]

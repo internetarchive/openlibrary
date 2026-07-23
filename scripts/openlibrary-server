@@ -31,7 +31,6 @@ def load_infogami(config_file):
     import infogami
     from infogami import config
     from infogami.utils import delegate  # noqa: F401 side effects may be needed
-
     from openlibrary.config import apply_infobase_server_override
 
     config.plugin_path += ["openlibrary.plugins"]
