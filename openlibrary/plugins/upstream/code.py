@@ -31,6 +31,7 @@ from openlibrary.plugins.upstream import (
     checkins,
     covers,
     edits,
+    likes,  # noqa: F401 side effects may be needed
     merge_authors,
     models,
     recentchanges,  # noqa: F401 side effects may be needed
@@ -128,7 +129,7 @@ class merge_work(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and user.is_librarian_or_higher()
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
