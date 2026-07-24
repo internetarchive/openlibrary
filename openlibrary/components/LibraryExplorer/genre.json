@@ -1,0 +1,1736 @@
+[
+  {
+    "name": "Absurd",
+    "short": "absurd",
+    "query": "absurd*",
+    "hierarchyQuery": "absurd*",
+    "count": 304,
+    "children": [
+      {
+        "name": "Surrealism",
+        "short": "surrealism",
+        "query": "surrealism*",
+        "hierarchyQuery": "absurd/surrealism*",
+        "count": 3772
+      },
+      {
+        "name": "Existentialism",
+        "short": "existentialism",
+        "query": "existentialism*",
+        "hierarchyQuery": "absurd/existentialism*",
+        "count": 3460
+      },
+      {
+        "name": "Parody",
+        "short": "parody",
+        "query": "parody*",
+        "hierarchyQuery": "absurd/parody*",
+        "count": 550
+      },
+      {
+        "name": "Farce",
+        "short": "farce",
+        "query": "farce*",
+        "hierarchyQuery": "absurd/farce*",
+        "count": 218
+      },
+      {
+        "name": "Black humor",
+        "short": "black_humor",
+        "query": "black_humor*",
+        "hierarchyQuery": "absurd/black_humor*",
+        "count": 208
+      },
+      {
+        "name": "Theater of the absurd",
+        "short": "theater_of_the_absurd",
+        "query": "theater_of_the_absurd*",
+        "hierarchyQuery": "absurd/theater_of_the_absurd*",
+        "count": 118
+      },
+      {
+        "name": "Nonsense literature",
+        "short": "nonsense_literature",
+        "query": "nonsense_literature*",
+        "hierarchyQuery": "absurd/nonsense_literature*",
+        "count": 72
+      },
+      {
+        "name": "Metafiction",
+        "short": "metafiction",
+        "query": "metafiction*",
+        "hierarchyQuery": "absurd/metafiction*",
+        "count": 18
+      },
+      {
+        "name": "Slapstick",
+        "short": "slapstick",
+        "query": "slapstick*",
+        "hierarchyQuery": "absurd/slapstick*",
+        "count": 6
+      }
+    ]
+  },
+  {
+    "name": "Action",
+    "short": "action",
+    "query": "action*",
+    "hierarchyQuery": "action*",
+    "count": 10530,
+    "children": [
+      {
+        "name": "Survival",
+        "short": "survival",
+        "query": "survival*",
+        "hierarchyQuery": "action/survival*",
+        "count": 7322
+      },
+      {
+        "name": "Revenge",
+        "short": "revenge",
+        "query": "revenge*",
+        "hierarchyQuery": "action/revenge*",
+        "count": 5392
+      },
+      {
+        "name": "Superheroes",
+        "short": "superheroes",
+        "query": "superheroes*",
+        "hierarchyQuery": "action/superheroes*",
+        "count": 4440
+      },
+      {
+        "name": "Assassins",
+        "short": "assassins",
+        "query": "assassins*",
+        "hierarchyQuery": "action/assassins*",
+        "count": 2326
+      },
+      {
+        "name": "War stories",
+        "short": "war_stories",
+        "query": "war_stories*",
+        "hierarchyQuery": "action/war_stories*",
+        "count": 1374
+      },
+      {
+        "name": "Vigilantes",
+        "short": "vigilantes",
+        "query": "vigilantes*",
+        "hierarchyQuery": "action/vigilantes*",
+        "count": 536
+      },
+      {
+        "name": "Martial arts fiction",
+        "short": "martial_arts_fiction",
+        "query": "martial_arts_fiction*",
+        "hierarchyQuery": "action/martial_arts_fiction*",
+        "count": 441
+      },
+      {
+        "name": "Military fiction",
+        "short": "military_fiction",
+        "query": "military_fiction*",
+        "hierarchyQuery": "action/military_fiction*",
+        "count": 80
+      },
+      {
+        "name": "Mercenaries",
+        "short": "mercenaries",
+        "query": "mercenaries*",
+        "hierarchyQuery": "action/mercenaries*",
+        "count": 33
+      },
+      {
+        "name": "Heist",
+        "short": "heist",
+        "query": "heist*",
+        "hierarchyQuery": "action/heist*",
+        "count": 12
+      }
+    ]
+  },
+  {
+    "name": "Adventure",
+    "short": "adventure",
+    "query": "adventure*",
+    "hierarchyQuery": "adventure*",
+    "count": 32891,
+    "children": [
+      {
+        "name": "Picaresque",
+        "short": "picaresque",
+        "query": "picaresque*",
+        "hierarchyQuery": "adventure/picaresque*",
+        "count": 376
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "adventure/steampunk*",
+        "count": 274
+      },
+      {
+        "name": "Survival",
+        "short": "survival",
+        "query": "survival*",
+        "hierarchyQuery": "adventure/survival*",
+        "count": 7322
+      },
+      {
+        "name": "Explorers",
+        "short": "explorers",
+        "query": "explorers*",
+        "hierarchyQuery": "adventure/explorers*",
+        "count": 8486
+      },
+      {
+        "name": "Pirates",
+        "short": "pirates",
+        "query": "pirates*",
+        "hierarchyQuery": "adventure/pirates*",
+        "count": 6232
+      },
+      {
+        "name": "Shipwrecks",
+        "short": "shipwrecks",
+        "query": "shipwrecks*",
+        "hierarchyQuery": "adventure/shipwrecks*",
+        "count": 6048
+      },
+      {
+        "name": "Treasure troves",
+        "short": "treasure_troves",
+        "query": "treasure_troves*",
+        "hierarchyQuery": "adventure/treasure_troves*",
+        "count": 2617
+      },
+      {
+        "name": "Sea stories",
+        "short": "sea_stories",
+        "query": "sea_stories*",
+        "hierarchyQuery": "adventure/sea_stories*",
+        "count": 1730
+      },
+      {
+        "name": "Wilderness survival",
+        "short": "wilderness_survival",
+        "query": "wilderness_survival*",
+        "hierarchyQuery": "adventure/wilderness_survival*",
+        "count": 1466
+      },
+      {
+        "name": "Jungles",
+        "short": "jungles",
+        "query": "jungles*",
+        "hierarchyQuery": "adventure/jungles*",
+        "count": 845
+      }
+    ]
+  },
+  {
+    "name": "Comedy",
+    "short": "comedy",
+    "query": "comedy*",
+    "hierarchyQuery": "comedy*",
+    "count": 3138,
+    "children": [
+      {
+        "name": "Picaresque",
+        "short": "picaresque",
+        "query": "picaresque*",
+        "hierarchyQuery": "comedy/picaresque*",
+        "count": 376
+      },
+      {
+        "name": "Parody",
+        "short": "parody",
+        "query": "parody*",
+        "hierarchyQuery": "comedy/parody*",
+        "count": 550
+      },
+      {
+        "name": "Farce",
+        "short": "farce",
+        "query": "farce*",
+        "hierarchyQuery": "comedy/farce*",
+        "count": 218
+      },
+      {
+        "name": "Black humor",
+        "short": "black_humor",
+        "query": "black_humor*",
+        "hierarchyQuery": "comedy/black_humor*",
+        "count": 208
+      },
+      {
+        "name": "Slapstick",
+        "short": "slapstick",
+        "query": "slapstick*",
+        "hierarchyQuery": "comedy/slapstick*",
+        "count": 6
+      },
+      {
+        "name": "Wit and humor",
+        "short": "wit_and_humor",
+        "query": "wit_and_humor*",
+        "hierarchyQuery": "comedy/wit_and_humor*",
+        "count": 15408
+      },
+      {
+        "name": "Mistaken identity",
+        "short": "mistaken_identity",
+        "query": "mistaken_identity*",
+        "hierarchyQuery": "comedy/mistaken_identity*",
+        "count": 452
+      },
+      {
+        "name": "Romantic comedy",
+        "short": "romantic_comedy",
+        "query": "romantic_comedy*",
+        "hierarchyQuery": "comedy/romantic_comedy*",
+        "count": 177
+      },
+      {
+        "name": "Screwball comedy",
+        "short": "screwball_comedy",
+        "query": "screwball_comedy*",
+        "hierarchyQuery": "comedy/screwball_comedy*",
+        "count": 18
+      },
+      {
+        "name": "Comedy of manners",
+        "short": "comedy_of_manners",
+        "query": "comedy_of_manners*",
+        "hierarchyQuery": "comedy/comedy_of_manners*",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "name": "Crime",
+    "short": "crime",
+    "query": "crime*",
+    "hierarchyQuery": "crime*",
+    "count": 68237,
+    "children": [
+      {
+        "name": "Detective",
+        "short": "detective",
+        "query": "detective*",
+        "hierarchyQuery": "crime/detective*",
+        "count": 19794
+      },
+      {
+        "name": "Espionage",
+        "short": "espionage",
+        "query": "espionage*",
+        "hierarchyQuery": "crime/espionage*",
+        "count": 4568
+      },
+      {
+        "name": "True Crime",
+        "short": "true_crime",
+        "query": "true_crime*",
+        "hierarchyQuery": "crime/true_crime*",
+        "count": 1770
+      },
+      {
+        "name": "Heist",
+        "short": "heist",
+        "query": "heist*",
+        "hierarchyQuery": "crime/heist*",
+        "count": 12
+      },
+      {
+        "name": "Trials",
+        "short": "trials",
+        "query": "trials*",
+        "hierarchyQuery": "crime/trials*",
+        "count": 35522
+      },
+      {
+        "name": "Prisons",
+        "short": "prisons",
+        "query": "prisons*",
+        "hierarchyQuery": "crime/prisons*",
+        "count": 12310
+      },
+      {
+        "name": "Organized crime",
+        "short": "organized_crime",
+        "query": "organized_crime*",
+        "hierarchyQuery": "crime/organized_crime*",
+        "count": 7014
+      },
+      {
+        "name": "Mafia",
+        "short": "mafia",
+        "query": "mafia*",
+        "hierarchyQuery": "crime/mafia*",
+        "count": 3414
+      },
+      {
+        "name": "Serial murderers",
+        "short": "serial_murderers",
+        "query": "serial_murderers*",
+        "hierarchyQuery": "crime/serial_murderers*",
+        "count": 2955
+      },
+      {
+        "name": "Gangsters",
+        "short": "gangsters",
+        "query": "gangsters*",
+        "hierarchyQuery": "crime/gangsters*",
+        "count": 1088
+      },
+      {
+        "name": "Noir fiction",
+        "short": "noir_fiction",
+        "query": "noir_fiction*",
+        "hierarchyQuery": "crime/noir_fiction*",
+        "count": 182
+      },
+      {
+        "name": "Police procedural",
+        "short": "police_procedural",
+        "query": "police_procedural*",
+        "hierarchyQuery": "crime/police_procedural*",
+        "count": 158
+      }
+    ]
+  },
+  {
+    "name": "Drama",
+    "short": "drama",
+    "query": "drama*",
+    "hierarchyQuery": "drama*",
+    "count": 84383,
+    "children": [
+      {
+        "name": "Cli-fi",
+        "short": "climate_fiction",
+        "query": "climate_fiction*",
+        "hierarchyQuery": "drama/climate_fiction*",
+        "count": 20
+      },
+      {
+        "name": "Coming of Age",
+        "short": "coming_of_age",
+        "query": "coming_of_age*",
+        "hierarchyQuery": "drama/coming_of_age*",
+        "count": 1468
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "drama/epistolary*",
+        "count": 358
+      },
+      {
+        "name": "Family Saga",
+        "short": "family_saga",
+        "query": "family_saga*",
+        "hierarchyQuery": "drama/family_saga*",
+        "count": 86
+      },
+      {
+        "name": "Melodrama",
+        "short": "melodrama",
+        "query": "melodrama*",
+        "hierarchyQuery": "drama/melodrama*",
+        "count": 362
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "drama/psychological*",
+        "count": 70882
+      },
+      {
+        "name": "War stories",
+        "short": "war_stories",
+        "query": "war_stories*",
+        "hierarchyQuery": "drama/war_stories*",
+        "count": 1374
+      },
+      {
+        "name": "Domestic fiction",
+        "short": "domestic_fiction",
+        "query": "domestic_fiction*",
+        "hierarchyQuery": "drama/domestic_fiction*",
+        "count": 2072
+      },
+      {
+        "name": "Legal stories",
+        "short": "legal_stories",
+        "query": "legal_stories*",
+        "hierarchyQuery": "drama/legal_stories*",
+        "count": 1163
+      },
+      {
+        "name": "Political fiction",
+        "short": "political_fiction",
+        "query": "political_fiction*",
+        "hierarchyQuery": "drama/political_fiction*",
+        "count": 885
+      },
+      {
+        "name": "Medical fiction",
+        "short": "medical_fiction",
+        "query": "medical_fiction*",
+        "hierarchyQuery": "drama/medical_fiction*",
+        "count": 466
+      }
+    ]
+  },
+  {
+    "name": "Fantasy",
+    "short": "fantasy",
+    "query": "fantasy*",
+    "hierarchyQuery": "fantasy*",
+    "count": 36222,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "fantasy/apocalyptic*",
+        "count": 1440
+      },
+      {
+        "name": "Coming of Age",
+        "short": "coming_of_age",
+        "query": "coming_of_age*",
+        "hierarchyQuery": "fantasy/coming_of_age*",
+        "count": 1468
+      },
+      {
+        "name": "Dystopian",
+        "short": "dystopian",
+        "query": "dystopian*",
+        "hierarchyQuery": "fantasy/dystopian*",
+        "count": 242
+      },
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "fantasy/epic*",
+        "count": 5067
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post_apocalyptic",
+        "query": "post_apocalyptic*",
+        "hierarchyQuery": "fantasy/post_apocalyptic*",
+        "count": 61
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "fantasy/steampunk*",
+        "count": 274
+      },
+      {
+        "name": "Utopian",
+        "short": "utopian",
+        "query": "utopian*",
+        "hierarchyQuery": "fantasy/utopian*",
+        "count": 503
+      },
+      {
+        "name": "Fairy tales",
+        "short": "fairy_tales",
+        "query": "fairy_tales*",
+        "hierarchyQuery": "fantasy/fairy_tales*",
+        "count": 19922
+      },
+      {
+        "name": "Dragons",
+        "short": "dragons",
+        "query": "dragons*",
+        "hierarchyQuery": "fantasy/dragons*",
+        "count": 5376
+      },
+      {
+        "name": "Magic",
+        "short": "magic",
+        "query": "magic*",
+        "hierarchyQuery": "fantasy/magic*",
+        "count": 27681
+      },
+      {
+        "name": "Witches",
+        "short": "witches",
+        "query": "witches*",
+        "hierarchyQuery": "fantasy/witches*",
+        "count": 5134
+      },
+      {
+        "name": "Wizards",
+        "short": "wizards",
+        "query": "wizards*",
+        "hierarchyQuery": "fantasy/wizards*",
+        "count": 2388
+      },
+      {
+        "name": "Elves",
+        "short": "elves",
+        "query": "elves*",
+        "hierarchyQuery": "fantasy/elves*",
+        "count": 893
+      },
+      {
+        "name": "Urban fantasy",
+        "short": "urban_fantasy",
+        "query": "urban_fantasy*",
+        "hierarchyQuery": "fantasy/urban_fantasy*",
+        "count": 219
+      },
+      {
+        "name": "High fantasy",
+        "short": "high_fantasy",
+        "query": "high_fantasy*",
+        "hierarchyQuery": "fantasy/high_fantasy*",
+        "count": 146
+      },
+      {
+        "name": "Sword and sorcery",
+        "short": "sword_and_sorcery",
+        "query": "sword_and_sorcery*",
+        "hierarchyQuery": "fantasy/sword_and_sorcery*",
+        "count": 18
+      }
+    ]
+  },
+  {
+    "name": "Historical",
+    "short": "historical",
+    "query": "historical*",
+    "hierarchyQuery": "historical*",
+    "count": 37575,
+    "children": [
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "historical/epic*",
+        "count": 5067
+      },
+      {
+        "name": "Family Saga",
+        "short": "family_saga",
+        "query": "family_saga*",
+        "hierarchyQuery": "historical/family_saga*",
+        "count": 86
+      },
+      {
+        "name": "Kings and rulers",
+        "short": "kings_and_rulers",
+        "query": "kings_and_rulers*",
+        "hierarchyQuery": "historical/kings_and_rulers*",
+        "count": 40720
+      },
+      {
+        "name": "Immigrants",
+        "short": "immigrants",
+        "query": "immigrants*",
+        "hierarchyQuery": "historical/immigrants*",
+        "count": 25629
+      },
+      {
+        "name": "Slavery",
+        "short": "slavery",
+        "query": "slavery*",
+        "hierarchyQuery": "historical/slavery*",
+        "count": 24562
+      },
+      {
+        "name": "Biographical fiction",
+        "short": "biographical_fiction",
+        "query": "biographical_fiction*",
+        "hierarchyQuery": "historical/biographical_fiction*",
+        "count": 519
+      },
+      {
+        "name": "Plague",
+        "short": "plague",
+        "query": "plague*",
+        "hierarchyQuery": "historical/plague*",
+        "count": 3355
+      },
+      {
+        "name": "Vikings",
+        "short": "vikings",
+        "query": "vikings*",
+        "hierarchyQuery": "historical/vikings*",
+        "count": 2526
+      },
+      {
+        "name": "Ancient Rome",
+        "short": "ancient_rome",
+        "query": "ancient_rome*",
+        "hierarchyQuery": "historical/ancient_rome*",
+        "count": 246
+      },
+      {
+        "name": "Ancient Egypt",
+        "short": "ancient_egypt",
+        "query": "ancient_egypt*",
+        "hierarchyQuery": "historical/ancient_egypt*",
+        "count": 235
+      },
+      {
+        "name": "Regency fiction",
+        "short": "regency_fiction",
+        "query": "regency_fiction*",
+        "hierarchyQuery": "historical/regency_fiction*",
+        "count": 32
+      },
+      {
+        "name": "Ancient civilizations",
+        "short": "ancient_civilizations",
+        "query": "ancient_civilizations*",
+        "hierarchyQuery": "historical/ancient_civilizations*",
+        "count": 33
+      }
+    ]
+  },
+  {
+    "name": "Horror",
+    "short": "horror",
+    "query": "horror*",
+    "hierarchyQuery": "horror*",
+    "count": 13600,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "horror/apocalyptic*",
+        "count": 1440
+      },
+      {
+        "name": "Cult",
+        "short": "cult",
+        "query": "cult*",
+        "hierarchyQuery": "horror/cult*",
+        "count": 85074
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "horror/epistolary*",
+        "count": 358
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "horror/gothic*",
+        "count": 8896
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post_apocalyptic",
+        "query": "post_apocalyptic*",
+        "hierarchyQuery": "horror/post_apocalyptic*",
+        "count": 61
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "horror/psychological*",
+        "count": 70882
+      },
+      {
+        "name": "Vampires",
+        "short": "vampires",
+        "query": "vampires*",
+        "hierarchyQuery": "horror/vampires*",
+        "count": 9694
+      },
+      {
+        "name": "Supernatural",
+        "short": "supernatural",
+        "query": "supernatural*",
+        "hierarchyQuery": "horror/supernatural*",
+        "count": 7733
+      },
+      {
+        "name": "Ghost stories",
+        "short": "ghost_stories",
+        "query": "ghost_stories*",
+        "hierarchyQuery": "horror/ghost_stories*",
+        "count": 4294
+      },
+      {
+        "name": "Werewolves",
+        "short": "werewolves",
+        "query": "werewolves*",
+        "hierarchyQuery": "horror/werewolves*",
+        "count": 2146
+      },
+      {
+        "name": "Zombies",
+        "short": "zombies",
+        "query": "zombies*",
+        "hierarchyQuery": "horror/zombies*",
+        "count": 1725
+      },
+      {
+        "name": "Occult fiction",
+        "short": "occult_fiction",
+        "query": "occult_fiction*",
+        "hierarchyQuery": "horror/occult_fiction*",
+        "count": 344
+      }
+    ]
+  },
+  {
+    "name": "Humor",
+    "short": "humor",
+    "query": "humor*",
+    "hierarchyQuery": "humor*",
+    "count": 57523,
+    "children": [
+      {
+        "name": "Parody",
+        "short": "parody",
+        "query": "parody*",
+        "hierarchyQuery": "humor/parody*",
+        "count": 550
+      },
+      {
+        "name": "Farce",
+        "short": "farce",
+        "query": "farce*",
+        "hierarchyQuery": "humor/farce*",
+        "count": 218
+      },
+      {
+        "name": "Black humor",
+        "short": "black_humor",
+        "query": "black_humor*",
+        "hierarchyQuery": "humor/black_humor*",
+        "count": 208
+      },
+      {
+        "name": "Slapstick",
+        "short": "slapstick",
+        "query": "slapstick*",
+        "hierarchyQuery": "humor/slapstick*",
+        "count": 6
+      },
+      {
+        "name": "Wit and humor",
+        "short": "wit_and_humor",
+        "query": "wit_and_humor*",
+        "hierarchyQuery": "humor/wit_and_humor*",
+        "count": 15408
+      },
+      {
+        "name": "Mistaken identity",
+        "short": "mistaken_identity",
+        "query": "mistaken_identity*",
+        "hierarchyQuery": "humor/mistaken_identity*",
+        "count": 452
+      },
+      {
+        "name": "Romantic comedy",
+        "short": "romantic_comedy",
+        "query": "romantic_comedy*",
+        "hierarchyQuery": "humor/romantic_comedy*",
+        "count": 177
+      },
+      {
+        "name": "Screwball comedy",
+        "short": "screwball_comedy",
+        "query": "screwball_comedy*",
+        "hierarchyQuery": "humor/screwball_comedy*",
+        "count": 18
+      },
+      {
+        "name": "Comedy of manners",
+        "short": "comedy_of_manners",
+        "query": "comedy_of_manners*",
+        "hierarchyQuery": "humor/comedy_of_manners*",
+        "count": 3
+      },
+      {
+        "name": "Absurdist fiction",
+        "short": "absurdist_fiction",
+        "query": "absurdist_fiction*",
+        "hierarchyQuery": "humor/absurdist_fiction*",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "name": "LGBTQ+",
+    "short": "lgbtq",
+    "query": "lgbtq*",
+    "hierarchyQuery": "lgbtq*",
+    "count": 5084,
+    "children": [
+      {
+        "name": "Gender identity",
+        "short": "gender_identity",
+        "query": "gender_identity*",
+        "hierarchyQuery": "lgbtq/gender_identity*",
+        "count": 7459
+      },
+      {
+        "name": "Gay men fiction",
+        "short": "gay_men_fiction",
+        "query": "gay_men_fiction*",
+        "hierarchyQuery": "lgbtq/gay_men_fiction*",
+        "count": 2074
+      },
+      {
+        "name": "Queer theory",
+        "short": "queer_theory",
+        "query": "queer_theory*",
+        "hierarchyQuery": "lgbtq/queer_theory*",
+        "count": 813
+      },
+      {
+        "name": "Homosexuality",
+        "short": "homosexuality",
+        "query": "homosexuality*",
+        "hierarchyQuery": "lgbtq/homosexuality*",
+        "count": 9955
+      },
+      {
+        "name": "Sexual minorities",
+        "short": "sexual_minorities",
+        "query": "sexual_minorities*",
+        "hierarchyQuery": "lgbtq/sexual_minorities*",
+        "count": 1683
+      },
+      {
+        "name": "Same-sex marriage",
+        "short": "same-sex_marriage",
+        "query": "same-sex_marriage*",
+        "hierarchyQuery": "lgbtq/same-sex_marriage*",
+        "count": 1001
+      },
+      {
+        "name": "Bisexuals",
+        "short": "bisexuals",
+        "query": "bisexuals*",
+        "hierarchyQuery": "lgbtq/bisexuals*",
+        "count": 486
+      },
+      {
+        "name": "Intersex people",
+        "short": "intersex_people",
+        "query": "intersex_people*",
+        "hierarchyQuery": "lgbtq/intersex_people*",
+        "count": 146
+      },
+      {
+        "name": "Drag queens",
+        "short": "drag_queens",
+        "query": "drag_queens*",
+        "hierarchyQuery": "lgbtq/drag_queens*",
+        "count": 29
+      },
+      {
+        "name": "Gay fiction",
+        "short": "gay_fiction",
+        "query": "gay_fiction*",
+        "hierarchyQuery": "lgbtq/gay_fiction*",
+        "count": 25
+      },
+      {
+        "name": "Lesbian fiction",
+        "short": "lesbian_fiction",
+        "query": "lesbian_fiction*",
+        "hierarchyQuery": "lgbtq/lesbian_fiction*",
+        "count": 22
+      },
+      {
+        "name": "Transgender fiction",
+        "short": "transgender_fiction",
+        "query": "transgender_fiction*",
+        "hierarchyQuery": "lgbtq/transgender_fiction*",
+        "count": 4
+      }
+    ]
+  },
+  {
+    "name": "Literary",
+    "short": "literary",
+    "query": "literary*",
+    "hierarchyQuery": "literary*",
+    "count": 54069,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "short": "coming_of_age",
+        "query": "coming_of_age*",
+        "hierarchyQuery": "literary/coming_of_age*",
+        "count": 1468
+      },
+      {
+        "name": "Cult",
+        "short": "cult",
+        "query": "cult*",
+        "hierarchyQuery": "literary/cult*",
+        "count": 85074
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "literary/gothic*",
+        "count": 8896
+      },
+      {
+        "name": "Existentialism",
+        "short": "existentialism",
+        "query": "existentialism*",
+        "hierarchyQuery": "literary/existentialism*",
+        "count": 3460
+      },
+      {
+        "name": "Metafiction",
+        "short": "metafiction",
+        "query": "metafiction*",
+        "hierarchyQuery": "literary/metafiction*",
+        "count": 18
+      },
+      {
+        "name": "Domestic fiction",
+        "short": "domestic_fiction",
+        "query": "domestic_fiction*",
+        "hierarchyQuery": "literary/domestic_fiction*",
+        "count": 2072
+      },
+      {
+        "name": "Postmodernism",
+        "short": "postmodernism",
+        "query": "postmodernism*",
+        "hierarchyQuery": "literary/postmodernism*",
+        "count": 7553
+      },
+      {
+        "name": "Autobiographical fiction",
+        "short": "autobiographical_fiction",
+        "query": "autobiographical_fiction*",
+        "hierarchyQuery": "literary/autobiographical_fiction*",
+        "count": 724
+      },
+      {
+        "name": "Stream of consciousness fiction",
+        "short": "stream_of_consciousness_fiction",
+        "query": "stream_of_consciousness_fiction*",
+        "hierarchyQuery": "literary/stream_of_consciousness_fiction*",
+        "count": 71
+      }
+    ]
+  },
+  {
+    "name": "Mystery",
+    "short": "mystery",
+    "query": "mystery*",
+    "hierarchyQuery": "mystery*",
+    "count": 26264,
+    "children": [
+      {
+        "name": "Detective",
+        "short": "detective",
+        "query": "detective*",
+        "hierarchyQuery": "mystery/detective*",
+        "count": 19794
+      },
+      {
+        "name": "Locked Room",
+        "short": "locked-room",
+        "query": "locked-room*",
+        "hierarchyQuery": "mystery/locked-room*",
+        "count": 100
+      },
+      {
+        "name": "Serial murderers",
+        "short": "serial_murderers",
+        "query": "serial_murderers*",
+        "hierarchyQuery": "mystery/serial_murderers*",
+        "count": 2955
+      },
+      {
+        "name": "Noir fiction",
+        "short": "noir_fiction",
+        "query": "noir_fiction*",
+        "hierarchyQuery": "mystery/noir_fiction*",
+        "count": 182
+      },
+      {
+        "name": "Police procedural",
+        "short": "police_procedural",
+        "query": "police_procedural*",
+        "hierarchyQuery": "mystery/police_procedural*",
+        "count": 158
+      },
+      {
+        "name": "Private investigators",
+        "short": "private_investigators",
+        "query": "private_investigators*",
+        "hierarchyQuery": "mystery/private_investigators*",
+        "count": 13113
+      },
+      {
+        "name": "Missing persons",
+        "short": "missing_persons",
+        "query": "missing_persons*",
+        "hierarchyQuery": "mystery/missing_persons*",
+        "count": 10639
+      },
+      {
+        "name": "Women detectives",
+        "short": "women_detectives",
+        "query": "women_detectives*",
+        "hierarchyQuery": "mystery/women_detectives*",
+        "count": 5364
+      },
+      {
+        "name": "Cold cases",
+        "short": "cold_cases",
+        "query": "cold_cases*",
+        "hierarchyQuery": "mystery/cold_cases*",
+        "count": 664
+      },
+      {
+        "name": "Forensic scientists",
+        "short": "forensic_scientists",
+        "query": "forensic_scientists*",
+        "hierarchyQuery": "mystery/forensic_scientists*",
+        "count": 297
+      },
+      {
+        "name": "Murder investigation",
+        "short": "murder_investigation",
+        "query": "murder_investigation*",
+        "hierarchyQuery": "mystery/murder_investigation*",
+        "count": 90
+      },
+      {
+        "name": "Suspects",
+        "short": "suspects",
+        "query": "suspects*",
+        "hierarchyQuery": "mystery/suspects*",
+        "count": 10
+      }
+    ]
+  },
+  {
+    "name": "Mythology",
+    "short": "mythology",
+    "query": "mythology*",
+    "hierarchyQuery": "mythology*",
+    "count": 18367,
+    "children": [
+      {
+        "name": "Folklore",
+        "short": "folklore",
+        "query": "folklore*",
+        "hierarchyQuery": "mythology/folklore*",
+        "count": 71638
+      },
+      {
+        "name": "Legends",
+        "short": "legends",
+        "query": "legends*",
+        "hierarchyQuery": "mythology/legends*",
+        "count": 23776
+      },
+      {
+        "name": "Greek mythology",
+        "short": "greek_mythology",
+        "query": "greek_mythology*",
+        "hierarchyQuery": "mythology/greek_mythology*",
+        "count": 4020
+      },
+      {
+        "name": "Arthurian romances",
+        "short": "arthurian_romances",
+        "query": "arthurian_romances*",
+        "hierarchyQuery": "mythology/arthurian_romances*",
+        "count": 3506
+      },
+      {
+        "name": "Norse mythology",
+        "short": "norse_mythology",
+        "query": "norse_mythology*",
+        "hierarchyQuery": "mythology/norse_mythology*",
+        "count": 1018
+      },
+      {
+        "name": "Celtic mythology",
+        "short": "celtic_mythology",
+        "query": "celtic_mythology*",
+        "hierarchyQuery": "mythology/celtic_mythology*",
+        "count": 956
+      },
+      {
+        "name": "Egyptian mythology",
+        "short": "egyptian_mythology",
+        "query": "egyptian_mythology*",
+        "hierarchyQuery": "mythology/egyptian_mythology*",
+        "count": 595
+      },
+      {
+        "name": "Roman mythology",
+        "short": "roman_mythology",
+        "query": "roman_mythology*",
+        "hierarchyQuery": "mythology/roman_mythology*",
+        "count": 508
+      },
+      {
+        "name": "Fairy tales",
+        "short": "fairy_tales",
+        "query": "fairy_tales*",
+        "hierarchyQuery": "mythology/fairy_tales*",
+        "count": 19922
+      },
+      {
+        "name": "Gods",
+        "short": "gods",
+        "query": "gods*",
+        "hierarchyQuery": "mythology/gods*",
+        "count": 6858
+      },
+      {
+        "name": "Dragons",
+        "short": "dragons",
+        "query": "dragons*",
+        "hierarchyQuery": "mythology/dragons*",
+        "count": 5376
+      },
+      {
+        "name": "Fables",
+        "short": "fables",
+        "query": "fables*",
+        "hierarchyQuery": "mythology/fables*",
+        "count": 4030
+      },
+      {
+        "name": "Chinese mythology",
+        "short": "chinese_mythology",
+        "query": "chinese_mythology*",
+        "hierarchyQuery": "mythology/chinese_mythology*",
+        "count": 1152
+      }
+    ]
+  },
+  {
+    "name": "Romance",
+    "short": "romance",
+    "query": "romance*",
+    "hierarchyQuery": "romance*",
+    "count": 47863,
+    "children": [
+      {
+        "name": "Coming of Age",
+        "short": "coming_of_age",
+        "query": "coming_of_age*",
+        "hierarchyQuery": "romance/coming_of_age*",
+        "count": 1468
+      },
+      {
+        "name": "Epistolary",
+        "short": "epistolary",
+        "query": "epistolary*",
+        "hierarchyQuery": "romance/epistolary*",
+        "count": 358
+      },
+      {
+        "name": "Gothic",
+        "short": "gothic",
+        "query": "gothic*",
+        "hierarchyQuery": "romance/gothic*",
+        "count": 8896
+      },
+      {
+        "name": "Melodrama",
+        "short": "melodrama",
+        "query": "melodrama*",
+        "hierarchyQuery": "romance/melodrama*",
+        "count": 362
+      },
+      {
+        "name": "Regency fiction",
+        "short": "regency_fiction",
+        "query": "regency_fiction*",
+        "hierarchyQuery": "romance/regency_fiction*",
+        "count": 32
+      },
+      {
+        "name": "Marriage fiction",
+        "short": "marriage_fiction",
+        "query": "marriage_fiction*",
+        "hierarchyQuery": "romance/marriage_fiction*",
+        "count": 4084
+      },
+      {
+        "name": "Contemporary romance",
+        "short": "contemporary_romance",
+        "query": "contemporary_romance*",
+        "hierarchyQuery": "romance/contemporary_romance*",
+        "count": 2175
+      },
+      {
+        "name": "Historical romance",
+        "short": "historical_romance",
+        "query": "historical_romance*",
+        "hierarchyQuery": "romance/historical_romance*",
+        "count": 1894
+      },
+      {
+        "name": "Paranormal romance",
+        "short": "paranormal_romance",
+        "query": "paranormal_romance*",
+        "hierarchyQuery": "romance/paranormal_romance*",
+        "count": 1186
+      },
+      {
+        "name": "Romantic suspense",
+        "short": "romantic_suspense",
+        "query": "romantic_suspense*",
+        "hierarchyQuery": "romance/romantic_suspense*",
+        "count": 825
+      }
+    ]
+  },
+  {
+    "name": "Satire",
+    "short": "satire",
+    "query": "satire*",
+    "hierarchyQuery": "satire*",
+    "count": 3291,
+    "children": [
+      {
+        "name": "Parody",
+        "short": "parody",
+        "query": "parody*",
+        "hierarchyQuery": "satire/parody*",
+        "count": 550
+      },
+      {
+        "name": "Farce",
+        "short": "farce",
+        "query": "farce*",
+        "hierarchyQuery": "satire/farce*",
+        "count": 218
+      },
+      {
+        "name": "Black humor",
+        "short": "black_humor",
+        "query": "black_humor*",
+        "hierarchyQuery": "satire/black_humor*",
+        "count": 208
+      },
+      {
+        "name": "Wit and humor",
+        "short": "wit_and_humor",
+        "query": "wit_and_humor*",
+        "hierarchyQuery": "satire/wit_and_humor*",
+        "count": 15408
+      },
+      {
+        "name": "Absurdist fiction",
+        "short": "absurdist_fiction",
+        "query": "absurdist_fiction*",
+        "hierarchyQuery": "satire/absurdist_fiction*",
+        "count": 3
+      },
+      {
+        "name": "Dystopias",
+        "short": "dystopias",
+        "query": "dystopias*",
+        "hierarchyQuery": "satire/dystopias*",
+        "count": 1306
+      },
+      {
+        "name": "Irony",
+        "short": "irony",
+        "query": "irony*",
+        "hierarchyQuery": "satire/irony*",
+        "count": 994
+      },
+      {
+        "name": "Political satire",
+        "short": "political_satire",
+        "query": "political_satire*",
+        "hierarchyQuery": "satire/political_satire*",
+        "count": 837
+      },
+      {
+        "name": "Mock-heroic",
+        "short": "mock-heroic",
+        "query": "mock-heroic*",
+        "hierarchyQuery": "satire/mock-heroic*",
+        "count": 45
+      },
+      {
+        "name": "Social satire",
+        "short": "social_satire",
+        "query": "social_satire*",
+        "hierarchyQuery": "satire/social_satire*",
+        "count": 27
+      }
+    ]
+  },
+  {
+    "name": "Sci-Fi",
+    "short": "science_fiction",
+    "query": "science_fiction*",
+    "hierarchyQuery": "science_fiction*",
+    "count": 28101,
+    "children": [
+      {
+        "name": "Apocalyptic",
+        "short": "apocalyptic",
+        "query": "apocalyptic*",
+        "hierarchyQuery": "science_fiction/apocalyptic*",
+        "count": 1440
+      },
+      {
+        "name": "Biopunk",
+        "short": "biopunk",
+        "query": "biopunk*",
+        "hierarchyQuery": "science_fiction/biopunk*",
+        "count": 2
+      },
+      {
+        "name": "Cli-fi",
+        "short": "climate_fiction",
+        "query": "climate_fiction*",
+        "hierarchyQuery": "science_fiction/climate_fiction*",
+        "count": 20
+      },
+      {
+        "name": "Cyberpunk",
+        "short": "cyberpunk",
+        "query": "cyberpunk*",
+        "hierarchyQuery": "science_fiction/cyberpunk*",
+        "count": 139
+      },
+      {
+        "name": "Dystopian",
+        "short": "dystopian",
+        "query": "dystopian*",
+        "hierarchyQuery": "science_fiction/dystopian*",
+        "count": 242
+      },
+      {
+        "name": "Epic",
+        "short": "epic",
+        "query": "epic*",
+        "hierarchyQuery": "science_fiction/epic*",
+        "count": 5067
+      },
+      {
+        "name": "Futurism",
+        "short": "futurism",
+        "query": "futurism*",
+        "hierarchyQuery": "science_fiction/futurism*",
+        "count": 1818
+      },
+      {
+        "name": "Post-Apocalyptic",
+        "short": "post_apocalyptic",
+        "query": "post_apocalyptic*",
+        "hierarchyQuery": "science_fiction/post_apocalyptic*",
+        "count": 61
+      },
+      {
+        "name": "Space Opera",
+        "short": "space_opera",
+        "query": "space_opera*",
+        "hierarchyQuery": "science_fiction/space_opera*",
+        "count": 191
+      },
+      {
+        "name": "Steampunk",
+        "short": "steampunk",
+        "query": "steampunk*",
+        "hierarchyQuery": "science_fiction/steampunk*",
+        "count": 274
+      },
+      {
+        "name": "Utopian",
+        "short": "utopian",
+        "query": "utopian*",
+        "hierarchyQuery": "science_fiction/utopian*",
+        "count": 503
+      }
+    ]
+  },
+  {
+    "name": "Thriller",
+    "short": "thriller",
+    "query": "thriller*",
+    "hierarchyQuery": "thriller*",
+    "count": 3936,
+    "children": [
+      {
+        "name": "Espionage",
+        "short": "espionage",
+        "query": "espionage*",
+        "hierarchyQuery": "thriller/espionage*",
+        "count": 4568
+      },
+      {
+        "name": "Psychological",
+        "short": "psychological",
+        "query": "psychological*",
+        "hierarchyQuery": "thriller/psychological*",
+        "count": 70882
+      },
+      {
+        "name": "Assassins",
+        "short": "assassins",
+        "query": "assassins*",
+        "hierarchyQuery": "thriller/assassins*",
+        "count": 2326
+      },
+      {
+        "name": "Serial murderers",
+        "short": "serial_murderers",
+        "query": "serial_murderers*",
+        "hierarchyQuery": "thriller/serial_murderers*",
+        "count": 2955
+      },
+      {
+        "name": "Political fiction",
+        "short": "political_fiction",
+        "query": "political_fiction*",
+        "hierarchyQuery": "thriller/political_fiction*",
+        "count": 885
+      },
+      {
+        "name": "Kidnapping",
+        "short": "kidnapping",
+        "query": "kidnapping*",
+        "hierarchyQuery": "thriller/kidnapping*",
+        "count": 6669
+      },
+      {
+        "name": "Conspiracies",
+        "short": "conspiracies",
+        "query": "conspiracies*",
+        "hierarchyQuery": "thriller/conspiracies*",
+        "count": 3350
+      },
+      {
+        "name": "Terrorism fiction",
+        "short": "terrorism_fiction",
+        "query": "terrorism_fiction*",
+        "hierarchyQuery": "thriller/terrorism_fiction*",
+        "count": 1948
+      },
+      {
+        "name": "Spy stories",
+        "short": "spy_stories",
+        "query": "spy_stories*",
+        "hierarchyQuery": "thriller/spy_stories*",
+        "count": 1769
+      },
+      {
+        "name": "Sabotage",
+        "short": "sabotage",
+        "query": "sabotage*",
+        "hierarchyQuery": "thriller/sabotage*",
+        "count": 646
+      }
+    ]
+  },
+  {
+    "name": "Tragedy",
+    "short": "tragedy",
+    "query": "tragedy*",
+    "hierarchyQuery": "tragedy*",
+    "count": 2934,
+    "children": [
+      {
+        "name": "Revenge",
+        "short": "revenge",
+        "query": "revenge*",
+        "hierarchyQuery": "tragedy/revenge*",
+        "count": 5392
+      },
+      {
+        "name": "War stories",
+        "short": "war_stories",
+        "query": "war_stories*",
+        "hierarchyQuery": "tragedy/war_stories*",
+        "count": 1374
+      },
+      {
+        "name": "Fate and fatalism",
+        "short": "fate_and_fatalism",
+        "query": "fate_and_fatalism*",
+        "hierarchyQuery": "tragedy/fate_and_fatalism*",
+        "count": 1459
+      },
+      {
+        "name": "Betrayal",
+        "short": "betrayal",
+        "query": "betrayal*",
+        "hierarchyQuery": "tragedy/betrayal*",
+        "count": 1072
+      },
+      {
+        "name": "Grief fiction",
+        "short": "grief_fiction",
+        "query": "grief_fiction*",
+        "hierarchyQuery": "tragedy/grief_fiction*",
+        "count": 778
+      },
+      {
+        "name": "Death",
+        "short": "death",
+        "query": "death*",
+        "hierarchyQuery": "tragedy/death*",
+        "count": 37419
+      },
+      {
+        "name": "Suicide",
+        "short": "suicide",
+        "query": "suicide*",
+        "hierarchyQuery": "tragedy/suicide*",
+        "count": 6342
+      },
+      {
+        "name": "Honor",
+        "short": "honor",
+        "query": "honor*",
+        "hierarchyQuery": "tragedy/honor*",
+        "count": 1603
+      },
+      {
+        "name": "Curses",
+        "short": "curses",
+        "query": "curses*",
+        "hierarchyQuery": "tragedy/curses*",
+        "count": 42
+      },
+      {
+        "name": "Madness",
+        "short": "madness",
+        "query": "madness*",
+        "hierarchyQuery": "tragedy/madness*",
+        "count": 32
+      }
+    ]
+  },
+  {
+    "name": "Western",
+    "short": "western",
+    "query": "western*",
+    "hierarchyQuery": "western*",
+    "count": 19586,
+    "children": [
+      {
+        "name": "Vigilantes",
+        "short": "vigilantes",
+        "query": "vigilantes*",
+        "hierarchyQuery": "western/vigilantes*",
+        "count": 536
+      },
+      {
+        "name": "Frontier and pioneer life",
+        "short": "frontier_and_pioneer_life",
+        "query": "frontier_and_pioneer_life*",
+        "hierarchyQuery": "western/frontier_and_pioneer_life*",
+        "count": 17774
+      },
+      {
+        "name": "Cowboys",
+        "short": "cowboys",
+        "query": "cowboys*",
+        "hierarchyQuery": "western/cowboys*",
+        "count": 3800
+      },
+      {
+        "name": "Ranch life",
+        "short": "ranch_life",
+        "query": "ranch_life*",
+        "hierarchyQuery": "western/ranch_life*",
+        "count": 3247
+      },
+      {
+        "name": "Outlaws",
+        "short": "outlaws",
+        "query": "outlaws*",
+        "hierarchyQuery": "western/outlaws*",
+        "count": 2918
+      },
+      {
+        "name": "Sheriffs",
+        "short": "sheriffs",
+        "query": "sheriffs*",
+        "hierarchyQuery": "western/sheriffs*",
+        "count": 1803
+      },
+      {
+        "name": "Ghost towns",
+        "short": "ghost_towns",
+        "query": "ghost_towns*",
+        "hierarchyQuery": "western/ghost_towns*",
+        "count": 446
+      },
+      {
+        "name": "Cattle drives",
+        "short": "cattle_drives",
+        "query": "cattle_drives*",
+        "hierarchyQuery": "western/cattle_drives*",
+        "count": 244
+      },
+      {
+        "name": "Gunfighters",
+        "short": "gunfighters",
+        "query": "gunfighters*",
+        "hierarchyQuery": "western/gunfighters*",
+        "count": 65
+      },
+      {
+        "name": "Gold rush",
+        "short": "gold_rush",
+        "query": "gold_rush*",
+        "hierarchyQuery": "western/gold_rush*",
+        "count": 47
+      },
+      {
+        "name": "Bounty hunters",
+        "short": "bounty_hunters",
+        "query": "bounty_hunters*",
+        "hierarchyQuery": "western/bounty_hunters*",
+        "count": 473
+      },
+      {
+        "name": "Wagon trains",
+        "short": "wagon_trains",
+        "query": "wagon_trains*",
+        "hierarchyQuery": "western/wagon_trains*",
+        "count": 139
+      },
+      {
+        "name": "Homesteading",
+        "short": "homesteading",
+        "query": "homesteading*",
+        "hierarchyQuery": "western/homesteading*",
+        "count": 26
+      }
+    ]
+  }
+]
