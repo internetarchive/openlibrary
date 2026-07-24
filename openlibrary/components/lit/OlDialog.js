@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { x } from './icons.generated.js';
 import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
@@ -747,7 +748,6 @@ export class OlDialog extends LitElement {
                         @click=${this._handleCloseClick}
                     >
                         <svg
-                            xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -755,10 +755,7 @@ export class OlDialog extends LitElement {
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             aria-hidden="true"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        >${x}</svg>
                     </button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>

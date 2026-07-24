@@ -1,0 +1,15 @@
+/**
+ * Icon Sizes
+ * ==========
+ * The size scale for <ol-icon> and the $:icon() macro. One axis only — the
+ * icon system is a single weight on a 24x24 grid, so size is the only knob.
+ *
+ * Expressed in rem so icons scale with the user's font-size preference.
+ * `md` (20px) is the default and matches the existing editor-toolbar glyph
+ * size, so adopting the system is visually lossless on those surfaces.
+ */
+:root {
+  --icon-size-sm: 1rem;     /* 16px – inline with body text, dense toolbars */
+  --icon-size-md: 1.25rem;  /* 20px – default */
+  --icon-size-lg: 1.5rem;   /* 24px – standalone buttons, headers */
+}

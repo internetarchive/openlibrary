@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { x } from './icons.generated.js';
 
 /**
  * OLChip - A pill-shaped interactive chip web component
@@ -234,9 +235,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                     stroke-width="3"
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                >
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                >${x}</svg>
             </span>
         `;
     }

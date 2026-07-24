@@ -133,6 +133,16 @@ repos:
       language: python
       require_serial: true
 
+  - repo: local
+    hooks:
+    - id: icons-generated
+      name: Icon sprite + module are up to date
+      description: Regenerates the icon sprite/manifest/Lit module and fails if the committed outputs drift from static/icons/src/.
+      entry: npm run check:icons
+      language: system
+      pass_filenames: false
+      files: ^(static/icons/src/|scripts/build_icon_sprite\.mjs|conf/svgo\.sprite\.config\.js)
+
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 4.2.1
     hooks:
