@@ -9,6 +9,7 @@ import web
 
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
+from openlibrary.core.tbp import FeedRegistry
 
 from .. import bwb_opds_imports
 from ..bwb_opds_imports import (
@@ -585,3 +586,76 @@ def test_upsert_acquisition_updates_changed_price(acquisitions_db):
     rows = Acquisition.get_by_edition(100, "betterworldbooks")
     assert len(rows) == 1
     assert rows[0].data["price"]["value"] == 3.50
+
+
+# ---------------------------------------------------------------------------
+# Cursor source (epic #12844): the FeedRegistry DB cursor is the source of
+# truth for BWB's incremental state; the file-state is a fallback only.
+# ---------------------------------------------------------------------------
+
+TBP_FEED_REGISTRY_DDL: Final = """
+CREATE TABLE tbp_feed_registry (
+    id integer primary key,
+    provider_name text not null,
+    feed_type text not null,
+    url text not null,
+    last_updated timestamp default null,
+    data text not null default '{}',
+    created timestamp default current_timestamp,
+    updated timestamp default current_timestamp,
+    UNIQUE (provider_name, url)
+);
+"""
+
+FEED_URL: Final = "https://www.betterworldbooks.com/opds"
+
+
+@pytest.fixture
+def registry_db():
+    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+    db = get_db()
+    db.query("DROP TABLE IF EXISTS tbp_feed_registry;")
+    db.query(TBP_FEED_REGISTRY_DDL)
+    yield db
+    db.query("DROP TABLE IF EXISTS tbp_feed_registry;")
+
+
+def test_resolve_cutoff_prefers_explicit_since(registry_db, tmp_path):
+    # --since wins over everything and does not require a registered feed.
+    cutoff = bwb_opds_imports.resolve_cutoff(FEED_URL, since="2026-01-02T00:00:00+00:00", state_file=str(tmp_path / "s.txt"))
+    assert cutoff == _parse_iso("2026-01-02T00:00:00+00:00")
+
+
+def test_resolve_cutoff_uses_registry_cursor(registry_db, tmp_path):
+    FeedRegistry.register("betterworldbooks", FEED_URL)
+    feed = FeedRegistry.find("betterworldbooks", FEED_URL)
+    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 6, 1, 0, 0, 0))
+    cutoff = bwb_opds_imports.resolve_cutoff(FEED_URL, since=None, state_file=str(tmp_path / "s.txt"))
+    assert cutoff == datetime.datetime(2026, 6, 1, 0, 0, 0, tzinfo=datetime.UTC)
+
+
+def test_resolve_cutoff_falls_back_to_file_state(registry_db, tmp_path):
+    # Feed not registered -> use the file-state fallback.
+    state = tmp_path / "s.txt"
+    ts = datetime.datetime(2026, 3, 3, tzinfo=datetime.UTC)
+    bwb_opds_imports.write_state(str(state), ts)
+    cutoff = bwb_opds_imports.resolve_cutoff(FEED_URL, since=None, state_file=str(state))
+    assert cutoff == ts
+
+
+def test_advance_cursor_updates_registry_and_file(registry_db, tmp_path):
+    FeedRegistry.register("betterworldbooks", FEED_URL)
+    state = tmp_path / "s.txt"
+    ts = datetime.datetime(2026, 6, 16, 17, 2, 54, tzinfo=datetime.UTC)
+    bwb_opds_imports.advance_cursor(FEED_URL, ts, str(state))
+    feed = FeedRegistry.find("betterworldbooks", FEED_URL)
+    assert str(feed.last_updated).startswith("2026-06-16 17:02:54")
+    assert bwb_opds_imports.read_state(str(state)) == ts
+
+
+def test_advance_cursor_unregistered_feed_writes_only_file(registry_db, tmp_path):
+    state = tmp_path / "s.txt"
+    ts = datetime.datetime(2026, 6, 16, tzinfo=datetime.UTC)
+    bwb_opds_imports.advance_cursor(FEED_URL, ts, str(state))
+    assert FeedRegistry.find("betterworldbooks", FEED_URL) is None
+    assert bwb_opds_imports.read_state(str(state)) == ts

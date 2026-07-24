@@ -55,6 +55,7 @@ from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
+from openlibrary.core.tbp import FeedRegistry
 from openlibrary.core.vendors import stage_bookworm_metadata
 from openlibrary.plugins.upstream.utils import get_marc21_language
 from openlibrary.utils.isbn import to_isbn_13
@@ -106,6 +107,52 @@ def _parse_iso(value: str) -> datetime.datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.UTC)
     return dt.astimezone(datetime.UTC)
+
+
+def _coerce_utc(value: datetime.datetime | str) -> datetime.datetime:
+    """Normalise a DB timestamp (naive UTC, or an sqlite string) to aware UTC."""
+    if isinstance(value, str):
+        return _parse_iso(value)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=datetime.UTC)
+    return value.astimezone(datetime.UTC)
+
+
+def resolve_cutoff(
+    feed_url: str,
+    since: str | None,
+    state_file: str,
+    provider_name: str = BWB_PROVIDER_NAME,
+) -> datetime.datetime:
+    """Return the incremental cutoff for this run.
+
+    Precedence: an explicit ``--since`` override > the FeedRegistry cursor
+    (the source of truth once the feed is registered) > the file-state
+    fallback > the epoch. The file-state remains only as a fallback for feeds
+    not yet in the registry (#12844).
+    """
+    if since:
+        return _parse_iso(since)
+    feed = FeedRegistry.find(provider_name, feed_url)
+    if feed and feed.get("last_updated"):
+        return _coerce_utc(feed.last_updated)
+    return read_state(state_file)
+
+
+def advance_cursor(
+    feed_url: str,
+    max_modified: datetime.datetime,
+    state_file: str,
+    provider_name: str = BWB_PROVIDER_NAME,
+) -> None:
+    """Persist ingestion progress.
+
+    Advances the FeedRegistry cursor (source of truth) when the feed is
+    registered, and always updates the file-state fallback.
+    """
+    if feed := FeedRegistry.find(provider_name, feed_url):
+        FeedRegistry.advance(feed.id, last_updated=max_modified.replace(tzinfo=None))
+    write_state(state_file, max_modified)
 
 
 def extract_isbn(metadata: dict[str, Any]) -> str | None:
@@ -436,12 +483,16 @@ def main(
         than the cutoff. OPDS spec does not mandate sort-by-modified, so leave disabled until
         BWB's feed order is empirically confirmed.
     """
-    cutoff = _parse_iso(since) if since else read_state(state_file)
     batch_name = f"bwb-opds-{datetime.datetime.now(datetime.UTC):%Y-%m-%d}"
-    logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
 
-    if not dry_run:
+    if dry_run:
+        # Don't touch the DB in dry-run: file-state (or --since) only.
+        cutoff = _parse_iso(since) if since else read_state(state_file)
+    else:
         load_config(ol_config)
+        cutoff = resolve_cutoff(feed_url, since, state_file)
+
+    logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
 
     olbooks, max_modified = _run_feed(
         feed_url=feed_url,
@@ -464,10 +515,10 @@ def main(
         commit_batch(batch_name, olbooks)
 
     if max_modified > cutoff:
-        write_state(state_file, max_modified)
-        logger.info("Wrote new state: %s", max_modified.isoformat())
+        advance_cursor(feed_url, max_modified, state_file)
+        logger.info("Advanced cursor to %s (registry + file-state)", max_modified.isoformat())
     else:
-        logger.info("No newer publications since %s; leaving state file untouched.", cutoff.isoformat())
+        logger.info("No newer publications since %s; leaving cursor untouched.", cutoff.isoformat())
 
 
 if __name__ == "__main__":
