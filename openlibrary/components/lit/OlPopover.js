@@ -1,10 +1,24 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
+import { getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
 
 let _idCounter = 0;
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/**
+ * Open popovers, topmost (most recently shown) last. Escape is a document-level
+ * listener, so every open popover sees the keypress; consulting this stack lets
+ * only the innermost popover close, dismissing one layer at a time when popovers
+ * are nested (rather than collapsing the whole stack on a single Escape).
+ * @type {OlPopover[]}
+ */
+const _openPopoverStack = [];
+
+/** Drop `el` from the open-popover stack if present. */
+function _removeFromOverlayStack(el) {
+    const i = _openPopoverStack.indexOf(el);
+    if (i !== -1) _openPopoverStack.splice(i, 1);
+}
 
 /**
  * A reusable popover component that anchors to a trigger element.
@@ -22,9 +36,11 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * Repositions on scroll and resize. On mobile viewports, renders as a bottom
  * tray with a drag handle, swipe-to-dismiss, and body scroll locking.
  *
- * Traps focus within the popover while open and restores focus to the
- * previously-focused element on close. The host's `aria-label` is forwarded
- * to the inner dialog as its accessible name.
+ * Non-modal: while open it keeps focus within the panel, but Tab/Shift+Tab off
+ * either edge closes it and returns focus to the trigger (a keyboard user must
+ * be able to Tab out — the page behind stays interactive, so we don't set
+ * `aria-modal`). Restores focus to the previously-focused element on close. The
+ * host's `aria-label` is forwarded to the inner dialog as its accessible name.
  *
  * @element ol-popover
  *
@@ -43,7 +59,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @fires ol-popover-close - Cancelable. Fired when the popover requests to
  *     close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss
  *     close fires after the gesture completes and is not cancelable.
- *     detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' }
+ *     detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' | 'tab' }
  *
  * @slot trigger - The trigger element (button, icon, etc.)
  * @slot - Default slot for popover content
@@ -289,12 +305,23 @@ export class OlPopover extends LitElement {
                         @click="${this._onBackdropClick}"
                     ></div>
                 ` : nothing}
+                <!-- Sentinels bracket the panel (rather than nesting inside it)
+                     so focus reaching one means the user has Tabbed past the
+                     panel's edge. A popover is non-modal, so that closes it (see
+                     _onSentinelFocus) rather than wrapping — Tab must be able to
+                     leave. They're only reached by a genuine boundary crossing. -->
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="start"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
                     data-state="${this._animState}"
                     role="dialog"
-                    aria-modal="true"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
@@ -304,27 +331,20 @@ export class OlPopover extends LitElement {
                     `}"
                     @transitionend="${this._onTransitionEnd}"
                 >
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="start"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                     ${this._mobile ? html`
                         <div class="tray-handle" aria-hidden="true">
                             <div class="tray-handle-bar"></div>
                         </div>
                     ` : nothing}
                     <slot></slot>
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="end"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                 </div>
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="end"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
             ` : nothing}
         `;
     }
@@ -348,10 +368,21 @@ export class OlPopover extends LitElement {
     // ── Show / Hide ─────────────────────────────────────────────
 
     _show() {
-        this._prevFocus = document.activeElement;
+        // Capture the *deeply* focused element, not document.activeElement —
+        // when this popover lives inside another component's shadow root (e.g.
+        // a trigger nested in <search-modal>'s shadow), document.activeElement
+        // returns the outer host rather than the real trigger. Restoring focus
+        // to that host is a no-op (or worse, delegates to its first focusable),
+        // which strands focus on the wrong control when the popover closes.
+        this._prevFocus = getDeepActiveElement();
 
         document.addEventListener('click', this._onOutsideClick, true);
         document.addEventListener('keydown', this._onKeydownGlobal);
+
+        // Become the topmost overlay for Escape handling. Remove any stale entry
+        // first so a re-show can't leave us in the stack twice.
+        _removeFromOverlayStack(this);
+        _openPopoverStack.push(this);
 
         // Keep 767px (--width-breakpoint-tablet - 1px) in sync with the tray
         // media queries in header-bar.css / OlSelectPopover.js.
@@ -469,28 +500,37 @@ export class OlPopover extends LitElement {
         }
     }
 
-    // ── Focus trap ──────────────────────────────────────────────
+    // ── Focus containment (non-modal: Tab out closes) ───────────
 
     _getFocusableElements() {
-        const slot = this.shadowRoot?.querySelector('.panel slot:not([name])');
-        if (!slot) return [];
-        const elements = [];
-        for (const node of slot.assignedElements({ flatten: true })) {
-            if (node.matches?.(FOCUSABLE)) elements.push(node);
-            elements.push(...node.querySelectorAll(FOCUSABLE));
-        }
-        return elements;
+        // Deep, shadow-piercing collection of the panel's slotted content, so a
+        // custom element in the panel contributes its real inner focusable (a
+        // plain querySelectorAll would stop at its shadow boundary).
+        return getTabbableFromSlot(this.shadowRoot?.querySelector('.panel slot:not([name])'));
     }
 
+    /**
+     * Focus reached a bracketing sentinel → the user Tabbed past the panel's
+     * edge. A popover is non-modal, so we close it and let focus return to the
+     * trigger (via _restoreFocus) instead of wrapping back into the panel — a
+     * keyboard user must be able to Tab out. The sentinels detect the boundary
+     * crossing robustly regardless of the panel's internal tab semantics (e.g.
+     * a native radio group, which is a single tab stop), which an index-based
+     * edge check could not.
+     *
+     * If a consumer cancels the close (`ol-popover-close` is cancelable), fall
+     * back to wrapping so focus never sticks on the hidden sentinel.
+     */
     _onSentinelFocus(e) {
         const edge = e.target.dataset.edge;
+        this._requestClose('tab');
+        if (!this.open) return; // closed as expected — focus restored to trigger
+
+        // Close was vetoed: keep focus usable by wrapping within the panel.
         const focusable = this._getFocusableElements();
         if (focusable.length === 0) {
-            // No focusable children — keep focus on the panel itself
             this.shadowRoot.querySelector('.panel')?.focus({ preventScroll: true });
-            return;
-        }
-        if (edge === 'start') {
+        } else if (edge === 'start') {
             focusable[focusable.length - 1].focus({ preventScroll: true });
         } else {
             focusable[0].focus({ preventScroll: true });
@@ -650,6 +690,9 @@ export class OlPopover extends LitElement {
 
     _onKeydownGlobal(e) {
         if (e.key === 'Escape' && this.open) {
+            // Only the innermost open popover responds, so nested popovers close
+            // one layer per Escape instead of all at once.
+            if (_openPopoverStack[_openPopoverStack.length - 1] !== this) return;
             e.preventDefault();
             this._requestClose('escape');
         }
@@ -830,6 +873,7 @@ export class OlPopover extends LitElement {
     _removeListeners() {
         document.removeEventListener('click', this._onOutsideClick, true);
         document.removeEventListener('keydown', this._onKeydownGlobal);
+        _removeFromOverlayStack(this);
         this._removeScrollResizeListeners();
 
         // Remove touch listeners from panel

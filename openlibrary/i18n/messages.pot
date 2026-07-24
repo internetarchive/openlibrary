@@ -4662,33 +4662,21 @@ msgstr ""
 #: design/toggle.html
 #, python-format
 msgid ""
-"The %(tag)s component is a switch with a bold label and an optional "
-"greyed sublabel. The whole control is one %(role)s button, so the entire "
-"surface is clickable and Enter/Space activate it. It owns its on/off "
-"state: clicking flips %(checked)s and fires %(event)s."
+"A plain toggle: just the switch, a %(label)s, and an optional greyed "
+"%(sublabel)s."
 msgstr ""
 
 #: design/toggle.html
-msgid "Default"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid ""
-"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
-" %(sublabel)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Card variant"
+msgid "Button variant"
 msgstr ""
 
 #: design/toggle.html
 #, python-format
 msgid ""
-"Use %(variant)s for a bordered container. When checked, it fills with a "
-"solid primary-blue background and white text — the same treatment as a "
-"selected %(chip)s."
+"Use %(variant)s for a bordered, raised container styled like %(button)s —"
+" a subtle drop shadow, with an inset specular top edge that lights up on "
+"hover. When checked, it fills with a soft blue tint, matching a selected "
+"row in %(select)s."
 msgstr ""
 
 #: design/toggle.html

@@ -2,16 +2,16 @@ $def with (api)
 
 <article class="design-pattern" id="button">
   <h2 class="design-pattern__title">Button</h2>
-  <p class="design-pattern__description">The <code>ol-button</code> component is a presentation-only button primitive. It renders a real <code>&lt;button&gt;</code> into the light DOM, so styles apply pre-hydration without a flash. It carries no application logic — variants, sizes, and a loading state only.</p>
 
   <section class="example">
     <h3 class="example__title">Variants</h3>
-    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Primary&lt;/ol-button&gt;
-&lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt;
+    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Secondary&lt;/ol-button&gt;
+&lt;ol-button variant="primary"&gt;Primary&lt;/ol-button&gt;
 &lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code></pre>
+    <p>Secondary is the default — a bare <code>&lt;ol-button&gt;</code> renders as secondary. Set <code>variant="primary"</code> for the high-emphasis style.</p>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button>Primary</ol-button>
-      <ol-button variant="secondary">Secondary</ol-button>
+      <ol-button>Secondary</ol-button>
+      <ol-button variant="primary">Primary</ol-button>
       <ol-button variant="destructive">Destructive</ol-button>
     </div>
   </section>
@@ -29,11 +29,27 @@ $def with (api)
   </section>
 
   <section class="example">
+    <h3 class="example__title">With icon</h3>
+    <p>The default slot accepts any markup, so an inline SVG placed before the label renders as a leading icon. Give the icon a fixed size and a small inline-end margin so it sits flush against the text.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-button size="small"&gt;
+  &lt;svg width="14" height="14" ...&gt;...&lt;/svg&gt;Preview
+&lt;/ol-button&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <ol-button size="small">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: -2px; margin-inline-end: 4px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Preview
+      </ol-button>
+      <ol-button size="small">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: -2px; margin-inline-end: 4px;"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Search Inside
+      </ol-button>
+    </div>
+  </section>
+
+  <section class="example">
     <h3 class="example__title">Disabled</h3>
     <pre class="example__code"><code class="language-html">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button disabled>Primary</ol-button>
-      <ol-button variant="secondary" disabled>Secondary</ol-button>
+      <ol-button disabled>Secondary</ol-button>
+      <ol-button variant="primary" disabled>Primary</ol-button>
       <ol-button variant="destructive" disabled>Destructive</ol-button>
     </div>
   </section>
@@ -43,8 +59,8 @@ $def with (api)
     <p>Toggle the <code>loading</code> attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button loading>Save</ol-button>
-      <ol-button variant="secondary" loading>Cancel</ol-button>
+      <ol-button variant="primary" loading>Save</ol-button>
+      <ol-button loading>Cancel</ol-button>
       <ol-button variant="destructive" loading>Delete</ol-button>
     </div>
   </section>

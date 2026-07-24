@@ -1,10 +1,11 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 
 /**
  * OlToggle - A switch/toggle web component.
  *
- * Renders a sliding switch followed by a bold label and an optional greyed
+ * Renders a sliding switch followed by a label and an optional greyed
  * sublabel. The whole control is a single `role="switch"` button, so the
  * entire surface is clickable and Enter/Space activate it.
  *
@@ -16,10 +17,14 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *
  * @property {Boolean} checked - On/off state. Default false.
  * @property {Boolean} disabled - Disables interaction. Default false.
+ * @property {String} name - Form field name. When set and the toggle is
+ *   checked, it submits with the enclosing `<form>` (see FormAssociatedMixin).
+ * @property {String} value - Value submitted when checked. Default "on".
  * @property {String} variant - Omit for the default (plain) toggle, or
- *   "card" for a bordered container that fills with a solid primary-blue
- *   background (white text, like a selected ol-chip) when checked.
- * @property {String} label - Primary (bold) label text.
+ *   "button" for a bordered, raised container styled like
+ *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
+ *   hover) that fills with a soft blue tint when checked.
+ * @property {String} label - Primary label text.
  * @property {String} sublabel - Secondary greyed text shown after the label.
  * @property {String} accessibleLabel - Override aria-label on the switch.
  *   Needed when supplying label content via the default slot.
@@ -33,8 +38,8 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  * <ol-toggle label="Readable Only" sublabel="4.6M"></ol-toggle>
  *
  * @example
- * <!-- Bordered container that fills blue when on -->
- * <ol-toggle variant="card" label="Readable Only" sublabel="4.6M" checked></ol-toggle>
+ * <!-- Raised, button-like container that fills blue when on -->
+ * <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked></ol-toggle>
  *
  * @example
  * <!-- Custom label content via the slot -->
@@ -42,7 +47,7 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *   <strong>Dark mode</strong>
  * </ol-toggle>
  */
-export class OlToggle extends FocusableHostMixin(LitElement) {
+export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
     static properties = {
         checked: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
@@ -50,6 +55,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         label: { type: String },
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
+        value: { type: String },
     };
 
     static styles = css`
@@ -61,7 +67,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --toggle-gap: 10px;
 
             /* Color slots. Default = plain, unchecked toggle; overridden below
-               by [checked] and by the [variant="card"] container states. */
+               by [checked] and by the [variant="button"] container states. */
             --_toggle-bg: transparent;
             --_toggle-fg: var(--dark-grey);
             --_toggle-sublabel-fg: var(--accessible-grey);
@@ -143,10 +149,6 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             line-height: var(--line-height-chip);
         }
 
-        .toggle__label {
-            font-weight: 700;
-        }
-
         .toggle__sublabel {
             color: var(--_toggle-sublabel-fg);
             font-weight: 400;
@@ -157,51 +159,53 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --_toggle-track: var(--primary-blue);
         }
 
-        /* ── Card variant: bordered container ───────────────────────────── */
-        :host([variant="card"]) {
+        /* ── Button variant: bordered, raised container ─────────────────── */
+        :host([variant="button"]) {
             --_toggle-border: var(--color-border-subtle);
             --_toggle-bg: var(--white);
-
-            /* Shrink the switch so it no longer out-measures the label's text
-               line box. The sibling dropdown trigger is sized by its 14px/1.4
-               text (19.6px tall); with the default 20px switch the toggle's
-               switch would drive the height instead, making the card ~0.4px
-               taller. An 18px track (with a 14px knob) stays under the text
-               line so the two controls end up exactly the same height. */
-            --toggle-track-height: 18px;
-            --toggle-knob-size: 14px;
 
             display: inline-block;
         }
 
-        :host([variant="card"]) .toggle {
-            /* Match the sibling dropdown trigger (ol-select-popover's
-               .default-trigger) so the filter row reads as one set of
-               equally-sized controls — same padding and corner radius. */
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+        :host([variant="button"]) .toggle {
+            /* Height-locked to the shared control-height token (like ol-button,
+               ol-segmented-control, inputs) so the button lines up exactly with
+               its sibling controls in the filter row regardless of its switch
+               or text metrics. Setting the outer height (not vertical padding)
+               with box-sizing: border-box is what makes the alignment exact —
+               see /developers/design ("Control alignment"). Match the sibling
+               dropdown trigger's corner radius too. */
+            box-sizing: border-box;
+            height: var(--control-height-medium);
+            padding: 0 var(--spacing-inset-sm);
             border-radius: var(--border-radius-button);
+            /* Raised look borrowed from ol-button[variant="secondary"]: a subtle
+               drop shadow at rest, plus an inset specular top edge that fades in
+               on hover (see the hover rules below). Held in a var so the
+               focus-visible rule can re-add the focus ring on top without
+               duplicating (or drifting from) the resting shadow. */
+            --_toggle-inset-highlight: transparent;
+            --_toggle-raised-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 var(--_toggle-inset-highlight);
+            box-shadow: var(--_toggle-raised-shadow);
         }
 
-        /* Drive the card's height by the same text metrics as the dropdown
-           trigger (14px/1.4) rather than the tighter chip line-height, so the
-           two controls compute to an identical height. */
-        :host([variant="card"]) .toggle__text {
-            line-height: 1.4;
+        /* The base .toggle:focus-visible ring is a single box-shadow, but the
+           button variant's own box-shadow rule above outranks it on specificity
+           (:host([variant="button"]) .toggle), so the ring never showed. Re-add
+           it here at higher specificity, layering the focus ring on top of the
+           raised shadow so the lift survives focus too. */
+        :host([variant="button"]) .toggle:focus-visible {
+            box-shadow: var(--box-shadow-focus), var(--_toggle-raised-shadow);
         }
 
-        /* The card sits next to a dropdown whose label is regular weight and
-           14px; match it (the toggle's base font-size is already
-           --font-size-body-medium = 14px) so the two controls read alike. */
-        :host([variant="card"]) .toggle__label {
-            font-weight: 400;
-        }
-
-        /* Card + checked: soft blue tint fill (matching the selected row in
+        /* Button + checked: soft blue tint fill (matching the selected row in
            the sibling ol-select-popover) with a darker primary-blue border and
            dark-blue text, so the active state reads clearly without the harsh
            solid-blue block. The switch track stays solid primary-blue so the
            on-state remains obvious against the pale surface. */
-        :host([variant="card"][checked]) {
+        :host([variant="button"][checked]) {
             --_toggle-bg: hsla(202, 96%, 37%, 0.08);
             --_toggle-fg: var(--link-blue);
             --_toggle-sublabel-fg: var(--primary-blue);
@@ -210,17 +214,25 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --_toggle-knob: var(--white);
         }
 
-        /* Hover backgrounds for the card variant: the neutral card fills with
-           --lightest-grey, and the checked card deepens its blue tint and
-           border (matching the selected-row hover in ol-select-popover). */
+        /* Hover for the button variant: the neutral button fills with
+           --lightest-grey, and the checked button deepens its blue tint and
+           border (matching the selected-row hover in ol-select-popover). Both
+           states also light up the inset specular top edge — toned to the hover
+           fill, the same color-mix ol-button uses for its highlight. */
         @media (hover: hover) and (pointer: fine) {
-            :host([variant="card"]:not([disabled])) .toggle:hover {
+            :host([variant="button"]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--lightest-grey);
+                /* Nudge the border a touch darker in step with the fill (both
+                   drop ~7% in lightness), matching ol-button[variant="secondary"]
+                   so the whole control reads as one shape on hover. */
+                --_toggle-border: var(--light-grey);
+                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--lightest-grey));
             }
 
-            :host([variant="card"][checked]:not([disabled])) .toggle:hover {
+            :host([variant="button"][checked]:not([disabled])) .toggle:hover {
                 --_toggle-bg: hsla(202, 96%, 37%, 0.12);
                 --_toggle-border: hsla(202, 96%, 37%, 0.5);
+                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, hsla(202, 96%, 37%, 0.12));
             }
         }
     `;
@@ -233,6 +245,33 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         this.label = null;
         this.sublabel = null;
         this.accessibleLabel = null;
+        this.value = 'on';
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // Capture the authored default for <form>.reset(). Runs after the
+        // attribute→property upgrade, so `checked` reflects the markup.
+        if (this._defaultChecked === undefined) this._defaultChecked = this.checked;
+    }
+
+    // ── Form participation (FormAssociatedMixin) ─────────────────────────
+    // A switch behaves like a checkbox: it submits its `value` only when on,
+    // and contributes nothing when off.
+    get formValue() {
+        return this.checked ? this.value : null;
+    }
+
+    formReset() {
+        this.checked = this._defaultChecked;
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    updated(changed) {
+        if (changed.has('checked') || changed.has('value')) this._syncFormValue();
     }
 
     _handleClick() {
@@ -261,7 +300,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
                 </span>
                 <span class="toggle__text">
                     <slot>
-                        ${this.label ? html`<span class="toggle__label">${this.label}</span>` : nothing}
+                        ${this.label ? html`<span>${this.label}</span>` : nothing}
                         ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
                     </slot>
                 </span>

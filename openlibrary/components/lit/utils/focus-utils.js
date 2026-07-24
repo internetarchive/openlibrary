@@ -51,32 +51,95 @@ export function isFocusable(el) {
 }
 
 /**
- * Gets all focusable elements from a slot's assigned content.
- * Handles both elements that are directly focusable and their focusable descendants.
+ * Collect tabbable elements under `root`, in depth-first DOM order, piercing
+ * shadow roots and expanding slots — i.e. the real Tab order the user sees,
+ * which `querySelectorAll` alone can't produce because it stops at shadow
+ * boundaries.
  *
- * @param {HTMLSlotElement} slot - The slot element to get focusable elements from
- * @returns {HTMLElement[]} Array of focusable elements in DOM order
+ * This is the discovery backbone for the manual focus trap: it works on any
+ * shadow-DOM-v1 browser without relying on `delegatesFocus`, so the trap can
+ * focus the *real* inner element directly rather than a host whose
+ * `host.focus()` might delegate to a hidden element (a silent no-op).
  *
- * @example
- * const slot = this.renderRoot.querySelector('slot');
- * const focusable = getFocusableFromSlot(slot);
+ * Traversal rules:
+ *  - A `<slot>` contributes its flattened assigned elements, in slot order.
+ *  - An element matching {@link FOCUSABLE_SELECTOR} is a **leaf tab stop**:
+ *    recorded, and *not* descended into. A composite that owns its own
+ *    keyboard nav (roving tabindex, arrow keys) must therefore expose exactly
+ *    one Tab stop (its single `tabindex="0"`); we don't enumerate its items.
+ *  - A non-matching element with an open `shadowRoot` is descended into (the
+ *    shadow tree, whose `<slot>`s pull in light children at their position).
+ *  - A non-matching element without a shadow root has its light children
+ *    walked.
+ *  - Hidden/disabled subtrees (see {@link isFocusable}) are skipped entirely.
+ *  - Closed shadow roots (e.g. `<video controls>`) are opaque and skipped.
+ *
+ * @param {Element|ShadowRoot} root - Subtree to search.
+ * @returns {HTMLElement[]} Tabbable elements in DOM order.
  */
-export function getFocusableFromSlot(slot) {
+export function getTabbableElements(root) {
+    const out = [];
+    if (root) walkTabbables(root, out);
+    return out;
+}
+
+/**
+ * Like {@link getTabbableElements} but seeded from a `<slot>`'s assigned
+ * (light-DOM) content — for a focus trap that walks a component's named slots
+ * (header/body/footer) rather than one subtree. Each assigned element is
+ * visited with the same depth-first, shadow-piercing rules, so a custom element
+ * sitting in slotted content contributes its real inner focusable rather than
+ * being missed (which a one-slot-deep `querySelectorAll` scan would).
+ *
+ * @param {HTMLSlotElement|null} slot
+ * @returns {HTMLElement[]} Tabbable elements in DOM order.
+ */
+export function getTabbableFromSlot(slot) {
     if (!slot) return [];
-
-    const focusable = [];
-    const assignedElements = slot.assignedElements({ flatten: true });
-
-    for (const el of assignedElements) {
-        // Check if the element itself is focusable
-        if (el.matches?.(FOCUSABLE_SELECTOR)) {
-            focusable.push(el);
-        }
-        // Find focusable descendants
-        focusable.push(...el.querySelectorAll(FOCUSABLE_SELECTOR));
+    const out = [];
+    for (const el of slot.assignedElements({ flatten: true })) {
+        visitTabbable(el, out);
     }
+    return out;
+}
 
-    return focusable.filter(isFocusable);
+// Record `el` if it's a tab stop, then decide whether to descend.
+//
+// FOCUSABLE_SELECTOR matches a native control (e.g. `button`) regardless of
+// tabindex, so a roving composite's `tabindex="-1"` items would slip through —
+// exclude them explicitly so a composite exposes only its single `tabindex="0"`
+// stop.
+//
+// Descent rule (mirrors native sequential focus navigation):
+//  - A tab stop that has a shadow root is a self-contained custom element that
+//    owns its internal focus (delegatesFocus / arrow-key routing) — treat it as
+//    a single leaf and do NOT enumerate its shadow guts.
+//  - Any other element is descended into: a tab stop with light-DOM focusable
+//    descendants contributes *both* (e.g. a `role="button" tabindex="0"` row
+//    with a nested remove button), and a non-stop wrapper (incl. `tabindex=-1`)
+//    contributes its descendants.
+function visitTabbable(el, out) {
+    if (!isFocusable(el)) return; // skip hidden/disabled subtrees entirely
+    const isStop = el.matches?.(FOCUSABLE_SELECTOR) && el.getAttribute('tabindex') !== '-1';
+    if (isStop) out.push(el);
+    if (isStop && el.shadowRoot) return; // self-contained widget — leaf
+    // Descend the shadow tree when present (its `<slot>`s pull light children
+    // into place), otherwise the element's own light children.
+    walkTabbables(el.shadowRoot ?? el, out);
+}
+
+// Walk a node's children in order, expanding any `<slot>` to its flattened
+// assigned content (so projected light DOM is visited at the slot's position).
+function walkTabbables(node, out) {
+    for (const child of node.children) {
+        if (child.localName === 'slot') {
+            for (const assigned of child.assignedElements?.({ flatten: true }) ?? []) {
+                visitTabbable(assigned, out);
+            }
+        } else {
+            visitTabbable(child, out);
+        }
+    }
 }
 
 /**

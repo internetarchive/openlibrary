@@ -686,12 +686,14 @@ export class SearchModal extends LitElement {
             border-top: var(--border-divider);
         }
 
-        /* The footer button is the shared <ol-button> primitive (registered by
-           the site-wide Lit bundle — no import here, same as ol-dialog above).
-           ol-button is a light-DOM element styled entirely by the global
+        /* Two <ol-button>s live in this modal's shadow root: the footer
+           "See all results" action (variant="primary") and the language
+           select-popover's injected disclosure trigger (default, secondary).
+           ol-button is styled entirely by the global
            static/css/components/ol-button.css, but that sheet can't cross into
-           this modal's shadow root — so the primary-variant rules it needs are
-           mirrored below. Keep in sync with ol-button.css. */
+           this shadow root — so the rules both buttons need (the secondary
+           default, the primary opt-in, and the disclosure chevron) are mirrored
+           below. Keep in sync with ol-button.css. */
 
         ol-button { display: inline-block; }
 
@@ -706,25 +708,33 @@ export class SearchModal extends LitElement {
         ol-button[disabled],
         ol-button[loading] { pointer-events: none; }
 
-        /* Shared appearance: the host pre-upgrade, the inner button post-upgrade. */
+        /* Shared appearance / secondary default: the host pre-upgrade, the
+           inner button post-upgrade. Raised white pill — same as ol-button.css. */
         ol-button:not([hydrated]),
         ol-button > button {
             position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: var(--spacing-inline-md);
             box-sizing: border-box;
-            height: 38px;
-            padding: 0 var(--spacing-inset-md);
+            height: var(--control-height-medium);
+            padding: 0 var(--spacing-md);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 500;
             line-height: var(--line-height-control);
+            text-align: center;
             white-space: nowrap;
-            background-color: var(--primary-blue);
-            border: 1.5px solid var(--primary-blue);
+            background-color: var(--white);
+            border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--white);
+            color: var(--dark-grey);
+            /* Strength of the specular top edge. Full on the light secondary fill;
+               the dark primary fill dials it down below. */
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
             cursor: pointer;
             user-select: none;
             transition: transform 0.08s;
@@ -732,10 +742,28 @@ export class SearchModal extends LitElement {
 
         ol-button > button:active { transform: scale(0.97); }
 
+        /* Primary — opt-in via variant="primary" (the footer action). */
+        ol-button[variant="primary"]:not([hydrated]),
+        ol-button[variant="primary"] > button {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+            /* Tone the specular highlight to the blue fill and soften it — the
+               white edge reads much louder on a dark fill than on white. */
+            --control-surface: var(--primary-blue);
+            --control-highlight-strength: 18%;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             ol-button > button:hover {
+                background-color: var(--lightest-grey);
+                --control-surface: var(--lightest-grey);
+            }
+
+            ol-button[variant="primary"] > button:hover {
                 background-color: var(--link-blue);
                 border-color: var(--link-blue);
+                --control-surface: var(--link-blue);
             }
         }
 
@@ -810,6 +838,34 @@ export class SearchModal extends LitElement {
             to { transform: rotate(360deg); }
         }
 
+        /* Disclosure chevron — shown only when the button is a popover trigger.
+           The language select-popover sets aria-haspopup/aria-expanded on its
+           injected trigger, so the chevron appears and rotates automatically. */
+        ol-button > button > .ol-btn-chevron { display: none; }
+
+        ol-button[aria-haspopup] > button > .ol-btn-chevron {
+            /* Reference the external SVG (same file as ol-button.css) rather than
+               an inline data URI: an unquoted url() to a static path has no plus
+               sign or spaces for the CSS formatter to tokenize and mangle (a data
+               URI repeatedly got split on the image/svg+xml token). */
+            --chevron: url(/static/images/icons/chevron-down.svg);
+
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            background: currentcolor;
+            transition: transform 150ms ease-out;
+            -webkit-mask: var(--chevron) center / 16px no-repeat;
+            mask: var(--chevron) center / 16px no-repeat;
+        }
+
+        ol-button[no-chevron] > button > .ol-btn-chevron { display: none; }
+
+        ol-button[aria-expanded="true"] > button > .ol-btn-chevron {
+            transform: rotate(180deg);
+        }
+
         @media (prefers-reduced-motion: reduce) {
             ol-button > button,
             ol-button > button > .ol-btn-label,
@@ -821,6 +877,10 @@ export class SearchModal extends LitElement {
 
             ol-button[loading] > button > .ol-btn-spinner::before {
                 animation-duration: 2s;
+            }
+
+            ol-button[aria-haspopup] > button > .ol-btn-chevron {
+                transition: none;
             }
         }
 
@@ -1121,7 +1181,7 @@ export class SearchModal extends LitElement {
         return html`
             <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
                 <ol-toggle
-                    variant="card"
+                    variant="button"
                     label=${readable?.label ?? this._i18n.availabilityLabel}
                     sublabel=${sublabel}
                     ?checked=${this._availability === 'readable'}

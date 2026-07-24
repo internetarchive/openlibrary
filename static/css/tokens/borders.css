@@ -38,4 +38,29 @@
 
   /* Focus Ring — accessible focus indicator */
   --box-shadow-focus: 0 0 0 2px hsl(202, 96%, 37%);
+
+  /* Surface a raised control sits on. Components override this next to
+     their own background-color so the specular highlight tones to the fill
+     instead of always being pure white. Defaults to the page surface for
+     white/light controls. */
+  --control-surface: var(--white);
+
+  /* Raised-control drop shadow — the surface-independent half of the lift,
+     shared by buttons, the segmented control, and future chips.
+
+     The matching inset specular highlight deliberately is NOT in this token.
+     A :root custom property substitutes its var()s against :root, so
+     var(--control-surface) here would bake to the :root default (white) and
+     inherit that down — an element-level --control-surface override (e.g. the
+     primary button's blue) would never reach it. Components therefore apply
+     the highlight inline, where color-mix resolves --control-surface against
+     the element itself:
+
+       box-shadow:
+         var(--box-shadow-raised),
+         inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
+
+     color-mix is unsupported on very old Safari/Android in our browserslist;
+     there the highlight is dropped and the control keeps just this drop shadow. */
+  --box-shadow-raised: 0 1px 1px hsla(0, 0%, 0%, 0.05);
 }

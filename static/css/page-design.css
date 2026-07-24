@@ -48,11 +48,11 @@
 
 .design-pattern-nav__list a {
   display: block;
-  padding: 8px 12px;
+  padding: 5px 6px;
   border-radius: var(--border-radius-card);
   text-decoration: none;
   color: var(--dark-grey);
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-large);
   white-space: nowrap;
   transition: background-color 0.15s;
 }
@@ -71,6 +71,15 @@
   display: contents;
 }
 
+/* A separate nav group for playground-style demos (e.g. Control alignment)
+   that aren't single components, set off from the main list by a divider. On
+   mobile the divider is a leading vertical rule in the horizontal scroller. */
+.design-pattern-nav__list--playground {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: var(--border-divider);
+}
+
 /* Main content area */
 .design-pattern-main {
   flex: 1;
@@ -86,12 +95,6 @@
 .design-pattern__title {
   color: var(--dark-grey);
   margin: 0 0 8px;
-}
-
-.design-pattern__description {
-  margin: 0 0 var(--spacing-stack-md);
-  font-size: 18px;
-  color: var(--mid-grey);
 }
 
 .example {
@@ -164,7 +167,16 @@ pre.example__code code[class*="language-"] {
   }
 
   .design-pattern-nav__list a {
-    padding: 6px 12px;
+    padding: 4px 6px;
+  }
+
+  /* Desktop: the playground group stacks below the main list with a horizontal
+     divider above it (overriding the mobile vertical rule). */
+  .design-pattern-nav__list--playground {
+    margin: var(--spacing-stack-sm) 0 0;
+    padding: var(--spacing-stack-sm) 0 0;
+    border-left: none;
+    border-top: var(--border-divider);
   }
 
   /* Desktop: nested links stack under their parent, indented and marked with a
@@ -183,6 +195,101 @@ pre.example__code code[class*="language-"] {
 
 .example__output {
   margin-bottom: var(--spacing-stack-lg);
+  padding: var(--spacing-inset-lg);
+  background-color: var(--grey-fafafa);
+  border-radius: var(--border-radius-overlay);
+}
+
+/* Control alignment check (see design.html #control-alignment). Lays controls
+   in a single row, top-aligned, each wrapped in a box that hugs its bounds so
+   equal heights read as aligned top/bottom edges. */
+.control-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  align-items: flex-start;
+  overflow-x: auto;
+  /* Two dashed guide lines at the top and bottom of the exact target token
+     height, top-aligned with the cells. A control that overshoots or
+     undershoots the zone reads as misaligned at a glance. Each line is a
+     horizontally-repeating gradient (dash, gap) drawn 1px tall.
+     background-attachment: local keeps the lines pinned to the controls when
+     the row scrolls horizontally; background-origin: content-box starts them at
+     the content edge so the top line aligns with the controls' top edge. */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--mid-grey) 0 4px,
+      transparent 4px 8px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--mid-grey) 0 4px,
+      transparent 4px 8px
+    );
+  background-size:
+    100% 1px,
+    100% 1px;
+  background-position:
+    left top,
+    left calc(var(--control-target-height) - 1px);
+  background-repeat: no-repeat;
+  background-attachment: local;
+  background-origin: content-box;
+}
+
+/* A single toggle above the alignment rows shows/hides the dashed guide lines.
+   Toggling it off drops the guide backgrounds so the controls can be eyeballed
+   on their own. */
+.control-alignment__guides-toggle {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.control-alignment--guides-hidden .control-row {
+  background-image: none;
+}
+
+.control-row--small {
+  --control-target-height: var(--control-height-small);
+}
+
+.control-row--medium {
+  --control-target-height: var(--control-height-medium);
+}
+
+.control-row--large {
+  --control-target-height: var(--control-height-large);
+}
+
+.control-row__cell {
+  display: inline-flex;
+  flex: none;
+}
+
+/* A bare native input, height-locked to the same control-height tokens so it
+   joins the alignment check alongside the button and segmented control. */
+.control-row__field {
+  box-sizing: border-box;
+  width: 12ch;
+  padding: 0 var(--spacing-inset-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  color: var(--dark-grey);
+  background: var(--white);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
+}
+
+.control-row__field--small {
+  height: var(--control-height-small);
+}
+
+.control-row__field--medium {
+  height: var(--control-height-medium);
+}
+
+.control-row__field--large {
+  height: var(--control-height-large);
 }
 
 .color-swatch {

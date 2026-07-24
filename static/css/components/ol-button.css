@@ -65,18 +65,28 @@ ol-button > button {
   justify-content: center;
   gap: var(--spacing-inline-md);
   box-sizing: border-box;
-  height: 38px;
-  padding: 0 var(--spacing-inset-md);
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
-  font-weight: 500;
   line-height: var(--line-height-control);
   text-align: center;
   white-space: nowrap;
-  border: 1.5px solid transparent;
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-button);
-  background-color: var(--primary-blue);
-  color: var(--white);
+  background-color: var(--white);
+  color: var(--dark-grey);
+  /* Strength of the specular top edge. Full on light fills (secondary); the
+     dark-filled variants (primary/destructive) dial it down — see below. */
+  --control-highlight-strength: 35%;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
   cursor: pointer;
   user-select: none;
   /* Hover color changes are instant (see docs/ai/design.md); only the
@@ -84,7 +94,8 @@ ol-button > button {
   transition: transform 0.08s;
 }
 
-/* Press feedback — tactile scale on activation. */
+/* Press feedback — tactile scale on activation. The raised shadow and
+   specular highlight stay put through the press. */
 ol-button > button:active {
   transform: scale(0.97);
 }
@@ -97,27 +108,31 @@ ol-button[full-width] > button {
 /* Sizes */
 ol-button[size="small"]:not([hydrated]),
 ol-button[size="small"] > button {
-  height: 30px;
-  padding: 0 var(--spacing-md);
+  height: var(--control-height-small);
+  padding: 0 var(--spacing-sm);
   font-size: var(--font-size-label-medium);
 }
 
 ol-button[size="large"]:not([hydrated]),
 ol-button[size="large"] > button {
-  height: 46px;
-  padding: 0 var(--spacing-inset-lg);
+  height: var(--control-height-large);
+  padding: 0 var(--spacing-lg);
   font-size: var(--font-size-body-large);
 }
 
-/* Primary is the default (already set above). Explicit selector for clarity. */
+/* Primary — opt-in via variant="primary". */
 ol-button[variant="primary"]:not([hydrated]),
 ol-button[variant="primary"] > button {
   background-color: var(--primary-blue);
   border-color: var(--primary-blue);
   color: var(--white);
+  /* Tone the specular highlight to the blue fill instead of pure white, and
+     soften it — the white edge reads much louder on a dark fill than on white. */
+  --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
 }
 
-/* Secondary */
+/* Secondary is the default (already set above). Explicit selector for clarity. */
 ol-button[variant="secondary"]:not([hydrated]),
 ol-button[variant="secondary"] > button {
   background-color: var(--white);
@@ -125,30 +140,40 @@ ol-button[variant="secondary"] > button {
   color: var(--dark-grey);
 }
 
-/* Destructive */
+/* Destructive — solid red fill, mirroring primary but in the danger hue. */
 ol-button[variant="destructive"]:not([hydrated]),
 ol-button[variant="destructive"] > button {
-  background-color: transparent;
+  background-color: var(--red);
   border-color: var(--red);
-  color: var(--red);
+  color: var(--white);
+  /* Tone the specular highlight to the red fill and soften it, matching primary. */
+  --control-surface: var(--red);
+  --control-highlight-strength: 18%;
 }
 
 /* Hover (only fires post-hydration because pointer-events is none on
-   disabled/loading hosts, and pre-hydration the inner <button> doesn't exist). */
+   disabled/loading hosts, and pre-hydration the inner <button> doesn't exist).
+   Hover changes the fill, so --control-surface moves with it — otherwise the
+   specular highlight stays toned to the resting color (e.g. a blown-out white
+   edge once destructive fills red). Keep --control-surface == background-color. */
 @media (hover: hover) and (pointer: fine) {
-  ol-button:not([variant]) > button:hover,
-  ol-button[variant="primary"] > button:hover {
-    background-color: var(--link-blue);
-    border-color: var(--link-blue);
-  }
-
   ol-button[variant="secondary"] > button:hover {
     background-color: var(--lightest-grey);
+    /* Nudge the border a touch darker in step with the fill (both drop ~7%
+       in lightness) so the whole button reads as one shape on hover, rather
+       than the fill darkening inside a static outline. */
+    border-color: var(--light-grey);
+    --control-surface: var(--lightest-grey);
   }
 
+  /* The two solid, saturated fills lighten on hover — the mirror image of the
+     light secondary control darkening above, and matching the selected chip.
+     brightness() carries the fill, border, and inset specular edge together, so
+     there's no per-property override or --control-surface retoning to keep in
+     sync. The press-scale on :active still reads as the "down" step. */
+  ol-button[variant="primary"] > button:hover,
   ol-button[variant="destructive"] > button:hover {
-    background-color: var(--red);
-    color: var(--white);
+    filter: brightness(1.1);
   }
 }
 
@@ -232,6 +257,44 @@ ol-button[loading] > button > .ol-btn-spinner::before {
   }
 }
 
+/* Disclosure chevron. Hidden by default; shown only when the button is wired
+   as a popover/menu trigger — ol-popover / ol-select-popover set aria-haspopup
+   and aria-expanded directly on the trigger element, so the affordance is
+   automatic with no consumer markup. Opt out with the `no-chevron` attribute.
+   The glyph is a mask painted with currentcolor so it matches the label color. */
+ol-button > button > .ol-btn-chevron {
+  display: none;
+}
+
+ol-button[aria-haspopup] > button > .ol-btn-chevron {
+  /* Reference an external SVG file rather than an inline data URI: an unquoted
+     url() to a static path has no `+` or spaces for the CSS formatter to tokenize
+     and mangle (a data URI repeatedly got split on `image/svg+xml`). Mirrors the
+     mask pattern used in search-result-item.css / read-panel.css. */
+  --chevron: url(/static/images/icons/chevron-down.svg);
+
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: currentcolor;
+  transition: transform 150ms ease-out;
+  -webkit-mask: var(--chevron) center / 16px no-repeat;
+  mask: var(--chevron) center / 16px no-repeat;
+}
+
+/* Opt out — stays hidden even when wired as a trigger. Comes after the show
+   rule (equal specificity) so it wins. */
+ol-button[no-chevron] > button > .ol-btn-chevron {
+  display: none;
+}
+
+/* Rotate 180° while the popover is open. aria-expanded="true" only appears on
+   disclosure triggers, so [aria-haspopup] is redundant here. */
+ol-button[aria-expanded="true"] > button > .ol-btn-chevron {
+  transform: rotate(180deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   ol-button > button > .ol-btn-label,
   ol-button > button > .ol-btn-spinner,
@@ -244,5 +307,9 @@ ol-button[loading] > button > .ol-btn-spinner::before {
 
   ol-button[loading] > button > .ol-btn-spinner::before {
     animation-duration: 2s;
+  }
+
+  ol-button[aria-haspopup] > button > .ol-btn-chevron {
+    transition: none;
   }
 }
