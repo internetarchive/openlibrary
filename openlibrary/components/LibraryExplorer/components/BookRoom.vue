@@ -880,12 +880,16 @@ button {
 }
 
 .book-room.genre-mode {
-  background: #2c1d13;
-  /* Procedural wood grain (tiny inline SVG turbulence): dark semi-transparent streaks laid
-     over the wood gradients for real material texture. --wood-grain-board runs along the
-     shelf board's length; --wood-grain-wall is the fainter back-panel grain. */
-  --wood-grain-board: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27320%27%20height%3D%2764%27%3E%3Cfilter%20id%3D%27w%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.006%200.13%27%20numOctaves%3D%274%27%20seed%3D%2711%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.5%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27320%27%20height%3D%2764%27%20filter%3D%27url%28%23w%29%27%2F%3E%3C%2Fsvg%3E");
-  --wood-grain-wall: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27320%27%20height%3D%27220%27%3E%3Cfilter%20id%3D%27w%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.16%200.012%27%20numOctaves%3D%273%27%20seed%3D%275%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.22%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27320%27%20height%3D%27220%27%20filter%3D%27url%28%23w%29%27%2F%3E%3C%2Fsvg%3E");
+  /* Modern, elegant bookcase: a warm off-white "wall", clean matte wooden shelf boards that
+     float on soft warm shadows, and books grounded with gentle contact shadows. Warm-wood
+     palette kept in variables so the whole case stays cohesive. */
+  --wall: #e7dcc6;
+  --wood-top: #c49a68;     /* lit top surface of a shelf board (faces the light) */
+  --wood-face: #a67f52;    /* board front edge */
+  --wood-deep: #8a6740;    /* board base */
+  --shelf-cast: rgba(74, 48, 20, .32);   /* warm soft shadow the board casts on the wall */
+  --book-cast: rgba(60, 40, 16, .34);    /* contact shadow under each book */
+  background: var(--wall);
   /* THE genre-mode scroll container. It holds the whole explorer -- sticky top nav, the
      filter controls, and the shelves -- in ONE scroll region, so the nav stays pinned, the
      controls scroll up and away, and the shelves snap, all as one gesture-driven scroll.
@@ -899,6 +903,13 @@ button {
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
+}
+/* LibraryExplorer.vue's .book-room.style--aesthetic--wip sets a warm tan gradient at the
+   same specificity (2 classes) as .book-room.genre-mode, so on a source-order tie it can
+   win and muddy the wall. Naming both classes here (3 classes) makes the clean cream wall
+   authoritative regardless of bundle order. */
+.book-room.style--aesthetic--wip.genre-mode {
+  background: var(--wall);
 }
 /* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
    template for why it's anchored here and not on the sticky nav or late-rendering filter):
@@ -959,13 +970,12 @@ button {
    continuous shelf spanning the viewport, not a boxed-in card, so there's no left/right
    edge for books to visibly get cut off against. No border-radius here for the same
    reason: rounded corners only make sense where an edge is actually visible (top/bottom). */
-.book-room.genre-mode .bookshelf {
-  background: linear-gradient(180deg, #4a3222 0%, #3a2718 60%, #2e1e12 100%);
+.book-room.style--aesthetic--wip.genre-mode .bookshelf {
+  background: transparent;   /* the warm wall (.book-room) shows through; 4-class selector
+                                out-specifies the wip aesthetic's own .bookshelf wood skin */
   border: 0;
   border-radius: 0;
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, .45),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
+  box-shadow: none;
   /* Base .bookshelf is overflow:hidden, which makes it a scroll container that would
      capture the shelves' scroll-snap-align (see .book-room-shelves note above). Genre
      mode's cross-slide runs off the full-bleed viewport edge, so clipping isn't needed
@@ -997,43 +1007,27 @@ button {
    floating, and a contact shadow that grounds the books on it. Modern-but-real -- warm
    wood + soft diffuse shadows, not flat cartoon planks. --shelf-plank-h reserves the space
    the plank occupies (via padding-bottom) so book bottoms sit ON its surface, not over it. */
-.book-room.genre-mode .shelf-carousel {
-  --shelf-plank-h: 46px;
-  --shelf-overhang-h: 24px;
+.book-room.style--aesthetic--wip.genre-mode .shelf-carousel {
+  --shelf-plank-h: 22px;
   position: relative;
   border: 0;
   border-radius: 0;
-  padding-top: var(--shelf-overhang-h);
+  /* transparent so the warm wall shows through; 4-class selector out-specifies the wip
+     aesthetic's own brown .shelf-carousel skin */
+  background: transparent;
   padding-bottom: var(--shelf-plank-h);
-  /* Back panel of a recessed case: warm wood with grain, feathered ambient-occlusion down
-     the left/right edges (case depth) and pooling at the base where the wall meets the
-     board. The row reads as a compartment -- overhang above (::before), board below
-     (::after). */
-  background:
-    var(--wood-grain-wall),
-    linear-gradient(90deg, rgba(0, 0, 0, .4), transparent 70px, transparent calc(100% - 70px), rgba(0, 0, 0, .4)),
-    linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .52) 100%),
-    linear-gradient(180deg, #6a4a2c 0%, #503620 100%);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .35);
 }
-/* top overhang: the lit front edge + shadowed underside of the shelf ABOVE, casting a soft
-   shadow down onto the tops of the books -- the cue that seats each row in a real case. */
+/* soft contact shadow the books pool onto the board -- grounds the row */
 .book-room.genre-mode .shelf-carousel::before {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: var(--shelf-overhang-h);
-  background: linear-gradient(180deg,
-    #c99a63 0,
-    #9a6f42 2px,                          /* lit front edge of the board above */
-    #34220f 3px,                          /* its shadowed underside */
-    rgba(30, 20, 10, .55) 55%,
-    transparent 100%);
-  box-shadow: 0 7px 12px -4px rgba(0, 0, 0, .55);
+  left: 4%;
+  right: 4%;
+  bottom: calc(var(--shelf-plank-h) - 5px);
+  height: 16px;
+  background: radial-gradient(70% 100% at 50% 100%, rgba(60, 40, 16, .26), transparent 78%);
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
 }
 /* The shelf board: a thick, grained wooden plank. Reads as looking slightly down onto it --
    a bright lit front-top lip, a top surface receding into shadow at the back seam, then the
@@ -1046,34 +1040,35 @@ button {
   right: 0;
   bottom: 0;
   height: var(--shelf-plank-h);
-  background:
-    var(--wood-grain-board),
-    linear-gradient(95deg, transparent 8%, rgba(255, 244, 214, .12) 42%, transparent 66%),
-    linear-gradient(180deg,
-      #d9aa71 0%,            /* bright lit leading edge */
-      #c39257 3px,           /* front-top lip */
-      #a97c46 4px,           /* top surface (near) */
-      #8f6738 15px,          /* top surface (receding) */
-      #6a4b2b 17px,          /* surface -> face seam (shadow) */
-      #573c25 19px,          /* front face top */
-      #3f2b19 60%,
-      #281a0f 100%);         /* front face base */
-  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg,
+    var(--wood-top) 0%,
+    var(--wood-top) 8px,          /* top surface (catches the light) */
+    var(--wood-face) 9px,         /* slim front edge */
+    var(--wood-deep) 100%);
+  border-radius: 2px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, .5),     /* crisp lit top edge */
-    inset 0 -3px 6px rgba(0, 0, 0, .45),        /* face darkens at its base */
-    0 24px 36px -14px rgba(0, 0, 0, .72);        /* soft floating cast shadow */
+    inset 0 1px 0 rgba(255, 247, 231, .55),         /* fine lit top edge */
+    0 3px 6px -3px var(--shelf-cast),                /* crisp near shadow */
+    0 16px 26px -12px var(--shelf-cast);             /* soft floating shadow */
   pointer-events: none;
   z-index: 1;
 }
-/* Books stand on the board: a soft contact shadow grounds each cover. */
+/* books grounded on the board with a gentle contact shadow */
 .book-room.genre-mode .book .cover,
 .book-room.genre-mode .book > img {
-  box-shadow: 0 10px 12px -5px rgba(0, 0, 0, .55);
+  box-shadow: 0 8px 13px -6px var(--book-cast);
 }
-.book-room.genre-mode .shelf-label {
-  border-radius: 6px;
-  background: linear-gradient(180deg, #2a2a2a, #1c1c1c);
+/* elegant section label: clean warm-dark text on the wall, no heavy bar. The `.class-slider
+   .shelf-label` selectors (5 classes) out-specify the wip aesthetic's own white-text rule
+   (`.book-room.style--aesthetic--wip .class-slider.shelf-label`, 4 classes) so the title is
+   readable on the light wall rather than near-white. */
+.book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label {
+  background: transparent;
+  border-radius: 0;
+  color: #4a3623;
+}
+.book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label .label {
+  color: #4a3623;
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
    overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the

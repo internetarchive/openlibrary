@@ -125,7 +125,12 @@ export default {
   top: 0;
   z-index: 10;
   display: flex;
-  background: linear-gradient(180deg, #4a2818 0%, #3a1c0c 60%, #2a1408 100%);
+  /* Light, elegant header cohesive with the cream bookcase wall (--wall cascades from
+     .book-room.genre-mode). Opaque so shelves scroll cleanly underneath; a hairline border
+     and soft shadow separate it from the case. */
+  background: var(--wall, #e7dcc6);
+  border-bottom: 1px solid rgba(74, 54, 35, .16);
+  box-shadow: 0 6px 12px -9px rgba(74, 48, 20, .5);
 }
 
 .genre-top-nav-scroll-region {
@@ -146,28 +151,30 @@ export default {
   flex-shrink: 0;
   border: 0;
   background: none;
-  color: rgba(255, 255, 255, .6);
+  color: #7a624a;
   font: inherit;
   font-size: .95em;
   padding: 6px 10px;
-  border-radius: 4px;
+  border-radius: 999px;
   white-space: nowrap;
+  transition: background-color .15s, color .15s;
 }
 
 .genre-top-nav__item:hover {
-  background: rgba(255, 255, 255, .1);
+  background: rgba(74, 48, 20, .08);
+  color: #4a3623;
 }
 
 .genre-top-nav__item.active {
-  color: white;
+  color: #33240f;
   font-weight: bold;
   font-size: 1.2em;
-  background: rgba(255, 255, 255, .15);
+  background: rgba(74, 48, 20, .1);
 }
 
 .genre-top-nav__item--all {
   margin: 10px 0 10px 14px;
-  border-right: 1px solid rgba(255, 255, 255, .2);
+  border-right: 1px solid rgba(74, 54, 35, .22);
   padding-right: 14px;
   border-radius: 0;
 }
@@ -181,21 +188,21 @@ export default {
   z-index: 1;
   display: flex;
   align-items: center;
-  color: white;
+  color: #5b4026;
 }
 
 .genre-top-nav__arrow--left {
   left: 0;
   padding-left: 4px;
   justify-content: flex-start;
-  background: linear-gradient(to right, #3a1c0c 40%, transparent);
+  background: linear-gradient(to right, var(--wall, #e7dcc6) 45%, transparent);
 }
 
 .genre-top-nav__arrow--right {
   right: 0;
   padding-right: 4px;
   justify-content: flex-end;
-  background: linear-gradient(to left, #3a1c0c 40%, transparent);
+  background: linear-gradient(to left, var(--wall, #e7dcc6) 45%, transparent);
 }
 
 .genre-top-nav__arrow svg {
