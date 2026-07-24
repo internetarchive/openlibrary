@@ -1058,17 +1058,34 @@ button {
 .book-room.genre-mode .book > img {
   box-shadow: 0 8px 13px -6px var(--book-cast);
 }
-/* elegant section label: clean warm-dark text on the wall, no heavy bar. The `.class-slider
-   .shelf-label` selectors (5 classes) out-specify the wip aesthetic's own white-text rule
-   (`.book-room.style--aesthetic--wip .class-slider.shelf-label`, 4 classes) so the title is
-   readable on the light wall rather than near-white. */
+/* Section titles as a small wooden signage plaque -- coherent with the shelf boards, and
+   far stronger than the previous weak centred text. The `.class-slider.shelf-label`
+   selectors (5 classes) out-specify the wip aesthetic's own white-text rule. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label {
   background: transparent;
   border-radius: 0;
-  color: #4a3623;
+  display: flex;
+  justify-content: center;
+  padding: 2px 0 16px;
+}
+.book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label main {
+  flex: 0 0 auto;
+  text-align: center;
 }
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label .label {
-  color: #4a3623;
+  display: inline-block;
+  background: linear-gradient(180deg, var(--wood-top) 0%, var(--wood-face) 55%, var(--wood-deep) 100%);
+  color: #fbe8d0;
+  font-weight: 600;
+  font-size: 1.05em;
+  letter-spacing: .04em;
+  padding: 5px 20px;
+  border-radius: 5px;
+  box-shadow:
+    0 3px 8px -2px var(--shelf-cast),
+    inset 0 1px 0 rgba(255, 244, 214, .38),
+    inset 0 -2px 3px rgba(0, 0, 0, .28);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
    overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the
@@ -1076,5 +1093,42 @@ button {
    lower-level gesture; opting the horizontal axis out of overscroll (none) is what does. */
 .book-room.genre-mode .books-carousel {
   overscroll-behavior-x: none;
+}
+
+/* ---- coherence pass ---- */
+
+/* Seat books ON the board: the base .book has margin-bottom:10px which floated them ~10px
+   above the shelf surface. A skeleton shimmer fills each cover slot while its image loads
+   (the opaque cover paints over it once ready), so shelves populate gracefully instead of
+   showing blank boxes with an orphaned rating badge. */
+@keyframes ol-cover-skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+/* 4-class selector out-specifies Shelf.vue's `.shelf >>> .book { margin-bottom: 10px }`
+   (which ties a 3-class rule and won on source order, keeping the books floating). */
+.book-room.genre-mode .books-carousel .book {
+  margin-bottom: 0;
+  border-radius: 2px;
+  background-image: linear-gradient(100deg, #ded0b6 26%, #efe6d4 46%, #ded0b6 66%);
+  background-size: 220% 100%;
+  animation: ol-cover-skeleton 1.5s ease-in-out infinite;
+}
+
+/* Hide the vestigial DDC section-scrub track -- the thin translucent-white bar that read as
+   a stray line above each shelf. */
+.book-room.genre-mode .shelf-label .sections {
+  display: none;
+}
+
+/* Soft, on-theme loading/error indicator instead of the harsh black pill. */
+.book-room.genre-mode .status-text {
+  background: rgba(58, 38, 18, .82);
+  color: #f6ecda;
+  border-radius: 0 0 999px 999px;
+  padding: 4px 16px;
+  font-size: .82em;
+  letter-spacing: .02em;
+  box-shadow: 0 3px 8px -2px rgba(0, 0, 0, .4);
 }
 </style>
