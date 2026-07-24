@@ -109,13 +109,17 @@ test('genre explorer look & feel diagnostics', async ({ page }) => {
         const root = document.querySelector('ol-library-explorer')!.shadowRoot!;
         const sections = root.querySelector('.shelf-label .sections') as HTMLElement | null;
         const label = root.querySelector('.shelf-label .label') as HTMLElement | null;
+        const cs = label ? getComputedStyle(label) : null;
         return {
             sectionsVisible: sections ? getComputedStyle(sections).display !== 'none' : false,
-            labelBg: label ? getComputedStyle(label).backgroundImage : 'none',
+            labelBg: cs ? cs.backgroundColor : 'none',
+            labelBorder: cs ? parseFloat(cs.borderTopWidth) : 0,
         };
     });
     // G1: the vestigial translucent-white "sections" scrub bar must stay hidden
     expect.soft(g.sectionsVisible, 'G1: sections scrub bar should be hidden').toBe(false);
-    // G2: section title is a signage plaque (has a wood-gradient background, not bare text)
-    expect.soft(g.labelBg, 'G2: title should be a signage plaque (gradient background)').toContain('gradient');
+    // G2: section title is a framed shelf label (a chalkboard: a background + a wood frame),
+    // not bare weak text
+    const labelIsSigned = g.labelBg !== 'rgba(0, 0, 0, 0)' && g.labelBg !== 'transparent' && g.labelBorder > 0;
+    expect.soft(labelIsSigned, `G2: section title should be a framed shelf label (bg ${g.labelBg}, border ${g.labelBorder}px)`).toBe(true);
 });

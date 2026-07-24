@@ -125,12 +125,12 @@ export default {
   top: 0;
   z-index: 10;
   display: flex;
-  /* Light, elegant header cohesive with the cream bookcase wall (--wall cascades from
-     .book-room.genre-mode). Opaque so shelves scroll cleanly underneath; a hairline border
-     and soft shadow separate it from the case. */
-  background: var(--wall, #e7dcc6);
-  border-bottom: 1px solid rgba(74, 54, 35, .16);
-  box-shadow: 0 6px 12px -9px rgba(74, 48, 20, .5);
+  /* A dark category sign (like a bookshop's hanging section boards) with clean white type.
+     --chalk-board cascades from .book-room.genre-mode. Opaque so shelves scroll cleanly
+     underneath; a soft shadow separates it from the case. */
+  background: var(--chalk-board, #2b2a26);
+  border-bottom: 1px solid rgba(0, 0, 0, .45);
+  box-shadow: 0 9px 16px -11px rgba(0, 0, 0, .7);
 }
 
 .genre-top-nav-scroll-region {
@@ -151,7 +151,7 @@ export default {
   flex-shrink: 0;
   border: 0;
   background: none;
-  color: #7a624a;
+  color: rgba(245, 240, 228, .72);
   font: inherit;
   font-size: .95em;
   padding: 6px 10px;
@@ -161,20 +161,20 @@ export default {
 }
 
 .genre-top-nav__item:hover {
-  background: rgba(74, 48, 20, .08);
-  color: #4a3623;
+  background: rgba(255, 255, 255, .09);
+  color: #fff;
 }
 
 .genre-top-nav__item.active {
-  color: #33240f;
+  color: #fff;
   font-weight: bold;
   font-size: 1.2em;
-  background: rgba(74, 48, 20, .1);
+  background: rgba(255, 255, 255, .13);
 }
 
 .genre-top-nav__item--all {
   margin: 10px 0 10px 14px;
-  border-right: 1px solid rgba(74, 54, 35, .22);
+  border-right: 1px solid rgba(255, 255, 255, .2);
   padding-right: 14px;
   border-radius: 0;
 }
@@ -188,21 +188,21 @@ export default {
   z-index: 1;
   display: flex;
   align-items: center;
-  color: #5b4026;
+  color: #f0ebde;
 }
 
 .genre-top-nav__arrow--left {
   left: 0;
   padding-left: 4px;
   justify-content: flex-start;
-  background: linear-gradient(to right, var(--wall, #e7dcc6) 45%, transparent);
+  background: linear-gradient(to right, var(--chalk-board, #2b2a26) 45%, transparent);
 }
 
 .genre-top-nav__arrow--right {
   right: 0;
   padding-right: 4px;
   justify-content: flex-end;
-  background: linear-gradient(to left, var(--wall, #e7dcc6) 45%, transparent);
+  background: linear-gradient(to left, var(--chalk-board, #2b2a26) 45%, transparent);
 }
 
 .genre-top-nav__arrow svg {

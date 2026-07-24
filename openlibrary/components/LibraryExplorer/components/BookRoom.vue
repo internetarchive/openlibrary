@@ -363,6 +363,11 @@ export default {
             // is the only thing that disables it. Set inline (not in this shadow-root
             // stylesheet, which can't reach <html>); cleared in unmounted.
             document.documentElement.style.overscrollBehaviorX = 'none';
+            // Mark each cover 'is-loaded' once its image finishes, so the skeleton shimmer
+            // can be dropped from it. Capture phase because `load` doesn't bubble; needed
+            // because covers are object-fit:contain (letterboxed) and the shimmer is the
+            // image's own background, so CSS alone can't tell loaded from loading.
+            this.$el.addEventListener('load', this.onCoverLoaded, true);
         }
         if (this.jumpToData?.shelf) {
             if (this.classification.alphabeticalTopNav) {
@@ -412,6 +417,7 @@ export default {
         window.removeEventListener('hashchange', this.onHashChange);
         window.removeEventListener('wheel', this.onWindowWheel);
         document.documentElement.style.overscrollBehaviorX = '';
+        this.$el.removeEventListener('load', this.onCoverLoaded, true);
     },
     methods: {
         // Resolves a #-style anchor the same way jumpTo resolves at mount (findGenreNodeBySlug,
@@ -553,6 +559,13 @@ export default {
             const paneTop = this.$el.getBoundingClientRect().top;
             const secondShelfSnap = (shelves[1].getBoundingClientRect().top - paneTop + this.$el.scrollTop) - nav;
             return this.$el.scrollTop < secondShelfSnap - 5;
+        },
+
+        onCoverLoaded(e) {
+            const t = e.target;
+            if (t && t.tagName === 'IMG' && t.classList && t.classList.contains('cover')) {
+                t.classList.add('is-loaded');
+            }
         },
 
         onShelvesTouchStart(e) {
@@ -883,12 +896,19 @@ button {
   /* Modern, elegant bookcase: a warm off-white "wall", clean matte wooden shelf boards that
      float on soft warm shadows, and books grounded with gentle contact shadows. Warm-wood
      palette kept in variables so the whole case stays cohesive. */
-  --wall: #e7dcc6;
-  --wood-top: #c49a68;     /* lit top surface of a shelf board (faces the light) */
-  --wood-face: #a67f52;    /* board front edge */
-  --wood-deep: #8a6740;    /* board base */
-  --shelf-cast: rgba(74, 48, 20, .32);   /* warm soft shadow the board casts on the wall */
-  --book-cast: rgba(60, 40, 16, .34);    /* contact shadow under each book */
+  /* Warm honey-oak bookcase palette (à la a modern wood bookshop) + slate chalkboard for
+     the section signs. */
+  --wall: #b28d57;         /* oak back panel of the case */
+  --wall-lo: #93713f;      /* recessed/shadowed oak */
+  --wood-top: #d2ac74;     /* lit shelf-board surface (faces the light) */
+  --wood-face: #b28a55;    /* shelf-board front edge */
+  --wood-deep: #7f5f37;    /* shelf-board base / grain shadow */
+  --wood-frame: #6f5231;   /* dark oak frame around the chalkboard signs */
+  --chalk-board: #2b2a26;  /* slate */
+  --chalk-ink: #f0ebde;    /* chalk */
+  --shelf-cast: rgba(40, 24, 6, .42);    /* warm shadow the board/sign casts */
+  --book-cast: rgba(30, 18, 4, .42);     /* contact shadow under each book */
+  --oak-grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27500%27%20height%3D%27120%27%3E%3Cfilter%20id%3D%27g%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.003%200.09%27%20numOctaves%3D%274%27%20seed%3D%279%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.16%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27500%27%20height%3D%27120%27%20filter%3D%27url%28%23g%29%27%2F%3E%3C%2Fsvg%3E");
   background: var(--wall);
   /* THE genre-mode scroll container. It holds the whole explorer -- sticky top nav, the
      filter controls, and the shelves -- in ONE scroll region, so the nav stays pinned, the
@@ -909,7 +929,15 @@ button {
    win and muddy the wall. Naming both classes here (3 classes) makes the clean cream wall
    authoritative regardless of bundle order. */
 .book-room.style--aesthetic--wip.genre-mode {
-  background: var(--wall);
+  /* The back panel of a warm oak bookcase: wood grain, faint vertical plank seams, a
+     top-down light and ambient occlusion pooling at the base and feathering down the sides
+     for real case depth. */
+  background-color: var(--wall);
+  background-image:
+    var(--oak-grain),
+    repeating-linear-gradient(90deg, rgba(60, 38, 14, .06) 0 1px, transparent 1px 172px),
+    radial-gradient(120% 70% at 50% -12%, rgba(255, 238, 205, .16), transparent 60%),
+    linear-gradient(90deg, rgba(30, 18, 4, .26), transparent 96px, transparent calc(100% - 96px), rgba(30, 18, 4, .26));
 }
 /* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
    template for why it's anchored here and not on the sticky nav or late-rendering filter):
@@ -1008,14 +1036,17 @@ button {
    wood + soft diffuse shadows, not flat cartoon planks. --shelf-plank-h reserves the space
    the plank occupies (via padding-bottom) so book bottoms sit ON its surface, not over it. */
 .book-room.style--aesthetic--wip.genre-mode .shelf-carousel {
-  --shelf-plank-h: 22px;
+  --shelf-plank-h: 26px;
   position: relative;
   border: 0;
   border-radius: 0;
-  /* transparent so the warm wall shows through; 4-class selector out-specifies the wip
-     aesthetic's own brown .shelf-carousel skin */
+  /* transparent so the oak wall shows through; 4-class selector out-specifies the wip
+     aesthetic's own brown .shelf-carousel skin. The inset top shadow is the underside of
+     the shelf above, seating each row inside the case (depth). */
   background: transparent;
+  padding-top: 18px;
   padding-bottom: var(--shelf-plank-h);
+  box-shadow: inset 0 17px 17px -16px rgba(18, 10, 2, .6);
 }
 /* soft contact shadow the books pool onto the board -- grounds the row */
 .book-room.genre-mode .shelf-carousel::before {
@@ -1040,15 +1071,18 @@ button {
   right: 0;
   bottom: 0;
   height: var(--shelf-plank-h);
-  background: linear-gradient(180deg,
-    var(--wood-top) 0%,
-    var(--wood-top) 8px,          /* top surface (catches the light) */
-    var(--wood-face) 9px,         /* slim front edge */
-    var(--wood-deep) 100%);
-  border-radius: 2px;
+  background:
+    var(--oak-grain),
+    linear-gradient(180deg,
+      var(--wood-top) 0%,
+      var(--wood-top) 10px,       /* top surface (catches the light) */
+      var(--wood-face) 11px,      /* front edge */
+      var(--wood-deep) 100%);
+  border-radius: 1px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 247, 231, .55),         /* fine lit top edge */
-    0 3px 6px -3px var(--shelf-cast),                /* crisp near shadow */
+    inset 0 1px 0 rgba(255, 247, 231, .5),          /* fine lit top edge */
+    inset 0 -2px 4px rgba(0, 0, 0, .3),             /* front-face base darkens */
+    0 4px 7px -3px var(--shelf-cast),                /* crisp near shadow */
     0 16px 26px -12px var(--shelf-cast);             /* soft floating shadow */
   pointer-events: none;
   z-index: 1;
@@ -1065,32 +1099,31 @@ button {
   background: transparent;
   border-radius: 0;
   display: flex;
-  justify-content: center;
-  padding: 6px 0 20px;
+  justify-content: flex-start;
+  padding: 6px 0 14px 26px;
 }
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label main {
   flex: 0 0 auto;
-  text-align: center;
+  text-align: left;
 }
-/* A real bookshop section sign: a matte engraved wooden nameplate with bookish serif type
-   painted on. Deliberately flat -- no glossy gradient, no inset bevel highlight (that was
-   the "90s button" look) -- just a faint vertical grain, painted serif lettering, and a
-   single soft shadow so it reads as a small wood sign mounted on the wall. */
+/* A small chalkboard shelf label framed in oak -- like the little section chalkboards in a
+   modern wood bookshop -- sitting at the start of each shelf. Chalk-white lettering on
+   slate, a routed oak frame, and a soft mounted shadow. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label .label {
   display: inline-block;
-  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
-  font-size: 1.3em;
-  font-weight: 700;
-  letter-spacing: .015em;
-  /* engraved into light wood (same family as the shelf boards): dark ink letters with a
-     fine light highlight just below, so they read as carved rather than printed */
-  color: #4a3018;
-  text-shadow: 0 1px 0 rgba(255, 245, 224, .5);
-  padding: 7px 30px;
-  border-radius: 4px;
-  background-color: #c39d68;
-  background-image: repeating-linear-gradient(90deg, rgba(90, 60, 28, .07) 0 1px, transparent 1px 8px);
-  box-shadow: 0 9px 18px -9px rgba(60, 38, 14, .5);
+  font-family: Georgia, "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: .03em;
+  color: var(--chalk-ink);
+  background-color: var(--chalk-board);
+  padding: 5px 16px;
+  border: 3px solid var(--wood-frame);
+  border-radius: 3px;
+  box-shadow:
+    0 5px 10px -4px var(--shelf-cast),            /* mounted shadow */
+    inset 0 0 12px rgba(0, 0, 0, .45);            /* slate vignette */
+  text-shadow: 0 0 3px rgba(240, 235, 222, .25); /* chalk softness */
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
    overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the
@@ -1116,12 +1149,13 @@ button {
   margin-bottom: 0;
   border-radius: 2px;
 }
-/* Per-cover skeleton shimmer lives on the cover IMAGE's own background, NOT on .book: once
-   the image finishes loading its pixels paint over its background, so the placeholder
-   disappears on its own. (On .book it leaked out around loaded covers and kept animating.) */
-.book-room.genre-mode .book .cover,
-.book-room.genre-mode .book > img {
-  background-image: linear-gradient(100deg, #ded0b6 26%, #efe6d4 46%, #ded0b6 66%);
+/* Per-cover skeleton shimmer, removed the instant the image loads. It can't live only on
+   the image's background: covers are object-fit:contain (letterboxed), so the background
+   shows in the letterbox bars even after the picture loads. Instead JS adds `is-loaded` on
+   the image's load event (onCoverLoaded) and the shimmer targets `:not(.is-loaded)` only. */
+.book-room.genre-mode .book .cover:not(.is-loaded),
+.book-room.genre-mode .book > img:not(.is-loaded) {
+  background-image: linear-gradient(100deg, #c1a06f 26%, #dcc199 46%, #c1a06f 66%);
   background-size: 220% 100%;
   animation: ol-cover-skeleton 1.5s ease-in-out infinite;
 }
