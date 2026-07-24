@@ -1466,6 +1466,46 @@
               "description": "Spring physics constants"
             },
             {
+              "kind": "field",
+              "name": "_axisLockThreshold",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "8",
+              "description": "Movement (px) before a touch gesture is locked to an axis.\nKept small so the carousel claims horizontal swipes before the\nbrowser commits the gesture to vertical page scrolling."
+            },
+            {
+              "kind": "field",
+              "name": "_horizontalBias",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "2",
+              "description": "Horizontal bias for the axis lock. A gesture only goes to page\nscrolling when |dy| > |dx| × this factor, so the carousel catches\nangled swipes (2 ≈ anything within ~63° of horizontal) instead of\nsplitting at an unforgiving 45° — real thumb swipes drift vertically."
+            },
+            {
+              "kind": "field",
+              "name": "_velocitySampleWindow",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "4",
+              "description": "Minimum window (ms) between velocity samples. Coalesced pointer\nevents can arrive microseconds apart; dividing by such a tiny dt\nproduces absurd velocity spikes, so short gaps accumulate instead."
+            },
+            {
+              "kind": "field",
+              "name": "_maxVelocity",
+              "type": {
+                "text": "number"
+              },
+              "static": true,
+              "default": "4",
+              "description": "Release velocity is capped here (px/ms) so a single noisy sample\ncan never fling the track further than a hard real-world flick."
+            },
+            {
               "kind": "method",
               "name": "_rubberBand",
               "static": true,
@@ -1607,6 +1647,11 @@
             },
             {
               "kind": "method",
+              "name": "_onIntent",
+              "description": "First-engagement handler: deepen the cover lookahead by one page and\nre-run the swap so the extra page is warmed immediately. Skipped on\ndata-saver / very slow connections, where eagerly pulling covers the\npatron may never reach is the wrong trade. Fires at most once."
+            },
+            {
+              "kind": "method",
               "name": "_emitPageChange"
             },
             {
@@ -1633,12 +1678,51 @@
             },
             {
               "kind": "method",
+              "name": "_onTouchMove",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ],
+              "description": "While a drag is locked horizontal, block the browser's vertical page\nscroll so the swipe owns the gesture exclusively. Before the axis lock\nresolves (or when it resolves vertical) this does nothing and native\nscrolling proceeds as normal."
+            },
+            {
+              "kind": "method",
               "name": "_onPointerMove",
               "parameters": [
                 {
                   "name": "e"
                 }
               ]
+            },
+            {
+              "kind": "method",
+              "name": "_removeDragListeners"
+            },
+            {
+              "kind": "method",
+              "name": "_abortDrag",
+              "description": "End the drag without navigating: release the gesture to the browser\nand spring the track home to the current page (recovers cleanly when\npointerdown interrupted a running page animation)."
+            },
+            {
+              "kind": "method",
+              "name": "_onPointerCancel",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ],
+              "description": "The browser took the gesture (started scrolling, alert, etc.).\nNever navigate from a cancelled pointer — just spring home."
+            },
+            {
+              "kind": "method",
+              "name": "_nearestPage",
+              "parameters": [
+                {
+                  "name": "pos"
+                }
+              ],
+              "description": "Return the page whose resting offset is closest to `pos` (%), so a\nlong drag can land several pages away instead of snapping back."
             },
             {
               "kind": "method",
@@ -1653,6 +1737,21 @@
               "kind": "method",
               "name": "_applyTrackLayout",
               "description": "Set layout CSS custom properties on the host element.\nThese cascade into the shadow DOM for ::slotted(*) and .arrow sizing.\nKept separate from the track's inline style so Lit re-renders\nnever overwrite the imperatively-set transform."
+            },
+            {
+              "kind": "method",
+              "name": "_onIndicatorKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ],
+              "description": "Arrow-key navigation for the indicator tablist (APG \"Tabs\" pattern,\nhorizontal orientation). The indicators carry a roving tabindex so the\ntablist is a single Tab stop; ←/→ and Home/End move between pages and\ncarry focus to the newly-active indicator. Scoped to the indicators\nrather than the whole region on purpose: paging inert-hides the\noff-page slotted items, so stealing arrow keys while a book link is\nfocused would strand that focus on a now-inert element. The arrow\nbuttons remain the keyboard affordance when indicators are hidden."
+            },
+            {
+              "kind": "method",
+              "name": "_focusActiveIndicator",
+              "description": "Move focus to the active indicator after the roving tabindex updates.\nWaits for the Lit re-render so the target has tabindex=\"0\"."
             },
             {
               "kind": "method",
@@ -1766,6 +1865,14 @@
             },
             {
               "kind": "field",
+              "name": "_lookaheadPages",
+              "type": {
+                "text": "number"
+              },
+              "default": "1"
+            },
+            {
+              "kind": "field",
               "name": "_currentPos",
               "type": {
                 "text": "number"
@@ -1791,6 +1898,14 @@
             {
               "kind": "field",
               "name": "_pointerStartX",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_pointerStartY",
               "type": {
                 "text": "number"
               },
@@ -1835,6 +1950,14 @@
                 "text": "number"
               },
               "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_axisLock",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
             },
             {
               "kind": "field",
@@ -5494,6 +5617,27 @@
           "declaration": {
             "name": "OpenLibraryOTP",
             "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/hard-break.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "OLHardBreak",
+          "description": "OLHardBreak – a hard-break node that serializes to OLMarkdown's dialect.\n\nThe server-side display renderer (OLMarkdown, a vendored Python-Markdown)\ntreats every newline inside a paragraph as a `<br>` and has no escape syntax\nfor hard breaks. tiptap-markdown's default serializer emits CommonMark's\n`\\<newline>`; that trailing backslash makes OLMarkdown escape the `<` of the\n`<br/>` it injects, so readers see the literal text `<br />`.\n\nEmitting a bare newline instead keeps the two renderers in agreement, and\nre-saving a page through the editor cleans up any legacy backslash/`<br>`\ncruft. See internetarchive/openlibrary#13074."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLHardBreak",
+          "declaration": {
+            "name": "OLHardBreak",
+            "module": "openlibrary/components/lit/hard-break.js"
           }
         }
       ]
