@@ -53,6 +53,7 @@ except ImportError:
 
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
+from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import stage_bookworm_metadata
 from openlibrary.plugins.upstream.utils import get_marc21_language
@@ -64,6 +65,7 @@ logger = logging.getLogger("openlibrary.importer.bwb_opds")
 
 OPDS_FEED_URL = "https://www.betterworldbooks.com/opds"
 ACQUISITION_REL = "http://opds-spec.org/acquisition/buy"
+BWB_PROVIDER_NAME = "betterworldbooks"
 ISBN_URN_PREFIX = "urn:isbn:"
 DEFAULT_STATE_FILE = "/openlibrary/data/bwb_opds_last_run.txt"
 DEFAULT_PRICES_OUT = "/openlibrary/data/bwb_prices.jsonl"
@@ -124,6 +126,28 @@ def extract_price(publication: dict[str, Any]) -> dict[str, Any] | None:
         if price.get("value") is not None and price.get("currency"):
             return {"currency": price["currency"], "value": price["value"]}
     return None
+
+
+def build_acquisition_data(publication: dict[str, Any]) -> dict[str, Any]:
+    """Extract BWB provider acquisition metadata (price, buy url, formats).
+
+    Stored verbatim in the ``acquisitions.data`` blob for a resolved edition so
+    downstream indexing can search by price/format (issues #12844, #11264).
+    """
+    data: dict[str, Any] = {}
+    if price := extract_price(publication):
+        data["price"] = price
+    for link in publication.get("links", []) or []:
+        if link.get("rel") != ACQUISITION_REL:
+            continue
+        if href := link.get("href"):
+            data["url"] = href
+        properties = link.get("properties") or {}
+        formats = [fmt["type"] for fmt in (properties.get("indirectAcquisition") or []) if fmt.get("type")]
+        if formats:
+            data["formats"] = formats
+        break
+    return data
 
 
 def extract_cover(publication: dict[str, Any]) -> str | None:
@@ -357,6 +381,28 @@ def _run_feed(
         return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop)
     finally:
         writer.close()
+
+
+def upsert_acquisition(
+    work_id: int,
+    edition_id: int,
+    isbn_13: str,
+    publication: dict[str, Any],
+) -> Acquisition | None:
+    """Upsert the BWB acquisition row for an already-resolved (work, edition).
+
+    Idempotent on the ``(local_id, provider_name)`` unique constraint, so
+    re-running the feed refreshes price/format metadata rather than creating
+    duplicate rows. ``local_id`` is the ISBN URN, matching the OPDS
+    ``metadata.identifier``.
+    """
+    return Acquisition.upsert(
+        work_id=work_id,
+        edition_id=edition_id,
+        provider_name=BWB_PROVIDER_NAME,
+        local_id=f"{ISBN_URN_PREFIX}{isbn_13}",
+        data=build_acquisition_data(publication),
+    )
 
 
 def commit_batch(batch_name: str, olbooks: list[dict[str, Any]], batch_size: int = 1000) -> None:

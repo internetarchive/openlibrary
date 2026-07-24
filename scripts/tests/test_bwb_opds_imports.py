@@ -7,6 +7,7 @@ from typing import Final
 import pytest
 import web
 
+from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
 
 from .. import bwb_opds_imports
@@ -513,3 +514,74 @@ def test_commit_batch_is_idempotent_across_batches(monkeypatch, import_db):
     # Next day's batch: dedupe_items filters ia_ids present in ANY batch.
     commit_batch("bwb-opds-2026-06-17", olbooks)
     assert _count(import_db) == 2
+
+
+# ---------------------------------------------------------------------------
+# Acquisitions wiring (epic #12844, subtask 2): BWB ingestion is the first
+# writer of the (previously dormant) acquisitions table. Upserts are keyed on
+# (local_id, provider_name) so re-running the feed refreshes rather than
+# duplicates provider acquisition metadata.
+# ---------------------------------------------------------------------------
+
+ACQUISITIONS_DDL: Final = """
+CREATE TABLE acquisitions (
+    id integer primary key,
+    work_id integer not null,
+    edition_id integer not null,
+    provider_name text not null,
+    local_id text not null,
+    data json not null,
+    created timestamp default current_timestamp,
+    updated timestamp default current_timestamp,
+    UNIQUE (local_id, provider_name)
+);
+"""
+
+
+@pytest.fixture
+def acquisitions_db():
+    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+    db = get_db()
+    db.query("DROP TABLE IF EXISTS acquisitions;")
+    db.query(ACQUISITIONS_DDL)
+    yield db
+    db.query("DROP TABLE IF EXISTS acquisitions;")
+
+
+def test_build_acquisition_data_extracts_price_and_url():
+    data = bwb_opds_imports.build_acquisition_data(SAMPLE_PUBLICATION)
+    assert data["price"] == {"currency": "USD", "value": 1.1}
+    assert data["url"] == "https://www.betterworldbooks.com/purchase/9781737408802"
+
+
+def test_build_acquisition_data_extracts_formats():
+    data = bwb_opds_imports.build_acquisition_data(SAMPLE_FEED["publications"][0])
+    assert data["price"] == {"currency": "USD", "value": 1.25}
+    assert data["formats"] == ["application/epub+zip"]
+
+
+def test_upsert_acquisition_is_idempotent(acquisitions_db):
+    pub = SAMPLE_FEED["publications"][0]
+    first = bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=pub)
+    assert first is not None
+    assert len(Acquisition.get_by_edition(100, "betterworldbooks")) == 1
+    # Re-running the same feed refreshes the same row, does not duplicate.
+    bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=pub)
+    rows = Acquisition.get_by_edition(100, "betterworldbooks")
+    assert len(rows) == 1
+    assert rows[0].local_id == "urn:isbn:9781737408802"
+    assert rows[0].data["price"] == {"currency": "USD", "value": 1.25}
+
+
+def test_upsert_acquisition_updates_changed_price(acquisitions_db):
+    pub = SAMPLE_FEED["publications"][0]
+    bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=pub)
+    # Simulate the price changing in a later feed pull.
+    changed = json.loads(json.dumps(pub))
+    for link in changed["links"]:
+        if link.get("rel") == bwb_opds_imports.ACQUISITION_REL:
+            link["properties"]["price"]["value"] = 3.50
+    bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=changed)
+    rows = Acquisition.get_by_edition(100, "betterworldbooks")
+    assert len(rows) == 1
+    assert rows[0].data["price"]["value"] == 3.50
