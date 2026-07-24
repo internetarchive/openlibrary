@@ -1,7 +1,9 @@
 <template>
   <div
     class="book-room"
-    :class="{'expanding-animation': expandingAnimation}"
+    :class="{'expanding-animation': expandingAnimation, 'genre-mode': classification.alphabeticalTopNav}"
+    @touchstart.passive="onShelvesTouchStart"
+    @touchend="onShelvesTouchEnd"
   >
     <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
@@ -10,7 +12,33 @@
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
     </div> -->
-    <div class="lr-signs">
+    <!-- Genre mode's "home" scroll-snap anchor: a zero-height, always-present, NON-sticky
+         sentinel at the very top of the scroll pane. Home must snap to scrollTop 0 (nav +
+         filter + first shelf visible), but it can't be anchored to the nav (sticky: its snap
+         position tracks where it's stuck, so scrolling up collapses home onto the first
+         shelf) or the filter (renders late via v-if, so it isn't a snap target on first
+         paint). This sentinel is neither -- a stable snap position fixed at 0. -->
+    <div
+      v-if="classification.alphabeticalTopNav"
+      class="genre-scroll-home"
+      aria-hidden="true"
+    />
+    <GenreTopNav
+      v-if="classification.alphabeticalTopNav"
+      :nodes="classification.root.children"
+      :active-index="activeGenreIndex"
+      @select="selectGenre"
+      @select-all="selectAllGenres"
+    />
+    <GenreFilterBar
+      v-if="classification.alphabeticalTopNav"
+      :filter-state="filterState"
+      :sort-state="sortState"
+    />
+    <div
+      v-else
+      class="lr-signs"
+    >
       <button
         v-if="signState.left"
         class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
@@ -49,48 +77,54 @@
       @scroll.passive="updateActiveShelfOnScroll"
     >
       <div
-        v-for="(bookshelf, i) of activeRoom.children"
+        v-for="(bookshelf, i) of bookcases"
         :key="i"
         class="bookshelf-wrapper"
         :data-short="bookshelf.short"
       >
-        <div class="bookshelf-name-wrapper">
-          <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
-            <main class="sign-body">
-              <div class="sign-classification">
-                {{ bookshelf.short }}
+        <template v-if="!classification.alphabeticalTopNav">
+          <div class="bookshelf-name-wrapper">
+            <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
+              <main class="sign-body">
+                <div class="sign-classification">
+                  {{ bookshelf.short }}
+                </div>
+                <div class="sign-label">
+                  {{ bookshelf.name }}
+                </div>
+              </main>
+              <div class="sign-toolbar">
+                <button
+                  v-if="breadcrumbs.length"
+                  @click="goUpTo(breadcrumbs.length - 1)"
+                >
+                  <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
+                </button>
+                <!-- Gap --> <div style="flex: 1" />
+                <button
+                  v-if="bookshelf.children && bookshelf.children[0].children"
+                  title="Expand"
+                  @click="expandBookshelf(bookshelf)"
+                >
+                  <ExpandIcon /> <span class="label">See more</span>
+                </button>
               </div>
-              <div class="sign-label">
-                {{ bookshelf.name }}
-              </div>
-            </main>
-            <div class="sign-toolbar">
-              <button
-                v-if="breadcrumbs.length"
-                @click="goUpTo(breadcrumbs.length - 1)"
-              >
-                <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
-              </button>
-              <!-- Gap --> <div style="flex: 1" />
-              <button
-                v-if="bookshelf.children && bookshelf.children[0].children"
-                title="Expand"
-                @click="expandBookshelf(bookshelf)"
-              >
-                <ExpandIcon /> <span class="label">See more</span>
-              </button>
             </div>
           </div>
-        </div>
 
-        <transition-group>
-          <div
-            v-for="node in breadcrumbs"
-            :key="node.name || 'root'"
-            class="bookshelf bookshelf-back"
-          />
-        </transition-group>
+          <transition-group>
+            <div
+              v-for="node in breadcrumbs"
+              :key="node.name || 'root'"
+              class="bookshelf bookshelf-back"
+            />
+          </transition-group>
+        </template>
 
+        <!-- Genre mode: exactly one bookcase, always -- "All Genres" is one shelf per
+             top-level genre, a specific genre is one shelf per subgenre. Selection (via
+             the top nav above, not scrolling/expanding) is the only way to change what's
+             shown here, so the big per-bookcase sign above is redundant and skipped. -->
         <Bookshelf
           :node="bookshelf"
           :expand-bookshelf="expandBookshelf"
@@ -99,6 +133,8 @@
           :labels="appSettings.labels"
           :filter="filter"
           :sort="sort"
+          :hide-expand="classification.alphabeticalTopNav"
+          :transition-direction="transitionDirection"
         />
       </div>
       <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
@@ -108,6 +144,8 @@
 
 <script>
 import Bookshelf from './Bookshelf.vue';
+import GenreTopNav from './GenreTopNav.vue';
+import GenreFilterBar from './GenreFilterBar.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
@@ -126,7 +164,7 @@ function findClassification(classificationNode, classification) {
     // First we find the closest matching node in the current classification tree
     const path = hierarchyFind(
         classificationNode,
-        node => testLuceneSyntax(node.query, classification));
+        node => testLuceneSyntax(node.hierarchyQuery || node.query, classification));
     if (!path.length) return;
 
     // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
@@ -145,9 +183,34 @@ function findClassification(classificationNode, classification) {
     };
 }
 
+/**
+ * Finds a genre or subgenre node by its bare `short` slug -- what a plain #-style URL
+ * anchor, or a bare `?jumpTo=subject_key:<slug>`, naturally provides. findClassification/
+ * hierarchyFind above expect an already ancestor-prefixed hierarchyQuery-format string
+ * (e.g. "horror/vampires") to match a subgenre correctly; a bare slug someone typed or
+ * linked to never has that prefix, and genre mode's toQueryFormat is the identity
+ * function, so it never adds one either -- without this, a subgenre-level jumpTo/hash
+ * silently fails to match anything and falls back to "All Genres". A subgenre with
+ * multiple parent genres (e.g. Apocalyptic under Horror/Sci-Fi/Fantasy) resolves to
+ * whichever parent it's listed under first; a bare slug has no ancestor context to
+ * disambiguate further.
+ * @param {ClassificationNode} root
+ * @param {string} slug
+ */
+function findGenreNodeBySlug(root, slug) {
+    for (const genre of root.children) {
+        if (genre.short === slug) return { classification: slug, bookcase: genre, shelf: null };
+        const shelf = genre.children?.find(c => c.short === slug);
+        if (shelf) return { classification: slug, bookcase: genre, shelf };
+    }
+    return null;
+}
+
 export default {
     components: {
         Bookshelf,
+        GenreTopNav,
+        GenreFilterBar,
         RightArrowIcon,
         ExpandIcon,
     },
@@ -159,6 +222,11 @@ export default {
         /** The classification to jump to @example 658.91500202854 */
         jumpTo: String,
         sort: String,
+        // Raw, mutable filter/sort state (genre mode's GenreFilterBar mutates these
+        // directly, same reference LibraryToolbar.vue already mutates -- `filter`/`sort`
+        // above are the derived string/order value used for the actual Solr queries).
+        filterState: Object,
+        sortState: Object,
         filter: {
             default: '',
             type: String
@@ -172,18 +240,39 @@ export default {
         }
     },
     data() {
-        const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
+        const jumpToData = this.jumpTo && (
+            this.classification.alphabeticalTopNav
+                ? findGenreNodeBySlug(this.classification.root, this.jumpTo)
+                : findClassification(this.classification.root, this.jumpTo)
+        );
+        // Genre mode has no DDC/LCC-style continuous scroll-through-siblings -- "All Genres"
+        // and a specific genre are different views entirely, switched via the top nav, not
+        // scroll position. So a genre-level jumpTo drills straight into that genre (matching
+        // what clicking it in the top nav does) instead of landing on All Genres with the
+        // genre merely scrolled to, which also used to silently never actually scroll on a
+        // fresh page load (mounted()'s scrollIntoView only ever triggered on a shelf match).
+        const drillIn = this.classification.alphabeticalTopNav && jumpToData?.bookcase;
+        const activeRoom = drillIn || jumpToData?.room || this.classification.root;
+        const breadcrumbs = drillIn ? [this.classification.root] : (jumpToData?.breadcrumbs || []);
+
+        // Resolve the actual starting index so the URL (kept in sync via the currentNode
+        // watcher below) doesn't briefly flash a wrong shelf before the scroll settles.
+        const initialShelf = drillIn ? jumpToData?.shelf : (jumpToData?.bookcase || jumpToData?.shelf);
+        const activeBookcaseIndex = initialShelf ? Math.max(0, activeRoom.children.indexOf(initialShelf)) : 0;
 
         return {
-            activeRoom: jumpToData?.room || this.classification.root,
-            breadcrumbs: jumpToData?.breadcrumbs || [],
+            activeRoom,
+            breadcrumbs,
             jumpToData,
 
             expandingAnimation: false,
+            // Which direction Bookshelf's cross-slide (genre mode only) enters new
+            // content from -- updated just before activeRoom changes in switchActiveRoom.
+            transitionDirection: 'right',
 
             roomWidth: 1,
             viewportWidth: 1,
-            activeBookcaseIndex: 0,
+            activeBookcaseIndex,
         };
     },
 
@@ -198,7 +287,33 @@ export default {
                 right: cases[i + 1],
                 parent: this.breadcrumbs.length && this.activeRoom,
             };
-        }
+        },
+        // Genre mode: one bookcase, always -- "All Genres" shows one shelf per top-level
+        // genre, a specific genre shows one shelf per subgenre.
+        bookcases() {
+            return this.classification.alphabeticalTopNav ? [this.activeRoom] : this.activeRoom.children;
+        },
+        // Which top-level genre (if any) is currently drilled into, for GenreTopNav's
+        // highlight -- -1 (nothing found) means activeRoom IS classification.root, i.e.
+        // "All Genres" is the current selection.
+        activeGenreIndex() {
+            return this.classification.root.children.indexOf(this.activeRoom);
+        },
+        // Same alphabetical order GenreTopNav displays -- what "swipe left to reach the
+        // bookcase to the right" (selectAdjacentGenre) moves through.
+        sortedGenres() {
+            return this.classification.alphabeticalTopNav
+                ? [...this.classification.root.children].sort((a, b) => a.name.localeCompare(b.name))
+                : [];
+        },
+        // Whatever bookcase is currently centered/active in a DDC/LCC-style continuous
+        // scroll-through-siblings -- doesn't apply to genre mode, which has exactly one
+        // bookcase on screen at a time (selectGenre/selectAllGenres update the URL directly
+        // instead, see below). node.short round-trips through toQueryFormat/testLuceneSyntax
+        // the same way a jumpTo query param does, so it's what we mirror into the URL.
+        currentNode() {
+            return this.activeRoom.children?.[this.activeBookcaseIndex];
+        },
     },
     watch: {
         async classification(newVal) {
@@ -207,7 +322,13 @@ export default {
             await nextTick();
             this.updateWidths();
             this.updateActiveShelfOnScroll();
-        }
+        },
+        currentNode(node) {
+            if (!node || this.classification.alphabeticalTopNav) return;
+            const url = new URL(location.href);
+            url.searchParams.set('jumpTo', `${this.classification.field}:${node.short}`);
+            history.replaceState(null, '', url);
+        },
     },
 
     async created() {
@@ -216,11 +337,43 @@ export default {
     },
     async mounted() {
         this.updateWidths();
+        // #-style anchors (e.g. /explore/genres#fantasy) are genre mode's live-navigable
+        // counterpart to ?jumpTo=subject_key:fantasy -- the query-param form only ever
+        // resolves once, at initial mount, and changing it implies a fresh page load in
+        // this server-rendered shell, but a hash is meant to be updated (and reacted to)
+        // without reloading at all, e.g. a homepage genre link the app is already open to.
+        if (this.classification.alphabeticalTopNav) {
+            window.addEventListener('hashchange', this.onHashChange);
+            // Vertical stepping is native CSS scroll-snap now (see the .shelf snap rules in
+            // <style>): the browser owns the trackpad momentum, so one gesture = one shelf
+            // with zero JS in the vertical path -- which is exactly where every prior
+            // wheel-timing heuristic failed. This wheel listener remains only for the
+            // separate *horizontal* genre switch; onWindowWheel ignores vertical wheels
+            // entirely, never calling preventDefault on them, so native scroll is untouched.
+            // Non-passive so the horizontal branch's preventDefault takes effect; attached
+            // to window so a gesture anywhere on the page (even the site header above the
+            // Explorer) is seen.
+            window.addEventListener('wheel', this.onWindowWheel, { passive: false });
+        }
         if (this.jumpToData?.shelf) {
+            if (this.classification.alphabeticalTopNav) {
+                // Native scroll-snap handles alignment: the shelf's own scroll-margin-top
+                // keeps it clear of the sticky nav, so a plain scrollIntoView lands it in
+                // exactly the same place a manual step would settle.
+                await nextTick();
+                this.$el.querySelector(`.shelf[data-short="${this.jumpToData.shelf.short}"]`)
+                    ?.scrollIntoView({ block: 'start' });
+                return;
+            }
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
                 inline: 'center',
                 block: 'start',
             });
+
+            // Classifications like genre have no `${field}_sort` Solr field (they're backed by the
+            // unordered `subject_key` field), so there's no stable ordering to compute a precise
+            // book offset from -- landing on the right shelf (above) is as precise as jumpTo gets.
+            if (this.classification.supportsPreciseJump === false) return;
 
             // Find the offset of the predecessor of the requested item in its shelf
             const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
@@ -247,8 +400,203 @@ export default {
     },
     unmounted() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
+        window.removeEventListener('hashchange', this.onHashChange);
+        window.removeEventListener('wheel', this.onWindowWheel);
     },
     methods: {
+        // Resolves a #-style anchor the same way jumpTo resolves at mount (findGenreNodeBySlug,
+        // above), then navigates client-side -- no page reload, unlike the query-param form.
+        // A genre-level hash (e.g. #fantasy) switches straight to it; a subgenre-level hash
+        // (e.g. #vampires) drills into its parent genre and scrolls to that specific shelf,
+        // matching jumpTo's own drillIn behavior in data() above.
+        async onHashChange() {
+            const slug = decodeURIComponent(location.hash.slice(1));
+            if (!slug) return;
+            const found = findGenreNodeBySlug(this.classification.root, slug);
+            if (!found) return;
+            if (found.bookcase !== this.activeRoom) {
+                await this.switchActiveRoom(found.bookcase, [this.classification.root]);
+            }
+            if (found.shelf) {
+                await nextTick();
+                this.$el.querySelector(`.shelf[data-short="${found.shelf.short}"]`)
+                    ?.scrollIntoView({ block: 'start' });
+            }
+        },
+
+        async selectAllGenres() {
+            await this.switchActiveRoom(this.classification.root, []);
+        },
+
+        /** @param {number} index into classification.root.children */
+        async selectGenre(index) {
+            await this.switchActiveRoom(this.classification.root.children[index], [this.classification.root]);
+        },
+
+        // Mirrors the "adjacent bookcase, just out of view" feeling DDC/LCC's continuous
+        // scroll gives for free -- since genre mode has exactly one bookcase on screen
+        // (no neighbors to actually scroll past), Bookshelf's cross-slide direction is
+        // instead driven by alphabetical order (the same order the top nav displays), so
+        // clicking a genre that reads later/earlier in that strip slides new content in
+        // from the matching side. Entering a genre from All Genres reads as "forward"
+        // (right); returning to All Genres reads as "back" (left).
+        directionTo(newRoom) {
+            const root = this.classification.root;
+            if (newRoom === root) return 'left';
+            if (this.activeRoom === root) return 'right';
+            return newRoom.name.localeCompare(this.activeRoom.name) >= 0 ? 'right' : 'left';
+        },
+
+        /**
+         * Moves to the next/previous genre in alphabetical order (the same order
+         * GenreTopNav displays) -- e.g. swiping to reveal "the bookcase to the right"
+         * of Crime moves to Drama. From "All Genres", swiping forward (the same
+         * direction that enters a genre in the first place, per directionTo) continues
+         * on into the first genre in the list, rather than being a no-op; swiping
+         * backward is still a no-op (nothing precedes "All Genres"). Also a no-op past
+         * the *other* end of the list.
+         * @param {1 | -1} step
+         */
+        selectAdjacentGenre(step) {
+            const sorted = this.sortedGenres;
+            if (this.activeRoom === this.classification.root) {
+                if (step !== 1 || !sorted.length) return;
+                this.selectGenre(this.classification.root.children.indexOf(sorted[0]));
+                return;
+            }
+            const currentIndex = sorted.indexOf(this.activeRoom);
+            const nextIndex = currentIndex + step;
+            if (currentIndex === -1 || nextIndex < 0 || nextIndex >= sorted.length) return;
+            this.selectGenre(this.classification.root.children.indexOf(sorted[nextIndex]));
+        },
+
+        // Vertical stepping is native CSS scroll-snap (see the .shelf snap rules in
+        // <style>), so this window-level listener now only handles the *horizontal* genre
+        // switch. It deliberately ignores vertical wheels -- never calling preventDefault
+        // on them -- so the browser's own momentum + scroll-snap-stop is the sole driver
+        // of vertical motion.
+        //
+        // Horizontal gestures switch genres (selectAdjacentGenre), except inside a shelf's
+        // own carousel (.shelf-carousel) -- scrolling books there should keep loading more
+        // of the *current* shelf, not navigate away from it.
+        onWindowWheel(e) {
+            if (!this.classification.alphabeticalTopNav) return;
+
+            const absX = Math.abs(e.deltaX);
+            const absY = Math.abs(e.deltaY);
+
+            // Vertical is entirely native -- leave it alone.
+            if (absX <= absY) return;
+
+            // Only switches genres from "home" or the first shelf -- once you've scrolled
+            // further down into the bookcase, a horizontal component is much more likely to
+            // be an imprecise trackpad diagonal while scrolling vertically than an intent to
+            // switch away entirely, and misfiring there was reported as a real problem.
+            if (!this.isNearTop()) return;
+            // e.target, not composedPath()[0], would be wrong here: this listener is on
+            // window, outside <ol-library-explorer>'s shadow root, so per shadow DOM event
+            // retargeting, e.target for anything originating *inside* that shadow tree gets
+            // reported as the shadow host itself -- .closest() on that would never find
+            // .shelf-carousel regardless of where the gesture actually started.
+            // composedPath()[0] is the true originating element, unaffected by retargeting.
+            if (e.composedPath()[0]?.closest?.('.shelf-carousel')) return;
+            e.preventDefault();
+            // One physical swipe = one genre switch, WITHOUT the aggressive delay a fixed
+            // time-lock causes: a trackpad's momentum tail keeps streaming events, so a lock
+            // long enough to swallow the tail also blocks a genuine quick second swipe. Key
+            // insight -- momentum only ever DECAYS (|deltaX| trends down); a new swipe RE-
+            // ACCELERATES it. So fire when the gesture is freshly armed (after a quiet gap)
+            // OR when deltaX clearly re-accelerates after having decayed, and never on the
+            // decaying tail in between. Entirely separate from the vertical snap (different
+            // case, no shared state or timing).
+            const prev = this._hPrevAbsX || 0;
+            if (absX < prev * 0.7) this._hDecayed = true;   // momentum is dying off
+            const reaccelerated = this._hDecayed && absX > prev * 1.4 && absX > 12;
+            if (this._hArmed !== false || reaccelerated) {
+                this._hArmed = false;
+                this._hDecayed = false;
+                this.selectAdjacentGenre(e.deltaX > 0 ? 1 : -1);
+            }
+            this._hPrevAbsX = absX;
+            // Re-arm (and forget the momentum baseline) once horizontal events go quiet --
+            // short, because re-acceleration already catches quick successive swipes.
+            clearTimeout(this._hQuietTimer);
+            this._hQuietTimer = setTimeout(() => {
+                this._hArmed = true; this._hPrevAbsX = 0; this._hDecayed = false;
+            }, window.OL_H_QUIET_MS ?? 90);
+        },
+
+        // True while the shelves pane is scrolled no further than its first shelf -- the
+        // only region a horizontal gesture is allowed to switch genres
+        // (onWindowWheel/onShelvesTouchEnd). Read from the pane's own scrollTop, since the
+        // pane (not the document) is genre mode's vertical scroller.
+        isNearTop() {
+            const shelves = this.$el.querySelectorAll('.shelf');
+            if (shelves.length < 2) return true;
+            // Horizontal genre switch is allowed only at or above the 1st shelf -- i.e. at
+            // home or with the 1st shelf snapped -- never once the 2nd shelf is the active
+            // one. Gate on the 2nd shelf's SNAP position (its pane offset minus the sticky
+            // nav height), not its raw top, so being snapped on shelf 1 correctly disallows
+            // it. .book-room is the scroll container.
+            const nav = this.$el.querySelector('.genre-top-nav-wrapper')?.offsetHeight || 0;
+            const paneTop = this.$el.getBoundingClientRect().top;
+            const secondShelfSnap = (shelves[1].getBoundingClientRect().top - paneTop + this.$el.scrollTop) - nav;
+            return this.$el.scrollTop < secondShelfSnap - 5;
+        },
+
+        onShelvesTouchStart(e) {
+            if (!this.classification.alphabeticalTopNav || e.target.closest('.shelf-carousel')) {
+                this._touchStart = null;
+                return;
+            }
+            this._touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        },
+
+        onShelvesTouchEnd(e) {
+            if (!this._touchStart) return;
+            const dx = e.changedTouches[0].clientX - this._touchStart.x;
+            const dy = e.changedTouches[0].clientY - this._touchStart.y;
+            this._touchStart = null;
+            if (Math.abs(dx) < 60 || Math.abs(dx) <= Math.abs(dy)) return;
+            // Same restriction as onWindowWheel's horizontal branch: only from "home" or
+            // the first shelf.
+            if (!this.isNearTop()) return;
+            // A left-drag (negative dx) reveals content further right, same as wheel above.
+            this.selectAdjacentGenre(dx < 0 ? 1 : -1);
+        },
+
+        // Shared by selectAllGenres/selectGenre rather than reusing expandBookshelf's
+        // push-onto-existing-breadcrumbs behavior, since jumping directly between two
+        // genres via the top nav should reset to a single-level breadcrumb (back to All
+        // Genres), not grow a stack the way drilling deeper via "See more" does.
+        //
+        // Updates the URL directly here rather than via the currentNode watcher: with
+        // exactly one (vertically-stacked, not scrolled-through) bookcase on screen at a
+        // time, there's no "currently centered shelf" to track the way DDC/LCC's
+        // continuous horizontal scroll has -- the selected genre itself is what's
+        // shareable. "All Genres" has no specific classification target, so it clears
+        // jumpTo rather than pointing at an arbitrary first genre.
+        async switchActiveRoom(room, breadcrumbs) {
+            this.transitionDirection = this.directionTo(room);
+            this.activeRoom = room;
+            this.breadcrumbs = breadcrumbs;
+            this.activeBookcaseIndex = 0;
+            // A fresh genre view always starts at "home" -- the top of the scroll pane
+            // (.book-room itself), showing nav + filter + first shelf.
+            this.$el.scrollTop = 0;
+
+            const url = new URL(location.href);
+            if (room === this.classification.root) {
+                url.searchParams.delete('jumpTo');
+            } else {
+                url.searchParams.set('jumpTo', `${this.classification.field}:${room.short}`);
+            }
+            history.replaceState(null, '', url);
+
+            await nextTick();
+            this.updateWidths();
+        },
+
         /**
          * @param {ClassificationNode} bookshelf something that is currently a bookcase, that will be the new room
          * @param {ClassificationNode} [shelf] the shelf (child of bookshelf)
@@ -282,6 +630,26 @@ export default {
 
             if (this.roomWidth === 1 || this.viewportWidth === 1) {
                 setTimeout(this.updateWidths, 100);
+            }
+
+            // Only .genre-top-nav-wrapper is actually position: sticky -- GenreFilterBar
+            // scrolls away with the page like normal content. Set once here (not
+            // recomputed per navigation) as a CSS custom property that .shelf's
+            // scroll-margin-top reads, below -- so scrollIntoView natively lands each
+            // shelf right below the sticky nav, without any manual scrollY/rect math.
+            if (this.classification.alphabeticalTopNav) {
+                const navHeight = this.$el.querySelector('.genre-top-nav-wrapper')?.offsetHeight || 0;
+                this.$el.style.setProperty('--genre-nav-height', `${navHeight}px`);
+
+                // Size the scroll pane (.book-room itself) to fill the viewport below the
+                // site header. This pane -- NOT the document -- is genre mode's vertical
+                // scroll container, so scroll-snap is confined to the explorer and the
+                // document/site header stay normal (the top is always reachable; document-
+                // level snapping is what hijacked "scroll to top"). The site header height
+                // isn't known to CSS, so measure it here (and on resize) as this.$el's
+                // distance from the top of the viewport while the document is unscrolled.
+                const top = this.$el.getBoundingClientRect().top + window.scrollY;
+                this.$el.style.setProperty('--genre-pane-height', `${Math.max(200, Math.round(window.innerHeight - top))}px`);
             }
         },
 
@@ -498,5 +866,128 @@ button {
   transform: initial;
   filter: initial;
   opacity: 0;
+}
+
+.book-room.genre-mode {
+  background: #3a271d;
+  /* THE genre-mode scroll container. It holds the whole explorer -- sticky top nav, the
+     filter controls, and the shelves -- in ONE scroll region, so the nav stays pinned, the
+     controls scroll up and away, and the shelves snap, all as one gesture-driven scroll.
+     Height is measured (updateWidths) to fill the viewport below the site header, so this
+     pane scrolls rather than the document -- the document/site header stay normal and the
+     top is always reachable (document-level snapping is what hijacked "scroll to top").
+     overflow-x:hidden clips the genre cross-slide; overscroll-behavior:contain stops the
+     gesture chaining to the document or firing the browser back/forward swipe. */
+  height: var(--genre-pane-height, 85vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+}
+/* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
+   template for why it's anchored here and not on the sticky nav or late-rendering filter):
+   scrolling all the way up rests with nav + filter + first shelf visible, and the first
+   scroll-down step snaps past it onto shelf 0. Zero height so it takes no layout space.
+   scroll-snap-stop: always makes it a hard stop symmetric with the shelves -- the controls
+   behave as the "0th shelf", so a scroll-up gesture off shelf 0 lands firmly on the controls
+   instead of being pulled back down by shelf 0's own stop. */
+.book-room.genre-mode .genre-scroll-home {
+  height: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+/* For vertical scroll-snap to work, the shelves must snap to .book-room (genre mode's
+   scroll container). Any ancestor between .shelf and .book-room whose overflow is not
+   `visible` is itself a scroll container that instead CAPTURES the shelves' scroll-snap-
+   align -- and because none of them actually scroll vertically, the snapping is swallowed
+   and vertical reads as plain scrolling. Two such containers exist in this DOM (built for
+   DDC/LCC's horizontal scroll): .book-room-shelves (base overflow-x:auto forces overflow-y
+   to compute to auto) and .bookshelf (overflow:hidden frame). Neutralize both in genre
+   mode -- there's exactly one bookcase here, so neither needs to scroll, and the full-bleed
+   frame's cross-slide runs off the viewport edge without needing to be clipped. */
+.book-room.genre-mode .book-room-shelves {
+  /* Not a scroll container -- the scroller is .book-room (see above), so that the sticky
+     nav, the scrolling-away filter bar, and the shelves all live in ONE scroll region.
+     display:block instead of the base flex (one bookcase here), and overflow:visible so it
+     doesn't capture the shelves' scroll-snap-align (that must belong to .book-room). */
+  display: block;
+  overflow: visible;
+  padding-bottom: 60px;
+}
+/* The classification "short" code (e.g. DDC's "004") is meaningless for genre/subgenre --
+   it's an internal subject_key query slug, not a display code -- so it's hidden here. */
+.book-room.genre-mode .classification-short {
+  display: none;
+}
+/* Vertical stepping is native scroll-snap -- no JS in the vertical path, and completely
+   independent of the horizontal genre switch (onWindowWheel), which shares no state with
+   it. scroll-snap-stop: always is the crux: it forbids a single scroll gesture (including
+   a trackpad's momentum tail) from passing more than one shelf, so one flick = one shelf,
+   with the *browser* doing the momentum math rather than JS re-deriving gesture boundaries
+   from wheel timing (which is what every prior attempt failed at). scroll-snap-type: y
+   mandatory lives on the scroll container (.book-room); scroll-margin-top = the sticky nav
+   height so each snapped shelf lands just below the nav rather than under it. */
+.book-room.genre-mode .shelf {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  scroll-margin-top: var(--genre-nav-height, 0px);
+}
+
+/* A softer, more contemporary take on the bookcase/shelf skin for genre mode: layered
+   shadows (top highlight, bottom lift) instead of a flat 3px black border, and a richer
+   multi-stop walnut gradient instead of a flat black box -- still explicitly a wood
+   shelf (skeuomorphic), just less "clip-art". Scoped to .genre-mode so DDC/LCC's
+   existing look is untouched.
+
+   Full-bleed rather than a centered 900px card (see .bookshelf-wrapper below) -- one
+   continuous shelf spanning the viewport, not a boxed-in card, so there's no left/right
+   edge for books to visibly get cut off against. No border-radius here for the same
+   reason: rounded corners only make sense where an edge is actually visible (top/bottom). */
+.book-room.genre-mode .bookshelf {
+  background: linear-gradient(180deg, #4a3222 0%, #3a2718 60%, #2e1e12 100%);
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+  /* Base .bookshelf is overflow:hidden, which makes it a scroll container that would
+     capture the shelves' scroll-snap-align (see .book-room-shelves note above). Genre
+     mode's cross-slide runs off the full-bleed viewport edge, so clipping isn't needed
+     here -- drop it so vertical snap belongs to the document. */
+  overflow: visible;
+}
+.book-room.genre-mode .bookshelf-wrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  /* The base rule gives this scroll-snap-align: center for DDC/LCC's horizontal bookcase
+     snapping. In genre mode it's a stray snap point on an element taller than the viewport
+     (it wraps ALL shelves), which fights the real per-shelf/home snap points -- it was why
+     the page loaded snapped past the filter onto shelf 0. Genre mode's snapping is on the
+     shelves and the filter, never this wrapper. */
+  scroll-snap-align: none;
+}
+/* LibraryExplorer.vue's .book-room.style--aesthetic--wip .bookshelf-wrapper sets its own
+   margin-left: 140px at the exact same specificity (3 classes) as the rule above --
+   a tie that source order (not intent) decides between the two <style> blocks, and can
+   silently flip whenever the Vite bundle's chunk order shifts. Naming both classes here
+   raises this rule's specificity above that tie so genre mode's full-bleed layout always
+   wins regardless of bundle order. */
+.book-room.style--aesthetic--wip.genre-mode .bookshelf-wrapper {
+  margin-left: 0;
+}
+.book-room.genre-mode .shelf-carousel {
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, .4), transparent 40px),
+    linear-gradient(180deg, #6b4a30 0%, #55381f 100%);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, .5),
+    inset 0 -1px 0 rgba(255, 255, 255, .05);
+}
+.book-room.genre-mode .shelf-label {
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2a2a2a, #1c1c1c);
 }
 </style>
