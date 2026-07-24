@@ -354,6 +354,15 @@ export default {
             // to window so a gesture anywhere on the page (even the site header above the
             // Explorer) is seen.
             window.addEventListener('wheel', this.onWindowWheel, { passive: false });
+            // Opt the whole document out of the browser's macOS horizontal swipe-navigation
+            // gesture (two-finger swipe = Back/Forward) while genre mode is mounted. That
+            // gesture is a lower-level recognizer tied to horizontal overscroll, NOT the
+            // wheel event, so onWindowWheel's preventDefault can't stop it -- which is why a
+            // right-swipe (= Back, with history) felt "broken"/draggy while a left-swipe
+            // (= Forward, no history) felt clean. overscroll-behavior-x on the root scroller
+            // is the only thing that disables it. Set inline (not in this shadow-root
+            // stylesheet, which can't reach <html>); cleared in unmounted.
+            document.documentElement.style.overscrollBehaviorX = 'none';
         }
         if (this.jumpToData?.shelf) {
             if (this.classification.alphabeticalTopNav) {
@@ -402,6 +411,7 @@ export default {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
         window.removeEventListener('hashchange', this.onHashChange);
         window.removeEventListener('wheel', this.onWindowWheel);
+        document.documentElement.style.overscrollBehaviorX = '';
     },
     methods: {
         // Resolves a #-style anchor the same way jumpTo resolves at mount (findGenreNodeBySlug,
@@ -510,8 +520,8 @@ export default {
             // decaying tail in between. Entirely separate from the vertical snap (different
             // case, no shared state or timing).
             const prev = this._hPrevAbsX || 0;
-            if (absX < prev * 0.7) this._hDecayed = true;   // momentum is dying off
-            const reaccelerated = this._hDecayed && absX > prev * 1.4 && absX > 12;
+            if (absX < prev * 0.75) this._hDecayed = true;   // momentum is dying off
+            const reaccelerated = this._hDecayed && absX > prev * 1.25 && absX > 8;
             if (this._hArmed !== false || reaccelerated) {
                 this._hArmed = false;
                 this._hDecayed = false;
@@ -519,11 +529,12 @@ export default {
             }
             this._hPrevAbsX = absX;
             // Re-arm (and forget the momentum baseline) once horizontal events go quiet --
-            // short, because re-acceleration already catches quick successive swipes.
+            // short, because re-acceleration already catches quick successive swipes. Lower
+            // = snappier successive swipes. Live-tunable: window.OL_H_QUIET_MS = 60.
             clearTimeout(this._hQuietTimer);
             this._hQuietTimer = setTimeout(() => {
                 this._hArmed = true; this._hPrevAbsX = 0; this._hDecayed = false;
-            }, window.OL_H_QUIET_MS ?? 90);
+            }, window.OL_H_QUIET_MS ?? 65);
         },
 
         // True while the shelves pane is scrolled no further than its first shelf -- the
@@ -1032,5 +1043,12 @@ button {
 .book-room.genre-mode .shelf-label {
   border-radius: 6px;
   background: linear-gradient(180deg, #2a2a2a, #1c1c1c);
+}
+/* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
+   overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the
+   "whole page slides with me" bug. preventDefault on the wheel event can't stop that
+   lower-level gesture; opting the horizontal axis out of overscroll (none) is what does. */
+.book-room.genre-mode .books-carousel {
+  overscroll-behavior-x: none;
 }
 </style>
