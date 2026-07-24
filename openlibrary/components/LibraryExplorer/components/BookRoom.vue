@@ -976,15 +976,58 @@ button {
 .book-room.style--aesthetic--wip.genre-mode .bookshelf-wrapper {
   margin-left: 0;
 }
+/* Skeuomorphic shelf ledge (genre mode). Books rest on a real wooden plank: a lit top
+   surface, a darker front lip for thickness, a soft drop shadow so the shelf reads as
+   floating, and a contact shadow that grounds the books on it. Modern-but-real -- warm
+   wood + soft diffuse shadows, not flat cartoon planks. --shelf-plank-h reserves the space
+   the plank occupies (via padding-bottom) so book bottoms sit ON its surface, not over it. */
 .book-room.genre-mode .shelf-carousel {
+  --shelf-plank-h: 36px;
+  position: relative;
   border: 0;
   border-radius: 0;
+  padding-bottom: var(--shelf-plank-h);
+  /* the wall behind the books: warm wood, darkening toward the shelf */
   background:
-    linear-gradient(to bottom, rgba(0, 0, 0, .4), transparent 40px),
-    linear-gradient(180deg, #6b4a30 0%, #55381f 100%);
+    linear-gradient(180deg, rgba(0, 0, 0, .32) 0%, transparent 56px),
+    linear-gradient(180deg, #5c4029 0%, #4a3220 100%);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .4);
+}
+/* contact shadow -- darkens the wall just above the plank so books look planted */
+.book-room.genre-mode .shelf-carousel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--shelf-plank-h);
+  height: 22px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .42));
+  pointer-events: none;
+  z-index: 0;
+}
+/* the plank itself: lit top face over a darker front lip (the seam at ~62% fakes the
+   board's thickness), plus a diffuse drop shadow beneath for the floating-shelf look */
+.book-room.genre-mode .shelf-carousel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--shelf-plank-h);
+  /* top ~15px = the lit board surface books stand on; then a thin seam; then the darker
+     front lip (thickness). Reads as looking slightly down onto a real shelf board. */
+  background: linear-gradient(180deg,
+    #9a734d 0%,            /* bright leading highlight */
+    #825c3a 5%,            /* board top surface */
+    #6d4c30 40%,
+    #573c26 43%,           /* surface -> lip seam (shadow) */
+    #4a3320 46%,           /* front lip (thickness) */
+    #2c1d11 100%);
   box-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, .5),
-    inset 0 -1px 0 rgba(255, 255, 255, .05);
+    inset 0 1px 0 rgba(255, 255, 255, .16),   /* crisp lit front-top edge */
+    0 14px 22px -8px rgba(0, 0, 0, .6);        /* floating shadow under the shelf */
+  pointer-events: none;
+  z-index: 1;
 }
 .book-room.genre-mode .shelf-label {
   border-radius: 6px;
