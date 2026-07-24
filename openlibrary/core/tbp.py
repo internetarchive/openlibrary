@@ -110,6 +110,31 @@ class FeedRegistry(web.storage):
             return FeedRegistry.find(provider_name=provider_name, url=url)
 
     @staticmethod
+    def from_request(payload: dict, submitter: str | None = None) -> FeedRegistry | None:
+        """Register a feed from an API payload (``/api/import/feeds/register``).
+
+        Records a ``status`` of ``"pending"`` and the submitter in the data
+        blob for accountability: a registered feed is not trusted by the
+        ingestion cron until a maintainer promotes it, mirroring the
+        account-linking policy for Lenny lending instances (#12844). Idempotent
+        via :meth:`register`.
+
+        :raises ValueError: if ``provider_name`` or ``url`` is missing.
+        """
+        provider_name = (payload.get("provider_name") or "").strip()
+        url = (payload.get("url") or "").strip()
+        if not provider_name or not url:
+            raise ValueError("provider_name and url are required")
+        feed_type = (payload.get("feed_type") or "opds").strip()
+        data = dict(payload.get("data") or {})
+        data.setdefault("status", "pending")
+        if submitter:
+            data.setdefault("submitter", submitter)
+        if contact := payload.get("contact"):
+            data.setdefault("contact", contact)
+        return FeedRegistry.register(provider_name=provider_name, url=url, feed_type=feed_type, data=data)
+
+    @staticmethod
     def advance(id: int, last_updated: datetime.datetime, data: dict | None = None) -> int:
         """Record ingestion progress for the feed.
 

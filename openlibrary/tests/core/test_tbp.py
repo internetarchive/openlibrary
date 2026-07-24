@@ -93,3 +93,44 @@ class TestFeedRegistry:
         row = FeedRegistry.get_by_id(1)
         assert str(row.last_updated).startswith("2026-06-03 12:00:00")
         assert row.data == {"cursor": "abc"}
+
+
+class TestFeedRegistryFromRequest:
+    def test_creates_pending_feed_with_submitter(self, registry_db):
+        feed = FeedRegistry.from_request(
+            {"provider_name": "citapress", "url": "https://citapress.org/opds"},
+            submitter="/people/mek",
+        )
+        assert feed is not None
+        assert feed.feed_type == "opds"
+        # Registered feeds start "pending" — a maintainer must promote before
+        # the ingestion cron trusts them (accountability, #12844).
+        assert feed.data["status"] == "pending"
+        assert feed.data["submitter"] == "/people/mek"
+        assert len(FeedRegistry.all()) == 3
+
+    def test_is_idempotent(self, registry_db):
+        first = FeedRegistry.from_request({"provider_name": "betterworldbooks", "url": "https://www.betterworldbooks.com/opds"})
+        second = FeedRegistry.from_request({"provider_name": "betterworldbooks", "url": "https://www.betterworldbooks.com/opds"})
+        assert first.id == second.id == 1
+        assert len(FeedRegistry.all()) == 2
+
+    def test_honours_explicit_feed_type_and_contact(self, registry_db):
+        feed = FeedRegistry.from_request(
+            {
+                "provider_name": "some-onix-partner",
+                "url": "https://partner.example/onix",
+                "feed_type": "onix",
+                "contact": "partner@example.org",
+            }
+        )
+        assert feed.feed_type == "onix"
+        assert feed.data["contact"] == "partner@example.org"
+
+    @pytest.mark.parametrize(
+        "payload",
+        [{"url": "https://x/opds"}, {"provider_name": "x"}, {}, {"provider_name": "", "url": "https://y"}],
+    )
+    def test_requires_provider_name_and_url(self, registry_db, payload):
+        with pytest.raises(ValueError, match="required"):
+            FeedRegistry.from_request(payload)

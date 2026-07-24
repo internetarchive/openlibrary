@@ -19,6 +19,7 @@ from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.core import ia
+from openlibrary.core.tbp import FeedRegistry
 from openlibrary.plugins.importapi import (
     import_edition_builder,
     import_opds,
@@ -509,8 +510,56 @@ class ia_importapi(importapi):
         return json.dumps(reply)
 
 
+class feed_register_api:
+    """``/api/import/feeds/register`` — register a provider feed for ingestion.
+
+    A partner service POSTs ``{provider_name, url, feed_type?, contact?}`` to
+    enlist an OPDS/ONIX/... feed in the Trusted Book Provider registry. Feeds
+    are recorded with ``status="pending"``; a maintainer promotes them before
+    the ingestion cron trusts them, so exposing this endpoint does not by
+    itself let arbitrary sources inject records (see #12844).
+    """
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        if not can_write():
+            raise web.HTTPError("403 Forbidden")
+
+        try:
+            payload = json.loads(web.data() or b"{}")
+        except json.JSONDecodeError:
+            raise web.HTTPError(
+                "400 Bad Request",
+                data=json.dumps({"success": False, "error": "Invalid JSON body"}),
+            )
+
+        user = web.ctx.site.get_user()
+        submitter = user.key if user else None
+        try:
+            feed = FeedRegistry.from_request(payload, submitter=submitter)
+        except ValueError as e:
+            raise web.HTTPError(
+                "400 Bad Request",
+                data=json.dumps({"success": False, "error": str(e)}),
+            )
+
+        return json.dumps(
+            {
+                "success": True,
+                "feed": {
+                    "id": feed.id,
+                    "provider_name": feed.provider_name,
+                    "url": feed.url,
+                    "feed_type": feed.feed_type,
+                    "status": feed.data.get("status"),
+                },
+            }
+        )
+
+
 add_hook("import", importapi)
 add_hook("import/ia", ia_importapi)
+add_hook("import/feeds/register", feed_register_api)
 
 
 def setup():
