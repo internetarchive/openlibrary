@@ -19,7 +19,7 @@
           <IndexIcon />
         </button>
         <button
-          v-if="node.children && node.children.length"
+          v-if="!hideExpand && node.children && node.children.length"
           :title="`See more books in ${node.short}: ${node.name}`"
           @click="expandBookshelf(parent, node)"
         >
@@ -204,6 +204,14 @@ export default {
         features: Object,
         filter: String,
         sort: String,
+        // Genre mode's "All Genres"/single-genre shelves aren't nested inside a real
+        // bookcase the way DDC/LCC shelves are, so expandBookshelf(parent, node) has
+        // no sensible parent bookcase to expand -- hide the button rather than wire up
+        // a no-op/incorrect click.
+        hideExpand: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {

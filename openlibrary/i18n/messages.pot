@@ -4798,12 +4798,16 @@ msgstr ""
 msgid "Browse by Subject"
 msgstr ""
 
-#: home/categories.html
+#: home/categories.html home/genres.html
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
+
+#: home/genres.html
+msgid "Browse by Genre"
+msgstr ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"

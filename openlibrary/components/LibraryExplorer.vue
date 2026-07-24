@@ -8,9 +8,12 @@
       :features="bookRoomFeatures"
       :app-settings="settingsState"
       :jump-to="jumpTo"
+      :filter-state="filterState"
+      :sort-state="sortState"
     />
 
     <LibraryToolbar
+      v-if="!settingsState.selectedClassification.alphabeticalTopNav"
       :filter-state="filterState"
       :settings-state="settingsState"
       :sort-state="sortState"
@@ -23,9 +26,34 @@ import BookRoom from './LibraryExplorer/components/BookRoom.vue';
 import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar.vue';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
+import GENRE from './LibraryExplorer/genre.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
 import maxBy from 'lodash/maxBy';
+
+// Genre/subgenre slugs, gathered from genre.json, so chooseBest can pick a relevant
+// entry out of a book's full (much larger, unrelated) subject_key array.
+const GENRE_SLUG_NAMES = new Map();
+for (const genre of GENRE) {
+    GENRE_SLUG_NAMES.set(genre.short, genre.name);
+    for (const subgenre of genre.children || []) {
+        GENRE_SLUG_NAMES.set(subgenre.short, subgenre.name);
+    }
+}
+function genreSlugToLabel(slug) {
+    return GENRE_SLUG_NAMES.get(slug) || slug;
+}
+
+// Verified live against production (openlibrary.org/search.json, number_of_pages_median):
+// [0 TO 29]=184, [30 TO 49]=539, [50 TO 174]=3430, [175 TO 499]=6153, [500 TO 100000]=695
+// (counts for subject_key:horror* at the time of checking -- real, distinct, non-empty buckets).
+export const PAGE_LENGTH_RANGES = {
+    micro: '[0 TO 29]',
+    short: '[30 TO 49]',
+    medium: '[50 TO 174]',
+    long: '[175 TO 499]',
+    massive: '[500 TO 100000]',
+};
 
 class FilterState {
     constructor() {
@@ -36,6 +64,12 @@ class FilterState {
         this.languages = [];
         this.age = '';
         this.year = '[1985 TO 9998]';
+        /** @type {'' | 'fiction' | 'nonfiction'} */
+        this.fiction = '';
+        /** @type {string[]} subject_key slugs, ANDed together */
+        this.tags = [];
+        /** @type {'' | keyof typeof PAGE_LENGTH_RANGES} */
+        this.length = '';
     }
 
     solrQueryParts() {
@@ -51,8 +85,17 @@ class FilterState {
         if (this.age) {
             filters.push(`subject:${this.age}`);
         }
+        if (this.fiction) {
+            filters.push(`subject_key:${this.fiction}`);
+        }
         if (this.year) {
             filters.push(`first_publish_year:${this.year}`);
+        }
+        for (const tag of this.tags) {
+            filters.push(`subject_key:"${tag}"`);
+        }
+        if (this.length && PAGE_LENGTH_RANGES[this.length]) {
+            filters.push(`number_of_pages_median:${PAGE_LENGTH_RANGES[this.length]}`);
         }
         return filters;
     }
@@ -98,22 +141,52 @@ export default {
                     n.offset = 0;
                     n.requests = {};
                 })
+            },
+            {
+                name: 'Genre',
+                longName: 'Genre & Subgenre',
+                field: 'subject_key',
+                fieldTransform: genreSlugToLabel,
+                toQueryFormat: slug => slug,
+                // subject_key holds every subject on a book, not just genre/subgenre tags -- prefer
+                // an entry that's actually one of ours, falling back to the raw first value.
+                chooseBest: slugs => slugs.find(s => GENRE_SLUG_NAMES.has(s)) || slugs[0],
+                // No genre_sort Solr field exists (genre isn't a rankable/orderable classification
+                // the way DDC/LCC are), and the top nav is a full alphabetical list, not prev/next.
+                supportsPreciseJump: false,
+                alphabeticalTopNav: true,
+                root: recurForEach({ children: GENRE, query: '*' }, n => {
+                    n.position = 'root';
+                    n.offset = 0;
+                    n.requests = {};
+                })
             }
         ];
 
         const urlParams = new URLSearchParams(location.search);
-        let selectedClassification = classifications[0];
+        let selectedClassification = location.pathname.startsWith('/explore/genres')
+            ? classifications.find(c => c.field === 'subject_key')
+            : classifications[0];
         let jumpTo = null;
         if (urlParams.has('jumpTo')) {
             const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
             selectedClassification = classifications.find(c => c.field === classificationName);
             jumpTo = selectedClassification.toQueryFormat(classificationString);
+        } else if (location.hash && selectedClassification.alphabeticalTopNav) {
+            // #-style anchors (e.g. /explore/genres#fantasy) are genre mode's shorthand for
+            // ?jumpTo=subject_key:fantasy -- see BookRoom.vue's hashchange listener for why
+            // this exists as its own mechanism instead of just extending the query-param
+            // form: a hash is meant to be navigated without a full page reload, which
+            // "start at a specific shelf" (e.g. from a homepage genre link) actually wants.
+            jumpTo = selectedClassification.toQueryFormat(decodeURIComponent(location.hash.slice(1)));
         }
         return {
             filterState: new FilterState(),
 
             sortState: {
-                order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
+                order: (jumpTo && selectedClassification.supportsPreciseJump !== false)
+                    ? `${selectedClassification.field}_sort asc`
+                    : `random_${new Date().toISOString().split(':')[0]}`,
             },
 
             jumpTo,
@@ -364,8 +437,7 @@ hr {
     #5f432d
   );
   border: 0;
-  padding: 10px;
-  padding-top: 36px;
+  padding: 36px 0 10px;
   box-sizing: border-box;
   color: white;
 }
@@ -408,18 +480,13 @@ hr {
 }
 .book-room.style--aesthetic--wip .shelf-carousel {
   border: 0;
-  margin: 0 10px;
+  margin: 0;
   background-color: #563822;
   background-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, .36),
     #563822 50px
   );
-}
-@media (max-width: 450px) {
-  .book-room.style--aesthetic--wip .shelf-carousel {
-    margin: 0;
-  }
 }
 .book-room.style--aesthetic--wip .class-slider.shelf-label {
   border: 0;
