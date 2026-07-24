@@ -1066,26 +1066,31 @@ button {
   border-radius: 0;
   display: flex;
   justify-content: center;
-  padding: 2px 0 16px;
+  padding: 6px 0 20px;
 }
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label main {
   flex: 0 0 auto;
   text-align: center;
 }
+/* A real bookshop section sign: a matte engraved wooden nameplate with bookish serif type
+   painted on. Deliberately flat -- no glossy gradient, no inset bevel highlight (that was
+   the "90s button" look) -- just a faint vertical grain, painted serif lettering, and a
+   single soft shadow so it reads as a small wood sign mounted on the wall. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label .label {
   display: inline-block;
-  background: linear-gradient(180deg, var(--wood-top) 0%, var(--wood-face) 55%, var(--wood-deep) 100%);
-  color: #fbe8d0;
-  font-weight: 600;
-  font-size: 1.05em;
-  letter-spacing: .04em;
-  padding: 5px 20px;
-  border-radius: 5px;
-  box-shadow:
-    0 3px 8px -2px var(--shelf-cast),
-    inset 0 1px 0 rgba(255, 244, 214, .38),
-    inset 0 -2px 3px rgba(0, 0, 0, .28);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1.3em;
+  font-weight: 700;
+  letter-spacing: .015em;
+  /* engraved into light wood (same family as the shelf boards): dark ink letters with a
+     fine light highlight just below, so they read as carved rather than printed */
+  color: #4a3018;
+  text-shadow: 0 1px 0 rgba(255, 245, 224, .5);
+  padding: 7px 30px;
+  border-radius: 4px;
+  background-color: #c39d68;
+  background-image: repeating-linear-gradient(90deg, rgba(90, 60, 28, .07) 0 1px, transparent 1px 8px);
+  box-shadow: 0 9px 18px -9px rgba(60, 38, 14, .5);
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
    overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the
@@ -1110,6 +1115,12 @@ button {
 .book-room.genre-mode .books-carousel .book {
   margin-bottom: 0;
   border-radius: 2px;
+}
+/* Per-cover skeleton shimmer lives on the cover IMAGE's own background, NOT on .book: once
+   the image finishes loading its pixels paint over its background, so the placeholder
+   disappears on its own. (On .book it leaked out around loaded covers and kept animating.) */
+.book-room.genre-mode .book .cover,
+.book-room.genre-mode .book > img {
   background-image: linear-gradient(100deg, #ded0b6 26%, #efe6d4 46%, #ded0b6 66%);
   background-size: 220% 100%;
   animation: ol-cover-skeleton 1.5s ease-in-out infinite;
