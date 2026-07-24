@@ -119,6 +119,17 @@ class library_explorer(delegate.page):
         return render_template("library_explorer")
 
 
+class library_explorer_genres(delegate.page):
+    """Genre Explorer (#13158) -- same Library Explorer Vue component tree as
+    /explore, but LibraryExplorer.vue defaults to the genre/subgenre classification
+    tree instead of DDC when the path is /explore/genres."""
+
+    path = "/explore/genres"
+
+    def GET(self):
+        return render_template("library_explorer")
+
+
 class merge_work(delegate.page):
     path = "/works/merge"
 
