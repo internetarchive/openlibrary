@@ -880,7 +880,12 @@ button {
 }
 
 .book-room.genre-mode {
-  background: #3a271d;
+  background: #2c1d13;
+  /* Procedural wood grain (tiny inline SVG turbulence): dark semi-transparent streaks laid
+     over the wood gradients for real material texture. --wood-grain-board runs along the
+     shelf board's length; --wood-grain-wall is the fainter back-panel grain. */
+  --wood-grain-board: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27320%27%20height%3D%2764%27%3E%3Cfilter%20id%3D%27w%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.006%200.13%27%20numOctaves%3D%274%27%20seed%3D%2711%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.5%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27320%27%20height%3D%2764%27%20filter%3D%27url%28%23w%29%27%2F%3E%3C%2Fsvg%3E");
+  --wood-grain-wall: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27320%27%20height%3D%27220%27%3E%3Cfilter%20id%3D%27w%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.16%200.012%27%20numOctaves%3D%273%27%20seed%3D%275%27%2F%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.22%200%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27320%27%20height%3D%27220%27%20filter%3D%27url%28%23w%29%27%2F%3E%3C%2Fsvg%3E");
   /* THE genre-mode scroll container. It holds the whole explorer -- sticky top nav, the
      filter controls, and the shelves -- in ONE scroll region, so the nav stays pinned, the
      controls scroll up and away, and the shelves snap, all as one gesture-driven scroll.
@@ -993,31 +998,47 @@ button {
    wood + soft diffuse shadows, not flat cartoon planks. --shelf-plank-h reserves the space
    the plank occupies (via padding-bottom) so book bottoms sit ON its surface, not over it. */
 .book-room.genre-mode .shelf-carousel {
-  --shelf-plank-h: 36px;
+  --shelf-plank-h: 46px;
+  --shelf-overhang-h: 24px;
   position: relative;
   border: 0;
   border-radius: 0;
+  padding-top: var(--shelf-overhang-h);
   padding-bottom: var(--shelf-plank-h);
-  /* the wall behind the books: warm wood, darkening toward the shelf */
+  /* Back panel of a recessed case: warm wood with grain, feathered ambient-occlusion down
+     the left/right edges (case depth) and pooling at the base where the wall meets the
+     board. The row reads as a compartment -- overhang above (::before), board below
+     (::after). */
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, .32) 0%, transparent 56px),
-    linear-gradient(180deg, #5c4029 0%, #4a3220 100%);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .4);
+    var(--wood-grain-wall),
+    linear-gradient(90deg, rgba(0, 0, 0, .4), transparent 70px, transparent calc(100% - 70px), rgba(0, 0, 0, .4)),
+    linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .52) 100%),
+    linear-gradient(180deg, #6a4a2c 0%, #503620 100%);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .35);
 }
-/* contact shadow -- darkens the wall just above the plank so books look planted */
+/* top overhang: the lit front edge + shadowed underside of the shelf ABOVE, casting a soft
+   shadow down onto the tops of the books -- the cue that seats each row in a real case. */
 .book-room.genre-mode .shelf-carousel::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--shelf-plank-h);
-  height: 22px;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .42));
+  top: 0;
+  height: var(--shelf-overhang-h);
+  background: linear-gradient(180deg,
+    #c99a63 0,
+    #9a6f42 2px,                          /* lit front edge of the board above */
+    #34220f 3px,                          /* its shadowed underside */
+    rgba(30, 20, 10, .55) 55%,
+    transparent 100%);
+  box-shadow: 0 7px 12px -4px rgba(0, 0, 0, .55);
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
-/* the plank itself: lit top face over a darker front lip (the seam at ~62% fakes the
-   board's thickness), plus a diffuse drop shadow beneath for the floating-shelf look */
+/* The shelf board: a thick, grained wooden plank. Reads as looking slightly down onto it --
+   a bright lit front-top lip, a top surface receding into shadow at the back seam, then the
+   tall front face (its thickness), all wrapped in wood grain and a faint varnish sheen. A
+   broad soft shadow beneath makes it float above the shelf below. */
 .book-room.genre-mode .shelf-carousel::after {
   content: "";
   position: absolute;
@@ -1025,20 +1046,30 @@ button {
   right: 0;
   bottom: 0;
   height: var(--shelf-plank-h);
-  /* top ~15px = the lit board surface books stand on; then a thin seam; then the darker
-     front lip (thickness). Reads as looking slightly down onto a real shelf board. */
-  background: linear-gradient(180deg,
-    #9a734d 0%,            /* bright leading highlight */
-    #825c3a 5%,            /* board top surface */
-    #6d4c30 40%,
-    #573c26 43%,           /* surface -> lip seam (shadow) */
-    #4a3320 46%,           /* front lip (thickness) */
-    #2c1d11 100%);
+  background:
+    var(--wood-grain-board),
+    linear-gradient(95deg, transparent 8%, rgba(255, 244, 214, .12) 42%, transparent 66%),
+    linear-gradient(180deg,
+      #d9aa71 0%,            /* bright lit leading edge */
+      #c39257 3px,           /* front-top lip */
+      #a97c46 4px,           /* top surface (near) */
+      #8f6738 15px,          /* top surface (receding) */
+      #6a4b2b 17px,          /* surface -> face seam (shadow) */
+      #573c25 19px,          /* front face top */
+      #3f2b19 60%,
+      #281a0f 100%);         /* front face base */
+  border-radius: 0 0 6px 6px;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .16),   /* crisp lit front-top edge */
-    0 14px 22px -8px rgba(0, 0, 0, .6);        /* floating shadow under the shelf */
+    inset 0 1px 0 rgba(255, 244, 214, .5),     /* crisp lit top edge */
+    inset 0 -3px 6px rgba(0, 0, 0, .45),        /* face darkens at its base */
+    0 24px 36px -14px rgba(0, 0, 0, .72);        /* soft floating cast shadow */
   pointer-events: none;
   z-index: 1;
+}
+/* Books stand on the board: a soft contact shadow grounds each cover. */
+.book-room.genre-mode .book .cover,
+.book-room.genre-mode .book > img {
+  box-shadow: 0 10px 12px -5px rgba(0, 0, 0, .55);
 }
 .book-room.genre-mode .shelf-label {
   border-radius: 6px;
