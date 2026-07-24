@@ -1163,6 +1163,341 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlAutocomplete.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A reusable autocomplete input web component.",
+          "name": "OlAutocomplete",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_listboxId",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_activeDescendant",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_renderOptions"
+            },
+            {
+              "kind": "method",
+              "name": "_onInput",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onFocus"
+            },
+            {
+              "kind": "method",
+              "name": "_onBlur"
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onEnter"
+            },
+            {
+              "kind": "method",
+              "name": "_findExactMatch"
+            },
+            {
+              "kind": "method",
+              "name": "_onClear",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_fetchResults",
+              "parameters": [
+                {
+                  "name": "query"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_selectResult",
+              "parameters": [
+                {
+                  "name": "result"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_highlightMatch",
+              "parameters": [
+                {
+                  "name": "text"
+                },
+                {
+                  "name": "query"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "focusInput",
+              "description": "Public method to focus the input"
+            },
+            {
+              "kind": "field",
+              "name": "sourceUrl",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "API endpoint for autocomplete results (e.g. `/languages/_autocomplete`)",
+              "attribute": "source-url"
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Display text of current selection",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "selectedKey",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Key of current selection (e.g. `/languages/eng`)",
+              "attribute": "selected-key"
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Input placeholder text",
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "clearable",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true",
+              "attribute": "clearable"
+            },
+            {
+              "kind": "field",
+              "name": "_query",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "_query"
+            },
+            {
+              "kind": "field",
+              "name": "_results",
+              "privacy": "public",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "attribute": "_results"
+            },
+            {
+              "kind": "field",
+              "name": "_isOpen",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_isOpen"
+            },
+            {
+              "kind": "field",
+              "name": "_activeIndex",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "-1",
+              "attribute": "_activeIndex"
+            },
+            {
+              "kind": "field",
+              "name": "_debounceTimer",
+              "privacy": "public",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "attribute": "_debounceTimer"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-autocomplete-clear",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the input is cleared. detail: {}"
+            },
+            {
+              "name": "ol-autocomplete-select",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when a result is selected. detail: { key, name }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "source-url",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "API endpoint for autocomplete results (e.g. `/languages/_autocomplete`)",
+              "fieldName": "sourceUrl"
+            },
+            {
+              "name": "value",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Display text of current selection",
+              "fieldName": "value"
+            },
+            {
+              "name": "selected-key",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Key of current selection (e.g. `/languages/eng`)",
+              "fieldName": "selectedKey"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Input placeholder text",
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "clearable",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "true",
+              "fieldName": "clearable"
+            },
+            {
+              "name": "_query",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "_query"
+            },
+            {
+              "name": "_results",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "fieldName": "_results"
+            },
+            {
+              "name": "_isOpen",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_isOpen"
+            },
+            {
+              "name": "_activeIndex",
+              "type": {
+                "text": "number"
+              },
+              "default": "-1",
+              "fieldName": "_activeIndex"
+            },
+            {
+              "name": "_debounceTimer",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "fieldName": "_debounceTimer"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-autocomplete",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlAutocomplete",
+          "declaration": {
+            "name": "OlAutocomplete",
+            "module": "openlibrary/components/lit/OlAutocomplete.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-autocomplete",
+          "declaration": {
+            "name": "OlAutocomplete",
+            "module": "openlibrary/components/lit/OlAutocomplete.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlBanner.js",
       "declarations": [
         {
@@ -2480,6 +2815,346 @@
           "declaration": {
             "name": "OlDialog",
             "module": "openlibrary/components/lit/OlDialog.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlLanguageField.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "Multi-value language picker for edit forms.\n\nRenders a list of `ol-autocomplete` rows and mirrors the current selection\ninto hidden light-DOM `<input>` elements named `${name}--${i}--key`. Those\ninputs live in the light DOM (not the shadow root) so they submit with the\nsurrounding `<form>`; the edit-form POST handler reads them via\n`utils.unflatten` (e.g. `edition--languages--0--key`). This mirrors the\nhidden-input bridge already used by `IdentifiersInput`.",
+          "name": "OlLanguageField",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_renderRow",
+              "parameters": [
+                {
+                  "name": "lang"
+                },
+                {
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_syncHiddenInputs"
+            },
+            {
+              "kind": "method",
+              "name": "_onSelect",
+              "parameters": [
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onClear",
+              "parameters": [
+                {
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_update",
+              "parameters": [
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "patch"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_addRow"
+            },
+            {
+              "kind": "method",
+              "name": "_removeRow",
+              "parameters": [
+                {
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_startDrag",
+              "parameters": [
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onDragMove",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_endDrag",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onHandleKeydown",
+              "parameters": [
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_refocusHandle",
+              "parameters": [
+                {
+                  "name": "i"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_moveTo",
+              "parameters": [
+                {
+                  "name": "from"
+                },
+                {
+                  "name": "to"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_move",
+              "parameters": [
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "delta"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "form field prefix, e.g. `edition--languages`",
+              "attribute": "name"
+            },
+            {
+              "kind": "field",
+              "name": "sourceUrl",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'/languages/_autocomplete'",
+              "description": "autocomplete endpoint (default `/languages/_autocomplete`)",
+              "attribute": "source-url"
+            },
+            {
+              "kind": "field",
+              "name": "multiple",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "allow adding / removing / reordering languages",
+              "attribute": "multiple"
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "placeholder text for each input",
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "addLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Add another language?'",
+              "description": "label for the \"add another\" button (multiple only)",
+              "attribute": "add-label"
+            },
+            {
+              "kind": "field",
+              "name": "languages",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'[]'",
+              "description": "JSON seed: `[{\"key\":\"/languages/eng\",\"name\":\"English\"}]`",
+              "attribute": "languages"
+            },
+            {
+              "kind": "field",
+              "name": "_langs",
+              "privacy": "public",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "attribute": "_langs"
+            },
+            {
+              "kind": "field",
+              "name": "_dragIndex",
+              "privacy": "public",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "attribute": "_dragIndex"
+            },
+            {
+              "kind": "field",
+              "name": "_seeded",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "name",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "form field prefix, e.g. `edition--languages`",
+              "fieldName": "name"
+            },
+            {
+              "name": "source-url",
+              "type": {
+                "text": "String"
+              },
+              "default": "'/languages/_autocomplete'",
+              "description": "autocomplete endpoint (default `/languages/_autocomplete`)",
+              "fieldName": "sourceUrl"
+            },
+            {
+              "name": "multiple",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "allow adding / removing / reordering languages",
+              "fieldName": "multiple"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "placeholder text for each input",
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "add-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Add another language?'",
+              "description": "label for the \"add another\" button (multiple only)",
+              "fieldName": "addLabel"
+            },
+            {
+              "name": "languages",
+              "type": {
+                "text": "String"
+              },
+              "default": "'[]'",
+              "description": "JSON seed: `[{\"key\":\"/languages/eng\",\"name\":\"English\"}]`",
+              "fieldName": "languages"
+            },
+            {
+              "name": "_langs",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "fieldName": "_langs"
+            },
+            {
+              "name": "_dragIndex",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "fieldName": "_dragIndex"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-language-field",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlLanguageField",
+          "declaration": {
+            "name": "OlLanguageField",
+            "module": "openlibrary/components/lit/OlLanguageField.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-language-field",
+          "declaration": {
+            "name": "OlLanguageField",
+            "module": "openlibrary/components/lit/OlLanguageField.js"
           }
         }
       ]

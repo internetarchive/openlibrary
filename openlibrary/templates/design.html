@@ -36,6 +36,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#toast">Toast</a></li>
         <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
+        <li><a href="#autocomplete">Autocomplete</a></li>
       </ul>
     </nav>
 
@@ -578,6 +579,8 @@ The response includes `title`, `authors`, and a `description` field formatted as
 
         $:render_template("design/api_tables", components.get("ol-markdown-editor"))
       </article>
+
+      $:render_template("design/autocomplete")
     </main>
   </div>
 </div>

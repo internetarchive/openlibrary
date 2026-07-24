@@ -1,0 +1,33 @@
+$def with()
+
+<article class="design-pattern" id="autocomplete">
+    <h2 class="design-pattern__title">$_("Autocomplete component")</h2>
+    <p>$_("The ol-autocomplete component provides a reusable autocomplete input with ARIA combobox pattern, debounced fetch, and keyboard navigation.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Language autocomplete")</h3>
+      <p>$_("Type a language name to see autocomplete suggestions from the languages API.")</p>
+      <code class="example__code">&lt;ol-autocomplete source-url="/languages/_autocomplete" placeholder="Search for a language"&gt;&lt;/ol-autocomplete&gt;</code>
+      <div class="example__output" style="max-width: 300px;">
+        <ol-autocomplete id="demo-autocomplete" source-url="/languages/_autocomplete" placeholder="Search for a language"></ol-autocomplete>
+      </div>
+      <p>$_("Selected:"): <strong id="demo-autocomplete-selected">None</strong></p>
+      <script>
+        document.getElementById('demo-autocomplete').addEventListener('ol-autocomplete-select', (e) => {
+          document.getElementById('demo-autocomplete-selected').textContent = e.detail.name + ' (' + e.detail.key + ')';
+        });
+        document.getElementById('demo-autocomplete').addEventListener('ol-autocomplete-clear', () => {
+          document.getElementById('demo-autocomplete-selected').textContent = 'None';
+        });
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("With pre-selected value")</h3>
+      <p>$_("The component can be initialized with an existing selection.")</p>
+      <code class="example__code">&lt;ol-autocomplete source-url="/languages/_autocomplete" value="English" selected-key="/languages/eng"&gt;&lt;/ol-autocomplete&gt;</code>
+      <div class="example__output" style="max-width: 300px;">
+        <ol-autocomplete source-url="/languages/_autocomplete" value="English" selected-key="/languages/eng"></ol-autocomplete>
+      </div>
+    </section>
+  </article>

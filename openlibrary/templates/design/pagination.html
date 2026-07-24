@@ -1,0 +1,61 @@
+$def with()
+
+<article class="design-pattern" id="pagination">
+    <h2 class="design-pattern__title">$_("Pagination component")</h2>
+    <p>$_("The ol-pagination component provides support for both event-based and URL-based navigation.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Event-based")</h3>
+      <p>$:_("When a page is clicked, the component fires an %(event_name)s event with the page number in %(event_detail)s.", event_name="<code>ol-pagination-change</code>", event_detail="<code>event.detail.page</code>")</p>
+      <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
+      <div class="example__output">
+        <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
+      </div>
+      <p>$_("Selected page:"): <strong id="demo-selected-page">1</strong></p>
+      <script>
+        document.getElementById('demo-pagination').addEventListener('ol-pagination-change', (e) => {
+          document.getElementById('demo-selected-page').textContent = e.detail.page;
+          e.target.setAttribute('current-page', e.detail.page);
+        });
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("URL-based Navigation")</h3>
+      <p>$_("When base-url is provided, pagination renders anchor tags for SEO-friendly links.")</p>
+      <code class="example__code">&lt;ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"&gt;&lt;/ol-pagination&gt;</code>
+      <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"></ol-pagination>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("First page (no previous arrow)")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="20" current-page="1"></ol-pagination>
+      </div>
+
+      <h3 class="example__title">$_("Middle page (both arrows visible)")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="20" current-page="10"></ol-pagination>
+      </div>
+
+      <h3 class="example__title">$_("Last page (no next arrow)")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="20" current-page="20"></ol-pagination>
+      </div>
+
+      <h3 class="example__title">$_("3 pages")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="3" current-page="2"></ol-pagination>
+      </div>
+
+      <h3 class="example__title">$_("5 pages (no ellipsis needed)")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="5" current-page="3"></ol-pagination>
+      </div>
+
+      <h3 class="example__title">$_("100 pages with ellipsis:")</h3>
+      <div class="example__output">
+        <ol-pagination total-pages="100" current-page="50"></ol-pagination>
+      </div>
+    </section>
+  </article>
