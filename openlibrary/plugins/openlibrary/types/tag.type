@@ -57,11 +57,11 @@
             "unique": true
         },
         {
-            "expected_type": { 
+            "expected_type": {
                 "key": "/type/tag",
             },
             "name": "genre",
-            "type": { 
+            "type": {
                 "key": "/type/property"
             },
             "unique": false
