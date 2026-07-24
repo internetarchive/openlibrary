@@ -198,3 +198,27 @@ class TestLoanChangesFeed:
     def test_missing_action_returns_422(self):
         resp = _get("/services/loans/loan/")
         assert resp.status_code == 422
+
+
+class TestBwbOpdsFeed:
+    """Synthetic BWB OPDS feed for #12844 feed-registry/acquisitions tests."""
+
+    def test_feed_shape(self):
+        resp = _get("/services/bwb/opds")
+        assert resp.status_code == 200
+        feed = resp.json()
+        assert feed["metadata"]["title"] == "Better World Books"
+        isbns = {p["metadata"]["identifier"] for p in feed["publications"]}
+        assert isbns == {"urn:isbn:9781737408802", "urn:isbn:9798995425007"}
+
+    def test_publications_carry_buy_price(self):
+        feed = _get("/services/bwb/opds").json()
+        for pub in feed["publications"]:
+            buy = next(link for link in pub["links"] if link["rel"] == "http://opds-spec.org/acquisition/buy")
+            assert buy["properties"]["price"]["currency"] == "USD"
+            assert buy["properties"]["price"]["value"] > 0
+
+    def test_feed_is_single_page(self):
+        # No `next` link -> a crawl terminates (deterministic for idempotency runs).
+        feed = _get("/services/bwb/opds").json()
+        assert not any(link.get("rel") == "next" for link in feed["links"])
