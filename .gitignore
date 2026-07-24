@@ -57,3 +57,7 @@ docs/wiki/
 
 # uv lockfile (we resolve from requirements*.txt; not tracked)
 uv.lock
+
+# Playwright e2e output
+playwright-report/
+test-results/
