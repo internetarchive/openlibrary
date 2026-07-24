@@ -2,13 +2,18 @@ import datetime
 import io
 import json
 from pathlib import Path
+from typing import Final
 
 import pytest
+import web
+
+from openlibrary.core.db import get_db
 
 from .. import bwb_opds_imports
 from ..bwb_opds_imports import (
     EPOCH,
     _parse_iso,
+    commit_batch,
     extract_cover,
     extract_isbn,
     extract_price,
@@ -419,3 +424,92 @@ def test_process_feed_logs_and_skips_bad_modified(monkeypatch, modified_raw):
         prices_out_fh=io.StringIO(),
     )
     assert olbooks == []
+
+
+# ---------------------------------------------------------------------------
+# End-to-end idempotency (epic #12844): re-running the importer against the
+# same feed state must not create duplicate import_item rows. Uses the
+# synthetic ``opds_sample.json`` feed so the check is reliable and offline.
+# ---------------------------------------------------------------------------
+
+SAMPLE_FEED_URL: Final = "https://www.betterworldbooks.com/opds/"
+SAMPLE_FEED: Final = json.loads((Path(__file__).parent / "opds_sample.json").read_text())
+
+IMPORT_BATCH_DDL: Final = """
+CREATE TABLE import_batch (
+    id integer primary key,
+    name text,
+    submitter text,
+    submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+IMPORT_ITEM_DDL: Final = """
+CREATE TABLE import_item (
+    id serial primary key,
+    batch_id integer,
+    status text default 'pending',
+    error text,
+    ia_id text,
+    data text,
+    ol_key text,
+    comments text,
+    submitter text,
+    UNIQUE (batch_id, ia_id)
+);
+"""
+
+
+@pytest.fixture
+def import_db():
+    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+    db = get_db()
+    # get_db() is a process-wide cached connection shared with other test
+    # modules (e.g. test_imports.py). Drop/recreate so this module owns a
+    # clean schema regardless of collection order.
+    db.query("DROP TABLE IF EXISTS import_item;")
+    db.query("DROP TABLE IF EXISTS import_batch;")
+    db.query(IMPORT_BATCH_DDL)
+    db.query(IMPORT_ITEM_DDL)
+    yield db
+    db.query("DROP TABLE IF EXISTS import_item;")
+    db.query("DROP TABLE IF EXISTS import_batch;")
+
+
+def _olbooks_from_sample(monkeypatch):
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    session = FakeSession({SAMPLE_FEED_URL: SAMPLE_FEED})
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+    olbooks, _ = process_feed(feed_url=SAMPLE_FEED_URL, since=EPOCH, prices_out_fh=io.StringIO())
+    return olbooks
+
+
+def _count(db) -> int:
+    return len(list(db.select("import_item")))
+
+
+def test_process_feed_maps_sample_feed(monkeypatch):
+    olbooks = _olbooks_from_sample(monkeypatch)
+    assert {b["isbn_13"][0] for b in olbooks} == {"9781737408802", "9798995425007"}
+    assert all(b["source_records"][0].startswith("bwb:") for b in olbooks)
+
+
+def test_commit_batch_is_idempotent_within_same_batch(monkeypatch, import_db):
+    olbooks = _olbooks_from_sample(monkeypatch)
+    commit_batch("bwb-opds-2026-06-16", olbooks)
+    assert _count(import_db) == 2
+    # Re-running the same feed into the same day's batch must add nothing.
+    commit_batch("bwb-opds-2026-06-16", olbooks)
+    assert _count(import_db) == 2
+    ia_ids = {row.ia_id for row in import_db.select("import_item")}
+    assert ia_ids == {"bwb:9781737408802", "bwb:9798995425007"}
+
+
+def test_commit_batch_is_idempotent_across_batches(monkeypatch, import_db):
+    """A later run (new daily batch) must not re-stage already-imported records."""
+    olbooks = _olbooks_from_sample(monkeypatch)
+    commit_batch("bwb-opds-2026-06-16", olbooks)
+    assert _count(import_db) == 2
+    # Next day's batch: dedupe_items filters ia_ids present in ANY batch.
+    commit_batch("bwb-opds-2026-06-17", olbooks)
+    assert _count(import_db) == 2
