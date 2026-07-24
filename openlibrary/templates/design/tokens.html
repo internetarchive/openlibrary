@@ -1,0 +1,141 @@
+$def with()
+
+$# Design tokens reference: color ramps, semantic tokens, and type specimen.
+$# Swatch values are resolved live from the loaded tokens.css via
+$# getComputedStyle, so this page can never drift from the shipped tokens.
+
+<article class="design-pattern" id="tokens">
+  <h2 class="design-pattern__title">Design Tokens — Color</h2>
+  <p class="design-pattern__description">
+    Two-tier system (see <code>docs/ai/design.md</code>): <strong>primitives</strong> (raw ramps, never used directly in components)
+    and <strong>semantic tokens</strong> (purpose-named, the layer components consume, and the seam where dark mode will plug in).
+    Values below are resolved live from the loaded <code>tokens.css</code>.
+  </p>
+
+  <section class="example">
+    <h3 class="example__title">Primitive ramps</h3>
+    <div class="token-ramps">
+      <div class="token-ramp" data-ramp="neutral" data-steps="50,100,200,300,400,500,600,700,800,900"></div>
+      <div class="token-ramp" data-ramp="blue" data-steps="50,100,200,300,400,500,600,700,800"></div>
+      <div class="token-ramp" data-ramp="red" data-steps="50,100,200,500,600,700"></div>
+      <div class="token-ramp" data-ramp="green" data-steps="50,100,200,300,500,600,700"></div>
+      <div class="token-ramp" data-ramp="amber" data-steps="50,100,200,400,500,600,700"></div>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Semantic tokens</h3>
+    <table class="token-table">
+      <thead><tr><th class="token-cell">Token</th><th class="token-cell">Swatch</th><th class="token-cell">Resolved</th><th class="token-cell">Usage</th></tr></thead>
+      <tbody>
+        <tr data-token="--color-text"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Primary text ink</td></tr>
+        <tr data-token="--color-text-secondary"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Secondary text (bylines, stats)</td></tr>
+        <tr data-token="--color-text-muted"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Muted text — AA only on white/neutral-50</td></tr>
+        <tr data-token="--color-text-inverse"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Text on dark/primary surfaces</td></tr>
+        <tr data-token="--color-background"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Page canvas</td></tr>
+        <tr data-token="--color-surface"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Cards, inputs, dropdowns</td></tr>
+        <tr data-token="--color-surface-sunken"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Troughs, wells</td></tr>
+        <tr data-token="--color-surface-header"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Header / footer chrome</td></tr>
+        <tr data-token="--color-link"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Links</td></tr>
+        <tr data-token="--color-link-hover"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Link hover</td></tr>
+        <tr data-token="--color-link-visited"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Visited links</td></tr>
+        <tr data-token="--color-primary"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Primary action</td></tr>
+        <tr data-token="--color-primary-hover"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Primary action hover</td></tr>
+        <tr data-token="--color-primary-active"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Primary action pressed</td></tr>
+        <tr data-token="--color-primary-subtle"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Selected/tinted backgrounds</td></tr>
+        <tr data-token="--color-border"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Input borders (3:1 non-text)</td></tr>
+        <tr data-token="--color-border-subtle"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Dividers, card borders</td></tr>
+        <tr data-token="--color-focus-ring"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Focus outlines</td></tr>
+        <tr data-token="--color-success-fg"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Success text</td></tr>
+        <tr data-token="--color-error-fg"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Error text</td></tr>
+        <tr data-token="--color-warning-fg"><td class="token-cell"></td><td class="token-cell"></td><td class="token-cell token-cell--resolved"></td><td class="token-cell">Warning text</td></tr>
+      </tbody>
+    </table>
+  </section>
+</article>
+
+<article class="design-pattern" id="typography">
+  <h2 class="design-pattern__title">Design Tokens — Typography</h2>
+  <p class="design-pattern__description">
+    <strong>Literata</strong> (serif — headings h1–h3, book titles, quotes) + <strong>Inter</strong> (sans — UI, body, subheadings h4–h6).
+    Sizes are rem tokens; weights 400–700 come from the variable fonts.
+  </p>
+
+  <section class="example">
+    <h3 class="example__title">Headings</h3>
+    <div class="type-specimen">
+      <h1>Heading 1 — The library of everything</h1>
+      <h2>Heading 2 — Borrow, read, return</h2>
+      <h3>Heading 3 — One web page for every book</h3>
+      <h4>Heading 4 — Subheading in Inter</h4>
+      <h5>Heading 5 — Small subheading</h5>
+      <h6>Heading 6 — Smallest subheading</h6>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Size scale</h3>
+    <div class="type-scale">
+      <p class="type-scale__row" data-size="--font-size-display-small"><span>display-small</span>Sphinx of black quartz</p>
+      <p class="type-scale__row" data-size="--font-size-headline-large"><span>headline-large</span>Sphinx of black quartz</p>
+      <p class="type-scale__row" data-size="--font-size-headline-medium"><span>headline-medium</span>Sphinx of black quartz</p>
+      <p class="type-scale__row" data-size="--font-size-headline-small"><span>headline-small</span>Sphinx of black quartz</p>
+      <p class="type-scale__row" data-size="--font-size-title-large"><span>title-large</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-title-medium"><span>title-medium</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-body-large"><span>body-large</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-body-medium"><span>body-medium</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-body-small"><span>body-small</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-label-large"><span>label-large</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-label-medium"><span>label-medium</span>Sphinx of black quartz, judge my vow</p>
+      <p class="type-scale__row" data-size="--font-size-label-small"><span>label-small</span>Sphinx of black quartz, judge my vow</p>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Families &amp; link states</h3>
+    <div class="type-specimen">
+      <p style="font-family: var(--font-family-serif); font-size: var(--font-size-title-large);">Literata — A room without books is like a body without a soul.</p>
+      <p style="font-family: var(--font-family-sans); font-size: var(--font-size-body-large);">Inter — A room without books is like a body without a soul.</p>
+      <p style="font-family: var(--font-family-mono); font-size: var(--font-size-body-medium);">mono — curl https://openlibrary.org/works/OL45804W.json</p>
+      <p>
+        <a href="#tokens">Link</a> ·
+        <span style="color: var(--color-link-hover); text-decoration: underline;">Hover</span> ·
+        <span style="color: var(--color-link-visited); text-decoration: underline;">Visited</span>
+      </p>
+    </div>
+  </section>
+</article>
+
+<script>
+  (function () {
+      var probe = document.createElement('div');
+      document.body.appendChild(probe);
+      function resolve(token) {
+          probe.style.color = 'var(' + token + ')';
+          return getComputedStyle(probe).color;
+      }
+      document.querySelectorAll('.token-ramp').forEach(function (ramp) {
+          var name = ramp.dataset.ramp;
+          ramp.dataset.steps.split(',').forEach(function (step) {
+              var token = '--' + name + '-' + step;
+              var cell = document.createElement('div');
+              cell.className = 'token-swatch';
+              cell.innerHTML = '<div class="token-swatch__chip" style="background: var(' + token + ')"></div>' +
+                  '<code>' + token + '</code><small>' + resolve(token) + '</small>';
+              ramp.appendChild(cell);
+          });
+      });
+      document.querySelectorAll('.token-table tr[data-token]').forEach(function (row) {
+          var token = row.dataset.token;
+          row.children[0].innerHTML = '<code>' + token + '</code>';
+          row.children[1].innerHTML = '<div class="token-swatch__chip" style="background: var(' + token + ')"></div>';
+          row.children[2].textContent = resolve(token);
+      });
+      document.querySelectorAll('.type-scale__row').forEach(function (row) {
+          row.style.fontSize = 'var(' + row.dataset.size + ')';
+          var label = row.querySelector('span');
+          label.textContent += ' · ' + getComputedStyle(row).fontSize;
+      });
+      probe.remove();
+  }());
+</script>

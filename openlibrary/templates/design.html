@@ -16,6 +16,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
       <ul class="design-pattern-nav__list">
+        <li><a href="#tokens">Design Tokens</a>
+          <ul class="design-pattern-nav__sublist">
+            <li><a href="#typography">Typography</a></li>
+          </ul>
+        </li>
         <li><a href="#tooltip">Tooltip</a></li>
         <li><a href="#pagination">Pagination</a></li>
         <li><a href="#carousel">Carousel</a></li>
@@ -40,6 +45,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
     </nav>
 
     <main class="design-pattern-main">
+      $:render_template("design/tokens")
+
       $:render_template("design/tooltip")
 
       <article class="design-pattern" id="pagination">

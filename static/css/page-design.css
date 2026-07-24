@@ -355,4 +355,79 @@ pre.example__code code[class*="language-"] {
   font-size: 1.25rem;
 }
 
+/* Design-token reference (design/tokens.html): ramps, semantic table,
+   type specimen. */
+.token-ramps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-md);
+}
+
+.token-ramp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-sm);
+}
+
+.token-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-label-small);
+  min-width: 96px;
+}
+
+.token-swatch code {
+  font-size: var(--font-size-label-small);
+}
+
+.token-swatch small,
+.token-cell--resolved {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-label-small);
+}
+
+.token-swatch__chip {
+  height: 40px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.token-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.token-cell {
+  text-align: left;
+  padding: var(--spacing-inset-xs) var(--spacing-inline-md)
+    var(--spacing-inset-xs) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-body-small);
+}
+
+.token-table .token-swatch__chip {
+  width: 48px;
+  height: 24px;
+}
+
+.type-scale__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  margin: var(--spacing-stack-sm) 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.type-scale__row span {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-label-small);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  width: 220px;
+}
+
 @import "legacy.css";

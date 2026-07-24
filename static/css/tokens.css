@@ -12,6 +12,7 @@
 @import "tokens/borders.css";
 @import "tokens/breakpoints.css";
 @import "tokens/colors.css";
+@import "tokens/font-faces.css";
 @import "tokens/font-families.css";
 @import "tokens/line-heights.css";
 @import "tokens/spacing.css";
