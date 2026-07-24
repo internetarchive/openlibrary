@@ -659,3 +659,98 @@ def test_advance_cursor_unregistered_feed_writes_only_file(registry_db, tmp_path
     bwb_opds_imports.advance_cursor(FEED_URL, ts, str(state))
     assert FeedRegistry.find("betterworldbooks", FEED_URL) is None
     assert bwb_opds_imports.read_state(str(state)) == ts
+
+
+# ---------------------------------------------------------------------------
+# Edition resolution + acquisition staging (epic #12844, option (a)): attach
+# acquisitions to ISBNs that already resolve to an edition; defer the rest to
+# the post-import hook.
+# ---------------------------------------------------------------------------
+
+
+class FakeWork:
+    def __init__(self, key):
+        self.key = key
+
+
+class FakeEdition:
+    def __init__(self, key, works, isbn_13=None):
+        self.key = key
+        self.works = works
+        self.isbn_13 = isbn_13 or []
+
+
+class FakeSite:
+    def __init__(self, thing_keys, editions):
+        self._thing_keys = thing_keys
+        self._editions = editions
+
+    def things(self, query):
+        return self._thing_keys
+
+    def get(self, key):
+        return self._editions.get(key)
+
+
+def _patch_site(monkeypatch, site):
+    # Set only web.ctx.site; do not replace web.ctx itself (the DB layer's
+    # infogami stats hook needs web.ctx to stay dict-like).
+    monkeypatch.setattr(bwb_opds_imports.web.ctx, "site", site, raising=False)
+
+
+def test_resolve_edition_ids_existing(monkeypatch):
+    site = FakeSite(["/books/OL55M"], {"/books/OL55M": FakeEdition("/books/OL55M", [FakeWork("/works/OL7W")])})
+    _patch_site(monkeypatch, site)
+    assert bwb_opds_imports.resolve_edition_ids("9781737408802") == (7, 55)
+
+
+def test_resolve_edition_ids_not_in_catalog(monkeypatch):
+    _patch_site(monkeypatch, FakeSite([], {}))
+    assert bwb_opds_imports.resolve_edition_ids("9781737408802") is None
+
+
+def test_resolve_edition_ids_edition_without_work(monkeypatch):
+    site = FakeSite(["/books/OL55M"], {"/books/OL55M": FakeEdition("/books/OL55M", [])})
+    _patch_site(monkeypatch, site)
+    assert bwb_opds_imports.resolve_edition_ids("9781737408802") is None
+
+
+def test_stage_acquisitions_only_resolved(monkeypatch, acquisitions_db):
+    monkeypatch.setattr(bwb_opds_imports, "resolve_edition_ids", {"9781737408802": (7, 55)}.get)
+    items = [
+        ("9781737408802", {"price": {"currency": "USD", "value": 1.25}}),
+        ("9798995425007", {"price": {"currency": "USD", "value": 1.01}}),
+    ]
+    assert bwb_opds_imports.stage_acquisitions(items) == 1
+    rows = Acquisition.get_by_edition(55, "betterworldbooks")
+    assert len(rows) == 1
+    assert rows[0].local_id == "urn:isbn:9781737408802"
+    assert rows[0].data["price"]["value"] == 1.25
+
+
+def test_stage_acquisitions_is_idempotent(monkeypatch, acquisitions_db):
+    monkeypatch.setattr(bwb_opds_imports, "resolve_edition_ids", lambda isbn: (7, 55))
+    items = [("9781737408802", {"price": {"currency": "USD", "value": 1.25}})]
+    bwb_opds_imports.stage_acquisitions(items)
+    bwb_opds_imports.stage_acquisitions(items)
+    assert len(Acquisition.get_by_edition(55, "betterworldbooks")) == 1
+
+
+def test_process_feed_collects_acquisitions(monkeypatch):
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    session = FakeSession({SAMPLE_FEED_URL: SAMPLE_FEED})
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+    acqs: list = []
+    process_feed(feed_url=SAMPLE_FEED_URL, since=EPOCH, prices_out_fh=io.StringIO(), acquisitions_out=acqs)
+    assert {isbn for isbn, _ in acqs} == {"9781737408802", "9798995425007"}
+    assert dict(acqs)["9781737408802"]["price"] == {"currency": "USD", "value": 1.25}
+
+
+def test_link_acquisition_for_edition_post_import(monkeypatch, acquisitions_db):
+    ed = FakeEdition("/books/OL55M", [FakeWork("/works/OL7W")], isbn_13=["9781737408802"])
+    _patch_site(monkeypatch, FakeSite([], {"/books/OL55M": ed}))
+    result = bwb_opds_imports.link_acquisition_for_edition("/books/OL55M", SAMPLE_FEED["publications"][0])
+    assert result is not None
+    rows = Acquisition.get_by_edition(55, "betterworldbooks")
+    assert len(rows) == 1
+    assert rows[0].data["price"] == {"currency": "USD", "value": 1.25}

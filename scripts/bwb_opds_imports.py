@@ -45,6 +45,7 @@ import time
 from typing import Any
 
 import requests
+import web
 
 try:
     import _init_path  # type: ignore[import-not-found]  # noqa: F401 side effect: add OL package root to sys.path
@@ -58,6 +59,7 @@ from openlibrary.core.imports import Batch
 from openlibrary.core.tbp import FeedRegistry
 from openlibrary.core.vendors import stage_bookworm_metadata
 from openlibrary.plugins.upstream.utils import get_marc21_language
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.partner_batch_imports import is_low_quality_book, is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -283,6 +285,7 @@ def process_feed(
     prices_out_fh,
     max_pages: int | None = None,
     early_stop: bool = False,
+    acquisitions_out: list[tuple[str, dict[str, Any]]] | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Crawl the OPDS feed and return (olbooks, max_modified_seen).
 
@@ -330,6 +333,9 @@ def process_feed(
             if _should_exclude(olbook):
                 continue
             olbooks.append(olbook)
+
+            if acquisitions_out is not None and (acq_data := build_acquisition_data(publication)):
+                acquisitions_out.append((olbook["isbn_13"][0], acq_data))
 
             if price := extract_price(publication):
                 prices_out_fh.write(
@@ -418,14 +424,15 @@ def _run_feed(
     max_pages: int | None,
     dry_run: bool,
     early_stop: bool = False,
+    acquisitions_out: list[tuple[str, dict[str, Any]]] | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Process the OPDS feed, routing price rows to disk or to a discard buffer."""
     if dry_run:
         with contextlib.nullcontext(io.StringIO()) as prices_fh:
-            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop)
+            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     writer = _LazyWriter(prices_out)
     try:
-        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop)
+        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     finally:
         writer.close()
 
@@ -449,6 +456,69 @@ def upsert_acquisition(
         provider_name=BWB_PROVIDER_NAME,
         local_id=f"{ISBN_URN_PREFIX}{isbn_13}",
         data=build_acquisition_data(publication),
+    )
+
+
+def resolve_edition_ids(isbn_13: str) -> tuple[int, int] | None:
+    """Resolve an ISBN-13 to ``(work_id, edition_id)`` integers for an edition
+    ALREADY in the catalog, or None.
+
+    Existing editions only — no import/Amazon side effects. This is option (a)
+    from #12844: acquisitions attach at ingestion time for ISBNs that already
+    resolve; editions created later by the import get their acquisition linked
+    by :func:`link_acquisition_for_edition` (the post-import hook). Ids are the
+    numeric OLID parts, matching the convention used by checkins/bookshelves.
+    """
+    matches = web.ctx.site.things({"type": "/type/edition", "isbn_13": isbn_13})
+    if not matches:
+        return None
+    edition = web.ctx.site.get(matches[0])
+    if not edition or not edition.works:
+        return None
+    work_id = int(extract_numeric_id_from_olid(edition.works[0].key))
+    edition_id = int(extract_numeric_id_from_olid(edition.key))
+    return work_id, edition_id
+
+
+def stage_acquisitions(acquisitions: list[tuple[str, dict[str, Any]]]) -> int:
+    """Upsert acquisition rows for feed records whose ISBN resolves to an
+    existing edition. Returns the number upserted. Unresolved ISBNs are left
+    for the post-import hook once their edition is created.
+    """
+    upserted = 0
+    for isbn_13, data in acquisitions:
+        if not (ids := resolve_edition_ids(isbn_13)):
+            continue
+        work_id, edition_id = ids
+        Acquisition.upsert(
+            work_id=work_id,
+            edition_id=edition_id,
+            provider_name=BWB_PROVIDER_NAME,
+            local_id=f"{ISBN_URN_PREFIX}{isbn_13}",
+            data=data,
+        )
+        upserted += 1
+    return upserted
+
+
+def link_acquisition_for_edition(edition_key: str, publication: dict[str, Any]) -> Acquisition | None:
+    """Post-import hook: link a BWB acquisition to a newly-created edition.
+
+    Called once the import pipeline has created the edition for a ``bwb:{isbn}``
+    source record (option (a) from #12844 — the deferred half of
+    :func:`stage_acquisitions`).
+    """
+    edition = web.ctx.site.get(edition_key)
+    if not edition or not edition.works:
+        return None
+    isbn_13 = (edition.isbn_13 or [None])[0]
+    if not isbn_13:
+        return None
+    return upsert_acquisition(
+        work_id=int(extract_numeric_id_from_olid(edition.works[0].key)),
+        edition_id=int(extract_numeric_id_from_olid(edition.key)),
+        isbn_13=isbn_13,
+        publication=publication,
     )
 
 
@@ -494,6 +564,7 @@ def main(
 
     logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
 
+    acquisitions: list[tuple[str, dict[str, Any]]] = []
     olbooks, max_modified = _run_feed(
         feed_url=feed_url,
         cutoff=cutoff,
@@ -501,6 +572,7 @@ def main(
         max_pages=max_pages,
         dry_run=dry_run,
         early_stop=early_stop,
+        acquisitions_out=acquisitions,
     )
 
     logger.info("Mapped %d new publications (max_modified=%s)", len(olbooks), max_modified.isoformat())
@@ -513,6 +585,12 @@ def main(
     if olbooks:
         stage_incomplete_records_for_import(olbooks)
         commit_batch(batch_name, olbooks)
+
+    if acquisitions:
+        # Option (a): attach acquisitions for ISBNs that already resolve to an
+        # existing edition; the rest are linked post-import once created.
+        linked = stage_acquisitions(acquisitions)
+        logger.info("Upserted %d/%d acquisitions for already-resolved editions", linked, len(acquisitions))
 
     if max_modified > cutoff:
         advance_cursor(feed_url, max_modified, state_file)
