@@ -118,8 +118,8 @@ test('genre explorer look & feel diagnostics', async ({ page }) => {
     });
     // G1: the vestigial translucent-white "sections" scrub bar must stay hidden
     expect.soft(g.sectionsVisible, 'G1: sections scrub bar should be hidden').toBe(false);
-    // G2: section title is a framed shelf label (a chalkboard: a background + a wood frame),
-    // not bare weak text
-    const labelIsSigned = g.labelBg !== 'rgba(0, 0, 0, 0)' && g.labelBg !== 'transparent' && g.labelBorder > 0;
-    expect.soft(labelIsSigned, `G2: section title should be a framed shelf label (bg ${g.labelBg}, border ${g.labelBorder}px)`).toBe(true);
+    // G2: section title is a real printed shelf label (has a solid background), not bare
+    // weak text
+    const labelIsSigned = g.labelBg !== 'rgba(0, 0, 0, 0)' && g.labelBg !== 'transparent';
+    expect.soft(labelIsSigned, `G2: section title should be a printed shelf label (bg ${g.labelBg})`).toBe(true);
 });

@@ -929,15 +929,11 @@ button {
    win and muddy the wall. Naming both classes here (3 classes) makes the clean cream wall
    authoritative regardless of bundle order. */
 .book-room.style--aesthetic--wip.genre-mode {
-  /* The back panel of a warm oak bookcase: wood grain, faint vertical plank seams, a
-     top-down light and ambient occlusion pooling at the base and feathering down the sides
-     for real case depth. */
-  background-color: var(--wall);
-  background-image:
-    var(--oak-grain),
-    repeating-linear-gradient(90deg, rgba(60, 38, 14, .06) 0 1px, transparent 1px 172px),
-    radial-gradient(120% 70% at 50% -12%, rgba(255, 238, 205, .16), transparent 60%),
-    linear-gradient(90deg, rgba(30, 18, 4, .26), transparent 96px, transparent calc(100% - 96px), rgba(30, 18, 4, .26));
+  /* The "room" the bookcase sits in -- a soft neutral, deliberately NOT wood: the wood is
+     the background of each shelf (which scrolls with its books), so it never reads as a
+     static, tiled wallpaper. Controls that scroll over this sit on the neutral, not the
+     wood. */
+  background: #e9e0cf;
 }
 /* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
    template for why it's anchored here and not on the sticky nav or late-rendering filter):
@@ -986,6 +982,21 @@ button {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   scroll-margin-top: var(--genre-nav-height, 0px);
+}
+/* Wood is the background of the SHELF itself, so it scrolls with the books rather than
+   being a static, tiled page backdrop. Sized to cover so the grain never visibly tiles
+   within a shelf. margin-bottom 0 (4-class selector beats the wip aesthetic's 35px) so the
+   shelves stack tight like a real case. */
+.book-room.style--aesthetic--wip.genre-mode .shelf {
+  position: relative;
+  margin-bottom: 0;
+  background-color: var(--wall);
+  background-image:
+    var(--oak-grain),
+    radial-gradient(130% 60% at 50% 0%, rgba(255, 238, 205, .16), transparent 55%),
+    linear-gradient(180deg, rgba(22, 12, 3, .34) 0, transparent 30px);
+  background-size: cover, cover, 100% 100%;
+  background-repeat: no-repeat;
 }
 
 /* A softer, more contemporary take on the bookcase/shelf skin for genre mode: layered
@@ -1092,38 +1103,37 @@ button {
 .book-room.genre-mode .book > img {
   box-shadow: 0 8px 13px -6px var(--book-cast);
 }
-/* Section titles as a small wooden signage plaque -- coherent with the shelf boards, and
-   far stronger than the previous weak centred text. The `.class-slider.shelf-label`
-   selectors (5 classes) out-specify the wip aesthetic's own white-text rule. */
+/* The subgenre name is DELETED from above the shelf and affixed to the front of the wooden
+   baseboard -- a small printed shelf-edge label, like a real bookstore. It's absolutely
+   positioned onto the board area (it can't literally live in the ::after pseudo, which
+   can't hold dynamic text), which also removes the empty label space that used to sit above
+   each shelf. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label {
+  position: absolute;
+  left: 20px;
+  bottom: 3px;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
   background: transparent;
   border-radius: 0;
-  display: flex;
-  justify-content: flex-start;
-  padding: 6px 0 14px 26px;
+  display: block;
 }
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label main {
-  flex: 0 0 auto;
   text-align: left;
 }
-/* A small chalkboard shelf label framed in oak -- like the little section chalkboards in a
-   modern wood bookshop -- sitting at the start of each shelf. Chalk-white lettering on
-   slate, a routed oak frame, and a soft mounted shadow. */
 .book-room.style--aesthetic--wip.genre-mode .class-slider.shelf-label .label {
   display: inline-block;
-  font-family: Georgia, "Palatino Linotype", "Times New Roman", serif;
-  font-size: 1em;
-  font-weight: 600;
-  letter-spacing: .03em;
-  color: var(--chalk-ink);
-  background-color: var(--chalk-board);
-  padding: 5px 16px;
-  border: 3px solid var(--wood-frame);
-  border-radius: 3px;
-  box-shadow:
-    0 5px 10px -4px var(--shelf-cast),            /* mounted shadow */
-    inset 0 0 12px rgba(0, 0, 0, .45);            /* slate vignette */
-  text-shadow: 0 0 3px rgba(240, 235, 222, .25); /* chalk softness */
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: .72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #2e2109;
+  background: #f3ead4;
+  padding: 3px 10px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .4);
 }
 /* The book carousels scroll horizontally; without this, a leftward trackpad swipe that
    overscrolls one triggers the browser's own back/forward swipe-navigation gesture -- the
