@@ -1158,6 +1158,21 @@ button {
 .book-room.genre-mode .books-carousel .book {
   margin-bottom: 0;
   border-radius: 2px;
+  transition: transform .18s ease, box-shadow .18s ease;
+  transform-origin: bottom center;
+}
+/* Hover: lift the cover off the shelf -- rise a few px and scale up a touch, come in FRONT
+   of its neighbours and the baseboard label (z-index), with a soft warm glow. Feels like
+   picking it up, and lifts it clear of anything occluding it. */
+.book-room.genre-mode .books-carousel .book:hover {
+  transform: translateY(-9px) scale(1.06);
+  z-index: 5;
+}
+.book-room.genre-mode .book:hover .cover,
+.book-room.genre-mode .book:hover > img {
+  box-shadow:
+    0 16px 28px -8px rgba(0, 0, 0, .55),   /* lifted drop shadow */
+    0 0 20px 2px rgba(255, 240, 205, .5);  /* soft warm glow */
 }
 /* Per-cover skeleton shimmer, removed the instant the image loads. It can't live only on
    the image's background: covers are object-fit:contain (letterboxed), so the background
