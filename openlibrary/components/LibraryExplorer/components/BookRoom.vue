@@ -1158,6 +1158,11 @@ button {
 .book-room.genre-mode .books-carousel .book {
   margin-bottom: 0;
   border-radius: 2px;
+  /* Drop BooksCarousel's `min-height: 90%`: it makes the .book box ~90% of the carousel
+     height regardless of the (usually shorter) loaded cover, leaving empty space above the
+     image. The hover transform then scales/lifts that oversized box from its bottom and
+     reads as broken. min-height:0 makes the box hug the actual cover so the lift is true. */
+  min-height: 0;
   transition: transform .18s ease, box-shadow .18s ease;
   transform-origin: bottom center;
 }
