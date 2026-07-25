@@ -1098,10 +1098,43 @@ button {
   pointer-events: none;
   z-index: 1;
 }
-/* books grounded on the board with a gentle contact shadow */
+/* Give each flat cover a step toward a real, photographed book -- subtle, never comical:
+   a soft studio-light sheen, a thin page fore-edge for thickness, and a layered realistic
+   shadow so it reads as an object sitting proud of the shelf, not a sticker. */
 .book-room.genre-mode .book .cover,
 .book-room.genre-mode .book > img {
-  box-shadow: 0 8px 13px -6px var(--book-cast);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .3),          /* tight contact edge */
+    0 7px 12px -5px var(--book-cast),      /* soft ambient */
+    2px 3px 4px -2px rgba(0, 0, 0, .28);   /* light from upper-left -> shadow lower-right */
+}
+/* soft directional sheen across the cover (studio light from the upper-left) */
+.book-room.genre-mode .book::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(108deg,
+    rgba(255, 255, 255, .16) 0%,
+    rgba(255, 255, 255, .04) 16%,
+    transparent 34%,
+    transparent 90%,
+    rgba(0, 0, 0, .1) 100%);
+}
+/* a thin block of page edges on the right, giving the book real thickness */
+.book-room.genre-mode .book::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 1px;
+  right: -3px;
+  width: 4px;
+  z-index: 1;
+  border-radius: 0 2px 2px 0;
+  background: repeating-linear-gradient(90deg, rgba(120, 100, 70, .55) 0 .5px, #efe6d2 .5px 1.6px);
+  box-shadow: 1px 2px 4px -1px rgba(0, 0, 0, .4);
 }
 /* The subgenre name is DELETED from above the shelf and affixed to the front of the wooden
    baseboard -- a small printed shelf-edge label, like a real bookstore. It's absolutely
