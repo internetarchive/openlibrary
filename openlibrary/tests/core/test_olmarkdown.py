@@ -163,10 +163,11 @@ def test_olmarkdown_fenced_code():
 
 def test_olmarkdown_urls_with_parentheses():
     """Test that URLs with parentheses are properly handled.
-    
+
     Issue #13202: Links to URLs with parentheses weren't being rendered correctly.
     URLs with parentheses are common, especially on Wikipedia and similar sites.
     """
+
     def md(text):
         return OLMarkdown(text).convert().strip()
 
@@ -177,14 +178,14 @@ def test_olmarkdown_urls_with_parentheses():
     # Test 1: Link with parentheses in URL
     result = md("[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist))")
     assert '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"' in result
-    assert "rel=\"nofollow\"" in result
+    assert 'rel="nofollow"' in result
     # Should render as a link, not raw markdown
     assert "[George A. Kennedy]" not in result
 
     # Test 2: Plain autolink with parentheses in URL
     result = md("https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)")
     assert '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"' in result
-    assert "rel=\"nofollow\"" in result
+    assert 'rel="nofollow"' in result
 
     # Test 3: Multiple parentheses in URL
     result = md("https://example.com/path(first)(second)")

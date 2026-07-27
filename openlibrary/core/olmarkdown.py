@@ -150,6 +150,7 @@ class LinkPatternWithBalancedParens(markdown.LinkPattern):
         if len(parts) > 1:
             title = '"' + parts[1].strip()
             from infogami.utils.markdown import markdown as md_module
+
             if hasattr(md_module, "dequote"):
                 title = md_module.dequote(title)
             el.setAttribute("title", title)
@@ -161,19 +162,19 @@ class LinkPatternWithBalancedParens(markdown.LinkPattern):
         # Count opening and closing parens in the URL
         open_parens = url.count("(")
         close_parens = url.count(")")
-        
+
         if open_parens <= close_parens:
             return url
-        
+
         # Need to add closing parens from the full text
         # Find where the URL ends in the full text
         url_end_idx = full_text.find(url) + len(url)
         remaining_text = full_text[url_end_idx:]
-        
+
         # Add closing parens while we need them and they're available
         needed_close = open_parens - close_parens
         extended_url = url
-        
+
         for char in remaining_text:
             if char == ")" and needed_close > 0:
                 extended_url += char
@@ -181,7 +182,7 @@ class LinkPatternWithBalancedParens(markdown.LinkPattern):
             elif char not in "\"' \t\n":
                 # Stop if we hit a non-paren, non-quote, non-space character
                 break
-        
+
         return extended_url
 
 
@@ -206,19 +207,19 @@ class OLMarkdown(markdown.Markdown):
     def _patch(self):
         patterns = self.inlinePatterns
         autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace("http", "https?"))
-        
+
         # Replace AUTOLINK_PATTERN
         for i, pattern in enumerate(patterns):
             if pattern.__class__.__name__ == "AutolinkPattern":
                 patterns[i] = autolink
                 break
-        
+
         # Replace ALL LinkPattern instances with our custom one
         link_pattern_instance = LinkPatternWithBalancedParens(markdown.LINK_RE)
         for i, pattern in enumerate(patterns):
             if pattern.__class__.__name__ == "LinkPattern":
                 patterns[i] = link_pattern_instance
-        
+
         p = self.preprocessors
         p.insert(0, FENCED_CODE_PREPROCESSOR)
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
