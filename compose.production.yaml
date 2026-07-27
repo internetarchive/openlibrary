@@ -215,7 +215,7 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot /etc/cron.d/archive-waf-logs
       - NGINX_DOMAIN=openlibrary.org www.openlibrary.org
     volumes:
       # letsencrypt
