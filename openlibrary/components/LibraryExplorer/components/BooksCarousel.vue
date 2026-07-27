@@ -100,14 +100,14 @@ export default {
    element would). Anchored to the book's *bottom* edge, not its top: covers vary in
    rendered height (different aspect ratios under object-fit: contain), but
    .books-carousel's align-items: flex-end bottom-aligns every .book to the same shelf
-   line regardless -- anchoring to the bottom (and nudging past it with a negative
-   offset, like a little card propped against the book's lower edge) keeps every placard
-   on a shelf sitting at that same consistent height, rather than each one floating at
-   whatever height its own book's top edge happens to land. Flat, not embossed: one soft
+   line regardless -- anchoring `bottom: 5px` keeps every placard sitting just above that
+   same shelf line, rather than each one floating at whatever height its own book's top
+   edge happens to land (also keeps it clear of the genre-mode baseboard, which the old
+   `top: 93%` could get clipped by on shorter covers). Flat, not embossed: one soft
    shadow, no inset bevel. */
 .rating-placard {
   position: absolute;
-  top: 93%;
+  bottom: 5px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
