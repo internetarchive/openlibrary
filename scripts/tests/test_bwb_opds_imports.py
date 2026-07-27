@@ -7,6 +7,7 @@ from typing import Final
 import pytest
 import web
 
+from openlibrary.catalog import opds2
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
 from openlibrary.core.tbp import FeedRegistry
@@ -14,18 +15,17 @@ from openlibrary.core.tbp import FeedRegistry
 from .. import bwb_opds_imports
 from ..bwb_opds_imports import (
     EPOCH,
-    _parse_iso,
     commit_batch,
-    extract_cover,
-    extract_isbn,
-    extract_price,
-    find_next_url,
-    iter_pages,
     map_publication_to_olbook,
     process_feed,
     read_state,
     write_state,
 )
+
+# Generic OPDS 2.0 parsing/crawl is tested in openlibrary/catalog/tests/test_opds2.py.
+# This module covers the BWB-specific specialization + orchestration: the BWB
+# Source config, batch staging + idempotency, the FeedRegistry cursor, and the
+# acquisitions wiring.
 
 SAMPLE_PUBLICATION = {
     "metadata": {
@@ -48,127 +48,8 @@ SAMPLE_PUBLICATION = {
     "images": [{"href": "https://example.com/cover.jpg", "rel": "cover"}],
 }
 
-
-def test_extract_isbn_strips_urn_prefix():
-    assert extract_isbn({"identifier": "urn:isbn:9781737408802"}) == "9781737408802"
-
-
-def test_extract_isbn_returns_none_for_non_isbn_urn():
-    assert extract_isbn({"identifier": "urn:uuid:abc"}) is None
-    assert extract_isbn({}) is None
-
-
-def test_extract_isbn_promotes_isbn10():
-    # to_isbn_13 should upgrade a valid ISBN-10 to ISBN-13
-    assert extract_isbn({"identifier": "urn:isbn:0140328726"}) == "9780140328721"
-
-
-def test_extract_price_returns_first_buy_link():
-    assert extract_price(SAMPLE_PUBLICATION) == {"currency": "USD", "value": 1.1}
-
-
-def test_extract_price_returns_none_when_no_acquisition():
-    assert extract_price({"links": [{"rel": "self", "href": "x"}]}) is None
-    assert extract_price({}) is None
-
-
-def test_extract_price_returns_none_when_acquisition_missing_price():
-    pub = {"links": [{"rel": "http://opds-spec.org/acquisition/buy", "href": "x"}]}
-    assert extract_price(pub) is None
-
-
-def test_extract_cover():
-    assert extract_cover(SAMPLE_PUBLICATION) == "https://example.com/cover.jpg"
-    assert extract_cover({"images": [{"href": "x", "rel": "thumbnail"}]}) is None
-    assert extract_cover({}) is None
-
-
-def test_map_publication_basic_fields():
-    olbook = map_publication_to_olbook(SAMPLE_PUBLICATION)
-    assert olbook is not None
-    assert olbook["isbn_13"] == ["9781737408802"]
-    assert olbook["source_records"] == ["bwb:9781737408802"]
-    assert olbook["title"] == "The Brick House Apparent Quarterly, Vol. 1"
-    assert olbook["publish_date"] == "2021-08-03"
-    assert olbook["languages"] == ["eng"]
-    assert olbook["authors"] == [
-        {"name": "The Brick House Cooperative"},
-        {"name": "Maria Bustillos"},
-    ]
-    assert olbook["cover"] == "https://example.com/cover.jpg"
-    assert olbook["publishers"] == []
-    assert "local_id" not in olbook
-
-
-def test_map_publication_skips_missing_isbn():
-    pub = {"metadata": {"title": "No ISBN", "author": [{"name": "x"}]}}
-    assert map_publication_to_olbook(pub) is None
-
-
-def test_map_publication_skips_missing_title_or_authors():
-    no_title = {"metadata": {"identifier": "urn:isbn:9781737408802", "author": [{"name": "x"}]}}
-    no_authors = {"metadata": {"identifier": "urn:isbn:9781737408802", "title": "x"}}
-    assert map_publication_to_olbook(no_title) is None
-    assert map_publication_to_olbook(no_authors) is None
-
-
-def test_map_publication_languages_use_marc21():
-    pub = {
-        "metadata": {
-            "identifier": "urn:isbn:9781737408802",
-            "title": "x",
-            "author": [{"name": "a"}],
-            "language": ["en", "fr"],
-        }
-    }
-    olbook = map_publication_to_olbook(pub)
-    assert olbook is not None
-    assert olbook["languages"] == ["eng", "fre"]
-
-
-def test_map_publication_drops_unmappable_language():
-    pub = {
-        "metadata": {
-            "identifier": "urn:isbn:9781737408802",
-            "title": "x",
-            "author": [{"name": "a"}],
-            "language": ["zz-not-real"],
-        }
-    }
-    olbook = map_publication_to_olbook(pub)
-    assert olbook is not None
-    assert olbook["languages"] == []
-
-
-def test_parse_iso_handles_offset_and_naive():
-    dt = _parse_iso("2026-05-19T14:47:58.547630-04:00")
-    assert dt.tzinfo is datetime.UTC
-    assert dt == datetime.datetime(2026, 5, 19, 18, 47, 58, 547630, tzinfo=datetime.UTC)
-
-    naive = _parse_iso("2026-05-19T14:47:58")
-    assert naive.tzinfo is datetime.UTC
-
-
-def test_find_next_url_present_and_absent():
-    feed = {"links": [{"rel": "next", "href": "https://x/p2"}, {"rel": "self", "href": "x"}]}
-    assert find_next_url(feed) == "https://x/p2"
-    assert find_next_url({"links": [{"rel": "self", "href": "x"}]}) is None
-    assert find_next_url({}) is None
-
-
-def test_state_roundtrip(tmp_path: Path):
-    state_file = tmp_path / "state.txt"
-    assert read_state(str(state_file)) == EPOCH
-
-    ts = datetime.datetime(2026, 5, 22, 12, 0, 0, tzinfo=datetime.UTC)
-    write_state(str(state_file), ts)
-    assert read_state(str(state_file)) == ts
-
-
-def test_state_read_empty_file_returns_epoch(tmp_path: Path):
-    state_file = tmp_path / "state.txt"
-    state_file.write_text("")
-    assert read_state(str(state_file)) == EPOCH
+SAMPLE_FEED_URL: Final = "https://www.betterworldbooks.com/opds/"
+SAMPLE_FEED: Final = json.loads((Path(__file__).parent / "opds_sample.json").read_text())
 
 
 class FakeResponse:
@@ -192,203 +73,44 @@ class FakeSession:
         return FakeResponse(self.pages_by_url[url])
 
 
-def test_iter_pages_follows_next_link(monkeypatch):
-
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    pages = {
-        "https://x/p1": {"publications": [{"id": 1}], "links": [{"rel": "next", "href": "https://x/p2"}]},
-        "https://x/p2": {"publications": [{"id": 2}], "links": [{"rel": "self", "href": "https://x/p2"}]},
-    }
-    session = FakeSession(pages)
-    fetched = list(iter_pages("https://x/p1", session))
-    assert [f["publications"][0]["id"] for f in fetched] == [1, 2]
-    assert session.calls == ["https://x/p1", "https://x/p2"]
+# ---------------------------------------------------------------------------
+# BWB Source specialization of the generic adapter
+# ---------------------------------------------------------------------------
 
 
-def test_iter_pages_breaks_on_cycle(monkeypatch):
-
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    pages = {"https://x/p1": {"publications": [], "links": [{"rel": "next", "href": "https://x/p1"}]}}
-    session = FakeSession(pages)
-    fetched = list(iter_pages("https://x/p1", session))
-    assert len(fetched) == 1
-
-
-def test_iter_pages_respects_max_pages(monkeypatch):
-
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    pages = {
-        "https://x/p1": {"publications": [], "links": [{"rel": "next", "href": "https://x/p2"}]},
-        "https://x/p2": {"publications": [], "links": [{"rel": "next", "href": "https://x/p3"}]},
-        "https://x/p3": {"publications": [], "links": []},
-    }
-    session = FakeSession(pages)
-    fetched = list(iter_pages("https://x/p1", session, max_pages=2))
-    assert len(fetched) == 2
+def test_map_publication_uses_bwb_source():
+    # The BWB wrapper injects BWB_SOURCE, so source_records carries the bwb slug.
+    olbook = map_publication_to_olbook(SAMPLE_PUBLICATION)
+    assert olbook is not None
+    assert olbook["isbn_13"] == ["9781737408802"]
+    assert olbook["source_records"] == ["bwb:9781737408802"]
 
 
-def test_process_feed_filters_by_modified(monkeypatch):
-
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    old_pub = {
-        "metadata": {
-            "identifier": "urn:isbn:9780000000002",
-            "title": "Old",
-            "modified": "2026-01-01T00:00:00+00:00",
-        },
-        "links": [],
-    }
-    new_pub = dict(SAMPLE_PUBLICATION)
-    pages = {"https://x/p1": {"publications": [old_pub, new_pub], "links": []}}
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    cutoff = datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC)
-    prices_fh = io.StringIO()
-    olbooks, max_modified = process_feed(
-        feed_url="https://x/p1",
-        since=cutoff,
-        prices_out_fh=prices_fh,
-    )
-    assert len(olbooks) == 1
-    assert olbooks[0]["isbn_13"] == ["9781737408802"]
-    assert max_modified > cutoff
-
-    price_lines = [json.loads(line) for line in prices_fh.getvalue().splitlines()]
-    assert price_lines == [{"isbn_13": "9781737408802", "price": 1.1, "currency": "USD"}]
+def test_bwb_source_wires_quality_filter():
+    assert bwb_opds_imports.BWB_SOURCE.provider_name == "betterworldbooks"
+    assert bwb_opds_imports.BWB_SOURCE.source_id_prefix == "bwb"
+    assert bwb_opds_imports.BWB_SOURCE.record_filter is bwb_opds_imports._bwb_record_filter
+    # A normal book is kept (not excluded).
+    assert bwb_opds_imports._bwb_record_filter(map_publication_to_olbook(SAMPLE_PUBLICATION)) is False
 
 
-def test_process_feed_skips_publication_without_modified(monkeypatch):
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    pub = {"metadata": {"identifier": "urn:isbn:9781737408802", "title": "x"}, "links": []}
-    pages = {"https://x/p1": {"publications": [pub], "links": []}}
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    olbooks, max_modified = process_feed(
-        feed_url="https://x/p1",
-        since=EPOCH,
-        prices_out_fh=io.StringIO(),
-    )
-    assert olbooks == []
-    assert max_modified == EPOCH
+# ---------------------------------------------------------------------------
+# State file + lazy price writer
+# ---------------------------------------------------------------------------
 
 
-def test_process_feed_advances_state_when_mapping_fails(monkeypatch):
-    """Newer publication without ISBN must still bump max_modified — otherwise
-    every future run re-scans the same record forever.
-    """
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    new_modified = "2026-05-20T00:00:00+00:00"
-    pub = {"metadata": {"title": "No ISBN here", "modified": new_modified}, "links": []}
-    pages = {"https://x/p1": {"publications": [pub], "links": []}}
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    olbooks, max_modified = process_feed(
-        feed_url="https://x/p1",
-        since=EPOCH,
-        prices_out_fh=io.StringIO(),
-    )
-    assert olbooks == []
-    assert max_modified == _parse_iso(new_modified)
+def test_state_roundtrip(tmp_path: Path):
+    state_file = tmp_path / "state.txt"
+    assert read_state(str(state_file)) == EPOCH
+    ts = datetime.datetime(2026, 5, 22, 12, 0, 0, tzinfo=datetime.UTC)
+    write_state(str(state_file), ts)
+    assert read_state(str(state_file)) == ts
 
 
-def test_process_feed_early_stops_on_first_all_stale_page(monkeypatch):
-    """Once a whole page contains nothing newer than ``since``, stop walking."""
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    fresh = dict(SAMPLE_PUBLICATION)
-    stale = {
-        "metadata": {
-            "identifier": "urn:isbn:9780000000002",
-            "title": "Old",
-            "modified": "2026-01-01T00:00:00+00:00",
-        },
-        "links": [],
-    }
-    pages = {
-        "https://x/p1": {"publications": [fresh], "links": [{"rel": "next", "href": "https://x/p2"}]},
-        "https://x/p2": {"publications": [stale], "links": [{"rel": "next", "href": "https://x/p3"}]},
-        "https://x/p3": {"publications": [fresh], "links": []},
-    }
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    cutoff = datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC)
-    olbooks, _ = process_feed(
-        feed_url="https://x/p1",
-        since=cutoff,
-        prices_out_fh=io.StringIO(),
-        early_stop=True,
-    )
-    # p3 must NOT be fetched.
-    assert session.calls == ["https://x/p1", "https://x/p2"]
-    assert len(olbooks) == 1
-
-
-def test_process_feed_full_traversal_is_the_default(monkeypatch):
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    stale = {
-        "metadata": {
-            "identifier": "urn:isbn:9780000000002",
-            "title": "Old",
-            "modified": "2026-01-01T00:00:00+00:00",
-        },
-        "links": [],
-    }
-    pages = {
-        "https://x/p1": {"publications": [stale], "links": [{"rel": "next", "href": "https://x/p2"}]},
-        "https://x/p2": {"publications": [stale], "links": []},
-    }
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    process_feed(
-        feed_url="https://x/p1",
-        since=datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC),
-        prices_out_fh=io.StringIO(),
-    )
-    # Default early_stop=False — both pages fetched even when first is all-stale.
-    assert session.calls == ["https://x/p1", "https://x/p2"]
-
-
-def test_process_feed_excludes_low_quality(monkeypatch):
-    """Reuse partner-import filters: independently-published 'notebook' from 2024 is dropped."""
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    junk = {
-        "metadata": {
-            "identifier": "urn:isbn:9781737408802",
-            "title": "My Notebook",
-            "modified": "2026-05-20T00:00:00+00:00",
-            "published": "2024-01-01",
-            "publisher": [{"name": "Independently Published"}],
-            "author": [{"name": "Whoever"}],
-        },
-        "links": [],
-    }
-    pages = {"https://x/p1": {"publications": [junk], "links": []}}
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    # Patch the mapper to inject publishers (OPDS metadata doesn't always expose them
-    # under a fixed key, and we just need the filter wired correctly).
-    real_map = bwb_opds_imports.map_publication_to_olbook
-
-    def fake_map(pub):
-        olbook = real_map(pub)
-        if olbook is not None:
-            olbook["publishers"] = ["Independently Published"]
-            olbook["publish_date"] = "2024-01-01"
-        return olbook
-
-    monkeypatch.setattr(bwb_opds_imports, "map_publication_to_olbook", fake_map)
-
-    olbooks, _ = process_feed(
-        feed_url="https://x/p1",
-        since=EPOCH,
-        prices_out_fh=io.StringIO(),
-    )
-    assert olbooks == []
+def test_state_read_empty_file_returns_epoch(tmp_path: Path):
+    state_file = tmp_path / "state.txt"
+    state_file.write_text("")
+    assert read_state(str(state_file)) == EPOCH
 
 
 def test_lazy_writer_does_not_create_file_when_unused(tmp_path: Path):
@@ -406,36 +128,11 @@ def test_lazy_writer_creates_file_on_write(tmp_path: Path):
     assert path.read_text() == "hello\n"
 
 
-@pytest.mark.parametrize(
-    "modified_raw",
-    ["not-a-date", "2026/05/19"],
-)
-def test_process_feed_logs_and_skips_bad_modified(monkeypatch, modified_raw):
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    pub = {
-        "metadata": {"identifier": "urn:isbn:9781737408802", "modified": modified_raw},
-        "links": [],
-    }
-    pages = {"https://x/p1": {"publications": [pub], "links": []}}
-    session = FakeSession(pages)
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-
-    olbooks, _ = process_feed(
-        feed_url="https://x/p1",
-        since=EPOCH,
-        prices_out_fh=io.StringIO(),
-    )
-    assert olbooks == []
-
-
 # ---------------------------------------------------------------------------
 # End-to-end idempotency (epic #12844): re-running the importer against the
 # same feed state must not create duplicate import_item rows. Uses the
-# synthetic ``opds_sample.json`` feed so the check is reliable and offline.
+# synthetic opds_sample.json feed so the check is reliable and offline.
 # ---------------------------------------------------------------------------
-
-SAMPLE_FEED_URL: Final = "https://www.betterworldbooks.com/opds/"
-SAMPLE_FEED: Final = json.loads((Path(__file__).parent / "opds_sample.json").read_text())
 
 IMPORT_BATCH_DDL: Final = """
 CREATE TABLE import_batch (
@@ -479,9 +176,11 @@ def import_db():
 
 
 def _olbooks_from_sample(monkeypatch):
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    # The crawl lives in opds2, so patch the session/sleep there (the BWB
+    # process_feed wrapper delegates to opds2.process_feed).
+    monkeypatch.setattr(opds2, "PAGE_SLEEP_SECONDS", 0)
     session = FakeSession({SAMPLE_FEED_URL: SAMPLE_FEED})
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+    monkeypatch.setattr(opds2.requests, "Session", lambda: session)
     olbooks, _ = process_feed(feed_url=SAMPLE_FEED_URL, since=EPOCH, prices_out_fh=io.StringIO())
     return olbooks
 
@@ -549,18 +248,6 @@ def acquisitions_db():
     db.query("DROP TABLE IF EXISTS acquisitions;")
 
 
-def test_build_acquisition_data_extracts_price_and_url():
-    data = bwb_opds_imports.build_acquisition_data(SAMPLE_PUBLICATION)
-    assert data["price"] == {"currency": "USD", "value": 1.1}
-    assert data["url"] == "https://www.betterworldbooks.com/purchase/9781737408802"
-
-
-def test_build_acquisition_data_extracts_formats():
-    data = bwb_opds_imports.build_acquisition_data(SAMPLE_FEED["publications"][0])
-    assert data["price"] == {"currency": "USD", "value": 1.25}
-    assert data["formats"] == ["application/epub+zip"]
-
-
 def test_upsert_acquisition_is_idempotent(acquisitions_db):
     pub = SAMPLE_FEED["publications"][0]
     first = bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=pub)
@@ -580,7 +267,7 @@ def test_upsert_acquisition_updates_changed_price(acquisitions_db):
     # Simulate the price changing in a later feed pull.
     changed = json.loads(json.dumps(pub))
     for link in changed["links"]:
-        if link.get("rel") == bwb_opds_imports.ACQUISITION_REL:
+        if link.get("rel") == opds2.ACQUISITION_REL:
             link["properties"]["price"]["value"] = 3.50
     bwb_opds_imports.upsert_acquisition(work_id=10, edition_id=100, isbn_13="9781737408802", publication=changed)
     rows = Acquisition.get_by_edition(100, "betterworldbooks")
@@ -589,8 +276,8 @@ def test_upsert_acquisition_updates_changed_price(acquisitions_db):
 
 
 # ---------------------------------------------------------------------------
-# Cursor source (epic #12844): the FeedRegistry DB cursor is the source of
-# truth for BWB's incremental state; the file-state is a fallback only.
+# Cursor source: the FeedRegistry DB cursor is the source of truth for BWB's
+# incremental state; the file-state is a fallback only.
 # ---------------------------------------------------------------------------
 
 TBP_FEED_REGISTRY_DDL: Final = """
@@ -623,7 +310,7 @@ def registry_db():
 def test_resolve_cutoff_prefers_explicit_since(registry_db, tmp_path):
     # --since wins over everything and does not require a registered feed.
     cutoff = bwb_opds_imports.resolve_cutoff(FEED_URL, since="2026-01-02T00:00:00+00:00", state_file=str(tmp_path / "s.txt"))
-    assert cutoff == _parse_iso("2026-01-02T00:00:00+00:00")
+    assert cutoff == datetime.datetime(2026, 1, 2, 0, 0, 0, tzinfo=datetime.UTC)
 
 
 def test_resolve_cutoff_uses_registry_cursor(registry_db, tmp_path):
@@ -662,9 +349,9 @@ def test_advance_cursor_unregistered_feed_writes_only_file(registry_db, tmp_path
 
 
 # ---------------------------------------------------------------------------
-# Edition resolution + acquisition staging (epic #12844, option (a)): attach
-# acquisitions to ISBNs that already resolve to an edition; defer the rest to
-# the post-import hook.
+# Edition resolution + acquisition staging (option (a)): attach acquisitions to
+# ISBNs that already resolve to an edition; defer the rest to the post-import
+# hook.
 # ---------------------------------------------------------------------------
 
 
@@ -734,16 +421,6 @@ def test_stage_acquisitions_is_idempotent(monkeypatch, acquisitions_db):
     bwb_opds_imports.stage_acquisitions(items)
     bwb_opds_imports.stage_acquisitions(items)
     assert len(Acquisition.get_by_edition(55, "betterworldbooks")) == 1
-
-
-def test_process_feed_collects_acquisitions(monkeypatch):
-    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
-    session = FakeSession({SAMPLE_FEED_URL: SAMPLE_FEED})
-    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
-    acqs: list = []
-    process_feed(feed_url=SAMPLE_FEED_URL, since=EPOCH, prices_out_fh=io.StringIO(), acquisitions_out=acqs)
-    assert {isbn for isbn, _ in acqs} == {"9781737408802", "9798995425007"}
-    assert dict(acqs)["9781737408802"]["price"] == {"currency": "USD", "value": 1.25}
 
 
 def test_link_acquisition_for_edition_post_import(monkeypatch, acquisitions_db):
