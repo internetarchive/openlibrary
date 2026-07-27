@@ -8,6 +8,31 @@
  *  - openlibrary/plugins/openlibrary/js/ol.js
  */
 
+/* Wraps the IA bar (site/alert.html) + this header (lib/nav_head.html) as one sticky unit
+   (see openlibrary/templates/site/body.html) so header-scroll.js can slide both away
+   together on scroll-down and back on scroll-up/at-top. transform (not display/visibility)
+   so the slide is animated and GPU-composited rather than jumping instantly. */
+.site-header-autohide {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+  transition: transform 0.25s ease-out;
+}
+.site-header-autohide.header-hidden {
+  /* -100% alone isn't enough: it's relative to this wrapper's own flow-box height, which
+     doesn't include the dev/testing-only "Development"/"Testing" env badge
+     (.logo-txt--env-development/testing, nav_head.html) -- an absolutely-positioned tag
+     that visually hangs below the logo, overflowing past the flow box it's excluded from.
+     Without the extra buffer, that badge stayed partly visible after the rest of the
+     header slid away. Never shown on production (get_ol_env()), so this is a no-op there. */
+  transform: translateY(calc(-100% - 40px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header-autohide {
+    transition: none;
+  }
+}
+
 .header-bar {
   max-width: 1060px;
   min-width: 300px;
