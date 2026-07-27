@@ -30,7 +30,19 @@
         :sections="progressBarSections"
         :index="progressBarIndex"
       />
+      <button
+        v-if="node.children"
+        type="button"
+        class="label"
+        :class="direction"
+        :aria-expanded="expanded"
+        :title="`See a list of the subsections of ${node.short}: ${node.name}`"
+        @click="$emit('toggle-index')"
+      >
+        {{ activeSection.name }}
+      </button>
       <div
+        v-else
         class="label"
         :class="direction"
       >
@@ -49,8 +61,13 @@ import ShelfProgressBar from './ShelfProgressBar.vue';
 export default {
     components: { RightArrowIcon, ShelfProgressBar },
     props: {
-        node: Object
+        node: Object,
+        expanded: {
+            type: Boolean,
+            default: false,
+        },
     },
+    emits: ['toggle-index'],
     data() {
         return {
             direction: null,
@@ -137,10 +154,10 @@ button {
   color: inherit;
 }
 
-button:first-child {
+.lr-buttons button:first-child {
   border-right: 2px solid rgb(161, 157, 157);
 }
-button:last-child {
+.lr-buttons button:last-child {
   border-left: 2px solid #000;
 }
 
@@ -151,6 +168,13 @@ button:last-child {
   text-align: center;
   line-height: 1em;
   padding-bottom: 6px;
+}
+
+button.label {
+  cursor: pointer;
+}
+button.label:hover {
+  text-decoration: underline;
 }
 
 .sections {

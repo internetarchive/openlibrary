@@ -8,16 +8,10 @@
       :key="node.short"
       class="shelf-label"
       :node="node"
+      :expanded="showShelfIndex"
+      @toggle-index="showShelfIndex = !showShelfIndex"
     >
       <template #extra-actions>
-        <button
-          v-if="features.shelfLabel === 'slider' && node.children"
-          :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          :class="{selected: showShelfIndex}"
-          @click="showShelfIndex = !showShelfIndex"
-        >
-          <IndexIcon />
-        </button>
         <button
           v-if="!hideExpand && node.children && node.children.length"
           :title="`See more books in ${node.short}: ${node.name}`"
@@ -27,12 +21,6 @@
         </button>
       </template>
     </component>
-
-    <ShelfIndex
-      v-if="showShelfIndex"
-      class="shelf-index"
-      :node="node"
-    />
 
     <OLCarousel
       class="shelf-carousel"
@@ -104,6 +92,16 @@
       </template>
     </OLCarousel>
   </div>
+
+  <!-- A sibling of .shelf, not a child: .shelf is `position: relative` (the anchor for the
+       genre-mode baseboard label's `position: absolute; bottom: 3px`), so an in-flow list
+       nested inside it would grow .shelf's height and drag that label down into the list
+       instead of leaving it pinned to the shelf board above. -->
+  <ShelfIndex
+    v-if="showShelfIndex"
+    class="shelf-index"
+    :node="node"
+  />
 </template>
 
 <script>
@@ -114,7 +112,6 @@ import BookCover3D from './BookCover3D.vue';
 import FlatBookCover from './FlatBookCover.vue';
 import ShelfIndex from './ShelfIndex.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
-import IndexIcon from './icons/IndexIcon.vue';
 import maxBy from 'lodash/maxBy';
 
 class FetchCoordinator {
@@ -190,7 +187,6 @@ export default {
         ShelfIndex,
         ShelfLabel,
         ExpandIcon,
-        IndexIcon,
     },
     props: {
         /** @type {import('../utils').ClassificationNode} */
