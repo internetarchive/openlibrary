@@ -17,7 +17,9 @@ from openlibrary.core import helpers as h
 # regexp to match urls and emails.
 # Adopted from github-flavored-markdown (BSD-style open source license)
 # http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158
-AUTOLINK_RE = r"""(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)"""
+# Modified to allow closing parentheses in URLs (for Wikipedia links, etc.)
+# Removed ) from the exclusion set at the end
+AUTOLINK_RE = r"""(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)"""
 
 LINK_REFERENCE_RE = re.compile(r" *\[[^\[\] ]*\] *:")
 
@@ -108,6 +110,84 @@ class AutolinkPreprocessor(markdown.Preprocessor):
 AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
 
 
+class LinkPatternWithBalancedParens(markdown.LinkPattern):
+    r"""Custom LinkPattern that handles balanced parentheses in URLs.
+
+    The default markdown LINK_RE pattern uses [^\)]* to match URL content,
+    which stops at the first closing paren. This breaks URLs like:
+    https://en.wikipedia.org/wiki/Name_(descriptor)
+
+    We use a more flexible regex and post-process in handleMatch to find
+    balanced parentheses.
+    """
+
+    def __init__(self, original_link_re):
+        # Replace \(([^\)]*)\) with \(([^'\"]*)\) - greedy match
+        # This allows most URLs to match correctly
+        new_pattern = original_link_re.replace(r"\(([^\)]*)\)", r"\(([^'\"]*)\)")
+        super().__init__(new_pattern)
+
+    def handleMatch(self, m, doc):
+        """Override to handle balanced parentheses in URL."""
+        el = doc.createElement("a")
+        el.appendChild(doc.createTextNode(m.group(2)))
+
+        url_and_title = m.group(9)
+        if not url_and_title:
+            el.setAttribute("href", "")
+            return el
+
+        # Split on quote if there's a title
+        parts = url_and_title.split('"', 1)
+        url = parts[0].strip()
+
+        # Fix the URL by extending it to include balanced parentheses
+        # that the non-greedy regex may have cut off
+        url_fixed = self._extend_balanced_url(url, url_and_title)
+
+        el.setAttribute("href", url_fixed)
+
+        if len(parts) > 1:
+            title = '"' + parts[1].strip()
+            from infogami.utils.markdown import markdown as md_module
+            if hasattr(md_module, "dequote"):
+                title = md_module.dequote(title)
+            el.setAttribute("title", title)
+
+        return el
+
+    def _extend_balanced_url(self, url, full_text):
+        """Extend URL to include balanced closing parens."""
+        # Count opening and closing parens in the URL
+        open_parens = url.count("(")
+        close_parens = url.count(")")
+        
+        if open_parens <= close_parens:
+            return url
+        
+        # Need to add closing parens from the full text
+        # Find where the URL ends in the full text
+        url_end_idx = full_text.find(url) + len(url)
+        remaining_text = full_text[url_end_idx:]
+        
+        # Add closing parens while we need them and they're available
+        needed_close = open_parens - close_parens
+        extended_url = url
+        
+        for char in remaining_text:
+            if char == ")" and needed_close > 0:
+                extended_url += char
+                needed_close -= 1
+            elif char not in "\"' \t\n":
+                # Stop if we hit a non-paren, non-quote, non-space character
+                break
+        
+        return extended_url
+
+
+LINK_PATTERN_WITH_BALANCED_PARENS = LinkPatternWithBalancedParens(markdown.LINK_RE)
+
+
 class OLMarkdown(markdown.Markdown):
     """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
 
@@ -126,7 +206,19 @@ class OLMarkdown(markdown.Markdown):
     def _patch(self):
         patterns = self.inlinePatterns
         autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace("http", "https?"))
-        patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
+        
+        # Replace AUTOLINK_PATTERN
+        for i, pattern in enumerate(patterns):
+            if pattern.__class__.__name__ == "AutolinkPattern":
+                patterns[i] = autolink
+                break
+        
+        # Replace ALL LinkPattern instances with our custom one
+        link_pattern_instance = LinkPatternWithBalancedParens(markdown.LINK_RE)
+        for i, pattern in enumerate(patterns):
+            if pattern.__class__.__name__ == "LinkPattern":
+                patterns[i] = link_pattern_instance
+        
         p = self.preprocessors
         p.insert(0, FENCED_CODE_PREPROCESSOR)
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR

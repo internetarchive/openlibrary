@@ -159,3 +159,37 @@ def test_olmarkdown_fenced_code():
     # The broken render-shape from the bug report must not appear.
     assert "`<br" not in out
     assert "`\n" not in out
+
+
+def test_olmarkdown_urls_with_parentheses():
+    """Test that URLs with parentheses are properly handled.
+    
+    Issue #13202: Links to URLs with parentheses weren't being rendered correctly.
+    URLs with parentheses are common, especially on Wikipedia and similar sites.
+    """
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    def p(html):
+        # markdown always wraps the result in <p>.
+        return "<p>%s\n</p>" % html
+
+    # Test 1: Link with parentheses in URL
+    result = md("[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist))")
+    assert '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"' in result
+    assert "rel=\"nofollow\"" in result
+    # Should render as a link, not raw markdown
+    assert "[George A. Kennedy]" not in result
+
+    # Test 2: Plain autolink with parentheses in URL
+    result = md("https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)")
+    assert '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"' in result
+    assert "rel=\"nofollow\"" in result
+
+    # Test 3: Multiple parentheses in URL
+    result = md("https://example.com/path(first)(second)")
+    assert '<a href="https://example.com/path(first)(second)"' in result
+
+    # Test 4: Nested parentheses in URL
+    result = md("https://example.com/path(with(nested)parens)")
+    assert '<a href="https://example.com/path(with(nested)parens)"' in result
