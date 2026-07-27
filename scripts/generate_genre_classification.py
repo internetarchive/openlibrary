@@ -25,6 +25,11 @@ from pathlib import Path
 TAGS_REPO_RAW_BASE = "https://raw.githubusercontent.com/Open-Book-Genome-Project/tags/main"
 OL_SEARCH_URL = "https://openlibrary.org/search.json"
 DEFAULT_OUTPUT = "openlibrary/components/LibraryExplorer/genre.json"
+# The "Basic" tree the Genre Explorer's basic/enriched toggle switches to: genres/subgenres
+# exactly as the tags repo vocabulary lists them, no demo-only additions, no live subject_key
+# re-resolution or count lookups, no curation exclusions -- see the `enrich` param on
+# build_genre_tree below for exactly what that skips.
+DEFAULT_BASIC_OUTPUT = "openlibrary/components/LibraryExplorer/genre-basic.json"
 
 # Excluded from this prototype specifically (not a data/quality issue -- mek's call for
 # this demo).
@@ -33,6 +38,26 @@ EXCLUDED_GENRES = {"Erotica"}
 # Extra parent_genres for real vocabulary subgenres, on top of what the vocabulary itself
 # lists -- demo-only, same spirit as DEMO_SUBGENRE_ADDITIONS below.
 EXTRA_PARENT_GENRES: dict[str, list[str]] = {}
+
+# subject_key is a flat, non-hierarchical tag, so a subgenre shelf's query is normally just
+# the subgenre's own tag alone (e.g. subject_key:utopian*) -- trusting that a book tagged
+# with a specific-enough subgenre is already reasonably likely to belong on that genre's
+# shelf, without also requiring the parent genre's own tag. That trust mostly holds
+# (confirmed against production, subject_key facet, numFound): vampires* AND horror*:
+# 9,694 -> 994, dragons* AND fantasy*: 5,373 -> 1,121 -- both still healthy, so the parent
+# tag IS usually reliably co-applied where it'd matter.
+#
+# AMBIGUOUS_SUBGENRES is the opt-in exception: a subgenre tag ANDed with its parent (e.g.
+# subject_key:(utopian* AND fantasy*)) specifically where the bare tag is genuinely
+# ambiguous enough to pull in clearly off-genre results (e.g. "Reimagining Democracy", a
+# political-science book, carries "utopian" but has nothing to do with Fantasy) -- worth
+# the tradeoff of a much thinner shelf (utopian* alone: 504, AND fantasy*: 6) specifically
+# because the false positives are that bad. Not the default because it usually isn't a
+# good tradeoff: climate_fiction* AND drama*/science_fiction*: 20 -> 0 either way, steampunk*
+# AND its 3 parents: 274 -> 26-64, and all 10 of Drama's current subgenres drop 90-99%+
+# under their own genre's AND -- confirmed live, none of those are "ambiguous" in the same
+# sense, they just aren't reliably double-tagged.
+AMBIGUOUS_SUBGENRES = {"Utopian"}
 
 # Excluded despite passing resolve_subject_key's live check below: that check only
 # verifies the *raw* subject_key count, but the app's actual default filters (the
@@ -659,7 +684,7 @@ def resolve_subject_key(tag: dict, with_counts: bool) -> tuple[str, int]:
     return best_slug, best_count
 
 
-def build_genre_tree(genres: list[dict], subgenres: list[dict], with_counts: bool) -> list[dict]:
+def build_genre_tree(genres: list[dict], subgenres: list[dict], with_counts: bool, enrich: bool = True) -> list[dict]:
     genre_by_tag = {g["tag"]: g for g in genres}
     # `query` is embedded directly into the Solr query in Shelf.vue (`subject_key:${query}`), so it
     # must always be a bare slug -- real subject_key values have no genre/subgenre path structure.
@@ -681,7 +706,7 @@ def build_genre_tree(genres: list[dict], subgenres: list[dict], with_counts: boo
         }
 
     for sg in subgenres:
-        if sg["tag"] in EXCLUDED_SUBGENRES:
+        if enrich and sg["tag"] in EXCLUDED_SUBGENRES:
             continue
         parents = sg.get("parent_genres", []) + EXTRA_PARENT_GENRES.get(sg["tag"], [])
         resolved_slug, count = resolve_subject_key(sg, with_counts)
@@ -697,6 +722,10 @@ def build_genre_tree(genres: list[dict], subgenres: list[dict], with_counts: boo
                     "query": f"{resolved_slug}*",
                     "hierarchyQuery": f"{genre_slug[parent_tag]}/{resolved_slug}*",
                     "count": count,
+                    # See AMBIGUOUS_SUBGENRES above -- read by Shelf.vue to AND this
+                    # subgenre's query with its parent's. False (the default) for everything
+                    # not explicitly listed there.
+                    "requiresIntersection": sg["tag"] in AMBIGUOUS_SUBGENRES,
                 }
             )
 
@@ -724,23 +753,41 @@ def main():
         help="Path to a local Open-Book-Genome-Project/tags checkout (used when --source=local).",
     )
     parser.add_argument("--output", type=Path, default=Path(DEFAULT_OUTPUT))
+    parser.add_argument("--basic-output", type=Path, default=Path(DEFAULT_BASIC_OUTPUT))
     parser.add_argument(
         "--skip-counts", action="store_true", help="Skip live Solr/search.json count lookups (fast iteration; counts will be 0, vocabulary slugs used as-is)."
+    )
+    parser.add_argument("--skip-basic", action="store_true", help="Only (re)write the enriched genre.json, skipping the basic/raw genre-basic.json output.")
+    parser.add_argument(
+        "--only-basic",
+        action="store_true",
+        help="Only (re)write genre-basic.json -- skips the enriched build entirely (and its live count fetches), so it can't touch genre.json.",
     )
     args = parser.parse_args()
 
     print(f"Loading genres/subgenres vocabulary from {args.source}...", file=sys.stderr)
     genres = [g for g in load_vocabulary("genres", args.source, args.tags_repo) if g["tag"] not in EXCLUDED_GENRES]
-    subgenres = load_vocabulary("subgenres", args.source, args.tags_repo) + DEMO_SUBGENRE_ADDITIONS
-    print(f"  {len(genres)} genres, {len(subgenres)} subgenres ({len(DEMO_SUBGENRE_ADDITIONS)} demo-only additions)", file=sys.stderr)
+    raw_subgenres = load_vocabulary("subgenres", args.source, args.tags_repo)
+    print(f"  {len(genres)} genres, {len(raw_subgenres)} subgenres", file=sys.stderr)
 
-    if not args.skip_counts:
-        print("Fetching live subject counts from openlibrary.org/search.json (subject_key facet)...", file=sys.stderr)
-    tree = build_genre_tree(genres, subgenres, with_counts=not args.skip_counts)
+    if not args.only_basic:
+        enriched_subgenres = raw_subgenres + DEMO_SUBGENRE_ADDITIONS
+        print(f"  +{len(DEMO_SUBGENRE_ADDITIONS)} demo-only additions for the enriched tree", file=sys.stderr)
+        if not args.skip_counts:
+            print("Fetching live subject counts from openlibrary.org/search.json (subject_key facet)...", file=sys.stderr)
+        tree = build_genre_tree(genres, enriched_subgenres, with_counts=not args.skip_counts, enrich=True)
 
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(tree, indent=2) + "\n")
-    print(f"Wrote {args.output}", file=sys.stderr)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(tree, indent=2) + "\n")
+        print(f"Wrote {args.output}", file=sys.stderr)
+
+    if not args.skip_basic:
+        # Basic tree: the tags repo vocabulary as-is -- no demo additions, no live
+        # subject_key re-resolution/counts, no curation exclusions.
+        basic_tree = build_genre_tree(genres, raw_subgenres, with_counts=False, enrich=False)
+        args.basic_output.parent.mkdir(parents=True, exist_ok=True)
+        args.basic_output.write_text(json.dumps(basic_tree, indent=2) + "\n")
+        print(f"Wrote {args.basic_output}", file=sys.stderr)
 
 
 if __name__ == "__main__":
