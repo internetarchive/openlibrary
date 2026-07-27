@@ -23,18 +23,34 @@
       class="genre-scroll-home"
       aria-hidden="true"
     />
-    <GenreTopNav
+    <div
       v-if="classification.alphabeticalTopNav"
-      :nodes="classification.root.children"
-      :active-index="activeGenreIndex"
-      @select="selectGenre"
-      @select-all="selectAllGenres"
-    />
-    <GenreFilterBar
-      v-if="classification.alphabeticalTopNav"
-      :filter-state="filterState"
-      :sort-state="sortState"
-    />
+      ref="stickyHeader"
+      class="genre-sticky-header"
+    >
+      <GenreTopNav
+        :nodes="classification.root.children"
+        :active-index="activeGenreIndex"
+        @select="selectGenre"
+        @select-all="selectAllGenres"
+      />
+      <GenreFilterBar
+        :filter-state="filterState"
+        :sort-state="sortState"
+        :genre-enriched="genreEnriched"
+        :chips-teleport-target="stickyHeaderEl"
+        :initial-language-keys="initialLanguageKeys"
+        @update:genre-enriched="$emit('update:genre-enriched', $event)"
+        @ready="updateWidths"
+      />
+      <!-- The bookcase's own top board -- a wood-plank frame mirroring the shelves' own
+           baseboard, so the case reads as one continuous carcass topped and bottomed the
+           same way, rather than shelves just starting abruptly under the nav. -->
+      <div
+        class="genre-top-board"
+        aria-hidden="true"
+      />
+    </div>
     <div
       v-else
       class="lr-signs"
@@ -227,6 +243,15 @@ export default {
         // above are the derived string/order value used for the actual Solr queries).
         filterState: Object,
         sortState: Object,
+        // Genre mode's basic/enriched tree toggle -- see LibraryExplorer.vue's genreEnriched
+        // watcher, which is what actually swaps `classification.root` when this changes.
+        genreEnriched: Boolean,
+        // Pass-through to GenreFilterBar -- see its own prop doc for why language is the
+        // one URL-shareable filter LibraryExplorer.vue can't just apply to filterState itself.
+        initialLanguageKeys: {
+            type: Array,
+            default: () => [],
+        },
         filter: {
             default: '',
             type: String
@@ -264,6 +289,11 @@ export default {
             activeRoom,
             breadcrumbs,
             jumpToData,
+
+            // Set in mounted() once $refs.stickyHeader actually exists -- a plain
+            // template ref isn't reactive on its own, so GenreFilterBar's
+            // chips-teleport-target prop (below) wouldn't update once it's assigned.
+            stickyHeaderEl: null,
 
             expandingAnimation: false,
             // Which direction Bookshelf's cross-slide (genre mode only) enters new
@@ -319,6 +349,11 @@ export default {
         async classification(newVal) {
             this.activeRoom = newVal.root;
             this.breadcrumbs = [];
+            // Genre mode's basic/enriched toggle lands here (a new root swapped into this
+            // prop) -- the old scroll position may no longer correspond to anything
+            // sensible in the new tree (different genre count/order), so start over at the
+            // top rather than leaving the pane wherever it happened to be scrolled to.
+            if (newVal.alphabeticalTopNav) this.$el.scrollTop = 0;
             await nextTick();
             this.updateWidths();
             this.updateActiveShelfOnScroll();
@@ -343,6 +378,22 @@ export default {
         // this server-rendered shell, but a hash is meant to be updated (and reacted to)
         // without reloading at all, e.g. a homepage genre link the app is already open to.
         if (this.classification.alphabeticalTopNav) {
+            this.stickyHeaderEl = this.$refs.stickyHeader;
+
+            // The site header only auto-hides on window scroll (header-scroll.js, wired up
+            // in index.js) -- genre mode's own pane (.book-room, this component's root) is
+            // its own scroll container, so window.scrollY never changes here and that
+            // listener never fires. Drive the same behavior from this pane's scroll instead.
+            const siteHeader = document.getElementById('site-header-autohide');
+            if (siteHeader) {
+                import(/* webpackChunkName: "header-scroll" */ '../../../plugins/openlibrary/js/header-scroll.js')
+                    .then(module => {
+                        this._teardownHeaderAutoHide = module.initHeaderAutoHide(siteHeader, this.$el, hidden => {
+                            this.$el.classList.toggle('header-collapsed', hidden);
+                        });
+                    });
+            }
+
             window.addEventListener('hashchange', this.onHashChange);
             // Vertical stepping is native CSS scroll-snap now (see the .shelf snap rules in
             // <style>): the browser owns the trackpad momentum, so one gesture = one shelf
@@ -418,6 +469,7 @@ export default {
         window.removeEventListener('wheel', this.onWindowWheel);
         document.documentElement.style.overscrollBehaviorX = '';
         this.$el.removeEventListener('load', this.onCoverLoaded, true);
+        this._teardownHeaderAutoHide?.();
     },
     methods: {
         // Resolves a #-style anchor the same way jumpTo resolves at mount (findGenreNodeBySlug,
@@ -514,8 +566,19 @@ export default {
             // retargeting, e.target for anything originating *inside* that shadow tree gets
             // reported as the shadow host itself -- .closest() on that would never find
             // .shelf-carousel regardless of where the gesture actually started.
-            // composedPath()[0] is the true originating element, unaffected by retargeting.
-            if (e.composedPath()[0]?.closest?.('.shelf-carousel')) return;
+            //
+            // Scanning the full composedPath() (not just .closest() from composedPath()[0])
+            // matters specifically for .genre-sticky-header: its controls (ol-toggle,
+            // ol-select-popover, ol-options-popover, ol-chip...) are the site-wide Lit
+            // bundle's own custom elements, each with its OWN shadow root nested inside
+            // <ol-library-explorer>'s -- a gesture starting on, say, the button inside
+            // ol-toggle's shadow root can't .closest() out past ol-toggle's own shadow
+            // boundary to find an ancestor class in a *different* shadow tree. composedPath()
+            // still lists every element the event crosses through, shadow boundaries
+            // included, so checking membership in the whole array works regardless of how
+            // many shadow roots are nested between the gesture and .genre-sticky-header.
+            const path = e.composedPath();
+            if (path.some(el => el.classList?.contains('shelf-carousel') || el.classList?.contains('genre-sticky-header'))) return;
             e.preventDefault();
             // One physical swipe = one genre switch, WITHOUT the aggressive delay a fixed
             // time-lock causes: a trackpad's momentum tail keeps streaming events, so a lock
@@ -569,7 +632,13 @@ export default {
         },
 
         onShelvesTouchStart(e) {
-            if (!this.classification.alphabeticalTopNav || e.target.closest('.shelf-carousel')) {
+            // Bound directly on .book-room (inside <ol-library-explorer>'s own shadow
+            // root, same as .genre-sticky-header), so unlike onWindowWheel above, a touch
+            // starting inside a Lit control (ol-toggle etc.) only crosses ONE shadow
+            // boundary before reaching this listener -- e.target retargets to that
+            // control's own host tag (e.g. <ol-toggle>), which .closest() can still find
+            // .genre-sticky-header from, no composedPath() scan needed.
+            if (!this.classification.alphabeticalTopNav || e.target.closest('.shelf-carousel, .genre-sticky-header')) {
                 this._touchStart = null;
                 return;
             }
@@ -656,13 +725,13 @@ export default {
                 setTimeout(this.updateWidths, 100);
             }
 
-            // Only .genre-top-nav-wrapper is actually position: sticky -- GenreFilterBar
-            // scrolls away with the page like normal content. Set once here (not
-            // recomputed per navigation) as a CSS custom property that .shelf's
-            // scroll-margin-top reads, below -- so scrollIntoView natively lands each
-            // shelf right below the sticky nav, without any manual scrollY/rect math.
+            // .genre-sticky-header (nav + filter bar + top board) is the sticky unit as a
+            // whole. Set once here (not recomputed per navigation) as a CSS custom property
+            // that .shelf's scroll-margin-top reads, below -- so scrollIntoView natively
+            // lands each shelf right below the sticky header, without any manual scrollY/
+            // rect math.
             if (this.classification.alphabeticalTopNav) {
-                const navHeight = this.$el.querySelector('.genre-top-nav-wrapper')?.offsetHeight || 0;
+                const navHeight = this.$el.querySelector('.genre-sticky-header')?.offsetHeight || 0;
                 this.$el.style.setProperty('--genre-nav-height', `${navHeight}px`);
 
                 // Size the scroll pane (.book-room itself) to fill the viewport below the
@@ -674,6 +743,13 @@ export default {
                 // distance from the top of the viewport while the document is unscrolled.
                 const top = this.$el.getBoundingClientRect().top + window.scrollY;
                 this.$el.style.setProperty('--genre-pane-height', `${Math.max(200, Math.round(window.innerHeight - top))}px`);
+                // Same distance, reused when the site header auto-hides (header-scroll.js's
+                // onToggle, in mounted() below): this pane doesn't scroll the document, so
+                // hiding the header via transform (see header-bar.css) leaves a dead gap
+                // above the pane instead of content reclaiming that space the way it does
+                // on a normal page. .header-collapsed shifts the pane up by exactly this
+                // much and grows it to match, so it fills the gap instead of leaving one.
+                this.$el.style.setProperty('--site-header-reclaim-height', `${Math.round(top)}px`);
             }
         },
 
@@ -923,6 +999,17 @@ button {
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
+  transition: height .25s ease-out, margin-top .25s ease-out;
+}
+/* The site header hides via transform (see header-bar.css), which never reclaims its own
+   layout space -- invisible on a normal page (already scrolled past by the time it hides),
+   but this pane doesn't scroll the document at all, so without this it'd leave a dead gap
+   above the pane where the header used to be instead of the pane growing into it. Shift up
+   by exactly the header's own height (--site-header-reclaim-height, measured in
+   updateWidths) and grow by the same amount so the pane's bottom edge stays put. */
+.book-room.genre-mode.header-collapsed {
+  height: calc(var(--genre-pane-height, 85vh) + var(--site-header-reclaim-height, 0px));
+  margin-top: calc(-1 * var(--site-header-reclaim-height, 0px));
 }
 /* LibraryExplorer.vue's .book-room.style--aesthetic--wip sets a warm tan gradient at the
    same specificity (2 classes) as .book-room.genre-mode, so on a source-order tie it can
@@ -935,13 +1022,114 @@ button {
      wood. */
   background: #e9e0cf;
 }
+/* The sticky unit as a whole -- top nav, filter "sign", and the bookcase's own top board
+   (all below) -- so the controls are always visible instead of scrolling away with the
+   page. Opaque (matches the room wall) so shelves scrolling underneath never show through
+   any gap between the nav and the sign below it. */
+.book-room.genre-mode .genre-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #6c614e;
+}
+/* GenreFilterBar restyled as a small hanging sign: centered, sized to its own content
+   (not a full-width bar), hanging by two thin strings from the dark nav above -- like a
+   little placard tacked up in a shop window, rather than a form spanning the room. */
+.book-room.genre-mode .genre-filter-bar {
+  position: relative;
+  width: fit-content;
+  max-width: min(90vw, 900px);
+  margin: 15px auto 25px auto;
+  padding: 10px 18px;
+  background: #f3ead4;
+  border: 1px solid rgba(0, 0, 0, .25);
+  border-radius: 4px;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .45);
+}
+/* On a narrow viewport the controls don't fit their max-width (90vw here) on one line --
+   the base rule's flex-wrap: wrap would spill them onto a second/third row, growing the
+   sign tall and pushing the bookcase down. Scroll horizontally within the sign's own width
+   instead: one line, same sign height regardless of viewport. justify-content: flex-start
+   (not the base rule's center) because centering overflowing flex content is a known trap
+   -- browsers can leave the start of the row unreachable by scroll. */
+@media (max-width: 767px) {
+  .book-room.genre-mode .genre-filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+.book-room.genre-mode .genre-filter-bar::before,
+.book-room.genre-mode .genre-filter-bar::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  width: 2px;
+  height: 18px;
+  background: linear-gradient(to bottom, transparent, #8a7355 35%);
+}
+.book-room.genre-mode .genre-filter-bar::before { left: 30%; }
+.book-room.genre-mode .genre-filter-bar::after { left: 70%; }
+/* Selected-filter pills float just above the top board (see .genre-top-board) rather than
+   adding their own row inside the sign -- like a little placard resting on the shelf's own
+   edge, so picking a filter never grows .genre-sticky-header's height. Teleported (see
+   GenreFilterBar.vue) to be a direct child of .genre-sticky-header, so this positions
+   relative to that, not .genre-filter-bar -- out-specifies GenreFilterBar's own scoped
+   .genre-filter-bar__chips (flex-basis: 100%, an in-flow row), which is what that rule is
+   for everywhere it isn't overridden -- there is nowhere else it's used, since
+   GenreFilterBar only ever renders in genre mode. */
+.book-room.genre-mode .genre-filter-bar__chips {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  flex-basis: auto;
+  width: max-content;
+  max-width: 90vw;
+  margin-top: 0;
+}
+/* Sits the pill on the board the same way the board's own lighting reads: the board's
+   gradient (--wood-top lit at the top, darkening toward --wood-deep) implies an overhead
+   light, so the pill's own shadow falls straight down beneath it, not off to a side like
+   the books' upper-left key light -- a diagonal offset here just looked like a mismatched
+   light source. Tight and dark near the pill, short falloff -- a crisp contact shadow, not
+   a soft blurred halo. box-shadow/border-radius work on ol-chip's own host box from
+   outside its shadow root (unlike its internal .chip fill/border, which are shadow-
+   encapsulated) -- the host has no border-radius of its own by default, so it's set here
+   to match the pill shape, otherwise the shadow would render as a rectangle behind a
+   rounded pill. */
+.book-room.genre-mode .genre-filter-bar__chips ol-chip {
+  border-radius: 999px;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .4),
+    0 3px 4px -1px rgba(0, 0, 0, .45);
+}
+/* The bookcase's own top board -- the same wood-plank treatment as each shelf's baseboard
+   (see .shelf-carousel::after below), so the case reads as one continuous carcass topped
+   and bottomed the same way instead of shelves just starting abruptly under the nav. */
+.book-room.genre-mode .genre-top-board {
+  height: 20px;
+  background:
+    var(--oak-grain),
+    linear-gradient(180deg,
+      var(--wood-top) 0%,
+      var(--wood-top) 8px,
+      var(--wood-face) 9px,
+      var(--wood-deep) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 231, .5),
+    inset 0 -2px 4px rgba(0, 0, 0, .3),
+    0 6px 10px -4px var(--shelf-cast);
+}
 /* Home is a real snap position at scrollTop 0 (see the .genre-scroll-home sentinel in the
-   template for why it's anchored here and not on the sticky nav or late-rendering filter):
-   scrolling all the way up rests with nav + filter + first shelf visible, and the first
+   template for why it's anchored here and not on the sticky nav, whose scroll-snap-align
+   position tracks wherever it's currently stuck): scrolling all the way up rests with the
+   sticky header (nav + filter sign + top board) and the first shelf visible, and the first
    scroll-down step snaps past it onto shelf 0. Zero height so it takes no layout space.
-   scroll-snap-stop: always makes it a hard stop symmetric with the shelves -- the controls
-   behave as the "0th shelf", so a scroll-up gesture off shelf 0 lands firmly on the controls
-   instead of being pulled back down by shelf 0's own stop. */
+   scroll-snap-stop: always makes it a hard stop symmetric with the shelves -- the header
+   behaves as the "0th shelf", so a scroll-up gesture off shelf 0 lands firmly on it instead
+   of being pulled back down by shelf 0's own stop. */
 .book-room.genre-mode .genre-scroll-home {
   height: 0;
   scroll-snap-align: start;
@@ -958,7 +1146,7 @@ button {
    frame's cross-slide runs off the viewport edge without needing to be clipped. */
 .book-room.genre-mode .book-room-shelves {
   /* Not a scroll container -- the scroller is .book-room (see above), so that the sticky
-     nav, the scrolling-away filter bar, and the shelves all live in ONE scroll region.
+     header (nav + filter sign + top board) and the shelves all live in ONE scroll region.
      display:block instead of the base flex (one bookcase here), and overflow:visible so it
      doesn't capture the shelves' scroll-snap-align (that must belong to .book-room). */
   display: block;
@@ -1020,6 +1208,11 @@ button {
      mode's cross-slide runs off the full-bleed viewport edge, so clipping isn't needed
      here -- drop it so vertical snap belongs to the document. */
   overflow: visible;
+  /* The base rule's 36px top padding made room for DDC/LCC's own big per-bookcase sign,
+     which genre mode never renders (one bookcase, selected via the top nav instead) --
+     now that the sticky header ends in its own top board, that padding just left a dead
+     gap between it and the first shelf. */
+  padding: 0;
 }
 .book-room.genre-mode .bookshelf-wrapper {
   width: 100%;

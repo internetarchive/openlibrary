@@ -121,9 +121,9 @@ export default {
 
 <style scoped>
 .genre-top-nav-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  /* Positioning (sticky/top/z-index) now belongs to .genre-sticky-header in BookRoom.vue,
+     which pins this nav, GenreFilterBar's hanging sign, and the bookcase top board together
+     as one unit -- previously only this nav was sticky and the filter bar scrolled away. */
   display: flex;
   /* A dark category sign (like a bookshop's hanging section boards) with clean white type.
      --chalk-board cascades from .book-room.genre-mode. Opaque so shelves scroll cleanly
