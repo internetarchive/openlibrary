@@ -29,18 +29,21 @@
   border: var(--border-width) solid var(--lighter-grey);
   border-radius: var(--border-radius-card);
   background: var(--white);
-  transition: background-color 0.15s ease;
 }
 
-/* Outrank the global a:link / a:hover underline (common.css). */
+/* Outrank the global a:link / a:hover underline (common.css). Not gated on
+   pointer type: touch fires :hover on tap, and the underline shouldn't return. */
 .subjectAuthors-card:link,
 .subjectAuthors-card:visited,
 .subjectAuthors-card:hover {
   text-decoration: none;
 }
 
-.subjectAuthors-card:hover {
-  background: var(--lightest-grey);
+/* No transition: the tint snaps in on arrival. */
+@media (hover: hover) and (pointer: fine) {
+  .subjectAuthors-card:hover {
+    background: var(--lightest-grey);
+  }
 }
 
 .subjectAuthors-avatar {
