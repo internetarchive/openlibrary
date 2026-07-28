@@ -2,6 +2,7 @@
 
 import asyncio
 import itertools
+import logging
 import re
 from dataclasses import dataclass
 from datetime import date
@@ -22,29 +23,23 @@ if TYPE_CHECKING:
 
 __all__ = ["SubjectEngine", "get_subject"]
 
+logger = logging.getLogger("openlibrary.worksearch")
+
 
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
-# Works sampled per signal to build "Notable authors". 8 unique authors almost
-# always appear well within the first 40 rows of a signal-sorted list.
+# Works sampled per signal; 8 unique authors reliably appear in the first 40 rows.
 NOTABLE_AUTHORS_SAMPLE_SIZE = 40
 MAX_NOTABLE_AUTHORS = 8
-# Two complementary signals, interleaved: reading-log activity surfaces a
-# subject's contemporary authors, syllabus assignments its canonical ones.
-# Neither alone is enough -- reading-log data is very thin outside fiction
-# (~2-3% of works on a long-tail subject), and osp skews to course-assigned
-# classics. Both are indexed fields, so these stay cheap docValues sorts.
-#
-# Order matters: the first sort owns the most visible slot. osp first put
-# Joseph Conrad atop both mystery and romance (a few heavily-assigned works
-# carry incidental subject tags), so reading-log leads and osp enriches.
+# Reading-log surfaces a subject's contemporary authors, syllabus assignments its
+# canonical ones; neither is dense enough alone. Reading-log leads because the
+# first sort owns the most visible slot.
 NOTABLE_AUTHORS_SORTS = ("readinglog", "osp_count desc")
-# Works with no signal at all can't be ranked, only tie-broken arbitrarily.
-# Excluding them shrinks the scanned corpus 3-84x depending on the subject.
+# Works with no signal at all can only be tie-broken arbitrarily. Excluding them
+# shrinks the scanned corpus 3-84x depending on the subject.
 NOTABLE_AUTHORS_CANDIDATE_FILTER = "osp_count:[1 TO *] OR readinglog_count:[5 TO *] OR edition_count:[5 TO *]"
-# Long TTL is safe: memcache_memoize is stale-while-revalidate, so a refresh
-# never blocks a request.
+# Long TTL is safe: memcache_memoize is stale-while-revalidate.
 NOTABLE_AUTHORS_CACHE_TIMEOUT = 12 * 60 * 60  # 12h
 
 
@@ -113,43 +108,40 @@ class subjects(delegate.page):
         """
         Attaches the cached "Notable authors" list for the SubjectAuthors macro.
 
-        Two things stay out of the cache. Cached authors come back as plain
-        dicts (memcache round-trips through JSON), so they're rehydrated into
-        web.storage for Templetor's dot access. And counts are merged from
-        subject.authors, which is recomputed every request, so they stay exact
-        while the cached ranking is allowed to go stale.
+        Cached authors come back as plain dicts (memcache round-trips through
+        JSON), so they're rehydrated into web.storage for Templetor's dot access.
         """
+        subject.notable_authors = []
         engine = next((e for e in SUBJECTS if e.name == subject.subject_type), None)
         if engine is None:
             return
 
         path = subject.key.removeprefix(engine.prefix)
-        raw_authors = get_cached_notable_authors(subject.subject_type, path)
-        if not raw_authors:
-            subject.notable_authors = []
+        try:
+            raw_authors = get_cached_notable_authors(subject.subject_type, path)
+        except Exception:
+            # A cold miss touches solr, memcache and infobase; none of them
+            # should be able to take down a page whose main content is ready.
+            logger.exception("Failed to load notable authors for %s", subject.key)
             return
 
-        exact_counts = {a.key: a.count for a in subject.get("authors") or []}
-        notable_authors = []
-        for raw in raw_authors:
-            rep_work = raw.get("representative_work")
-            author = web.storage(
+        subject.notable_authors = [
+            web.storage(
                 key=raw["key"],
                 name=raw["name"],
-                photo_url=raw.get("photo_url"),
+                count=raw.get("count", 1),
                 representative_work=(
                     web.storage(
                         key=rep_work["key"],
                         title=rep_work["title"],
                         cover_id=rep_work.get("cover_id"),
                     )
-                    if rep_work
+                    if (rep_work := raw.get("representative_work"))
                     else None
                 ),
-                count=exact_counts.get(raw["key"], raw.get("count", 1)),
             )
-            notable_authors.append(author)
-        subject.notable_authors = notable_authors
+            for raw in raw_authors
+        ]
 
 
 def normalize_author_name(name: str) -> str:
@@ -162,13 +154,12 @@ def normalize_author_name(name: str) -> str:
 
 def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
     """
-    Interleaves per-signal work samples by rank, so every signal is represented
-    even when one of them is thin, and takes each author's first (highest-ranked)
-    work as their representative work.
+    Interleaves per-signal work samples by rank, so a thin signal still gets
+    represented, and takes each author's highest-ranked work as their
+    representative work.
 
-    Only a work's *first* author is considered. Solr's author_key carries no
-    role, so later entries are as often illustrators, translators or audiobook
-    narrators as they are genuine co-authors.
+    Only a work's *first* author is considered: solr's author_key carries no
+    role, so later entries are as often illustrators or narrators as co-authors.
     """
     authors: dict[str, web.storage] = {}
     seen_names: set[str] = set()
@@ -188,8 +179,8 @@ def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
                 continue
 
             olid, name = author_keys[0], author_names[0]
-            # The solr updater defaults a missing author name to "" (see
-            # solr/updater/work.py), which would render a nameless card.
+            # The solr updater defaults a missing author name to "", which
+            # would render a nameless card.
             if not (name or "").strip() or olid in authors:
                 continue
 
@@ -215,11 +206,10 @@ def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
     return list(authors.values())
 
 
-def _compute_notable_authors_with_photos(subject_type: str, path: str) -> list[dict]:
+def _compute_notable_authors(subject_type: str, path: str) -> list[dict]:
     """
     Sync seam for memcache_memoize, which is sync-only and needs JSON-encodable
-    args (hence plain strings rather than a SubjectEngine). Photos are folded in
-    here so they're cached alongside the ranking instead of refetched per hit.
+    args (hence plain strings rather than a SubjectEngine).
     """
     if "site" not in web.ctx:
         # The background refresh thread has no request ctx. Same guard as
@@ -230,21 +220,11 @@ def _compute_notable_authors_with_photos(subject_type: str, path: str) -> list[d
     if engine is None:
         return []
 
-    authors = async_bridge.run(engine.get_notable_authors_async(path))
-    if not authors:
-        return []
-
-    authors_by_key = {thing.key: thing for thing in web.ctx.site.get_many([a.key for a in authors])}
-    for author in authors:
-        thing = authors_by_key.get(author.key)
-        # "S" (~2KB) not "M" (~8KB); these render as 1.75rem thumbnails.
-        author.photo_url = thing.get_photo_url("S") if thing else None
-
-    return [dict(a) for a in authors]
+    return [dict(author) for author in async_bridge.run(engine.get_notable_authors_async(path))]
 
 
 get_cached_notable_authors = cache.memcache_memoize(
-    _compute_notable_authors_with_photos,
+    _compute_notable_authors,
     key_prefix="subjects.notable_authors",
     timeout=NOTABLE_AUTHORS_CACHE_TIMEOUT,
     hash_args=True,  # long subject slugs would overflow memcache's 250-char key limit
@@ -520,9 +500,7 @@ class SubjectEngine:
         Samples works once per signal in NOTABLE_AUTHORS_SORTS (concurrently),
         then interleaves the samples -- see merge_notable_authors. Deliberately
         ignores the reader's filters and sort, so one cached list serves every
-        variant of the page. `count` is a placeholder here;
-        decorate_with_notable_authors backfills exact counts from the
-        author_key facet the main query already computes.
+        variant of the page.
         """
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import (
@@ -548,7 +526,44 @@ class SubjectEngine:
             return result.docs
 
         samples = await asyncio.gather(*(sample(sort) for sort in NOTABLE_AUTHORS_SORTS))
-        return merge_notable_authors(samples)
+        authors = merge_notable_authors(samples)
+        if authors:
+            counts = await self.get_author_work_counts_async(query, [a.key for a in authors], request_label)
+            for author in authors:
+                author.count = counts.get(author.key, 1)
+        return authors
+
+    @staticmethod
+    async def get_author_work_counts_async(
+        query: dict,
+        author_keys: list[str],
+        request_label: SolrRequestLabel = "SUBJECT_NOTABLE_AUTHORS",
+    ) -> dict[str, int]:
+        """
+        Counts each author's works on this subject: one facet.query per author.
+
+        The page query's author facet can't supply these -- it keeps only the 25
+        most prolific authors, and signal-ranked authors are rarely among them
+        (0-1 of 8 on production subjects).
+        """
+        # Circular imports are everywhere -_-
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            run_solr_query_async,
+        )
+
+        facet_queries = {f'author_key:"{key.removeprefix("/authors/")}"': key for key in author_keys}
+        result = await run_solr_query_async(
+            WorkSearchScheme(),
+            query,
+            request_label=request_label,
+            rows=0,
+            facet=False,
+            fields=["key"],
+            extra_params=[("facet", "true"), *(("facet.query", fq) for fq in facet_queries)],
+        )
+        counts = (result.raw_resp or {}).get("facet_counts", {}).get("facet_queries", {})
+        return {facet_queries[fq]: count for fq, count in counts.items() if fq in facet_queries}
 
     def normalize_key(self, key):
         return Tag.normalize(key)

@@ -1,17 +1,18 @@
 $def with (authors)
 
 $# Signal-ranked "Notable authors" cards, built in
-$# subjects.decorate_with_notable_authors. photo_url, representative_work and
-$# cover_id are each optional, so a sparse subject still renders.
+$# subjects.decorate_with_notable_authors. The photo, representative work and
+$# cover are each optional: a missing photo 404s (default=false) and the empty
+$# alt collapses it, letting the placeholder background show through.
 
 $if authors:
   <div id="resultsAuthors" class="widget-box">
     <div class="head">
       <h3>$_("Notable Authors")</h3>
     </div>
-    <ul class="subjectAuthors unordered">
+    <ul class="subjectAuthors">
       $for author in authors:
-        $ photo_url = author.get('photo_url')
+        $ olid = author.key.split('/')[-1]
         $ rep_work = author.get('representative_work')
         $ remaining = max(author.get('count', 1) - 1, 0)
         $ cover_id = rep_work.get('cover_id') if rep_work else None
@@ -25,8 +26,7 @@ $if authors:
         <li class="subjectAuthors-item">
           <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
             <span class="subjectAuthors-avatar">
-              $if photo_url:
-                <img src="$photo_url" loading="lazy" alt="" aria-hidden="true" />
+              <img src="$(get_coverstore_public_url())/a/olid/$(olid)-S.jpg?default=false" loading="lazy" alt="" aria-hidden="true" />
             </span>
             <span class="subjectAuthors-text">
               <span class="subjectAuthors-name">$author.name</span>

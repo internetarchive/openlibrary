@@ -1,18 +1,14 @@
 /**
  * SubjectAuthors
- * Compact card layout for the "Notable authors" widget. Each card links to
- * the author: a portrait thumbnail, the author's name, a representative
- * work + count, and -- when available -- a small cover thumbnail of that
- * work at the trailing edge. Portrait thumbnail uses the existing 131x180
- * author-placeholder aspect ratio already established in illustration.css
- * (.SRPCoverBlank.author), scaled down for a list.
+ * Card layout for the "Notable authors" widget: author photo, name, a
+ * representative work + count, and that work's cover at the trailing edge.
  */
 
+/* Top margin comes from .widget-box ul. */
 .subjectAuthors {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -31,8 +27,8 @@
   background: var(--white);
 }
 
-/* Outrank the global a:link / a:hover underline (common.css). Not gated on
-   pointer type: touch fires :hover on tap, and the underline shouldn't return. */
+/* Outranks the global a:link / a:hover underline. Includes :hover because touch
+   fires it on tap, and the underline shouldn't return there. */
 .subjectAuthors-card:link,
 .subjectAuthors-card:visited,
 .subjectAuthors-card:hover {
@@ -46,17 +42,14 @@
   }
 }
 
+/* 131x180 matches the author placeholder, which shows through (rounded
+   rectangle, not a circle, so the silhouette reads) when there's no photo. */
 .subjectAuthors-avatar {
   flex: none;
   width: 1.75rem;
-  /* Portrait thumbnail matching the 131x180 author placeholder so the
-     silhouette fills the box without distortion or cropping. */
   aspect-ratio: 131 / 180;
   overflow: hidden;
-  /* Rounded-rectangle thumbnail (not a circle) so the person-silhouette
-     placeholder reads correctly when an author has no photo. */
   border-radius: var(--border-radius-thumbnail);
-  /* Fallback avatar shows through when the author has no photo. */
   background: var(--lightest-grey)
     url(/static/images/icons/avatar_author-lg.png) center / cover no-repeat;
 }
@@ -97,11 +90,10 @@
   white-space: nowrap;
 }
 
+/* Fixed box reserves space before the lazy image lands and keeps rows even. */
 .subjectAuthors-cover {
   flex: none;
   width: 1.85rem;
-  /* Fixed box reserves space before the lazy image lands, and keeps rows an
-     even height regardless of each cover's own proportions. */
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--border-radius-sm);
