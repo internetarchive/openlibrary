@@ -165,12 +165,17 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
-    <!-- Near-realtime loan availability, updated by loan_availability_updater -->
+    <!-- Near-realtime loan availability, written to EDITION docs by loan_availability_updater. -->
     <!-- stored="false" + indexed="false": required for update.partial.requireInPlace to work. -->
-    <!-- Solr in-place updates require docValues=true, stored=false, indexed=false. -->
-    <!-- Filtering via fq=ebook_availability:available still works through docValues. -->
-    <field name="ebook_availability" type="string" multiValued="false" docValues="true" stored="false" indexed="false"/>
-    <field name="ebook_becomes_available" type="pdate" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <!-- Solr in-place updates additionally require the field to be numeric: string and pdate -->
+    <!-- fields return HTTP 400 on requireInPlace regardless of docValues/stored/indexed. -->
+    <!-- ebook_availability is 0 (unavailable) / 1 (available); ebook_becomes_available is -->
+    <!-- epoch seconds. Filtering/faceting/sorting still work through docValues alone. -->
+    <!-- requireInPlace also rejects "set": null (can't clear in-place, even from no value), -->
+    <!-- so ebook_becomes_available is left stale (not cleared) on return/expire; treat it -->
+    <!-- as meaningful only when ebook_availability=0. See loan_availability_updater.py. -->
+    <field name="ebook_availability" type="pint" multiValued="false" docValues="true" stored="false" indexed="false"/>
+    <field name="ebook_becomes_available" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
     <field name="loan_uid" type="plong" multiValued="false" docValues="true" stored="false" indexed="false"/>
 
     <!-- Usefulness scores -->
