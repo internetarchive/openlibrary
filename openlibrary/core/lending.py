@@ -201,7 +201,7 @@ def get_loan_changes(
     :param s3_keys: Override S3 auth {'access': '...', 'secret': '...'};
                     defaults to config_ia_ol_metadata_write_s3.
     """
-    url = S3_LOAN_URL % config_bookreader_host
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
 
     if s3_keys:
