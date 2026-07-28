@@ -132,6 +132,17 @@
   --color-border-subtle: hsl(0, 0%, 87%);
   --color-focus-ring: hsl(202, 96%, 37%);
 
+  /* Selected state for neutral controls — a soft blue tint with a saturated
+     border and dark-blue text, deepening on hover. Shared by every control that
+     can read as "has a selection" in a filter row: ol-button[selected] (the
+     select-popover's disclosure trigger), ol-toggle[variant="button"][checked],
+     and the selected row inside ol-select-popover's own list. Kept as one set of
+     tokens so those controls can't drift apart. */
+  --color-control-selected-bg: hsla(202, 96%, 37%, 0.08);
+  --color-control-selected-bg-hover: hsla(202, 96%, 37%, 0.12);
+  --color-control-selected-border: hsla(202, 96%, 37%, 0.35);
+  --color-control-selected-border-hover: hsla(202, 96%, 37%, 0.5);
+
   /* Chip / tag variants — soft-tint palette (pale background, saturated text
      & border) used to color a chip by the *kind* of thing it represents.
      Consumed via the `variant` attribute on <ol-chip>; see OLChip.js. Each

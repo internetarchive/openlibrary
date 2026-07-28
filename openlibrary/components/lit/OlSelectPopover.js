@@ -50,8 +50,11 @@ let _idCounter = 0;
  *     clicked. A change event also fires with the cleared selection.
  *
  * @slot trigger - Optional custom trigger element. When omitted, a default
- *     `<ol-button>` is injected (showing `label` plus a "(n)" count when items
- *     are selected); its disclosure chevron comes from ol-button automatically.
+ *     `<ol-button>` is injected, labelled by the current selection: `label`
+ *     when nothing is picked, the single item's own label when one is, and
+ *     `label (n)` beyond that. It also carries ol-button's `selected` tint
+ *     while a selection is active, and its disclosure chevron comes from
+ *     ol-button automatically. A custom trigger owns its own label and state.
  *
  * @example
  * <ol-select-popover
@@ -445,6 +448,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // mutate it in place. ol-button moves this span into its own label
         // wrapper on upgrade, but the node identity (and our ref) survives.
         const text = document.createElement('span');
+        // Clamp the label so a long value (MARC language names run to
+        // "Church Slavic, Old Slavonic, Church Slavonic, Old Bulgarian") can't
+        // stretch the trigger past its container — ol-button is nowrap with no
+        // max-width of its own. Inline rather than in ol-button.css because this
+        // trigger is also rendered inside SearchModal's shadow root, which the
+        // global sheet can't reach; an inline style rides along with the element.
+        text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;
         this._defaultTriggerText = text;
@@ -452,24 +462,39 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.appendChild(btn);
     }
 
+    // Label the trigger by what's actually selected, in three steps:
+    //   0 selected → the bare field name ("Language")
+    //   1 selected → that item's own label ("English") — naming the single
+    //     choice is far more useful at a glance than "Language (1)", and it's
+    //     what the filter row showed before the trigger moved onto ol-button
+    //   n selected → "Language (n)", since the names won't fit
     _updateDefaultTriggerLabel() {
         const btn = this._defaultTrigger;
         if (!btn || !this._defaultTriggerText) return;
         const selected = this.selected || [];
         const count = selected.length;
-        this._defaultTriggerText.textContent = count > 0
-            ? `${this.label} (${count})`
-            : this.label;
-        // The visible text collapses the selection to a "(n)" count, which
-        // hides *which* values are chosen from a screen reader. Give the
-        // button an aria-label naming them. (On work_search.html the
-        // server-side facet chips also surface the selection, but in
-        // SearchModal this trigger is the only place it appears.)
+        const labelFor = (value) => (this.items || []).find(it => it.value === value)?.label ?? value;
+
+        if (count === 0) {
+            this._defaultTriggerText.textContent = this.label;
+        } else if (count === 1) {
+            this._defaultTriggerText.textContent = labelFor(selected[0]);
+        } else {
+            this._defaultTriggerText.textContent = `${this.label} (${count})`;
+        }
+
+        // Tint the trigger while it carries a selection (see ol-button.css),
+        // so the filter row shows at a glance which filters are active.
+        btn.toggleAttribute('selected', count > 0);
+
+        // The visible text drops the field name at 1 selection and collapses to
+        // a "(n)" count beyond that, either way losing context a screen reader
+        // needs. Give the button an aria-label carrying both the field and the
+        // chosen values. (On work_search.html the server-side facet chips also
+        // surface the selection, but in SearchModal this trigger is the only
+        // place it appears.)
         if (count > 0) {
-            const labels = selected
-                .map(v => (this.items || []).find(it => it.value === v)?.label ?? v)
-                .join(', ');
-            btn.setAttribute('aria-label', `${this.label}: ${labels}`);
+            btn.setAttribute('aria-label', `${this.label}: ${selected.map(labelFor).join(', ')}`);
         } else {
             btn.removeAttribute('aria-label');
         }

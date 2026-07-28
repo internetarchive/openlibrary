@@ -28,6 +28,9 @@ import { LitElement, html } from 'lit';
  *
  * @attr {Boolean} no-chevron - Suppresses the automatic disclosure chevron
  *   shown when the button is a popover/menu trigger (has `aria-haspopup`).
+ * @attr {Boolean} selected - Renders the soft-blue "carries a selection" tint
+ *   (see ol-button.css). Set by ol-select-popover on its disclosure trigger
+ *   when the user has picked something; purely visual, no behavior attached.
  *
  * @slot - Default slot carries the button label.
  *

@@ -206,10 +206,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            solid-blue block. The switch track stays solid primary-blue so the
            on-state remains obvious against the pale surface. */
         :host([variant="button"][checked]) {
-            --_toggle-bg: hsla(202, 96%, 37%, 0.08);
+            --_toggle-bg: var(--color-control-selected-bg);
             --_toggle-fg: var(--link-blue);
             --_toggle-sublabel-fg: var(--primary-blue);
-            --_toggle-border: hsla(202, 96%, 37%, 0.35);
+            --_toggle-border: var(--color-control-selected-border);
             --_toggle-track: var(--primary-blue);
             --_toggle-knob: var(--white);
         }
@@ -230,9 +230,9 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             }
 
             :host([variant="button"][checked]:not([disabled])) .toggle:hover {
-                --_toggle-bg: hsla(202, 96%, 37%, 0.12);
-                --_toggle-border: hsla(202, 96%, 37%, 0.5);
-                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, hsla(202, 96%, 37%, 0.12));
+                --_toggle-bg: var(--color-control-selected-bg-hover);
+                --_toggle-border: var(--color-control-selected-border-hover);
+                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-selected-bg-hover));
             }
         }
     `;

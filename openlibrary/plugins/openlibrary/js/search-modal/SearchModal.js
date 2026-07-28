@@ -754,16 +754,32 @@ export class SearchModal extends LitElement {
             --control-highlight-strength: 18%;
         }
 
+        /* Selected — the language trigger once a language is picked. Soft blue
+           tint, matching the checked ol-toggle beside it. After the variant
+           rules because it ties them on specificity. */
+        ol-button[selected]:not([hydrated]),
+        ol-button[selected] > button {
+            background-color: var(--color-control-selected-bg);
+            border-color: var(--color-control-selected-border);
+            color: var(--link-blue);
+            --control-surface: var(--color-control-selected-bg);
+        }
+
         @media (hover: hover) and (pointer: fine) {
             ol-button > button:hover {
                 background-color: var(--lightest-grey);
+                border-color: var(--light-grey);
                 --control-surface: var(--lightest-grey);
             }
 
             ol-button[variant="primary"] > button:hover {
-                background-color: var(--link-blue);
-                border-color: var(--link-blue);
-                --control-surface: var(--link-blue);
+                filter: brightness(1.1);
+            }
+
+            ol-button[selected] > button:hover {
+                background-color: var(--color-control-selected-bg-hover);
+                border-color: var(--color-control-selected-border-hover);
+                --control-surface: var(--color-control-selected-bg-hover);
             }
         }
 
