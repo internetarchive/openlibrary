@@ -17,6 +17,10 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
 
   fast_web:
     profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3"]
@@ -29,6 +33,10 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
 
   solr:
     # Disabled until next solr reindex due to solr version upgrade
@@ -102,6 +110,10 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+    extra_hosts:
+      # openlibrary.yml needs to reference the service name, to avoid some issues with how we
+      # use hostname, and a cyclical networks request (or something)
+      infobase_nginx: 207.241.234.145  # ol-home0.us.archive.org
     deploy:
       # Note: the replicas here must be kept in sync with the `upstream covers_backend`
       # value in `docker/covers_nginx.conf`.
