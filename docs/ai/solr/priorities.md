@@ -50,6 +50,23 @@ Last updated: 2026-06-23
 
 ---
 
+### 5. Solr observability — the "why" (cq #8)
+
+**Why it matters:** Grafana shows *what* is slow (which `ol.label` is in a high-latency
+bucket) but nothing about *why* — no cache hit rates, no GC, no per-component query timing.
+Worse, the existing "what" pipeline is silently broken on Solr 10: `solr_logs_monitor.py`
+KeyErrors on every request line (Solr 10 dropped `webapp=`), emits zero metrics, and the
+dashboards flatline rather than alerting.
+
+**Current state:** PR #13212 open (parser fix, verified against a real solr:10.0.0 container:
+0 → 45 Graphite events). Next win is a `solr_metrics_monitor.py` scraping `/solr/admin/metrics`,
+which already exposes per-cache hit/miss, evictions, warmup time and `jvm_gc_duration_seconds`
+— nobody scrapes it today.
+
+**Full analysis, incl. the strict buildable-now vs needs-VPN split:** `observability.md`.
+
+---
+
 ## Secondary / stale (needs triage)
 
 | PR | Title | Age | Notes |
