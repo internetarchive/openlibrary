@@ -296,6 +296,10 @@ ol-button[aria-haspopup] > button > .ol-btn-chevron {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  /* Tuck against the label and the edge; margins rather than gap/padding so the
+     per-size paddings still apply. Nets a 4px gap, 4/8/12px inset by size. */
+  margin-left: calc(var(--spacing-2xs) * -1);
+  margin-right: calc(var(--spacing-2xs) * -1);
   background: currentcolor;
   transition: transform 150ms ease-out;
   -webkit-mask: var(--chevron) center / 16px no-repeat;

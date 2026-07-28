@@ -870,6 +870,9 @@ export class SearchModal extends LitElement {
             width: 16px;
             height: 16px;
             flex-shrink: 0;
+            /* Tuck toward the label and the edge — see ol-button.css. */
+            margin-left: calc(var(--spacing-2xs) * -1);
+            margin-right: calc(var(--spacing-2xs) * -1);
             background: currentcolor;
             transition: transform 150ms ease-out;
             -webkit-mask: var(--chevron) center / 16px no-repeat;
