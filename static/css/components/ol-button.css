@@ -151,19 +151,14 @@ ol-button[variant="destructive"] > button {
   --control-highlight-strength: 18%;
 }
 
-/* Selected — a neutral button that currently carries a selection, e.g.
-   ol-select-popover's disclosure trigger once the user has picked a language.
-   Soft blue tint with a saturated border and dark-blue text, matching the
-   checked ol-toggle[variant="button"] beside it in the same filter row. Layered
-   on top of the variant fills, so it must stay after them in source order (it
-   ties them on specificity). */
+/* Selected — a neutral button carrying a selection, e.g. ol-select-popover's
+   trigger once a language is picked. Must stay after the variant fills, which
+   it ties on specificity. */
 ol-button[selected]:not([hydrated]),
 ol-button[selected] > button {
   background-color: var(--color-control-selected-bg);
   border-color: var(--color-control-selected-border);
   color: var(--link-blue);
-  /* Tone the specular edge to the tint rather than the white it sits over,
-     so the highlight reads as part of the blue surface. */
   --control-surface: var(--color-control-selected-bg);
 }
 
@@ -182,9 +177,8 @@ ol-button[selected] > button {
     --control-surface: var(--lightest-grey);
   }
 
-  /* Selected deepens its tint and border on hover instead of going grey —
-     same step the checked ol-toggle takes. After the secondary hover rule
-     because the two tie on specificity. */
+  /* Deepens its tint rather than going grey. After the secondary hover rule,
+     which it ties on specificity. */
   ol-button[selected] > button:hover {
     background-color: var(--color-control-selected-bg-hover);
     border-color: var(--color-control-selected-border-hover);

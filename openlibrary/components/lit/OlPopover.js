@@ -368,12 +368,6 @@ export class OlPopover extends LitElement {
     // ── Show / Hide ─────────────────────────────────────────────
 
     _show() {
-        // Capture the *deeply* focused element, not document.activeElement —
-        // when this popover lives inside another component's shadow root (e.g.
-        // a trigger nested in <search-modal>'s shadow), document.activeElement
-        // returns the outer host rather than the real trigger. Restoring focus
-        // to that host is a no-op (or worse, delegates to its first focusable),
-        // which strands focus on the wrong control when the popover closes.
         this._prevFocus = getDeepActiveElement();
 
         document.addEventListener('click', this._onOutsideClick, true);

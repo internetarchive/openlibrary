@@ -19,9 +19,9 @@ import { LitElement, html } from 'lit';
  *
  * @element ol-button
  *
- * @prop {String}  variant    - "primary" | "secondary" | "destructive". Default: "secondary"
- * @prop {String}  size       - "small" | "medium" | "large". Default: "medium"
- * @prop {String}  type       - "button" | "submit" | "reset". Default: "button"
+ * @prop {"primary" | "secondary" | "destructive"} variant - Default: "secondary"
+ * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
+ * @prop {"button" | "submit" | "reset"}           type    - Default: "button"
  * @prop {Boolean} loading    - Shows a spinner and disables interaction.
  * @prop {Boolean} disabled   - Disables interaction.
  * @prop {Boolean} fullWidth  - Button expands to fill its container.

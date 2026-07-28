@@ -77,17 +77,8 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-// NOT a FocusableHostMixin host. Unlike its siblings (ol-toggle, ol-chip,
-// ol-options-popover), whose focusable element lives in their *shadow* root,
-// this component's focusable is its trigger — and the default trigger is an
-// <ol-button> injected into *light* DOM (so the global ol-button.css applies;
-// see _createDefaultTrigger). A focus trap that walks slotted content
-// (e.g. ol-dialog's) already discovers that trigger button on its own. Adding
-// the mixin's host tabindex would enroll the host as a *second* tab stop for
-// the same control, and the mixin's delegatesFocus would forward host.focus()
-// to the first focusable in *this* shadow root (the filter input — hidden
-// while the popover is closed), a no-op that strands focus on the prior
-// element. So the host stays a plain wrapper; the trigger is the focusable.
+// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger, not an
+// element in this shadow root. See the mixin's "NOT for" note.
 export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
@@ -343,13 +334,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (changedProperties.has('label') || changedProperties.has('selected')) {
             this._updateDefaultTriggerLabel();
         }
-        // Keep the form value in step with a programmatic `selected` change
-        // (a documented, reflected property). The user-click path already
-        // syncs synchronously in _emitChange — needed there so a change handler
-        // that submits the form right away sees the new value — but a bare
-        // `el.selected = [...]` only goes through here, so without this the
-        // enclosing <form> would submit the stale value. Mirrors OlToggle /
-        // OlSegmentedControl.
+        // Ensure bare `el.selected = [...]` is also correctly reflected.
         if (changedProperties.has('selected')) {
             this._syncFormValue();
         }
@@ -388,26 +373,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         `;
     }
 
-    // ── Default trigger (light-DOM ol-button) ────────────────────
-    //
-    // When the consumer doesn't supply their own trigger, we inject an
-    // <ol-button slot="trigger"> into our *light* DOM. It has to live in light
-    // DOM (not the shadow root) so the global ol-button.css applies — that
-    // stylesheet is what paints the button and, via aria-haspopup/aria-expanded
-    // set by the inner ol-popover, the automatic disclosure chevron. This way
-    // there is a single chevron implementation (ol-button's) for both the
-    // default trigger and any consumer-supplied ol-button.
-    //
-    // The injection happens here, in connectedCallback (before the first
-    // render), so the default trigger is a plain light-DOM child from the start
-    // — structurally identical to a consumer-supplied trigger. Injecting after
-    // render instead would re-assign slotted content mid-lifecycle and storm the
-    // inner ol-popover's slot reprojection.
-
     connectedCallback() {
         super.connectedCallback();
         // role="group" allows aria-label on the host (axe: aria-prohibited-attr).
-        // Only set if the consumer hasn't specified an explicit role.
         if (!this.getAttribute('role')) {
             this.setAttribute('role', 'group');
         }
@@ -441,19 +409,23 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this._updateDefaultTriggerLabel();
     }
 
+    /**
+     * Build the default trigger in *light* DOM, so the global ol-button.css can
+     * paint it — that sheet can't cross a shadow boundary. Injected on connect,
+     * before the first render, so it's structurally identical to a
+     * consumer-supplied trigger. The chevron comes from ol-button.
+     *
+     * @returns {void}
+     */
     _createDefaultTrigger() {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
-        // Keep a reference to the text node's wrapper so label/count updates
-        // mutate it in place. ol-button moves this span into its own label
-        // wrapper on upgrade, but the node identity (and our ref) survives.
+        // ol-button moves this span into its own label wrapper on upgrade, but
+        // the node identity survives, so label updates can mutate it in place.
         const text = document.createElement('span');
-        // Clamp the label so a long value (MARC language names run to
-        // "Church Slavic, Old Slavonic, Church Slavonic, Old Bulgarian") can't
-        // stretch the trigger past its container — ol-button is nowrap with no
-        // max-width of its own. Inline rather than in ol-button.css because this
-        // trigger is also rendered inside SearchModal's shadow root, which the
-        // global sheet can't reach; an inline style rides along with the element.
+        // ol-button is nowrap with no max-width, so clamp long labels here (MARC
+        // language names run long). Inline so it applies inside SearchModal's
+        // shadow root too, which the global sheet can't reach.
         text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;
@@ -462,12 +434,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.appendChild(btn);
     }
 
-    // Label the trigger by what's actually selected, in three steps:
-    //   0 selected → the bare field name ("Language")
-    //   1 selected → that item's own label ("English") — naming the single
-    //     choice is far more useful at a glance than "Language (1)", and it's
-    //     what the filter row showed before the trigger moved onto ol-button
-    //   n selected → "Language (n)", since the names won't fit
+    /**
+     * Label the trigger by the selection: the field name when nothing is picked
+     * ("Language"), the item's own label at one ("English"), "Language (n)"
+     * beyond that.
+     *
+     * @returns {void}
+     */
     _updateDefaultTriggerLabel() {
         const btn = this._defaultTrigger;
         if (!btn || !this._defaultTriggerText) return;
@@ -483,16 +456,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             this._defaultTriggerText.textContent = `${this.label} (${count})`;
         }
 
-        // Tint the trigger while it carries a selection (see ol-button.css),
-        // so the filter row shows at a glance which filters are active.
+        // Blue tint while a selection is active (see ol-button.css).
         btn.toggleAttribute('selected', count > 0);
 
-        // The visible text drops the field name at 1 selection and collapses to
-        // a "(n)" count beyond that, either way losing context a screen reader
-        // needs. Give the button an aria-label carrying both the field and the
-        // chosen values. (On work_search.html the server-side facet chips also
-        // surface the selection, but in SearchModal this trigger is the only
-        // place it appears.)
+        // Visible text loses the field name at 1 and the values beyond that, so
+        // name both for AT.
         if (count > 0) {
             btn.setAttribute('aria-label', `${this.label}: ${selected.map(labelFor).join(', ')}`);
         } else {

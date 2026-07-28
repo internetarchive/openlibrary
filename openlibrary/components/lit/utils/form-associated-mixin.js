@@ -1,30 +1,13 @@
 /**
- * FormAssociatedMixin — turns a Lit component into a real form control (a
- * "form-associated custom element", FACE) so it submits with a `<form>`,
- * participates in reset, and carries default ARIA semantics — the same way a
- * native `<input>`/`<select>` would.
+ * FormAssociatedMixin — makes a Lit component a form-associated custom element
+ * (FACE), so it submits with a `<form>`, participates in reset, and is disabled
+ * by an ancestor `<fieldset disabled>`, like a native `<input>`.
  *
- * Why: a control rendered in shadow DOM (e.g. <ol-toggle>'s switch, the radios
- * inside <ol-options-popover>) is invisible to the surrounding form — the form
- * never sees its value. FACE fixes that via `ElementInternals`: the element
- * declares `static formAssociated = true`, grabs `this.attachInternals()`, and
- * calls `internals.setFormValue(...)` whenever its value changes. The browser
- * then submits that value under the element's `name`, fires
- * `formResetCallback` on `<form>.reset()`, and disables the control inside a
- * disabled `<fieldset>`. Broadly supported on our floor (Safari 16.4+).
+ * A control rendered in shadow DOM is otherwise invisible to the surrounding
+ * form. `ElementInternals` fixes that. Supported on our floor (Safari 16.4+).
  *
- * What a consumer must provide:
- *   1. `get formValue()` — the value(s) to submit. Return a string (single
- *      value, submitted under `name`), a `FormData` (multiple entries, for a
- *      multi-select — you own the keys), a `File`, or `null` to contribute
- *      nothing (e.g. an unchecked switch).
- *   2. A call to `this._syncFormValue()` whenever that value changes — the
- *      simplest place is `firstUpdated()` (initial value) plus `updated()`
- *      (subsequent changes), or directly in the change handler.
- *   3. Optionally `formReset()` — restore the control's default value on
- *      `<form>.reset()`. Capture the default once on connect.
- *
- * `name` is provided by this mixin (reflected, like a native control).
+ * Consumers must provide a `formValue` getter and call `_syncFormValue()`
+ * whenever it changes; `formReset()` is optional. See the example below.
  *
  * @example
  *   export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
@@ -36,21 +19,22 @@
  *
  * @template {new (...args: any[]) => import('lit').LitElement} T
  * @param {T} BaseClass
+ * @returns {T} The base class with form participation applied.
  */
 export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
     static formAssociated = true;
 
     static properties = {
         ...BaseClass.properties,
+        /** Read by the browser when creating the form. Must be specified for an element to take part in form submissions. */
         name: { type: String, reflect: true },
     };
 
+    /** @param {...any} args */
     constructor(...args) {
         super(...args);
-        // attachInternals() throws if the element isn't form-associated and is
-        // absent in some test environments (older jsdom). Guard so an
-        // unsupported environment degrades to "works, just not form-aware"
-        // rather than throwing at construction.
+        // Absent in some test environments (older jsdom); degrade to
+        // "works, just not form-aware" rather than throwing at construction.
         try {
             this._internals = this.attachInternals?.() ?? null;
         } catch {
@@ -63,67 +47,96 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
         return this._internals;
     }
 
-    // ── Standard form-control reflection (delegated to ElementInternals) ──
+    /** @returns {HTMLFormElement|null} The form this control belongs to. */
     get form() {
         return this._internals?.form ?? null;
     }
 
+    /** @returns {NodeList|HTMLLabelElement[]} Labels associated with this control. */
     get labels() {
         return this._internals?.labels ?? [];
     }
 
+    /** @returns {ValidityState|null} */
     get validity() {
         return this._internals?.validity ?? null;
     }
 
+    /** @returns {string} */
     get validationMessage() {
         return this._internals?.validationMessage ?? '';
     }
 
+    /** @returns {boolean} Whether this control is a candidate for validation. */
     get willValidate() {
         return this._internals?.willValidate ?? false;
     }
 
+    /** @returns {boolean} True when the control satisfies its constraints. */
     checkValidity() {
         return this._internals?.checkValidity() ?? true;
     }
 
+    /** @returns {boolean} Like {@link checkValidity}, but reports to the user. */
     reportValidity() {
         return this._internals?.reportValidity() ?? true;
     }
 
     /**
-     * Override point. The value(s) to submit with the form: a string, a
-     * `FormData` (multi-value), a `File`, or `null` to contribute nothing.
-     * @returns {string|FormData|File|null}
+     * Override point. The value(s) to submit with the form.
+     *
+     * @returns {string|FormData|File|null} A string submits under `name`; a
+     *   `FormData` submits multiple entries (you own the keys); `null`
+     *   contributes nothing, e.g. an unchecked switch.
      */
     get formValue() {
         return null;
     }
 
     /**
-     * Push the current {@link formValue} into the form. Call after the
-     * component's value changes (and once initially).
+     * Push the current {@link formValue} into the form. Call after the value
+     * changes, and once initially.
+     *
+     * @returns {void}
      */
     _syncFormValue() {
         this._internals?.setFormValue(this.formValue);
     }
 
-    // The browser calls this when the control is disabled by an ancestor
-    // <fieldset disabled>. Mirror it onto the component's own `disabled` so its
-    // visuals and interaction follow.
+    /**
+     * Called by the browser when an ancestor `<fieldset disabled>` disables this
+     * control. Mirrored onto `disabled` so visuals and interaction follow.
+     *
+     * @override
+     * @param {boolean} disabled
+     * @returns {void}
+     */
     formDisabledCallback(disabled) {
         this.disabled = disabled;
     }
 
-    // <form>.reset(): restore the default value (consumer's formReset), then
-    // resync so the form sees the reset value immediately.
+    /**
+     * Called by the browser on `<form>.reset()`. Delegates to the consumer's
+     * optional `formReset()`, then resyncs so the form sees the reset value.
+     *
+     * @override
+     * @returns {void}
+     */
     formResetCallback() {
         this.formReset?.();
         this._syncFormValue();
     }
 
-    // Browser state restoration (history nav / autofill). Optional consumer hook.
+    /**
+     * Called by the browser to restore state on history navigation or autofill.
+     * Delegates to the consumer's optional `formStateRestore(state, mode)` hook
+     * — our own name, not a platform API; no component implements it yet.
+     *
+     * @override
+     * @param {File|string|FormData} state
+     * @param {"restore"|"autocomplete"} mode
+     * @returns {void}
+     */
     formStateRestoreCallback(state, mode) {
         this.formStateRestore?.(state, mode);
         this._syncFormValue();

@@ -54,14 +54,8 @@ let _idCounter = 0;
  *     ]'
  * ></ol-options-popover>
  */
-// NOT a FocusableHostMixin host — same reasoning as <ol-select-popover>, which
-// this component's trigger now matches: the focusable is the <ol-button>
-// injected into *light* DOM (so the global ol-button.css paints it), not an
-// element in this shadow root. The mixin's host tabindex would enroll the host
-// as a second tab stop for the same control, and its delegatesFocus would
-// forward host.focus() to the first focusable in *this* shadow root — an option
-// radio inside the closed panel, so a silent no-op. Focus traps find the trigger
-// on their own via the shadow-piercing walker in focus-utils.js.
+// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger, not an
+// element in this shadow root. See the mixin's "NOT for" note.
 export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
@@ -276,26 +270,21 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         `;
     }
 
-    // ── Default trigger (light-DOM ol-button) ────────────────────
-    //
-    // Injected into our *light* DOM rather than rendered in the shadow root, so
-    // the global ol-button.css can paint it — that sheet can't cross a shadow
-    // boundary. Mirrors <ol-select-popover>._createDefaultTrigger; the two
-    // components' triggers are the same control and must look identical.
-    // Injecting on connect (before first render) keeps the default trigger a
-    // plain light-DOM child from the start, structurally identical to a
-    // consumer-supplied one.
+    /**
+     * Build the default trigger in *light* DOM, so the global ol-button.css can
+     * paint it — that sheet can't cross a shadow boundary. Mirrors
+     * <ol-select-popover>._createDefaultTrigger.
+     *
+     * @returns {void}
+     */
     _createDefaultTrigger() {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
-        // Keep a reference to the text wrapper so label updates mutate it in
-        // place. ol-button moves this span into its own label wrapper on
-        // upgrade, but the node identity (and our ref) survives.
+        // ol-button moves this span into its own label wrapper on upgrade, but
+        // the node identity survives, so label updates can mutate it in place.
         const text = document.createElement('span');
-        // Clamp long labels so the trigger can't stretch past its container —
-        // ol-button is nowrap with no max-width of its own. Inline rather than
-        // in ol-button.css so it also applies wherever this component is used
-        // inside another component's shadow root.
+        // ol-button is nowrap with no max-width, so clamp long labels here.
+        // Inline so it applies inside other components' shadow roots too.
         text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;
@@ -304,16 +293,18 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         this.appendChild(btn);
     }
 
-    // The trigger always shows the filter category (e.g. "Availability"); the
-    // current selection is communicated by the consumer (e.g. via a chip row
-    // above the popover), so it gets no `selected` tint. Consumers needing the
-    // selection in the trigger itself can override via the `trigger` slot.
+    /**
+     * Label the trigger with the filter category (e.g. "Availability"). The
+     * selection is surfaced by the consumer (e.g. a chip row), so the trigger
+     * takes no `selected` tint; override via the `trigger` slot to change that.
+     *
+     * @returns {void}
+     */
     _updateDefaultTriggerLabel() {
         const btn = this._defaultTrigger;
         if (!btn || !this._defaultTriggerText) return;
         this._defaultTriggerText.textContent = this.label;
-        // The visible text names only the category, so give a screen reader the
-        // chosen option too.
+        // Visible text names only the category, so name the choice for AT.
         const selectedItem = (this.items || []).find(it => it.value === this.selected);
         if (selectedItem) {
             btn.setAttribute('aria-label', `${this.label}, ${selectedItem.label}`);

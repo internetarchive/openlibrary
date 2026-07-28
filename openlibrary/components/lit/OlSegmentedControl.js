@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { getNextIndex } from './utils/keyboard-nav.js';
+import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 
 /**
@@ -24,7 +24,7 @@ import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
  *
  * @prop {String}  value           - The selected option's value. Reflected; defaults to the first enabled option.
  * @prop {String}  name            - Form field name. When set, the selected `value` submits with the enclosing `<form>` (see FormAssociatedMixin).
- * @prop {String}  size            - "small" | "medium" | "large". Default: "medium"
+ * @prop {"small" | "medium" | "large"} size - Default: "medium"
  * @prop {Boolean} disabled        - Disables the whole control.
  * @prop {Boolean} fullWidth       - Stretch to fill the container; options share the width equally.
  * @prop {String}  accessibleLabel - aria-label for the radio group. Default: none.
@@ -436,7 +436,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     // Standard radio-group keyboard model: arrows move selection (and focus)
     // to the previous/next enabled option, wrapping; Home/End jump to the ends.
     _onKeydown(e) {
-        const target = getNextIndex(e.key, {
+        const target = getNextKeyboardFocusIndex(e.key, {
             count: this._options.length,
             current: this._activeIndex,
             isDisabled: (i) => this._options[i].disabled,

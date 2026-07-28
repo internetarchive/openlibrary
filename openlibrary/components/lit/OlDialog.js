@@ -370,11 +370,7 @@ export class OlDialog extends LitElement {
         const dialog = this.dialog;
         if (!dialog || dialog.open) return;
 
-        // Deep active element, not document.activeElement — if the trigger that
-        // opened this dialog lives in another component's shadow root,
-        // document.activeElement is the outer host and restoring focus to it on
-        // close would strand focus on the wrong control. See the same capture in
-        // OlPopover._show().
+        // document.activeElement doesn't pass into shadow DOM
         this._previouslyFocusedElement = getDeepActiveElement();
 
         this.dispatchEvent(new CustomEvent('ol-open', {
