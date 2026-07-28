@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
 
 let _idCounter = 0;
@@ -29,6 +29,8 @@ let _idCounter = 0;
  *     indents the option to show it's a subset of the option above it.
  * @prop {String} selected - Currently selected `value`, or empty string for
  *     no selection. Reflects to attribute.
+ * @prop {String} name - Form field name. When set, the selected value submits
+ *     with the enclosing `<form>` (see FormAssociatedMixin).
  * @prop {String} label - Default trigger button text (e.g. "Availability").
  * @prop {String} heading - Heading shown above the options list (default:
  *     uppercased `label`).
@@ -39,8 +41,9 @@ let _idCounter = 0;
  * @fires ol-options-popover-change - Fires when the selection changes.
  *     detail: { selected: String }
  *
- * @slot trigger - Optional custom trigger element. When omitted, a styled
- *     default button renders with `label` and a chevron icon.
+ * @slot trigger - Optional custom trigger element. When omitted, an
+ *     `<ol-button>` showing `label` is injected (see _createDefaultTrigger);
+ *     its disclosure chevron comes from ol-button automatically.
  *
  * @example
  * <ol-options-popover
@@ -51,7 +54,9 @@ let _idCounter = 0;
  *     ]'
  * ></ol-options-popover>
  */
-export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
+// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger, not an
+// element in this shadow root. See the mixin's "NOT for" note.
+export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: String, reflect: true },
@@ -65,60 +70,11 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
             font-family: var(--font-family-body);
         }
 
-        /* ── Default trigger ─────────────────────────────────────── */
-
-        .default-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
-            font: inherit;
-            font-size: 14px;
-            line-height: 1.4;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .default-trigger:hover {
-                background: var(--lightest-grey);
-            }
-        }
-
-        .default-trigger:active {
-            transform: scale(0.97);
-        }
-
-        .default-trigger:focus {
-            outline: none;
-        }
-
-        .default-trigger:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .trigger-chevron {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            transition: transform 150ms ease-out;
-            flex-shrink: 0;
-        }
-
-        :host([data-open]) .trigger-chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .trigger-chevron {
-                transition: none;
-            }
-        }
+        /* The default trigger is a light-DOM <ol-button> (see
+           _createDefaultTrigger), painted by the global ol-button.css — there
+           are no trigger styles here. That keeps this trigger on the shared
+           control-height tokens and gives it ol-button's automatic disclosure
+           chevron, so it lines up with <ol-select-popover> beside it. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -240,9 +196,6 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
         }
     `;
 
-    /** Chevron icon for the default trigger */
-    static _chevronIcon = html`<svg class="trigger-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
-
     constructor() {
         super();
         this.items = [];
@@ -255,15 +208,53 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
         this._pendingFocusFirst = false;
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        const hasConsumerTrigger = Array.from(this.children).some(
+            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
+        );
+        if (!hasConsumerTrigger && !this._defaultTrigger) {
+            this._createDefaultTrigger();
+        }
+        // Capture the authored default selection for <form>.reset().
+        if (this._defaultSelected === undefined) this._defaultSelected = this.selected;
+    }
+
+    firstUpdated() {
+        this._syncFormValue();
+    }
+
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        // The default trigger lives in light DOM, outside Lit's template, so it
+        // has to be refreshed by hand when anything it displays changes.
+        if (changedProperties.has('label') || changedProperties.has('selected') || changedProperties.has('items')) {
+            this._updateDefaultTriggerLabel();
+        }
+        // Keep the form value in step with a programmatic `selected` change
+        // (a documented, reflected property). The roving-selection path syncs
+        // synchronously in _selectValue; a bare `el.selected = 'x'` only goes
+        // through here, so without this the enclosing <form> would submit the
+        // stale value. Mirrors OlToggle / OlSegmentedControl.
+        if (changedProperties.has('selected')) {
+            this._syncFormValue();
+        }
+    }
+
     /**
-     * Send focus to the default-trigger button rather than the first
-     * focusable in shadow order (which could be a slotted user-provided
-     * trigger — but the default-trigger is the one we want when it's there).
+     * @override
+     * @returns {string|null} The selected value, or nothing when unselected.
      */
-    get _focusTarget() {
-        return this.shadowRoot?.querySelector('.default-trigger')
-            ?? this.querySelector('[slot="trigger"]')
-            ?? null;
+    get formAssociatedValue() {
+        return this.selected || null;
+    }
+
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
+        this.selected = this._defaultSelected;
     }
 
     render() {
@@ -278,28 +269,53 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
                     name="trigger"
                     slot="trigger"
                     @keydown=${this._onTriggerKeydown}
-                >${this._renderDefaultTrigger()}</slot>
+                ></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
     }
 
-    _renderDefaultTrigger() {
-        // Trigger always shows the filter category (e.g. "Availability"); the
-        // current selection is communicated by the consumer (e.g. via a chip
-        // row above the popover). Consumers needing the selection in the
-        // trigger itself can override via the `trigger` slot.
+    /**
+     * Build the default trigger in *light* DOM, so the global ol-button.css can
+     * paint it — that sheet can't cross a shadow boundary. Mirrors
+     * <ol-select-popover>._createDefaultTrigger.
+     *
+     * @returns {void}
+     */
+    _createDefaultTrigger() {
+        const btn = document.createElement('ol-button');
+        btn.setAttribute('slot', 'trigger');
+        // ol-button moves this span into its own label wrapper on upgrade, but
+        // the node identity survives, so label updates can mutate it in place.
+        const text = document.createElement('span');
+        // ol-button is nowrap with no max-width, so clamp long labels here.
+        // Inline so it applies inside other components' shadow roots too.
+        text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
+        btn.appendChild(text);
+        this._defaultTrigger = btn;
+        this._defaultTriggerText = text;
+        this._updateDefaultTriggerLabel();
+        this.appendChild(btn);
+    }
+
+    /**
+     * Label the trigger with the filter category (e.g. "Availability"). The
+     * selection is surfaced by the consumer (e.g. a chip row), so the trigger
+     * takes no `selected` tint; override via the `trigger` slot to change that.
+     *
+     * @returns {void}
+     */
+    _updateDefaultTriggerLabel() {
+        const btn = this._defaultTrigger;
+        if (!btn || !this._defaultTriggerText) return;
+        this._defaultTriggerText.textContent = this.label;
+        // Visible text names only the category, so name the choice for AT.
         const selectedItem = (this.items || []).find(it => it.value === this.selected);
-        return html`
-            <button
-                type="button"
-                class="default-trigger"
-                aria-label=${ifDefined(selectedItem ? `${this.label}, ${selectedItem.label}` : undefined)}
-            >
-                <span>${this.label}</span>
-                ${OlOptionsPopover._chevronIcon}
-            </button>
-        `;
+        if (selectedItem) {
+            btn.setAttribute('aria-label', `${this.label}, ${selectedItem.label}`);
+        } else {
+            btn.removeAttribute('aria-label');
+        }
     }
 
     _renderPanel() {
@@ -391,6 +407,7 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
     _selectValue(value) {
         if (value === this.selected) return false;
         this.selected = value;
+        this._syncFormValue();
         this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
             bubbles: true, composed: true,
             detail: { selected: value },
