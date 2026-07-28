@@ -183,8 +183,47 @@ services:
       timeout: 3s
       retries: 5
 
+  # --- BookWorm staging pipeline (#12655 / #12844) ---
+  # Isolated staging DB so bulk feed harvesting never contends with the
+  # production Open Library database.
+  staging-db:
+    image: postgres:${POSTGRES_VERSION:-18.3}
+    networks:
+      - dbnet
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      # schema.sql runs on first init (staged_record + bookworm import queue)
+      - ./docker/staging-db/schema.sql:/docker-entrypoint-initdb.d/staging-schema.sql
+      - staging-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      start_interval: 1s
+      start_period: 20s
+      timeout: 1s
+      retries: 24
+
+  # Dedicated service that owns the harvest cron: harvest feeds into staging,
+  # then promote into the import queue. Point its db at staging-db.
+  bookworm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: python scripts/bookworm.py conf/openlibrary.yml --interval 3600
+    networks:
+      - dbnet
+      - webnet
+    depends_on:
+      staging-db:
+        condition: service_healthy
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+
 volumes:
   ol-vendor:
   ol-build:
   ol-nodemodules:
   ol-postgres:
+  staging-postgres:

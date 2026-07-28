@@ -2,30 +2,23 @@
 """
 Daily incremental importer for Better World Books via OPDS 2.0 feed.
 
-Replaces the monthly Better World Books CSV import (see
-``partner_batch_imports.py``) with a JSON-feed crawl that filters
-publications by ``metadata.modified`` relative to the previous run.
+Better World Books is the first consumer of the generic OPDS 2.0 adapter in
+``openlibrary.catalog.opds2``. This module supplies only the BWB-specific
+``Source`` config (import source-id prefix + quality filter) and the
+orchestration around a run: batch staging, acquisition upserts, and the
+FeedRegistry incremental cursor. Onboarding another OPDS feed should not need a
+new script — register it and reuse the adapter.
 
 Two outputs are produced per run:
 
 1. Import items written to the ``bwb-opds-YYYY-MM-DD`` batch (consumed by
    ``/api/import``). Records reuse the existing ``bwb:{isbn_13}`` source slug
-   so the import API deduplicates against the monthly CSV pipeline rather
-   than creating parallel edition records.
-2. A JSONL sidecar of ``{isbn_13, price, currency, modified}`` rows used by
-   the partial-update job that populates the Solr ``price`` field (see
-   issue #12774, sub-task 2). The file is opened lazily — a run with zero
-   fresh price rows leaves any prior snapshot untouched so the Solr updater
-   never sees a half-empty handoff.
-
-Open coordination items (tracked on issue #12774):
-
-* Relationship to #11264's proposed Solr ``acquisitions`` array (overlaps
-  with ``price`` + ``price_isbn``) — to be reconciled before sub-task 2.
-* Runtime price lookup in ``openlibrary.core.vendors.get_betterworldbooks_metadata``
-  vs. this batch-cached price path — both currently coexist.
-* Sidecar path / retention policy is owner-configurable via ``--prices-out``;
-  default lives under the OL data dir.
+   so the import API deduplicates against the monthly CSV pipeline rather than
+   creating parallel edition records.
+2. A JSONL sidecar of ``{isbn_13, price, currency}`` rows used by the
+   partial-update job that populates the Solr ``price`` field. The file is
+   opened lazily so a run with zero fresh price rows leaves any prior snapshot
+   untouched.
 
 Usage (on ``ol-home0`` cron container)::
 
@@ -41,10 +34,10 @@ import io
 import json
 import logging
 import os
-import time
 from typing import Any
 
 import requests
+import web
 
 try:
     import _init_path  # type: ignore[import-not-found]  # noqa: F401 side effect: add OL package root to sys.path
@@ -52,24 +45,63 @@ except ImportError:
     import scripts._init_path  # noqa: F401 same side effect when imported as a package
 
 from infogami import config  # noqa: F401 side effects may be needed
+from openlibrary.catalog import opds2
+from openlibrary.catalog.opds2 import EPOCH, ISBN_URN_PREFIX, Source, build_acquisition_data, parse_iso
 from openlibrary.config import load_config
+from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
+from openlibrary.core.tbp import FeedRegistry
 from openlibrary.core.vendors import stage_bookworm_metadata
-from openlibrary.plugins.upstream.utils import get_marc21_language
-from openlibrary.utils.isbn import to_isbn_13
+from openlibrary.utils import extract_numeric_id_from_olid
 from scripts.partner_batch_imports import is_low_quality_book, is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb_opds")
 
 OPDS_FEED_URL = "https://www.betterworldbooks.com/opds"
-ACQUISITION_REL = "http://opds-spec.org/acquisition/buy"
-ISBN_URN_PREFIX = "urn:isbn:"
+BWB_PROVIDER_NAME = "betterworldbooks"
 DEFAULT_STATE_FILE = "/openlibrary/data/bwb_opds_last_run.txt"
 DEFAULT_PRICES_OUT = "/openlibrary/data/bwb_prices.jsonl"
-EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC)
-REQUEST_TIMEOUT = 60
-PAGE_SLEEP_SECONDS = 1.0
+
+
+def _bwb_record_filter(olbook: dict[str, Any]) -> bool:
+    """BWB quality filter: drop low-quality reprints / future-dated books, so the
+    OPDS pipeline excludes the same noise the monthly CSV importer does."""
+    return is_low_quality_book(olbook) or is_published_in_future_year(olbook)
+
+
+# BWB's specialization of the generic OPDS 2.0 adapter. Per-feed quirks live
+# here (centrally), not in a forked script.
+BWB_SOURCE = Source(
+    provider_name=BWB_PROVIDER_NAME,
+    source_id_prefix="bwb",
+    record_filter=_bwb_record_filter,
+)
+
+
+def map_publication_to_olbook(publication: dict[str, Any]) -> dict[str, Any] | None:
+    """BWB-bound convenience wrapper over :func:`opds2.map_publication_to_olbook`."""
+    return opds2.map_publication_to_olbook(publication, BWB_SOURCE)
+
+
+def process_feed(
+    feed_url: str,
+    since: datetime.datetime,
+    prices_out_fh,
+    max_pages: int | None = None,
+    early_stop: bool = False,
+    acquisitions_out: list[tuple[str, dict[str, Any]]] | None = None,
+) -> tuple[list[dict[str, Any]], datetime.datetime]:
+    """BWB-bound convenience wrapper over :func:`opds2.process_feed`."""
+    return opds2.process_feed(
+        feed_url,
+        since,
+        prices_out_fh,
+        BWB_SOURCE,
+        max_pages=max_pages,
+        early_stop=early_stop,
+        acquisitions_out=acquisitions_out,
+    )
 
 
 def read_state(path: str) -> datetime.datetime:
@@ -81,7 +113,7 @@ def read_state(path: str) -> datetime.datetime:
         return EPOCH
     if not raw:
         return EPOCH
-    return _parse_iso(raw)
+    return parse_iso(raw)
 
 
 def write_state(path: str, ts: datetime.datetime) -> None:
@@ -94,205 +126,135 @@ def write_state(path: str, ts: datetime.datetime) -> None:
     os.replace(tmp, path)
 
 
-def _parse_iso(value: str) -> datetime.datetime:
-    """Parse an ISO 8601 timestamp, normalising to a tz-aware UTC datetime.
-
-    BWB emits high-precision offsets like ``2026-05-19T14:47:58.5476301-04:00``
-    which ``datetime.fromisoformat`` accepts on Python 3.11+.
-    """
-    dt = datetime.datetime.fromisoformat(value)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=datetime.UTC)
-    return dt.astimezone(datetime.UTC)
+def _coerce_utc(value: datetime.datetime | str) -> datetime.datetime:
+    """Normalise a DB timestamp (naive UTC, or an sqlite string) to aware UTC."""
+    if isinstance(value, str):
+        return parse_iso(value)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=datetime.UTC)
+    return value.astimezone(datetime.UTC)
 
 
-def extract_isbn(metadata: dict[str, Any]) -> str | None:
-    """Return the ISBN-13 from an OPDS ``metadata.identifier`` URN, or None."""
-    identifier = metadata.get("identifier") or ""
-    if not identifier.startswith(ISBN_URN_PREFIX):
-        return None
-    return to_isbn_13(identifier[len(ISBN_URN_PREFIX) :])
-
-
-def extract_price(publication: dict[str, Any]) -> dict[str, Any] | None:
-    """Return ``{currency, value}`` from the first buy-acquisition link, or None."""
-    for link in publication.get("links", []) or []:
-        if link.get("rel") != ACQUISITION_REL:
-            continue
-        properties = link.get("properties") or {}
-        price = properties.get("price") or {}
-        if price.get("value") is not None and price.get("currency"):
-            return {"currency": price["currency"], "value": price["value"]}
-    return None
-
-
-def extract_cover(publication: dict[str, Any]) -> str | None:
-    for image in publication.get("images", []) or []:
-        if image.get("rel") == "cover" and image.get("href"):
-            return image["href"]
-    return None
-
-
-def _publication_id(publication: dict[str, Any]) -> str:
-    """Return the publication's ``self`` link or raw identifier, for logging."""
-    for link in publication.get("links", []) or []:
-        if link.get("rel") == "self" and link.get("href"):
-            return link["href"]
-    return (publication.get("metadata") or {}).get("identifier") or "<unknown>"
-
-
-def map_publication_to_olbook(publication: dict[str, Any]) -> dict[str, Any] | None:
-    """Convert an OPDS publication to an OL import record.
-
-    Returns None when the publication lacks ISBN-13, title, or authors —
-    matching the spec sketch in issue #12774 which requires all three.
-    """
-    metadata = publication.get("metadata") or {}
-    isbn_13 = extract_isbn(metadata)
-    if not isbn_13:
-        logger.warning("Skipping publication with no usable ISBN: %s", _publication_id(publication))
-        return None
-
-    title = metadata.get("title")
-    authors = [{"name": a["name"]} for a in (metadata.get("author") or []) if a.get("name")]
-    if not title or not authors:
-        logger.warning("Skipping publication missing title/authors: %s", _publication_id(publication))
-        return None
-
-    languages = [marc for code in (metadata.get("language") or []) if code and (marc := get_marc21_language(code))]
-
-    olbook: dict[str, Any] = {
-        "title": title,
-        "isbn_13": [isbn_13],
-        "source_records": [f"bwb:{isbn_13}"],
-        "authors": authors,
-        "languages": languages,
-        "publish_date": metadata.get("published", ""),
-        "publishers": [],  # OPDS feed does not include publisher
-    }
-    if cover := extract_cover(publication):
-        olbook["cover"] = cover
-    return olbook
-
-
-def find_next_url(feed: dict[str, Any]) -> str | None:
-    for link in feed.get("links", []) or []:
-        if link.get("rel") == "next" and link.get("href"):
-            return link["href"]
-    return None
-
-
-def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None):
-    """Yield successive OPDS feed pages, following ``rel=next`` links."""
-    url: str | None = start_url
-    seen: set[str] = set()
-    page_num = 0
-    while url:
-        if url in seen:
-            logger.warning("Cycle detected in OPDS pagination at %s; stopping.", url)
-            return
-        seen.add(url)
-        page_num += 1
-        if max_pages is not None and page_num > max_pages:
-            logger.info("Reached --max-pages=%s; stopping pagination.", max_pages)
-            return
-        logger.info("Fetching OPDS page %d: %s", page_num, url)
-        resp = session.get(url, timeout=REQUEST_TIMEOUT, headers={"Accept": "application/opds+json"})
-        resp.raise_for_status()
-        feed = resp.json()
-        yield feed
-        url = find_next_url(feed)
-        if url:
-            time.sleep(PAGE_SLEEP_SECONDS)
-
-
-def process_feed(
+def resolve_cutoff(
     feed_url: str,
-    since: datetime.datetime,
-    prices_out_fh,
-    max_pages: int | None = None,
-    early_stop: bool = False,
-) -> tuple[list[dict[str, Any]], datetime.datetime]:
-    """Crawl the OPDS feed and return (olbooks, max_modified_seen).
+    since: str | None,
+    state_file: str,
+    provider_name: str = BWB_PROVIDER_NAME,
+) -> datetime.datetime:
+    """Return the incremental cutoff for this run.
 
-    Records are filtered to those with ``metadata.modified > since``. Price
-    rows are written to ``prices_out_fh`` as they are encountered. The state
-    cursor advances on every publication that is newer than ``since``, even
-    when mapping fails — otherwise an unmappable but newer record would force
-    every subsequent run to re-scan it forever.
-
-    Quality filters from ``partner_batch_imports`` (low-quality independently
-    published reprints, future-dated publications) are applied so the OPDS
-    pipeline excludes the same noise the monthly CSV importer does.
-
-    ``early_stop`` (off by default): when enabled, pagination halts once a
-    whole page contains zero records newer than ``since``. OPDS feeds are
-    not guaranteed by spec to be sorted by ``modified``, so leave this off
-    until BWB's ordering is confirmed empirically — otherwise an
-    out-of-order stale page would cause the incremental run to miss fresh
-    publications on later pages. Enable via ``--early-stop`` once verified.
+    Precedence: an explicit ``--since`` override > the FeedRegistry cursor (the
+    source of truth once the feed is registered) > the file-state fallback >
+    the epoch. The file-state remains only as a fallback for feeds not yet in
+    the registry (#12844).
     """
-    session = requests.Session()
-    olbooks: list[dict[str, Any]] = []
-    max_modified = since
-
-    for feed in iter_pages(feed_url, session, max_pages=max_pages):
-        fresh_in_page = 0
-        for publication in feed.get("publications", []) or []:
-            metadata = publication.get("metadata") or {}
-            modified_raw = metadata.get("modified")
-            if not modified_raw:
-                continue
-            try:
-                modified = _parse_iso(modified_raw)
-            except ValueError:
-                logger.warning("Skipping publication with unparsable modified=%r", modified_raw)
-                continue
-            if modified <= since:
-                continue
-            fresh_in_page += 1
-            max_modified = max(max_modified, modified)
-
-            olbook = map_publication_to_olbook(publication)
-            if not olbook:
-                continue
-            if _should_exclude(olbook):
-                continue
-            olbooks.append(olbook)
-
-            if price := extract_price(publication):
-                prices_out_fh.write(
-                    json.dumps(
-                        {
-                            "isbn_13": olbook["isbn_13"][0],
-                            "price": price["value"],
-                            "currency": price["currency"],
-                        }
-                    )
-                    + "\n"
-                )
-
-        if early_stop and fresh_in_page == 0:
-            logger.info("Page contains no records newer than %s; stopping (feed is modified-desc).", since.isoformat())
-            break
-
-    return olbooks, max_modified
+    if since:
+        return parse_iso(since)
+    feed = FeedRegistry.find(provider_name, feed_url)
+    if feed and feed.get("last_updated"):
+        return _coerce_utc(feed.last_updated)
+    return read_state(state_file)
 
 
-def _should_exclude(olbook: dict[str, Any]) -> bool:
-    """Apply partner-import quality filters to an OPDS-derived record."""
-    # The CSV-path filters expect a ``title``; treat title-less records as
-    # noise on the strict-quality path too.
-    if not olbook.get("title"):
-        return False
-    try:
-        if is_low_quality_book(olbook):
-            return True
-        if is_published_in_future_year(olbook):
-            return True
-    except (KeyError, ValueError, TypeError) as e:
-        logger.warning("Quality filter failed for %s: %s", olbook.get("isbn_13"), e)
-    return False
+def advance_cursor(
+    feed_url: str,
+    max_modified: datetime.datetime,
+    state_file: str,
+    provider_name: str = BWB_PROVIDER_NAME,
+) -> None:
+    """Persist ingestion progress.
+
+    Advances the FeedRegistry cursor (source of truth) when the feed is
+    registered, and always updates the file-state fallback.
+    """
+    if feed := FeedRegistry.find(provider_name, feed_url):
+        FeedRegistry.advance(feed.id, last_updated=max_modified.replace(tzinfo=None))
+    write_state(state_file, max_modified)
+
+
+def upsert_acquisition(
+    work_id: int,
+    edition_id: int,
+    isbn_13: str,
+    publication: dict[str, Any],
+) -> Acquisition | None:
+    """Upsert the BWB acquisition row for an already-resolved (work, edition).
+
+    Idempotent on the ``(local_id, provider_name)`` unique constraint, so
+    re-running the feed refreshes price/format metadata rather than creating
+    duplicate rows. ``local_id`` is the ISBN URN, matching the OPDS
+    ``metadata.identifier``.
+    """
+    return Acquisition.upsert(
+        work_id=work_id,
+        edition_id=edition_id,
+        provider_name=BWB_PROVIDER_NAME,
+        local_id=f"{ISBN_URN_PREFIX}{isbn_13}",
+        data=build_acquisition_data(publication),
+    )
+
+
+def resolve_edition_ids(isbn_13: str) -> tuple[int, int] | None:
+    """Resolve an ISBN-13 to ``(work_id, edition_id)`` integers for an edition
+    ALREADY in the catalog, or None.
+
+    Existing editions only — no import/Amazon side effects. This is option (a)
+    from #12844: acquisitions attach at ingestion time for ISBNs that already
+    resolve; editions created later by the import get their acquisition linked
+    by :func:`link_acquisition_for_edition` (the post-import hook). Ids are the
+    numeric OLID parts, matching the convention used by checkins/bookshelves.
+    """
+    matches = web.ctx.site.things({"type": "/type/edition", "isbn_13": isbn_13})
+    if not matches:
+        return None
+    edition = web.ctx.site.get(matches[0])
+    if not edition or not edition.works:
+        return None
+    work_id = int(extract_numeric_id_from_olid(edition.works[0].key))
+    edition_id = int(extract_numeric_id_from_olid(edition.key))
+    return work_id, edition_id
+
+
+def stage_acquisitions(acquisitions: list[tuple[str, dict[str, Any]]]) -> int:
+    """Upsert acquisition rows for feed records whose ISBN resolves to an
+    existing edition. Returns the number upserted. Unresolved ISBNs are left
+    for the post-import hook once their edition is created.
+    """
+    upserted = 0
+    for isbn_13, data in acquisitions:
+        if not (ids := resolve_edition_ids(isbn_13)):
+            continue
+        work_id, edition_id = ids
+        Acquisition.upsert(
+            work_id=work_id,
+            edition_id=edition_id,
+            provider_name=BWB_PROVIDER_NAME,
+            local_id=f"{ISBN_URN_PREFIX}{isbn_13}",
+            data=data,
+        )
+        upserted += 1
+    return upserted
+
+
+def link_acquisition_for_edition(edition_key: str, publication: dict[str, Any]) -> Acquisition | None:
+    """Post-import hook: link a BWB acquisition to a newly-created edition.
+
+    Called once the import pipeline has created the edition for a ``bwb:{isbn}``
+    source record (option (a) from #12844 — the deferred half of
+    :func:`stage_acquisitions`).
+    """
+    edition = web.ctx.site.get(edition_key)
+    if not edition or not edition.works:
+        return None
+    isbn_13 = (edition.isbn_13 or [None])[0]
+    if not isbn_13:
+        return None
+    return upsert_acquisition(
+        work_id=int(extract_numeric_id_from_olid(edition.works[0].key)),
+        edition_id=int(extract_numeric_id_from_olid(edition.key)),
+        isbn_13=isbn_13,
+        publication=publication,
+    )
 
 
 def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
@@ -320,8 +282,8 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
 class _LazyWriter:
     """File-like wrapper that opens ``path`` only on the first ``write``.
 
-    Used so a run with zero fresh price rows does not clobber a prior
-    snapshot that the Solr updater has not yet consumed.
+    Used so a run with zero fresh price rows does not clobber a prior snapshot
+    that the Solr updater has not yet consumed.
     """
 
     def __init__(self, path: str) -> None:
@@ -347,14 +309,15 @@ def _run_feed(
     max_pages: int | None,
     dry_run: bool,
     early_stop: bool = False,
+    acquisitions_out: list[tuple[str, dict[str, Any]]] | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Process the OPDS feed, routing price rows to disk or to a discard buffer."""
     if dry_run:
         with contextlib.nullcontext(io.StringIO()) as prices_fh:
-            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop)
+            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     writer = _LazyWriter(prices_out)
     try:
-        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop)
+        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     finally:
         writer.close()
 
@@ -390,13 +353,18 @@ def main(
         than the cutoff. OPDS spec does not mandate sort-by-modified, so leave disabled until
         BWB's feed order is empirically confirmed.
     """
-    cutoff = _parse_iso(since) if since else read_state(state_file)
     batch_name = f"bwb-opds-{datetime.datetime.now(datetime.UTC):%Y-%m-%d}"
+
+    if dry_run:
+        # Don't touch the DB in dry-run: file-state (or --since) only.
+        cutoff = parse_iso(since) if since else read_state(state_file)
+    else:
+        load_config(ol_config)
+        cutoff = resolve_cutoff(feed_url, since, state_file)
+
     logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
 
-    if not dry_run:
-        load_config(ol_config)
-
+    acquisitions: list[tuple[str, dict[str, Any]]] = []
     olbooks, max_modified = _run_feed(
         feed_url=feed_url,
         cutoff=cutoff,
@@ -404,6 +372,7 @@ def main(
         max_pages=max_pages,
         dry_run=dry_run,
         early_stop=early_stop,
+        acquisitions_out=acquisitions,
     )
 
     logger.info("Mapped %d new publications (max_modified=%s)", len(olbooks), max_modified.isoformat())
@@ -417,11 +386,17 @@ def main(
         stage_incomplete_records_for_import(olbooks)
         commit_batch(batch_name, olbooks)
 
+    if acquisitions:
+        # Option (a): attach acquisitions for ISBNs that already resolve to an
+        # existing edition; the rest are linked post-import once created.
+        linked = stage_acquisitions(acquisitions)
+        logger.info("Upserted %d/%d acquisitions for already-resolved editions", linked, len(acquisitions))
+
     if max_modified > cutoff:
-        write_state(state_file, max_modified)
-        logger.info("Wrote new state: %s", max_modified.isoformat())
+        advance_cursor(feed_url, max_modified, state_file)
+        logger.info("Advanced cursor to %s (registry + file-state)", max_modified.isoformat())
     else:
-        logger.info("No newer publications since %s; leaving state file untouched.", cutoff.isoformat())
+        logger.info("No newer publications since %s; leaving cursor untouched.", cutoff.isoformat())
 
 
 if __name__ == "__main__":

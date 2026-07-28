@@ -386,6 +386,79 @@ async def amazon_get_items(request: Request) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# Better World Books OPDS 2.0 feed  (synthetic — for #12844 feed-registry /
+# acquisitions ingestion tests). Lets scripts/bwb_opds_imports.py run
+# end-to-end against a deterministic feed instead of the live BWB endpoint.
+# Point the importer at it with:
+#   python scripts/bwb_opds_imports.py <conf> \
+#       --feed-url http://mockservices:8090/services/bwb/opds
+# ---------------------------------------------------------------------------
+
+_BWB_OPDS_PUBLICATION_TEMPLATE = {
+    "9781737408802": {
+        "title": "The Brick House Apparent Quarterly, Vol. 1",
+        "authors": ["The Brick House Cooperative", "Maria Bustillos"],
+        "published": "2021-08-03",
+        "modified": "2026-06-16T10:59:50.140040-04:00",
+        "price": 1.25,
+    },
+    "9798995425007": {
+        "title": "Vanishing Culture: A Report on Our Fragile Cultural Record",
+        "authors": ["Chris Freeland", "Luca Messarra"],
+        "published": "2026-01-01",
+        "modified": "2026-06-16T13:02:54.457688-04:00",
+        "price": 1.01,
+    },
+}
+
+
+def _bwb_opds_publication(isbn_13: str, info: dict) -> dict:
+    base = "https://www.betterworldbooks.com"
+    return {
+        "metadata": {
+            "type": "http://schema.org/Book",
+            "title": info["title"],
+            "identifier": f"urn:isbn:{isbn_13}",
+            "author": [{"name": name} for name in info["authors"]],
+            "language": ["en"],
+            "published": info["published"],
+            "modified": info["modified"],
+        },
+        "links": [
+            {"rel": "self", "href": f"{base}/opds/publication/{isbn_13}", "type": "application/opds-publication+json"},
+            {
+                "rel": "http://opds-spec.org/acquisition/buy",
+                "href": f"{base}/purchase/{isbn_13}",
+                "type": "text/html",
+                "properties": {
+                    "indirectAcquisition": [{"type": "application/epub+zip"}],
+                    "price": {"currency": "USD", "value": info["price"]},
+                },
+            },
+        ],
+        "images": [{"href": f"{base}/covers/{isbn_13}.jpg", "type": "image/jpeg", "rel": "cover"}],
+    }
+
+
+@app.get("/services/bwb/opds")
+async def bwb_opds_feed() -> JSONResponse:
+    """Synthetic Better World Books OPDS 2.0 feed (single page, no ``next``)."""
+    publications = [_bwb_opds_publication(isbn, info) for isbn, info in _BWB_OPDS_PUBLICATION_TEMPLATE.items()]
+    return JSONResponse(
+        {
+            "metadata": {
+                "title": "Better World Books",
+                "numberOfItems": len(publications),
+                "itemsPerPage": 50,
+                "currentPage": 1,
+            },
+            "links": [{"rel": "self", "href": "http://mockservices:8090/services/bwb/opds", "type": "application/opds+json"}],
+            "publications": publications,
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
 
