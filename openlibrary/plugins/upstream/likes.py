@@ -72,6 +72,10 @@ class get_patron_likes(delegate.page):
     path = "/api/patron/likes"
 
     def GET(self):
-        i = web.input(username="", limit=50, offset=0)
-        likes = Likes.get_for_patron(i.username, int(i.limit), int(i.offset))
+        user = web.ctx.site.get_user()
+        if not user:
+            raise web.unauthorized()
+        username = user.key.split("/")[-1]
+        i = web.input(limit=50, offset=0)
+        likes = Likes.get_for_patron(username, int(i.limit), int(i.offset))
         return delegate.RawText(json.dumps(list(likes), default=str))

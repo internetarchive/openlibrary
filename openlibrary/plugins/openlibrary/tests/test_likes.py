@@ -6,7 +6,7 @@ import web
 
 from openlibrary.core.likes import Likes
 from openlibrary.plugins.openlibrary.tests.test_followsapi import FakeUser
-from openlibrary.plugins.upstream.likes import likes_control
+from openlibrary.plugins.upstream.likes import get_patron_likes, likes_control
 
 
 def test_like():
@@ -59,3 +59,31 @@ def test_like_unauthenticated():
         web.ctx.headers = []
         with pytest.raises(web.HTTPError):
             likes_control().POST()
+
+
+def test_patron_likes_unauthenticated():
+    # `create=True` avoids a test-isolation gap in this file's other tests:
+    # `web.ctx` may not have a `site` attribute yet until something in the
+    # broader suite sets it as a side effect, which makes plain
+    # `patch.object(web.ctx, "site")` (no `create=True`) fail before this test
+    # even runs, depending on execution order.
+    with patch.object(web.ctx, "site", create=True) as mock_site:
+        mock_site.get_user.return_value = None
+        web.ctx.headers = []
+        with pytest.raises(web.HTTPError):
+            get_patron_likes().GET()
+
+
+def test_patron_likes_ignores_username_param_and_uses_caller_identity():
+    # A patron must only ever be able to fetch their own likes -- the endpoint
+    # must not accept an arbitrary `username` to look up another patron's likes.
+    with (
+        patch("web.input", return_value=web.storage(username="someone_else", limit=50, offset=0)),
+        patch("web.ctx") as mock_ctx,
+        patch("openlibrary.core.likes.Likes.get_for_patron", return_value=[]) as mock_get_for_patron,
+    ):
+        mock_ctx.site.get_user.return_value = FakeUser("test_user")
+
+        get_patron_likes().GET()
+
+        mock_get_for_patron.assert_called_once_with("test_user", 50, 0)
