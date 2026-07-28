@@ -11,7 +11,7 @@ const TRIGGER_KEY = 'pwa-trigger-reason';
 const VISIT_THRESHOLD = 2;
 const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 DAYS IN MS
 
-function isMobileDevice () {
+function isMobileDevice() {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
