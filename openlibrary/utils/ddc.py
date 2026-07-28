@@ -13,9 +13,9 @@ import re
 from collections.abc import Iterable
 from string import printable
 
-MULTIPLE_SPACES_RE = re.compile(r'\s+')
+MULTIPLE_SPACES_RE = re.compile(r"\s+")
 DDC_RE = re.compile(
-    r'''
+    r"""
     (
         # Prefix
         (?P<prestar>\*)?  # Should be suffix
@@ -34,91 +34,89 @@ DDC_RE = re.compile(
     )
     |
     (\[?(?P<fic>Fic|E)\.?\]?)
-''',
+""",
     re.IGNORECASE | re.VERBOSE,
 )
 
 
 def collapse_multiple_space(s: str) -> str:
-    return MULTIPLE_SPACES_RE.sub(' ', s)
+    return MULTIPLE_SPACES_RE.sub(" ", s)
 
 
 VALID_CHARS = set(printable) - set("/'′’,")  # noqa: RUF001
 
 
 def normalize_ddc(ddc: str) -> list[str]:
-    ddc = ''.join(
-        char for char in collapse_multiple_space(ddc.strip()) if char in VALID_CHARS
-    )
+    ddc = "".join(char for char in collapse_multiple_space(ddc.strip()) if char in VALID_CHARS)
 
     results: list[str] = []
     for match in DDC_RE.finditer(ddc):
         parts = match.groupdict()
-        prefix = ''
-        suffix = ''
+        prefix = ""
+        suffix = ""
 
         # DDCs should start at word boundaries
         start = match.start()
-        if start > 0 and re.search(r'\b', ddc[start - 1]):
+        if start > 0 and re.search(r"\b", ddc[start - 1]):
             continue
         # And end at them
         end = match.end()
-        if end < len(ddc) and re.search(r'\b', ddc[end]):
+        if end < len(ddc) and re.search(r"\b", ddc[end]):
             continue
 
         # Some old standard which isn't used anymore; might need to filter these
         # out, but they should sort OK so let's keep them.
-        if parts['neg']:
-            prefix += '-'
+        if parts["neg"]:
+            prefix += "-"
         # Juvenile prefix
-        if parts['j']:
-            prefix += 'j'
+        if parts["j"]:
+            prefix += "j"
 
         # Star should be at end
-        if parts['prestar'] or parts['poststar']:
-            suffix = '*'
+        if parts["prestar"] or parts["poststar"]:
+            suffix = "*"
         # Series suffix
-        if parts['s']:
-            suffix += ' s'
+        if parts["s"]:
+            suffix += " s"
         # Biographical
-        if parts['B']:
-            suffix += ' B'
+        if parts["B"]:
+            suffix += " B"
         # Not at all sure
-        if parts['ninetwo']:
-            suffix += parts['ninetwo']
+        if parts["ninetwo"]:
+            suffix += parts["ninetwo"]
 
         # And now the actual number!
-        if parts['number']:
+        if parts["number"]:
             # Numbers in parenthesis are "series" numbers
-            end = match.end('number')
-            if end < len(ddc) and ddc[end] == ')':
-                suffix += ' s'
+            end = match.end("number")
+            if end < len(ddc) and ddc[end] == ")":
+                suffix += " s"
 
             # pad the integer part of the number
-            number_parts = parts['number'].split('.')
+            number_parts = parts["number"].split(".")
             integer = number_parts[0]
 
             # Copy decimal without losing precision
-            decimal = '.' + number_parts[-1].strip() if len(number_parts) > 1 else ''
+            decimal = "." + number_parts[-1].strip() if len(number_parts) > 1 else ""
 
-            number = '%03d%s' % (int(integer), decimal)
+            number = "%03d%s" % (int(integer), decimal)
 
             # Discard catalog edition number
             # At least one classification number available
             # And number is without decimal component
-            if results and re.search(r'(^0?\d{1,2}$)', parts['number']):
+            if results and re.search(r"(^0?\d{1,2}$)", parts["number"]):
                 continue
 
         # Handle [Fic] or [E]
-        elif parts['fic']:
-            number = '[%s]' % parts['fic'].title()
+        elif parts["fic"]:
+            number = "[%s]" % parts["fic"].title()
         else:
             continue
 
         results.append(prefix + number + suffix)
 
         # Include the non-j-prefixed form as well for correct sorting
-        if prefix == 'j':
+        if prefix == "j":
             results.append(number + suffix)
 
     return results
@@ -135,8 +133,8 @@ def normalize_ddc_range(start: str, end: str) -> list[str | None]:
 
     ddc_range_norm: list[str | None] = []
     for ddc in start, end:
-        if ddc == '*':
-            ddc_range_norm.append('*')
+        if ddc == "*":
+            ddc_range_norm.append("*")
         else:
             normed = normalize_ddc(ddc)
             if normed:
@@ -157,7 +155,7 @@ def normalize_ddc_prefix(prefix: str) -> str:
     """
     # 23.* should become 023*
     # 23.45* should become 023.45*
-    if '.' in prefix:
+    if "." in prefix:
         normed = normalize_ddc(prefix)
         return normed[0] if normed else prefix
     # 0* should stay as is
@@ -169,6 +167,6 @@ def normalize_ddc_prefix(prefix: str) -> str:
 
 def choose_sorting_ddc(normalized_ddcs: Iterable[str]) -> str:
     # Prefer unprefixed DDCs (so they sort correctly)
-    preferred_ddcs = [ddc for ddc in normalized_ddcs if ddc[0] in '0123456789']
+    preferred_ddcs = [ddc for ddc in normalized_ddcs if ddc[0] in "0123456789"]
     # Choose longest; theoretically most precise?
     return sorted(preferred_ddcs or normalized_ddcs, key=len, reverse=True)[0]

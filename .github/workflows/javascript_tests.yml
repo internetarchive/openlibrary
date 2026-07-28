@@ -20,8 +20,8 @@ jobs:
   javascript_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           # Should match what's in our Dockerfile
           node-version: '24' # Also update the `key` in the `with` map, below
@@ -38,11 +38,13 @@ jobs:
           key: ${{ runner.os }}-node24-${{ hashFiles('**/package-lock.json') }}
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm install --no-audit
+      - name: Ensure node_modules timestamp is up to date
+        run: touch node_modules
       - run: npm run lint
       - run: make git
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -30,7 +30,7 @@ test('identifiers of repeated elements are never the same.', () => {
     $('#id-value').text('fo4rzdaHDAwC');
     $('.repeat-add').trigger('click');
     expect($('.repeat-item').length).toBe(6);
-    $('#identifiers--3 .repeat-remove').trigger('click')
+    $('#identifiers--3 .repeat-remove').trigger('click');
     expect($('.repeat-item').length).toBe(5);
     $('#select-id').val('goodreads');
     $('#id-value').text('44415839');

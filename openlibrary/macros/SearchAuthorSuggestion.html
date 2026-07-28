@@ -1,0 +1,27 @@
+$def with (authors)
+
+$# An "I want that author" row shown above the book results when the query names
+$# the author of one of the top works (see worksearch/author_suggestion.py).
+$# Mirrors the author result markup in templates/search/authors.html and the
+$# header search modal (SearchModal.js _renderAuthorSuggestion), which must be
+$# kept in sync.
+<ul class="authorList search-author-suggestion">
+  $for author in authors:
+    $ olid = author['key']
+    $ name = author['name']
+    $ url = '/authors/%s/%s' % (olid, urlsafe(name))
+    <li class="searchResultItem">
+      $# A person-icon placeholder sits behind the photo. The photo is requested
+      $# with ?default=false so a missing photo 404s (rather than returning
+      $# coverstore's blank 1x1 default); index.js then hides the broken <img>,
+      $# revealing the placeholder — mirroring the modal's _onAvatarError.
+      <span class="sas-avatar">
+        <svg class="sas-avatar__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <img class="sas-avatar__photo" src="$get_coverstore_public_url()/a/olid/$(olid)-M.jpg?default=false" alt="" loading="lazy">
+      </span>
+      <div class="details">
+        <a href="$url" class="larger">$name</a><br />
+        <span class="small grey">$_("Author")</span>
+      </div>
+    </li>
+</ul>

@@ -1,4 +1,4 @@
-$def with (book, edition_sort_key, render_first=False)
+$def with (book, edition_sort_key, render_first=False, lending_state=None)
 $# :param Edition book:
 $# :param str edition_sort_key:
 
@@ -25,7 +25,7 @@ $ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
 $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
-$ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+$ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
 
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
@@ -90,7 +90,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="links">
         <ul class="read">
           $# render_first is only true on the book page for an edition.
-          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first, lending_state=lending_state)</li>
         </ul>
       </div>
     </td>

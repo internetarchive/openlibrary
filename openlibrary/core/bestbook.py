@@ -13,6 +13,12 @@ class Bestbook(db.CommonExtras):
     class AwardConditionsError(Exception):
         pass
 
+    # `select` is interpolated raw into the SQL string below. Restrict it to
+    # the two values the rest of this class actually needs so the function
+    # cannot be turned into a column-list SQL injection sink if a future
+    # caller forwards user input as `select`.
+    _ALLOWED_SELECTS: tuple[str, ...] = ("*", "count(*)")
+
     @classmethod
     def prepare_query(
         cls,
@@ -22,11 +28,13 @@ class Bestbook(db.CommonExtras):
         topic: str | None = None,
     ) -> tuple[str, dict]:
         """Prepare query for fetching bestbook awards"""
+        if select not in cls._ALLOWED_SELECTS:
+            raise ValueError(f"Invalid select: {select!r}. Must be one of {cls._ALLOWED_SELECTS}.")
         conditions = []
         filters = {
-            'work_id': work_id,
-            'username': username,
-            'topic': topic,
+            "work_id": work_id,
+            "username": username,
+            "topic": topic,
         }
         vars = {}
 
@@ -48,11 +56,9 @@ class Bestbook(db.CommonExtras):
     ) -> int:
         """Used to get count of awards with different filters"""
         oldb = db.get_db()
-        query, vars = cls.prepare_query(
-            select="count(*)", work_id=work_id, username=username, topic=topic
-        )
+        query, vars = cls.prepare_query(select="count(*)", work_id=work_id, username=username, topic=topic)
         result = oldb.query(query, vars=vars)
-        return result[0]['count'] if result else 0
+        return result[0]["count"] if result else 0
 
     @classmethod
     def get_awards(
@@ -67,9 +73,7 @@ class Bestbook(db.CommonExtras):
         specific work, submitted by a particular user, or related to a given topic.
         """
         oldb = db.get_db()
-        query, vars = cls.prepare_query(
-            select="*", work_id=work_id, username=username, topic=topic
-        )
+        query, vars = cls.prepare_query(select="*", work_id=work_id, username=username, topic=topic)
         result = oldb.query(query, vars=vars)
         return list(result) if result else []
 
@@ -100,9 +104,7 @@ class Bestbook(db.CommonExtras):
         )
 
     @classmethod
-    def remove(
-        cls, username: str, work_id: str | None = None, topic: str | None = None
-    ) -> int:
+    def remove(cls, username: str, work_id: str | None = None, topic: str | None = None) -> int:
         """Remove any award for this username where either work_id or topic matches."""
         if not work_id and not topic:
             raise ValueError("Either work_id or topic must be specified.")
@@ -124,9 +126,9 @@ class Bestbook(db.CommonExtras):
                 cls.TABLENAME,
                 where=where_clause,
                 vars={
-                    'username': username,
-                    'work_id': work_id,
-                    'topic': topic,
+                    "username": username,
+                    "work_id": work_id,
+                    "topic": topic,
                 },
             )
         except LookupError:  # No matching rows found
@@ -140,9 +142,9 @@ class Bestbook(db.CommonExtras):
 
         result = oldb.select(
             cls.TABLENAME,
-            what='work_id, COUNT(*) AS count',
-            group='work_id',
-            order='count DESC',
+            what="work_id, COUNT(*) AS count",
+            group="work_id",
+            order="count DESC",
         )
         return list(result) if result else []
 
@@ -164,25 +166,17 @@ class Bestbook(db.CommonExtras):
         errors = []
 
         if not (work_id and topic):
-            errors.append(
-                "A work ID and a topic are both required for best book awards"
-            )
+            errors.append("A work ID and a topic are both required for best book awards")
 
         else:
-            has_read_book = Bookshelves.user_has_read_work(
-                username=username, work_id=work_id
-            )
+            has_read_book = Bookshelves.user_has_read_work(username=username, work_id=work_id)
             awarded_book = cls.get_awards(username=username, work_id=work_id)
             awarded_topic = cls.get_awards(username=username, topic=topic)
 
             if not has_read_book:
-                errors.append(
-                    "Only books which have been marked as read may be given awards"
-                )
+                errors.append("Only books which have been marked as read may be given awards")
             if awarded_book:
-                errors.append(
-                    "A work may only be nominated one time for a best book award"
-                )
+                errors.append("A work may only be nominated one time for a best book award")
             if awarded_topic:
                 errors.append(
                     f"A topic may only be nominated one time for a best book award: "

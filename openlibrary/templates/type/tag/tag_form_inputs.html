@@ -7,6 +7,19 @@ $ tag_name = page and page.get('name', '')
     </div>
     <div class="input">
         <input type="text" name="name" id="tag_name" value="$tag_name" required/>
+        <span class="tip">$_("Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")")</span>
+    </div>
+</div>
+
+$ tag_slugs_raw = page and page.get('slugs', [])
+$ tag_slugs = ', '.join(tag_slugs_raw) if isinstance(tag_slugs_raw, list) else (tag_slugs_raw or '')
+<div class="formElement">
+    <div class="label">
+        <label for="tag_slugs">$_("Tag Slugs")</label>*<span class="tip">$_("Required field")</span>
+    </div>
+    <div class="input">
+        <input type="text" name="slugs" id="tag_slugs" value="$tag_slugs"/>
+        <span class="tip">$_("Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\"")</span>
     </div>
 </div>
 
@@ -29,7 +42,8 @@ $ body = page and page.get('body', '')
             <label for="page_body">$_("Page Body")</label>*<span class="tip">$_("Required field")</span>
         </div>
         <div class="input">
-            <textarea id="page_body" name="body" rows="5" cols="50" class="markdown" required>$body</textarea>
+            <textarea id="page_body" name="body">$body</textarea>
+            <ol-markdown-editor target-id="page_body"></ol-markdown-editor>
         </div>
     </div>
 </fieldset>

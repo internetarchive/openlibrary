@@ -19,12 +19,12 @@ from gunicorn.app.base import Application
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ["PYTHON_EGG_CACHE"] = "/tmp/.python-eggs"
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ["REAL_SCRIPT_NAME"] = ""
 
-    sys.path.append('conf')
+    sys.path.append("conf")
 
 
 def load_infogami(config_file):
@@ -32,7 +32,7 @@ def load_infogami(config_file):
     from infogami import config
     from infogami.utils import delegate  # noqa: F401 side effects may be needed
 
-    config.plugin_path += ['openlibrary.plugins']
+    config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
 
     infogami.load_config(config_file)
@@ -93,8 +93,8 @@ def https_middleware(app):
     """
 
     def wrapper(environ, start_response):
-        if environ.get('HTTP_X_SCHEME') == 'https':
-            environ['wsgi.url_scheme'] = 'https'
+        if environ.get("HTTP_X_SCHEME") == "https":
+            environ["wsgi.url_scheme"] = "https"
         return app(environ, start_response)
 
     return wrapper

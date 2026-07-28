@@ -1,4 +1,4 @@
-$def with (ocaid)
+$def with (ocaid, expiry)
 
 $ i18n_strings = {
   $ "confirm_return": _("Really return this book?")
@@ -13,4 +13,5 @@ $ i18n_strings = {
   <input class="cta-btn cta-btn--vanilla" type="submit" value="$_('Return book')" />
   <input type="hidden" name="action" value="return" />
   <input type="hidden" name="redirect" value="$request.fullpath" />
+  $:macros.FormatExpiry(expiry)
 </form>

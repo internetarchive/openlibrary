@@ -30,3 +30,6 @@ sentry:
     # when/if `enabled: true`
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
     environment: 'local'
+
+# Write to `transaction_details` table
+use_transaction_details_table: true

@@ -40,7 +40,7 @@ if (itemsWithDeleteSeed.length) {
  */
 function remove_seed(list_key, seed, success) {
     if (seed[0] === '/') {
-        seed = {key: seed}
+        seed = {key: seed};
     }
 
     $.ajax({

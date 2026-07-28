@@ -9,7 +9,7 @@ if [[ -z "$1" || "$1" == "--help" ]]; then
     echo "Usage: $0 <pr_number>"
     echo ""
     echo "Environment variables:"
-    echo "  SERVERS=ol-web0 ol-web1 ol-web2  List of servers to apply the patch to."
+    echo "  SERVERS=ol-web0 ol-web1 ol-web2 ol-web3  List of servers to apply the patch to."
     echo "  PATCH_ON=host|container          Whether to apply the patch on the host or inside"
     echo "                                   the container."
     echo "                                   Default: container unless patching www nginx changes"
@@ -29,7 +29,7 @@ echo "Note: Patch Deploys cannot rebuild js/css"
 echo
 
 # Iterate over hosts
-SERVERS=${SERVERS:-"ol-web0 ol-web1 ol-web2"}
+SERVERS=${SERVERS:-"ol-web0 ol-web1 ol-web2 ol-web3"}
 PROXY="http://http-proxy.us.archive.org:8080"
 APPLY_OPTIONS=${APPLY_OPTIONS:-""}
 

@@ -1,0 +1,248 @@
+/**
+ * ol-button — shared styles for the <ol-button> custom element.
+ *
+ * There are two phases in this element's life, and the CSS has to
+ * handle both cleanly so the user never sees an unstyled or empty
+ * button.
+ *
+ * Phase 1 — before the JS runs:
+ *   The browser sees <ol-button>foo</ol-button> in the HTML but has no
+ *   idea what it is yet (the class definition hasn't executed). So we
+ *   style the <ol-button> tag *itself* to look like a button. That way
+ *   it's immediately correct, even if JS is slow or blocked.
+ *
+ * Phase 2 — after the JS runs:
+ *   The component wakes up and renders a real <button> element inside
+ *   the <ol-button> wrapper. Now we want the *inner* <button> to carry
+ *   the visual styles, and the outer <ol-button> to become a plain
+ *   invisible wrapper.
+ *
+ * We switch between the two phases using a `hydrated` attribute that
+ * the component sets on itself after it inserts the inner <button>.
+ * Every style rule below either targets:
+ *   - `ol-button:not([hydrated])` (phase 1 — style the outer tag), or
+ *   - `ol-button > button`        (phase 2 — style the inner button).
+ *
+ * We use a custom `hydrated` attribute instead of the built-in
+ * `:defined` pseudo-class because `:defined` flips the moment the JS
+ * class is registered, which is *before* the inner <button> has
+ * actually been rendered. That would give you a brief frame where the
+ * outer wrapper has collapsed but the inner button isn't painted yet —
+ * a flash of nothing.
+ */
+
+ol-button {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+ol-button[full-width] {
+  display: block;
+  width: 100%;
+}
+
+/* Once hydrated, the host is just a wrapper — the inner <button> paints. */
+ol-button[hydrated] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+/* Disable pointer events on the host when disabled/loading so :hover
+   rules on the inner button don't fire. */
+ol-button[disabled],
+ol-button[loading] {
+  pointer-events: none;
+}
+
+/* Shared appearance: host pre-upgrade, inner button post-upgrade. */
+ol-button:not([hydrated]),
+ol-button > button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-inline-md);
+  box-sizing: border-box;
+  height: 38px;
+  padding: 0 var(--spacing-inset-md);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  font-weight: 500;
+  line-height: var(--line-height-control);
+  text-align: center;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  border-radius: var(--border-radius-button);
+  background-color: var(--primary-blue);
+  color: var(--white);
+  cursor: pointer;
+  user-select: none;
+  /* Hover color changes are instant (see docs/ai/design.md); only the
+     :active press-scale animates. */
+  transition: transform 0.08s;
+}
+
+/* Press feedback — tactile scale on activation. */
+ol-button > button:active {
+  transform: scale(0.97);
+}
+
+ol-button[full-width]:not([hydrated]),
+ol-button[full-width] > button {
+  width: 100%;
+}
+
+/* Sizes */
+ol-button[size="small"]:not([hydrated]),
+ol-button[size="small"] > button {
+  height: 30px;
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-label-medium);
+}
+
+ol-button[size="large"]:not([hydrated]),
+ol-button[size="large"] > button {
+  height: 46px;
+  padding: 0 var(--spacing-inset-lg);
+  font-size: var(--font-size-body-large);
+}
+
+/* Primary is the default (already set above). Explicit selector for clarity. */
+ol-button[variant="primary"]:not([hydrated]),
+ol-button[variant="primary"] > button {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+}
+
+/* Secondary */
+ol-button[variant="secondary"]:not([hydrated]),
+ol-button[variant="secondary"] > button {
+  background-color: var(--white);
+  border-color: var(--color-border-subtle);
+  color: var(--dark-grey);
+}
+
+/* Destructive */
+ol-button[variant="destructive"]:not([hydrated]),
+ol-button[variant="destructive"] > button {
+  background-color: transparent;
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Hover (only fires post-hydration because pointer-events is none on
+   disabled/loading hosts, and pre-hydration the inner <button> doesn't exist). */
+@media (hover: hover) and (pointer: fine) {
+  ol-button:not([variant]) > button:hover,
+  ol-button[variant="primary"] > button:hover {
+    background-color: var(--link-blue);
+    border-color: var(--link-blue);
+  }
+
+  ol-button[variant="secondary"] > button:hover {
+    background-color: var(--lightest-grey);
+  }
+
+  ol-button[variant="destructive"] > button:hover {
+    background-color: var(--red);
+    color: var(--white);
+  }
+}
+
+/* Focus ring */
+ol-button > button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: var(--spacing-3xs);
+}
+
+/* Loading: the label and spinner crossfade. Both are always in the DOM so
+   the button width stays stable and we can animate between states. */
+ol-button[loading] > button {
+  cursor: progress;
+}
+
+/* Disabled — scoped away from [loading] so the loading state keeps
+   full-strength colors while still being non-interactive. */
+ol-button:not([loading]) > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Label: visible by default; shrinks, blurs, and fades out on loading. */
+ol-button > button > .ol-btn-label {
+  display: inline-block;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    filter 0.24s ease;
+}
+
+ol-button[loading] > button > .ol-btn-label {
+  opacity: 0;
+  transform: scale(0.8);
+  filter: blur(2px);
+}
+
+/* Spinner wrapper: hidden by default; grows, sharpens, and fades in on
+   loading. Absolute so it doesn't affect layout. The rotation lives on
+   the inner ::before so it doesn't conflict with the scale transition. */
+ol-button > button > .ol-btn-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.4);
+  filter: blur(3px);
+  pointer-events: none;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    filter 0.24s ease;
+}
+
+ol-button > button > .ol-btn-spinner::before {
+  content: "";
+  display: block;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+ol-button[loading] > button > .ol-btn-spinner {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+ol-button[loading] > button > .ol-btn-spinner::before {
+  animation: ol-button-spin 0.7s linear infinite;
+}
+
+@keyframes ol-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ol-button > button > .ol-btn-label,
+  ol-button > button > .ol-btn-spinner,
+  ol-button[loading] > button > .ol-btn-label,
+  ol-button[loading] > button > .ol-btn-spinner {
+    transform: none;
+    filter: none;
+    transition-property: opacity;
+  }
+
+  ol-button[loading] > button > .ol-btn-spinner::before {
+    animation-duration: 2s;
+  }
+}

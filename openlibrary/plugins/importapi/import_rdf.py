@@ -10,7 +10,7 @@ def parse_string(e, key):
 
 
 def parse_authors(e, key):
-    s = './/{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value'
+    s = ".//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value"
     authors = [name.text for name in e.iterfind(s)]
     return (key, authors)
 
@@ -18,54 +18,52 @@ def parse_authors(e, key):
 # Note that RDF can have subject elements in both dc and dcterms namespaces
 # dc:subject is simply parsed by parse_string()
 def parse_subject(e, key):
-    member_of = e.find('.//{http://purl.org/dc/dcam/}memberOf')
-    resource_type = member_of.get(
-        '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource'
-    )
-    val = e.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value')
-    if resource_type == 'http://purl.org/dc/terms/DDC':
-        new_key = 'dewey_decimal_class'
+    member_of = e.find(".//{http://purl.org/dc/dcam/}memberOf")
+    resource_type = member_of.get("{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource")
+    val = e.find(".//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value")
+    if resource_type == "http://purl.org/dc/terms/DDC":
+        new_key = "dewey_decimal_class"
         return (new_key, val.text)
-    elif resource_type == 'http://purl.org/dc/terms/LCC':
-        new_key = 'lc_classification'
+    elif resource_type == "http://purl.org/dc/terms/LCC":
+        new_key = "lc_classification"
         return (new_key, val.text)
     else:
         return (None, None)
 
 
 def parse_category(e, key):
-    return (key, e.get('label'))
+    return (key, e.get("label"))
 
 
 def parse_identifier(e, key):
     val = e.text
-    isbn_str = 'urn:ISBN:'
-    ia_str = 'http://www.archive.org/details/'
+    isbn_str = "urn:ISBN:"
+    ia_str = "http://www.archive.org/details/"
     if val.startswith(isbn_str):
         isbn = val[len(isbn_str) :]
         if len(isbn) == 10:
-            return ('isbn_10', isbn)
+            return ("isbn_10", isbn)
         elif len(isbn) == 13:
-            return ('isbn_13', isbn)
+            return ("isbn_13", isbn)
     elif val.startswith(ia_str):
-        return ('ocaid', val[len(ia_str) :])
+        return ("ocaid", val[len(ia_str) :])
     else:
         return (None, None)
 
 
 parser_map = {
-    '{http://purl.org/ontology/bibo/}authorList': ['author', parse_authors],
-    '{http://purl.org/dc/terms/}title': ['title', parse_string],
-    '{http://purl.org/dc/terms/}publisher': ['publisher', parse_string],
-    '{http://purl.org/dc/terms/}issued': ['publish_date', parse_string],
-    '{http://purl.org/dc/terms/}extent': ['pagination', parse_string],
-    '{http://purl.org/dc/elements/1.1/}subject': ['subject', parse_string],
-    '{http://purl.org/dc/terms/}subject': ['subject', parse_subject],
-    '{http://purl.org/dc/terms/}language': ['language', parse_string],
-    '{http://purl.org/ontology/bibo/}lccn': ['lccn', parse_string],
-    '{http://purl.org/ontology/bibo/}oclcnum': ['oclc_number', parse_string],
-    '{http://RDVocab.info/elements/}placeOfPublication': [
-        'publish_place',
+    "{http://purl.org/ontology/bibo/}authorList": ["author", parse_authors],
+    "{http://purl.org/dc/terms/}title": ["title", parse_string],
+    "{http://purl.org/dc/terms/}publisher": ["publisher", parse_string],
+    "{http://purl.org/dc/terms/}issued": ["publish_date", parse_string],
+    "{http://purl.org/dc/terms/}extent": ["pagination", parse_string],
+    "{http://purl.org/dc/elements/1.1/}subject": ["subject", parse_string],
+    "{http://purl.org/dc/terms/}subject": ["subject", parse_subject],
+    "{http://purl.org/dc/terms/}language": ["language", parse_string],
+    "{http://purl.org/ontology/bibo/}lccn": ["lccn", parse_string],
+    "{http://purl.org/ontology/bibo/}oclcnum": ["oclc_number", parse_string],
+    "{http://RDVocab.info/elements/}placeOfPublication": [
+        "publish_place",
         parse_string,
     ],
 }

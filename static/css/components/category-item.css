@@ -10,7 +10,7 @@ a.category-nostyle {
 
 img.category-img {
   display: block;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 p.category-count {
@@ -20,7 +20,7 @@ p.category-count {
   color: var(--grey);
   padding: 0 0 1px;
   margin: 0;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   font-style: italic;
 }
 
@@ -29,11 +29,11 @@ p.category-title {
   text-align: center;
   line-height: 1;
   margin: 0;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 /* FIXME: Selector should be weakened OR removed */
 .carousel .category-item {
-  padding: 2px;
+  padding: var(--spacing-inset-xs);
   font-family: var(--font-family-serif);
 }

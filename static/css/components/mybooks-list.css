@@ -14,10 +14,10 @@
 }
 
 .mybooks-list h2 {
-  padding: 5px 0;
+  padding: var(--spacing-inset-xs) 0;
   margin: 0;
   line-height: var(--line-height-heading);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 .mybooks-list h2.subtitle {
@@ -50,7 +50,7 @@
 }
 
 .mybooks-list .search-results-stats {
-  margin-top: 8px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 .mybooks-list--clean ul {
@@ -70,7 +70,7 @@
 
 .mybooks-list--clean li {
   width: 310px;
-  margin-right: 10px;
+  margin-right: var(--spacing-inline-lg);
 }
 
 .mybooks-list--clean span.imageLg {
@@ -98,8 +98,8 @@
   margin-top: 0;
   font-size: 0.6875em;
   color: var(--grey);
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: var(--spacing-inset-xs);
+  padding-bottom: var(--spacing-inset-xs);
 }
 
 @media only screen and (min-width: 768px /* @width-breakpoint-tablet */) {

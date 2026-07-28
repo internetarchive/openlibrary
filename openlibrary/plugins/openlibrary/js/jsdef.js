@@ -88,7 +88,7 @@ ForLoop.prototype.next = function() {
 
     this.revindex0 = this.length - i;
     this.revindex = this.length - i + 1;
-}
+};
 
 // used in plugins/upstream/jsdef.py
 export function foreach(seq, parent_loop, callback) {

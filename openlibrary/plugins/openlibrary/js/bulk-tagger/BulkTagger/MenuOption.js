@@ -7,7 +7,7 @@ const classTypeSuffixes = {
     subject_places: '--place',
     subject_times: '--time',
     collections: '--collection'
-}
+};
 
 /**
  * @typedef OptionState
@@ -25,7 +25,7 @@ export const MenuOptionState = {
     NONE_TAGGED: 0,
     SOME_TAGGED: 1,
     ALL_TAGGED: 2,
-}
+};
 
 export class MenuOption {
 
@@ -46,7 +46,7 @@ export class MenuOption {
          * @member {HTMLElement}
          * @see {initialize}
          */
-        this.rootElement
+        this.rootElement;
 
         /**
          * Copy of the tag which is represented by this menu option.
@@ -54,7 +54,7 @@ export class MenuOption {
          * @member {Tag}
          * @readonly
          */
-        this.tag = tag
+        this.tag = tag;
 
         /**
          * Represents the amount of selected works that share this tag.
@@ -64,14 +64,14 @@ export class MenuOption {
          *
          * @member {OptionState}
          */
-        this.optionState = optionState
+        this.optionState = optionState;
 
         /**
          * Tracks number of selected works which have this tag.
          *
          * @member {Number}
          */
-        this.taggedWorksCount = taggedWorksCount
+        this.taggedWorksCount = taggedWorksCount;
     }
 
     /**
@@ -81,7 +81,7 @@ export class MenuOption {
      * this menu option
      */
     initialize() {
-        this.createMenuOption()
+        this.createMenuOption();
     }
 
     /**
@@ -91,37 +91,37 @@ export class MenuOption {
      * attached to the DOM, and does not yet have any attached event handlers.
      */
     createMenuOption() {
-        const parentElem = document.createElement('div')
-        parentElem.classList.add('selected-tag')
+        const parentElem = document.createElement('div');
+        parentElem.classList.add('selected-tag');
 
-        let bemSuffix = ''
+        let bemSuffix = '';
         switch (this.optionState) {
         case MenuOptionState.NONE_TAGGED:
-            bemSuffix = 'none-tagged'
-            break
+            bemSuffix = 'none-tagged';
+            break;
         case MenuOptionState.SOME_TAGGED:
-            bemSuffix = 'some-tagged'
-            break
+            bemSuffix = 'some-tagged';
+            break;
         case MenuOptionState.ALL_TAGGED:
-            bemSuffix = 'all-tagged'
-            break
+            bemSuffix = 'all-tagged';
+            break;
         }
 
         const markup = `<span class="selected-tag__status selected-tag__status--${bemSuffix}"></span>
             <span class="selected-tag__name">${this.tag.tagName}</span>
             <span class="selected-tag__type-container">
                 <span class="selected-tag__type selected-tag__type${classTypeSuffixes[this.tag.tagType]}">${this.tag.displayType}</span>
-            </span>`
+            </span>`;
 
-        parentElem.innerHTML = markup
-        this.rootElement = parentElem
+        parentElem.innerHTML = markup;
+        this.rootElement = parentElem;
     }
 
     /**
      * Removes this MenuOption from the DOM.
      */
     remove() {
-        this.rootElement.remove()
+        this.rootElement.remove();
     }
 
     /**
@@ -136,27 +136,27 @@ export class MenuOption {
      */
     updateMenuOptionState(menuOptionState) {
         if (this.rootElement) {  // `rootElement` not set until `initialize` is called
-            this.optionState = menuOptionState
-            const statusIndicator = this.rootElement.querySelector('.selected-tag__status')
+            this.optionState = menuOptionState;
+            const statusIndicator = this.rootElement.querySelector('.selected-tag__status');
             switch (menuOptionState) {
             case MenuOptionState.NONE_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--some-tagged')
-                statusIndicator.classList.add('selected-tag__status--none-tagged')
+                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--some-tagged');
+                statusIndicator.classList.add('selected-tag__status--none-tagged');
                 break;
             case MenuOptionState.SOME_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--none-tagged')
-                statusIndicator.classList.add('selected-tag__status--some-tagged')
+                statusIndicator.classList.remove('selected-tag__status--all-tagged', 'selected-tag__status--none-tagged');
+                statusIndicator.classList.add('selected-tag__status--some-tagged');
                 break;
             case MenuOptionState.ALL_TAGGED:
-                statusIndicator.classList.remove('selected-tag__status--none-tagged', 'selected-tag__status--some-tagged')
-                statusIndicator.classList.add('selected-tag__status--all-tagged')
+                statusIndicator.classList.remove('selected-tag__status--none-tagged', 'selected-tag__status--some-tagged');
+                statusIndicator.classList.add('selected-tag__status--all-tagged');
                 break;
             default:
                 // XXX : `optionState` is now incorrect
-                throw new Error('Unexpected value passed for menu option state.')
+                throw new Error('Unexpected value passed for menu option state.');
             }
         } else {
-            throw new Error('MenuOption must be initialized before state can be updated.')
+            throw new Error('MenuOption must be initialized before state can be updated.');
         }
     }
 
@@ -166,15 +166,15 @@ export class MenuOption {
      * Fires an `option-hidden` event when this is called.
      */
     hide() {
-        this.rootElement.classList.add('hidden')
-        this.rootElement.dispatchEvent(new CustomEvent('option-hidden'))
+        this.rootElement.classList.add('hidden');
+        this.rootElement.dispatchEvent(new CustomEvent('option-hidden'));
     }
 
     /**
      * Shows this menu option.
      */
     show() {
-        this.rootElement.classList.remove('hidden')
+        this.rootElement.classList.remove('hidden');
     }
 
     /**

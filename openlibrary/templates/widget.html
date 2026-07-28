@@ -15,24 +15,24 @@ $ book_title = item.get('title', '')
   </head>
   <body id="book-widget">
     <div class="widget">
-      <a href="$(canonical_url(item['key']))" target="_blank" class="noshow">
+      <a href="$(canonical_url(item['key']))" target="_blank" rel="noopener noreferrer" class="noshow">
         <img class="bookcover" src="$cover_url" alt="$book_title"/>
         <h1 class="title">$book_title</h1>
       </a>
       $if item.get('authors'):
         <h2 class="author">
           $ primary_author = item.get('authors')[0]
-          by <a target="_blank" href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
+          by <a target="_blank" rel="noopener noreferrer" href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
         </h2>
       $if book_status == "open" :
         $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
         <div class="cta open" type="submit">
-          <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="$_('Read "%(title)s"', title=book_title)">$_("Read")</a>
+          <a data-ol-link-track="Embed|Read"  target="_blank" rel="noopener noreferrer" href="$public_url" title="$_('Read "%(title)s"', title=book_title)">$_("Read")</a>
 	</div>
       $elif book_status == "borrow_available" :
         $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
         <div class="cta available" type="submit">
-          <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="$_('Borrow "%(title)s"', title=book_title)">$_("Borrow")</a>
+          <a data-ol-link-track="Embed|Borrow" target="_blank" rel="noopener noreferrer" href="$borrow_url" title="$_('Borrow "%(title)s"', title=book_title)">$_("Borrow")</a>
 	</div>
       $elif book_status == "borrow_unavailable":
         $ waitlist_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"] + "?action=join-waitinglist")
@@ -42,9 +42,9 @@ $ book_title = item.get('title', '')
         </form>
       $else:
         <div class="cta open">
-          <a data-ol-link-track="Embed|Learn" target="_blank" href="$(canonical_url(item['key']))" title="$_('Learn more about "%(title)s" at OpenLibrary', title=book_title)">$_("Learn More")</a>
+          <a data-ol-link-track="Embed|Learn" target="_blank" rel="noopener noreferrer" href="$(canonical_url(item['key']))" title="$_('Learn more about "%(title)s" at OpenLibrary', title=book_title)">$_("Learn More")</a>
 	</div>
-      <p class="service">$:_('on <a target="_blank" href="%(link)s">openlibrary.org</a>', link=canonical_url('/'))</p>
+      <p class="service">$:_('on <a target="_blank" rel="noopener noreferrer" href="%(link)s">openlibrary.org</a>', link=canonical_url('/'))</p>
     </div>
   </body>
 </html>

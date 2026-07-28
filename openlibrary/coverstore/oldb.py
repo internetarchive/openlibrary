@@ -40,9 +40,7 @@ def get_property_id(name):
     db = get_db()
     try:
         type_id = db.query("SELECT * FROM thing WHERE key='/type/edition'")[0].id
-        rows = db.query(
-            "SELECT * FROM property WHERE name=$name AND type=$type_id", vars=locals()
-        )
+        rows = db.query("SELECT * FROM property WHERE name=$name AND type=$type_id", vars=locals())
         return rows[0].id
     except IndexError:
         return None
@@ -53,12 +51,7 @@ def query(key, value):
 
     db = get_db()
     rows = db.query(
-        "SELECT thing.key"
-        " FROM thing, edition_str"
-        " WHERE thing.id=edition_str.thing_id"
-        " AND key_id=$key_id"
-        " AND value=$value"
-        " ORDER BY thing.last_modified LIMIT 10",
+        "SELECT thing.key FROM thing, edition_str WHERE thing.id=edition_str.thing_id AND key_id=$key_id AND value=$value ORDER BY thing.last_modified LIMIT 10",
         vars=locals(),
     )
     return [row.key for row in rows]

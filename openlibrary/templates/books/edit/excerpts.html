@@ -43,7 +43,8 @@ $ i18n_strings = {
                 <span class="tip">$_("Add an optional note.")</span>
             </div>
             <div class="input">
-                <textarea name="comment" id="excerpts-comment" class="markdown" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
+                <textarea name="comment" id="excerpts-comment"></textarea>
+                <ol-markdown-editor target-id="excerpts-comment"></ol-markdown-editor>
             </div>
         </div>
         <div class="formElement">

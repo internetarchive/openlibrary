@@ -13,7 +13,7 @@
 }
 .book-notes-form div textarea {
   width: 100%;
-  padding: 0.25em;
+  padding: var(--spacing-inset-xs);
   font-size: var(--font-size-title-medium);
   resize: none;
 }
@@ -30,7 +30,7 @@
   margin-left: auto;
   margin-top: 5px;
   font-size: 1.2em;
-  padding: 7px;
+  padding: var(--spacing-inset-sm);
 }
 
 .observation-instructions {

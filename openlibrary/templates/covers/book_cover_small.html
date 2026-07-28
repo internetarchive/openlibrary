@@ -14,8 +14,8 @@ $if size == "S":
                 <a href="$book.key" title="$_('Go to the main page for %(title)s', title=title)"><img src="$cover_url" class="cover" alt="$_('Cover of: %(title)s by %(authors)s', title=title, authors=author_names)"/></a>
             </div>
             <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');clear:left;">
-                <a href="$book.key" title="$_('Go to the main page for %(title)s', title=title)"><img src="/images/icons/avatar_book-sm.png" height="58" alt="$_('We need a book cover for: %(title)s', title=title)"/></a>
+                <a href="$book.key" title="$_('Go to the main page for %(title)s', title=title)"><img src="/static/images/icons/avatar_book-sm.png" height="58" alt="$_('We need a book cover for: %(title)s', title=title)"/></a>
             </div>
     </div>
 $else:
-    <img src="$(cover_url or '/images/icons/avatar_book-sm.png')" height="58" title="$_('Go to the main page for %(title)s', title=title)" alt="$title"/>
+    <img src="$(cover_url or '/static/images/icons/avatar_book-sm.png')" height="58" title="$_('Go to the main page for %(title)s', title=title)" alt="$title"/>

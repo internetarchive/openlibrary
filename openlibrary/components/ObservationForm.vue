@@ -30,11 +30,11 @@
 </template>
 
 <script>
-import CategorySelector from './ObservationForm/components/CategorySelector.vue'
-import SavedTags from './ObservationForm/components/SavedTags.vue'
-import ValueCard from './ObservationForm/components/ValueCard.vue'
+import CategorySelector from './ObservationForm/components/CategorySelector.vue';
+import SavedTags from './ObservationForm/components/SavedTags.vue';
+import ValueCard from './ObservationForm/components/ValueCard.vue';
 
-import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
+import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils';
 
 export default {
     name: 'ObservationForm',
@@ -113,7 +113,7 @@ export default {
              * An array containing all book tag types and values.
              */
             observationsArray: null,
-        }
+        };
     },
     computed: {
         /**
@@ -125,7 +125,7 @@ export default {
             if (this.selectedObservation) {
                 return this.selectedObservation.id;
             }
-            return null
+            return null;
         }
     },
     created: function() {
@@ -138,11 +138,11 @@ export default {
             resizeColorbox();
         });
 
-        this.observer.observe(this.$refs.form)
+        this.observer.observe(this.$refs.form);
     },
     beforeUnmount: function() {
         if (this.observer) {
-            this.observer.disconnect()
+            this.observer.disconnect();
         }
     },
     methods: {
@@ -152,7 +152,7 @@ export default {
          * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
          */
         updateSelected: function(observation) {
-            this.selectedObservation = observation
+            this.selectedObservation = observation;
         },
         /**
          * Randomly sets a selected observation.
@@ -162,7 +162,7 @@ export default {
             this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
         }
     }
-}
+};
 </script>
 
 <style scoped>

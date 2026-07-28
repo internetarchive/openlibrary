@@ -1,0 +1,94 @@
+$def with (track_prefix=None)
+$# Browse menu rendered with the <ol-popover> web component (see
+$# openlibrary/components/lit/OlPopover.js) instead of a native <details>
+$# dropdown. The panel leads with a single column of featured destinations —
+$# each an icon + title + short description — above a divider, followed by a
+$# list of simple links for the remaining Browse items.
+$#
+$# Analytics: data-*-track = "category|action|label". category = track_prefix,
+$# which the two nav_head.html include sites set per surface (desktop "MainNav"
+$# vs. mobile tray "MainNavMobile") so open-rate and click-through can be
+$# compared across surfaces. The label carries each destination's 1-based rank
+$# in visual top-to-bottom order (featured 1–4, then simple links 5–8) so we
+$# can see how far down the single column patrons reach.
+$#   data-ol-link-track — link clicks; ol.analytics.js delegates on click.
+$#   data-ol-open-track — one event per open (pointer or keyboard), sent by the
+$#     browse-scoped ol-popover-open listener in index.js.
+$ pfx = track_prefix or "MainNav"
+$ simpleLinks = [
+$     { "href": "/collections", "text": _("Collections"), "track": "Collections", "rank": 5 },
+$     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library", "rank": 6 },
+$     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks", "rank": 7 },
+$     { "href": "/random", "text": _("Random Book"), "track": "RandomBook", "rank": 8 }
+$ ]
+<div class="browse-component header-dropdown">
+  <ol-popover class="browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
+    <button type="button" slot="trigger" class="browse-popover__trigger">
+      $_('Browse')
+      <svg class="down-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="browse-popover__panel">
+      <div class="browse-popover__featured">
+        <a class="browse-feature" href="/subjects" data-ol-link-track="$(pfx)|Subjects|1">
+          <span class="browse-feature__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+          </span>
+          <span class="browse-feature__body">
+            <span class="browse-feature__title">$_('Subjects')</span>
+            <span class="browse-feature__desc">$_('Browse books by topic')</span>
+          </span>
+        </a>
+        <a class="browse-feature" href="/trending" data-ol-link-track="$(pfx)|Trending|2">
+          <span class="browse-feature__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 16.5 9.5 10 13.5 14 21 6.5"/>
+              <polyline points="15 6.5 21 6.5 21 12.5"/>
+            </svg>
+          </span>
+          <span class="browse-feature__body">
+            <span class="browse-feature__title">$_('Trending')</span>
+            <span class="browse-feature__desc">$_('Most popular right now')</span>
+          </span>
+        </a>
+        <a class="browse-feature" href="/explore" data-ol-link-track="$(pfx)|Explore|3">
+          <span class="browse-feature__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <polygon points="15.8 8.2 10.4 10.4 8.2 15.8 13.6 13.6"/>
+            </svg>
+          </span>
+          <span class="browse-feature__body">
+            <span class="browse-feature__title">$_('Library Explorer')</span>
+            <span class="browse-feature__desc">$_('Browse the virtual shelves')</span>
+          </span>
+        </a>
+        <a class="browse-feature" href="/lists" data-ol-link-track="$(pfx)|Lists|4">
+          <span class="browse-feature__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="9" y1="6" x2="20" y2="6"/>
+              <line x1="9" y1="12" x2="20" y2="12"/>
+              <line x1="9" y1="18" x2="20" y2="18"/>
+              <circle cx="4.5" cy="6" r="1.3" fill="currentColor" stroke="none"/>
+              <circle cx="4.5" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+              <circle cx="4.5" cy="18" r="1.3" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+          <span class="browse-feature__body">
+            <span class="browse-feature__title">$_('Lists')</span>
+            <span class="browse-feature__desc">$_('Reader-curated collections')</span>
+          </span>
+        </a>
+      </div>
+      <hr class="browse-popover__divider">
+      <ul class="browse-popover__links">
+        $for link in simpleLinks:
+          <li><a class="browse-popover__link" href="$(link['href'])" data-ol-link-track="$(pfx)|$(link['track'])|$(link['rank'])">$(link['text'])</a></li>
+      </ul>
+    </div>
+  </ol-popover>
+</div>

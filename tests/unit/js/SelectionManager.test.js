@@ -15,7 +15,7 @@ function createTestElementsForProcessClick() {
 
     listItem.appendChild(bookTitle);
 
-    return {listItem,link};
+    return {listItem, link};
 }
 
 function setupSelectionManager() {
@@ -55,7 +55,7 @@ describe('SelectionManager', () => {
 
     test('processClick - clicking on a link or button', () => {
         const sm = setupSelectionManager();
-        const { listItem,link } = createTestElementsForProcessClick();
+        const { listItem, link } = createTestElementsForProcessClick();
 
         link.addEventListener('click', () => {
             sm.processClick({ target: link, currentTarget: listItem });

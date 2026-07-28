@@ -14,13 +14,13 @@ export function initShareModal($modalLinks) {
 /**
  * Adds click listeners to buttons in all notes modals on a page.
  */
-function addShareModalButtonListeners (){
+function addShareModalButtonListeners(){
     $('#social-modal-content .copy-url-btn').on('click', function(event){
         event.preventDefault();
         navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard')
-        $.colorbox.close()
-    })
+        showToast('URL copied to clipboard');
+        $.colorbox.close();
+    });
 }
 
 /**
@@ -56,7 +56,7 @@ function addNotesModalButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast('Update successful!')
+                    showToast('Update successful!');
                     $.colorbox.close();
                     $deleteButton.removeClass('hidden');
                 }
@@ -117,7 +117,7 @@ export function addNotesPageButtonListeners() {
             contentType: false,
             processData: false,
             success: function() {
-                showToast('Update successful!')
+                showToast('Update successful!');
             }
         });
     });
@@ -200,15 +200,15 @@ function showToast(message, $parent) {
  */
 export function initObservationsModal($modalLinks) {
     addClickListeners($modalLinks, '800px');
-    addObservationReloadListeners($('.observations-list'))
+    addObservationReloadListeners($('.observations-list'));
     addDeleteObservationsListeners($('.delete-observations-button'));
 
     $modalLinks.each(function(_i, modalLinkElement) {
         const $element = $(modalLinkElement);
-        const context = JSON.parse(getModalContent($element).dataset['context'])
+        const context = JSON.parse(getModalContent($element).dataset['context']);
 
         addObservationChangeListeners($element.next(), context);
-    })
+    });
 }
 
 /**
@@ -223,10 +223,10 @@ function addClickListeners($modalLinks, maxWidth) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
             // Get context, which is attached to the modal content
-            const content = getModalContent($(this))
+            const content = getModalContent($(this));
             displayModal(content, maxWidth);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -237,7 +237,7 @@ function addClickListeners($modalLinks, maxWidth) {
  * @returns {HTMLElement}  Reference to a modal's content
  */
 function getModalContent($modalLink) {
-    return $modalLink.siblings()[0].children[0]
+    return $modalLink.siblings()[0].children[0];
 }
 
 /**
@@ -263,7 +263,7 @@ function addObservationReloadListeners($observationLists) {
                 <li class="throbber-li">
                     <div class="throbber"><h3>Updating observations</h3></div>
                 </li>
-            `)
+            `);
 
             $.ajax({
                 type: 'GET',
@@ -303,9 +303,9 @@ function addObservationReloadListeners($observationLists) {
                     }
 
                     $list.append(listItems);
-                })
-        })
-    })
+                });
+        });
+    });
 }
 
 /**
@@ -339,7 +339,7 @@ function addDeleteObservationsListeners($deleteButtons) {
                         <li>
                             No observations for this work.
                         </li>
-                    `)
+                    `);
                     $list.addClass('no-content');
 
                     $button.parent().removeClass('observation-buttons');
@@ -350,7 +350,7 @@ function addDeleteObservationsListeners($deleteButtons) {
                     clearForm($button.siblings().find('form'));
                 }
             });
-        })
+        });
     });
 }
 
@@ -376,7 +376,7 @@ function clearForm($form) {
  * @param {String} maxWidth  The max width of the modal
  */
 function displayModal(content, maxWidth) {
-    const modalId = `#${content.id}`
+    const modalId = `#${content.id}`;
     const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
     const reloadId = context ? context.reloadId : null;
 
@@ -411,7 +411,7 @@ function addObservationChangeListeners($parent, context) {
     const workOlid = context.work.split('/')[2];
 
     $questionSections.each(function() {
-        const $inputs = $(this).find('input')
+        const $inputs = $(this).find('input');
 
         $inputs.each(function() {
             $(this).on('change', function() {
@@ -424,11 +424,11 @@ function addObservationChangeListeners($parent, context) {
                     username: username,
                     action: `${$(this).prop('checked') ? 'add': 'delete'}`,
                     observation: observation
-                }
+                };
 
                 submitObservation($(this), workOlid, data, type);
             });
-        })
+        });
     });
 }
 

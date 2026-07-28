@@ -36,7 +36,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.utils.isbn import get_isbn_10s_and_13s, to_isbn_13
 
 MARC_LENGTH_POS = 5
-logger = logging.getLogger('openlibrary.importapi')
+logger = logging.getLogger("openlibrary.importapi")
 
 
 class DataError(ValueError):
@@ -44,7 +44,7 @@ class DataError(ValueError):
 
 
 class BookImportError(Exception):
-    def __init__(self, error_code, error='Invalid item', **kwargs):
+    def __init__(self, error_code, error="Invalid item", **kwargs):
         self.error_code = error_code
         self.error = error
         self.kwargs = kwargs
@@ -55,7 +55,7 @@ def parse_meta_headers(edition_builder):
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    re_meta = re.compile(r'HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
+    re_meta = re.compile(r"HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)")
     for k, v in web.ctx.env.items():
         m = re_meta.match(k)
         if m:
@@ -72,28 +72,24 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
     """
     data = data.strip()
-    if b'<?xml' in data[:10]:
-        root = etree.fromstring(
-            data, parser=lxml.etree.XMLParser(resolve_entities=False)
-        )
-        if root.tag == '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF':
+    if b"<?xml" in data[:10]:
+        root = etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
+        if root.tag == "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF":
             edition_builder = import_rdf.parse(root)
-            format = 'rdf'
-        elif root.tag == '{http://www.w3.org/2005/Atom}entry':
+            format = "rdf"
+        elif root.tag == "{http://www.w3.org/2005/Atom}entry":
             edition_builder = import_opds.parse(root)
-            format = 'opds'
-        elif root.tag == '{http://www.loc.gov/MARC21/slim}record':
-            if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
+            format = "opds"
+        elif root.tag == "{http://www.loc.gov/MARC21/slim}record":
+            if root.tag == "{http://www.loc.gov/MARC21/slim}collection":
                 root = root[0]
             rec = MarcXml(root)
             edition = read_edition(rec)
-            edition_builder = import_edition_builder.import_edition_builder(
-                init_dict=edition
-            )
-            format = 'marcxml'
+            edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
+            format = "marcxml"
         else:
-            raise DataError('unrecognized-XML-format')
-    elif data.startswith(b'{') and data.endswith(b'}'):
+            raise DataError("unrecognized-XML-format")
+    elif data.startswith(b"{") and data.endswith(b"}"):
         obj = json.loads(data)
 
         # Only look to the import_item table if a record is incomplete.
@@ -114,27 +110,23 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
                 supplement_rec_with_import_item_metadata(rec=obj, identifier=identifier)
 
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
-        format = 'json'
+        format = "json"
     elif data[:MARC_LENGTH_POS].isdigit():
         # Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
-            raise DataError('no-marc-record')
+            raise DataError("no-marc-record")
         record = MarcBinary(data)
         edition = read_edition(record)
-        edition_builder = import_edition_builder.import_edition_builder(
-            init_dict=edition
-        )
-        format = 'marc'
+        edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
+        format = "marc"
     else:
-        raise DataError('unrecognised-import-format')
+        raise DataError("unrecognised-import-format")
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
 
 
-def supplement_rec_with_import_item_metadata(
-    rec: dict[str, Any], identifier: str
-) -> None:
+def supplement_rec_with_import_item_metadata(rec: dict[str, Any], identifier: str) -> None:
     """
     Queries for a staged/pending row in `import_item` by identifier, and if found,
     uses select metadata to supplement empty fields in `rec`.
@@ -144,20 +136,20 @@ def supplement_rec_with_import_item_metadata(
     from openlibrary.core.imports import ImportItem  # Evade circular import.
 
     import_fields = [
-        'authors',
-        'description',
-        'isbn_10',
-        'isbn_13',
-        'number_of_pages',
-        'physical_format',
-        'publish_date',
-        'publishers',
-        'title',
-        'source_records',
+        "authors",
+        "description",
+        "isbn_10",
+        "isbn_13",
+        "number_of_pages",
+        "physical_format",
+        "publish_date",
+        "publishers",
+        "title",
+        "source_records",
     ]
 
     if import_item := ImportItem.find_staged_or_pending([identifier]).first():
-        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        import_item_metadata = json.loads(import_item.get("data", "{}"))
         for field in import_fields:
             if field == "source_records":
                 rec[field].extend(import_item_metadata.get(field))
@@ -168,58 +160,58 @@ def supplement_rec_with_import_item_metadata(
 class importapi:
     """/api/import endpoint for general data formats."""
 
-    def error(self, error_code, error='Invalid item', **kwargs):
-        content = {'success': False, 'error_code': error_code, 'error': error}
+    def error(self, error_code, error="Invalid item", **kwargs):
+        content = {"success": False, "error_code": error_code, "error": error}
         content.update(kwargs)
-        raise web.HTTPError('400 Bad Request', data=json.dumps(content))
+        raise web.HTTPError("400 Bad Request", data=json.dumps(content))
 
     def POST(self):
-        web.header('Content-Type', 'application/json')
+        web.header("Content-Type", "application/json")
         if not can_write():
-            raise web.HTTPError('403 Forbidden')
+            raise web.HTTPError("403 Forbidden")
 
         i = web.input()
-        preview = i.get('preview') == 'true'
+        preview = i.get("preview") == "true"
         data = web.data()
 
         try:
             edition, _ = parse_data(data)
 
         except (DataError, json.JSONDecodeError) as e:
-            return self.error(str(e), 'Failed to parse import data')
+            return self.error(str(e), "Failed to parse import data")
         except ValidationError as e:
-            return self.error('invalid-value', str(e).replace('\n', ': '))
+            return self.error("invalid-value", str(e).replace("\n", ": "))
 
         if not edition:
-            return self.error('unknown-error', 'Failed to parse import data')
+            return self.error("unknown-error", "Failed to parse import data")
 
         try:
             reply = add_book.load(edition, save=not preview)
             # TODO: If any records have been created, return a 201, otherwise 200
             return json.dumps(reply)
         except add_book.RequiredFields as e:
-            return self.error('missing-required-field', str(e))
+            return self.error("missing-required-field", str(e))
         except ClientException as e:
-            return self.error('bad-request', **json.loads(e.json))
+            return self.error("bad-request", **json.loads(e.json))
         except TypeError as e:
-            return self.error('type-error', repr(e))
+            return self.error("type-error", repr(e))
         except Exception as e:
-            return self.error('unhandled-exception', repr(e))
+            return self.error("unhandled-exception", repr(e))
 
 
 def raise_non_book_marc(marc_record, **kwargs):
-    details = 'Item rejected'
+    details = "Item rejected"
     # Is the item a serial instead of a monograph?
     marc_leaders = marc_record.leader()
-    if marc_leaders[7] == 's':
-        raise BookImportError('item-is-serial', details, **kwargs)
+    if marc_leaders[7] == "s":
+        raise BookImportError("item-is-serial", details, **kwargs)
 
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
     # MARC leader$6,7 reference: https://www.loc.gov/marc/bibliographic/bdleader.html
-    ACCEPTED_TYPES = 'am'  # a: Language material, m: Computer file
-    if not (marc_leaders[6] in ACCEPTED_TYPES and marc_leaders[7] == 'm'):
-        raise BookImportError('item-not-book', details, **kwargs)
+    ACCEPTED_TYPES = "am"  # a: Language material, m: Computer file
+    if not (marc_leaders[6] in ACCEPTED_TYPES and marc_leaders[7] == "m"):
+        raise BookImportError("item-not-book", details, **kwargs)
 
 
 class ia_importapi(importapi):
@@ -280,19 +272,17 @@ class ia_importapi(importapi):
         # Check 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
-            raise BookImportError('invalid-ia-identifier', f'{identifier} not found')
+            raise BookImportError("invalid-ia-identifier", f"{identifier} not found")
 
         # Check 2 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
-        if status != 'ok' and not force_import:
-            raise BookImportError(status, f'Prohibited Item {identifier}')
+        if status != "ok" and not force_import:
+            raise BookImportError(status, f"Prohibited Item {identifier}")
 
         # Check 3 - Does this item have a MARC record?
-        marc_record = get_marc_record_from_ia(
-            identifier=identifier, ia_metadata=metadata
-        )
+        marc_record = get_marc_record_from_ia(identifier=identifier, ia_metadata=metadata)
         if require_marc and not marc_record:
-            raise BookImportError('no-marc-record')
+            raise BookImportError("no-marc-record")
         if marc_record:
             from_marc_record = True
 
@@ -301,15 +291,15 @@ class ia_importapi(importapi):
             try:
                 import_record = read_edition(marc_record)
             except MarcException as e:
-                logger.error(f'failed to read from MARC record {identifier}: {e}')
-                raise BookImportError('invalid-marc-record')
+                logger.error(f"failed to read from MARC record {identifier}: {e}")
+                raise BookImportError("invalid-marc-record")
         else:
             try:
                 import_record = cls.get_ia_record(metadata)
             except KeyError:
-                raise BookImportError('invalid-ia-metadata')
+                raise BookImportError("invalid-ia-metadata")
             except ValidationError as e:
-                raise BookImportError('not-differentiable', str(e))
+                raise BookImportError("not-differentiable", str(e))
 
         # Add IA specific fields: ocaid, source_records, and cover
         cls.populate_edition_data(import_record, identifier)
@@ -317,20 +307,20 @@ class ia_importapi(importapi):
         return import_record, from_marc_record
 
     def POST(self):
-        web.header('Content-Type', 'application/json')
+        web.header("Content-Type", "application/json")
 
         if not can_write():
-            raise web.HTTPError('403 Forbidden')
+            raise web.HTTPError("403 Forbidden")
 
         i = web.input()
 
-        preview = i.get('preview') == 'true'
-        require_marc = i.get('require_marc') != 'false'
-        force_import = i.get('force_import') == 'true'
-        bulk_marc = i.get('bulk_marc') == 'true'
+        preview = i.get("preview") == "true"
+        require_marc = i.get("require_marc") != "false"
+        force_import = i.get("force_import") == "true"
+        bulk_marc = i.get("bulk_marc") == "true"
 
-        if 'identifier' not in i:
-            return self.error('bad-input', 'identifier not provided')
+        if "identifier" not in i:
+            return self.error("bad-input", "identifier not provided")
         identifier = i.identifier
 
         # First check whether this is a non-book, bulk-marc item
@@ -338,35 +328,33 @@ class ia_importapi(importapi):
             # Get binary MARC by identifier = ocaid/filename:offset:length
             re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
-                ocaid, filename, offset, _length = re_bulk_identifier.match(
-                    identifier
-                ).groups()
+                ocaid, filename, offset, _length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
                 next_data = {
-                    'next_record_offset': next_offset,
-                    'next_record_length': next_length,
+                    "next_record_offset": next_offset,
+                    "next_record_length": next_length,
                 }
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f'{identifier}: {e}'
-                logger.error(f'failed to read from bulk MARC record {details}')
-                return self.error('invalid-marc-record', details, **next_data)
+                details = f"{identifier}: {e}"
+                logger.error(f"failed to read from bulk MARC record {details}")
+                return self.error("invalid-marc-record", details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
-            edition['source_records'] = 'marc:%s/%s:%s:%d' % (
+            edition["source_records"] = "marc:%s/%s:%s:%d" % (
                 ocaid,
                 filename,
                 offset,
                 actual_length,
             )
 
-            local_id = i.get('local_id')
+            local_id = i.get("local_id")
             if local_id:
-                local_id_type = web.ctx.site.get('/local_ids/' + local_id)
+                local_id_type = web.ctx.site.get("/local_ids/" + local_id)
                 prefix = local_id_type.urn_prefix
                 force_import = True
-                id_field, id_subfield = local_id_type.id_location.split('$')
+                id_field, id_subfield = local_id_type.id_location.split("$")
 
                 def get_subfield(field, id_subfield):
                     if isinstance(field[1], str):
@@ -374,12 +362,8 @@ class ia_importapi(importapi):
                     subfields = field[1].get_subfield_values(id_subfield)
                     return subfields[0] if subfields else None
 
-                ids = [
-                    get_subfield(f, id_subfield)
-                    for f in rec.read_fields([id_field])
-                    if f and get_subfield(f, id_subfield)
-                ]
-                edition['local_id'] = [f'urn:{prefix}:{id_}' for id_ in ids]
+                ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
+                edition["local_id"] = [f"urn:{prefix}:{id_}" for id_ in ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
             # unless it is a scanning partner record and/or force_import is set.
@@ -413,38 +397,38 @@ class ia_importapi(importapi):
         :param dict metadata: metadata retrieved from metadata API
         :return: Edition record
         """
-        authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
-        description = metadata.get('description')
-        unparsed_isbns = metadata.get('isbn')
-        language = metadata.get('language')
-        lccn = metadata.get('lccn')
-        subject = metadata.get('subject')
-        oclc = metadata.get('oclc-id')
-        imagecount = metadata.get('imagecount')
-        unparsed_publishers = metadata.get('publisher')
+        authors = [{"name": name} for name in metadata.get("creator", "").split(";")]
+        description = metadata.get("description")
+        unparsed_isbns = metadata.get("isbn")
+        language = metadata.get("language")
+        lccn = metadata.get("lccn")
+        subject = metadata.get("subject")
+        oclc = metadata.get("oclc-id")
+        imagecount = metadata.get("imagecount")
+        unparsed_publishers = metadata.get("publisher")
         d = {
-            'title': metadata.get('title', ''),
-            'authors': authors,
-            'publish_date': metadata.get('date'),
+            "title": metadata.get("title", ""),
+            "authors": authors,
+            "publish_date": metadata.get("date"),
         }
         if description:
-            d['description'] = description
+            d["description"] = description
         if unparsed_isbns:
             isbn_10, isbn_13 = get_isbn_10s_and_13s(unparsed_isbns)
             if isbn_10:
-                d['isbn_10'] = isbn_10
+                d["isbn_10"] = isbn_10
             if isbn_13:
-                d['isbn_13'] = isbn_13
+                d["isbn_13"] = isbn_13
         if language:
             if len(language) == 3:
-                d['languages'] = [language]
+                d["languages"] = [language]
 
             # Try converting the name of a language to its three character code.
             # E.g. English -> eng.
             else:
                 try:
                     if lang_code := get_abbrev_from_full_lang_name(language):
-                        d['languages'] = [lang_code]
+                        d["languages"] = [lang_code]
                 except LanguageMultipleMatchError as e:
                     logger.warning(
                         "Multiple language matches for %s. No edition language set for %s.",
@@ -459,26 +443,26 @@ class ia_importapi(importapi):
                     )
 
         if lccn:
-            d['lccn'] = [lccn]
+            d["lccn"] = [lccn]
         if subject:
-            d['subjects'] = subject
+            d["subjects"] = subject
         if oclc:
-            d['oclc'] = oclc
+            d["oclc"] = oclc
         # Ensure no negative page number counts.
         if imagecount:
             if int(imagecount) - 4 >= 1:
-                d['number_of_pages'] = int(imagecount) - 4
+                d["number_of_pages"] = int(imagecount) - 4
             else:
-                d['number_of_pages'] = int(imagecount)
+                d["number_of_pages"] = int(imagecount)
 
         if unparsed_publishers:
             publish_places, publishers = get_location_and_publisher(unparsed_publishers)
             if publish_places:
-                d['publish_places'] = publish_places
+                d["publish_places"] = publish_places
             if publishers:
-                d['publishers'] = publishers
+                d["publishers"] = publishers
 
-        d['source_records'] = ['ia:' + metadata['identifier']]
+        d["source_records"] = ["ia:" + metadata["identifier"]]
         import_validator.import_validator().validate(d)
         return d
 
@@ -491,9 +475,9 @@ class ia_importapi(importapi):
         :param str identifier: ocaid
         :return: Edition record
         """
-        edition['ocaid'] = identifier
-        edition['source_records'] = 'ia:' + identifier
-        edition['cover'] = ia.get_cover_url(identifier)
+        edition["ocaid"] = identifier
+        edition["source_records"] = "ia:" + identifier
+        edition["cover"] = ia.get_cover_url(identifier)
         return edition
 
     @staticmethod
@@ -521,7 +505,7 @@ class ia_importapi(importapi):
 
     @staticmethod
     def status_matched(key):
-        reply = {'success': True, 'edition': {'key': key, 'status': 'matched'}}
+        reply = {"success": True, "edition": {"key": key, "status": "matched"}}
         return json.dumps(reply)
 
 

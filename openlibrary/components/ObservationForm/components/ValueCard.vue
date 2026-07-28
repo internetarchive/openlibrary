@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import CardBody from './CardBody.vue'
+import CardBody from './CardBody.vue';
 import CardHeader from './CardHeader.vue';
 
 export default {
@@ -94,7 +94,7 @@ export default {
             required: true
         }
     },
-}
+};
 </script>
 
 <style scoped>

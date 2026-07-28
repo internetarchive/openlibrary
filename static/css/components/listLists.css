@@ -20,7 +20,7 @@ ul.listLists li {
    * !important can be removed when that activity has happened. */
   list-style: none !important;
   border-radius: 3px;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   display: flex;
   background-color: var(--white);
   border-bottom: 1px solid var(--lightest-grey);
@@ -29,7 +29,7 @@ ul.listLists li {
 ul.listLists li .image {
   width: 42px;
   min-height: 35px;
-  padding: 0 10px;
+  padding: 0 var(--spacing-inset-sm);
 }
 ul.listLists li .image img {
   width: 32px;
@@ -37,7 +37,7 @@ ul.listLists li .image img {
 }
 /* stylelint-enable max-nesting-depth */
 ul.listLists li .data {
-  padding: 3px 0;
+  padding: var(--spacing-inset-xs) 0;
 }
 ul.listLists li .label {
   line-height: 1.125em;

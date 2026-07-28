@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import OLChip from './OLChip.vue'
+import OLChip from './OLChip.vue';
 
 export default {
     name: 'CategorySelector',
@@ -82,7 +82,7 @@ export default {
              * @type {number | null}
              */
             selectedId: this.initialSelectedId,
-        }
+        };
     },
     methods: {
         /**
@@ -97,14 +97,14 @@ export default {
                 for (let i = 0; i < this.observationsArray.length; ++i) {
                     if (this.observationsArray[i].label === text) {
                         this.selectedId = this.observationsArray[i].id;
-                        this.$emit('update-selected', this.observationsArray[i])
+                        this.$emit('update-selected', this.observationsArray[i]);
                     }
                 }
             } else {
                 this.selectedId = null;
 
                 // Set ObservationForm's selected observation to null
-                this.$emit('update-selected', null)
+                this.$emit('update-selected', null);
             }
         },
         /**
@@ -113,7 +113,7 @@ export default {
          * @param {number} id A chip's id.
          */
         isSelected: function(id) {
-            return this.selectedId === id
+            return this.selectedId === id;
         },
         /**
          * Returns an HTML code denoting what symbol to display in a book tag type chip.
@@ -131,7 +131,7 @@ export default {
             return '&bull;';
         }
     }
-}
+};
 </script>
 
 <style scoped>

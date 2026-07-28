@@ -110,3 +110,18 @@ def test_get_isbn_10_and_13(isbn, expected) -> None:
 def test_normalize_identifier(identifier, expected) -> None:
     got = normalize_identifier(identifier)
     assert got == expected
+
+
+def test_isbn_13_to_isbn_10_returns_none_for_979_prefix() -> None:
+    """979-prefix ISBN-13s have no ISBN-10 equivalent (per the ISBN standard).
+
+    isbn_13_to_isbn_10() must return None for these; build_primary_stores()
+    relies on this to decide whether to use Amazon's /dp/ route or fall back
+    to a search URL (fix for issue #6572).
+    """
+    # ISBN from the original issue report (Pickleball Soap Opera)
+    assert isbn_13_to_isbn_10("9798776159572") is None
+    # Second 979-prefix example
+    assert isbn_13_to_isbn_10("9791032310014") is None
+    # Sanity check: a 978-prefix ISBN-13 still converts correctly
+    assert isbn_13_to_isbn_10("9780590353427") == "059035342X"

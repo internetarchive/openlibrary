@@ -58,7 +58,84 @@ Set `scroll-margin-top` for scrollable elements to ensure proper space above ele
 }
 ```
 
+## Design Tokens
+
+Open Library uses a two-tier token system defined as CSS custom properties in `static/css/tokens/`.
+
+### Tier 1: Primitives
+
+Raw values with no semantic meaning — the base palette.
+
+```css
+--blue-500: hsl(210, 80%, 50%);
+--space-16: 16px;
+--border-radius-lg: 8px;
+```
+
+You should rarely use primitives directly in component or template styles.
+
+### Tier 2: Semantic Tokens
+
+Semantic tokens reference primitives and describe purpose, not appearance.
+
+```css
+--color-link: var(--blue-600);
+--color-surface-primary: var(--white);
+--border-radius-card: var(--border-radius-lg);
+```
+
+This indirection enables visual redesigns, dark mode, and brand refreshes by changing token values in one place.
+
+### Which tier to use
+
+Always use semantic tokens. If one doesn't exist for your use case, create it in the appropriate token file rather than using a primitive or hardcoded value.
+
+### Token files
+
+| File | Contents |
+|---|---|
+| `static/css/tokens/colors.css` | Color primitives and semantic color tokens |
+| `static/css/tokens/spacing.css` | Spacing scale |
+| `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
+| `static/css/tokens/typography.css` | Font families, sizes, and weights |
+
+### Tokens in Shadow DOM
+
+CSS custom properties inherit through the shadow boundary, so design tokens work directly inside Lit component `static styles` blocks without any extra wiring.
+
 ## Animations
+
+### Hover state changes are instant
+
+Don't transition the background-color, color, or border-color of a hover
+state. A hover should snap in the instant the pointer arrives — easing it in
+makes the control feel laggy and unresponsive, and on a fast pointer sweep the
+fade is just visual noise. Transitions belong on press feedback (`transform`
+on `:active`), enter/exit animations, and loading states — not on `:hover`
+color changes.
+
+```css
+/* Bad - hover background eases in, feels laggy */
+.button {
+  background: var(--white);
+  transition: background-color 0.15s ease;
+}
+.button:hover {
+  background: var(--lightest-grey);
+}
+
+/* Good - hover is instant; only the press-scale animates */
+.button {
+  background: var(--white);
+  transition: transform 0.08s;
+}
+.button:hover {
+  background: var(--lightest-grey);
+}
+.button:active {
+  transform: scale(0.97);
+}
+```
 
 ### Practical Tips
 
@@ -70,4 +147,51 @@ Set `scroll-margin-top` for scrollable elements to ensure proper space above ele
 | Hover causes flicker | Animate child element, not parent |
 | Popover scales from wrong point | Set `transform-origin` to trigger location |
 | Sequential tooltips feel slow | Skip delay/animation after first tooltip |
-| Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` |
+| Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` — see [Mobile](#mobile) |
+
+## Mobile
+
+### Prevent iOS Safari auto-zoom on input focus
+
+iOS Safari auto-zooms the viewport when the user focuses any text-entry control with `font-size < 16px`. The page stays zoomed after the control blurs, which is jarring and breaks fixed-position layout. Fix: set `font-size: 16px` on every focusable text-entry control on mobile — this covers `<input>`, `<textarea>`, `<select>`, and `contenteditable` elements, not just `<input>`.
+
+```css
+.search-modal__input {
+  /* Visually 14px-feeling input, but 16px to dodge iOS auto-zoom. */
+  font-size: 16px;
+}
+```
+
+If you need the control to look smaller, scale it visually rather than dropping below 16px (e.g., reduce padding, use `transform: scale()` only on non-text affordances).
+
+This fix relies on the page declaring `<meta name="viewport" content="width=device-width, initial-scale=1">` (set site-wide in the base layout). Do **not** suppress auto-zoom with `maximum-scale=1` or `user-scalable=no` on the viewport meta — that disables pinch-zoom entirely, which is an accessibility failure for low-vision users. The 16px rule is the correct fix.
+
+### Gate hover styles to hover-capable pointers
+
+Touch devices fire `:hover` on tap and the style sticks until the next tap elsewhere. That makes plain `:hover` rules feel broken on phones — buttons stay highlighted, tooltips linger.
+
+Wrap hover styles in `@media (hover: hover) and (pointer: fine)` so they only apply on devices with a precise hover-capable pointer (mouse, trackpad):
+
+```css
+.chip {
+  background: var(--white);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    background: var(--lightest-grey);
+  }
+}
+```
+
+Use the same query to decide which affordance to render in markup. For example, the search modal shows a tappable close button on touch devices and an "ESC" pill on hover-capable pointers (where the keyboard is the expected dismiss path). Pick one or the other rather than showing both.
+
+```css
+.dismiss-touch { display: block; }
+.dismiss-keyboard { display: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .dismiss-touch { display: none; }
+  .dismiss-keyboard { display: block; }
+}
+```

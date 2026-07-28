@@ -121,7 +121,7 @@ $jsdef render_excluded_works_list(works, total):
     <p>$:_('Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count=works_count)</p>
 </div>
 
-<div class="readinglog-charts" data-config="$dumps(reading_log_stats_config)" style="padding: 12px;">
+<div class="readinglog-charts" data-config="$json_encode(reading_log_stats_config)" style="padding: 12px;">
 
     <h2>$_("Author Stats")</h2>
 
@@ -137,7 +137,7 @@ $jsdef render_excluded_works_list(works, total):
         $for chart in charts:
             <section class="readinglog-chart-container">
                 <h3>$chart['title']</h3>
-                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+                <div class="readinglog-stats-chart" data-config="$json_encode(chart)"></div>
             </section>
     </section>
 
@@ -149,6 +149,8 @@ $jsdef render_excluded_works_list(works, total):
 
         $code:
             charts = [
+                { 'title': _('Works by Decade Published'), 'type': 'work-chart', 'key': 'first_publish_decade' },
+                { 'title': _('Works by Century Published'), 'type': 'work-chart', 'key': 'first_publish_century' },
                 { 'title': _('Works by Subject'), 'type': 'work-chart', 'key': 'subjects', 'exclude': ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
                 { 'title': _('Works by People'), 'type': 'work-chart', 'key': 'subject_people' },
                 { 'title': _('Works by Places'), 'type': 'work-chart', 'key': 'subject_places' },
@@ -158,7 +160,7 @@ $jsdef render_excluded_works_list(works, total):
         $for chart in charts:
             <section class="readinglog-chart-container">
                 <h3>$chart['title']</h3>
-                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+                <div class="readinglog-stats-chart" data-config="$json_encode(chart)"></div>
             </section>
     </section>
 </div>

@@ -58,5 +58,5 @@ export default {
             return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
         }
     }
-}
+};
 </script>

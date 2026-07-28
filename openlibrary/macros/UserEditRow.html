@@ -2,6 +2,7 @@ $def with (page, name, unique=True, right=False)
 
 $ label = i18n.get('/type/user', name)
 $ value = page[name]
+$ original_label = label
 
 <div class="formElement title" id="clone_$name">
     <div class="label">
@@ -15,7 +16,12 @@ $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <input type="text" name="$name#$i" value="$v"/>
+            <input type="text" name="$name#$i" value="$v"
+            $if i == 0:
+                id="$name"
+            $else:
+                aria-label="$original_label"
+            />
             <span>
                 $if i == len(value) - 1:
                     <button id="add_row_button" type="button">$_('Add another')</button>

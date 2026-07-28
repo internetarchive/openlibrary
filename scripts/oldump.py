@@ -27,14 +27,14 @@ if __name__ == "__main__":
     from openlibrary.config import load_config
     from openlibrary.data import dump
 
-    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
+    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.14.x
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:
         logger.info(f"loading config from {ol_config}")
         # Squelch output from infobase (needed for sentry setup)
         # So it doesn't end up in our data dumps body
-        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
+        with open(os.devnull, "w") as devnull, redirect_stdout(devnull):
             load_config(ol_config)
         sentry = init_sentry(getattr(config, "sentry_cron_jobs", {}))
     log(f"sentry.enabled = {bool(ol_config and sentry.enabled)}")

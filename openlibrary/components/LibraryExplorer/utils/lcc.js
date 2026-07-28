@@ -16,7 +16,7 @@ const LCC_PARTS_RE = new RegExp(
 
 export function short_lcc_to_sortable_lcc(lcc) {
     const m = clean_raw_lcc(lcc).match(LCC_PARTS_RE);
-    if (!m) return null
+    if (!m) return null;
 
     const letters = m.groups.letters.toUpperCase().padEnd(3, '-');
     const number = parseFloat(m.groups.number || 0);
@@ -42,7 +42,7 @@ export function sortable_lcc_to_short_lcc(lcc) {
         number: parseFloat(m.groups.number),
         cutter1: m.groups.cutter1 ? m.groups.cutter1.trim() : '',
         rest: m.groups.rest ? ` ${m.groups.rest}` : ''
-    }
+    };
     return `${parts.letters}${parts.number}${parts.cutter1}${parts.rest}`;
 }
 
@@ -57,5 +57,5 @@ export function clean_raw_lcc(raw_lcc) {
     if ((lcc.startsWith('[') && lcc.endsWith(']')) || (lcc.startsWith('(') && lcc.endsWith(')'))) {
         lcc = lcc.slice(1, -1);
     }
-    return lcc
+    return lcc;
 }

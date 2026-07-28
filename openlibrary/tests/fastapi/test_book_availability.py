@@ -9,7 +9,7 @@ MOCK_RETURN = {"OL1W": {"status": "open", "is_previewable": True}}
 
 @pytest.fixture
 def mock_get_availability():
-    with patch("openlibrary.fastapi.internal.api.lending.get_availability") as mock:
+    with patch("openlibrary.fastapi.internal.api.lending.get_availability_async") as mock:
         mock.return_value = MOCK_RETURN
         yield mock
 

@@ -67,7 +67,7 @@ function getJqueryElements(selector){
     const queryResult = $(selector);
     const jQueryElementArray = [];
     for (let i = 0; i < queryResult.length; i++){
-        jQueryElementArray.push(queryResult.eq(i))
+        jQueryElementArray.push(queryResult.eq(i));
     }
     return jQueryElementArray;
 }
@@ -77,7 +77,7 @@ export function initRoleValidation() {
     const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
         vars: {prefix: 'edition--'},
-        validate: function (data) {
+        validate: function(data) {
             if (data.role === '' || data.role === '---') {
                 return error('#role-errors', '#select-role', dataConfig['Please select a role.']);
             }
@@ -102,21 +102,21 @@ export function isbnConfirmAdd(data) {
     // Display the error and option to add the ISBN anyway.
     $('#id-errors').show().html(isbnConfirmString);
 
-    const yesButtonSelector = '#yes-add-isbn'
-    const noButtonSelector = '#do-not-add-isbn'
+    const yesButtonSelector = '#yes-add-isbn';
+    const noButtonSelector = '#do-not-add-isbn';
     const onYes = () => {
         $('#id-errors').hide();
     };
     const onNo = () => {
         $('#id-errors').hide();
         isbnOverride.clear();
-    }
+    };
     $(document).on('click', yesButtonSelector, onYes);
     $(document).on('click', noButtonSelector, onNo);
 
     // Save the data to isbnOverride so it can be picked up via onAdd in
     // js/jquery.repeat.js when the user confirms adding the invalid ISBN.
-    isbnOverride.set(data)
+    isbnOverride.set(data);
     return false;
 }
 
@@ -138,8 +138,8 @@ function validateIsbn10(data, dataConfig, label) {
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
     // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
     else if (isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
-        isbnConfirmAdd(data)
-        return false
+        isbnConfirmAdd(data);
+        return false;
     }
     return true;
 }
@@ -162,8 +162,8 @@ function validateIsbn13(data, dataConfig, label) {
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
     // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
     else if (isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
-        isbnConfirmAdd(data)
-        return false
+        isbnConfirmAdd(data);
+        return false;
     }
     return true;
 }
@@ -198,7 +198,7 @@ export function validateIdentifiers(data) {
 
     if (data.name === '' || data.name === '---') {
         $('#id-value').val(data.value);
-        return error('#id-errors', '#select-id', dataConfig['Please select an identifier.'])
+        return error('#id-errors', '#select-id', dataConfig['Please select an identifier.']);
     }
     const label = $('#select-id').find(`option[value='${data.name}']`).html();
     if (data.value === '') {
@@ -224,7 +224,7 @@ export function validateIdentifiers(data) {
     const entries = document.querySelectorAll(`.${data.name}`);
     if (isIdDupe(entries, data.value) === true) {
         // isbnOverride being set will override the dupe checker, so clear isbnOverride if there's a dupe.
-        if (isbnOverride.get()) {isbnOverride.clear()}
+        if (isbnOverride.get()) {isbnOverride.clear();}
         return error('#id-errors', '#id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
 
@@ -248,7 +248,7 @@ export function initClassificationValidation() {
 
     $('#classifications').repeat({
         vars: {prefix: 'edition--'},
-        validate: function (data) {
+        validate: function(data) {
             if (data.name === '' || data.name === '---') {
                 return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
@@ -278,7 +278,7 @@ export function initLanguageMultiInputAutocomplete() {
                     formatItem: render_language_autocomplete_item
                 }
             );
-        })
+        });
     });
 }
 
@@ -399,7 +399,7 @@ export function initSubjectsAutocomplete() {
     });
 
     /* Resize textarea to fit on input */
-    $('.csv-autocomplete--subjects textarea').on('input', function () {
+    $('.csv-autocomplete--subjects textarea').on('input', function() {
         this.style.height = 'auto';
         this.style.height = `${this.scrollHeight + 5}px`;
     });

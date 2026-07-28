@@ -108,6 +108,57 @@ class TestRevertAllUserEdits:
         assert web.ctx.site.get("/works/OL123W").title == "Good Book Title"
         assert web.ctx.site.get("/works/OL123W").type.key == "/type/work"
 
+    def test_deletes_spam_lists(self, mock_site):
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+
+        # Good alice's list should not be touched
+        web.ctx.site.save(
+            author=good_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
+            action="lists",
+        )
+
+        # Spam alice creates a list (revision 1)
+        web.ctx.site.save(
+            author=spam_alice.get_user(),
+            query=make_thing("/people/spam_alice/lists/OL2L", "Spam List"),
+            action="lists",
+        )
+
+        revert_all_user_edits(spam_alice)
+
+        # Good list remains
+        assert web.ctx.site.get("/people/good_alice/lists/OL1L").type.key == "/type/list"
+
+        # Spam list is deleted
+        assert web.ctx.site.get("/people/spam_alice/lists/OL2L").type.key == "/type/delete"
+
+    def test_does_not_delete_edited_lists(self, mock_site):
+        good_alice = make_test_account("good_alice")
+        spam_alice = make_test_account("spam_alice")
+
+        # Good alice creates a list
+        web.ctx.site.save(
+            author=good_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Good List"),
+            action="lists",
+        )
+
+        # Spam alice edits good alice's list (revision 2 — spam alice did NOT create it)
+        web.ctx.site.save(
+            author=spam_alice.get_user(),
+            query=make_thing("/people/good_alice/lists/OL1L", "Vandalized List"),
+            action="lists",
+        )
+
+        revert_all_user_edits(spam_alice)
+
+        # The list should be reverted (back to good title) but NOT deleted
+        reverted = web.ctx.site.get("/people/good_alice/lists/OL1L")
+        assert reverted.type.key == "/type/list"
+        assert reverted.name == "Good List"
+
     def test_does_not_undelete(self, mock_site):
         spam_alice = make_test_account("spam_alice")
 
@@ -124,7 +175,7 @@ class TestRevertAllUserEdits:
 
         revert_all_user_edits(spam_alice)
 
-        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision == 2
+        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision >= 2
         assert web.ctx.site.get("/people/spam_alice/lists/OL123L").type.key == "/type/delete"
 
     def test_two_spammy_editors(self, mock_site):

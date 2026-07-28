@@ -27,15 +27,13 @@ def handle_wrapped_lines(_iter):
     cur_lines = []
     cur_tag = None
     for tag, line in _iter:
-        if len(line) > 500 and line.endswith(b'++\x1e'):
+        if len(line) > 500 and line.endswith(b"++\x1e"):
             assert not cur_tag or cur_tag == tag
             cur_tag = tag
             cur_lines.append(line)
             continue
         if cur_lines:
-            yield cur_tag, cur_lines[0][:-3] + b''.join(
-                i[2:-3] for i in cur_lines[1:]
-            ) + line[2:]
+            yield cur_tag, cur_lines[0][:-3] + b"".join(i[2:-3] for i in cur_lines[1:]) + line[2:]
             cur_tag = None
             cur_lines = []
             continue
@@ -51,7 +49,7 @@ class BinaryDataField(MarcFieldBase):
         """
         self.rec: MarcBinary = rec
         if line:
-            while line[-2] == b'\x1e'[0]:  # ia:engineercorpsofhe00sher
+            while line[-2] == b"\x1e"[0]:  # ia:engineercorpsofhe00sher
                 line = line[:-1]
         self.line = line
 
@@ -64,7 +62,7 @@ class BinaryDataField(MarcFieldBase):
         if self.rec.marc8():
             data = mnemonics.read(data)
             return marc8.translate(data)
-        return normalize('NFC', data.decode('utf8'))
+        return normalize("NFC", data.decode("utf8"))
 
     def ind1(self) -> str:
         return chr(self.line[0])
@@ -73,7 +71,7 @@ class BinaryDataField(MarcFieldBase):
         return chr(self.line[1])
 
     def get_all_subfields(self) -> Iterator[tuple[str, str]]:
-        for i in self.line[3:-1].split(b'\x1f'):
+        for i in self.line[3:-1].split(b"\x1f"):
             if i:
                 j = self.translate(i)
                 yield j[0], j[1:]
@@ -88,11 +86,9 @@ class MarcBinary(MarcBase):
         except AssertionError:
             raise BadMARC("No MARC data found")
         if len(data) != length:
-            raise BadLength(
-                f"Record length {len(data)} does not match reported length {length}."
-            )
+            raise BadLength(f"Record length {len(data)} does not match reported length {length}.")
         self.data = data
-        self.directory_end = data.find(b'\x1e')
+        self.directory_end = data.find(b"\x1e")
         if self.directory_end == -1:
             raise BadMARC("MARC directory not found")
 
@@ -102,26 +98,22 @@ class MarcBinary(MarcBase):
         if len(directory) % 12 != 0:
             # directory is the wrong size
             # sometimes the leader includes some utf-8 by mistake
-            directory = data[: self.directory_end].decode('utf-8')[24:]
+            directory = data[: self.directory_end].decode("utf-8")[24:]
             if len(directory) % 12 != 0:
                 raise BadMARC("MARC directory invalid length")
-        iter_dir = (
-            directory[i * 12 : (i + 1) * 12] for i in range(len(directory) // 12)
-        )
+        iter_dir = (directory[i * 12 : (i + 1) * 12] for i in range(len(directory) // 12))
         return iter_dir
 
     def leader(self) -> str:
-        return self.data[:24].decode('utf-8', errors='replace')
+        return self.data[:24].decode("utf-8", errors="replace")
 
     def marc8(self) -> bool:
         """
         Is this binary MARC21 MARC8 encoded? (utf-8 if False)
         """
-        return self.leader()[9] == ' '
+        return self.leader()[9] == " "
 
-    def read_fields(
-        self, want: list[str] | None = None
-    ) -> Iterator[tuple[str, str | BinaryDataField]]:
+    def read_fields(self, want: list[str] | None = None) -> Iterator[tuple[str, str | BinaryDataField]]:
         """
         :param want list | None: list of str, 3 digit MARC field ids, or None for all fields (no limit)
         :rtype: generator
@@ -135,14 +127,14 @@ class MarcBinary(MarcBase):
         for tag, line in handle_wrapped_lines(fields):
             if want and tag not in want:
                 continue
-            if tag.startswith('00'):
-                if not line or line[-1] != b'\x1e'[0]:
-                    raise BadMARC(f'Corrupt control field: {tag}')
+            if tag.startswith("00"):
+                if not line or line[-1] != b"\x1e"[0]:
+                    raise BadMARC(f"Corrupt control field: {tag}")
                 # Tag contents should be strings in utf-8 by this point
                 # if not, the MARC is corrupt in some way. Attempt to rescue
                 # using 'replace' error handling. We don't want to change offsets
                 # in positionaly defined control fields like 008
-                yield tag, line[:-1].decode('utf-8', errors='replace')
+                yield tag, line[:-1].decode("utf-8", errors="replace")
             else:
                 yield tag, BinaryDataField(self, line)
 
@@ -158,11 +150,7 @@ class MarcBinary(MarcBase):
         :rtype: list
         :return: list of tuples (MARC tag (str), field contents ... bytes or str?)
         """
-        return [
-            (line[:3].decode(), self.get_tag_line(line))
-            for line in self.iter_directory()
-            if line[:3].decode() in want
-        ]
+        return [(line[:3].decode(), self.get_tag_line(line)) for line in self.iter_directory() if line[:3].decode() in want]
 
     def get_tag_line(self, line):
         length = int(line[3:7])
@@ -170,15 +158,15 @@ class MarcBinary(MarcBase):
         data = self.data[self.directory_end :]
         # handle off-by-one errors in MARC records
         try:
-            if data[offset] != b'\x1e':
-                offset += data[offset:].find(b'\x1e')
+            if data[offset] != b"\x1e":
+                offset += data[offset:].find(b"\x1e")
             last = offset + length
-            if data[last] != b'\x1e':
-                length += data[last:].find(b'\x1e')
+            if data[last] != b"\x1e":
+                length += data[last:].find(b"\x1e")
         except IndexError:
             pass
         tag_line = data[offset + 1 : offset + length + 1]
         # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
-        if line[0:2] != '00' and tag_line[1:8] == b'{llig}\x1f':
-            tag_line = tag_line[0] + '\ufe20' + tag_line[7:]
+        if line[0:2] != "00" and tag_line[1:8] == b"{llig}\x1f":
+            tag_line = tag_line[0] + "\ufe20" + tag_line[7:]
         return tag_line

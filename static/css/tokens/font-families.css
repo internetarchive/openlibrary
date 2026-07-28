@@ -17,7 +17,7 @@
  */
 :root {
   --font-family-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* body text, paragraphs, lists */
-  --font-family-code: "Lucida Console", "Courier New", monospace; /* code, pre, inline code */
+  --font-family-code: Menlo, "Lucida Console", "Courier New", monospace; /* code, pre, inline code */
   --font-family-title: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; /* large text in banners and hero sections, book titles */
   --font-family-subtitle: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; /* small text in banners and hero sections, book subtitles */
   --font-family-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* headings in body text */

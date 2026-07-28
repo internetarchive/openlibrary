@@ -88,33 +88,23 @@ div.editionAbout p.featured-count {
   border: 0;
 }
 
-textarea[name="edition--notes"] + h3 + .wmd-preview,
 .edition-notes,
-textarea[name="work--description"] + h3 + .wmd-preview,
 .book-description {
   font-size: var(--font-size-label-medium);
   margin-top: 5px;
   margin-bottom: 20px;
 }
 
-textarea[name="edition--notes"] + h3 + .wmd-preview ul,
 .edition-notes ul,
-textarea[name="work--description"] + h3 + .wmd-preview ul,
 .book-description ul,
-textarea[name="edition--notes"] + h3 + .wmd-preview ol,
 .edition-notes ol,
-textarea[name="work--description"] + h3 + .wmd-preview ol,
 .book-description ol {
   padding-left: 2rem;
 }
 
-textarea[name="edition--notes"] + h3 + .wmd-preview ul li,
 .edition-notes ul li,
-textarea[name="work--description"] + h3 + .wmd-preview ul li,
 .book-description ul li,
-textarea[name="edition--notes"] + h3 + .wmd-preview ol li,
 .edition-notes ol li,
-textarea[name="work--description"] + h3 + .wmd-preview ol li,
 .book-description ol li {
   list-style-type: initial;
   font-size: 0.8rem;

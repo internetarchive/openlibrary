@@ -1,0 +1,41 @@
+.markdown-content ol,
+.markdown-content ul {
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.markdown-content li {
+  line-height: var(--line-height-list);
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content ol li {
+  list-style-type: decimal;
+}
+
+.markdown-content ul li {
+  list-style-type: disc;
+}
+
+.markdown-content li > ul,
+.markdown-content li > ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.markdown-content blockquote {
+  margin-left: 1rem;
+  padding: 0.5rem 1rem;
+  border-left: 2px solid var(--beige-deep);
+  color: var(--darker-grey);
+  background: var(--off-white);
+  font-style: italic;
+}
+.markdown-content blockquote p {
+  margin: 0;
+}
+
+.markdown-content hr {
+  border: var(--border-divider);
+  margin: 2rem 0;
+}

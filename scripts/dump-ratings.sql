@@ -15,4 +15,4 @@ COPY (
   -- By default in postgres, "2010-05-17T10:20:30" <= "2010-05-17" ->> FALSE
   -- We need to go up a day to get <= behaviour
   WHERE ratings.created <= (:'upto'::date + '1 day'::interval)
-) TO stdout WITH (format csv, delimiter E'\t')
+) TO stdout

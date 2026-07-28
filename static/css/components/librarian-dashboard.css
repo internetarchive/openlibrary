@@ -1,20 +1,20 @@
 details.librarian-dashboard {
   color: var(--grey);
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
   max-width: 700px;
 }
 
 .dq-table {
   border: 1px solid var(--grey);
   width: 100%;
-  margin: 10px;
+  margin: var(--spacing-stack-sm) var(--spacing-inline-lg);
 }
 
 .dq-table th {
   background: var(--white);
   font-weight: 700;
   text-align: center;
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
 }
 
 .dq-table .dqs-run-again {
@@ -31,7 +31,7 @@ details.librarian-dashboard {
 }
 
 .dq-table__row td {
-  padding: 4px 8px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 
 .dq-table__row .dq-table__criterion-cell {

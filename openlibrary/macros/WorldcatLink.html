@@ -1,9 +1,17 @@
-$def with(isbn=None, oclc_numbers=None, referer="")
+$def with(isbn=None, oclc_number=None)
 
-$if oclc_numbers or isbn:
+$if oclc_number or isbn:
   <div class="cta-section">
     <p class="cta-section-title world-cat-link">$_("Check nearby libraries")</p>
     <ul class="book-locate-options">
-      <li><a class="worldcat-link" data-ol-link-track="worldcat-search" href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)" title="$_('Check WorldCat for an edition near you')">$_("WorldCat")</a></li>
+      <li><a
+        class="worldcat-link"
+        data-ol-link-track="worldcat-search"
+        $if oclc_number:
+          href="https://worldcat.org/oclc/$oclc_number"
+        $else:
+          href="https://worldcat.org/isbn/$isbn"
+        title="$_('Check WorldCat for an edition near you')"
+      >$_("WorldCat")</a></li>
     </ul>
   </div>

@@ -41,6 +41,24 @@ class TestIsValidDate:
         # Must have a month if there is a day:
         assert is_valid_date(1999, None, 22) is False
 
+    def test_month_out_of_range(self):
+        assert is_valid_date(1999, 0, None) is False
+        assert is_valid_date(1999, 13, None) is False
+        assert is_valid_date(1999, -1, None) is False
+
+    def test_day_out_of_range(self):
+        assert is_valid_date(1999, 1, 0) is False
+        assert is_valid_date(1999, 1, 32) is False
+        assert is_valid_date(1999, 1, -1) is False
+
+    def test_boundary_values(self):
+        # Valid boundary months:
+        assert is_valid_date(1999, 1, None) is True
+        assert is_valid_date(1999, 12, None) is True
+        # Valid boundary days:
+        assert is_valid_date(1999, 1, 1) is True
+        assert is_valid_date(1999, 1, 31) is True
+
 
 class TestValidateData:
     def setup_method(self):

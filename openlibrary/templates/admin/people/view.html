@@ -125,14 +125,6 @@ $ has_profile = person.get_user() is not None
             <br/>
             <br/>
             <div class="small">$:_('Registered on <span class="time">%(date)s</span>.', date=datestr(person.registered_on, relative=False))></div>
-            <div class="small">
-                $if person.get_activation_link():
-                    $:_('Activation link expiring on <span class="time">%(date)s.</span>', date=datestr(person.get_activation_link().get_expiration_time()))
-                $else:
-                    <strong>$_("Activation link expired").</strong>
-
-                <button type="submit" name="action" value="resend_link">$_("Resend activation link")</button>.
-            </div>
         </form>
     </div>
 

@@ -1,7 +1,7 @@
- | From svn.tartarus.org/snowball/trunk/website/algorithms/finnish/stop.txt
+ | From https://snowballstem.org/algorithms/finnish/stop.txt
  | This file is distributed under the BSD License.
- | See http://snowball.tartarus.org/license.php
- | Also see http://www.opensource.org/licenses/bsd-license.html
+ | See https://snowballstem.org/license.html
+ | Also see https://opensource.org/licenses/bsd-license.html
  |  - Encoding was converted to UTF-8.
  |  - This notice was added.
  |
@@ -48,8 +48,8 @@ me     meidän meidät meitä  meissä  meistä  meihin meillä  meiltä  meille
 te     teidän teidät teitä  teissä  teistä  teihin teillä  teiltä  teille                | you
 he     heidän heidät heitä  heissä  heistä  heihin heillä  heiltä  heille                | they
 
-tämä   tämän         tätä   tässä   tästä   tähän  tallä   tältä   tälle   tänä   täksi  | this
-tuo    tuon          tuotä  tuossa  tuosta  tuohon tuolla  tuolta  tuolle  tuona  tuoksi | that
+tämä   tämän         tätä   tässä   tästä   tähän  tällä   tältä   tälle   tänä   täksi  | this
+tuo    tuon          tuota  tuossa  tuosta  tuohon tuolla  tuolta  tuolle  tuona  tuoksi | that
 se     sen           sitä   siinä   siitä   siihen sillä   siltä   sille   sinä   siksi  | it
 nämä   näiden        näitä  näissä  näistä  näihin näillä  näiltä  näille  näinä  näiksi | these
 nuo    noiden        noita  noissa  noista  noihin noilla  noilta  noille  noina  noiksi | those
@@ -91,7 +91,5 @@ yli     | over, across
 | other
 
 kun    | when
-niin   | so
 nyt    | now
 itse   | self
-

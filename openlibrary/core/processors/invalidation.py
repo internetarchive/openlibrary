@@ -80,9 +80,7 @@ class InvalidationProcessor:
 
         # set expire_time slightly more than timeout
         self.expire_time = 3 * timeout
-        self.hook = _InvalidationHook(
-            prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time
-        )
+        self.hook = _InvalidationHook(prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time)
 
     def __call__(self, handler):
         def t(date):
@@ -95,9 +93,7 @@ class InvalidationProcessor:
 
         # last update in recent timeout seconds?
         has_recent_update = (self.last_poll_time - self.last_update_time) < self.timeout
-        if has_recent_update and (
-            cookie_time is None or cookie_time < self.last_update_time
-        ):
+        if has_recent_update and (cookie_time is None or cookie_time < self.last_update_time):
             web.setcookie(
                 self.cookie_name,
                 self.last_update_time.isoformat(),

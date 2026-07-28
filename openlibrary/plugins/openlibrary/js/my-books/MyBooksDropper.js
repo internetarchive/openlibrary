@@ -2,12 +2,12 @@
  * Defines functionality related to Open Library's My Books dropper components.
  * @module my-books/MyBooksDropper
  */
-import myBooksStore from './store'
-import { CheckInComponents } from './MyBooksDropper/CheckInComponents'
-import { ReadingLists } from './MyBooksDropper/ReadingLists'
-import {ReadingLogForms, ReadingLogShelves} from './MyBooksDropper/ReadingLogForms'
-import { Dropper } from '../dropper/Dropper'
-import { removeChildren } from '../utils'
+import myBooksStore from './store';
+import { CheckInComponents } from './MyBooksDropper/CheckInComponents';
+import { ReadingLists } from './MyBooksDropper/ReadingLists';
+import {ReadingLogForms, ReadingLogShelves} from './MyBooksDropper/ReadingLogForms';
+import { Dropper } from '../dropper/Dropper';
+import { removeChildren } from '../utils';
 
 /**
  * Represents a single My Books Dropper.
@@ -33,18 +33,18 @@ export class MyBooksDropper extends Dropper {
      * @param {HTMLElement} dropper
      */
     constructor(dropper) {
-        super(dropper)
+        super(dropper);
 
         const dropperActionCallbacks = {
             closeDropper: this.closeDropper.bind(this),
             toggleDropper: this.toggleDropper.bind(this)
-        }
+        };
 
         /**
          * Reference to this dropper's list content.
          * @member {ReadingLists}
          */
-        this.readingLists = new ReadingLists(dropper, dropperActionCallbacks)
+        this.readingLists = new ReadingLists(dropper, dropperActionCallbacks);
 
         /**
          * Reference to the dropper's list loading indicator.
@@ -52,49 +52,49 @@ export class MyBooksDropper extends Dropper {
          * This is only rendered when the patron is logged in.
          * @member {HTMLElement|null}
          */
-        this.loadingIndicator = dropper.querySelector('.list-loading-indicator')
+        this.loadingIndicator = dropper.querySelector('.list-loading-indicator');
 
         /**
          * Reference to the interval ID of the animation `setInterval` call.
          * @member {NodeJS.Timer|undefined}
          */
-        this.loadingAnimationId
+        this.loadingAnimationId;
 
         /**
          * The work key associated with this dropper, if any.
          *
          * @member {string|undefined}
          */
-        this.workKey = this.dropper.dataset.workKey
+        this.workKey = this.dropper.dataset.workKey;
 
-        const splitKey = this.workKey ? this.workKey.split('/') : ['']
-        const workOlid = splitKey[splitKey.length - 1]
+        const splitKey = this.workKey ? this.workKey.split('/') : [''];
+        const workOlid = splitKey[splitKey.length - 1];
 
         /**
          * @type {CheckInComponents|null}
          */
-        this.checkInComponents = workOlid ? new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`)) : null
+        this.checkInComponents = workOlid ? new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`)) : null;
 
         /**
          * References this dropper's reading log buttons.
          * @member {ReadingLogForms}
          */
-        this.readingLogForms = new ReadingLogForms(dropper, this.checkInComponents, dropperActionCallbacks)
+        this.readingLogForms = new ReadingLogForms(dropper, this.checkInComponents, dropperActionCallbacks);
     }
 
     /**
      * Hydrates dropper contents and loads patron's lists.
      */
     initialize() {
-        super.initialize()
+        super.initialize();
 
-        this.readingLogForms.initialize()
-        this.readingLists.initialize()
+        this.readingLogForms.initialize();
+        this.readingLists.initialize();
         if (this.checkInComponents) {
-            this.checkInComponents.initialize()
+            this.checkInComponents.initialize();
         }
 
-        this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'))
+        this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'));
     }
 
     /**
@@ -104,17 +104,17 @@ export class MyBooksDropper extends Dropper {
      * @returns {NodeJS.Timer}
      */
     initLoadingAnimation(loadingIndicator) {
-        let count = 0
+        let count = 0;
         const intervalId = setInterval(function() {
-            let ellipsis = ''
+            let ellipsis = '';
             for (let i = 0; i < count % 4; ++i) {
-                ellipsis += '.'
+                ellipsis += '.';
             }
-            loadingIndicator.innerText = ellipsis
-            ++count
-        }, 1500)
+            loadingIndicator.innerText = ellipsis;
+            ++count;
+        }, 1500);
 
-        return intervalId
+        return intervalId;
     }
 
     /**
@@ -124,8 +124,8 @@ export class MyBooksDropper extends Dropper {
      * @param {string} partialHtml
      */
     updateReadingLists(partialHtml) {
-        clearInterval(this.loadingAnimationId)
-        this.replaceLoadingIndicators(this.loadingIndicator, partialHtml)
+        clearInterval(this.loadingAnimationId);
+        this.replaceLoadingIndicators(this.loadingIndicator, partialHtml);
     }
 
     /**
@@ -138,11 +138,11 @@ export class MyBooksDropper extends Dropper {
      * @returns {Array<string>}
      */
     getSeedKeys() {
-        const results = [this.readingLists.seedKey]
+        const results = [this.readingLists.seedKey];
         if (this.readingLists.workKey) {
-            results.push(this.readingLists.workKey)
+            results.push(this.readingLists.workKey);
         }
-        return results
+        return results;
     }
 
     /**
@@ -159,14 +159,14 @@ export class MyBooksDropper extends Dropper {
      * @param {ListPartials} partials
      */
     replaceLoadingIndicators(dropperListsPlaceholder, partialHTML) {
-        const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null
+        const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null;
 
         if (dropperParent) {
-            removeChildren(dropperParent)
-            dropperParent.insertAdjacentHTML('afterbegin', partialHTML)
+            removeChildren(dropperParent);
+            dropperParent.insertAdjacentHTML('afterbegin', partialHTML);
 
-            const anchors = this.dropper.querySelectorAll('.modify-list')
-            this.readingLists.initModifyListAffordances(anchors)
+            const anchors = this.dropper.querySelectorAll('.modify-list');
+            this.readingLists.initModifyListAffordances(anchors);
         }
     }
 
@@ -180,15 +180,15 @@ export class MyBooksDropper extends Dropper {
      * @param shelf {ReadingLogShelf}
      */
     updateShelfDisplay(shelf) {
-        this.readingLogForms.updateActivatedStatus(true)
-        this.readingLogForms.updatePrimaryBookshelfId(Number(shelf))
-        this.readingLogForms.updatePrimaryButtonText(this.readingLogForms.getDisplayString(shelf))
+        this.readingLogForms.updateActivatedStatus(true);
+        this.readingLogForms.updatePrimaryBookshelfId(Number(shelf));
+        this.readingLogForms.updatePrimaryButtonText(this.readingLogForms.getDisplayString(shelf));
 
         if (this.checkInComponents) {
             if (!this.checkInComponents.hasReadDate() && shelf === ReadingLogShelves.ALREADY_READ) {
-                this.checkInComponents.showCheckInDisplay()
+                this.checkInComponents.showCheckInDisplay();
             } else {
-                this.checkInComponents.hideCheckInPrompt()
+                this.checkInComponents.hideCheckInPrompt();
             }
         }
     }
@@ -200,7 +200,7 @@ export class MyBooksDropper extends Dropper {
      * @override
      */
     onOpen() {
-        myBooksStore.setOpenDropper(this)
+        myBooksStore.setOpenDropper(this);
     }
 
     /**
@@ -211,6 +211,6 @@ export class MyBooksDropper extends Dropper {
      * @override
      */
     onDisabledClick() {
-        window.location = `/account/login?redirect=${location.pathname}`
+        window.location = `/account/login?redirect=${location.pathname}`;
     }
 }

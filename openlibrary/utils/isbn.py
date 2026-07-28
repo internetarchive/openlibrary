@@ -14,7 +14,7 @@ def check_digit_10(isbn):
         sum += w * c
     r = sum % 11
     if r == 10:
-        return 'X'
+        return "X"
     else:
         return str(r)
 
@@ -33,32 +33,23 @@ def check_digit_13(isbn):
         sum += w * c
     r = 10 - (sum % 10)
     if r == 10:
-        return '0'
+        return "0"
     else:
         return str(r)
 
 
 def isbn_13_to_isbn_10(isbn_13: str) -> str | None:
     isbn_13 = canonical(isbn_13)
-    if (
-        len(isbn_13) != 13
-        or not isbn_13.isdigit()
-        or not isbn_13.startswith('978')
-        or check_digit_13(isbn_13[:-1]) != isbn_13[-1]
-    ):
+    if len(isbn_13) != 13 or not isbn_13.isdigit() or not isbn_13.startswith("978") or check_digit_13(isbn_13[:-1]) != isbn_13[-1]:
         return None
     return isbn_13[3:-1] + check_digit_10(isbn_13[3:-1])
 
 
 def isbn_10_to_isbn_13(isbn_10: str) -> str | None:
     isbn_10 = canonical(isbn_10)
-    if (
-        len(isbn_10) != 10
-        or not isbn_10[:-1].isdigit()
-        or check_digit_10(isbn_10[:-1]) != isbn_10[-1]
-    ):
+    if len(isbn_10) != 10 or not isbn_10[:-1].isdigit() or check_digit_10(isbn_10[:-1]) != isbn_10[-1]:
         return None
-    isbn_13 = '978' + isbn_10[:-1]
+    isbn_13 = "978" + isbn_10[:-1]
     return isbn_13 + check_digit_13(isbn_13)
 
 
@@ -92,9 +83,7 @@ def get_isbn_10_and_13(isbn: str) -> tuple[str | None, str | None]:
     both in canonical form.
     """
     if canonical_isbn := normalize_isbn(isbn):
-        isbn_13 = (
-            canonical_isbn if len(canonical_isbn) == 13 else isbn_10_to_isbn_13(isbn)
-        )
+        isbn_13 = canonical_isbn if len(canonical_isbn) == 13 else isbn_10_to_isbn_13(isbn)
         isbn_10 = isbn_13_to_isbn_10(isbn_13) if isbn_13 else canonical_isbn
         return isbn_10, isbn_13
 

@@ -7,8 +7,8 @@
   line-height: 1.5em;
   background-color: var(--grey-fafafa);
   border-radius: 5px;
-  padding: 5px;
-  margin-bottom: 3px;
+  padding: var(--spacing-inset-xs);
+  margin-bottom: var(--spacing-stack-xs);
   border-bottom: 1px solid var(--light-beige);
   display: flex;
   flex-direction: column;
@@ -17,11 +17,11 @@
   display: flex;
   flex-direction: row;
   align-items: start;
-  padding: 5px;
-  margin-bottom: 3px;
+  padding: var(--spacing-inset-xs);
+  margin-bottom: var(--spacing-stack-xs);
 }
 .fulltext-suggestions__icon {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   min-height: 30px;
   min-width: 30px;
 }
@@ -34,7 +34,7 @@
 .fulltext-suggestions__title {
   display: block;
   margin: 0;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   font-size: medium;
   font-weight: 700;
   font-family: var(--font-family-body);
@@ -57,7 +57,7 @@
   display: flex;
   justify-content: center;
   margin: 0;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   font-size: small;
   font-weight: 700;
   font-family: var(--font-family-body);

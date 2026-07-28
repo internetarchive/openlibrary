@@ -1,13 +1,13 @@
 /* stylelint-disable selector-max-specificity */
 div#footer-content {
   max-width: 1060px;
-  margin: 5px auto;
+  margin: var(--spacing-stack-xs) auto;
   padding: 20px;
 }
 
 div#footer-links {
   display: flex;
-  margin-left: 10px;
+  margin-left: var(--spacing-inline-lg);
   line-height: var(--line-height-list);
 }
 
@@ -52,7 +52,7 @@ footer ul li {
   font-size: 1em;
   list-style-type: none;
   white-space: nowrap;
-  margin: 5px 0;
+  margin: var(--spacing-stack-xs) 0;
 }
 
 .footer-icon {
@@ -65,7 +65,7 @@ footer ul li {
 }
 
 .footer-icon img {
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
 }
 
 #footer-links ul li a {
@@ -79,7 +79,7 @@ footer ul li {
 
 /* Logo in far left of footer */
 img#archive-logo {
-  margin-right: 10px;
+  margin-right: var(--spacing-inline-lg);
   padding: 0;
   height: 27.5px;
   opacity: 0.7;
@@ -88,14 +88,14 @@ img#archive-logo {
 /* Legal information */
 div#legal-details {
   flex: 0.9;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* Github version shown in bottom right corner of footer */
 div#version-details {
   text-align: right;
   flex: 0.1;
-  margin-top: 8px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 /* FIXME: merge with above CSS rule? */
@@ -103,5 +103,5 @@ div#version-details {
   color: var(--dark-grey);
   border: 1px solid var(--dark-beige);
   border-radius: 3px;
-  padding: 8px 10px;
+  padding: var(--spacing-inset-sm);
 }

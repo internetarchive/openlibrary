@@ -11,6 +11,7 @@ import web
 import yaml
 
 from openlibrary.admin import numbers
+from openlibrary.admin.vitals import gather_participation_scores, write_to_statsd
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +31,11 @@ def connect_to_pg(config_file):
     with open(config_file) as f:
         config = yaml.safe_load(f)
     conf = {}
-    conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get(
-        "db"
-    )
-    if not conf['db']:
+    conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get("db")
+    if not conf["db"]:
         raise KeyError("database/db")
     host = config["db_parameters"].get("host")
-    user = config["db_parameters"].get("user") or config["db_parameters"].get(
-        "username"
-    )
+    user = config["db_parameters"].get("user") or config["db_parameters"].get("username")
     if host:
         conf["host"] = host
     if user:
@@ -63,16 +60,14 @@ def store_data(data, date):
     logger.debug(" Updating stats for %s - %s", uid, data)
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
-    doc['type'] = 'admin-stats'
+    doc["type"] = "admin-stats"
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
     web.ctx.site.store[uid] = doc
 
 
-def run_gathering_functions(
-    infobase_db, coverstore_db, start, end, logroot, prefix, key_prefix=None
-):
+def run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix, key_prefix=None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
@@ -107,7 +102,7 @@ def setup_ol_config(openlibrary_config_file):
     import infogami
     from infogami import config
 
-    config.plugin_path += ['openlibrary.plugins']
+    config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
 
     infogami.load_config(openlibrary_config_file)
@@ -157,35 +152,25 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             key_prefix="total",
         )
     )
-    logger.info("Gathering data using difference between totals")
-    data.update(
-        run_gathering_functions(
-            infobase_db,
-            coverstore_db,
-            yesterday,
-            today,
-            logroot,
-            prefix="admin_delta__",
-        )
-    )
+
     store_data(data, today.strftime("%Y-%m-%d"))
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
     # The data will be stored as the counts of the current day.
     end = datetime.datetime.now()  # - datetime.timedelta(days = 10)# Right now
-    start = datetime.datetime(
-        hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year
-    )  # Beginning of the day
+    start = datetime.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
     logger.info("Gathering range data")
     data = {}
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
-        data.update(
-            run_gathering_functions(
-                infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__"
-            )
-        )
+        data.update(run_gathering_functions(infobase_db, coverstore_db, start, end, logroot, prefix="admin_range__"))
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - datetime.timedelta(days=1)
+
+    # Gather participation scores for the previous hour
+    if int(ndays) == 1:
+        pscores = gather_participation_scores()
+        write_to_statsd(openlibrary_config, pscores)
+
     return 0

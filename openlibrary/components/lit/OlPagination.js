@@ -87,7 +87,6 @@ export class OlPagination extends LitElement {
             align-items: center;
             justify-content: center;
             padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            border: 1px solid transparent;
             border-radius: var(--border-radius-button);
             background: transparent;
             color: var(--darker-grey, #444);
@@ -116,7 +115,6 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item[aria-current="page"] {
-            border-color: var(--lighter-grey, #ddd);
             background-color: var(--lightest-grey, #eee);
             cursor: default;
             user-select: none;

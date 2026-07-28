@@ -7,33 +7,33 @@ from infogami.infobase import dbstore
 
 def get_schema():
     schema = dbstore.Schema()
-    schema.add_table_group('type', '/type/type')
-    schema.add_table_group('type', '/type/property')
-    schema.add_table_group('type', '/type/backreference')
-    schema.add_table_group('user', '/type/user')
-    schema.add_table_group('user', '/type/usergroup')
-    schema.add_table_group('user', '/type/permission')
+    schema.add_table_group("type", "/type/type")
+    schema.add_table_group("type", "/type/property")
+    schema.add_table_group("type", "/type/backreference")
+    schema.add_table_group("user", "/type/user")
+    schema.add_table_group("user", "/type/usergroup")
+    schema.add_table_group("user", "/type/permission")
 
     datatypes = ["str", "int", "ref", "boolean"]
 
-    schema.add_table_group('edition', '/type/edition', datatypes)
-    schema.add_table_group('author', '/type/author', datatypes)
-    schema.add_table_group('scan', '/type/scan_location', datatypes)
-    schema.add_table_group('scan', '/type/scan_record', datatypes)
+    schema.add_table_group("edition", "/type/edition", datatypes)
+    schema.add_table_group("author", "/type/author", datatypes)
+    schema.add_table_group("scan", "/type/scan_location", datatypes)
+    schema.add_table_group("scan", "/type/scan_record", datatypes)
 
-    schema.add_table_group('work', '/type/work', datatypes)
-    schema.add_table_group('publisher', '/type/publisher', datatypes)
-    schema.add_table_group('subject', '/type/subject', datatypes)
+    schema.add_table_group("work", "/type/work", datatypes)
+    schema.add_table_group("publisher", "/type/publisher", datatypes)
+    schema.add_table_group("subject", "/type/subject", datatypes)
     # schema.add_table_group('tag', '/type/tag', datatypes)
 
-    schema.add_seq('/type/edition', '/books/OL%dM')
-    schema.add_seq('/type/author', '/authors/OL%dA')
+    schema.add_seq("/type/edition", "/books/OL%dM")
+    schema.add_seq("/type/author", "/authors/OL%dA")
     # schema.add_seq('/type/list', '/lists/OL%dL')
     # schema.add_seq('/type/series', '/series/OL%dS')
 
-    schema.add_seq('/type/work', '/works/OL%dW')
-    schema.add_seq('/type/publisher', '/publishers/OL%dP')
-    schema.add_seq('/type/tag', '/tags/OL%dT')
+    schema.add_seq("/type/work", "/works/OL%dW")
+    schema.add_seq("/type/publisher", "/publishers/OL%dP")
+    schema.add_seq("/type/tag", "/tags/OL%dT")
 
     _sql = schema.sql
 

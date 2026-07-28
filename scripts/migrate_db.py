@@ -61,10 +61,7 @@ class Upgrader:
 
         # populate changes
         rows = db.query(
-            "SELECT thing.key, version.revision, version.transaction_id"
-            " FROM  thing, version"
-            " WHERE thing.id=version.thing_id"
-            " ORDER BY version.transaction_id"
+            "SELECT thing.key, version.revision, version.transaction_id FROM  thing, version WHERE thing.id=version.thing_id ORDER BY version.transaction_id"
         )
 
         for tx_id, changes in itertools.groupby(rows, lambda row: row.transaction_id):
@@ -93,23 +90,19 @@ class Upgrader:
     def get_database_version(self, db):
         schema = self.read_schema(db)
 
-        if 'seq' not in schema:
+        if "seq" not in schema:
             return 10
-        elif 'data' not in schema['transaction']:
+        elif "data" not in schema["transaction"]:
             return 11
-        elif 'changes' not in schema['transaction']:
+        elif "changes" not in schema["transaction"]:
             return 12
-        elif 'transaction_index' not in schema:
+        elif "transaction_index" not in schema:
             return 13
         else:
             return LATEST_VERSION
 
     def read_schema(self, db):
-        rows = db.query(
-            "SELECT table_name, column_name,  data_type "
-            " FROM information_schema.columns"
-            " WHERE table_schema = 'public'"
-        )
+        rows = db.query("SELECT table_name, column_name,  data_type  FROM information_schema.columns WHERE table_schema = 'public'")
 
         schema = web.storage()
         for row in rows:
@@ -132,7 +125,7 @@ def main():
         usage()
     else:
         dbname = sys.argv[1]
-        db = web.database(dbn='postgres', db=dbname, user=os.getenv('USER'), pw='')
+        db = web.database(dbn="postgres", db=dbname, user=os.getenv("USER"), pw="")
         Upgrader().upgrade(db)
 
 

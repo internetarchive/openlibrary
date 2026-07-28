@@ -22,7 +22,7 @@ describe('removeURLParameter', () => {
     test('URL with multiple occurences of param', () => {
         expect(fn('http://foo.com?x=3&x=4&x=5', 'x')).toBe('http://foo.com');
         expect(fn('http://foo.com?x=3&x=4&z=5', 'x')).toBe('http://foo.com?z=5');
-    })
+    });
 });
 
 describe('getJsonFromUrl', () => {

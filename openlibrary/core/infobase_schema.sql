@@ -80,6 +80,18 @@ RETURNS text AS
 'select property.name FROM property, thing WHERE thing.type = property.type AND thing.id=$1 AND property.id=$2;'
 LANGUAGE SQL;
 
+create table transaction_details (
+    id bigserial primary key,
+    transaction_id integer references transaction(id),
+    thing_id integer references thing(id),
+    key_id integer references property(id),
+    action text,
+    author_id integer references thing(id),
+    is_bot boolean,
+    created timestamp without time zone default (current_timestamp at time zone 'utc')
+);
+
+
 create table account (
     thing_id int references thing,
     email text,

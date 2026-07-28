@@ -22,7 +22,7 @@ export default {
         sections: Array,
         index: Number,
     },
-}
+};
 </script>
 
 <style>

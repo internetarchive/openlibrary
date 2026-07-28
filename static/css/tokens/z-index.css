@@ -1,6 +1,8 @@
 /**
- * Z-Index Scale
- * =============
+ * Z-Index Primitives
+ * ======================
+ * Raw stacking values. Do NOT use these directly in components — use semantic tokens instead.
+ * Gaps in numbering (6–12, 15) are intentional deletions; do not fill them.
  */
 :root {
   --z-index-level-negative: -1;
@@ -9,10 +11,42 @@
   --z-index-level-3: 3;
   --z-index-level-4: 10;
   --z-index-level-5: 999;
-  --z-index-level-6: 1000;
-  --z-index-level-7: 1001;
   --z-index-level-13: 9999;
   --z-index-level-14: 10000;
   --z-index-level-16: 99999;
   --z-index-level-17: 999999;
+}
+
+/**
+ * Z-Index Semantic Tokens
+ * ====================
+ * Reference these throughout the app for consistent stacking order.
+ *
+ * Rules:
+ *   1. Never write a raw z-index number — Stylelint will reject it.
+ *   2. Components with internal layering (cover fans, star ratings, etc.)
+ *      must use isolation: isolate on their root so values don't leak globally.
+ *
+ * Layer hierarchy (high → low):
+ *
+ *   toast      --z-index-toast      999999  ← always on top (notifications, lightbox)
+ *   overlay    --z-index-overlay    99999   ← above modals (autocomplete inside dialog)
+ *   modal      --z-index-modal      9999    ← dialogs and backdrop scrims
+ *   dropdown   --z-index-dropdown   999     ← floating menus, clears all site chrome
+ *   fixed      --z-index-fixed      10      ← fixed UI chrome (compact-title, nav-bar)
+ *   sticky     --z-index-sticky     3       ← mobile site header
+ *   raised     --z-index-raised     2       ← one step above base siblings
+ *   base       --z-index-base       1       ← minimum lift above static flow
+ *   behind     --z-index-behind     -1      ← behind parent content (decorative/animations)
+ */
+:root {
+  --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
+  --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. cover fan ordinals, chevrons) */
+  --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. middle cover in fan, page-banner) */
+  --z-index-sticky:   var(--z-index-level-3);        /*  3      – mobile sticky site header (#header-bar at ≤960px) */
+  --z-index-fixed:    var(--z-index-level-4);        /* 10      – fixed chrome above sticky header (e.g. compact-title, nav-bar-wrapper) */
+  --z-index-dropdown: var(--z-index-level-5);        /* 999     – floating menus above all chrome (e.g. language selector, coverEbook) */
+  --z-index-modal:    var(--z-index-level-13);       /* 9999    – dialogs and backdrop scrims (e.g. jQuery UI dialog, ui-widget-overlay) */
+  --z-index-overlay:  var(--z-index-level-16);       /* 99999   – above modals (e.g. autocomplete triggered inside a dialog) */
+  --z-index-toast:    var(--z-index-level-17);       /* 999999  – always on top (e.g. toast-container, colorbox lightbox) */
 }

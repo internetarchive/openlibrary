@@ -1,13 +1,5 @@
-$def with (get_results)
+$def with (q, page, results_per_page, response)
 
-$ q = query_param('q', '').strip()
-$ results_per_page = 100
-$ page = query_param('page')
-$if page:
-    $ page = int(page)
-$else:
-    $ page = 1
-$ offset = (page - 1) * results_per_page
 $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 
 <div id="contentHead">
@@ -25,8 +17,7 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
     </div>
 
 $if q:
-    $ response = get_results(q, offset=offset, limit=results_per_page)
-    $if not response.error:
+    $if response and not response.error:
         $if response.num_found:
             <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
         $else:
@@ -38,7 +29,7 @@ $if q:
                 $:macros.LoadingIndicator(_("Checking Search Inside matches"))
             </div>
 
-$if q and response.error:
+$if q and response and response.error:
     <strong>
         $for line in response.error.splitlines():
             $line
@@ -46,7 +37,7 @@ $if q and response.error:
                 <br>
     </strong>
 
-$if q and not response.error and response.num_found:
+$if q and response and not response.error and response.num_found:
     <ul class="subjectList">
     $for doc in response.docs:
         $ n = doc['name']

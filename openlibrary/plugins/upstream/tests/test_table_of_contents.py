@@ -207,3 +207,37 @@ class TestTocEntry:
 
         entry = TocEntry(level=0, title="", authors=[{"name": "Author 1"}])
         assert entry.to_markdown() == ' |  |  | {"authors": [{"name": "Author 1"}]}'
+
+    def test_from_markdown_regex_edge_cases(self):
+        r"""Test that the regex pattern handles various edge cases correctly.
+
+        The regex pattern r"(\**)(.*)" always matches any string, but we want
+        to ensure the parsing logic handles different formats correctly.
+        """
+        # Empty string - regex matches with empty groups
+        entry = TocEntry.from_markdown("")
+        assert entry == TocEntry(level=0, title=None)
+
+        # Only asterisks - asterisks become level, empty text becomes None title
+        entry = TocEntry.from_markdown("***")
+        assert entry == TocEntry(level=3, title=None)
+
+        # Whitespace variations
+        entry = TocEntry.from_markdown("  | Title  ")
+        assert entry == TocEntry(level=0, title="Title", label=None)
+
+        # Many asterisks with pipe
+        entry = TocEntry.from_markdown("*****|Chapter | 10")
+        assert entry == TocEntry(level=5, title="Chapter", pagenum="10")
+
+        # Asterisks with text and pipe - asterisks become level, rest is parsed normally
+        entry = TocEntry.from_markdown("***Chapter| 5")
+        assert entry == TocEntry(level=3, label="Chapter", title="5", pagenum=None)
+
+        # Special characters in title
+        entry = TocEntry.from_markdown("| Chapter (2nd edition) | 15")
+        assert entry == TocEntry(level=0, title="Chapter (2nd edition)", pagenum="15")
+
+        # Extra asterisks with label and title
+        entry = TocEntry.from_markdown("**Chapter 1|Title of Chapter|5")
+        assert entry == TocEntry(level=2, title="Title of Chapter", label="Chapter 1", pagenum="5")

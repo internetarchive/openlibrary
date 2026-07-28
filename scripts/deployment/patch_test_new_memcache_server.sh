@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# CAUTION: This script is outdated ; update the web heads, docker container names, everything.
 # CAUTION: This script restarts production servers!
 
 # From https://github.com/internetarchive/olsystem/pull/145

@@ -51,7 +51,7 @@ class TestHomeTemplates:
 
         blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
-        assert len(blog.findAll("li")) == 0
+        assert len(blog.find_all("li")) == 0
 
         posts = [
             web.storage(
@@ -69,7 +69,7 @@ class TestHomeTemplates:
 
         blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
-        assert len(blog.findAll("li")) == 1
+        assert len(blog.find_all("li")) == 1
 
     def test_stats_template(self, render_template):
         # Make sure that it works fine without any input (skipping section)
@@ -129,6 +129,7 @@ class TestHomeTemplates:
 
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
+        macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         html = str(render_template("home/index", stats=stats, test=True))
 
         assert "Recently Returned" in html

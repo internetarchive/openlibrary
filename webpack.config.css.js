@@ -1,4 +1,3 @@
-/* eslint-env node, es6 */
 /*
  * Webpack config for compiling CSS entry points to independent CSS files in static/build/
  *
@@ -6,7 +5,9 @@
  * css-loader resolves @import statements, and css-minimizer-webpack-plugin handles
  * minification.
  *
- * Design tokens are defined in static/css/tokens.css and loaded separately in <head>.
+ * Design tokens (tokens.css) and site-wide web component styles
+ * (ol-components.css) are compiled as separate entries and loaded
+ * directly in <head> so they cache independently of the per-page bundles.
  */
 const path = require('path');
 const glob = require('glob');
@@ -19,6 +20,8 @@ const cssFiles = glob.sync('./static/css/page-*.css');
 const entries = {
     // Design tokens — compiled from static/css/tokens/ into a single file
     tokens: './static/css/tokens.css',
+    // Site-wide web component styles (light-DOM CSS + pre-hydration FOUC fixes)
+    'ol-components': './static/css/ol-components.css',
 };
 
 cssFiles.forEach(file => {

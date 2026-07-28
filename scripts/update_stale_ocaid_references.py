@@ -18,16 +18,13 @@ import web
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry  # Correct import path
 
-import infogami
 from infogami import config
 from openlibrary.accounts import RunAs
-from openlibrary.config import load_config
+from openlibrary.setup import setup_for_script
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def create_session_with_retries(
@@ -62,7 +59,7 @@ def get_dark_ol_editions(s3_keys, rows=10_000, since=None, until=None, statefile
     fields = ["identifier", "curatenote", "curatedate", "openlibrary_edition"]
     q = "openlibrary_edition:*"
     if since or until:
-        q = ' AND '.join((q, f"curatedate:[{since or '*'} TO {until or '*'}]"))
+        q = " AND ".join((q, f"curatedate:[{since or '*'} TO {until or '*'}]"))
 
     query_params = {
         "q": q,
@@ -80,27 +77,23 @@ def get_dark_ol_editions(s3_keys, rows=10_000, since=None, until=None, statefile
     editions = {}
     while cursor is not None:
         if cursor:
-            query_params['cursor'] = cursor
+            query_params["cursor"] = cursor
 
-        response = session.get(
-            scrape_api_url, headers=headers, params=query_params, timeout=60
-        )
+        response = session.get(scrape_api_url, headers=headers, params=query_params, timeout=60)
         response.raise_for_status()
         data = response.json()
         cursor = data.get("cursor")
         editions.update(
             {
                 # Edition key `/books/OL123M` mapped to its ES dark item metadata
-                f'/books/{doc["openlibrary_edition"]}': doc
+                f"/books/{doc['openlibrary_edition']}": doc
                 for doc in data.get("items", [])
             }
         )
-        print(
-            f"Fetching batch {batch}; adding {len(data.get("items", []))} items -> {len(editions)}"
-        )
+        print(f"Fetching batch {batch}; adding {len(data.get('items', []))} items -> {len(editions)}")
         batch += 1
     if statefile:
-        with open(statefile, 'w') as fout:
+        with open(statefile, "w") as fout:
             json.dump(editions, fout)
     return editions
 
@@ -118,24 +111,28 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
 
     # Process ocaids in batches of 1000
     BATCH_SIZE = 1_000
-    for batch_keys in batched(edition_keys, BATCH_SIZE):
+    for batch_keys in batched(edition_keys, BATCH_SIZE, strict=False):
         ol_editions = web.ctx.site.get_many(list(batch_keys))
 
         updated_eds = []
         for ed in ol_editions:
             counts["processed"] += 1
-            es_id = es_editions[ed.key]['identifier']
+            es_id = es_editions[ed.key]["identifier"]
             ed_dict = ed.dict()
-            if ed_dict.get('ocaid') == es_id:
+            if ed_dict.get("ocaid") == es_id:
                 counts["dirty"] += 1
-                del ed_dict['ocaid']
+                del ed_dict["ocaid"]
                 updated_eds.append(ed_dict)
 
         if updated_eds and not test:
             counts["updated"] += len(updated_eds)
-            with RunAs('ImportBot'):
-                web.ctx.ip = web.ctx.ip or '127.0.0.1'
-                web.ctx.site.save_many(updated_eds, comment="Redacting ocaids")
+            with RunAs("ImportBot"):
+                web.ctx.ip = web.ctx.ip or "127.0.0.1"
+                web.ctx.site.save_many(
+                    updated_eds,
+                    comment="Redacting ocaids",
+                    action="bulk-update-edition-ocaid",
+                )
         print(counts)
         counts["batches"] += 1
     return counts
@@ -148,19 +145,16 @@ def main(
     statefile: str | None = None,
     test: bool = True,
 ):
-    load_config(ol_config)
-    infogami._setup()
-    s3_keys = config.get('ia_ol_metadata_write_s3')  # XXX needs dark scope
+    setup_for_script(ol_config)
+    s3_keys = config.get("ia_ol_metadata_write_s3")  # XXX needs dark scope
     if statefile and os.path.exists(statefile):
         with open(statefile) as fin:
             es_editions = json.load(fin)
     else:
-        es_editions = get_dark_ol_editions(
-            s3_keys, since=since, until=until, statefile=statefile
-        )
+        es_editions = get_dark_ol_editions(s3_keys, since=since, until=until, statefile=statefile)
     counts = disassociate_dark_ocaids(s3_keys, es_editions, test=test)
     print(counts)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

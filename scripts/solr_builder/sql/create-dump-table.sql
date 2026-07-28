@@ -18,4 +18,11 @@ CREATE TABLE reading_log (
     "EditionKey" character varying(255),
     "Shelf" character varying(255),
     "Date" date NOT NULL
-)
+);
+
+CREATE TABLE cover (
+    id bigint,
+    width int,
+    height int,
+    created date
+);

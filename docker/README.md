@@ -113,26 +113,13 @@ docker compose rm -v
 
 ## Fully Resetting Your Environment
 
-Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break. To do a full reset of your docker environment so that you have the latest of everything:
+Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break.
+To do a full reset, run the following script from the root of the repo:
+
+[`scripts/fully_reset_environment.sh`](https://github.com/internetarchive/openlibrary/blob/master/scripts/fully_reset_environment.sh)
 
 ```sh
-# Stop the site
-docker compose down
-
-# Build the latest oldev image, without cache, whilst also pulling the latest olbase image from docker hub.
-# This can take from a few minutes to more than 20 on older hardware.
-docker compose build --pull --no-cache
-
-# Remove any old containers/images
-# If you use docker for other things, and have containers/images you don't want to lose, be careful with this. But you likely don't :)
-docker container prune --filter label="com.docker.compose.project=openlibrary" --force
-docker image prune --filter label="com.docker.compose.project=openlibrary" --force
-
-# Remove volumes that might have outdated dependencies/code
-docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-postgres openlibrary_ol-vendor openlibrary_solr-data openlibrary_solr-updater-data
-
-# Bring it back up again
-docker compose up  # or docker compose up -d
+bash scripts/fully_reset_environment.sh
 ```
 
 ## Troubleshooting
@@ -212,6 +199,21 @@ docker network connect openlibrary_webnet openlibrary-web-1  # or `openlibrary_d
 docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
 # output: map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
 ```
+ 11874/hotfix/add-selinux-relabel-bind-mount-option-on-selinux-compose
+No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
+
+To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
+
+### Permission denied errors on SELinux
+
+SELinux implements [Mandatory Access Controls (MAC)](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/virtualization_security_guide/sect-virtualization_security_guide-svirt-mac). Even if normal file permissions (user/group/other) would allow access, SELinux can still block resulting in permission denied errors. By adding the `z` or `Z` [bind mount options for Docker/Podman](https://docs.docker.com/engine/storage/bind-mounts/#configure-the-selinux-label) this allows the container process to access the files, by changing the MAC label.
+
+`compose.selinux.yaml` contains these label overrides to allow the containers to run with Docker or Podman within SELinux enabled systems.
+
+`podman-compose -f compose.yaml -f compose.override.yaml -f compose.selinux.yaml up -d`
+
+## Technical notes
+ master
 
 No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
 

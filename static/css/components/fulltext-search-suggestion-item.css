@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: row;
   background-color: var(--white);
-  padding: 5px;
-  margin-bottom: 5px;
+  padding: var(--spacing-inset-xs);
+  margin-bottom: var(--spacing-stack-xs);
   border-bottom: 1px solid var(--light-beige);
   border-radius: 3px;
   overflow: hidden;
@@ -21,13 +21,13 @@
   min-width: 90px;
   border-radius: 4px;
   align-self: center;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 /* --width-breakpoint-tablet: 768px */
 @media (min-width: 768px) {
   .fsi__book-cover {
     height: 130px;
-    margin-bottom: 5px;
+    margin-bottom: var(--spacing-stack-xs);
   }
 }
 .fsi__book-cover-img {
@@ -41,8 +41,8 @@
 .fsi__book-details {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 5px 10px 0;
+  gap: var(--spacing-stack-sm);
+  margin: var(--spacing-stack-xs) var(--spacing-inline-lg) 0;
 }
 /* --width-breakpoint-tablet: 768px */
 @media (min-width: 768px) {
@@ -53,7 +53,8 @@
 .fsi__title-author {
   display: flex;
   flex-direction: column;
-  padding: 5px 3px 0 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0
+    var(--spacing-inset-sm);
   width: 50%;
 }
 /* --width-breakpoint-mobile-s: 375px */
@@ -94,6 +95,6 @@
 }
 .fsi__book-author {
   line-height: 1.2em;
-  margin: 3px 0 0;
+  margin: var(--spacing-stack-xs) 0 0;
   font-size: medium;
 }

@@ -1,0 +1,98 @@
+$def with (api)
+
+<article class="design-pattern" id="toast">
+  <h2 class="design-pattern__title">Toast</h2>
+  <p class="design-pattern__description">The <code>ol-toast</code> component is a transient notification message. It announces itself to screen readers, auto-dismisses after a timeout (pausing on hover/focus), and removes itself from the DOM when closed. Message content is set via the <code>message</code> and <code>description</code> attributes, already translated; rich content can be slotted instead. The component's only owned string is the close button label, overridable via <code>label-close</code>.</p>
+
+  <section class="example">
+    <h3 class="example__title">Types</h3>
+    <p>Use <code>type</code> for semantic variants. Errors are announced assertively (<code>role="alert"</code>).</p>
+    <pre class="example__code"><code class="language-html">showToast(i18nStrings.savedToReadingLog);
+showToast(i18nStrings.subjectsUpdated, { type: 'success' });
+showToast(i18nStrings.listUpdateFailed, { type: 'error' });</code></pre>
+    <div class="example__output" style="display: flex; flex-direction: column; gap: 12px;">
+      <ol-toast persistent message="Saved to your reading log" label-close="Close"></ol-toast>
+      <ol-toast type="success" persistent message="Subjects successfully updated" label-close="Close"></ol-toast>
+      <ol-toast type="error" persistent message="Could not update list. Please try again later." label-close="Close"></ol-toast>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Description and rich content</h3>
+    <p>Use <code>description</code> for an optional secondary line. For uncommon rich content (links, custom markup), author the markup in an inert <code>&lt;template&gt;</code> element in the page template — where <code>$$_()</code> extraction works — and pass that element to <code>showToast()</code>; its content is cloned into the toast. Node(s) built in JS also work. Nothing is ever parsed from a runtime string as HTML.</p>
+    <pre class="example__code"><code class="language-html">showToast(i18nStrings.relaunchToUpdate, { description: 'v1.11187.4', persistent: true });
+
+&lt;!-- Rich content: write the HTML in the page template... --&gt;
+&lt;template id="save-error-toast"&gt;
+  $$_("Could not save.") &lt;a href="/help"&gt;$$_("Get help")&lt;/a&gt;
+&lt;/template&gt;
+
+// ...and pass the template element to showToast()
+showToast(document.querySelector('#save-error-toast'), { type: 'error', persistent: true });</code></pre>
+    <div class="example__output" style="display: flex; flex-direction: column; gap: 12px;">
+      <ol-toast persistent message="Relaunch to update" description="v1.11187.4" label-close="Close"></ol-toast>
+      <ol-toast type="error" persistent label-close="Close">Could not save. <a href="/help">Get help</a></ol-toast>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Imperative use (fixed bottom-center stack)</h3>
+    <p>JavaScript callers use the exported <code>showToast()</code> helper, which stacks toasts in a shared fixed <code>&lt;ol-toast-region&gt;</code> anchored to the bottom-center of the viewport. New toasts slide up from below; older ones slide up to make room, forming a simple vertical list. Toasts dismiss themselves after <code>timeout</code> milliseconds (default 4000) unless <code>persistent</code>. Hover or focus the list to pause every toast's dismiss timer. The message is set as an attribute — always text, never HTML — and should already be translated.</p>
+    <pre class="example__code"><code class="language-html">import { showToast } from './OlToastRegion.js';
+
+showToast(i18nStrings.updateSuccess, { type: 'success' });
+showToast(i18nStrings.failedSubmitCheckIn, { type: 'error', persistent: true });</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button id="demo-toast-overlay-add">Add toast</button>
+      <button id="demo-toast-overlay-error">Add persistent error toast</button>
+      <button id="demo-toast-overlay-rich">Add rich content toast</button>
+      <template id="demo-rich-toast-template">
+        Could not save. <a href="/help">Get help</a>
+      </template>
+    </div>
+    <script>
+      function demoShowToast(message, opts) {
+        var region = document.querySelector('ol-toast-region');
+        if (!region) {
+          region = document.createElement('ol-toast-region');
+          document.body.appendChild(region);
+        }
+        var toast = document.createElement('ol-toast');
+        if (opts && opts.type) toast.setAttribute('type', opts.type);
+        if (opts && opts.persistent) toast.setAttribute('persistent', '');
+        if (opts && opts.timeout) toast.setAttribute('timeout', opts.timeout);
+        if (typeof message === 'string') {
+          toast.setAttribute('message', message);
+        } else if (message instanceof HTMLTemplateElement) {
+          toast.append(message.content.cloneNode(true));
+        } else {
+          toast.append.apply(toast, [].concat(message));
+        }
+        if (opts && opts.description) toast.setAttribute('description', opts.description);
+        region.appendChild(toast);
+      }
+      var demoToastCount = 0;
+      document.getElementById('demo-toast-overlay-add').addEventListener('click', function() {
+        demoToastCount += 1;
+        demoShowToast('Update successful! (' + demoToastCount + ')', { timeout: 6000 });
+      });
+      document.getElementById('demo-toast-overlay-error').addEventListener('click', function() {
+        demoShowToast('Comment submission failed. Please try again.', { type: 'error', persistent: true });
+      });
+      document.getElementById('demo-toast-overlay-rich').addEventListener('click', function() {
+        var template = document.getElementById('demo-rich-toast-template');
+        demoShowToast(template, { type: 'error', persistent: true });
+      });
+    </script>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Close event</h3>
+    <p>The toast fires <code>ol-toast-close</code> once when it begins closing, with the reason in <code>event.detail.reason</code>.</p>
+    <pre class="example__code"><code class="language-html">toast.addEventListener('ol-toast-close', (e) =&gt; {
+  console.log(e.detail.reason); // "timeout" | "close-button" | "programmatic"
+});</code></pre>
+  </section>
+
+  $:render_template("design/api_tables", api)
+</article>

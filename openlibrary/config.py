@@ -2,14 +2,16 @@
 
 import os
 import sys
+from typing import Any
 
+import web
 import yaml
 
 import infogami
 from infogami import config
 from infogami.infobase import server
 
-runtime_config = {}
+runtime_config: dict[str, Any] = {}
 
 
 def load(config_file):
@@ -39,6 +41,12 @@ def load_config(config_file):
         assert config_file == "conf/openlibrary.yml"
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
+
+    # infogami.load_config() forwards smtp_server to web.config but not
+    # smtp_port, so web.sendmail() can't be routed to a non-default SMTP
+    # port (e.g. mailpit in local dev).
+    if config.get("smtp_port"):
+        web.config.smtp_port = config.smtp_port
 
     # This sets web.config.db_parameters
     server.update_config(config.infobase)

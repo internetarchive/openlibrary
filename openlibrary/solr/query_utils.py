@@ -31,9 +31,7 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         else:
             parent.children = new_children
     else:
-        raise NotImplementedError(
-            f"Not implemented for Item subclass: {parent.__class__.__name__}"
-        )
+        raise NotImplementedError(f"Not implemented for Item subclass: {parent.__class__.__name__}")
 
 
 def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
@@ -41,9 +39,7 @@ def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
     Replaces a child in a luqum parse tree.
     """
     if isinstance(parent, (BaseOperation, Group, Unary)):
-        new_children = tuple(
-            new_child if c == old_child else c for c in parent.children
-        )
+        new_children = tuple(new_child if c == old_child else c for c in parent.children)
         parent.children = new_children
     else:
         raise ValueError("Not supported for generic class Item")
@@ -100,11 +96,9 @@ def escape_unknown_fields(
     escaped_query = str(tree)
     offset = 0
     for sf, _ in luqum_traverse(tree):
-        if isinstance(sf, SearchField) and not is_valid_field(
-            sf.name.lower() if lower else sf.name
-        ):
-            field = sf.name + r'\:'
-            if hasattr(sf, 'head'):
+        if isinstance(sf, SearchField) and not is_valid_field(sf.name.lower() if lower else sf.name):
+            field = sf.name + r"\:"
+            if hasattr(sf, "head"):
                 # head and tail are used for whitespace between fields;
                 # copy it along to the write space to avoid things smashing
                 # together
@@ -112,11 +106,7 @@ def escape_unknown_fields(
 
             # We will be moving left to right, so we need to adjust the offset
             # to account for the characters we have already replaced
-            escaped_query = (
-                escaped_query[: sf.pos + offset]
-                + field
-                + escaped_query[sf.pos + len(field) - 1 + offset :]
-            )
+            escaped_query = escaped_query[: sf.pos + offset] + field + escaped_query[sf.pos + len(field) - 1 + offset :]
             offset += 1
     return escaped_query
 
@@ -140,9 +130,9 @@ def fully_escape_query(query: str) -> str:
     """
     escaped = query
     # Escape special characters
-    escaped = re.sub(r'[\[\]\(\)\{\}:"\-+?~^/\\,\']', r'\\\g<0>', escaped)
+    escaped = re.sub(r'[\[\]\(\)\{\}:"\-+?~^/\\,\']', r"\\\g<0>", escaped)
     # Remove boolean operators by making them lowercase
-    escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
+    escaped = re.sub(r"AND|OR|NOT", lambda _1: _1.group(0).lower(), escaped)
     return escaped
 
 
@@ -194,12 +184,12 @@ def luqum_parser(query: str) -> Item:
                     if not isinstance(last_sf.expr, Group):
                         last_sf.expr = Group(type(node)(last_sf.expr, word))
                         last_sf.expr.tail = word.tail
-                        word.tail = ''
+                        word.tail = ""
                     else:
                         last_sf.expr.expr.children[-1].tail = last_sf.expr.tail
                         last_sf.expr.expr.children += (word,)
                         last_sf.expr.tail = word.tail
-                        word.tail = ''
+                        word.tail = ""
                     if parent_op:
                         # A query like: 'title:foo blah OR author:bar
                         # Lucene parses as: (title:foo) ? (blah OR author:bar)
@@ -214,22 +204,17 @@ def luqum_parser(query: str) -> Item:
                 if parents:
                     # Move the head to the next element
                     last_sf.head = node.head
-                    parents[-1].children = tuple(
-                        child if child is not node else last_sf
-                        for child in parents[-1].children
-                    )
+                    parents[-1].children = tuple(child if child is not node else last_sf for child in parents[-1].children)
                 else:
                     tree = last_sf
                     break
             else:
-                node.children = tuple(
-                    child for child in node.children if child not in to_rem
-                )
+                node.children = tuple(child for child in node.children if child not in to_rem)
 
     # Remove spaces before field names
     for node, parents in luqum_traverse(tree):
         if isinstance(node, SearchField):
-            node.expr.head = ''
+            node.expr.head = ""
 
     return tree
 
@@ -237,7 +222,7 @@ def luqum_parser(query: str) -> Item:
 def query_dict_to_str(
     escaped: dict | None = None,
     unescaped: dict | None = None,
-    op: Literal['AND', 'OR', ''] = '',
+    op: Literal["AND", "OR", ""] = "",
     phrase: bool = False,
 ) -> str:
     """
@@ -256,20 +241,13 @@ def query_dict_to_str(
     >>> query_dict_to_str({'publisher_facet': 'Running Press'}, phrase=True)
     'publisher_facet:"Running Press"'
     """
-    result = ''
+    result = ""
     if escaped:
-        result += f' {op} '.join(
-            (
-                f'{k}:"{fully_escape_query(v)}"'
-                if phrase
-                else f'{k}:({fully_escape_query(v)})'
-            )
-            for k, v in escaped.items()
-        )
+        result += f" {op} ".join((f'{k}:"{fully_escape_query(v)}"' if phrase else f"{k}:({fully_escape_query(v)})") for k, v in escaped.items())
     if unescaped:
         if result:
-            result += f' {op} '
-        result += f' {op} '.join(f'{k}:{v}' for k, v in unescaped.items())
+            result += f" {op} "
+        result += f" {op} ".join(f"{k}:{v}" for k, v in unescaped.items())
     return result
 
 

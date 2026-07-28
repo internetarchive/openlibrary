@@ -45,5 +45,11 @@
       "leadLabel": "Lead: @lokesh",
       "slackId": "<@U09NTCSNVNG>"
     }
+  ],
+  "bots": [
+    {
+      "githubUsername": "openlibrary-bot",
+      "triggersNeedsResponse": false
+    }
   ]
 }

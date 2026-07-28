@@ -39,7 +39,6 @@ class TestFnToCLI:
             "type": int
         }
         assert FnToCLI.type_to_argparse(bool) == {
-            "type": bool,
             "action": BooleanOptionalAction,
         }
         assert FnToCLI.type_to_argparse(typing.Literal["a", "b"]) == {

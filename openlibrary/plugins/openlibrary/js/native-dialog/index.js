@@ -13,16 +13,16 @@ export function initDialogs(elems) {
             // Event target exclusions needed for FireFox, which sets mouse positions to zero on
             // <select> and <option> clicks
             if (isOutOfBounds(event, elem) && event.target.nodeName !== 'SELECT' && event.target.nodeName !== 'OPTION') {
-                elem.close()
+                elem.close();
             }
-        })
+        });
         elem.addEventListener('close-dialog', function() {
-            elem.close()
-        })
-        const closeIcon = elem.querySelector('.native-dialog--close')
+            elem.close();
+        });
+        const closeIcon = elem.querySelector('.native-dialog--close');
         closeIcon.addEventListener('click', function() {
-            elem.close()
-        })
+            elem.close();
+        });
     }
 }
 
@@ -34,7 +34,7 @@ export function initDialogs(elems) {
  * @returns `true` if the click was out of bounds.
  */
 function isOutOfBounds(event, dialog) {
-    const rect = dialog.getBoundingClientRect()
+    const rect = dialog.getBoundingClientRect();
     return (
         event.clientX < rect.left ||
         event.clientX > rect.right ||

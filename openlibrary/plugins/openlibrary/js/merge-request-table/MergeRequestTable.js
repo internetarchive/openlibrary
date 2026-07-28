@@ -5,8 +5,8 @@
  * @module merge-request-table/MergeRequestTable
  */
 
-import TableHeader from './MergeRequestTable/TableHeader'
-import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow'
+import TableHeader from './MergeRequestTable/TableHeader';
+import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow';
 
 /**
  * Class representing the librarian request table.
@@ -26,27 +26,27 @@ export default class MergeRequestTable {
          *
          * @param {string}
          */
-        this.username = mergeRequestTable.dataset.username
+        this.username = mergeRequestTable.dataset.username;
 
-        const localizedStrings = JSON.parse(mergeRequestTable.dataset.i18n)
-        setI18nStrings(localizedStrings)
+        const localizedStrings = JSON.parse(mergeRequestTable.dataset.i18n);
+        setI18nStrings(localizedStrings);
 
         /**
          * Reference to this table's header.
          *
          * @param {HTMLElement}
          */
-        this.tableHeader = new TableHeader(mergeRequestTable.querySelector('.table-header'))
+        this.tableHeader = new TableHeader(mergeRequestTable.querySelector('.table-header'));
 
         /**
          * References to each row in the table.
          *
          * @param {Array<TableRow>}
          */
-        this.tableRows = []
-        const rowElements = mergeRequestTable.querySelectorAll('.mr-table-row')
+        this.tableRows = [];
+        const rowElements = mergeRequestTable.querySelectorAll('.mr-table-row');
         for (const elem of rowElements) {
-            this.tableRows.push(new TableRow(elem, this.username))
+            this.tableRows.push(new TableRow(elem, this.username));
         }
     }
 
@@ -54,8 +54,8 @@ export default class MergeRequestTable {
      * Hydrates the librarian request table.
      */
     initialize() {
-        this.tableHeader.initialize()
-        document.addEventListener('click', (event) => this.tableHeader.closeMenusIfClickOutside(event))
-        this.tableRows.forEach(elem => elem.initialize())
+        this.tableHeader.initialize();
+        document.addEventListener('click', (event) => this.tableHeader.closeMenusIfClickOutside(event));
+        this.tableRows.forEach(elem => elem.initialize());
     }
 }

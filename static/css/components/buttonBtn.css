@@ -4,7 +4,7 @@
 /* This button should be used for now on */
 .btn {
   text-align: center;
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 
 .btn.primary {
@@ -22,7 +22,7 @@ a.btn {
 
 /* These should be in their own chip.css file */
 .chip {
-  padding: 4px 12px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md);
   border: 1px solid var(--mid-grey);
   border-radius: 16px;
   user-select: none;

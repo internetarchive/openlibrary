@@ -13,20 +13,20 @@ export function initEditionsTable() {
     }
     $('#editions th.title').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title','Sort latest to earliest');
+            $(this).attr('title', 'Sort latest to earliest');
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title','Sort earliest to latest');
+            $(this).attr('title', 'Sort earliest to latest');
         } else {
-            $(this).attr('title','Sort by publish date');
+            $(this).attr('title', 'Sort by publish date');
         }
     });
     $('#editions th.read').on('mouseover', function(){
         if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title','Push readable versions to the bottom');
+            $(this).attr('title', 'Push readable versions to the bottom');
         } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title','Sort by editions to read');
+            $(this).attr('title', 'Sort by editions to read');
         } else {
-            $(this).attr('title','Available to read');
+            $(this).attr('title', 'Available to read');
         }
     });
 
@@ -42,7 +42,7 @@ export function initEditionsTable() {
 
     $('#editions th.read span').html('&nbsp;&uarr;');
     $('#editions th').on('mouseup', function() {
-        toggleSorting(this)
+        toggleSorting(this);
     });
 
     $('#editions').on('length.dt', function(e, settings, length) {
@@ -53,13 +53,13 @@ export function initEditionsTable() {
         if (e.key === 'Enter') {
             toggleSorting(this);
         }
-    })
+    });
 
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
         $('#editions').DataTable({
-            aoColumns: [{sType: 'html'},null],
-            order: [ [1,'asc'] ],
+            aoColumns: [{sType: 'html'}, null],
+            order: [ [1, 'asc'] ],
             bPaginate: false,
             bInfo: false,
             bFilter: false,
@@ -69,8 +69,8 @@ export function initEditionsTable() {
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
         $('#editions').DataTable({
-            aoColumns: [{sType: 'html'},null],
-            order: [ [1,'asc'] ],
+            aoColumns: [{sType: 'html'}, null],
+            order: [ [1, 'asc'] ],
             lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
             bPaginate: true,
             bInfo: true,
@@ -81,14 +81,14 @@ export function initEditionsTable() {
             pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
             drawCallback: function() {
                 if ($('#ile-toolbar')) {
-                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition']
+                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition'];
                     const matchEdition = (string) => {
-                        return string.match(/OL[0-9]+[a-zA-Z]/)
-                    }
+                        return string.match(/OL[0-9]+[a-zA-Z]/);
+                    };
                     for (const el of $('.ile-selected')) {
                         const anchor = el.getElementsByTagName('a');
                         if (anchor.length) {
-                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'))
+                            const edIdentifier = matchEdition(anchor[0].getAttribute('href'));
                             if (!editionStorage.includes(edIdentifier[0])) {
                                 el.classList.remove('ile-selected');
                             }
@@ -105,6 +105,6 @@ export function initEditionsTable() {
                     }
                 }
             }
-        })
+        });
     }
 }

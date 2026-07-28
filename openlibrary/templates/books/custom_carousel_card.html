@@ -1,6 +1,6 @@
 $def with(book, lazy, layout, key="", secondary_action=False)
 
-$ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+$ fallback_cover = 'https://openlibrary.org/static/images/icons/avatar_book.png'
 $ cover_host = '//covers.openlibrary.org'
 $ url = book.get('key') or book.url
 $ title = book.get("title", "")
@@ -29,8 +29,6 @@ $if author_names:
 $else:
   $ byline = ''
 
-$ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_key')
-
 <div class="book carousel__item">
   <div class="book-cover">
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
@@ -51,5 +49,5 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
         </div>
     </a>
   </div>
-  $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
+  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
 </div>

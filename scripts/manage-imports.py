@@ -18,12 +18,12 @@ logger = logging.getLogger("openlibrary.importer")
 
 
 @functools.cache
-def get_ol(servername=None):
-    if os.getenv('LOCAL_DEV'):
-        ol = OpenLibrary(base_url="http://localhost:8080")
-        ol.login("admin", "admin123")
+def get_ol(servername: str) -> OpenLibrary:
+    ol = OpenLibrary(servername)
+    if os.getenv("LOCAL_DEV"):
+        ol.login("openlibrary@example.com", "admin123")
     else:
-        ol = OpenLibrary(base_url=servername)
+        # Log in with RC file from OPENLIBRARY_RCFILE env var
         ol.autologin()
     return ol
 
@@ -38,7 +38,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
-            ol = get_ol(servername=servername)
+            ol = get_ol(servername)
             if item.data:
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
@@ -54,19 +54,19 @@ def do_import(item, servername=None, require_marc=True):
 
     logger.info(f"do_import START (pid:{os.getpid()})")
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    if response and response.startswith('{'):
+    if response and response.startswith("{"):
         d = json.loads(response)
-        if d.get('success') and 'edition' in d:
-            edition = d['edition']
+        if d.get("success") and "edition" in d:
+            edition = d["edition"]
             logger.info(f"success: {edition['status']} {edition['key']}")
-            item.set_status(edition['status'], ol_key=edition['key'])
+            item.set_status(edition["status"], ol_key=edition["key"])
         else:
-            error_code = d.get('error_code', 'unknown-error')
+            error_code = d.get("error_code", "unknown-error")
             logger.error(f"failed with error code: {error_code}")
             item.set_status("failed", error=error_code)
     else:
         logger.error(f"failed with internal error: {response}")
-        item.set_status("failed", error='internal-error')
+        item.set_status("failed", error="internal-error")
     logger.info(f"do_import END (pid:{os.getpid()})")
 
 
@@ -86,8 +86,8 @@ def import_ocaids(*ocaids, **kwargs):
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
-    servername = kwargs.get('servername')
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername")
+    require_marc = not kwargs.get("no_marc", False)
 
     date = datetime.date.today()
     if not ocaids:
@@ -127,8 +127,8 @@ def add_new_scans(args):
 
 
 def import_batch(args, **kwargs):
-    servername = kwargs.get('servername')
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername")
+    require_marc = not kwargs.get("no_marc", False)
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
@@ -140,8 +140,8 @@ def import_batch(args, **kwargs):
 
 
 def import_item(args, **kwargs):
-    servername = kwargs.get('servername')
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername")
+    require_marc = not kwargs.get("no_marc", False)
     ia_id = args[0]
     if item := ImportItem.find_by_identifier(ia_id):
         do_import(item, servername=servername, require_marc=require_marc)
@@ -151,25 +151,26 @@ def import_item(args, **kwargs):
 
 def import_all(args, **kwargs):
 
-    servername = kwargs.get('servername')
+    servername = kwargs.get("servername")
     require_marc = False
+    configfile = kwargs.get("configfile")
+    sleep = int(os.getenv("OL_IMPORT_ALL_SLEEP", "60"))
+    processes = int(os.getenv("OL_IMPORT_ALL_PROCESSES", "8"))
 
     # Use multiprocessing to call do_import on each item
-    with multiprocessing.Pool(processes=8) as pool:
+    with multiprocessing.Pool(processes=processes, initializer=load_config, initargs=(configfile,)) as pool:
         while True:
             logger.info("find_pending START")
             items = ImportItem.find_pending()
             logger.info("find_pending END")
 
             if not items:
-                logger.info("No pending items found. sleeping for a minute.")
-                time.sleep(60)
+                logger.info(f"No pending items found. sleeping for {sleep} seconds before next attempt.")
+                time.sleep(sleep)
                 continue
 
             logger.info("starmap START")
-            pool.starmap(
-                do_import, ((item, servername, require_marc) for item in items)
-            )
+            pool.starmap(do_import, ((item, servername, require_marc) for item in items))
             logger.info("starmap END")
 
 
@@ -179,15 +180,14 @@ def main():
         configfile = sys.argv[index + 1]
         del sys.argv[index : index + 2]
     else:
-
         configfile = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__),
                 os.pardir,
                 os.pardir,
-                'openlibrary',
-                'conf',
-                'openlibrary.yml',
+                "openlibrary",
+                "conf",
+                "openlibrary.yml",
             )
         )
 
@@ -196,11 +196,9 @@ def main():
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {
-        'servername': config.get('servername', 'https://openlibrary.org')
-    }
+    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org"), "configfile": configfile}
     for i in sys.argv[2:]:
-        if i.startswith('--'):
+        if i.startswith("--"):
             flags[i[2:]] = True
         else:
             args.append(i)

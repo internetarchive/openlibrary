@@ -150,7 +150,7 @@ class FetchCoordinator {
 
     activate() {
         if (this.requestedFetches.length && !this.timeout) {
-            this.state = 'active'
+            this.state = 'active';
             this.timeout = setTimeout(() => this.consume(), this.groupingTime);
         } else {
             this.state = 'idle';

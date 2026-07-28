@@ -1,0 +1,152 @@
+$def with (api)
+
+$# Renders auto-generated API reference tables for a single Lit web component.
+$# `api` is the cleaned Custom Elements Manifest declaration built by
+$# openlibrary/plugins/openlibrary/design.py (load_components). It may be None
+$# when the component is absent from the manifest, in which case nothing renders
+$# and the page falls back to its hand-written live demos.
+
+$if api and (api['properties'] or api['events'] or api['slots'] or api['cssProperties'] or api['cssParts']):
+  <section class="example component-api">
+    <h3 class="example__title">API Reference</h3>
+
+    $if api['properties']:
+      <h4 class="component-api__group">Properties</h4>
+      <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Attribute</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for prop in api['properties']:
+            <tr>
+              <td><code>$prop['name']</code></td>
+              <td>
+                $if prop['attribute']:
+                  <code>$prop['attribute']</code>
+                $else:
+                  <span class="component-api__empty">—</span>
+              </td>
+              <td>
+                $if prop['type']:
+                  <code>$prop['type']</code>
+                $else:
+                  <span class="component-api__empty">—</span>
+              </td>
+              <td>
+                $if prop['default']:
+                  <code>$prop['default']</code>
+                $else:
+                  <span class="component-api__empty">—</span>
+              </td>
+              <td>$prop['description']</td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
+
+    $if api['events']:
+      <h4 class="component-api__group">Events</h4>
+      <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for event in api['events']:
+            <tr>
+              <td><code>$event['name']</code></td>
+              <td>
+                $if event['type']:
+                  <code>$event['type']</code>
+                $else:
+                  <span class="component-api__empty">—</span>
+              </td>
+              <td>$event['description']</td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
+
+    $if api['slots']:
+      <h4 class="component-api__group">Slots</h4>
+      <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr>
+            <th>Slot</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for slot in api['slots']:
+            <tr>
+              <td>
+                $if slot['name']:
+                  <code>$slot['name']</code>
+                $else:
+                  <span class="component-api__default-slot">(default)</span>
+              </td>
+              <td>$slot['description']</td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
+
+    $if api['cssProperties']:
+      <h4 class="component-api__group">CSS Custom Properties</h4>
+      <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for prop in api['cssProperties']:
+            <tr>
+              <td><code>$prop['name']</code></td>
+              <td>
+                $if prop['default']:
+                  <code>$prop['default']</code>
+                $else:
+                  <span class="component-api__empty">—</span>
+              </td>
+              <td>$prop['description']</td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
+
+    $if api['cssParts']:
+      <h4 class="component-api__group">CSS Parts</h4>
+      <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          $for part in api['cssParts']:
+            <tr>
+              <td><code>$part['name']</code></td>
+              <td>$part['description']</td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
+  </section>

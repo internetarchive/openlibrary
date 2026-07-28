@@ -20,7 +20,7 @@ SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 # since the web heads use a cache buster in the URL for JS/CSS, and the JS/CSS
 # lives on ol-www0. By doing ol-www0 first, we avoid some users accidentally
 # getting stuck with old JS/CSS.
-SERVER_NAMES=${SERVERS:-"ol-home0 ol-www0 ol-web0 ol-web1 ol-web2 ol-covers0"}
+SERVER_NAMES=${SERVERS:-"ol-home0 ol-www0 ol-web0 ol-web1 ol-web2 ol-web3 ol-covers0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
 for SERVER in $SERVERS; do

@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import OLChip from './OLChip.vue'
+import OLChip from './OLChip.vue';
 
-import { updateObservation } from '../ObservationService'
+import { updateObservation } from '../ObservationService';
 
 export default {
     name: 'CardBody',
@@ -82,7 +82,7 @@ export default {
          * Returns an array of all of this book tag type's currently selected values.
          */
         selectedValues: function() {
-            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
+            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : [];
         }
     },
     methods: {
@@ -95,18 +95,18 @@ export default {
          * @param {String} text The text that the updated chip is displaying.
          */
         updateSelected: function(isSelected, text) {
-            let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
+            let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : [];
 
             if (isSelected) {
                 if (this.multiSelect) {
-                    updatedValues.push(text)
+                    updatedValues.push(text);
                     updateObservation('add', this.type, text, this.workKey, this.username)
                         .catch(() => {
                             updatedValues.pop();
                         })
                         .finally(() => {
                             this.allSelectedValues[this.type] = updatedValues;
-                        })
+                        });
                 } else {
                     if (updatedValues.length) {
                         let deleteSuccessful = false;
@@ -118,13 +118,13 @@ export default {
                                 if (deleteSuccessful) {
                                     updateObservation('add', this.type, text, this.workKey, this.username)
                                         .then(() => {
-                                            updatedValues = [text]
+                                            updatedValues = [text];
                                         })
                                         .finally(() => {
                                             this.allSelectedValues[this.type] = updatedValues;
-                                        })
+                                        });
                                 }
-                            })
+                            });
                     }
                 }
             } else {
@@ -133,11 +133,11 @@ export default {
                 updateObservation('delete', this.type, text, this.workKey, this.username)
                     .catch(() => {
                         updatedValues.push(text);
-                    })
+                    });
             }
         }
     }
-}
+};
 </script>
 
 <style scoped>

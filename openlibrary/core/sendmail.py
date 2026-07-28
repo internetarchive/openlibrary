@@ -12,16 +12,9 @@ def sendmail_with_template(template, to, cc=None, frm=None, **kwargs):
 def _sendmail(to, msg, cc=None, frm=None):
     cc = cc or []
     frm = frm or config.from_address
-    if config.get('dummy_sendmail'):
-        message = (
-            f'To: {to}\n'
-            f'From:{config.from_address}\n'
-            f'Subject:{msg.subject}\n'
-            f'\n{web.safestr(msg)}'
-        )
+    if config.get("dummy_sendmail"):
+        message = f"To: {to}\nFrom:{config.from_address}\nSubject:{msg.subject}\n\n{web.safestr(msg)}"
 
         print("sending email", message, file=web.debug)
     else:
-        web.sendmail(
-            frm, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc
-        )
+        web.sendmail(frm, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)

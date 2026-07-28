@@ -38,9 +38,9 @@
 </template>
 
 <script>
-import OLChip from './OLChip.vue'
+import OLChip from './OLChip.vue';
 
-import { updateObservation } from '../ObservationService'
+import { updateObservation } from '../ObservationService';
 
 
 export default {
@@ -94,7 +94,7 @@ export default {
              * @type {Object}
              */
             classLists: {}
-        }
+        };
     },
     computed: {
         /**
@@ -105,7 +105,7 @@ export default {
 
             for (const type in this.allSelectedValues) {
                 for (const value of this.allSelectedValues[type]) {
-                    results.push(`${type}: ${value}`)
+                    results.push(`${type}: ${value}`);
                 }
             }
 
@@ -119,7 +119,7 @@ export default {
          * @param {String} chipText The text of the selected tag chip, in the form "<type>: <value>"
          */
         removeItem: function(chipText) {
-            const [type, value] = chipText.split(': ')
+            const [type, value] = chipText.split(': ');
 
             const valueIndex = this.allSelectedValues[type].indexOf(value);
             const valueArr = this.allSelectedValues[type];
@@ -131,9 +131,9 @@ export default {
                 })
                 .finally(() => {
                     if (valueArr.length === 0) {
-                        delete this.allSelectedValues[type]
+                        delete this.allSelectedValues[type];
                     }
-                })
+                });
 
             // Remove hover class:
             this.removeHoverClass(chipText);
@@ -152,7 +152,7 @@ export default {
          * @param {String} value The chip's key.
          */
         removeHoverClass: function(value) {
-            this.classLists[value] = ''
+            this.classLists[value] = '';
         },
         /**
          * Returns the class list string for the chip with the given key.
@@ -161,10 +161,10 @@ export default {
          * @returns The chip's class list string.
          */
         getClassList: function(value) {
-            return this.classLists[value] ? this.classLists[value] : ''
+            return this.classLists[value] ? this.classLists[value] : '';
         }
     }
-}
+};
 </script>
 
 <style scoped>

@@ -3,7 +3,7 @@ $def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_or
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 $ userDisplayName = user.displayname or ctx.user.displayname
-$ readlog_keys = ['want-to-read', 'already-read', 'currently-reading']
+$ readlog_keys = ['want-to-read', 'already-read', 'currently-reading', 'stopped-reading']
 
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
@@ -11,6 +11,9 @@ $if key == 'currently-reading':
 $elif key == 'want-to-read':
   $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
   $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=shelf_count)
+$elif key == 'stopped-reading':
+  $ og_title = _("Books %(username)s stopped reading", username=userDisplayName)
+  $ og_description = _("%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!", username=userDisplayName, total=shelf_count)
 $elif key == 'already-read':
   $if checkin_year:
     $ og_title = _("Books %(username)s has read in %(year)d", username=userDisplayName, year=checkin_year)
@@ -60,9 +63,9 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $:macros.OlPagination(int(current_page), ceil(doc_count / results_per_page))
     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
       $if docs:
-        $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+        $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3, 'stopped-reading': 4}.get(key, None)
         $ doc_number = 1
-        $ shelves = ['want to read', 'currently reading', 'already read']
+        $ shelves = ['want to read', 'currently reading', 'already read', 'stopped reading']
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
           $if doc.get('work', {}):

@@ -7,14 +7,14 @@ conversions = {
     #    '/books/': '/b/',
     #    '/authors/': '/a/',
     #    '/languages/': '/l/',
-    '/templates/': '/upstream/templates/',
-    '/macros/': '/upstream/macros/',
-    '/js/': '/upstream/js/',
-    '/css/': '/upstream/css/',
-    '/old/templates/': '/templates/',
-    '/old/macros/': '/macros/',
-    '/old/js/': '/js/',
-    '/old/css/': '/css/',
+    "/templates/": "/upstream/templates/",
+    "/macros/": "/upstream/macros/",
+    "/js/": "/upstream/js/",
+    "/css/": "/upstream/css/",
+    "/old/templates/": "/templates/",
+    "/old/macros/": "/macros/",
+    "/old/js/": "/js/",
+    "/old/css/": "/css/",
 }
 
 # inverse of conversions
@@ -29,8 +29,8 @@ def convert_key(key: str | None, mapping: dict[str, str] | None = None) -> str |
     mapping = mapping or conversions
     if key is None:
         return None
-    elif key == '/':
-        return '/upstream'
+    elif key == "/":
+        return "/upstream"
 
     for new, old in mapping.items():
         if key.startswith(new):
@@ -46,8 +46,8 @@ def convert_dict(d, mapping: dict[str, str] | None = None):
     """
     mapping = mapping or conversions
     if isinstance(d, dict):
-        if 'key' in d:
-            d['key'] = convert_key(d['key'], mapping)
+        if "key" in d:
+            d["key"] = convert_key(d["key"], mapping)
         for k, v in d.items():
             d[k] = convert_dict(v, mapping)
         return d
@@ -58,8 +58,8 @@ def convert_dict(d, mapping: dict[str, str] | None = None):
 
 
 def unconvert_key(key: str | None) -> str | None:
-    if key == '/upstream':
-        return '/'
+    if key == "/upstream":
+        return "/"
     return convert_key(key, iconversions)
 
 

@@ -2,7 +2,7 @@
   display: flex;
   overflow-x: auto;
   scrollbar-width: thin;
-  padding: 8px 0;
+  padding: var(--spacing-inset-sm) 0;
 }
 
 .list-follow-showcase .list-follow-card {
@@ -40,7 +40,7 @@ a.list-follow-card {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 7px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm);
   border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
   width: 100%;
 }
@@ -57,8 +57,8 @@ a.list-follow-card__header {
   background: var(--grey-f4f4f4);
   display: flex;
   justify-content: space-between;
-  padding-bottom: 5px;
-  padding-top: 5px;
+  padding-bottom: var(--spacing-inset-xs);
+  padding-top: var(--spacing-inset-xs);
   gap: 0.5em;
   width: 100%;
   border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
@@ -68,7 +68,7 @@ a.list-follow-card__header {
   display: flex;
   align-items: center;
   font-size: var(--font-size-label-medium);
-  padding-left: 5px;
+  padding-left: var(--spacing-inset-xs);
   flex: 1;
   min-width: 0;
 }
@@ -77,7 +77,7 @@ a.list-follow-card__header {
   border-radius: var(--border-radius-thumbnail);
   width: 30px;
   height: 30px;
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
   margin-top: -10px;
   position: relative;
   z-index: var(--z-index-level-3);
@@ -90,7 +90,7 @@ a.list-follow-card__header {
   overflow: hidden;
   text-overflow: ellipsis;
   text-decoration: none;
-  padding-bottom: 5px;
+  padding-bottom: var(--spacing-inset-xs);
   flex: 1;
   min-width: 0;
 }
@@ -98,7 +98,7 @@ a.list-follow-card__header {
 a.list-follow-card__username-link {
   text-decoration: none;
   color: var(--dark-grey-two);
-  padding-bottom: 5px;
+  padding-bottom: var(--spacing-inset-xs);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -117,8 +117,8 @@ a.list-follow-card__username-link {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 5px;
-  padding-bottom: 3px;
+  padding-right: var(--spacing-inset-xs);
+  padding-bottom: var(--spacing-inset-xs);
 }
 
 .list-follow-card__follow-button .cta-btn {
@@ -144,7 +144,7 @@ a.list-follow-card__username-link {
 .list-follow-card__private-button .pvt-text {
   color: var(--white);
   font-size: 12px; /* Override base size */
-  padding: 2px 4px; /* Less padding */
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs); /* Less padding */
   box-shadow: none; /* Remove default shadow if present */
   margin: 0;
   letter-spacing: 0.2px;
@@ -178,8 +178,8 @@ a.list-follow-card__username-link {
   background: var(--grey-f4f4f4);
   display: flex;
   justify-content: space-between;
-  padding-bottom: 5px;
-  padding-top: 5px;
+  padding-bottom: var(--spacing-inset-xs);
+  padding-top: var(--spacing-inset-xs);
   margin-bottom: -3px;
   border-radius: 0 0 3px 3px;
 }
@@ -191,7 +191,7 @@ a.list-follow-card__username-link {
 
   white-space: nowrap;
   overflow: hidden;
-  padding-bottom: 2px;
+  padding-bottom: var(--spacing-inset-xs);
 }
 
 .list-follow-card__num-books {

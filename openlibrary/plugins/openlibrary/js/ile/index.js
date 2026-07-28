@@ -31,7 +31,7 @@ export class IntegratedLibrarianEnvironment {
         this.$statusImages = this.$toolbar.find('.images ul');
         this.$actions = this.$toolbar.find('#ile-drag-actions');
         this.$hiddenForms = this.$toolbar.find('#ile-hidden-forms');
-        this.bulkTagger = null
+        this.bulkTagger = null;
     }
 
     init() {
@@ -39,7 +39,7 @@ export class IntegratedLibrarianEnvironment {
         $(document.body).append(this.$toolbar.hide());
 
         // Ready bulk tagger:
-        this.createBulkTagger()
+        this.createBulkTagger();
 
         this.selectionManager.init();
     }
@@ -55,7 +55,7 @@ export class IntegratedLibrarianEnvironment {
      */
     reset() {
         for (const elem of $('.ile-selected')) {
-            elem.classList.remove('ile-selected')
+            elem.classList.remove('ile-selected');
         }
         this.setStatusText('');
         this.$selectionActions.empty();
@@ -69,7 +69,7 @@ export class IntegratedLibrarianEnvironment {
      * This indirectly calls `IntegratedLibrarianEnvironment.reset()`.
      */
     clearAndReset() {
-        this.selectionManager.clearSelectedItems()
+        this.selectionManager.clearSelectedItems();
     }
 
     /**
@@ -78,12 +78,12 @@ export class IntegratedLibrarianEnvironment {
      * Sets the value of `IntegratedLibrarianEnvironment.bulkTagger`
      */
     createBulkTagger() {
-        const target = this.$hiddenForms[0]
-        target.innerHTML += renderBulkTagger()
-        const bulkTaggerElem = document.querySelector('.bulk-tagging-form')
+        const target = this.$hiddenForms[0];
+        target.innerHTML += renderBulkTagger();
+        const bulkTaggerElem = document.querySelector('.bulk-tagging-form');
         // @ts-ignore
-        this.bulkTagger = new BulkTagger(bulkTaggerElem)
-        this.bulkTagger.initialize()
+        this.bulkTagger = new BulkTagger(bulkTaggerElem);
+        this.bulkTagger.initialize();
     }
 
     /**
@@ -94,9 +94,9 @@ export class IntegratedLibrarianEnvironment {
      */
     updateAndShowBulkTagger(workIds, isBookPageEdit = false) {
         if (this.bulkTagger) {
-            this.bulkTagger.isBookPageEdit = isBookPageEdit
-            this.bulkTagger.updateWorks(workIds)
-            this.bulkTagger.showTaggingMenu()
+            this.bulkTagger.isBookPageEdit = isBookPageEdit;
+            this.bulkTagger.updateWorks(workIds);
+            this.bulkTagger.showTaggingMenu();
         }
     }
 }

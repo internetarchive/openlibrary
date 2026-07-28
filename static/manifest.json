@@ -40,77 +40,77 @@
     },
       "screenshots": [
         {
-          "src": "/images/screenshots/desktop/MainPageDesktop.png",
+          "src": "/static/images/screenshots/desktop/MainPageDesktop.png",
           "sizes": "1280x720",
           "type": "image/png",
           "form_factor": "wide",
           "label": "Main Page - Desktop"
         },
         {
-          "src": "/images/screenshots/desktop/SearchBooksDesktop.png",
+          "src": "/static/images/screenshots/desktop/SearchBooksDesktop.png",
           "sizes": "1280x720",
           "type": "image/png",
           "form_factor": "wide",
           "label": "Search Books - Desktop"
         },
         {
-          "src": "/images/screenshots/desktop/StudentLibraryDesktop.png",
+          "src": "/static/images/screenshots/desktop/StudentLibraryDesktop.png",
           "sizes": "1280x720",
           "type": "image/png",
           "form_factor": "wide",
           "label": "Student Library - Desktop"
         },
         {
-          "src": "/images/screenshots/desktop/TrendingDesktop.png",
+          "src": "/static/images/screenshots/desktop/TrendingDesktop.png",
           "sizes": "1280x720",
           "type": "image/png",
           "form_factor": "wide",
           "label": "Trending - Desktop"
         },
         {
-          "src": "/images/screenshots/desktop/ListsDesktop.png",
+          "src": "/static/images/screenshots/desktop/ListsDesktop.png",
           "sizes": "1280x720",
           "type": "image/png",
           "form_factor": "wide",
           "label": "Lists - Desktop"
         },
         {
-          "src": "/images/screenshots/mobile/MainPageMobile.png",
+          "src": "/static/images/screenshots/mobile/MainPageMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Main Page - Mobile"
         },
         {
-          "src": "/images/screenshots/mobile/BorrowMobile.png",
+          "src": "/static/images/screenshots/mobile/BorrowMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Borrow - Mobile"
         },
         {
-          "src": "/images/screenshots/mobile/ExplorerMobile.png",
+          "src": "/static/images/screenshots/mobile/ExplorerMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Explorer - Mobile"
         },
         {
-          "src": "/images/screenshots/mobile/SearchMobile.png",
+          "src": "/static/images/screenshots/mobile/SearchMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Search Books - Mobile"
         },
         {
-          "src": "/images/screenshots/mobile/StudentLibraryMobile.png",
+          "src": "/static/images/screenshots/mobile/StudentLibraryMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Student Library - Mobile"
         },
         {
-          "src": "/images/screenshots/mobile/ListsMobile.png",
+          "src": "/static/images/screenshots/mobile/ListsMobile.png",
           "sizes": "1080x2160",
           "type": "image/png",
           "form_factor": "narrow",

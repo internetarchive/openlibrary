@@ -46,9 +46,9 @@ def trees_equal(el1: ET.Element, el2: ET.Element, error=True):
 
 def gen_po_file_keys():
     for locale in get_locales():
-        po_path = os.path.join(root, locale, 'messages.po')
+        po_path = os.path.join(root, locale, "messages.po")
 
-        with open(po_path, 'rb') as fil:
+        with open(po_path, "rb") as fil:
             catalog = read_po(fil)
         for key in catalog:
             yield locale, key
@@ -69,17 +69,17 @@ def gen_po_msg_pairs():
 
 def gen_html_entries():
     for locale, msgid, msgstr in gen_po_msg_pairs():
-        if '</' not in msgid:
+        if "</" not in msgid:
             continue
-        yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
+        yield pytest.param(locale, msgid, msgstr, id=f"{locale}-{msgid}")
 
 
-@pytest.mark.parametrize(('locale', 'msgid', 'msgstr'), gen_html_entries())
+@pytest.mark.parametrize(("locale", "msgid", "msgstr"), gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
     # Need this to support &nbsp;, since ET only parses XML.
     # Find a better solution?
     entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
-    id_tree = ET.fromstring(f'{entities}<root>{msgid}</root>')
-    str_tree = ET.fromstring(f'{entities}<root>{msgstr}</root>')
-    if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
+    id_tree = ET.fromstring(f"{entities}<root>{msgid}</root>")
+    str_tree = ET.fromstring(f"{entities}<root>{msgstr}</root>")
+    if not msgstr.startswith("<!-- i18n-lint no-tree-equal -->"):
         assert trees_equal(id_tree, str_tree)

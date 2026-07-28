@@ -16,7 +16,7 @@
     top: 0;
     height: var(--compact-title-height);
     width: calc(100% - var(--contentBody-padding));
-    padding: 0 14px;
+    padding: 0 var(--spacing-inset-md);
   }
 
   .compact-title__edit-btn {

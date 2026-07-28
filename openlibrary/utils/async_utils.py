@@ -26,12 +26,24 @@ class AsyncBridge:
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
         return asyncio.run_coroutine_threadsafe(coro, self._loop).result()
 
-    def wrap(self, func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, T]:
-        """Wrap an async function so it can be called from sync code, preserving type hints."""
+    def wrap(
+        self,
+        func: Callable[P, Coroutine[Any, Any, T]],
+        name: str | None = None,
+    ) -> Callable[P, T]:
+        """Wrap an async function so it can be called from sync code, preserving type hints.
+
+        Args:
+            func: The async function to wrap
+            name: Optional custom name for the wrapper. Defaults to func.__name__.
+                  Use this when registering with @public to ensure correct template globals.
+        """
 
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return self.run(func(*args, **kwargs))
 
+        wrapper.__name__ = name if name is not None else func.__name__
+        wrapper.__doc__ = func.__doc__
         return wrapper
 
 

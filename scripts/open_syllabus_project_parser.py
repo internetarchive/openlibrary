@@ -1,4 +1,4 @@
-'''
+"""
 Run from root of openlibrary like so:
 PYTHONPATH=$(PWD) python3 scripts/open_syllabus_project_parser.py
 
@@ -85,7 +85,7 @@ one per line:
     "Women's Studies": 0,
     "total": 1
 }
-'''
+"""
 
 from openlibrary.utils.open_syllabus_project import generate_osp_db
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI

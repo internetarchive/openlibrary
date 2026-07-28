@@ -23,14 +23,7 @@ class IPRevealer:
             if self.replace:
                 return match.group(1) + self.real_ips[hidden].decode() + match.group(3)
             else:
-                return (
-                    match.group(1)
-                    + hidden
-                    + "("
-                    + self.real_ips[hidden].decode()
-                    + ")"
-                    + match.group(3)
-                )
+                return match.group(1) + hidden + "(" + self.real_ips[hidden].decode() + ")" + match.group(3)
         else:
             return match.group(1) + hidden + match.group(3)
 

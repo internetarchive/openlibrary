@@ -32,7 +32,7 @@
   padding-bottom: 10px;
 }
 
-.readers-stats li:not(:first-child, :last-child):after {
+.readers-stats li:not(:last-child):after {
   content: "\00B7";
   margin: 0 4px;
 }

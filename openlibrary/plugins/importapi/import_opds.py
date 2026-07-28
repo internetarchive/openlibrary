@@ -10,44 +10,44 @@ def parse_string(e, key):
 
 
 def parse_author(e, key):
-    name = e.find('{http://www.w3.org/2005/Atom}name')
+    name = e.find("{http://www.w3.org/2005/Atom}name")
     return (key, name.text)
 
 
 def parse_category(e, key):
-    return (key, e.get('label'))
+    return (key, e.get("label"))
 
 
 def parse_identifier(e, key):
     val = e.text
-    isbn_str = 'urn:ISBN:'
-    ia_str = 'http://www.archive.org/details/'
+    isbn_str = "urn:ISBN:"
+    ia_str = "http://www.archive.org/details/"
     if val.startswith(isbn_str):
         isbn = val[len(isbn_str) :]
         if len(isbn) == 10:
-            return ('isbn_10', isbn)
+            return ("isbn_10", isbn)
         elif len(isbn) == 13:
-            return ('isbn_13', isbn)
+            return ("isbn_13", isbn)
     elif val.startswith(ia_str):
-        return ('ocaid', val[len(ia_str) :])
+        return ("ocaid", val[len(ia_str) :])
     else:
         return (None, None)
 
 
 parser_map = {
-    '{http://www.w3.org/2005/Atom}title': ['title', parse_string],
-    '{http://www.w3.org/2005/Atom}author': ['author', parse_author],
-    '{http://purl.org/dc/terms/}publisher': ['publisher', parse_string],
-    '{http://purl.org/dc/terms/}issued': ['publish_date', parse_string],
-    '{http://purl.org/dc/terms/}extent': ['pagination', parse_string],
-    '{http://www.w3.org/2005/Atom}category': ['subject', parse_category],
-    '{http://purl.org/dc/terms/}language': ['language', parse_string],
-    '{http://www.w3.org/2005/Atom}summary': ['description', parse_string],
-    '{http://purl.org/ontology/bibo/}lccn': ['lccn', parse_string],
-    '{http://purl.org/ontology/bibo/}oclcnum': ['oclc_number', parse_string],
-    '{http://purl.org/dc/terms/}identifier': ['identifier', parse_identifier],
-    '{http://RDVocab.info/elements/}placeOfPublication': [
-        'publish_place',
+    "{http://www.w3.org/2005/Atom}title": ["title", parse_string],
+    "{http://www.w3.org/2005/Atom}author": ["author", parse_author],
+    "{http://purl.org/dc/terms/}publisher": ["publisher", parse_string],
+    "{http://purl.org/dc/terms/}issued": ["publish_date", parse_string],
+    "{http://purl.org/dc/terms/}extent": ["pagination", parse_string],
+    "{http://www.w3.org/2005/Atom}category": ["subject", parse_category],
+    "{http://purl.org/dc/terms/}language": ["language", parse_string],
+    "{http://www.w3.org/2005/Atom}summary": ["description", parse_string],
+    "{http://purl.org/ontology/bibo/}lccn": ["lccn", parse_string],
+    "{http://purl.org/ontology/bibo/}oclcnum": ["oclc_number", parse_string],
+    "{http://purl.org/dc/terms/}identifier": ["identifier", parse_identifier],
+    "{http://RDVocab.info/elements/}placeOfPublication": [
+        "publish_place",
         parse_string,
     ],
 }

@@ -11,7 +11,7 @@ export class OCRScanner {
         this.listeners = {
             /** @type {Array<(isbn: string) => void>} */
             onISBNDetected: []
-        }
+        };
     }
 
     /** @param {(isbn: string) => void} callback */

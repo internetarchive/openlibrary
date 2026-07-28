@@ -12,6 +12,7 @@ import re
 from collections.abc import Callable, Iterable
 from typing import cast
 
+import pytest
 import web
 
 from openlibrary.mocks import mock_infobase
@@ -230,13 +231,14 @@ def monkeypatch_ol(monkeypatch, solr_overrides: list[dict] | None = None):
 
 def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
     class FakeSolr(Solr):
-        def get_many[T](  # type: ignore[override]
+        async def get_many_async[T](  # type: ignore[override]
             self,
             keys: Iterable[str],
             fields: Iterable[str] | None = None,
             doc_wrapper: Callable[[dict], T] = web.storage,
         ) -> list[T]:
-            return [doc for doc in (solr_overrides or []) if doc["key"] in set(keys)]  # type: ignore
+            keys = set(keys)
+            return [doc for doc in (solr_overrides or []) if doc["key"] in keys]  # type: ignore
 
     mock_solr = FakeSolr("http://fake-solr:8983/solr/ol")
     monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
@@ -330,7 +332,8 @@ def test_process_result_for_details(monkeypatch):
     assert dynlinks.process_result_for_details(result) == expected_result
 
 
-def test_dynlinks(monkeypatch):
+@pytest.mark.asyncio
+async def test_dynlinks(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
     expected_result = {
@@ -342,21 +345,22 @@ def test_dynlinks(monkeypatch):
         }
     }
 
-    js = dynlinks.dynlinks(["isbn:1234567890"], {})
+    js = await dynlinks.dynlinks(["isbn:1234567890"], {})
     match = re.match("^var _OLBookInfo = ({.*});$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
-    js = dynlinks.dynlinks(["isbn:1234567890"], {"callback": "func"})
+    js = await dynlinks.dynlinks(["isbn:1234567890"], {"callback": "func"})
     match = re.match("^({.*})$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
-    js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
+    js = await dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert json.loads(js) == expected_result
 
 
-def test_dynlinks_public(monkeypatch):
+@pytest.mark.asyncio
+async def test_dynlinks_public(monkeypatch):
     monkeypatch_ol(
         monkeypatch,
         solr_overrides=[
@@ -376,21 +380,22 @@ def test_dynlinks_public(monkeypatch):
         }
     }
 
-    js = dynlinks.dynlinks(["OCAID:ia-bar"], {})
+    js = await dynlinks.dynlinks(["OCAID:ia-bar"], {})
     match = re.match("^var _OLBookInfo = ({.*});$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
-    js = dynlinks.dynlinks(["OCAID:ia-bar"], {"callback": "func"})
+    js = await dynlinks.dynlinks(["OCAID:ia-bar"], {"callback": "func"})
     match = re.match("^({.*})$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
-    js = dynlinks.dynlinks(["OCAID:ia-bar"], {"format": "json"})
+    js = await dynlinks.dynlinks(["OCAID:ia-bar"], {"format": "json"})
     assert json.loads(js) == expected_result
 
 
-def test_isbnx(monkeypatch):
+@pytest.mark.asyncio
+async def test_isbnx(monkeypatch):
     monkeypatch_solr(monkeypatch)
     site = mock_infobase.MockSite()
     site.save(
@@ -402,12 +407,13 @@ def test_isbnx(monkeypatch):
     )
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
-    json_data = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
+    json_data = await dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = json.loads(json_data)
     assert list(d) == ["isbn:123456789X"]
 
 
-def test_dynlinks_ia(monkeypatch):
+@pytest.mark.asyncio
+async def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
     expected_result = {
@@ -418,11 +424,12 @@ def test_dynlinks_ia(monkeypatch):
             "preview_url": "https://archive.org/details/ia-bar",
         }
     }
-    json_data = dynlinks.dynlinks(["OL2M"], {"format": "json"})
+    json_data = await dynlinks.dynlinks(["OL2M"], {"format": "json"})
     assert json.loads(json_data) == expected_result
 
 
-def test_dynlinks_details(monkeypatch):
+@pytest.mark.asyncio
+async def test_dynlinks_details(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
     expected_result = {
@@ -434,12 +441,13 @@ def test_dynlinks_details(monkeypatch):
             "details": {"key": "/books/OL2M", "title": "bar", "ocaid": "ia-bar"},
         },
     }
-    json_data = dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
+    json_data = await dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
     assert json.loads(json_data) == expected_result
 
 
 class TestDataProcessor:
-    def test_get_authors0(self):
+    @pytest.mark.asyncio
+    async def test_get_authors0(self):
         data0 = build_data0()
         p = dynlinks.DataProcessor()
         p.authors = data0

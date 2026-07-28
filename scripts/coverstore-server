@@ -28,10 +28,10 @@ web.config.debug = False
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ["PYTHON_EGG_CACHE"] = "/tmp/.python-eggs"
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ["REAL_SCRIPT_NAME"] = ""
 
 
 def start_server():
@@ -73,8 +73,8 @@ def https_middleware(app):
 
     def wrapper(environ, start_response):
         print("HTTP_X_SCHEME", environ.get("HTTP_X_SCHEME"))
-        if environ.get('HTTP_X_SCHEME') == 'https':
-            environ['wsgi.url_scheme'] = 'https'
+        if environ.get("HTTP_X_SCHEME") == "https":
+            environ["wsgi.url_scheme"] = "https"
         return app(environ, start_response)
 
     return wrapper

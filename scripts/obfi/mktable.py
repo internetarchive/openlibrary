@@ -94,9 +94,7 @@ class HashIP:
         line = sys.stdin.readline()
         try:
             while line:
-                ips = re.findall(
-                    r"[^\d]?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})[^\d]?", line
-                )
+                ips = re.findall(r"[^\d]?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})[^\d]?", line)
                 for ip in ips:
                     if (hidden := self.hide(ip)) not in self.real_ips:  # type: ignore [operator]
                         count += 1

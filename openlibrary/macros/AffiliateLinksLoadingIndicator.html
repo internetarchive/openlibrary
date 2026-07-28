@@ -1,0 +1,8 @@
+$def with (title, isbn, asin, prices)
+$code:
+    isbn_str = isbn or ''
+    asin_str = asin or ''
+    prices_str = 'true' if prices else 'false'
+<span class="affiliate-links-section" data-title="$title" data-isbn="$isbn_str" data-asin="$asin_str" data-prices="$prices_str">
+  $:macros.LoadingIndicator(_("Fetching prices"), additional_classes="affiliate-links-loading")
+</span>

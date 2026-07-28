@@ -35,11 +35,9 @@ def add_entry(key, data, timestamp=None):
     db = get_db()
     result = db.query("SELECT * FROM stats WHERE key=$key", vars=locals())
     if result:
-        logger.warning(
-            "Failed to add stats entry with key %r. An entry is already present."
-        )
+        logger.warning("Failed to add stats entry with key %r. An entry is already present.")
     else:
-        db.insert("stats", type='loan', key=key, created=t, updated=t, json=jsontext)
+        db.insert("stats", type="loan", key=key, created=t, updated=t, json=jsontext)
 
 
 def get_entry(key):
@@ -63,7 +61,5 @@ def update_entry(key, data, timestamp=None):
     if result:
         db.update("stats", json=jsontext, updated=t, where="key=$key", vars=locals())
     else:
-        logger.warning(
-            "stats entry with key %r doesn't exist to update. adding new entry...", key
-        )
-        db.insert("stats", type='loan', key=key, created=t, updated=t, json=jsontext)
+        logger.warning("stats entry with key %r doesn't exist to update. adding new entry...", key)
+        db.insert("stats", type="loan", key=key, created=t, updated=t, json=jsontext)

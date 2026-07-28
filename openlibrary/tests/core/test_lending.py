@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -9,10 +9,10 @@ from openlibrary.utils.request_context import RequestContextVars, req_context
 @pytest.mark.usefixtures("request_context_fixture")
 class TestAddAvailability:
     def test_reads_ocaids(self, monkeypatch):
-        def mock_get_availability(id_type, ocaids):
+        async def mock_get_availability_async(id_type, ocaids):
             return {"foo": {"status": "available"}}
 
-        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
+        monkeypatch.setattr(lending, "get_availability_async", mock_get_availability_async)
 
         f = lending.add_availability
         assert f([{"ocaid": "foo"}]) == [{"ocaid": "foo", "availability": {"status": "available"}}]
@@ -25,10 +25,10 @@ class TestAddAvailability:
         assert f([{}]) == [{}]
 
     def test_handles_availability_none(self, monkeypatch):
-        def mock_get_availability(id_type, ocaids):
+        async def mock_get_availability_async(id_type, ocaids):
             return {"foo": {"status": "error"}}
 
-        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
+        monkeypatch.setattr(lending, "get_availability_async", mock_get_availability_async)
 
         f = lending.add_availability
         r = f([{"ocaid": "foo"}])
@@ -55,12 +55,16 @@ class TestGetAvailability:
         req_context.reset(token)
 
     def test_cache(self):
-        with patch("openlibrary.core.ia.session.get") as mock_get:
-            mock_get.return_value = Mock()
-            mock_get.return_value.json.return_value = {
-                "success": True,
-                "responses": {"foo": {"status": "open"}},
-            }
+        with patch("openlibrary.core.ia.async_session.get") as mock_get:
+            mock_response = AsyncMock()
+            mock_response.json = Mock(
+                return_value={
+                    "success": True,
+                    "responses": {"foo": {"status": "open"}},
+                }
+            )
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
 
             foo_expected = {
                 "status": "open",
@@ -87,11 +91,113 @@ class TestGetAvailability:
             assert r2 == {"foo": foo_expected}
 
             # Now should make a call for just the new identifier
-            mock_get.return_value.json.return_value = {
-                "success": True,
-                "responses": {"bar": {"status": "error"}},
-            }
+            mock_response.json = Mock(
+                return_value={
+                    "success": True,
+                    "responses": {"bar": {"status": "error"}},
+                }
+            )
             r3 = lending.get_availability("identifier", ["foo", "bar"])
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+
+@pytest.mark.usefixtures("request_context_fixture")
+class TestGetLendingState:
+    def test_get_lending_state_borrowed(self, mock_site):
+        doc = {"key": "/books/OL1M", "loan": {"expiry": "tomorrow"}}
+        assert lending.get_lending_state(doc) == "borrowed"
+
+    def test_get_lending_state_partner(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "betterworldbooks"
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {}
+            assert lending.get_lending_state(doc) == "partner"
+
+    def test_get_lending_state_open(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "ia"
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {"availability": {"is_readable": True}}
+            assert lending.get_lending_state(doc) == "open"
+
+            doc = {"availability": {"status": "open"}}
+            assert lending.get_lending_state(doc) == "open"
+
+    def test_get_lending_state_printdisabled(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "ia"
+        mock_user = Mock()
+        mock_user.is_printdisabled.return_value = True
+        mock_user.get_user_waiting_loans.return_value = None
+        mock_user.get_loan_for.return_value = None
+
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {"ocaid": "foo"}
+            assert lending.get_lending_state(doc, user=mock_user) == "printdisabled"
+
+    def test_get_lending_state_lendable(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "ia"
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {"availability": {"is_lendable": True, "available_to_borrow": True}}
+            assert lending.get_lending_state(doc) == "borrowable"
+
+            doc = {"availability": {"is_lendable": True, "available_to_waitlist": True}}
+            assert lending.get_lending_state(doc) == "waitlist"
+
+            doc = {"availability": {"is_lendable": True}}
+            assert lending.get_lending_state(doc) == "checkedout"
+
+    def test_get_lending_state_preview(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "ia"
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {"ocaid": "foo", "availability": {"is_previewable": True}}
+            assert lending.get_lending_state(doc) == "preview_only"
+
+    def test_get_lending_state_locate(self, mock_site):
+        mock_provider = Mock()
+        mock_provider.short_name = "ia"
+        with patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider):
+            doc = {}
+            assert lending.get_lending_state(doc) == "locate"
+
+    def test_get_lending_state_waiting_loan(self, mock_site):
+        # Case A: User is on waitlist, but it is not their turn yet (position > 1 or status != available)
+        mock_user = Mock()
+        mock_user.is_printdisabled.return_value = False
+        mock_user.get_user_waiting_loans.return_value = {"status": "waiting", "position": 2}
+        mock_user.get_loan_for.return_value = None
+
+        mock_ia_provider = Mock()
+        mock_ia_provider.short_name = "ia"
+
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            # General availability says waitlist is closed (i.e. 'checkedout')
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_waitlist": False}}
+            # Proves that without check_loan_status=True, we ignore the waitlist and return "checkedout"
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=False) == "checkedout"
+            # Proves that enabling check_loan_status=True successfully resolves to "waitlist"
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "waitlist"
+
+        # Case B: It is the user's turn to borrow (position 1, status available)
+        mock_user.get_user_waiting_loans.return_value = {"status": "available", "position": 1}
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            # General availability has the book as borrowable now that it's their turn
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_borrow": True}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "borrowable"
+
+        # Case C: User is on waitlist, but they are printdisabled (or book is readable/borrowable)
+        mock_user.get_user_waiting_loans.return_value = {"status": "waiting", "position": 2}
+        mock_user.is_printdisabled.return_value = True
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_waitlist": False}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "printdisabled"
+
+        mock_user.is_printdisabled.return_value = False
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_readable": True, "is_lendable": True}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "open"

@@ -2,11 +2,7 @@
 set -euo pipefail
 
 python --version
-
-# Optional pre-start hook
-if [ -n "${BEFORE_START:-}" ] ; then
-  eval "$BEFORE_START"
-fi
+source docker/ol-install-missing-deps.sh
 
 # Ensure default OL_CONFIG path matches compose env
 export OL_CONFIG="${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}"

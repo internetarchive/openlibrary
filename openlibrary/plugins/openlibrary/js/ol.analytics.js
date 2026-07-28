@@ -5,6 +5,31 @@
 *
 */
 
+/**
+ * Report a custom interaction event to Matomo from JS.
+ *
+ * Use this for interactions that Matomo's DOM-based trigger can't see — chiefly
+ * Shadow DOM controls (Lit components), where a `data-ol-link-track` attribute
+ * on an inner element is invisible to Matomo's selector-based click trigger. We
+ * push a `trackEvent` straight onto Matomo's `_paq` queue — the same path that
+ * trigger ultimately uses, so the event lands in Matomo under the given
+ * category/action/label. (Athena does not forward into Matomo, so the `_paq`
+ * push is what actually makes these events report.)
+ *
+ * Guarded so a blocked or absent analytics script can never break the
+ * interaction that triggered it.
+ *
+ * @param {string} category  Event category, e.g. 'SearchModal'
+ * @param {string} action    Event action, e.g. 'ResultClick'
+ * @param {string} [label]   Optional event label, e.g. 'edition:3'
+ */
+export function trackEvent(category, action, label) {
+    if (!window._paq) return;
+    const event = ['trackEvent', category, action];
+    if (label) event.push(label);
+    window._paq.push(event);
+}
+
 export default function initAnalytics() {
     var vs, i;
     var startTime = new Date();
@@ -24,7 +49,7 @@ export default function initAnalytics() {
                 loadtime: (endTime.getTime() - startTime.getTime()),
                 cache_bust: Math.random()
             });
-        }
+        };
 
         vs = window.archive_analytics.get_data_packets();
         for (i in vs) {

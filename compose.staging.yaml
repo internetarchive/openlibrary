@@ -10,18 +10,18 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      # Note this won't work with uv pip, because uv makes a network request
-      - BEFORE_START=pip install -e /booklending_utils
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
       - ../olsystem:/olsystem
-      - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -37,11 +37,14 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:

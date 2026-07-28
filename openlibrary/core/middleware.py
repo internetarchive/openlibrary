@@ -14,7 +14,7 @@ class GZipMiddleware:
 
     def __call__(self, environ, start_response):
         accept_encoding = environ.get("HTTP_ACCEPT_ENCODING", "")
-        if 'gzip' not in accept_encoding:
+        if "gzip" not in accept_encoding:
             return self.app(environ, start_response)
 
         response = web.storage(compress=False)
@@ -27,7 +27,7 @@ class GZipMiddleware:
 
         def compress(text, level=9):
             f = BytesIO()
-            gz = gzip.GzipFile(None, 'wb', level, fileobj=f)
+            gz = gzip.GzipFile(None, "wb", level, fileobj=f)
             gz.write(text)
             gz.close()
             return f.getvalue()
@@ -36,9 +36,7 @@ class GZipMiddleware:
             response.status = status
             response.headers = headers
 
-            if status.startswith("200") and get_response_header(
-                "Content-Type", ""
-            ).startswith("text/"):
+            if status.startswith("200") and get_response_header("Content-Type", "").startswith("text/"):
                 headers.append(("Content-Encoding", "gzip"))
                 headers.append(("Vary", "Accept-Encoding"))
                 response.compress = True
