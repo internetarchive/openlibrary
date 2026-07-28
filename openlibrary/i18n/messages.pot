@@ -2412,6 +2412,14 @@ msgid "never"
 msgstr ""
 
 #: admin/imports_registry.html
+msgid "Harvest"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Harvest all feeds now"
+msgstr ""
+
+#: admin/imports_registry.html
 msgid "Register a feed"
 msgstr ""
 

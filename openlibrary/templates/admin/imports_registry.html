@@ -36,14 +36,19 @@ $var title: $_("Feed Registry")
           <td>$(feed.last_updated or _('never'))</td>
           <td>
             <form method="POST" action="/admin/imports/registry">
-              <input type="hidden" name="action" value="delete"/>
               <input type="hidden" name="id" value="$feed.id"/>
-              <button type="submit">$_("Delete")</button>
+              <button type="submit" name="action" value="harvest">$_("Harvest")</button>
+              <button type="submit" name="action" value="delete">$_("Delete")</button>
             </form>
           </td>
         </tr>
     </tbody>
   </table>
+
+  $if feeds:
+    <form method="POST" action="/admin/imports/registry">
+      <button type="submit" name="action" value="harvest_all">$_("Harvest all feeds now")</button>
+    </form>
 
   <h2>$_("Register a feed")</h2>
   <form method="POST" action="/admin/imports/registry">

@@ -33,6 +33,7 @@ from openlibrary.core import (
 )
 from openlibrary.core import (
     cache,
+    feeds,
     imports,
 )
 from openlibrary.core.models import Work
@@ -827,8 +828,15 @@ class imports_registry:
                 data={"status": "pending"},
             )
             add_flash_message("info", f"Registered feed {i.provider_name}.")
+        elif i.action == "harvest" and i.id:
+            feed = FeedRegistry.get_by_id(int(i.id))
+            result = feeds.harvest_feed(feed) if feed else {"error": "feed not found"}
+            add_flash_message("info", f"Harvest {i.id}: {result}")
+        elif i.action == "harvest_all":
+            results = feeds.harvest_all()
+            add_flash_message("info", f"Harvested {len(results)} feeds.")
         else:
-            add_flash_message("error", "To add a feed provide provider_name and url; to delete provide id.")
+            add_flash_message("error", "To add a feed provide provider_name and url; to delete or harvest provide id.")
         raise web.seeother("/admin/imports/registry")
 
 
