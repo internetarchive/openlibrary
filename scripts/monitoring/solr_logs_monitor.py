@@ -32,7 +32,9 @@ class RequestLogEntry(SolrLogEntry):
     thread_info: str
     context: str
     class_handler: str
-    webapp: str
+    # Solr <= 9 logs `webapp=/solr`; Solr 10 dropped it (and added `rid=`), so
+    # this is absent on newer versions.
+    webapp: str | None
     path: str
     params: str
     status: int
@@ -74,7 +76,9 @@ class RequestLogEntry(SolrLogEntry):
 
     @staticmethod
     def parse_log_entry(match: re.Match) -> RequestLogEntry:
-        fields = {kvp.split("=", 1)[0]: kvp.split("=", 1)[1] for kvp in match.group("message").split(" ")}
+        # Ignore any tokens that aren't `key=value`; a single unexpected token
+        # would otherwise fail the whole line, and we'd silently stop reporting.
+        fields = dict(kvp.split("=", 1) for kvp in match.group("message").split(" ") if "=" in kvp)
         return RequestLogEntry(
             timestamp=match.group("timestamp"),
             log_level=match.group("log_level"),
@@ -82,7 +86,7 @@ class RequestLogEntry(SolrLogEntry):
             context=match.group("context"),
             class_handler=match.group("class_handler"),
             message=match.group("message"),
-            webapp=fields["webapp"],
+            webapp=fields.get("webapp"),
             path=fields["path"],
             params=fields["params"],
             status=int(fields["status"]),
