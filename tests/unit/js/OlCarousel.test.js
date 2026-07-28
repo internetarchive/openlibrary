@@ -1,0 +1,471 @@
+/**
+ * Unit tests for <ol-carousel>.
+ *
+ * The component delegates all motion to a native scroll container, so what is
+ * left to test in jsdom is the arithmetic around it: where the snap points go,
+ * where each page rests, which page a given scrollLeft maps to, and when the
+ * public page-change event fires. jsdom has no layout engine, so the harness
+ * below stubs the handful of geometry reads the component makes.
+ *
+ * Anything that depends on real scrolling — snap landing, fling momentum,
+ * `scroll-behavior: smooth` — belongs in the Playwright suite, not here.
+ */
+import { OlCarousel } from '../../../openlibrary/components/lit/OlCarousel.js';
+
+const HOST_WIDTH = 1280;   // → 8 columns, per the component's breakpoints
+const ITEM_WIDTH = 150;
+const GAP = 8;
+const COLUMNS = 8;
+
+let resizeObservers;
+let intersectionObservers;
+
+beforeAll(() => {
+    global.ResizeObserver = class {
+        constructor(callback) {
+            this.callback = callback;
+            this.elements = [];
+            resizeObservers.push(this);
+        }
+        observe(el) { this.elements.push(el); }
+        disconnect() { this.elements = []; }
+        /** Fire the callback as a real resize would. */
+        trigger(width) {
+            this.callback([{ contentRect: { width } }]);
+        }
+    };
+
+    global.IntersectionObserver = class {
+        constructor(callback, options) {
+            this.callback = callback;
+            this.options = options;
+            this.observed = new Set();
+            intersectionObservers.push(this);
+        }
+        observe(el) { this.observed.add(el); }
+        unobserve(el) { this.observed.delete(el); }
+        disconnect() { this.observed.clear(); }
+        /** Report the given elements as having entered the root. */
+        trigger(elements) {
+            this.callback(elements.map((target) => ({ target, isIntersecting: true })));
+        }
+    };
+});
+
+beforeEach(() => {
+    resizeObservers = [];
+    intersectionObservers = [];
+});
+
+afterEach(() => {
+    document.body.innerHTML = '';
+    jest.useRealTimers();
+});
+
+/** Total track width for `count` items at the harness's item size. */
+function trackWidth(count) {
+    return count * ITEM_WIDTH + Math.max(0, count - 1) * GAP;
+}
+
+/**
+ * Mount an <ol-carousel> with `count` children and stub every geometry read
+ * the component performs, then run one resize cycle so it measures.
+ */
+async function mountCarousel(count, { showIndicators = false, lazy = false } = {}) {
+    const el = document.createElement('ol-carousel');
+    el.gap = GAP;
+    if (showIndicators) el.showIndicators = true;
+
+    for (let i = 0; i < count; i++) {
+        const item = document.createElement('div');
+        item.textContent = `Item ${i}`;
+        if (lazy) {
+            const img = document.createElement('img');
+            img.dataset.lazy = `/cover-${i}.jpg`;
+            item.appendChild(img);
+        }
+        el.appendChild(item);
+    }
+
+    Object.defineProperty(el, 'clientWidth', { value: HOST_WIDTH, configurable: true });
+    document.body.appendChild(el);
+    await el.updateComplete;
+
+    const scroller = el.shadowRoot.querySelector('.viewport');
+    let scrollLeft = 0;
+
+    Object.defineProperty(scroller, 'clientWidth', { value: HOST_WIDTH, configurable: true });
+    Object.defineProperty(scroller, 'scrollWidth', { value: trackWidth(count), configurable: true });
+    Object.defineProperty(scroller, 'scrollLeft', {
+        get: () => scrollLeft,
+        set: (v) => { scrollLeft = v; },
+        configurable: true,
+    });
+    scroller.getBoundingClientRect = () => ({ left: 0, right: HOST_WIDTH, width: HOST_WIDTH });
+
+    // Items sit at a fixed pitch and shift with the scroll, as they would in a
+    // real scroll container.
+    Array.from(el.children).forEach((item, i) => {
+        item.getBoundingClientRect = () => ({
+            left: i * (ITEM_WIDTH + GAP) - scrollLeft,
+            width: ITEM_WIDTH,
+        });
+    });
+
+    // Stand in for the browser's scroll implementation.
+    scroller.scrollTo = ({ left }) => {
+        scrollLeft = left;
+        scroller.dispatchEvent(new Event('scroll'));
+    };
+
+    // One resize cycle drives the component's real measure path.
+    resizeObservers.forEach((ro) => ro.trigger(HOST_WIDTH));
+    await el.updateComplete;
+
+    return {
+        el,
+        scroller,
+        maxScroll: trackWidth(count) - HOST_WIDTH,
+        /** Simulate the user scrolling to `left`. */
+        async scrollTo(left) {
+            scrollLeft = left;
+            scroller.dispatchEvent(new Event('scroll'));
+            await el.updateComplete;
+        },
+        /** Simulate the scroller coming to rest. */
+        async settle() {
+            scroller.dispatchEvent(new Event('scrollend'));
+            await el.updateComplete;
+        },
+    };
+}
+
+describe('ol-carousel structure', () => {
+    it('renders a labelled carousel region', async() => {
+        const { el } = await mountCarousel(18);
+        const region = el.shadowRoot.querySelector('.carousel');
+        expect(region.getAttribute('role')).toBe('region');
+        expect(region.getAttribute('aria-roledescription')).toBe('carousel');
+        expect(region.getAttribute('aria-label')).toBe('Carousel');
+    });
+
+    it('makes the viewport a scroll container, not a transformed track', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        expect(scroller).not.toBeNull();
+        expect(el.shadowRoot.querySelector('.track')).toBeNull();
+    });
+
+    it('keeps arrows and edge fades outside the scroller so they do not scroll away', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        expect(scroller.querySelector('.arrow')).toBeNull();
+        expect(scroller.querySelector('.edge-fade')).toBeNull();
+        expect(el.shadowRoot.querySelectorAll('.frame .arrow')).toHaveLength(2);
+    });
+});
+
+describe('page arithmetic', () => {
+    it('derives total pages from item count and columns', async() => {
+        const { el } = await mountCarousel(18);
+        expect(el.totalPages).toBe(Math.ceil(18 / COLUMNS));
+    });
+
+    it('reports a single page when everything fits', async() => {
+        const { el } = await mountCarousel(5);
+        expect(el.totalPages).toBe(1);
+    });
+
+    it('rests page 0 flush against the start edge', async() => {
+        const { el } = await mountCarousel(18);
+        expect(el._pageOffsets[0]).toBe(0);
+    });
+
+    it('offsets interior pages by the peek', async() => {
+        const { el } = await mountCarousel(18);
+        const peekPx = el.peek * HOST_WIDTH;
+        expect(el._pageOffsets[1]).toBeCloseTo(COLUMNS * (ITEM_WIDTH + GAP) - peekPx, 5);
+    });
+
+    it('rests the ragged last page at the end of the scroll range', async() => {
+        const { el, maxScroll } = await mountCarousel(18);
+        expect(el._pageOffsets[el.totalPages - 1]).toBe(maxScroll);
+    });
+
+    it('maps a scroll position to the nearest page', async() => {
+        const { el, scrollTo } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1] + 4);
+        expect(el.page).toBe(1);
+    });
+
+    it('does not report the last page early on a ragged rail', async() => {
+        // Regression guard: an evenly-spaced fraction of maxScroll would round
+        // page 1 up to the final page here, because the short last page sits
+        // much closer to page 1 than a full page-width away.
+        const { el, scrollTo } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);
+        expect(el.page).toBe(1);
+    });
+});
+
+describe('snap points', () => {
+    it('marks every column-th item as a page boundary', async() => {
+        const { el } = await mountCarousel(18);
+        const items = Array.from(el.children);
+        expect(items[0].style.scrollSnapAlign).toBe('start');
+        expect(items[COLUMNS].style.scrollSnapAlign).toBe('start');
+        expect(items[1].style.scrollSnapAlign).toBe('');
+    });
+
+    it('end-aligns the final item so a short last page rests flush', async() => {
+        const { el } = await mountCarousel(18);
+        const items = Array.from(el.children);
+        expect(items[items.length - 1].style.scrollSnapAlign).toBe('end');
+    });
+
+    it('re-applies snap points when the column count changes', async() => {
+        const { el } = await mountCarousel(18);
+        resizeObservers.forEach((ro) => ro.trigger(500));   // → 4 columns
+        await el.updateComplete;
+        const items = Array.from(el.children);
+        expect(items[4].style.scrollSnapAlign).toBe('start');
+        expect(items[COLUMNS].style.scrollSnapAlign).toBe('start');
+        expect(items[5].style.scrollSnapAlign).toBe('');
+    });
+});
+
+describe('navigation', () => {
+    it('scrolls to the measured offset for a page', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        el.goToPage(1);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
+    it('advances and retreats one page at a time', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        el.next();
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+        el.prev();
+        expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('clamps out-of-range page requests', async() => {
+        const { el, scroller, maxScroll } = await mountCarousel(18);
+        el.goToPage(99);
+        expect(scroller.scrollLeft).toBe(maxScroll);
+        el.goToPage(-5);
+        expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('updates the reported page immediately, before the scroll settles', async() => {
+        const { el } = await mountCarousel(18);
+        el.goToPage(2);
+        expect(el.page).toBe(2);
+    });
+
+    it('leaves scroll behavior to CSS rather than forcing it in JS', async() => {
+        // Passing no `behavior` is what lets the reduced-motion media query
+        // switch the whole component to instant scrolling.
+        const { el, scroller } = await mountCarousel(18);
+        const spy = jest.fn();
+        scroller.scrollTo = spy;
+        el.goToPage(1);
+        expect(spy).toHaveBeenCalledWith(expect.not.objectContaining({ behavior: expect.anything() }));
+    });
+});
+
+describe('page-change event', () => {
+    it('fires once the scroller settles, not during the scroll', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        expect(handler).not.toHaveBeenCalled();
+
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, totalPages: 3 });
+    });
+
+    it('reports only the final page after a multi-page fling', async() => {
+        const { el, scrollTo, settle, maxScroll } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        await scrollTo(maxScroll);
+        await settle();
+
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.page).toBe(2);
+    });
+
+    it('stays quiet when the scroll settles back on the same page', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        await scrollTo(4);
+        await settle();
+        expect(handler).not.toHaveBeenCalled();
+    });
+});
+
+describe('page-change event without native scrollend', () => {
+    // Safari only shipped `scrollend` in 26.2, so the debounced fallback path
+    // carries every iOS 18.x patron. Exercise it directly.
+    let supported;
+
+    beforeEach(() => {
+        supported = OlCarousel._supportsScrollEnd;
+        OlCarousel._supportsScrollEnd = false;
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        OlCarousel._supportsScrollEnd = supported;
+    });
+
+    it('falls back to a debounced scroll timer', async() => {
+        const { el, scrollTo } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        expect(handler).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.page).toBe(1);
+    });
+
+    it('keeps deferring while the scroll is still moving', async() => {
+        const { el, scrollTo, maxScroll } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
+        await scrollTo(maxScroll);
+        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
+        expect(handler).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(40);
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.page).toBe(2);
+    });
+});
+
+describe('arrows and edge fades', () => {
+    it('hides the previous arrow at the start of the rail', async() => {
+        const { el } = await mountCarousel(18);
+        expect(el.shadowRoot.querySelector('.arrow.prev').hidden).toBe(true);
+        expect(el.shadowRoot.querySelector('.arrow.next').hidden).toBe(false);
+    });
+
+    it('hides the next arrow at the end of the rail', async() => {
+        const { el, scrollTo, maxScroll } = await mountCarousel(18);
+        await scrollTo(maxScroll);
+        expect(el.shadowRoot.querySelector('.arrow.next').hidden).toBe(true);
+        expect(el.shadowRoot.querySelector('.arrow.prev').hidden).toBe(false);
+    });
+
+    it('shows both arrows mid-rail', async() => {
+        const { el, scrollTo } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);
+        expect(el.shadowRoot.querySelector('.arrow.prev').hidden).toBe(false);
+        expect(el.shadowRoot.querySelector('.arrow.next').hidden).toBe(false);
+    });
+
+    it('hides both arrows when there is only one page', async() => {
+        const { el } = await mountCarousel(5);
+        expect(el.shadowRoot.querySelector('.arrow.prev').hidden).toBe(true);
+        expect(el.shadowRoot.querySelector('.arrow.next').hidden).toBe(true);
+    });
+});
+
+describe('indicators', () => {
+    it('renders one indicator per page when enabled', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        expect(el.shadowRoot.querySelectorAll('.indicator')).toHaveLength(3);
+    });
+
+    it('stays hidden by default', async() => {
+        const { el } = await mountCarousel(18);
+        expect(el.shadowRoot.querySelector('.indicators')).toBeNull();
+    });
+
+    it('keeps a single tab stop via roving tabindex', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        const tabbable = Array.from(el.shadowRoot.querySelectorAll('.indicator'))
+            .filter((i) => i.getAttribute('tabindex') === '0');
+        expect(tabbable).toHaveLength(1);
+        expect(tabbable[0].getAttribute('aria-current')).toBe('true');
+    });
+
+    it('moves pages with arrow keys', async() => {
+        const { el, scroller } = await mountCarousel(18, { showIndicators: true });
+        const tablist = el.shadowRoot.querySelector('.indicators');
+        tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
+    it('jumps to the ends with Home and End', async() => {
+        const { el, scroller, maxScroll } = await mountCarousel(18, { showIndicators: true });
+        const tablist = el.shadowRoot.querySelector('.indicators');
+        tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBe(maxScroll);
+
+        tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('ignores unrelated keys', async() => {
+        const { el, scroller } = await mountCarousel(18, { showIndicators: true });
+        const tablist = el.shadowRoot.querySelector('.indicators');
+        tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBe(0);
+    });
+});
+
+describe('lazy covers', () => {
+    it('observes items against the scroller with a one-viewport lookahead', async() => {
+        const { scroller } = await mountCarousel(18, { lazy: true });
+        const io = intersectionObservers[0];
+        expect(io.options.root).toBe(scroller);
+        expect(io.options.rootMargin).toBe('0px 100%');
+        expect(io.observed.size).toBe(18);
+    });
+
+    it('swaps data-lazy into src as items approach the scrollport', async() => {
+        const { el } = await mountCarousel(18, { lazy: true });
+        const io = intersectionObservers[0];
+        const item = el.children[3];
+
+        io.trigger([item]);
+
+        const img = item.querySelector('img');
+        expect(img.getAttribute('src')).toBe('/cover-3.jpg');
+        expect(img.hasAttribute('data-lazy')).toBe(false);
+        expect(io.observed.has(item)).toBe(false);
+    });
+
+    it('leaves items without data-lazy alone', async() => {
+        await mountCarousel(18);
+        const io = intersectionObservers[0];
+        expect(io.observed.size).toBe(0);
+    });
+});
+
+describe('teardown', () => {
+    it('disconnects observers and timers when removed', async() => {
+        const { el } = await mountCarousel(18, { lazy: true });
+        const io = intersectionObservers[0];
+        el.remove();
+        expect(io.observed.size).toBe(0);
+        expect(resizeObservers[0].elements).toHaveLength(0);
+    });
+});

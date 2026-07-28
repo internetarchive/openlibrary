@@ -105,6 +105,28 @@
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
     ],
+    "transform": {
+      "^.+\\.js$": [
+        "babel-jest",
+        {
+          "babelrc": false,
+          "configFile": false,
+          "presets": [
+            [
+              "@babel/preset-env",
+              {
+                "targets": {
+                  "node": "current"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(lit|lit-html|lit-element|@lit)/)"
+    ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"
