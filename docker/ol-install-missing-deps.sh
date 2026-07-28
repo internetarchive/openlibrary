@@ -21,7 +21,7 @@
 # Don't rely on the host shell having sourced build_env.sh before `docker
 # compose up` — /olsystem is already bind-mounted into the container, so
 # pick up PIP_INDEX_URL directly from there if it wasn't already set.
-if [ -z "$PIP_INDEX_URL" ] && [ -f /olsystem/bin/build_env.sh ]; then
+if [ -z "${PIP_INDEX_URL:-}" ] && [ -f /olsystem/bin/build_env.sh ]; then
   source /olsystem/bin/build_env.sh
 fi
 
