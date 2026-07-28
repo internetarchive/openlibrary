@@ -145,3 +145,19 @@ class FeedRegistry(web.storage):
         if data is not None:
             fields["data"] = json.dumps(data)
         return db.update("tbp_feed_registry", where="id=$id", vars={"id": id}, **fields)
+
+    @staticmethod
+    def update_fields(id: int, **fields: Any) -> int:
+        """Update columns of a feed by id (e.g. ``url``, ``feed_type``, ``data``).
+
+        A ``data`` dict is JSON-serialized. Returns the number of rows changed.
+        """
+        if isinstance(fields.get("data"), dict):
+            fields["data"] = json.dumps(fields["data"])
+        fields["updated"] = _utcnow()
+        return db.update("tbp_feed_registry", where="id=$id", vars={"id": id}, **fields)
+
+    @staticmethod
+    def delete(id: int) -> int:
+        """Delete a feed by id. Returns the number of rows removed."""
+        return db.delete("tbp_feed_registry", where="id=$id", vars={"id": id})

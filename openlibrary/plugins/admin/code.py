@@ -36,6 +36,7 @@ from openlibrary.core import (
     imports,
 )
 from openlibrary.core.models import Work
+from openlibrary.core.tbp import FeedRegistry
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
 
@@ -782,6 +783,55 @@ class pd_dashboard:
         return render_template("admin/pd_dashboard", dashboard_data)
 
 
+def _feed_registry_row(feed) -> dict:
+    return {
+        "id": feed.id,
+        "provider_name": feed.provider_name,
+        "feed_type": feed.feed_type,
+        "url": feed.url,
+        "status": (feed.data or {}).get("status"),
+        "last_updated": str(feed.last_updated) if feed.get("last_updated") else None,
+        "created": str(feed.get("created")) if feed.get("created") else None,
+        "updated": str(feed.get("updated")) if feed.get("updated") else None,
+        "data": feed.data,
+    }
+
+
+class imports_registry:
+    """Admin view + CRUD for the Trusted Book Provider feed registry (#12844).
+
+    ``GET /admin/imports/registry`` renders the feeds (provider, url, type,
+    status, last run); ``.json`` returns the same as JSON. ``POST`` adds or
+    deletes a feed. New feeds start ``status="pending"`` until promoted.
+    """
+
+    def GET(self, ext=None):
+        feeds = FeedRegistry.all()
+        if ext == ".json":
+            return delegate.RawText(
+                json.dumps([_feed_registry_row(f) for f in feeds]),
+                content_type="application/json",
+            )
+        return render_template("admin/imports_registry", feeds=feeds)
+
+    def POST(self, ext=None):
+        i = web.input(action="", id="", provider_name="", url="", feed_type="opds")
+        if i.action == "delete" and i.id:
+            FeedRegistry.delete(int(i.id))
+            add_flash_message("info", f"Deleted feed {i.id}.")
+        elif i.action == "add" and i.provider_name and i.url:
+            FeedRegistry.register(
+                i.provider_name.strip(),
+                i.url.strip(),
+                feed_type=(i.feed_type or "opds").strip(),
+                data={"status": "pending"},
+            )
+            add_flash_message("info", f"Registered feed {i.provider_name}.")
+        else:
+            add_flash_message("error", "To add a feed provide provider_name and url; to delete provide id.")
+        raise web.seeother("/admin/imports/registry")
+
+
 def setup():
     register_admin_page("/admin/git-pull", gitpull, label="git-pull")
     register_admin_page("/admin/reload", reload, label="Reload Templates")
@@ -806,6 +856,7 @@ def setup():
     register_admin_page("/admin/imports", imports_home, label="")
     register_admin_page("/admin/imports/add", imports_add, label="")
     register_admin_page(r"/admin/imports/(\d\d\d\d-\d\d-\d\d)", imports_by_date, label="")
+    register_admin_page(r"/admin/imports/registry(\.json)?", imports_registry, label="Feed Registry")
     register_admin_page("/admin/spamwords", spamwords, label="")
     register_admin_page("/admin/pd", pd_dashboard)
 

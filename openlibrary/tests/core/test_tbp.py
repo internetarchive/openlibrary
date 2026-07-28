@@ -134,3 +134,17 @@ class TestFeedRegistryFromRequest:
     def test_requires_provider_name_and_url(self, registry_db, payload):
         with pytest.raises(ValueError, match="required"):
             FeedRegistry.from_request(payload)
+
+
+class TestFeedRegistryMutations:
+    def test_delete(self, registry_db):
+        assert FeedRegistry.delete(1) == 1
+        assert FeedRegistry.get_by_id(1) is None
+        assert [r.provider_name for r in FeedRegistry.all()] == ["lenny"]
+
+    def test_update_fields(self, registry_db):
+        changed = FeedRegistry.update_fields(2, feed_type="onix", data={"trust": "high"})
+        assert changed == 1
+        row = FeedRegistry.get_by_id(2)
+        assert row.feed_type == "onix"
+        assert row.data == {"trust": "high"}

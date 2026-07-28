@@ -184,9 +184,10 @@ msgid "Added Time"
 msgstr ""
 
 #: account/import.html account/loans.html admin/imports.html
-#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: batch_import_pending_view.html batch_import_view.html
-#: librarian_dashboard/data_quality_table.html status.html
+#: admin/imports_by_date.html admin/imports_registry.html
+#: admin/loans_table.html admin/menu.html batch_import_pending_view.html
+#: batch_import_view.html librarian_dashboard/data_quality_table.html
+#: status.html
 msgid "Status"
 msgstr ""
 
@@ -1451,7 +1452,8 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
+#: RecentChangesAdmin.html account/loans.html admin/imports_registry.html
+#: admin/loans_table.html
 msgid "Actions"
 msgstr ""
 
@@ -1666,7 +1668,8 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/imports_registry.html
+#: admin/inspect/memcache.html
 msgid "Delete"
 msgstr ""
 
@@ -2257,7 +2260,7 @@ msgid "Page"
 msgstr ""
 
 #: admin/imports-add.html admin/imports.html admin/imports_by_date.html
-#: admin/menu.html
+#: admin/imports_registry.html admin/menu.html
 msgid "Imports"
 msgstr ""
 
@@ -2364,6 +2367,68 @@ msgstr ""
 
 #: admin/imports_by_date.html
 msgid "Items"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Feed Registry"
+msgstr ""
+
+#: admin/imports_registry.html lib/exports.html type/list/exports.html
+msgid "JSON"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid ""
+"Trusted Book Provider feeds the ingestion pipeline harvests. New feeds "
+"start as 'pending' until a maintainer promotes them."
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "ID"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Provider"
+msgstr ""
+
+#: admin/imports_registry.html admin/inspect/store.html
+msgid "Type"
+msgstr ""
+
+#: admin/imports_registry.html books/edit/web.html
+msgid "URL"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Last run"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "No feeds registered yet."
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "never"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Register a feed"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Provider name"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Feed URL"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Feed type"
+msgstr ""
+
+#: admin/imports_registry.html
+msgid "Register"
 msgstr ""
 
 #: admin/index.html
@@ -2831,10 +2896,6 @@ msgstr ""
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
-
-#: admin/inspect/store.html
-msgid "Type"
 msgstr ""
 
 #: admin/inspect/store.html
@@ -4462,10 +4523,6 @@ msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: books/edit/web.html
-msgid "URL"
-msgstr ""
-
-#: books/edit/web.html
 msgid "Add Link"
 msgstr ""
 
@@ -5087,10 +5144,6 @@ msgstr ""
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
-
-#: lib/exports.html type/list/exports.html
-msgid "JSON"
 msgstr ""
 
 #: lib/exports.html

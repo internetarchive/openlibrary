@@ -1,0 +1,65 @@
+$def with (feeds)
+$var title: $_("Feed Registry")
+
+<div id="contentHead">
+    $if ctx.user and ctx.user.is_admin():
+      $:render_template("admin/menu")
+    <h1>$_("Feed Registry")</h1>
+    <div><a href="/admin/imports/registry.json">$_("JSON")</a> &middot; <a href="/admin/imports">$_("Imports")</a></div>
+</div>
+
+<div id="contentBody">
+  <p>$_("Trusted Book Provider feeds the ingestion pipeline harvests. New feeds start as 'pending' until a maintainer promotes them.")</p>
+
+  <table class="admin">
+    <thead>
+      <tr>
+        <th>$_("ID")</th>
+        <th>$_("Provider")</th>
+        <th>$_("Type")</th>
+        <th>$_("URL")</th>
+        <th>$_("Status")</th>
+        <th>$_("Last run")</th>
+        <th>$_("Actions")</th>
+      </tr>
+    </thead>
+    <tbody>
+      $if not feeds:
+        <tr><td colspan="7">$_("No feeds registered yet.")</td></tr>
+      $for feed in feeds:
+        <tr>
+          <td>$feed.id</td>
+          <td>$feed.provider_name</td>
+          <td>$feed.feed_type</td>
+          <td><a href="$feed.url">$feed.url</a></td>
+          <td>$(feed.data.get('status') or '')</td>
+          <td>$(feed.last_updated or _('never'))</td>
+          <td>
+            <form method="POST" action="/admin/imports/registry">
+              <input type="hidden" name="action" value="delete"/>
+              <input type="hidden" name="id" value="$feed.id"/>
+              <button type="submit">$_("Delete")</button>
+            </form>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <h2>$_("Register a feed")</h2>
+  <form method="POST" action="/admin/imports/registry">
+    <input type="hidden" name="action" value="add"/>
+    <p>
+      <label for="provider_name">$_("Provider name")</label>
+      <input id="provider_name" type="text" name="provider_name" required/>
+    </p>
+    <p>
+      <label for="url">$_("Feed URL")</label>
+      <input id="url" type="url" name="url" required/>
+    </p>
+    <p>
+      <label for="feed_type">$_("Feed type")</label>
+      <input id="feed_type" type="text" name="feed_type" value="opds"/>
+    </p>
+    <button type="submit">$_("Register")</button>
+  </form>
+</div>
