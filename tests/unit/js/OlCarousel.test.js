@@ -1,14 +1,8 @@
 /**
- * Unit tests for <ol-carousel>.
- *
- * The component delegates all motion to a native scroll container, so what is
- * left to test in jsdom is the arithmetic around it: where the snap points go,
- * where each page rests, which page a given scrollLeft maps to, and when the
- * public page-change event fires. jsdom has no layout engine, so the harness
- * below stubs the handful of geometry reads the component makes.
- *
- * Anything that depends on real scrolling — snap landing, fling momentum,
- * `scroll-behavior: smooth` — belongs in the Playwright suite, not here.
+ * Unit tests for <ol-carousel>. Motion is the browser's, so what is left to
+ * test is the arithmetic around it: snap points, page offsets, scroll → page
+ * mapping, and page-change timing. jsdom has no layout, so the harness stubs
+ * the geometry reads. Real scrolling belongs in the Playwright suite.
  */
 import { OlCarousel } from '../../../openlibrary/components/lit/OlCarousel.js';
 
@@ -67,10 +61,7 @@ function trackWidth(count) {
     return count * ITEM_WIDTH + Math.max(0, count - 1) * GAP;
 }
 
-/**
- * Mount an <ol-carousel> with `count` children and stub every geometry read
- * the component performs, then run one resize cycle so it measures.
- */
+/** Mount a carousel with `count` children, stub its geometry reads, measure. */
 async function mountCarousel(count, { showIndicators = false, lazy = false } = {}) {
     const el = document.createElement('ol-carousel');
     el.gap = GAP;
@@ -103,8 +94,7 @@ async function mountCarousel(count, { showIndicators = false, lazy = false } = {
     });
     scroller.getBoundingClientRect = () => ({ left: 0, right: HOST_WIDTH, width: HOST_WIDTH });
 
-    // Items sit at a fixed pitch and shift with the scroll, as they would in a
-    // real scroll container.
+    // Fixed pitch, shifting with the scroll as a real scroller would.
     Array.from(el.children).forEach((item, i) => {
         item.getBoundingClientRect = () => ({
             left: i * (ITEM_WIDTH + GAP) - scrollLeft,
@@ -198,8 +188,7 @@ describe('page arithmetic', () => {
 
     it('does not report the last page early on a ragged rail', async() => {
         // Regression guard: an evenly-spaced fraction of maxScroll would round
-        // page 1 up to the final page here, because the short last page sits
-        // much closer to page 1 than a full page-width away.
+        // page 1 up to the final page, which sits closer than a full page away.
         const { el, scrollTo } = await mountCarousel(18);
         await scrollTo(el._pageOffsets[1]);
         expect(el.page).toBe(1);
@@ -262,8 +251,7 @@ describe('navigation', () => {
     });
 
     it('leaves scroll behavior to CSS rather than forcing it in JS', async() => {
-        // Passing no `behavior` is what lets the reduced-motion media query
-        // switch the whole component to instant scrolling.
+        // Omitting `behavior` is what lets the reduced-motion query apply.
         const { el, scroller } = await mountCarousel(18);
         const spy = jest.fn();
         scroller.scrollTo = spy;
@@ -311,8 +299,7 @@ describe('page-change event', () => {
 });
 
 describe('page-change event without native scrollend', () => {
-    // Safari only shipped `scrollend` in 26.2, so the debounced fallback path
-    // carries every iOS 18.x patron. Exercise it directly.
+    // Safari only shipped `scrollend` in 26.2, so this path carries iOS 18.x.
     let supported;
 
     beforeEach(() => {

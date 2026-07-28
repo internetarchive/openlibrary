@@ -7,17 +7,10 @@ import { LitElement, html, css, nothing } from 'lit';
  * based on responsive breakpoints, shows peek areas at the edges, and
  * provides arrow buttons and bar-segment indicators for navigation.
  *
- * The viewport is a NATIVE scroll container. Swipe, fling, momentum,
- * overscroll, axis locking, trackpad and wheel scrolling are all the
- * platform's own — the component only decides where the snap points are and
- * reports which page the scroller has settled on. See "Browser support" below
- * for the handful of places that still need a JS fallback.
- *
- * Off-page items are deliberately NOT `inert`. A transform-based track had to
- * hide them, because nothing but the component could scroll them into view. In
- * a real scroll container they are legitimately reachable: tabbing to one
- * scrolls it into view, and screen readers, find-in-page and voice control can
- * all reach the whole rail.
+ * The viewport is a native scroll container: the component declares snap
+ * points and reports the settled page, the browser does everything else.
+ * Off-page items are deliberately not `inert` — in a scroll container they
+ * are legitimately reachable by tab, screen reader and find-in-page.
  *
  * @element ol-carousel
  *
@@ -40,14 +33,9 @@ import { LitElement, html, css, nothing } from 'lit';
  * @cssprop [--ol-carousel-indicator-active=#333] - Colour of the active page indicator
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  *
- * Browser support (checked against the project browserslist):
- *  - scroll-snap-type / scroll-snap-align — Safari 11, Chrome 69, Firefox 68. Core, universally available.
- *  - scroll-padding — Safari 14.5. Older Safari loses the edge peek only.
- *  - scroll-behavior: smooth — Safari 15.4. Older Safari jumps instantly instead of gliding.
- *  - overscroll-behavior-x — Safari 16. Older Safari may still fire the macOS history swipe.
- *  - scrollbar-width: none — Safari 18.2 / Chrome 121, with a ::-webkit-scrollbar fallback for the rest.
- *  - scrollend — Safari 26.2 only, so it is feature-detected with a debounced `scroll` fallback (see _onScroll).
- *  - IntersectionObserver (Safari 12.1) and ResizeObserver (Safari 13.1) — both well below the floor.
+ * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
+ * load-bearing ones. scroll-behavior (15.4) and overscroll-behavior (16)
+ * degrade gracefully. scrollend is Safari 26.2, so it is feature-detected.
  *
  * @example
  * <ol-carousel label="Trending Books">
@@ -124,9 +112,8 @@ export class OlCarousel extends LitElement {
         }
 
         /* ── Frame ──
-           Positioning context for the arrows and edge fades. They must sit
-           OUTSIDE the scroller — anything absolutely positioned inside a scroll
-           container scrolls away with the content. */
+           Arrows and fades live here, not in the scroller — absolutely
+           positioned children of a scroll container scroll away. */
         .frame {
             position: relative;
         }
@@ -136,17 +123,15 @@ export class OlCarousel extends LitElement {
             display: flex;
             gap: var(--_gap, 4px);
             overflow-x: auto;
-            /* overflow-y cannot stay visible next to a scrolling axis, so the
-               hover lift is given room by padding-block instead of overflow. */
+            /* Can't stay visible beside a scrolling axis; padding-block gives
+               the hover lift room instead. */
             overflow-y: hidden;
             padding-block: var(--_viewport-padding);
             scroll-snap-type: x mandatory;
-            /* Inline-start padding is the edge peek; the end stays flush so the
-               last page aligns its final item with the viewport's edge. */
+            /* Start padding is the edge peek; the end stays flush. */
             scroll-padding-inline: calc(var(--_peek, 0.03) * 100%) 0;
             scroll-behavior: smooth;
-            /* Stops a horizontal trackpad swipe from triggering the macOS
-               browser back/forward gesture once the rail hits its end. */
+            /* No macOS history swipe when the rail hits its end. */
             overscroll-behavior-x: contain;
             scrollbar-width: none;
         }
@@ -284,19 +269,14 @@ export class OlCarousel extends LitElement {
         [Infinity, 8],
     ];
 
-    /** True when the browser fires `scrollend` (Safari only got it in 26.2).
-     *  Without it we debounce `scroll` instead — see _onScroll. */
+    /** Safari only got `scrollend` in 26.2; without it we debounce `scroll`. */
     static _supportsScrollEnd = typeof window !== 'undefined' && 'onscrollend' in window;
 
-    /** Idle gap (ms) after the last `scroll` event that stands in for
-     *  `scrollend` where it is unavailable. Long enough to outlast a fling's
-     *  momentum tail, short enough that the page-change event still feels
-     *  immediate. Unused when _supportsScrollEnd is true. */
+    /** Idle gap (ms) standing in for `scrollend`. Long enough to outlast a
+     *  fling's momentum tail, short enough to still feel immediate. */
     static _scrollEndFallbackDelay = 120;
 
-    /** How far ahead of the scrollport covers start loading, as a multiple of
-     *  the viewport width. One full viewport each side means the next page is
-     *  already warm by the time the patron reaches it. */
+    /** Cover lookahead: one viewport width either side of the scrollport. */
     static _lazyRootMargin = '0px 100%';
 
     constructor() {
@@ -314,13 +294,11 @@ export class OlCarousel extends LitElement {
         this._atStart = true;
         this._atEnd = false;
 
-        // scrollLeft of each page's resting position, measured from the DOM
-        // (see _measurePageOffsets). Index === page number.
+        // Resting scrollLeft per page, measured in _measurePageOffsets.
         this._pageOffsets = [0];
         this._maxScroll = 0;
 
-        // Last page reported via ol-carousel-page-change, so a settle that
-        // lands back where it started stays quiet.
+        // Keeps a settle that lands back on the same page from re-emitting.
         this._lastEmittedPage = 0;
 
         /** @type {ResizeObserver|null} */
@@ -395,13 +373,10 @@ export class OlCarousel extends LitElement {
         const scroller = this._scroller;
         if (!scroller) return;
         const clamped = Math.max(0, Math.min(index, this._totalPages - 1));
-        // Move the indicators/arrows now rather than waiting for the first
-        // scroll event. _syncFromScroll reconciles from the real position as
-        // the scroll runs, so an optimistic value can never drift.
+        // Optimistic, so indicators move now; _syncFromScroll reconciles.
         this._page = clamped;
-        // No `behavior` option on purpose: leaving it at the default defers to
-        // the scroller's CSS `scroll-behavior`, which the reduced-motion media
-        // query already switches to `auto`. One rule covers both paths.
+        // No `behavior`: defers to CSS scroll-behavior, so the reduced-motion
+        // media query covers both paths.
         scroller.scrollTo({ left: this._pageOffsets[clamped] ?? 0 });
     }
 
@@ -446,21 +421,15 @@ export class OlCarousel extends LitElement {
         }
     }
 
-    /** Re-derive everything that depends on layout: where the snap points are,
-     *  where each page rests, and which page we are currently on. Called after
-     *  a resize, a slot change, or a property change. */
+    /** Re-derive everything layout-dependent after a resize or slot change. */
     _refreshGeometry() {
         this._applySnapPoints();
         this._measurePageOffsets();
         this._syncFromScroll();
     }
 
-    /** Mark which items are page boundaries. The browser then owns everything
-     *  about landing on them — this replaces the old hand-rolled offset table,
-     *  release-velocity projection and nearest-page search.
-     *
-     *  The last item gets `end` so a short final page rests flush against the
-     *  viewport's edge rather than leaving a gap after it. */
+    /** Mark page boundaries; the browser owns landing on them. The last item
+     *  gets `end` so a short final page rests flush against the edge. */
     _applySnapPoints() {
         const items = this._items;
         const cols = this._columns;
@@ -476,12 +445,8 @@ export class OlCarousel extends LitElement {
         });
     }
 
-    /** Measure each page's resting scrollLeft straight from the DOM.
-     *
-     *  These only need to be close enough to pick the right snap point —
-     *  mandatory snapping corrects any rounding error after the scroll lands,
-     *  so the arithmetic here does not have to be pixel-exact the way the old
-     *  transform offsets did. */
+    /** Measure each page's resting scrollLeft from the DOM. Only needs to be
+     *  close enough to pick the right snap point — the browser corrects it. */
     _measurePageOffsets() {
         const scroller = this._scroller;
         const items = this._items;
@@ -495,13 +460,11 @@ export class OlCarousel extends LitElement {
         const scrollerLeft = scroller.getBoundingClientRect().left;
         const peekPx = this.peek * scroller.clientWidth;
         const offsets = [];
-        // Cached so _syncFromScroll — which runs on every scroll event — never
-        // has to touch scrollWidth and force a layout mid-scroll.
+        // Cached so _syncFromScroll never forces a layout mid-scroll.
         this._maxScroll = maxScroll;
 
         for (let page = 0; page < this._totalPages; page++) {
-            // The final page rests at the end of the scroll range, matching the
-            // `scroll-snap-align: end` on the last item.
+            // Matches the `scroll-snap-align: end` on the last item.
             if (page === this._totalPages - 1) {
                 offsets.push(maxScroll);
                 continue;
@@ -536,8 +499,8 @@ export class OlCarousel extends LitElement {
         return best;
     }
 
-    /** Pull page index and edge state off the live scroll position.
-     *  Reads only scrollLeft, so it is safe to run on every scroll event. */
+    /** Pull page index and edge state off the live scroll position. Reads only
+     *  scrollLeft, so it is safe on every scroll event. */
     _syncFromScroll() {
         const scroller = this._scroller;
         if (!scroller) return;
@@ -550,8 +513,7 @@ export class OlCarousel extends LitElement {
     // ── Scroll tracking ──
 
     _onScroll() {
-        // Cheap, passive: keep the indicators, arrows and fades in step while
-        // the scroll is still moving.
+        // Keeps indicators, arrows and fades in step mid-scroll.
         this._syncFromScroll();
 
         if (!OlCarousel._supportsScrollEnd) {
@@ -560,9 +522,7 @@ export class OlCarousel extends LitElement {
         }
     }
 
-    /** The scroller has settled. This is the only place the public
-     *  page-change event fires, so consumers never see intermediate pages
-     *  during a multi-page fling. */
+    /** The only place page-change fires, so a multi-page fling reports once. */
     _onScrollEnd() {
         this._syncFromScroll();
         if (this._page !== this._lastEmittedPage) {
@@ -581,16 +541,9 @@ export class OlCarousel extends LitElement {
 
     // ── Lazy covers ──
 
-    /** Swap `data-lazy` → `src` as items approach the scrollport.
-     *
-     *  A transform-based track had to compute this from the page index,
-     *  because every item counted as on-screen as far as the browser was
-     *  concerned. A real scroll container makes intersection meaningful, so
-     *  the observer handles it — including the lookahead, which is just
-     *  rootMargin.
-     *
-     *  Consumers rendering plain `loading="lazy"` covers need none of this;
-     *  native lazy-loading works correctly inside a scroll container. */
+    /** Swap `data-lazy` → `src` as items approach the scrollport. Consumers
+     *  using plain `loading="lazy"` need none of this — it works natively
+     *  inside a scroll container, which it could not on a transformed track. */
     _setupLazyLoading() {
         const scroller = this._scroller;
         if (!scroller || typeof IntersectionObserver === 'undefined') return;
@@ -643,14 +596,9 @@ export class OlCarousel extends LitElement {
 
     // ── Keyboard ──
 
-    /** Arrow-key navigation for the indicator tablist (APG "Tabs" pattern,
-     *  horizontal orientation). The indicators carry a roving tabindex so the
-     *  tablist is a single Tab stop; ←/→ and Home/End move between pages and
-     *  carry focus to the newly-active indicator.
-     *
-     *  Scoped to the indicators rather than the whole region: the slotted items
-     *  are a native scroll container now, and hijacking ←/→ there would steal
-     *  the browser's own scroll keys. */
+    /** Arrow-key nav for the indicator tablist (APG "Tabs", horizontal).
+     *  Scoped to the indicators, not the region — hijacking ←/→ over the
+     *  scroller would steal the browser's own scroll keys. */
     _onIndicatorKeydown(e) {
         let target;
         switch (e.key) {
@@ -677,10 +625,8 @@ export class OlCarousel extends LitElement {
         this._focusIndicator(clamped);
     }
 
-    /** Move focus to a given indicator after the roving tabindex updates.
-     *  Targets the index rather than whichever indicator is currently active,
-     *  because a smooth scroll walks the active page through the intermediate
-     *  ones before it settles. */
+    /** Focus by index, not by active state — a smooth scroll walks the active
+     *  page through the intermediate ones before it settles. */
     _focusIndicator(index) {
         this.updateComplete?.then?.(() => {
             this.shadowRoot?.querySelectorAll('.indicator')?.[index]?.focus();
