@@ -2,8 +2,9 @@ $def with (authors)
 
 $# Signal-ranked "Notable authors" cards, built in
 $# subjects.decorate_with_notable_authors. The photo, representative work and
-$# cover are each optional: a missing photo 404s (default=false) and the empty
-$# alt collapses it, letting the placeholder background show through.
+$# cover are each optional. The photo is a CSS background layer rather than an
+$# <img>: it's decorative, and a background that 404s just doesn't paint, where
+$# a broken <img> draws the browser's error icon over the placeholder.
 
 $if authors:
   <div id="resultsAuthors" class="widget-box">
@@ -17,9 +18,7 @@ $if authors:
         $ cover_id = rep_work.get('cover_id') if rep_work else None
         <li class="subjectAuthors-item">
           <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
-            <span class="subjectAuthors-avatar">
-              <img src="$(get_coverstore_public_url())/a/olid/$(olid)-S.jpg?default=false" loading="lazy" alt="" aria-hidden="true" />
-            </span>
+            <span class="subjectAuthors-avatar" style="--author-photo: url('$(get_coverstore_public_url())/a/olid/$(olid)-S.jpg?default=false')"></span>
             <span class="subjectAuthors-text">
               <span class="subjectAuthors-name">$author.name</span>
               $if rep_work:
