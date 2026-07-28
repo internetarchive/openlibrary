@@ -161,3 +161,39 @@ class FeedRegistry(web.storage):
     def delete(id: int) -> int:
         """Delete a feed by id. Returns the number of rows removed."""
         return db.delete("tbp_feed_registry", where="id=$id", vars={"id": id})
+
+    @staticmethod
+    def try_lock(id: int, ttl_seconds: int = 3600, now: datetime.datetime | None = None) -> bool:
+        """Acquire the per-feed harvest lock (advisory). Returns True if acquired.
+
+        Prevents two harvests of the same feed from overlapping and racing the
+        cursor. Recorded in the ``data`` blob (``status='running'`` +
+        ``locked_at``); a lock older than ``ttl_seconds`` is treated as stale and
+        taken over (so a crashed run self-heals).
+
+        Note: read-modify-write, so not race-proof under true concurrency — a
+        production runner should use a Postgres advisory lock or a conditional
+        UPDATE. Adequate for the single-runner cron in this prototype (#12844).
+        """
+        now = now or _utcnow()
+        feed = FeedRegistry.get_by_id(id)
+        if not feed:
+            return False
+        data = dict(feed.data or {})
+        if (locked_at := data.get("locked_at")) and (now - datetime.datetime.fromisoformat(locked_at)).total_seconds() < ttl_seconds:
+            return False
+        data["locked_at"] = now.isoformat()
+        data["status"] = "running"
+        FeedRegistry.update_fields(id, data=data)
+        return True
+
+    @staticmethod
+    def unlock(id: int, status: str = "idle") -> int:
+        """Release the per-feed harvest lock, setting ``status`` (default idle)."""
+        feed = FeedRegistry.get_by_id(id)
+        if not feed:
+            return 0
+        data = dict(feed.data or {})
+        data.pop("locked_at", None)
+        data["status"] = status
+        return FeedRegistry.update_fields(id, data=data)

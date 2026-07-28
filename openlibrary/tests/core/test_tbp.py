@@ -148,3 +148,25 @@ class TestFeedRegistryMutations:
         row = FeedRegistry.get_by_id(2)
         assert row.feed_type == "onix"
         assert row.data == {"trust": "high"}
+
+
+class TestFeedRegistryLock:
+    def test_lock_blocks_second_acquire_then_unlock(self, registry_db):
+        assert FeedRegistry.try_lock(1) is True
+        assert FeedRegistry.try_lock(1) is False  # already held
+        assert FeedRegistry.get_by_id(1).data["status"] == "running"
+        assert FeedRegistry.unlock(1) == 1
+        row = FeedRegistry.get_by_id(1)
+        assert "locked_at" not in row.data
+        assert row.data["status"] == "idle"
+        assert FeedRegistry.try_lock(1) is True  # re-acquire after unlock
+
+    def test_stale_lock_is_taken_over(self, registry_db):
+        stale = datetime.datetime(2000, 1, 1)
+        assert FeedRegistry.try_lock(1, now=stale) is True
+        # A later attempt finds the 2000 lock older than ttl -> takes it over.
+        assert FeedRegistry.try_lock(1, ttl_seconds=60) is True
+
+    def test_lock_missing_feed(self, registry_db):
+        assert FeedRegistry.try_lock(999) is False
+        assert FeedRegistry.unlock(999) == 0
