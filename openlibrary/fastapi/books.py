@@ -6,8 +6,6 @@ the best practices like Response Models because JSONP makes it quite complicated
 
 from __future__ import annotations
 
-import re
-import urllib.parse
 from typing import Annotated, Any, Literal
 
 import web
@@ -96,9 +94,6 @@ async def get_books(
     return wrap_jsonp(request, result_str)
 
 
-MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
-
-
 @router.get("/api/volumes/{brief_or_full}/json/{req}", include_in_schema=False)
 @router.get("/api/volumes/{brief_or_full}/json/{req}.json")
 async def get_volumes_multiget(
@@ -116,16 +111,6 @@ async def get_volumes_multiget(
         GET /api/volumes/brief/json/isbn:059035342X|oclc:123456.json
     """
     web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
-
-    raw_uri = request.url.path
-
-    decoded_path = urllib.parse.unquote(raw_uri)
-
-    m = MULTIGET_PATH_RE.match(decoded_path)
-    if not m or len(m.groups()) != 2:
-        return {}
-
-    _brief_or_full, req = m.groups()
 
     result = await readlinks.readlinks(req, {})
     return wrap_jsonp(request, result)

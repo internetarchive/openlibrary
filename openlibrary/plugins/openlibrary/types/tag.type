@@ -56,6 +56,16 @@
             },
             "unique": true
         },
+        {
+            "expected_type": {
+                "key": "/type/tag",
+            },
+            "name": "genre",
+            "type": {
+                "key": "/type/property"
+            },
+            "unique": false
+        },
     ],
     "revision": 3
 }
