@@ -558,13 +558,13 @@ function isValidURL(url) {
  */
 export function initRecordDeletion(elems) {
     for (const elem of elems) {
-        elem.addEventListener("click", (event) => {
-            event.preventDefault()
-            const form = elem.form
-            const commentInput = document.querySelector("input[name=_comment]")
-            form.appendChild(commentInput)
+        elem.addEventListener('click', (event) => {
+            event.preventDefault();
+            const form = elem.form;
+            const commentInput = document.querySelector('input[name=_comment]');
+            form.appendChild(commentInput);
             // pass elem as submitter so its name/value pair is included in the submission
-            form.requestSubmit(elem)
-        })
+            form.requestSubmit(elem);
+        });
     }
 }
