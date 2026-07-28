@@ -14,11 +14,6 @@ class MockBase extends HTMLElement {
             setFormValue: jest.fn(),
             form: { id: 'f' },
             labels: ['label-el'],
-            validity: { valid: true },
-            validationMessage: 'nope',
-            willValidate: true,
-            checkValidity: jest.fn(() => true),
-            reportValidity: jest.fn(() => false),
         };
     }
 
@@ -36,10 +31,10 @@ function defineToggleLike(tagName) {
             this.value = 'on';
             this.disabled = false;
         }
-        get formValue() {
+        get formAssociatedValue() {
             return this.checked ? this.value : null;
         }
-        formReset() {
+        formAssociatedReset() {
             this.checked = false;
         }
     };
@@ -55,7 +50,7 @@ function defineMultiSelectLike(tagName) {
             this.name = 'langs';
             this.selected = [];
         }
-        get formValue() {
+        get formAssociatedValue() {
             if (this.selected.length === 0 || !this.name) return null;
             const data = new FormData();
             for (const v of this.selected) data.append(this.name, v);
@@ -80,22 +75,22 @@ describe('FormAssociatedMixin', () => {
         expect(Ctor.properties.name).toEqual({ type: String, reflect: true });
     });
 
-    test('attaches ElementInternals and exposes it', () => {
+    test('attaches ElementInternals', () => {
         const el = document.createElement('face-toggle');
-        expect(el.internals).toBe(el._fakeInternals);
+        expect(el._internals).toBe(el._fakeInternals);
     });
 
     test('_syncFormValue pushes null when the control contributes nothing', () => {
         const el = document.createElement('face-toggle');
         el._syncFormValue();
-        expect(el.internals.setFormValue).toHaveBeenCalledWith(null);
+        expect(el._internals.setFormValue).toHaveBeenCalledWith(null);
     });
 
     test('_syncFormValue pushes the value when checked', () => {
         const el = document.createElement('face-toggle');
         el.checked = true;
         el._syncFormValue();
-        expect(el.internals.setFormValue).toHaveBeenLastCalledWith('on');
+        expect(el._internals.setFormValue).toHaveBeenLastCalledWith('on');
     });
 
     test('formResetCallback restores the default value and resyncs', () => {
@@ -104,7 +99,7 @@ describe('FormAssociatedMixin', () => {
         el.formResetCallback();
         expect(el.checked).toBe(false);
         // After reset the (now unchecked) control contributes nothing.
-        expect(el.internals.setFormValue).toHaveBeenLastCalledWith(null);
+        expect(el._internals.setFormValue).toHaveBeenLastCalledWith(null);
     });
 
     test('formDisabledCallback mirrors the browser disabled state onto the host', () => {
@@ -115,22 +110,24 @@ describe('FormAssociatedMixin', () => {
         expect(el.disabled).toBe(false);
     });
 
-    test('delegates the standard form-control getters to ElementInternals', () => {
+    test('delegates form and labels to ElementInternals', () => {
         const el = document.createElement('face-toggle');
         expect(el.form).toEqual({ id: 'f' });
         expect(el.labels).toEqual(['label-el']);
-        expect(el.validity).toEqual({ valid: true });
-        expect(el.validationMessage).toBe('nope');
-        expect(el.willValidate).toBe(true);
-        expect(el.checkValidity()).toBe(true);
-        expect(el.reportValidity()).toBe(false);
+    });
+
+    test('formStateRestoreCallback resyncs so the form drops the pre-restore value', () => {
+        const el = document.createElement('face-toggle');
+        el.checked = true;
+        el.formStateRestoreCallback();
+        expect(el._internals.setFormValue).toHaveBeenLastCalledWith('on');
     });
 
     test('a multi-select submits one repeated entry per value via FormData', () => {
         const el = document.createElement('face-multiselect');
         el.selected = ['en', 'fr'];
         el._syncFormValue();
-        const data = el.internals.setFormValue.mock.calls.at(-1)[0];
+        const data = el._internals.setFormValue.mock.calls.at(-1)[0];
         expect(data).toBeInstanceOf(FormData);
         expect(data.getAll('langs')).toEqual(['en', 'fr']);
     });
@@ -138,6 +135,6 @@ describe('FormAssociatedMixin', () => {
     test('a multi-select contributes nothing when empty', () => {
         const el = document.createElement('face-multiselect');
         el._syncFormValue();
-        expect(el.internals.setFormValue).toHaveBeenCalledWith(null);
+        expect(el._internals.setFormValue).toHaveBeenCalledWith(null);
     });
 });

@@ -258,11 +258,19 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     // ── Form participation (FormAssociatedMixin) ─────────────────────────
     // A switch behaves like a checkbox: it submits its `value` only when on,
     // and contributes nothing when off.
-    get formValue() {
+    /**
+     * @override
+     * @returns {string|null} The value when on, nothing when off.
+     */
+    get formAssociatedValue() {
         return this.checked ? this.value : null;
     }
 
-    formReset() {
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
         this.checked = this._defaultChecked;
     }
 

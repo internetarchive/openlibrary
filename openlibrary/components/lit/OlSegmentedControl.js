@@ -321,11 +321,20 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
     // ── Form participation (FormAssociatedMixin) ─────────────────────────
     // A segmented control is a radio group: it always has a selection, so it
     // always submits the selected option's value under `name`.
-    get formValue() {
+    /**
+     * @override
+     * @returns {string|null} A radio group always has a selection, so this
+     *   always submits the selected option's value.
+     */
+    get formAssociatedValue() {
         return this.value ?? null;
     }
 
-    formReset() {
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
         this.value = this._defaultValue;
     }
 

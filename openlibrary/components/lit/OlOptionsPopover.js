@@ -241,14 +241,19 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
     }
 
-    // ── Form participation (FormAssociatedMixin) ─────────────────────────
-    // A single-select: submits the selected value under `name`, or nothing
-    // when there is no selection.
-    get formValue() {
+    /**
+     * @override
+     * @returns {string|null} The selected value, or nothing when unselected.
+     */
+    get formAssociatedValue() {
         return this.selected || null;
     }
 
-    formReset() {
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
         this.selected = this._defaultSelected;
     }
 

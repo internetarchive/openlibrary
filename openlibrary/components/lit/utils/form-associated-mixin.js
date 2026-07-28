@@ -6,13 +6,15 @@
  * A control rendered in shadow DOM is otherwise invisible to the surrounding
  * form. `ElementInternals` fixes that. Supported on our floor (Safari 16.4+).
  *
- * Consumers must provide a `formValue` getter and call `_syncFormValue()`
- * whenever it changes; `formReset()` is optional. See the example below.
+ * Consumers must override `formAssociatedValue` and call `_syncFormValue()`
+ * whenever it changes; `formAssociatedReset()` is optional. Both carry the
+ * `formAssociated` prefix so they read as this mixin's contract rather than as
+ * platform callbacks — the browser-called ones are named `form*Callback`.
  *
  * @example
  *   export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
- *       get formValue() { return this.checked ? this.value : null; }
- *       formReset() { this.checked = this._defaultChecked; }
+ *       get formAssociatedValue() { return this.checked ? this.value : null; }
+ *       formAssociatedReset() { this.checked = this._defaultChecked; }
  *       firstUpdated() { this._syncFormValue(); }
  *       updated(c) { if (c.has('checked') || c.has('value')) this._syncFormValue(); }
  *   }
@@ -33,18 +35,9 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
     /** @param {...any} args */
     constructor(...args) {
         super(...args);
-        // Absent in some test environments (older jsdom); degrade to
-        // "works, just not form-aware" rather than throwing at construction.
-        try {
-            this._internals = this.attachInternals?.() ?? null;
-        } catch {
-            this._internals = null;
-        }
-    }
-
-    /** @returns {ElementInternals|null} */
-    get internals() {
-        return this._internals;
+        // Optional-chained for non-browser contexts where the method is absent;
+        // it can't throw here, since this mixin sets formAssociated itself.
+        this._internals = this.attachInternals?.() ?? null;
     }
 
     /** @returns {HTMLFormElement|null} The form this control belongs to. */
@@ -57,31 +50,6 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
         return this._internals?.labels ?? [];
     }
 
-    /** @returns {ValidityState|null} */
-    get validity() {
-        return this._internals?.validity ?? null;
-    }
-
-    /** @returns {string} */
-    get validationMessage() {
-        return this._internals?.validationMessage ?? '';
-    }
-
-    /** @returns {boolean} Whether this control is a candidate for validation. */
-    get willValidate() {
-        return this._internals?.willValidate ?? false;
-    }
-
-    /** @returns {boolean} True when the control satisfies its constraints. */
-    checkValidity() {
-        return this._internals?.checkValidity() ?? true;
-    }
-
-    /** @returns {boolean} Like {@link checkValidity}, but reports to the user. */
-    reportValidity() {
-        return this._internals?.reportValidity() ?? true;
-    }
-
     /**
      * Override point. The value(s) to submit with the form.
      *
@@ -89,18 +57,18 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
      *   `FormData` submits multiple entries (you own the keys); `null`
      *   contributes nothing, e.g. an unchecked switch.
      */
-    get formValue() {
+    get formAssociatedValue() {
         return null;
     }
 
     /**
-     * Push the current {@link formValue} into the form. Call after the value
-     * changes, and once initially.
+     * Push the current {@link formAssociatedValue} into the form. Call after the
+     * value changes, and once initially.
      *
      * @returns {void}
      */
     _syncFormValue() {
-        this._internals?.setFormValue(this.formValue);
+        this._internals?.setFormValue(this.formAssociatedValue);
     }
 
     /**
@@ -117,28 +85,24 @@ export const FormAssociatedMixin = (BaseClass) => class extends BaseClass {
 
     /**
      * Called by the browser on `<form>.reset()`. Delegates to the consumer's
-     * optional `formReset()`, then resyncs so the form sees the reset value.
+     * optional `formAssociatedReset()`, then resyncs so the form sees the value.
      *
      * @override
      * @returns {void}
      */
     formResetCallback() {
-        this.formReset?.();
+        this.formAssociatedReset?.();
         this._syncFormValue();
     }
 
     /**
      * Called by the browser to restore state on history navigation or autofill.
-     * Delegates to the consumer's optional `formStateRestore(state, mode)` hook
-     * — our own name, not a platform API; no component implements it yet.
+     * Resyncs so the form doesn't hold the pre-restore value.
      *
      * @override
-     * @param {File|string|FormData} state
-     * @param {"restore"|"autocomplete"} mode
      * @returns {void}
      */
-    formStateRestoreCallback(state, mode) {
-        this.formStateRestore?.(state, mode);
+    formStateRestoreCallback() {
         this._syncFormValue();
     }
 };

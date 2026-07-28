@@ -393,10 +393,12 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this._syncFormValue();
     }
 
-    // ── Form participation (FormAssociatedMixin) ─────────────────────────
-    // A multi-select submits one `name` entry per selected value (mirroring a
-    // native <select multiple>), via a FormData; nothing when empty.
-    get formValue() {
+    /**
+     * @override
+     * @returns {FormData|null} One `name` entry per selected value, mirroring a
+     *   native `<select multiple>`; nothing when empty.
+     */
+    get formAssociatedValue() {
         const values = this.selected || [];
         if (values.length === 0 || !this.name) return null;
         const data = new FormData();
@@ -404,7 +406,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         return data;
     }
 
-    formReset() {
+    /**
+     * @override
+     * @returns {void}
+     */
+    formAssociatedReset() {
         this.selected = [...this._defaultSelected];
         this._updateDefaultTriggerLabel();
     }
