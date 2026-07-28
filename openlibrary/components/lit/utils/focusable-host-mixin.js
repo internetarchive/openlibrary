@@ -1,8 +1,7 @@
 /**
  * FocusableHostMixin — for a component whose single focusable element lives in
- * its **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s
- * shadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as
- * if the host were that inner control.
+ * its **own shadow root** (e.g. <ol-toggle>, <ol-chip>). Makes `host.focus()` /
+ * clicks / `:focus-visible` behave as if the host were that inner control.
  *
  * Uses `delegatesFocus: true` on the shadow root, so the browser forwards
  * `host.focus()` to the first focusable inside the shadow root AND
@@ -19,8 +18,9 @@
  * be discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).
  *
  * NOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain
- * LitElement — the trigger is the focusable, e.g. <ol-select-popover>), or
- * composites that route focus themselves (roving tabindex).
+ * LitElement — the trigger is the focusable, e.g. <ol-select-popover> and
+ * <ol-options-popover>), or composites that route focus themselves (roving
+ * tabindex).
  *
  * Specifying a non-default focus target
  * -------------------------------------

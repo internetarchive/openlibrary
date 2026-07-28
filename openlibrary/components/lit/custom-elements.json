@@ -99,6 +99,13 @@
               "name": "no-chevron"
             },
             {
+              "type": {
+                "text": "Boolean"
+              },
+              "description": "Renders the soft-blue \"carries a selection\" tint (see ol-button.css). Set by ol-select-popover on its disclosure trigger when the user has picked something; purely visual, no behavior attached.",
+              "name": "selected"
+            },
+            {
               "name": "variant",
               "type": {
                 "text": "String"
@@ -2501,18 +2508,11 @@
           "name": "OlOptionsPopover",
           "slots": [
             {
-              "description": "Optional custom trigger element. When omitted, a styled default button renders with `label` and a chevron icon.",
+              "description": "Optional custom trigger element. When omitted, an `<ol-button>` showing `label` is injected (see _createDefaultTrigger); its disclosure chevron comes from ol-button automatically.",
               "name": "trigger"
             }
           ],
           "members": [
-            {
-              "kind": "field",
-              "name": "_chevronIcon",
-              "static": true,
-              "default": "html`<svg class=\"trigger-chevron\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
-              "description": "Chevron icon for the default trigger"
-            },
             {
               "kind": "field",
               "name": "formValue",
@@ -2533,23 +2533,12 @@
               "name": "formReset"
             },
             {
-              "kind": "field",
-              "name": "_focusTarget",
-              "description": "Send focus to the default-trigger button rather than the first\nfocusable in shadow order (which could be a slotted user-provided\ntrigger — but the default-trigger is the one we want when it's there).",
-              "return": {
-                "type": {
-                  "text": "HTMLElement|null"
-                }
-              },
-              "readonly": true,
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
+              "kind": "method",
+              "name": "_createDefaultTrigger"
             },
             {
               "kind": "method",
-              "name": "_renderDefaultTrigger"
+              "name": "_updateDefaultTriggerLabel"
             },
             {
               "kind": "method",
@@ -2855,32 +2844,6 @@
                 "name": "FormAssociatedMixin",
                 "module": "openlibrary/components/lit/utils/form-associated-mixin.js"
               }
-            },
-            {
-              "kind": "field",
-              "name": "shadowRootOptions",
-              "type": {
-                "text": "object"
-              },
-              "static": true,
-              "default": "{ ...BaseClass.shadowRootOptions, delegatesFocus: true, }",
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "focus",
-              "parameters": [
-                {
-                  "name": "options"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "FocusableHostMixin",
-                "module": "openlibrary/components/lit/utils/focusable-host-mixin.js"
-              }
             }
           ],
           "events": [
@@ -2949,10 +2912,6 @@
             {
               "name": "FormAssociatedMixin",
               "module": "/openlibrary/components/lit/utils/form-associated-mixin.js"
-            },
-            {
-              "name": "FocusableHostMixin",
-              "module": "/openlibrary/components/lit/utils/focusable-host-mixin.js"
             }
           ],
           "superclass": {
@@ -3891,6 +3850,507 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlScorecard.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OlScoreGauge - Circular gauge for OlScorecard: arc length and color track\na 0-100 percentage. Used for the collapsed badge, the Total indicator, and\neach section tab. Internal helper, not part of the public component index.",
+          "name": "OlScoreGauge",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_colorVar",
+              "description": "Threshold color for the current percentage, as a CSS custom-property\nreference with a literal fallback (never a hardcoded default), so a\nconsumer can still override e.g. --scorecard-excellent from outside.",
+              "return": {
+                "type": {
+                  "text": "String"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "percentage",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "percentage"
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'default'",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "showPercent",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "show-percent"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "percentage",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "percentage"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "string"
+              },
+              "default": "'default'",
+              "fieldName": "size"
+            },
+            {
+              "name": "show-percent",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "showPercent"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-score-gauge",
+          "customElement": true
+        },
+        {
+          "kind": "class",
+          "description": "OlScorecard - A tabbed scorecard: each section is a gauge tab listing its\nfailing checks (always shown) and passing checks (collapsed by default).\nA \"Total\" gauge and separator lead the tab row. Each check row expands to\nshow its description via a trailing chevron.\n\nCollapsed by default to a small badge (gauge, name, chevron); click it to\nexpand, click the header to collapse again.",
+          "name": "OlScorecard",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_chevronIcon",
+              "static": true,
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
+              "description": "Chevron icon; rotated by callers to indicate open/closed state."
+            },
+            {
+              "kind": "field",
+              "name": "_clockIcon",
+              "static": true,
+              "default": "html`<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 3\"/></svg>`",
+              "description": "Clock icon; shown in the outdated-data warning banner."
+            },
+            {
+              "kind": "method",
+              "name": "_interpolateLabel",
+              "parameters": [
+                {
+                  "name": "template",
+                  "type": {
+                    "text": "String"
+                  }
+                },
+                {
+                  "name": "values",
+                  "type": {
+                    "text": "Object"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "String"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_percentage",
+              "parameters": [
+                {
+                  "name": "score",
+                  "type": {
+                    "text": "Number"
+                  }
+                },
+                {
+                  "name": "maxScore",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "Number"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_onTabKeydown",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                },
+                {
+                  "name": "index",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderCollapsed",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderExpanded",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderOutdatedBanner",
+              "return": {
+                "type": {
+                  "text": "TemplateResult|typeof nothing"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderSectionPanel",
+              "parameters": [
+                {
+                  "name": "section",
+                  "type": {
+                    "text": "Object"
+                  }
+                },
+                {
+                  "name": "index",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderCheck",
+              "parameters": [
+                {
+                  "name": "check",
+                  "type": {
+                    "text": "Object"
+                  }
+                }
+              ],
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "results",
+              "privacy": "public",
+              "type": {
+                "text": "Object"
+              },
+              "default": "null",
+              "description": "The scorecard data: `{ name, score, maxScore, sections: [{ name, score, maxScore, checks: [{ description, details, score, passing }] }] }`. Settable as a JSON attribute (`results='{\"score\":10,...}'`) or property.",
+              "attribute": "results"
+            },
+            {
+              "kind": "field",
+              "name": "expanded",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the full tabbed UI is shown instead of the collapsed badge. Default `false`. Presence of the attribute expands it.",
+              "attribute": "expanded",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "labelTotal",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Total'",
+              "description": "Label for the non-interactive \"Total\" gauge (default: \"Total\")",
+              "attribute": "label-total"
+            },
+            {
+              "kind": "field",
+              "name": "labelFailingChecks",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Failing Checks ({count})'",
+              "description": "Failing checks section heading template, use `{count}` (default: \"Failing Checks ({count})\")",
+              "attribute": "label-failing-checks"
+            },
+            {
+              "kind": "field",
+              "name": "labelPassingChecks",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Passing Checks ({count})'",
+              "description": "Passing checks section heading template, use `{count}` (default: \"Passing Checks ({count})\")",
+              "attribute": "label-passing-checks"
+            },
+            {
+              "kind": "field",
+              "name": "labelPoints",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'{score} points'",
+              "description": "Check point-value template, use `{score}` (default: \"{score} points\")",
+              "attribute": "label-points"
+            },
+            {
+              "kind": "field",
+              "name": "labelExpand",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'{name}: {percentage}%. Click to expand.'",
+              "description": "Accessible label for the collapsed badge button, use `{name}`, `{percentage}` (default: \"{name}: {percentage}%. Click to expand.\")",
+              "attribute": "label-expand"
+            },
+            {
+              "kind": "field",
+              "name": "labelCollapse",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Collapse'",
+              "description": "Accessible label for the header collapse button (default: \"Collapse\")",
+              "attribute": "label-collapse"
+            },
+            {
+              "kind": "field",
+              "name": "outdated",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the solr record is stale relative to the database. Default `false`. Presence of the attribute shows a warning banner at the top of the expanded card; no banner is shown otherwise.",
+              "attribute": "outdated"
+            },
+            {
+              "kind": "field",
+              "name": "labelOutdated",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'This record has been edited and is not yet reflected in Solr. It should update in a minute or so.'",
+              "description": "Warning banner text shown when outdated (default: \"This record has been edited and is not yet reflected in Solr. It should update in a minute or so.\")",
+              "attribute": "label-outdated"
+            },
+            {
+              "kind": "field",
+              "name": "_activeSection",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "attribute": "_activeSection"
+            },
+            {
+              "kind": "field",
+              "name": "_panelIdPrefix",
+              "default": "`ol-scorecard-${++_idCounter}`"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "results",
+              "type": {
+                "text": "Object"
+              },
+              "default": "null",
+              "description": "The scorecard data: `{ name, score, maxScore, sections: [{ name, score, maxScore, checks: [{ description, details, score, passing }] }] }`. Settable as a JSON attribute (`results='{\"score\":10,...}'`) or property.",
+              "fieldName": "results"
+            },
+            {
+              "name": "expanded",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the full tabbed UI is shown instead of the collapsed badge. Default `false`. Presence of the attribute expands it.",
+              "fieldName": "expanded"
+            },
+            {
+              "name": "label-total",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Total'",
+              "description": "Label for the non-interactive \"Total\" gauge (default: \"Total\")",
+              "fieldName": "labelTotal"
+            },
+            {
+              "name": "label-failing-checks",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Failing Checks ({count})'",
+              "description": "Failing checks section heading template, use `{count}` (default: \"Failing Checks ({count})\")",
+              "fieldName": "labelFailingChecks"
+            },
+            {
+              "name": "label-passing-checks",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Passing Checks ({count})'",
+              "description": "Passing checks section heading template, use `{count}` (default: \"Passing Checks ({count})\")",
+              "fieldName": "labelPassingChecks"
+            },
+            {
+              "name": "label-points",
+              "type": {
+                "text": "String"
+              },
+              "default": "'{score} points'",
+              "description": "Check point-value template, use `{score}` (default: \"{score} points\")",
+              "fieldName": "labelPoints"
+            },
+            {
+              "name": "label-expand",
+              "type": {
+                "text": "String"
+              },
+              "default": "'{name}: {percentage}%. Click to expand.'",
+              "description": "Accessible label for the collapsed badge button, use `{name}`, `{percentage}` (default: \"{name}: {percentage}%. Click to expand.\")",
+              "fieldName": "labelExpand"
+            },
+            {
+              "name": "label-collapse",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Collapse'",
+              "description": "Accessible label for the header collapse button (default: \"Collapse\")",
+              "fieldName": "labelCollapse"
+            },
+            {
+              "name": "outdated",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the solr record is stale relative to the database. Default `false`. Presence of the attribute shows a warning banner at the top of the expanded card; no banner is shown otherwise.",
+              "fieldName": "outdated"
+            },
+            {
+              "name": "label-outdated",
+              "type": {
+                "text": "String"
+              },
+              "default": "'This record has been edited and is not yet reflected in Solr. It should update in a minute or so.'",
+              "description": "Warning banner text shown when outdated (default: \"This record has been edited and is not yet reflected in Solr. It should update in a minute or so.\")",
+              "fieldName": "labelOutdated"
+            },
+            {
+              "name": "_activeSection",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "fieldName": "_activeSection"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-scorecard",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-score-gauge",
+          "declaration": {
+            "name": "OlScoreGauge",
+            "module": "openlibrary/components/lit/OlScorecard.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "OlScorecard",
+          "declaration": {
+            "name": "OlScorecard",
+            "module": "openlibrary/components/lit/OlScorecard.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-scorecard",
+          "declaration": {
+            "name": "OlScorecard",
+            "module": "openlibrary/components/lit/OlScorecard.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlSegmentedControl.js",
       "declarations": [
         {
@@ -4332,7 +4792,7 @@
           "name": "OlSelectPopover",
           "slots": [
             {
-              "description": "Optional custom trigger element. When omitted, a default `<ol-button>` is injected (showing `label` plus a \"(n)\" count when items are selected); its disclosure chevron comes from ol-button automatically.",
+              "description": "Optional custom trigger element. When omitted, a default `<ol-button>` is injected, labelled by the current selection: `label` when nothing is picked, the single item's own label when one is, and `label (n)` beyond that. It also carries ol-button's `selected` tint while a selection is active, and its disclosure chevron comes from ol-button automatically. A custom trigger owns its own label and state.",
               "name": "trigger"
             }
           ],
@@ -6501,6 +6961,27 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/hard-break.js",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "OLHardBreak",
+          "description": "OLHardBreak – a hard-break node that serializes to OLMarkdown's dialect.\n\nThe server-side display renderer (OLMarkdown, a vendored Python-Markdown)\ntreats every newline inside a paragraph as a `<br>` and has no escape syntax\nfor hard breaks. tiptap-markdown's default serializer emits CommonMark's\n`\\<newline>`; that trailing backslash makes OLMarkdown escape the `<` of the\n`<br/>` it injects, so readers see the literal text `<br />`.\n\nEmitting a bare newline instead keeps the two renderers in agreement, and\nre-saving a page through the editor cleans up any legacy backslash/`<br>`\ncruft. See internetarchive/openlibrary#13074."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLHardBreak",
+          "declaration": {
+            "name": "OLHardBreak",
+            "module": "openlibrary/components/lit/hard-break.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/utils/focus-utils.js",
       "declarations": [
         {
@@ -6661,7 +7142,7 @@
       "declarations": [
         {
           "kind": "mixin",
-          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>, <ol-options-popover>'s\nshadow trigger). Makes `host.focus()` / clicks / `:focus-visible` behave as\nif the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover>), or\ncomposites that route focus themselves (roving tabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
+          "description": "FocusableHostMixin — for a component whose single focusable element lives in\nits **own shadow root** (e.g. <ol-toggle>, <ol-chip>). Makes `host.focus()` /\nclicks / `:focus-visible` behave as if the host were that inner control.\n\nUses `delegatesFocus: true` on the shadow root, so the browser forwards\n`host.focus()` to the first focusable inside the shadow root AND\n`:focus-visible` fires correctly on the inner element (a manual focus()\noverride alone can't do the latter — `:focus-visible` is a UA heuristic, not\na CSS pseudo-class we can opt into).\n\nDo NOT add `tabindex` to the host. The inner native focusable already\nparticipates in the document tab order on its own, and a host `tabindex`\ncombined with `delegatesFocus` produces a double tab stop (host, then inner)\nin native sequential navigation. Our manual focus traps (OlDialog/OlPopover)\nfind the inner focusable via the shadow-piercing walker in focus-utils.js\n(`getTabbableElements`/`getTabbableFromSlot`), so they don't need the host to\nbe discoverable either. See docs/ai/web-components.md (Focus and Shadow DOM).\n\nNOT for: wrappers whose focusable is a slotted / light-DOM child (use a plain\nLitElement — the trigger is the focusable, e.g. <ol-select-popover> and\n<ol-options-popover>), or composites that route focus themselves (roving\ntabindex).\n\nSpecifying a non-default focus target\n-------------------------------------\n`delegatesFocus` forwards to the first focusable in DOM order. When a\ncomponent has multiple focusables in its shadow root and the desired\ntarget is not the first one, override `_focusTarget`:\n\n  get _focusTarget() {\n      return this.shadowRoot?.querySelector('.my-button');\n  }\n\nReturning `null` (the default) keeps the `delegatesFocus` behavior.",
           "name": "FocusableHostMixin",
           "members": [
             {
