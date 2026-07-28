@@ -1,8 +1,27 @@
 """Near-realtime loan availability updater for Solr.
 
 Polls IA's loan changes API and atomically updates ebook_availability and
-ebook_becomes_available on work documents so search results reflect borrowing
-status within one poll interval.
+ebook_becomes_available on EDITION documents (nested children of their work)
+so search results reflect borrowing status within one poll interval at the
+correct granularity -- a loan on one edition must not mark sibling editions
+of the same work unavailable.
+
+ebook_availability is 0/1 and ebook_becomes_available is epoch seconds, both
+numeric so writes qualify for Solr's update.partial.requireInPlace: string
+and pdate fields are rejected by Solr for in-place updates regardless of
+docValues/stored/indexed config, and a *non*-in-place atomic update to a
+nested child document reindexes the entire work + all its editions rather
+than just the one document, which would defeat the point of a near-realtime
+updater. Edition updates therefore always include "_root_" (the parent
+work's key) -- Solr requires this to target a child document rather than
+create/replace a root-level one.
+
+Solr also rejects "set": null under requireInPlace -- a value can be set or
+incremented in-place, but not cleared, even on a field with no prior value.
+So a return/expire event never clears ebook_becomes_available; it's left at
+its last (now stale) value. ebook_becomes_available is therefore only
+meaningful when ebook_availability is EBOOK_UNAVAILABLE -- consumers (and
+build_eviction_updates, below) must not read it otherwise.
 
 On first run (or --reset), binary-searches for the uid ~14 days ago so that
 all currently-active loans are reflected after a full Solr re-index or outage.
@@ -27,6 +46,9 @@ logger = logging.getLogger("openlibrary.loan-availability-updater")
 
 LOAN_ACTIVE_EVENTS = frozenset({"borrow", "browse", "renew_borrow", "renew_browse"})
 LOAN_ENDED_EVENTS = frozenset({"return", "expire_borrow", "expire_browse"})
+
+EBOOK_UNAVAILABLE = 0
+EBOOK_AVAILABLE = 1
 
 LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
@@ -111,30 +133,38 @@ def process_changes(rows: list[dict]) -> dict[str, dict]:
     return latest
 
 
-def ia_until_to_solr_date(until: str | None) -> str | None:
-    """Convert IA 'until' string ("2026-05-01 15:42:43") to Solr pdate format."""
+def ia_until_to_epoch(until: str | None) -> int | None:
+    """Convert IA 'until' string ("2026-05-01 15:42:43", implicitly UTC) to epoch seconds."""
     if not until:
         return None
     try:
-        return datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%SZ")
+        dt = datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
+        return int(dt.timestamp())
     except ValueError:
         logger.debug("Could not parse 'until' value: %r", until)
         return None
 
 
-def resolve_work_keys(identifiers: list[str]) -> dict[str, str]:
-    """Batch-resolve IA identifiers to Solr work keys via the ia field."""
+def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
+    """Batch-resolve IA identifiers to Solr edition keys + parent work key via the ia field.
+
+    Returns {identifier: {"key": "/books/OL1M", "root": "/works/OL1W"}}.
+
+    Editions are nested children of their work in Solr; "_root_" (the parent
+    work's key) must accompany any atomic update targeting the edition, so
+    it's captured here alongside the edition key.
+    """
     if not identifiers:
         return {}
     # Quote each term so identifiers with special characters are treated literally
     quoted = " ".join(f'"{id_}"' for id_ in identifiers)
     result = get_solr().select(
-        query=f"ia:({quoted})",
-        fields=["key", "ia"],
+        query=f"type:edition AND ia:({quoted})",
+        fields=["key", "ia", "_root_"],
         rows=len(identifiers) * 2,
     )
     id_set = set(identifiers)
-    return {ia_id: doc["key"] for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
+    return {ia_id: {"key": doc["key"], "root": doc["_root_"]} for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
 
 
 def query_solr_uid() -> int:
@@ -153,29 +183,51 @@ def query_solr_uid() -> int:
     return 0
 
 
-def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) -> list[dict]:
-    """Build Solr atomic-update documents from the latest per-identifier loan state."""
+def solr_update_in_place(request: list[dict], commit: bool = False) -> None:
+    """Call Solr.update_in_place and raise if Solr reports failure.
+
+    update_in_place_async returns the parsed response without checking status
+    -- other callers (trending_updater_daily/hourly) rely on that and just log
+    it, so the check is done here rather than changing the shared method.
+    """
+    resp = get_solr().update_in_place(request, commit=commit)
+    if resp.get("responseHeader", {}).get("status") != 0:
+        raise RuntimeError(f"Solr in-place update error: {resp}")
+
+
+def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, dict]) -> list[dict]:
+    """Build Solr atomic-update documents from the latest per-identifier loan state.
+
+    On a return/expire event, ebook_becomes_available is intentionally left
+    untouched rather than cleared: Solr's requireInPlace rejects "set": null
+    even for a field that already has no value (verified directly -- it's not
+    conditional on prior state). The stale timestamp is harmless because every
+    consumer of ebook_becomes_available (including build_eviction_updates
+    below) must treat it as meaningful only when ebook_availability is
+    EBOOK_UNAVAILABLE.
+    """
     updates = []
     for identifier, state in id_state.items():
-        work_key = id_to_work.get(identifier)
-        if not work_key:
+        edition = id_to_edition.get(identifier)
+        if not edition:
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
             update: dict = {
-                "key": work_key,
-                "ebook_availability": {"set": "unavailable"},
+                "key": edition["key"],
+                "_root_": edition["root"],
+                "ebook_availability": {"set": EBOOK_UNAVAILABLE},
                 "loan_uid": {"set": state["uid"]},
             }
-            solr_until = ia_until_to_solr_date(state["until"])
-            if solr_until is not None:
-                update["ebook_becomes_available"] = {"set": solr_until}
+            becomes_available = ia_until_to_epoch(state["until"])
+            if becomes_available is not None:
+                update["ebook_becomes_available"] = {"set": becomes_available}
             updates.append(update)
         elif state["event_type"] in LOAN_ENDED_EVENTS:
             updates.append(
                 {
-                    "key": work_key,
-                    "ebook_availability": {"set": "available"},
-                    "ebook_becomes_available": {"set": None},
+                    "key": edition["key"],
+                    "_root_": edition["root"],
+                    "ebook_availability": {"set": EBOOK_AVAILABLE},
                     "loan_uid": {"set": state["uid"]},
                 }
             )
@@ -183,20 +235,25 @@ def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) ->
 
 
 def build_eviction_updates() -> list[dict]:
-    """Clear availability for works whose loan expiry has already passed.
+    """Clear availability for editions whose loan expiry has already passed.
 
-    Safety net for return/expire events missed during an outage.
+    Safety net for return/expire events missed during an outage. Scoped to
+    currently-unavailable editions so a stale ebook_becomes_available left
+    over from a prior return/expire (see build_solr_updates) can never match
+    an edition that's already available -- it would otherwise be re-matched
+    on every cycle forever, since that timestamp can't be cleared in-place.
     """
+    now_epoch = int(time.time())
     result = get_solr().select(
-        query="ebook_becomes_available:[* TO NOW]",
-        fields=["key"],
+        query=f"type:edition AND ebook_availability:{EBOOK_UNAVAILABLE} AND ebook_becomes_available:[* TO {now_epoch}]",
+        fields=["key", "_root_"],
         rows=10000,
     )
     return [
         {
             "key": doc["key"],
-            "ebook_availability": {"set": "available"},
-            "ebook_becomes_available": {"set": None},
+            "_root_": doc["_root_"],
+            "ebook_availability": {"set": EBOOK_AVAILABLE},
         }
         for doc in result.docs
     ]
@@ -260,13 +317,13 @@ def main(  # noqa: PLR0915
             new_uid = max(r["uid"] for r in rows)
             id_state = process_changes(rows)
             try:
-                id_to_work = resolve_work_keys(list(id_state.keys()))
+                id_to_edition = resolve_edition_keys(list(id_state.keys()))
             except Exception:
-                logger.exception("Failed to resolve work keys; skipping batch")
+                logger.exception("Failed to resolve edition keys; skipping batch")
                 time.sleep(poll_interval)
                 continue
 
-            updates = build_solr_updates(id_state, id_to_work)
+            updates = build_solr_updates(id_state, id_to_edition)
             if updates:
                 logger.info(
                     "%d Solr updates from %d loan events (uid %d→%d)",
@@ -277,7 +334,7 @@ def main(  # noqa: PLR0915
                 )
                 if not dry_run:
                     try:
-                        get_solr().update(updates, commit=False)
+                        solr_update_in_place(updates, commit=False)
                     except Exception:
                         logger.exception("Solr update failed; state not advanced")
                         time.sleep(poll_interval)
@@ -296,7 +353,7 @@ def main(  # noqa: PLR0915
             logger.info("Evicting %d expired loans from Solr", len(evictions))
             if not dry_run:
                 try:
-                    get_solr().update(evictions, commit=False)
+                    solr_update_in_place(evictions, commit=False)
                 except Exception:
                     logger.exception("Solr eviction update failed; evictions skipped this cycle")
                     evictions = []
@@ -304,7 +361,7 @@ def main(  # noqa: PLR0915
 
         if did_updates and not dry_run:
             try:
-                get_solr().update([], commit=True)
+                solr_update_in_place([], commit=True)
             except Exception:
                 logger.exception("Solr commit failed; state not advanced")
                 time.sleep(poll_interval)
