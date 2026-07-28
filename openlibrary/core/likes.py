@@ -1,5 +1,7 @@
 import logging
 
+import web
+
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -30,6 +32,7 @@ class Likes:
                 where="username=$username AND key=$key",
                 vars={"username": username, "key": key},
                 value=value,
+                modified=web.db.SQLLiteral("CURRENT_TIMESTAMP"),
             )
 
     @classmethod
