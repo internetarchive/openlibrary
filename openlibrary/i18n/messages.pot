@@ -8244,8 +8244,8 @@ msgstr ""
 
 #: SubjectAuthors.html
 #, python-format
-msgid "and %(count)d more"
-msgid_plural "and %(count)d more"
+msgid "%(title)s and %(count)d more"
+msgid_plural "%(title)s and %(count)d more"
 msgstr[0] ""
 msgstr[1] ""
 

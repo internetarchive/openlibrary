@@ -277,7 +277,7 @@ class TestComputeNotableAuthorsWithPhotos:
             representative_work=web.storage(key="/works/OL1W", title="Foundation", cover_id=1),
             count=1,
         )
-        mock_thing = self._make_mock_author_thing("/authors/OL1A", "https://covers.openlibrary.org/a/id/1-M.jpg")
+        mock_thing = self._make_mock_author_thing("/authors/OL1A", "https://covers.openlibrary.org/a/id/1-S.jpg")
 
         with (
             patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
@@ -294,10 +294,12 @@ class TestComputeNotableAuthorsWithPhotos:
                 "name": "Isaac Asimov",
                 "representative_work": {"key": "/works/OL1W", "title": "Foundation", "cover_id": 1},
                 "count": 1,
-                "photo_url": "https://covers.openlibrary.org/a/id/1-M.jpg",
+                "photo_url": "https://covers.openlibrary.org/a/id/1-S.jpg",
             }
         ]
         assert isinstance(result[0], dict)
+        # Thumbnail size, not "M" -- these render at 1.75rem.
+        mock_thing.get_photo_url.assert_called_once_with("S")
 
     def test_unknown_subject_type_returns_empty_list(self):
         from openlibrary.plugins.worksearch.subjects import _compute_notable_authors_with_photos
@@ -355,7 +357,7 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert len(authors) == 1
         assert authors[0].name == "Isaac Asimov"
@@ -382,7 +384,7 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert len(authors) == subjects_module.MAX_NOTABLE_AUTHORS
 
@@ -396,7 +398,7 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("obscure_subject", {})
+            authors = await engine.get_notable_authors_async("obscure_subject")
 
         assert authors == []
 
@@ -415,7 +417,7 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert len(authors) == 1
         assert authors[0].name == "Author Three"
@@ -441,7 +443,7 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert len(authors) == subjects_module.MAX_NOTABLE_AUTHORS
 
@@ -464,9 +466,23 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert authors[0].representative_work.cover_id == 123456
+
+    @pytest.mark.asyncio
+    async def test_query_is_labelled_for_solr_monitoring(self):
+        """Defaults to its own ol.label so this query is attributable in Solr load monitoring."""
+        engine = self._make_engine()
+        mock_result = self._make_solr_result([])
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ) as mock_query:
+            await engine.get_notable_authors_async("science_fiction")
+
+        assert mock_query.call_args.kwargs["request_label"] == "SUBJECT_NOTABLE_AUTHORS"
 
     @pytest.mark.asyncio
     async def test_missing_cover_id_is_none(self):
@@ -479,6 +495,6 @@ class TestGetNotableAuthorsAsync:
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction", {})
+            authors = await engine.get_notable_authors_async("science_fiction")
 
         assert authors[0].representative_work.cover_id is None

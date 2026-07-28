@@ -1,14 +1,8 @@
 $def with (authors)
 
-$# Replaces ProlificAuthors (raw author_key facet count)
-$# with signal-ranked "Notable authors". Each author (web.storage,
-$# rehydrated from cache in subjects.decorate_with_notable_authors) is
-$# rendered as a compact card: portrait, name, and a representative work +
-$# count. The whole card links to the author. Every field degrades
-$# gracefully so a sparse / under-configured subject never looks broken:
-$#   - no photo_url            -> CSS avatar placeholder shows through
-$#   - no representative_work  -> falls back to a plain "N books" count line
-$#   - no work cover_id        -> the trailing cover thumbnail is simply omitted
+$# Signal-ranked "Notable authors" cards, built in
+$# subjects.decorate_with_notable_authors. photo_url, representative_work and
+$# cover_id are each optional, so a sparse subject still renders.
 
 $if authors:
   <div id="resultsAuthors" class="widget-box">
@@ -22,13 +16,11 @@ $if authors:
         $ remaining = max(author.get('count', 1) - 1, 0)
         $ cover_id = rep_work.get('cover_id') if rep_work else None
         $if rep_work and remaining > 0:
-          $ blurb = "%s %s" % (rep_work.title, ungettext("and %(count)d more", "and %(count)d more", remaining, count=remaining))
+          $ blurb = ungettext("%(title)s and %(count)d more", "%(title)s and %(count)d more", remaining, title=rep_work.title, count=remaining)
         $elif rep_work:
           $ blurb = rep_work.title
         $else:
-          $# Graceful fallback: no clear representative work found for this
-          $# author within the sampled works -- fall back to the old
-          $# ProlificAuthors-style count line rather than hiding the card.
+          $# No representative work in the sample: fall back to a count line.
           $ blurb = ungettext("%(count)d book", "%(count)d books", author.get('count', 1), count=author.get('count', 1))
         <li class="subjectAuthors-item">
           <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">

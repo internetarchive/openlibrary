@@ -97,6 +97,9 @@
 .subjectAuthors-cover {
   flex: none;
   width: 1.85rem;
+  /* Fixed box reserves space before the lazy image lands, and keeps rows an
+     even height regardless of each cover's own proportions. */
+  aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--border-radius-sm);
   line-height: 0;
@@ -105,5 +108,6 @@
 .subjectAuthors-cover img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
 }

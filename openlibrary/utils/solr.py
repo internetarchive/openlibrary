@@ -33,6 +33,8 @@ SolrRequestLabel = Literal[
     # Subject, publisher pages
     "SUBJECT_ENGINE_PAGE",
     "SUBJECT_ENGINE_API",
+    # Cached "Notable authors" widget on subject pages
+    "SUBJECT_NOTABLE_AUTHORS",
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     "EDITION_MATCH",
