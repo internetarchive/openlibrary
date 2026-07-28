@@ -140,6 +140,12 @@
   --color-control-selected-border: hsla(202, 96%, 37%, 0.35);
   --color-control-selected-border-hover: hsla(202, 96%, 37%, 0.5);
 
+  /* Opaque equivalents of the two tints above, flattened over --white. Feed
+     these to --control-surface, never the tints: color-mix carries their alpha
+     into the specular highlight, which inverts it into a faint dark line. */
+  --color-control-selected-surface: color-mix(in srgb, var(--primary-blue) 8%, var(--white));
+  --color-control-selected-surface-hover: color-mix(in srgb, var(--primary-blue) 12%, var(--white));
+
   /* Chip / tag variants — soft-tint palette (pale background, saturated text
      & border) used to color a chip by the *kind* of thing it represents.
      Consumed via the `variant` attribute on <ol-chip>; see OLChip.js. Each

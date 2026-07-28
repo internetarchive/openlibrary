@@ -232,7 +232,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             :host([variant="button"][checked]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--color-control-selected-bg-hover);
                 --_toggle-border: var(--color-control-selected-border-hover);
-                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-selected-bg-hover));
+                --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-selected-surface-hover));
             }
         }
     `;

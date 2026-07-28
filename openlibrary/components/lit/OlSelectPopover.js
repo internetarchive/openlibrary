@@ -331,7 +331,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
     updated(changedProperties) {
         super.updated?.(changedProperties);
-        if (changedProperties.has('label') || changedProperties.has('selected')) {
+        // `items` too: at one selection the trigger shows that item's own label,
+        // so a late-arriving catalogue has to re-label it. Mirrors OlOptionsPopover.
+        if (changedProperties.has('label') || changedProperties.has('selected') || changedProperties.has('items')) {
             this._updateDefaultTriggerLabel();
         }
         // Ensure bare `el.selected = [...]` is also correctly reflected.

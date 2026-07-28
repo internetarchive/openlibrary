@@ -159,7 +159,8 @@ ol-button[selected] > button {
   background-color: var(--color-control-selected-bg);
   border-color: var(--color-control-selected-border);
   color: var(--link-blue);
-  --control-surface: var(--color-control-selected-bg);
+  /* Opaque twin of the tint — a translucent surface washes out the highlight. */
+  --control-surface: var(--color-control-selected-surface);
 }
 
 /* Hover (only fires post-hydration because pointer-events is none on
@@ -182,7 +183,7 @@ ol-button[selected] > button {
   ol-button[selected] > button:hover {
     background-color: var(--color-control-selected-bg-hover);
     border-color: var(--color-control-selected-border-hover);
-    --control-surface: var(--color-control-selected-bg-hover);
+    --control-surface: var(--color-control-selected-surface-hover);
   }
 
   /* The two solid, saturated fills lighten on hover — the mirror image of the

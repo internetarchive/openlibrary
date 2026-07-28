@@ -1,4 +1,4 @@
-import { LitElement, html } from 'lit';
+import { LitElement, html, nothing } from 'lit';
 
 /**
  * OLButton - A pure-presentation button primitive.
@@ -16,6 +16,10 @@ import { LitElement, html } from 'lit';
  * `aria-expanded` on it. CSS keys off those attributes to show a chevron
  * that rotates 180° while expanded — automatically, with no consumer markup.
  * Suppress it with the `no-chevron` attribute.
+ *
+ * ARIA forwarding: `aria-label` / `aria-haspopup` / `aria-expanded` set on the
+ * host are mirrored onto the inner `<button>` — on the roleless host they never
+ * reach AT. The host keeps them too; the chevron CSS selectors key off it.
  *
  * @element ol-button
  *
@@ -46,6 +50,12 @@ export class OLButton extends LitElement {
         loading: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
+        // Observed so host changes re-render the mirror; prefixed to avoid
+        // shadowing the platform's ARIAMixin accessors. aria-controls is omitted
+        // — its target id lives in ol-popover's shadow root, so it can't resolve.
+        a11yLabel: { type: String, attribute: 'aria-label' },
+        a11yHasPopup: { type: String, attribute: 'aria-haspopup' },
+        a11yExpanded: { type: String, attribute: 'aria-expanded' },
     };
 
     // Render into the light DOM so global stylesheets apply — no shadow DOM,
@@ -104,6 +114,9 @@ export class OLButton extends LitElement {
                 type=${this.type}
                 ?disabled=${this.loading || this.disabled}
                 aria-busy=${this.loading ? 'true' : 'false'}
+                aria-label=${this.a11yLabel ?? nothing}
+                aria-haspopup=${this.a11yHasPopup ?? nothing}
+                aria-expanded=${this.a11yExpanded ?? nothing}
             >${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span><span class="ol-btn-chevron" aria-hidden="true"></span></button>
         `;
     }

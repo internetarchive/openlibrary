@@ -762,11 +762,15 @@ export class SearchModal extends LitElement {
             background-color: var(--color-control-selected-bg);
             border-color: var(--color-control-selected-border);
             color: var(--link-blue);
-            --control-surface: var(--color-control-selected-bg);
+            /* Opaque twin of the tint — a translucent surface washes out the highlight. */
+            --control-surface: var(--color-control-selected-surface);
         }
 
         @media (hover: hover) and (pointer: fine) {
-            ol-button > button:hover {
+            /* Scoping is load-bearing (and matches ol-button.css): unscoped, this
+               ties the primary fill rule on specificity and wins on source order,
+               blanking its blue on hover while the text stays white. */
+            ol-button[variant="secondary"] > button:hover {
                 background-color: var(--lightest-grey);
                 border-color: var(--light-grey);
                 --control-surface: var(--lightest-grey);
@@ -779,7 +783,7 @@ export class SearchModal extends LitElement {
             ol-button[selected] > button:hover {
                 background-color: var(--color-control-selected-bg-hover);
                 border-color: var(--color-control-selected-border-hover);
-                --control-surface: var(--color-control-selected-bg-hover);
+                --control-surface: var(--color-control-selected-surface-hover);
             }
         }
 
