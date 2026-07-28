@@ -5,7 +5,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 import web
 
-from openlibrary.plugins.worksearch.subjects import SubjectEngine
+from openlibrary.plugins.worksearch.subjects import (
+    MAX_NOTABLE_AUTHORS,
+    SubjectEngine,
+    merge_notable_authors,
+    normalize_author_name,
+)
 from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
 
 
@@ -423,29 +428,45 @@ class TestGetNotableAuthorsAsync:
         assert authors[0].name == "Author Three"
 
     @pytest.mark.asyncio
-    async def test_multi_author_work_does_not_overshoot_cap(self):
-        """A single co-authored work that would push past MAX_NOTABLE_AUTHORS mid-doc must stop exactly at the cap."""
-        from openlibrary.plugins.worksearch import subjects as subjects_module
-
+    async def test_only_the_first_author_of_a_work_is_used(self):
+        """author_key carries no role, so trailing entries (illustrators, narrators) are skipped."""
         engine = self._make_engine()
-        docs = [{"key": f"/works/OL{i}W", "title": f"Book {i}", "author_key": [f"OL{i}A"], "author_name": [f"Author {i}"]} for i in range(6)]
-        docs.append(
+        docs = [
             {
-                "key": "/works/OL_COAUTHORED_W",
-                "title": "Co-authored Anthology",
-                "author_key": ["OL100A", "OL101A", "OL102A", "OL103A"],
-                "author_name": ["Co Author A", "Co Author B", "Co Author C", "Co Author D"],
+                "key": "/works/OL1W",
+                "title": "The Boy Who Harnessed the Wind",
+                "author_key": ["OL1A", "OL2A", "OL3A"],
+                "author_name": ["William Kamkwamba", "Bryan Mealer", "Anna Hymas"],
             }
-        )
+        ]
         mock_result = self._make_solr_result(docs)
 
         with patch(
             "openlibrary.plugins.worksearch.code.run_solr_query_async",
             return_value=mock_result,
         ):
-            authors = await engine.get_notable_authors_async("science_fiction")
+            authors = await engine.get_notable_authors_async("irrigation")
 
-        assert len(authors) == subjects_module.MAX_NOTABLE_AUTHORS
+        assert [a.name for a in authors] == ["William Kamkwamba"]
+
+    @pytest.mark.asyncio
+    async def test_samples_each_signal_concurrently(self):
+        """One query per signal in NOTABLE_AUTHORS_SORTS, each with the candidate filter."""
+        from openlibrary.plugins.worksearch import subjects as subjects_module
+
+        engine = self._make_engine()
+        mock_result = self._make_solr_result([])
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ) as mock_query:
+            await engine.get_notable_authors_async("science_fiction")
+
+        sorts = [c.kwargs["sort"] for c in mock_query.call_args_list]
+        assert sorts == list(subjects_module.NOTABLE_AUTHORS_SORTS)
+        for call in mock_query.call_args_list:
+            assert call.kwargs["extra_params"] == [("fq", subjects_module.NOTABLE_AUTHORS_CANDIDATE_FILTER)]
 
     @pytest.mark.asyncio
     async def test_cover_id_included_in_representative_work(self):
@@ -498,3 +519,90 @@ class TestGetNotableAuthorsAsync:
             authors = await engine.get_notable_authors_async("science_fiction")
 
         assert authors[0].representative_work.cover_id is None
+
+
+class TestMergeNotableAuthors:
+    """Tests for subjects.merge_notable_authors, which blends the per-signal samples."""
+
+    def _doc(self, n, keys=None, names=None, title=None):
+        return {
+            "key": f"/works/OL{n}W",
+            "title": title or f"Book {n}",
+            "author_key": keys or [f"OL{n}A"],
+            "author_name": names or [f"Author {n}"],
+        }
+
+    def test_interleaves_samples_by_rank(self):
+        """Rank 0 of every sample comes before rank 1, so a thin signal still gets represented."""
+        osp = [self._doc(1, ["OL1A"], ["Peskin"]), self._doc(2, ["OL2A"], ["Weinberg"])]
+        readinglog = [self._doc(3, ["OL3A"], ["Carroll"]), self._doc(4, ["OL4A"], ["McTaggart"])]
+
+        authors = merge_notable_authors([osp, readinglog])
+
+        assert [a.name for a in authors] == ["Peskin", "Carroll", "Weinberg", "McTaggart"]
+
+    def test_dedupes_the_same_author_across_samples(self):
+        """An author present in both samples appears once, keeping their highest-ranked work."""
+        osp = [self._doc(1, ["OL1A"], ["Peskin"], title="Intro to QFT")]
+        readinglog = [self._doc(2, ["OL1A"], ["Peskin"], title="Some Other Book")]
+
+        authors = merge_notable_authors([osp, readinglog])
+
+        assert len(authors) == 1
+        assert authors[0].representative_work.title == "Intro to QFT"
+
+    def test_dedupes_duplicate_author_records_by_name(self):
+        """Distinct OLIDs for one person ("Mctaggart" vs "McTaggart") render as one card."""
+        docs = [
+            self._doc(1, ["OL1A"], ["Lynne McTaggart"]),
+            self._doc(2, ["OL2A"], ["Lynne Mctaggart"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Lynne McTaggart"]
+
+    def test_skips_authors_with_blank_names(self):
+        """The solr updater defaults a missing name to "", which would render a nameless card."""
+        docs = [self._doc(1, ["OL1A"], [""]), self._doc(2, ["OL2A"], ["Real Author"])]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Real Author"]
+
+    def test_skips_docs_with_no_authors(self):
+        docs = [
+            {"key": "/works/OL1W", "title": "Untitled Government Resolution"},
+            self._doc(2, ["OL2A"], ["Real Author"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Real Author"]
+
+    def test_stops_at_max_notable_authors(self):
+        docs = [self._doc(i) for i in range(MAX_NOTABLE_AUTHORS + 5)]
+
+        authors = merge_notable_authors([docs])
+
+        assert len(authors) == MAX_NOTABLE_AUTHORS
+
+    def test_handles_one_empty_sample(self):
+        """A subject with no osp data at all still produces a list from the other signal."""
+        readinglog = [self._doc(1, ["OL1A"], ["Only Signal"])]
+
+        authors = merge_notable_authors([[], readinglog])
+
+        assert [a.name for a in authors] == ["Only Signal"]
+
+    def test_all_samples_empty_returns_empty_list(self):
+        assert merge_notable_authors([[], []]) == []
+
+
+class TestNormalizeAuthorName:
+    def test_collapses_case_and_punctuation(self):
+        assert normalize_author_name("Lynne McTaggart") == normalize_author_name("lynne mctaggart")
+        assert normalize_author_name("A. M. Michael") == normalize_author_name("A M Michael")
+
+    def test_distinct_names_stay_distinct(self):
+        assert normalize_author_name("Isaac Asimov") != normalize_author_name("Ray Bradbury")

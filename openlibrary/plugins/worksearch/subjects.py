@@ -1,5 +1,8 @@
 """Subject pages."""
 
+import asyncio
+import itertools
+import re
 from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, cast
@@ -23,11 +26,23 @@ __all__ = ["SubjectEngine", "get_subject"]
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
-# Works sampled to build "Notable authors", keeping it to one extra Solr query.
-# 8 unique authors almost always appear within the first ~20-30 readinglog-sorted
-# rows, so 40 is ample.
+# Works sampled per signal to build "Notable authors". 8 unique authors almost
+# always appear well within the first 40 rows of a signal-sorted list.
 NOTABLE_AUTHORS_SAMPLE_SIZE = 40
 MAX_NOTABLE_AUTHORS = 8
+# Two complementary signals, interleaved: reading-log activity surfaces a
+# subject's contemporary authors, syllabus assignments its canonical ones.
+# Neither alone is enough -- reading-log data is very thin outside fiction
+# (~2-3% of works on a long-tail subject), and osp skews to course-assigned
+# classics. Both are indexed fields, so these stay cheap docValues sorts.
+#
+# Order matters: the first sort owns the most visible slot. osp first put
+# Joseph Conrad atop both mystery and romance (a few heavily-assigned works
+# carry incidental subject tags), so reading-log leads and osp enriches.
+NOTABLE_AUTHORS_SORTS = ("readinglog", "osp_count desc")
+# Works with no signal at all can't be ranked, only tie-broken arbitrarily.
+# Excluding them shrinks the scanned corpus 3-84x depending on the subject.
+NOTABLE_AUTHORS_CANDIDATE_FILTER = "osp_count:[1 TO *] OR readinglog_count:[5 TO *] OR edition_count:[5 TO *]"
 # Long TTL is safe: memcache_memoize is stale-while-revalidate, so a refresh
 # never blocks a request.
 NOTABLE_AUTHORS_CACHE_TIMEOUT = 12 * 60 * 60  # 12h
@@ -135,6 +150,69 @@ class subjects(delegate.page):
             )
             notable_authors.append(author)
         subject.notable_authors = notable_authors
+
+
+def normalize_author_name(name: str) -> str:
+    """
+    Collapses case and punctuation, so duplicate author records for one person
+    ("Lynne McTaggart" / "Lynne Mctaggart") don't render as two cards.
+    """
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
+    """
+    Interleaves per-signal work samples by rank, so every signal is represented
+    even when one of them is thin, and takes each author's first (highest-ranked)
+    work as their representative work.
+
+    Only a work's *first* author is considered. Solr's author_key carries no
+    role, so later entries are as often illustrators, translators or audiobook
+    narrators as they are genuine co-authors.
+    """
+    authors: dict[str, web.storage] = {}
+    seen_names: set[str] = set()
+
+    # zip_longest walks rank 0 of every sample, then rank 1, and so on.
+    for docs in itertools.zip_longest(*samples):
+        for doc in docs:
+            if not doc:
+                continue
+            # Nothing to link to or display, so it can't be a representative work.
+            if not doc.get("key") or not doc.get("title"):
+                continue
+
+            author_keys = doc.get("author_key") or []
+            author_names = doc.get("author_name") or []
+            if not author_keys or not author_names:
+                continue
+
+            olid, name = author_keys[0], author_names[0]
+            # The solr updater defaults a missing author name to "" (see
+            # solr/updater/work.py), which would render a nameless card.
+            if not (name or "").strip() or olid in authors:
+                continue
+
+            normalized = normalize_author_name(name)
+            if normalized and normalized in seen_names:
+                continue
+
+            authors[olid] = web.storage(
+                key=f"/authors/{olid}",
+                name=name,
+                representative_work=web.storage(
+                    key=doc["key"],
+                    title=doc["title"],
+                    cover_id=doc.get("cover_i"),
+                ),
+                count=1,
+            )
+            if normalized:
+                seen_names.add(normalized)
+            if len(authors) >= MAX_NOTABLE_AUTHORS:
+                return list(authors.values())
+
+    return list(authors.values())
 
 
 def _compute_notable_authors_with_photos(subject_type: str, path: str) -> list[dict]:
@@ -439,12 +517,12 @@ class SubjectEngine:
         """
         Builds a signal-ranked "Notable authors" list for a subject.
 
-        Walks a bounded, popularity-sorted sample of works once, taking each
-        author's first (highest-signal) work as their representative work.
-        Deliberately unfiltered and always readinglog-sorted, so one cached
-        list serves the page regardless of the reader's filters or sort.
-        `count` is a placeholder here; decorate_with_notable_authors backfills
-        exact counts from the author_key facet the main query already computes.
+        Samples works once per signal in NOTABLE_AUTHORS_SORTS (concurrently),
+        then interleaves the samples -- see merge_notable_authors. Deliberately
+        ignores the reader's filters and sort, so one cached list serves every
+        variant of the page. `count` is a placeholder here;
+        decorate_with_notable_authors backfills exact counts from the
+        author_key facet the main query already computes.
         """
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import (
@@ -452,45 +530,25 @@ class SubjectEngine:
             run_solr_query_async,
         )
 
-        result = await run_solr_query_async(
-            WorkSearchScheme(),
-            {"q": query_dict_to_str({self.facet_key: self.normalize_key(path)}, phrase=True)},
-            request_label=request_label,
-            rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
-            # Same popularity signal that drives the page's default ordering.
-            sort="readinglog",
-            facet=False,
-            fields=["key", "title", "author_key", "author_name", "cover_i"],
-        )
+        query = {"q": query_dict_to_str({self.facet_key: self.normalize_key(path)}, phrase=True)}
 
-        notable_authors: dict[str, web.storage] = {}
-        for doc in result.docs:
-            # Nothing to link to or display, so it can't be a representative work.
-            if not doc.get("key") or not doc.get("title"):
-                continue
+        async def sample(sort: str) -> list[dict]:
+            result = await run_solr_query_async(
+                WorkSearchScheme(),
+                query,
+                request_label=request_label,
+                rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
+                sort=sort,
+                facet=False,
+                fields=["key", "title", "author_key", "author_name", "cover_i"],
+                # fq rather than part of q: it's identical for every subject, so
+                # Solr's filterCache entry is shared across all of them.
+                extra_params=[("fq", NOTABLE_AUTHORS_CANDIDATE_FILTER)],
+            )
+            return result.docs
 
-            author_keys = doc.get("author_key") or []
-            author_names = doc.get("author_name") or []
-            for olid, name in zip(author_keys, author_names):
-                if olid not in notable_authors:
-                    notable_authors[olid] = web.storage(
-                        key=f"/authors/{olid}",
-                        name=name,
-                        representative_work=web.storage(
-                            key=doc["key"],
-                            title=doc["title"],
-                            cover_id=doc.get("cover_i"),
-                        ),
-                        count=1,
-                    )
-                    # Per-author, not just per-doc: one co-authored work could
-                    # otherwise push us several past the cap.
-                    if len(notable_authors) >= MAX_NOTABLE_AUTHORS:
-                        break
-            if len(notable_authors) >= MAX_NOTABLE_AUTHORS:
-                break
-
-        return list(notable_authors.values())
+        samples = await asyncio.gather(*(sample(sort) for sort in NOTABLE_AUTHORS_SORTS))
+        return merge_notable_authors(samples)
 
     def normalize_key(self, key):
         return Tag.normalize(key)
