@@ -14,15 +14,7 @@ $if authors:
       $for author in authors:
         $ olid = author.key.split('/')[-1]
         $ rep_work = author.get('representative_work')
-        $ remaining = max(author.get('count', 1) - 1, 0)
         $ cover_id = rep_work.get('cover_id') if rep_work else None
-        $if rep_work and remaining > 0:
-          $ blurb = ungettext("%(title)s and %(count)d more", "%(title)s and %(count)d more", remaining, title=rep_work.title, count=remaining)
-        $elif rep_work:
-          $ blurb = rep_work.title
-        $else:
-          $# No representative work in the sample: fall back to a count line.
-          $ blurb = ungettext("%(count)d book", "%(count)d books", author.get('count', 1), count=author.get('count', 1))
         <li class="subjectAuthors-item">
           <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
             <span class="subjectAuthors-avatar">
@@ -30,7 +22,8 @@ $if authors:
             </span>
             <span class="subjectAuthors-text">
               <span class="subjectAuthors-name">$author.name</span>
-              <span class="subjectAuthors-blurb">$blurb</span>
+              $if rep_work:
+                <span class="subjectAuthors-blurb">$rep_work.title</span>
             </span>
             $if cover_id:
               <span class="subjectAuthors-cover">

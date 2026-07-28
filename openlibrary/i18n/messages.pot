@@ -1441,9 +1441,9 @@ msgid ""
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: SubjectAuthors.html account/loans.html authors/index.html
-#: lists/list_follow.html lists/showcase.html publishers/view.html
-#: search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html lists/list_follow.html
+#: lists/showcase.html publishers/view.html search/authors.html
+#: search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -8241,13 +8241,6 @@ msgstr ""
 #: SubjectAuthors.html
 msgid "Notable Authors"
 msgstr ""
-
-#: SubjectAuthors.html
-#, python-format
-msgid "%(title)s and %(count)d more"
-msgid_plural "%(title)s and %(count)d more"
-msgstr[0] ""
-msgstr[1] ""
 
 #: SubjectAuthors.html
 #, python-format

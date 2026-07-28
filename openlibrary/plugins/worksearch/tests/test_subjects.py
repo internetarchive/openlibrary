@@ -7,7 +7,6 @@ import web
 
 from openlibrary.plugins.worksearch.subjects import (
     MAX_NOTABLE_AUTHORS,
-    NOTABLE_AUTHORS_SORTS,
     SubjectEngine,
     merge_notable_authors,
     normalize_author_name,
@@ -157,7 +156,6 @@ class TestDecorateWithNotableAuthors:
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
                 "representative_work": {"key": "/works/OL1W", "title": "Foundation", "cover_id": 12345},
-                "count": 7,
             }
         ]
 
@@ -173,7 +171,6 @@ class TestDecorateWithNotableAuthors:
         author = subject.notable_authors[0]
         assert isinstance(author, web.storage)
         assert author.name == "Isaac Asimov"
-        assert author.count == 7
         assert isinstance(author.representative_work, web.storage)
         assert author.representative_work.title == "Foundation"
         assert author.representative_work.cover_id == 12345
@@ -199,7 +196,7 @@ class TestDecorateWithNotableAuthors:
         handler = self._make_handler()
         engine = self._make_engine()
         subject = web.storage(key="/subjects/x", subject_type="subject", authors=[])
-        cached = [{"key": "/authors/OL2A", "name": "Jane Doe", "representative_work": None, "count": 3}]
+        cached = [{"key": "/authors/OL2A", "name": "Jane Doe", "representative_work": None}]
 
         with (
             patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
@@ -258,7 +255,6 @@ class TestComputeNotableAuthors:
             key="/authors/OL1A",
             name="Isaac Asimov",
             representative_work=web.storage(key="/works/OL1W", title="Foundation", cover_id=1),
-            count=12,
         )
 
         with (
@@ -274,7 +270,6 @@ class TestComputeNotableAuthors:
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
                 "representative_work": {"key": "/works/OL1W", "title": "Foundation", "cover_id": 1},
-                "count": 12,
             }
         ]
         assert isinstance(result[0], dict)
@@ -315,11 +310,9 @@ class TestGetNotableAuthorsAsync:
             facet_key="subject_facet",
         )
 
-    def _make_solr_result(self, docs, facet_queries=None):
+    def _make_solr_result(self, docs):
         result = MagicMock()
         result.docs = docs
-        # get_author_work_counts_async reads counts off the raw response.
-        result.raw_resp = {"facet_counts": {"facet_queries": facet_queries or {}}}
         return result
 
     @pytest.mark.asyncio
@@ -437,62 +430,10 @@ class TestGetNotableAuthorsAsync:
         ) as mock_query:
             await engine.get_notable_authors_async("science_fiction")
 
-        sample_calls = [c for c in mock_query.call_args_list if c.kwargs.get("sort")]
-        assert [c.kwargs["sort"] for c in sample_calls] == list(subjects_module.NOTABLE_AUTHORS_SORTS)
-        for call in sample_calls:
+        calls = mock_query.call_args_list
+        assert [c.kwargs["sort"] for c in calls] == list(subjects_module.NOTABLE_AUTHORS_SORTS)
+        for call in calls:
             assert call.kwargs["extra_params"] == [("fq", subjects_module.NOTABLE_AUTHORS_CANDIDATE_FILTER)]
-
-    @pytest.mark.asyncio
-    async def test_counts_come_from_a_facet_query_per_author(self):
-        """The page's author facet only keeps the 25 most prolific, so counts get their own query."""
-        engine = self._make_engine()
-        docs = [
-            {"key": "/works/OL1W", "title": "Foundation", "author_key": ["OL1A"], "author_name": ["Isaac Asimov"]},
-            {"key": "/works/OL2W", "title": "Dune", "author_key": ["OL2A"], "author_name": ["Frank Herbert"]},
-        ]
-        mock_result = self._make_solr_result(docs, facet_queries={'author_key:"OL1A"': 12, 'author_key:"OL2A"': 3})
-
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query_async",
-            return_value=mock_result,
-        ) as mock_query:
-            authors = await engine.get_notable_authors_async("science_fiction")
-
-        assert [(a.name, a.count) for a in authors] == [("Isaac Asimov", 12), ("Frank Herbert", 3)]
-        count_call = mock_query.call_args_list[-1]
-        assert count_call.kwargs["rows"] == 0
-        assert count_call.kwargs["extra_params"] == [
-            ("facet", "true"),
-            ("facet.query", 'author_key:"OL1A"'),
-            ("facet.query", 'author_key:"OL2A"'),
-        ]
-
-    @pytest.mark.asyncio
-    async def test_author_missing_from_count_response_falls_back_to_one(self):
-        engine = self._make_engine()
-        docs = [{"key": "/works/OL1W", "title": "Foundation", "author_key": ["OL1A"], "author_name": ["Isaac Asimov"]}]
-        mock_result = self._make_solr_result(docs, facet_queries={})
-
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query_async",
-            return_value=mock_result,
-        ):
-            authors = await engine.get_notable_authors_async("science_fiction")
-
-        assert authors[0].count == 1
-
-    @pytest.mark.asyncio
-    async def test_no_count_query_when_there_are_no_authors(self):
-        engine = self._make_engine()
-        mock_result = self._make_solr_result([])
-
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query_async",
-            return_value=mock_result,
-        ) as mock_query:
-            await engine.get_notable_authors_async("obscure_subject")
-
-        assert mock_query.call_count == len(NOTABLE_AUTHORS_SORTS)
 
     @pytest.mark.asyncio
     async def test_cover_id_included_in_representative_work(self):

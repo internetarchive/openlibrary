@@ -129,7 +129,6 @@ class subjects(delegate.page):
             web.storage(
                 key=raw["key"],
                 name=raw["name"],
-                count=raw.get("count", 1),
                 representative_work=(
                     web.storage(
                         key=rep_work["key"],
@@ -196,7 +195,6 @@ def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
                     title=doc["title"],
                     cover_id=doc.get("cover_i"),
                 ),
-                count=1,
             )
             if normalized:
                 seen_names.add(normalized)
@@ -463,8 +461,7 @@ class SubjectEngine:
             # Phase 1 (epic #13135): "Notable authors" is computed and
             # cached separately -- see get_cached_notable_authors and
             # subjects.decorate_with_notable_authors -- rather than fetched
-            # unconditionally here on every request. It still uses
-            # subject.authors (the facet above) for exact per-author counts.
+            # unconditionally here on every request.
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
@@ -526,44 +523,7 @@ class SubjectEngine:
             return result.docs
 
         samples = await asyncio.gather(*(sample(sort) for sort in NOTABLE_AUTHORS_SORTS))
-        authors = merge_notable_authors(samples)
-        if authors:
-            counts = await self.get_author_work_counts_async(query, [a.key for a in authors], request_label)
-            for author in authors:
-                author.count = counts.get(author.key, 1)
-        return authors
-
-    @staticmethod
-    async def get_author_work_counts_async(
-        query: dict,
-        author_keys: list[str],
-        request_label: SolrRequestLabel = "SUBJECT_NOTABLE_AUTHORS",
-    ) -> dict[str, int]:
-        """
-        Counts each author's works on this subject: one facet.query per author.
-
-        The page query's author facet can't supply these -- it keeps only the 25
-        most prolific authors, and signal-ranked authors are rarely among them
-        (0-1 of 8 on production subjects).
-        """
-        # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import (
-            WorkSearchScheme,
-            run_solr_query_async,
-        )
-
-        facet_queries = {f'author_key:"{key.removeprefix("/authors/")}"': key for key in author_keys}
-        result = await run_solr_query_async(
-            WorkSearchScheme(),
-            query,
-            request_label=request_label,
-            rows=0,
-            facet=False,
-            fields=["key"],
-            extra_params=[("facet", "true"), *(("facet.query", fq) for fq in facet_queries)],
-        )
-        counts = (result.raw_resp or {}).get("facet_counts", {}).get("facet_queries", {})
-        return {facet_queries[fq]: count for fq, count in counts.items() if fq in facet_queries}
+        return merge_notable_authors(samples)
 
     def normalize_key(self, key):
         return Tag.normalize(key)
