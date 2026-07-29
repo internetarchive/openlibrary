@@ -134,6 +134,7 @@ div.siteSearch.darker {
 .search-page .searchbox {
   height: 47px;
   border-radius: 6px;
+  padding-left: var(--spacing-inset-md);
 }
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
