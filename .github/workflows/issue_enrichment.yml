@@ -35,7 +35,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Enrich issue
-        uses: anthropics/claude-code-action@v1
+        # Pinned deliberately -- do not restore the floating `@v1`.
+        #
+        # This SHA is the last version confirmed to actually post enrichment output:
+        # "chore: bump Claude Code to 2.1.212 and Agent SDK to 0.3.212" (2026-07-17).
+        # `@v1` moved to SDK 0.3.214 on 2026-07-18, and from that run onward every
+        # invocation has reported success while posting nothing at all. See PR body
+        # for the run-by-run evidence.
+        #
+        # Pinning to an immutable SHA is also the practice GitHub recommends for
+        # third-party actions, so this is worth keeping even after the upstream
+        # regression is understood. Bump it intentionally, and verify a real issue
+        # gets a comment afterwards.
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
         with:
           prompt: |
             @.github/workflows/issue_enrichment.md

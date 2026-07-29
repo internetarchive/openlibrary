@@ -36,7 +36,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: First-touch PR response
-        uses: anthropics/claude-code-action@v1
+        # Pinned deliberately -- do not restore the floating `@v1`. Same upstream
+        # regression as issue_enrichment.yml: this SHA is
+        # "chore: bump Claude Code to 2.1.212 and Agent SDK to 0.3.212" (2026-07-17),
+        # the last version confirmed to post output. `@v1` moved to SDK 0.3.214 on
+        # 2026-07-18 and every run since has reported success while posting nothing,
+        # including on same-repo PRs (#13212, #13209, #13200). See PR body.
+        #
+        # Note this is a separate bug from the fork-token failure tracked in #13214 --
+        # that one makes fork PRs fail loudly, this one makes every PR silently no-op.
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
         with:
           prompt: |
             @.github/workflows/pr_autoresponder.md
