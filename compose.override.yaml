@@ -26,6 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-schema:
+        condition: service_completed_successfully
       infobase:
         condition: service_started
       mockservices:
@@ -108,6 +110,30 @@ services:
       timeout: 1s
       retries: 24
 
+  # Idempotently (re-)applies openlibrary/core/schema.sql on every `docker
+  # compose up`, not just fresh volumes. `ol-db-init.sh` only runs once, via
+  # Postgres's own docker-entrypoint-initdb.d convention, which is skipped
+  # entirely once the data directory already exists -- so a long-running dev
+  # DB volume never picks up new tables/indexes added to schema.sql without
+  # this. Safe to re-run: every statement in schema.sql is IF-NOT-EXISTS or
+  # guarded with a WHERE NOT EXISTS check.
+  db-schema:
+    image: postgres:${POSTGRES_VERSION:-18.3}
+    networks:
+      - dbnet
+    environment:
+      - PGHOST=db
+      - PGUSER=openlibrary
+      - PGDATABASE=openlibrary
+    volumes:
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    working_dir: /openlibrary
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "openlibrary/core/schema.sql"]
+    restart: "no"
+
   covers:
     build:
       context: .
@@ -135,6 +161,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-schema:
+        condition: service_completed_successfully
 
   home:
     image: "${OLIMAGE:-oldev:latest}"
@@ -164,6 +192,8 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+      db-schema:
+        condition: service_completed_successfully
 
   mockservices:
     build:
