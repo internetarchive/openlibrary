@@ -171,7 +171,10 @@ def query_solr_uid() -> int:
     """Return the highest loan_uid written to Solr, or 0 if none."""
     try:
         result = get_solr().select(
-            query="loan_uid:[* TO *]",
+            # Constrain by the indexed `type:edition` predicate to seed the candidate
+            # set; without it, `loan_uid:[* TO *]` (indexed=false, docValues only) is
+            # an unbounded full-collection docValues scan.
+            query="type:edition AND loan_uid:[* TO *]",
             fields=["loan_uid"],
             rows=1,
             sort="loan_uid desc",

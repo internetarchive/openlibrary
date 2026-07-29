@@ -6,7 +6,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parent
 TYPES_PATH = root / "solr_types.py"
 OVERRIDES = {
-    "type": "Literal['work', 'author', 'subject']",
+    "type": "Literal['work', 'author', 'subject', 'edition']",
     "public_scan_b": "Optional[bool]",
     "printdisabled_s": "Optional[str]",
     "lending_edition_s": "Optional[str]",
