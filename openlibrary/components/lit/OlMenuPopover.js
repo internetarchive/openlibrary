@@ -6,53 +6,32 @@ import './OlPopover.js';
 let _idCounter = 0;
 
 /**
- * A trigger button paired with a popover menu of mutually-exclusive choices —
- * the sort-menu shape used by YouTube, Reddit, and friends. Items render as a
- * plain list; the current one is highlighted rather than marked with a control.
+ * A trigger paired with a popover menu of mutually-exclusive choices, e.g. a
+ * sort menu. Items render as a plain list with the current one highlighted.
+ * Composes `<ol-popover>` for the shell.
  *
- * Composes `<ol-popover>` for animation, focus trap, mobile tray, and
- * Escape/outside-click dismissal.
- *
- * Choosing `<ol-options-popover>` vs this:
- *
- *   ol-options-popover is a *form control* — a radiogroup that holds a value,
- *   participates in forms, shows its radios, and moves its selection as you
- *   arrow (selection follows focus). Use it for filters that sit in a form or
- *   whose value is read later.
- *
- *   ol-menu-popover is an *action menu* — arrows move focus only, and
- *   activating an item does something and closes. Nothing is committed until
- *   the user presses Enter or clicks, so it's the right control when acting on
- *   a choice navigates, mutates, or otherwise can't be undone by arrowing back.
- *   It is deliberately not form-associated.
- *
- * Keyboard follows the WAI-ARIA menu pattern: Arrow/Home/End move focus between
- * items without selecting; Enter/Space/click activate the focused item and
- * close. A roving tabindex keeps the menu a single tab stop.
+ * Unlike `<ol-options-popover>` — a form-associated radiogroup whose selection
+ * follows focus — this is an action menu: arrows move focus only, and nothing
+ * is committed until Enter/click. That's what makes it safe to wire to
+ * navigation. WAI-ARIA menu pattern, roving tabindex, one tab stop.
  *
  * @element ol-menu-popover
  *
- * @prop {Array}  items   - `{ value, label, nested? }` objects. Settable as a
- *     JSON attribute or a property. `nested: true` indents the item to show
- *     it's a subset of the item above it.
+ * @prop {Array}  items   - `{ value, label, nested? }` objects, as a JSON
+ *     attribute or a property. `nested` indents the item under the one above.
  * @prop {String} value   - The active item's `value`. Reflects to attribute.
- * @prop {String} label   - Names the menu for assistive tech, and supplies the
- *     default panel heading and trigger text.
- * @prop {String} heading - Visible heading above the items (default:
- *     uppercased `label`). Pass an empty string to omit it.
+ * @prop {String} label   - Names the menu, and supplies the default panel
+ *     heading and trigger text.
+ * @prop {String} heading - Visible heading (default: uppercased `label`).
+ *     Empty string omits it.
  *
- * @attr aria-label - Accessible name for the popover dialog. Falls back to
- *     `label` if unset.
+ * @attr aria-label - Accessible name for the dialog. Falls back to `label`.
  *
- * @fires ol-menu-popover-select - Fires when the user activates an item, just
- *     before the popover closes. Fires even when the activated item was already
- *     the current one — activating is an explicit act, so consumers that want
- *     to skip that case should compare against their own state.
- *     detail: { value: String }
+ * @fires ol-menu-popover-select - User activated an item, just before close.
+ *     Fires even when that item was already current. detail: { value: String }
  *
- * @slot trigger - Optional custom trigger element. When omitted, an
- *     `<ol-button>` is injected showing the active item's label (see
- *     _createDefaultTrigger); its disclosure chevron comes from ol-button.
+ * @slot trigger - Custom trigger. When omitted an `<ol-button>` is injected
+ *     showing the active item's label.
  *
  * @example
  *   <ol-menu-popover
@@ -61,8 +40,8 @@ let _idCounter = 0;
  *       items='[{"value":"relevance","label":"Relevance"},{"value":"new","label":"Most Recent"}]'
  *   ></ol-menu-popover>
  */
-// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger, not an
-// element in this shadow root. See the mixin's "NOT for" note.
+// NOT a FocusableHostMixin host: the focusable is the light-DOM trigger. See
+// the mixin's "NOT for" note.
 export class OlMenuPopover extends LitElement {
     static properties = {
         items: { type: Array },
@@ -78,11 +57,8 @@ export class OlMenuPopover extends LitElement {
             font-family: var(--font-family-body);
         }
 
-        /* The default trigger is a light-DOM <ol-button> (see
-           _createDefaultTrigger), painted by the global ol-button.css — there
-           are no trigger styles here. That keeps this trigger on the shared
-           control-height tokens and gives it ol-button's disclosure chevron, so
-           it lines up with the other popover triggers beside it. */
+        /* No trigger styles here: the default trigger is a light-DOM
+           <ol-button>, painted by the global ol-button.css. */
 
         .panel {
             display: flex;
@@ -109,9 +85,8 @@ export class OlMenuPopover extends LitElement {
             text-transform: uppercase;
         }
 
-        /* Items are real <button>s so Enter/Space activate them natively — the
-           keydown handler below only has to move focus. Reset the UA button box
-           so they read as menu rows, not controls. */
+        /* Real <button>s so Enter/Space activate natively; the keydown handler
+           only moves focus. UA button box reset so they read as menu rows. */
         .item {
             display: block;
             width: 100%;
@@ -140,9 +115,8 @@ export class OlMenuPopover extends LitElement {
             }
         }
 
-        /* With no radio to carry the state, the row itself has to show which
-           item is current — tint plus weight, the same pair ol-options-popover
-           uses for its selected row. */
+        /* No radio to carry the state, so the row shows it — same tint and
+           weight ol-options-popover uses. */
         .item[aria-checked="true"] {
             background: hsla(202, 96%, 37%, 0.08);
             color: var(--link-blue);
@@ -180,8 +154,7 @@ export class OlMenuPopover extends LitElement {
     }
 
     updated(changedProperties) {
-        // The default trigger lives in light DOM, outside Lit's template, so it
-        // has to be refreshed by hand when anything it displays changes.
+        // Default trigger is light DOM, outside Lit's template — refresh by hand.
         if (changedProperties.has('label') || changedProperties.has('value') || changedProperties.has('items')) {
             this._updateDefaultTriggerLabel();
         }
@@ -205,20 +178,19 @@ export class OlMenuPopover extends LitElement {
     }
 
     /**
-     * Build the default trigger in *light* DOM, so the global ol-button.css can
-     * paint it — that sheet can't cross a shadow boundary. Mirrors
-     * <ol-options-popover>._createDefaultTrigger.
+     * Build the default trigger in light DOM so ol-button.css can paint it —
+     * that sheet can't cross a shadow boundary.
      *
      * @returns {void}
      */
     _createDefaultTrigger() {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
-        // ol-button moves this span into its own label wrapper on upgrade, but
-        // the node identity survives, so label updates can mutate it in place.
+        // ol-button moves this span on upgrade but keeps node identity, so
+        // label updates can mutate it in place.
         const text = document.createElement('span');
-        // ol-button is nowrap with no max-width, so clamp long labels here.
-        // Inline so it applies inside other components' shadow roots too.
+        // ol-button is nowrap with no max-width; clamp long labels. Inline so
+        // it applies inside other components' shadow roots too.
         text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;
@@ -228,10 +200,8 @@ export class OlMenuPopover extends LitElement {
     }
 
     /**
-     * A menu trigger names the *current choice* ("Relevance"), not the category
-     * — that's the convention these menus follow, and it means the active sort
-     * or view is readable without opening anything. The category is still
-     * announced, via the trigger's aria-label.
+     * Names the current choice ("Relevance"), not the category, so the active
+     * sort reads without opening. The category goes in aria-label.
      *
      * @returns {void}
      */
@@ -293,17 +263,12 @@ export class OlMenuPopover extends LitElement {
 
     _onPopoverOpen() {
         this._isOpen = true;
-        // Open onto the current item, the way a menu should — Escape then lands
-        // the user back where they started.
+        // Open onto the current item, so Escape lands where they started.
         this._focusIndex = this._currentIndex;
         this.updateComplete.then(() => this._focusItem(this._focusIndex));
     }
 
-    /**
-     * Arrows move focus only. Nothing is selected until the user activates an
-     * item — that's the whole difference from ol-options-popover, and it's why
-     * this control is safe to wire to navigation.
-     */
+    /** Arrows move focus only; nothing is selected until activation. */
     _onKeydown(e) {
         const items = this.items || [];
         const target = getNextKeyboardFocusIndex(e.key, {

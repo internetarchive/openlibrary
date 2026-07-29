@@ -4,10 +4,8 @@
  */
 
 :root {
-  /* Width of the facets sidebar in the desktop results layout. Shared so the
-     controls above the results (see .search-filter-row in page-user.css) can
-     reserve the same space and line their right edge up with the results
-     column rather than the full content width. */
+  /* Shared so .search-filter-row can reserve the same space and line up with
+     the results column rather than the full content width. */
   --search-facets-width: 220px;
 }
 

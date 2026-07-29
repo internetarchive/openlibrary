@@ -1,7 +1,5 @@
-/* The sort control is <ol-options-popover> (see
-   openlibrary/templates/search/sort_options.html) — the trigger button, panel,
-   and selected state are all painted by the component and ol-button.css. Only
-   the shuffle link beside it still needs styling here. */
+/* The sort control is <ol-menu-popover>, painted by the component and
+   ol-button.css. Only the shuffle link beside it needs styling here. */
 
 .sort-random-shuffle {
   display: inline-flex;

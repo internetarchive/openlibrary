@@ -72,12 +72,9 @@ $code:
      def sort_url(sort_key):
         return changequery(page=None, sort=None if sort_key == default_sort else sort_key)
 
-     # Flatten into the popover's item list. Sub-sorts become `nested` rows so
-     # they read as a subset of their parent; unlike the old dropper they're
-     # always visible rather than only once the parent is selected. The lead
-     # sub-sort repeating its parent's sort key (Reading Log / "Any") is dropped
-     # — the parent row already selects it, and duplicate values would collide
-     # in the component's keyed list.
+     # Flatten for the menu. Sub-sorts become `nested` rows, always visible.
+     # A sub-sort repeating its parent's key (Reading Log / "Any") is dropped:
+     # the parent already selects it, and duplicates collide in the keyed list.
      items = []
      for option in sort_options:
        if exclude and option['sort'] in exclude:
@@ -99,11 +96,8 @@ $code:
            'track': option['ga_key'] + 'SubSort',
          })
 
-    $# The trigger names the *current* sort rather than the category, so the
-    $# active order is readable without opening the menu. Slotted rather than
-    $# left to the component's default trigger so it's server-rendered at the
-    $# right size — no layout shift while the component upgrades.
-    $# Choosing an item navigates; sort_options.js owns that.
+    $# Trigger is slotted rather than left to the component's default so it's
+    $# server-rendered — no layout shift on upgrade. sort_options.js navigates.
     <ol-menu-popover
       class="sort-options"
       label="$_('Sort by')"

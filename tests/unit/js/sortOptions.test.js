@@ -13,8 +13,7 @@ const ITEMS = [
 ];
 
 // Stand-in for <ol-menu-popover>: the consumer only touches `items`, the
-// reflected `value` attribute, and the select event, so a plain element with an
-// items property is enough — no Lit or popover internals needed.
+// `value` attribute, and the select event.
 function makePopover(value = 'relevance') {
     const el = document.createElement('div');
     el.setAttribute('value', value);
@@ -33,8 +32,7 @@ describe('initSortOptions', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
         mockTrackEvent.mockClear();
-        // jsdom's window.location can't be replaced or spied on, so the
-        // navigation is injected instead (see initSortOptions).
+        // jsdom's window.location can't be replaced or spied on.
         navigate = jest.fn();
     });
 
@@ -56,8 +54,7 @@ describe('initSortOptions', () => {
         expect(mockTrackEvent).toHaveBeenCalledWith('SearchSort', 'ReadingLogSubSort');
     });
 
-    // Activating an item sets `value`, so the attribute stops describing the
-    // page — the guard has to compare against what was rendered.
+    // Activating sets `value`, so the guard compares against what was rendered.
     test('does not navigate when picking the sort the page already shows', () => {
         const el = makePopover('relevance');
         initSortOptions(el, navigate);

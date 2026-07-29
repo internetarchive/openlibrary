@@ -60,8 +60,7 @@ $ bodyclass.append('search-page')
             aria-label="$_('Filter by language')"
           ></ol-select-popover>
 
-          $# Sort and layout are result-shaping tools rather than filters, so
-          $# they share the row but sit apart from the filters, pushed right.
+          $# Result-shaping tools, not filters: same row, but pushed right.
           $if param and not search_response.error and len(search_response.docs):
             <div class="search-filter-row__tools">
               $if search_response.num_found > 1:
@@ -83,9 +82,8 @@ $ bodyclass.append('search-page')
             $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
         </span>
 
-        $# Which slice of the results this page is showing. `num_found_exact` is
-        $# false only when Solr stopped counting early, which makes the total a
-        $# lower bound — say "over" rather than quoting it as the whole count.
+        $# num_found_exact is false only when Solr stopped counting early,
+        $# making the total a lower bound — say "over" rather than quote it.
         $if param and not search_response.error and len(search_response.docs):
           $ range_start = (page - 1) * rows + 1
           $ range_end = min(page * rows, search_response.num_found)
