@@ -98,6 +98,7 @@ $def with (api)
     <section class="example">
       <h3 class="example__title">Keyboard &amp; accessibility</h3>
       <p>The panel is a <code>menu</code> of <code>menuitemradio</code> items, with the current one carrying <code>aria-checked</code>. Arrow keys and Home/End move focus between items, wrapping at the ends, and select nothing; Enter, Space, or a click activates the focused item and closes the menu. Escape closes without selecting, and focus returns to the trigger. A roving tabindex keeps the whole menu a single tab stop, and pressing Down on the trigger opens the menu onto the current item.</p>
+      <p>The trigger shows the current item but is named "<em>label</em>, current item" — otherwise it announces a bare value with no clue what it's a value of. This applies to a slotted trigger as well as the injected one; author an <code>aria-label</code> on your trigger to override it.</p>
     </section>
 
     $:render_template("design/api_tables", api)

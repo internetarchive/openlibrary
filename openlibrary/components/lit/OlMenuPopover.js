@@ -31,7 +31,9 @@ let _idCounter = 0;
  *     Fires even when that item was already current. detail: { value: String }
  *
  * @slot trigger - Custom trigger. When omitted an `<ol-button>` is injected
- *     showing the active item's label.
+ *     showing the active item's label. Either way the trigger gets an
+ *     `aria-label` of "`label`, current item" so it doesn't announce a bare
+ *     value; author one yourself to override.
  *
  * @example
  *   <ol-menu-popover
@@ -138,7 +140,9 @@ export class OlMenuPopover extends LitElement {
         this.items = [];
         this.value = '';
         this.label = '';
-        this.heading = '';
+        // null, not '', so an authored heading="" can mean "no heading" rather
+        // than falling through to the label-derived default.
+        this.heading = null;
         this._focusIndex = 0;
         this._menuId = `ol-menu-popover-${++_idCounter}`;
     }
@@ -154,9 +158,9 @@ export class OlMenuPopover extends LitElement {
     }
 
     updated(changedProperties) {
-        // Default trigger is light DOM, outside Lit's template — refresh by hand.
+        // The trigger is light DOM, outside Lit's template — refresh by hand.
         if (changedProperties.has('label') || changedProperties.has('value') || changedProperties.has('items')) {
-            this._updateDefaultTriggerLabel();
+            this._updateTriggerLabel();
         }
     }
 
@@ -195,7 +199,7 @@ export class OlMenuPopover extends LitElement {
         btn.appendChild(text);
         this._defaultTrigger = btn;
         this._defaultTriggerText = text;
-        this._updateDefaultTriggerLabel();
+        this._updateTriggerLabel();
         this.appendChild(btn);
     }
 
@@ -203,23 +207,39 @@ export class OlMenuPopover extends LitElement {
      * Names the current choice ("Relevance"), not the category, so the active
      * sort reads without opening. The category goes in aria-label.
      *
+     * The aria-label applies to a slotted trigger too, not just the injected
+     * one — a consumer that server-renders its own trigger would otherwise
+     * announce a bare value ("Relevance") with no clue what it's a value of.
+     * A consumer-authored aria-label always wins.
+     *
      * @returns {void}
      */
-    _updateDefaultTriggerLabel() {
-        const btn = this._defaultTrigger;
-        if (!btn || !this._defaultTriggerText) return;
+    _updateTriggerLabel() {
         const current = (this.items || []).find(it => it.value === this.value);
-        this._defaultTriggerText.textContent = current ? current.label : this.label;
+
+        // Only the injected trigger's text is ours to write; a slotted one is
+        // the consumer's, and is server-rendered with the current label already.
+        if (this._defaultTriggerText) {
+            this._defaultTriggerText.textContent = current ? current.label : this.label;
+        }
+
+        // Direct children only — that's all a slot can assign anyway.
+        const trigger = this._defaultTrigger || this.querySelector(':scope > [slot="trigger"]');
+        if (!trigger) return;
+        // Never clobber a label the consumer authored.
+        if (trigger.hasAttribute('aria-label') && !this._ownsTriggerLabel) return;
         if (current && this.label) {
-            btn.setAttribute('aria-label', `${this.label}, ${current.label}`);
-        } else {
-            btn.removeAttribute('aria-label');
+            trigger.setAttribute('aria-label', `${this.label}, ${current.label}`);
+            this._ownsTriggerLabel = true;
+        } else if (this._ownsTriggerLabel) {
+            trigger.removeAttribute('aria-label');
+            this._ownsTriggerLabel = false;
         }
     }
 
     _renderPanel() {
         const items = this.items || [];
-        const heading = this.heading || (this.label || '').toUpperCase();
+        const heading = this.heading ?? (this.label || '').toUpperCase();
         return html`
             <div class="panel">
                 <div class="menu" role="menu" aria-label=${ifDefined(this.label || undefined)} id=${this._menuId} @keydown=${this._onKeydown}>
@@ -253,16 +273,17 @@ export class OlMenuPopover extends LitElement {
     }
 
     _onTriggerKeydown(e) {
-        if (e.key === 'ArrowDown' && !this._isOpen) {
-            e.preventDefault();
-            const popover = this.renderRoot?.querySelector('ol-popover');
-            if (!popover) return;
-            popover.open = true;
-        }
+        if (e.key !== 'ArrowDown') return;
+        // Read openness off the popover rather than tracking it here: Escape and
+        // outside-click close it without telling us, so a local flag goes stale
+        // after the first dismissal and this stops opening.
+        const popover = this.renderRoot?.querySelector('ol-popover');
+        if (!popover || popover.open) return;
+        e.preventDefault();
+        popover.open = true;
     }
 
     _onPopoverOpen() {
-        this._isOpen = true;
         // Open onto the current item, so Escape lands where they started.
         this._focusIndex = this._currentIndex;
         this.updateComplete.then(() => this._focusItem(this._focusIndex));
@@ -295,10 +316,7 @@ export class OlMenuPopover extends LitElement {
             detail: { value },
         }));
         const popover = this.renderRoot?.querySelector('ol-popover');
-        if (popover) {
-            popover.open = false;
-            this._isOpen = false;
-        }
+        if (popover) popover.open = false;
     }
 }
 
