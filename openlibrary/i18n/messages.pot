@@ -6024,8 +6024,8 @@ msgstr[1] ""
 msgid "View as"
 msgstr ""
 
-#: EditionNavBar.html search/layout_options.html site/stats.html
-msgid "Details"
+#: search/layout_options.html
+msgid "List"
 msgstr ""
 
 #: search/layout_options.html
@@ -6327,6 +6327,10 @@ msgstr ""
 
 #: site/stats.html
 msgid "Debug Stats"
+msgstr ""
+
+#: EditionNavBar.html site/stats.html
+msgid "Details"
 msgstr ""
 
 #: stats/readinglog.html
