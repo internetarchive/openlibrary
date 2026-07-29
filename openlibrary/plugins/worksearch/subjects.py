@@ -41,16 +41,16 @@ class subjects(delegate.page):
         )
 
         delegate.context.setdefault("cssfile", "subject")
-        if not subj or subj.work_count is None:
-            # work_count is None exactly when the underlying Solr query errored
-            # (see SearchResponse.from_solr_result) -- including a connection
-            # failure/timeout, where result.error itself is also None.
-            web.ctx.status = "503 Service Unavailable"
-            page = render_template("subjects/unavailable.tmpl", key)
-        elif subj.work_count == 0:
+        if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template("subjects/notfound.tmpl", key)
         else:
+            if subj.work_count is None:
+                # work_count is None exactly when the underlying Solr query
+                # errored (see SearchResponse.from_solr_result) -- including a
+                # connection failure/timeout, where result.error is also None.
+                # Render the normal page; subjects.html degrades gracefully.
+                web.ctx.status = "503 Service Unavailable"
             self.decorate_with_tags(subj)
             page = render_template("subjects", page=subj)
 
@@ -338,6 +338,17 @@ class SubjectEngine:
                     subject.name = s.name
                     subject[self.key].pop(i)
                     break
+        elif details:
+            # Solr errored (result.facet_counts is None) -- default the detail
+            # fields subjects.html and its macros read unconditionally, so the
+            # page still renders (degraded) instead of crashing on a missing
+            # attribute.
+            subject.subjects = []
+            subject.places = []
+            subject.people = []
+            subject.times = []
+            subject.authors = []
+            subject.publishing_history = []
 
         return subject
 
