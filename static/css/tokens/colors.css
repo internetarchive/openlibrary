@@ -58,7 +58,7 @@
   --beige-bright: #f6f1e6;
   --beige-deep: #ebdfc5;
   --beige-two: hsl(63, 26%, 84%);
-  --beige-three: hsl(48, 15%, 80%);
+  --beige-three: #d8d4c0;
   --beige: hsl(48, 33%, 83%);
   --beige-pale: hsl(52, 31%, 95%);
   --brown: hsl(40, 32%, 29%);
@@ -106,6 +106,11 @@
   --header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);
   --account-icon-background: hsla(37, 24%, 79%, 0.761);
 
+  /* Environment badge & favicon (localhost / testing.openlibrary.org) —
+     values match the static/images/openlibrary-{development,testing}-*.png favicons */
+  --env-badge-development: hsl(136, 50%, 46%);
+  --env-badge-testing: hsl(30, 53%, 50%);
+
   /* Book cover carousel */
   --book-cover-carousel-background: hsl(47, 54%, 90%);
   --book-cover-carousel-border-top: hsl(51, 32%, 88%);
@@ -126,6 +131,20 @@
   --color-border-error: hsl(8, 78%, 49%);
   --color-border-subtle: hsl(0, 0%, 87%);
   --color-focus-ring: hsl(202, 96%, 37%);
+
+  /* Selected state for neutral controls — soft blue tint, saturated border,
+     dark-blue text. Shared by ol-button[selected] and
+     ol-toggle[variant="button"][checked] so they can't drift apart. */
+  --color-control-selected-bg: hsla(202, 96%, 37%, 0.08);
+  --color-control-selected-bg-hover: hsla(202, 96%, 37%, 0.12);
+  --color-control-selected-border: hsla(202, 96%, 37%, 0.35);
+  --color-control-selected-border-hover: hsla(202, 96%, 37%, 0.5);
+
+  /* Opaque equivalents of the two tints above, flattened over --white. Feed
+     these to --control-surface, never the tints: color-mix carries their alpha
+     into the specular highlight, which inverts it into a faint dark line. */
+  --color-control-selected-surface: color-mix(in srgb, var(--primary-blue) 8%, var(--white));
+  --color-control-selected-surface-hover: color-mix(in srgb, var(--primary-blue) 12%, var(--white));
 
   /* Chip / tag variants — soft-tint palette (pale background, saturated text
      & border) used to color a chip by the *kind* of thing it represents.

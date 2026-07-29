@@ -191,6 +191,13 @@ SeedType = Literal["subject", "author", "work", "edition"]
 
 
 def seed_key_to_seed_type(key: str) -> SeedType:
+    if not key:
+        raise ValueError("Seed key cannot be empty")
+
+    if "/" not in key:
+        # E.g. "subject:foo" or "place:bar"
+        return "subject"
+
     match key.split("/")[1]:
         case "subjects":
             return "subject"

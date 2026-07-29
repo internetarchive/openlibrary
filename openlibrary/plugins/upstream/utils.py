@@ -1475,6 +1475,22 @@ class Request:
 
 
 @public
+def get_ol_env() -> str:
+    """Which deployment this request is served from, based on the host.
+
+    Drives dev-facing UI cues (favicon, logo badge) so localhost,
+    testing.openlibrary.org, and production tabs are distinguishable.
+    """
+    match web.ctx.host:
+        case "openlibrary.org" | "www.openlibrary.org":
+            return "production"
+        case "testing.openlibrary.org":
+            return "testing"
+        case _:
+            return "development"
+
+
+@public
 def render_once(key: str) -> bool:
     rendered = web.ctx.setdefault("render_once", {})
     if key in rendered:

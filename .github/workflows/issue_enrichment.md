@@ -24,7 +24,8 @@ Blessed staff list: `mekarpeles`, `lokesh`, `cdrini`, `scottbarnes`, `RayBB`, `s
 
 **Always skip if**:
 - Any existing comment contains `<!-- ol-issue-bot -->`
-- The author login ends in `[bot]`
+- The author login is `openlibrary-bot` — our own bot account. **Note**: `openlibrary-bot`'s account `type` is `"User"`, not `"Bot"` — do not rely on account type to detect it. Always check the literal login string.
+- The author login ends in `[bot]` — catches genuine GitHub Apps (dependabot, renovate, etc.)
 - The issue has the label `agentic-workflows`
 
 ---

@@ -221,6 +221,7 @@ def create_app() -> FastAPI | None:
     from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.link import router as link_router
     from openlibrary.fastapi.lists import router as lists_router
     from openlibrary.fastapi.merge_authors import router as merge_authors_router
     from openlibrary.fastapi.partials import router as partials_router
@@ -240,6 +241,7 @@ def create_app() -> FastAPI | None:
     app.include_router(importapi_router)
     app.include_router(internal_router)
     app.include_router(languages_router)
+    app.include_router(link_router)
     app.include_router(lists_router)
     app.include_router(merge_authors_router)
     app.include_router(partials_router)

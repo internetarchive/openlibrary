@@ -8,12 +8,14 @@ its experience. This does not include public facing APIs with LTS
 
 from __future__ import annotations
 
+import io
 import os
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, status
+import qrcode
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, Response, status
 from pydantic import BaseModel, BeforeValidator, Field
 from starlette.responses import RedirectResponse
 
@@ -43,6 +45,7 @@ from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+DAY_SECONDS = 60 * 60 * 24
 
 # Valid period values — mirrors SINCE_DAYS keys
 # IMPORTANT: Keep this Literal in sync with the keys of views.loanstats.SINCE_DAYS!
@@ -337,6 +340,22 @@ def author_works(
     return PaginatedGroupEntryResponse(**data)
 
 
+@router.get("/qrcode")
+def create_qrcode(
+    request: Request,
+    path: Annotated[str, Query()] = "/",
+) -> Response:
+    """Create a QR code PNG for an Open Library path."""
+    qr_url = f"{request.url.scheme}://{request.url.netloc}{path}"
+    img = qrcode.make(qr_url)
+    with io.BytesIO() as buf:
+        img.save(buf, format="PNG")
+        return Response(
+            content=buf.getvalue(),
+            media_type="image/png",
+        )
+
+
 class PriceResponse(BaseModel):
     """Response model for the /prices.json endpoint."""
 
@@ -370,6 +389,34 @@ async def price_api(
         )
 
     return await get_price_data_async(isbn or "", asin or "")
+
+
+class HideBannerRequest(BaseModel):
+    """Request body for persisting a dismissed banner."""
+
+    cookie_name: str = Field(alias="cookie-name")
+    cookie_duration_days: int = Field(default=30, alias="cookie-duration-days")
+
+
+class HideBannerResponse(BaseModel):
+    """Response returned after a banner preference is saved."""
+
+    success: str = "Preference saved"
+
+
+@router.post("/hide_banner")
+def hide_banner(data: HideBannerRequest, response: Response) -> HideBannerResponse:
+    """Persist a banner dismissal in a cookie and, when applicable, user preferences."""
+    if (user := accounts.get_current_user()) and data.cookie_name.startswith("yrg"):
+        user.save_preferences({"yrg_banner_pref": data.cookie_name})
+
+    response.set_cookie(
+        data.cookie_name,
+        "1",
+        expires=data.cookie_duration_days * DAY_SECONDS,
+        samesite=None,
+    )
+    return HideBannerResponse()
 
 
 class FollowEntry(BaseModel):

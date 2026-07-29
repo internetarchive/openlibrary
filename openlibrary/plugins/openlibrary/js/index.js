@@ -80,6 +80,7 @@ jQuery(function() {
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
+    const deleteRecordButtons = document.querySelectorAll('.delete-record');
 
     // conditionally load for user edit page
     if (
@@ -87,7 +88,7 @@ jQuery(function() {
         autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
-        excerpts || links
+        excerpts || links || deleteRecordButtons.length
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -126,6 +127,9 @@ jQuery(function() {
                 }
                 if (autocompleteSeeds) {
                     module.initSeedsMultiInputAutocomplete();
+                }
+                if (deleteRecordButtons.length) {
+                    module.initRecordDeletion(deleteRecordButtons);
                 }
             });
     }
@@ -532,7 +536,7 @@ jQuery(function() {
     }
 
     // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
-    if (document.querySelector('ol-banner[dismiss-id]')) {
+    if (document.querySelector('ol-banner[dismiss-id], ol-banner[dismissible]')) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initOlBannerDismissals());
     }

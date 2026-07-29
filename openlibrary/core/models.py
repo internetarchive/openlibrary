@@ -106,6 +106,7 @@ class Thing(client.Thing):
     """Base class for all OL models."""
 
     key: ThingKey
+    last_modified: datetime
 
     @functools.cached_property
     def history_preview(self):

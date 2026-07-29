@@ -54,7 +54,8 @@ def map_book_to_olbook(book, promise_id):
             return None
         return val
 
-    asin_is_isbn_10 = book.get("ASIN") and book.get("ASIN")[0].isdigit()
+    asin = book.get("ASIN")
+    asin_is_isbn_10 = asin and asin[0].isdigit()
     product_json = book.get("ProductJSON", {})
     publish_date = clean_null(product_json.get("PublicationDate"))
     title = product_json.get("Title")
@@ -66,11 +67,11 @@ def map_book_to_olbook(book, promise_id):
     olbook = {
         "local_id": [f"urn:bwbsku:{sku.upper()}"],
         "identifiers": {
-            **({"amazon": [book.get("ASIN")]} if not asin_is_isbn_10 else {}),
+            **({"amazon": [asin]} if asin and not asin_is_isbn_10 else {}),
             **({"better_world_books": [isbn]} if not is_isbn_13(isbn) else {}),
         },
         **({"isbn_13": [isbn]} if is_isbn_13(isbn) else {}),
-        **({"isbn_10": [book.get("ASIN")]} if asin_is_isbn_10 else {}),
+        **({"isbn_10": [asin]} if asin_is_isbn_10 else {}),
         **({"title": title} if title else {}),
         "authors": ([{"name": clean_null(product_json.get("Author"))}] if clean_null(product_json.get("Author")) else []),
         "publishers": [clean_null(product_json.get("Publisher")) or "????"],

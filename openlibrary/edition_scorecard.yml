@@ -1,0 +1,163 @@
+name: Edition Scorecard
+sections:
+  access:
+    name: Access
+    checks:
+      read_access:
+        score: 200
+        description: Can be accessed in full online (read / borrowed)
+        details: Borrowable and readable books can be accessed by readers, researchers, and all patrons alike.
+      search_inside_access:
+        score: 50
+        description: Can view snippets via search inside
+        details: Books that allow search inside enable patrons to quickly find relevant content within the book.
+      programmatic_access:
+        score: 25
+        description: Open access (can analyze in full)
+        details: Fully public books can be read online or downloaded without any restrictions, providing excellent access for patrons.
+      purchase_options:
+        score: 25
+        description: Has purchase options
+        details: An ISBN, Amazon ASIN identifier, or BWB identifier enables patrons to purchase the book from retailers.
+      library_options:
+        score: 25
+        description: Has library options (ISBN or OCLC)
+        details: ISBN or OCLC numbers enable patrons to find the book through library catalogs.
+      fan_fiction:
+        score: 20
+        description: Has fan fiction link (Archive of Our Own)
+        details: A link to Archive of Our Own helps readers discover related fan-created works.
+      wikipedia:
+        score: 20
+        description: Has Wikipedia link
+        details: A Wikipedia link provides additional context and encyclopedic information about the work.
+      first_sentence:
+        score: 2
+        description: Has first sentence
+        details: The first sentence gives patrons an immediate taste of the writing style.
+
+  discovery:
+    name: Discovery
+    details: How well can this edition be accurately surfaced in searches and recommendations?
+    checks:
+      title:
+        score: 50
+        description: Has title field
+        details: A title is essential for discovery and helps patrons identify the book in search results and catalogs.
+      author_name:
+        score: 40
+        description: Has author information
+        details: Author information is crucial for discovery and helps patrons find other works by the same author.
+      genre_tags:
+        score: 25
+        description: Has genre/category tags
+        details: Genre tags help patrons search by genre or category to discover relevant books.
+      series:
+        score: 20
+        description: Has series information
+        details: Series information helps patrons search by series and discover related books.
+      table_of_contents:
+        score: 20
+        description: Has table of contents
+        details: Table of contents entries are indexed and searchable, improving discoverability.
+      classifications:
+        score: 15
+        description: Has DDC or LCC classification
+        details: Dewey Decimal or Library of Congress classifications help with organization and shelf browsing.
+      language:
+        score: 15
+        description: Has language information
+        details: Language information helps patrons filter and find books in their preferred language.
+      isbn:
+        score: 15
+        description: Has ISBN
+        details: ISBNs allow searching by barcode scanner and help with identification.
+      lexile:
+        score: 5
+        description: Has Lexile measure
+        details: Lexile measures help educators and parents find books at the appropriate reading level.
+      star_ratings:
+        score: 5
+        description: Has star ratings (ranking signal)
+        details: Star ratings contribute to search ranking so better-rated books surface higher.
+      on_readinglogs:
+        score: 3
+        description: Appears on reading logs (ranking signal)
+        details: Presence on reading logs is a popularity signal that helps with search ranking.
+      on_lists:
+        score: 2
+        description: Appears on lists (ranking signal)
+        details: Presence on user lists is a popularity signal that helps with search ranking.
+      contributor_names:
+        score: 1
+        description: Has contributor names
+        details: Contributor names (editors, illustrators, translators) enable searching by contributor.
+
+  evaluation:
+    name: Evaluation
+    details: How well can a patron determine if this edition is relevant to their needs before accessing it?
+    checks:
+      basic_description:
+        score: 40
+        description: Has a description
+        details: A description helps patrons understand what the book is about before accessing it.
+      cover:
+        score: 35
+        description: Has cover image
+        details: A cover image helps patrons visually identify the book and makes it more appealing in search results.
+      table_of_contents:
+        score: 30
+        description: Has table of contents
+        details: A table of contents helps patrons evaluate the structure and scope of the book.
+      genre_tags:
+        score: 25
+        description: Has genre/category tags
+        details: Genre tags help patrons quickly assess whether a book matches their interests.
+      star_ratings:
+        score: 20
+        description: Has star ratings (popularity signal)
+        details: Star ratings from other readers help patrons gauge the quality and reception of the book.
+      rich_description:
+        score: 10
+        description: Has a rich description (50+ characters)
+        details: A detailed description (50+ characters) provides more context to help patrons evaluate relevance.
+      readinglog_counts:
+        score: 10
+        description: Has reading log activity (popularity signal)
+        details: Reading log activity from other patrons signals the book is being actively read.
+      list_count:
+        score: 10
+        description: Appears on lists (popularity signal)
+        details: Presence on curated lists helps patrons gauge relevance and community interest.
+      page_count:
+        score: 10
+        description: Has page count
+        details: Page count helps patrons estimate the length and time commitment of the book.
+      series:
+        score: 10
+        description: Has series information
+        details: "Series information helps patrons understand the book's place in a broader narrative."
+      author_photo:
+        score: 5
+        description: Has author photo
+        details: An author photo helps patrons visually recognize the author.
+      first_publish_year:
+        score: 5
+        description: Has first publication year
+        details: The first publication year helps patrons understand when the work originally appeared.
+      publish_year:
+        score: 5
+        description: Has publication year
+        details: Publication year helps patrons understand the context and currency of the content.
+      author_bio:
+        score: 3
+        description: Has author biography
+        details: "An author biography helps patrons understand the author's background and expertise."
+      publisher:
+        score: 2
+        description: Has publisher
+        details: Publisher information helps patrons evaluate the credibility and source of the book.
+      author_links:
+        score: 2
+        description: Has author links
+        details: Links to author websites or profiles provide additional context about the author.
