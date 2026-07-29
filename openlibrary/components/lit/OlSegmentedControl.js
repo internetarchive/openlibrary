@@ -63,7 +63,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             display: inline-flex;
             vertical-align: middle;
 
-            --pill-radius: var(--border-radius-button);
+            /* Concentric with the track: the pill sits one --spacing-3xs inside
+               it, so its radius has to shed that inset or it reads rounder than
+               the corner containing it. */
+            --pill-radius: calc(var(--border-radius-button) - var(--spacing-3xs));
 
             /* A crisp ease-out (no overshoot) for the slide — the pill should
                feel like it snaps to the new segment, not bounce. */
@@ -154,6 +157,11 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         .pill {
             position: absolute;
             z-index: 0;
+            /* border-box so _measure()'s width — a segment's border-box width —
+               isn't widened by this element's own border. Without it the pill
+               overhangs its segment by 2px, swallowing the track's right
+               padding on the last segment. */
+            box-sizing: border-box;
             top: var(--spacing-3xs);
             bottom: var(--spacing-3xs);
             left: var(--spacing-3xs);
