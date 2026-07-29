@@ -73,7 +73,7 @@ div.siteSearch.darker {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-stack-sm);
-  margin-bottom: var(--spacing-stack-md);
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* The chips container renders empty (whitespace, then an empty async wrapper) */
@@ -88,7 +88,10 @@ div.siteSearch.darker {
   margin-bottom: 0;
 }
 
+/* The stats line labels the results below it, so it sits closer to them than
+   to the controls above; margin-top adds to the stack gap to split the two. */
 .search-controls .search-results-stats {
+  margin-top: var(--spacing-sm);
   padding-bottom: 0;
 }
 
