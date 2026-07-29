@@ -990,7 +990,7 @@ div#searchResults .SRPCoverBlank a {
 
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
-  width: 220px;
+  width: var(--search-facets-width);
   padding: 0 15px;
 }
 

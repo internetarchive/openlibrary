@@ -552,6 +552,9 @@ class SearchResponse:
     docs: list
     num_found: int
     solr_select: str
+    num_found_exact: bool = True
+    """False when Solr stopped counting early (`minExactCount`), making
+    `num_found` a lower bound rather than a total."""
     raw_resp: dict = None
     highlighting: dict[str, dict[str, list[str]]] | None = None
     error: str = None
@@ -584,6 +587,7 @@ class SearchResponse:
                 raw_resp=solr_result,
                 docs=solr_result["response"]["docs"],
                 num_found=solr_result["response"]["numFound"],
+                num_found_exact=solr_result["response"].get("numFoundExact", True),
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,

@@ -59,6 +59,17 @@ $ bodyclass.append('search-page')
             unselected-heading="$_('Languages')"
             aria-label="$_('Filter by language')"
           ></ol-select-popover>
+
+          $# Sort and layout are result-shaping tools rather than filters, so
+          $# they share the row but sit apart from the filters, pushed right.
+          $if param and not search_response.error and len(search_response.docs):
+            <div class="search-filter-row__tools">
+              $if search_response.num_found > 1:
+                $:render_template("search/sort_options.html", search_response.sort)
+
+              $if search_response.num_found > 0:
+                $:render_template("search/layout_options.html", selected_layout=layout)
+            </div>
         </div>
 
         $# Availability and language chips are rendered server-side on the first
@@ -72,15 +83,18 @@ $ bodyclass.append('search-page')
             $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
         </span>
 
+        $# Which slice of the results this page is showing. `num_found_exact` is
+        $# false only when Solr stopped counting early, which makes the total a
+        $# lower bound — say "over" rather than quoting it as the whole count.
         $if param and not search_response.error and len(search_response.docs):
+          $ range_start = (page - 1) * rows + 1
+          $ range_end = min(page * rows, search_response.num_found)
+          $ range_total = commify(search_response.num_found)
           <div class="search-results-stats">
-            $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
-
-            $if search_response.num_found > 1:
-              $:render_template("search/sort_options.html", search_response.sort)
-
-            $if search_response.num_found > 0:
-              $:render_template("search/layout_options.html", selected_layout=layout)
+            $if search_response.num_found_exact:
+              $ungettext('%(start)s - %(end)s of %(total)s result', '%(start)s - %(end)s of %(total)s results', search_response.num_found, start=range_start, end=range_end, total=range_total)
+            $else:
+              $ungettext('%(start)s - %(end)s of over %(total)s result', '%(start)s - %(end)s of over %(total)s results', search_response.num_found, start=range_start, end=range_end, total=range_total)
           </div>
     </div>
 

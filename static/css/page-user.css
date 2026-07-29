@@ -100,6 +100,35 @@ div.siteSearch.darker {
   margin: 0;
 }
 
+/* On narrow screens sort + layout drop to their own row, left-aligned —
+   wrapping them to the right edge of a half-empty line reads as misaligned. */
+.search-filter-row__tools {
+  display: flex;
+  flex-basis: 100%;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* From tablet up there's room to share the filters' row; `margin-left: auto`
+   rather than `justify-content: space-between` so the filters stay packed
+   together when the row wraps. */
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+  .search-filter-row__tools {
+    flex-basis: auto;
+    margin-left: auto;
+  }
+}
+
+/* Once the facets sidebar sits beside the results (.resultsContainer goes flex
+   at this width), the filter row still spans the full content width — so
+   reserve the sidebar's share to land the right-aligned tools on the results
+   column's edge instead of the page's. */
+@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
+  .search-filter-row {
+    padding-right: var(--search-facets-width);
+  }
+}
+
 /* On the search page, enlarge the in-page search box to match the header
    search bar. */
 .search-page .searchbox {
