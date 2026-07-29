@@ -271,7 +271,7 @@ def test_solr_update_in_place_propagates_transport_errors():
 
 
 def _ts(days_ago: float) -> str:
-    dt = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
+    dt = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days_ago)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -467,3 +467,33 @@ def test_main_eviction_failure_is_non_fatal(mock_config, mock_infogami, mock_len
 
     # State must be advanced to 100 despite the eviction failure
     assert state_file.read_text().strip() == "100", "write_state was NOT called even though only eviction (non-fatal) failed"
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.find_start_uid")
+@patch("scripts.solr_updater.loan_availability_updater.query_solr_uid")
+@patch("scripts.solr_updater.loan_availability_updater.time")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_reset_ignores_stale_solr_loan_uid(
+    mock_config, mock_infogami, mock_lending, mock_sentry, mock_time_mod, mock_query_uid, mock_find_start, mock_get_solr, tmp_path
+):
+    """--reset must rebuild via find_start_uid (binary-search), never resume from a stale
+    loan_uid still in Solr. Regression: query_solr_uid() used to run even under --reset and
+    silently short-circuit the documented 14-day rebuild."""
+    mock_query_uid.return_value = 200001  # stale high uid lingering in Solr
+    mock_find_start.return_value = 42
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+    mock_lending.get_loan_changes.side_effect = SystemExit(0)  # stop right after startup init
+
+    state_file = tmp_path / "state"
+    with pytest.raises(SystemExit):
+        main("fake_config.yml", state_file=str(state_file), poll_interval=0, reset=True)
+
+    mock_query_uid.assert_not_called()
+    mock_find_start.assert_called_once()
+    assert state_file.read_text().strip() == "42", "reset resumed from stale Solr loan_uid instead of binary-searching"

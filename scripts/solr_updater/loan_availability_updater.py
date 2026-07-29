@@ -87,7 +87,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     if not latest_uid:
         return 0
 
-    target_time = datetime.datetime.utcnow() - datetime.timedelta(days=target_age_days)
+    target_time = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=target_age_days)
     low, high = 0, latest_uid
 
     for _ in range(40):
@@ -103,7 +103,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
         if not rows:
             high = mid
             continue
-        row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S")
+        row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
         if row_time < target_time:
             low = mid
         else:
@@ -288,14 +288,20 @@ def main(  # noqa: PLR0915
     last_uid = 0 if reset else read_state(state_path)
 
     if last_uid == 0:
-        last_uid = query_solr_uid()
+        # --reset forces a rebuild from the changes API; a stale loan_uid still in
+        # Solr must not short-circuit that (else reset never goes back ~14 days).
+        if not reset:
+            last_uid = query_solr_uid()
         if last_uid:
             logger.info("Resuming from Solr loan_uid=%d", last_uid)
         else:
             logger.info("No Solr uid; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
             last_uid = find_start_uid()
         if not dry_run:
-            write_state(state_path, last_uid)
+            try:
+                write_state(state_path, last_uid)
+            except OSError:
+                logger.exception("Failed to write initial state file %s", state_path)
 
     while True:
         try:
@@ -367,7 +373,10 @@ def main(  # noqa: PLR0915
                 time.sleep(poll_interval)
                 continue
         if not dry_run:
-            write_state(state_path, last_uid)
+            try:
+                write_state(state_path, last_uid)
+            except OSError:
+                logger.exception("Failed to write state file %s; will retry next cycle", state_path)
 
         if len(rows) >= BATCH_SIZE:
             continue
