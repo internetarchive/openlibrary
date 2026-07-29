@@ -391,3 +391,36 @@ class TestOpenAPIDocumentation:
 
         # This test always passes - it's just for debug output
         assert True
+
+
+class TestEditionSearchEndpoint:
+    """Tests for the /search/editions.json endpoint."""
+
+    def test_returns_200_with_query(self, client, mock_run_solr_query_async):
+        response = client.get("/search/editions.json?q=harry+potter")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "docs" in data
+        assert "q" in data
+        assert data["q"] == "harry potter"
+
+    def test_returns_200_without_query(self, client, mock_run_solr_query_async):
+        response = client.get("/search/editions.json")
+        assert response.status_code == 200
+        data = response.json()
+        assert "numFound" in data
+        assert "docs" in data
+
+    def test_work_key_filter_passed_to_solr(self, client, mock_run_solr_query_async):
+        response = client.get("/search/editions.json?work_key=/works/OL82536W")
+        assert response.status_code == 200
+        call_kwargs = mock_run_solr_query_async.call_args[1]
+        extra = call_kwargs.get("extra_params") or []
+        assert any("work_key" in v for _, v in extra)
+
+    def test_endpoint_in_openapi_spec(self, client):
+        response = client.get("/openapi.json")
+        assert response.status_code == 200
+        openapi = response.json()
+        assert "/search/editions.json" in openapi["paths"]
