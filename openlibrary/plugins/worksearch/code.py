@@ -293,17 +293,51 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
+def describe_solr_query(solr_path: str, params: dict | list[tuple[str, Any]]) -> dict[str, Any]:
+    """
+    Summarize a Solr query by its *shape*, for logging.
+
+    Deliberately excludes the user's query text, so the result is safe to send to
+    Sentry and to aggregate. Two queries with the same shape should have roughly the
+    same cost, which is what makes this useful for grouping timeouts.
+
+    Deep paging (a large `start`) and large boolean queries are the usual culprits, so
+    those are reported as-is rather than bucketed.
+    """
+    pairs = list(params.items()) if isinstance(params, dict) else list(params)
+    values: dict[str, list[str]] = {}
+    for key, value in pairs:
+        values.setdefault(key, []).append(str(value))
+
+    def first(key: str, default: str = "") -> str:
+        return values.get(key, [default])[0]
+
+    # Count boolean clauses without retaining any of the terms. `key:(A OR B OR ...)`
+    # queries built from reading logs can approach maxBooleanClauses.
+    clauses = sum(v.count(" OR ") + v.count("+OR+") for vs in values.values() for v in vs)
+
+    return {
+        "path": solr_path,
+        "label": first("ol.label", "UNLABELLED"),
+        "start": safeint(first("start", "0"), 0),
+        "rows": safeint(first("rows", "0"), 0),
+        # Field names only — never the values they're filtered on.
+        "fq_fields": sorted({fq.split(":", 1)[0] for fq in values.get("fq", [])}),
+        "facet_fields": len(values.get("facet.field", [])),
+        "or_clauses": clauses,
+        "spellcheck": first("spellcheck") == "true",
+        # Block-join / subquery expansion is the expensive part of editions search.
+        "block_join": any("{!parent" in v for vs in values.values() for v in vs),
+        "subquery": any("[subquery]" in v for vs in values.values() for v in vs),
+    }
+
+
 async def execute_solr_query_async(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
     _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
 ) -> httpx.Response | None:
-    url = solr_path
-    if params:
-        url += "&" if "?" in url else "?"
-        url += urlencode(params)
-
     try:
         response = await get_solr().raw_request(
             solr_path,
@@ -312,7 +346,11 @@ async def execute_solr_query_async(
             _pass_time_allowed=_pass_time_allowed,
         )
     except httpx.HTTPError:
-        logger.exception("Failed solr query")
+        shape = describe_solr_query(solr_path, params)
+        # The label is interpolated into the message so that Sentry groups these by
+        # request type instead of collapsing every Solr failure into one issue. The
+        # shape goes in `extra` to keep issue cardinality bounded.
+        logger.exception("Failed solr query [%(label)s]" % shape, extra={"solr_query_shape": shape})
         return None
     return response
 
@@ -481,7 +519,21 @@ def _process_solr_response_and_enrich(
         if non_solr_fields:
             scheme.add_non_solr_fields(non_solr_fields, solr_result)
 
-    return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
+    search_response = SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
+
+    # Solr sets partialResults when it gave up early (usually hitting timeAllowed) and
+    # returned an incomplete result set with a 200. Without this it is silent: the
+    # patron sees truncated results presented as complete.
+    if search_response.partial_results:
+        header = solr_result.get("responseHeader", {})
+        logger.warning(
+            "Solr returned partial results (reason=%s, solr QTime=%sms, wall=%.0fms)",
+            header.get("partialResultsDetails", "unknown"),
+            header.get("QTime"),
+            duration * 1000,
+        )
+
+    return search_response
 
 
 async def run_solr_query_async(
@@ -557,6 +609,14 @@ class SearchResponse:
     error: str = None
     time: float = None
     """Seconds to execute the query"""
+    partial_results: bool = False
+    """Solr gave up early (usually `timeAllowed`) and returned an incomplete result set."""
+
+    @staticmethod
+    def _is_partial(solr_result: dict | None) -> bool:
+        """Solr has reported this as both a bool and a string over the years."""
+        flag = (solr_result or {}).get("responseHeader", {}).get("partialResults", False)
+        return str(flag).lower() == "true"
 
     @staticmethod
     def from_solr_result(
@@ -587,6 +647,7 @@ class SearchResponse:
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
+                partial_results=SearchResponse._is_partial(solr_result),
             )
 
     @staticmethod
