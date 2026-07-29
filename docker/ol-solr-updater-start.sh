@@ -17,6 +17,11 @@ python scripts/solr_updater/trending_updater.py \
     "$OL_CONFIG" \
     --trending-offset-file /solr-updater-data/$TRENDING_OFFSET_FILE &
 
+echo "Starting loan availability updater"
+python scripts/solr_updater/loan_availability_updater.py \
+    "$OL_CONFIG" \
+    --state-file /solr-updater-data/$LOAN_STATE_FILE &
+
 echo "Starting Solr updater"
 python scripts/solr_updater/solr_updater.py "$OL_CONFIG" \
     --state-file /solr-updater-data/$STATE_FILE \
