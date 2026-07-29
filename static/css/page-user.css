@@ -67,13 +67,37 @@ div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
-/* Availability + language filter popovers below the search input. */
+/* Stack the search box, filter row, selected-facet chips, and results stats */
+/* with a single gap; the rows carry no vertical margins of their own. */
+.search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
+}
+
+/* The chips container renders empty (whitespace, then an empty async wrapper) */
+/* when no facets are selected; drop it so it doesn't claim a gap slot. */
+.search-controls
+  .selected-search-facets-container:not(:has(.selected-search-facets)) {
+  display: none;
+}
+
+/* Spacing between the rows is owned by the parent's gap. */
+.search-controls > form {
+  margin-bottom: 0;
+}
+
+.search-controls .search-results-stats {
+  padding-bottom: 0;
+}
+
 .search-filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
-  margin: var(--spacing-md) 0;
+  margin: 0;
 }
 
 /* On the search page, enlarge the in-page search box to match the header

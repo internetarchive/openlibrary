@@ -508,6 +508,23 @@ deploy_images() {
         echo "✓ ($OLBASE_DIGEST)"
     fi
 
+    # Pull on one node first to warm the nexus cache, avoiding Docker Hub rate limits
+    # when all servers pull in parallel.
+    local FIRST_SERVER
+    FIRST_SERVER=$(echo "$HOSTNAMES" | awk '{print $1}')
+    echo -n "   Warming nexus cache on ${FIRST_SERVER} ... "
+    local WARM_OUTPUT
+    WARM_OUTPUT=$(ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" 2>&1)
+    if [ $? -eq 0 ]; then
+        echo "✓"
+    else
+        echo "✗"
+        echo "Failed to warm nexus cache on ${FIRST_SERVER}"
+        echo "Output:"
+        echo "$WARM_OUTPUT"
+        return 1
+    fi
+
     local pids=()
     local output_files=()
     for SERVER_NAME in $HOSTNAMES; do

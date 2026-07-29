@@ -13,6 +13,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
 import Image from '@tiptap/extension-image';
 import { HtmlBlock } from '../../../openlibrary/components/lit/html-block.js';
+import { OLHardBreak } from '../../../openlibrary/components/lit/hard-break.js';
 
 /* ------------------------------------------------------------------ */
 /*  Helper: create an editor identical to production, roundtrip text   */
@@ -30,8 +31,10 @@ function createTestEditor(markdownContent, { enableCode = false } = {}) {
                 codeBlock: enableCode ? undefined : false,
                 code: enableCode ? undefined : false,
                 link: { openOnClick: false, autolink: true },
-                strike: false
+                strike: false,
+                hardBreak: false
             }),
+            OLHardBreak,
             Markdown.configure({
                 breaks: true,
                 linkify: true
@@ -438,6 +441,26 @@ Visit [the website](https://example.org) for more.
         // Should contain the same content
         expect(output.length).toBeGreaterThan(input.length * 0.9);
         expect(output).toContain('books and reading');
+    });
+
+    /* ---------- hard breaks (OLMarkdown dialect) ---------- */
+
+    test('hard break serializes as a bare newline, not CommonMark "\\"', () => {
+        // OLMarkdown treats every newline as a <br>. Emitting CommonMark's
+        // "\<newline>" makes the display renderer escape its own injected
+        // <br/> and show a literal "<br />" to readers. Regression for
+        // internetarchive/openlibrary#13074.
+        const output = roundTrip('first line\nsecond line');
+        expect(output).not.toContain('\\');
+        expect(output).not.toContain('<br');
+        expect(normalize(output)).toBe('first line\nsecond line');
+    });
+
+    test('multi-line paragraph round-trips without backslashes', () => {
+        const input = 'line one\nline two\nline three';
+        const output = roundTrip(input);
+        expect(output).not.toContain('\\');
+        expect(normalize(output)).toBe(input);
     });
 });
 

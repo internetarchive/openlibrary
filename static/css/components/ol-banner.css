@@ -88,7 +88,7 @@ ol-banner > .ol-banner__icon {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  margin-top: 1px; /* optically center against the first text line */
+  margin-top: 4px; /* optically center against the first text line */
   border-radius: var(--border-radius-circle);
   background-color: var(--banner-accent);
   color: var(--white);
@@ -102,6 +102,10 @@ ol-banner:not([hydrated]) > [slot="icon"] {
 
 ol-banner > .ol-banner__content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 28px;
 }
 
 /* Reserve the close button's column pre-hydration so it doesn't reflow

@@ -522,6 +522,7 @@ class work_delete(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class hide_banner(delegate.page):
     path = "/hide_banner"
 
@@ -541,6 +542,7 @@ class hide_banner(delegate.page):
         return delegate.RawText(json.dumps({"success": "Preference saved"}), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class create_qrcode(delegate.page):
     path = "/qrcode"
 
@@ -843,12 +845,15 @@ class opds_home(delegate.page):
         return delegate.RawText(json.dumps(get_cached_homepage()))
 
 
+DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
+
+
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"
 
     def POST(self):
-        i = web.input(digest="", msg="")
+        i = web.input(digest="", msg="", comment="")
 
         digest = i.digest
         msg = i.msg
@@ -881,7 +886,7 @@ class unlink_ia_ol(delegate.page):
         # Update records
         try:
             for edition in editions:
-                self.make_dark(edition, ocaid)
+                self.make_dark(edition, ocaid, i.comment)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
             raise web.HTTPError(
@@ -893,7 +898,7 @@ class unlink_ia_ol(delegate.page):
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition, ocaid):
+    def make_dark(edition, ocaid, comment=""):
         data = edition.dict()
         if "ocaid" in data and data["ocaid"] == ocaid:
             del data["ocaid"]
@@ -905,11 +910,12 @@ class unlink_ia_ol(delegate.page):
             web.ctx.ip = web.ctx.ip or "127.0.0.1"
             web.ctx.site.save(
                 data,
-                "Remove OCAID: Item no longer available to borrow.",
+                comment or DEFAULT_UNLINK_COMMENT,
                 action="edit-edition-ocaid",
             )
 
 
+@deprecated("migrated to fastapi")
 class link_ia_ol(delegate.page):
     path = "/api/link"
     encoding = "json"

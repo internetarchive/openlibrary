@@ -7,8 +7,11 @@ env:
   NODE_VERSION: '24'
 jobs:
   label_pr:
-    # Continue only if the PR is not a draft, and was opened in the same repository that is running this action:
-    if: ${{ github.repository == github.event.repository.full_name && !github.event.pull_request.draft}}
+    # Continue only if this is the canonical repo and the PR is not a draft.
+    #
+    # Note this guard intentionally does NOT exclude fork-authored PRs -- those should
+    # be labeled too, and pull_request_target keeps the write token needed to do it.
+    if: ${{ github.repository == 'internetarchive/openlibrary' && !github.event.pull_request.draft }}
     permissions:
       contents: read
       issues: read

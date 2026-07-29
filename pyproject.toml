@@ -78,7 +78,7 @@ pyopds2 = { git = "https://github.com/ArchiveLabs/pyopds2.git", rev = "3d5b3b0f9
 "web.py" = { git = "https://github.com/webpy/webpy.git", rev = "2598dfe693ff931a9c67196f0b904b13637ec19f" }
 
 [tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
+ignore-words-list = "beng,curren,datas,furst,lightening,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
 skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]

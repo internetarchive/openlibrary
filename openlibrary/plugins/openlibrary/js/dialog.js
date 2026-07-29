@@ -49,6 +49,17 @@ function initConfirmationDialogs() {
 }
 
 
+/**
+ * Collapses the search-inside form back to the button state.
+ * @param {jQuery} $btnGroup - The .cta-button-group container.
+ */
+function collapseSearchForm($btnGroup) {
+    $btnGroup.find('.search-inside-form').hide();
+    $btnGroup.find('.search-inside-input').val('');
+    $btnGroup.find('.preview-btn, .search-inside-trigger-btn').show();
+    $btnGroup.find('[data-search-trigger]').attr('aria-expanded', 'false');
+}
+
 export function initPreviewDialogs() {
     // Delegated click handler for Book Preview buttons.
     // Uses event delegation so dynamically-added buttons (e.g. from
@@ -56,23 +67,73 @@ export function initPreviewDialogs() {
     $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
         e.preventDefault();
         const $button = $(this);
-        $.colorbox({
-            width: '100%',
-            maxWidth: '640px',
-            inline: true,
-            opacity: '0.5',
-            href: '#bookPreview',
-            onOpen() {
-                const $iframe = $('#bookPreview iframe');
-                $iframe.prop('src', $button.data('iframe-src'));
+        const dialog = document.getElementById('bookPreview');
+        if (!dialog) return;
 
-                const $link = $('#bookPreview .learn-more a');
-                $link[0].href = $button.data('iframe-link');
-            },
-            onCleanup() {
-                $('#bookPreview iframe').prop('src', '');
-            },
-        });
+        const iframe = dialog.querySelector('iframe');
+        if (iframe) {
+            iframe.src = $button.data('iframe-src');
+        }
+
+        const link = dialog.querySelector('.learn-more a');
+        if (link) {
+            link.href = $button.data('iframe-link');
+        }
+
+        dialog.open = true;
+    });
+
+    $(document).off('ol-close.bookPreview').on('ol-close.bookPreview', '#bookPreview', function() {
+        const iframe = this.querySelector('iframe');
+        if (iframe) {
+            iframe.src = '';
+        }
+    });
+
+    // Handle clicking the "Search Inside" button to expand it to the input form
+    $(document).off('click.bookSearchTrigger').on('click.bookSearchTrigger', '[data-search-trigger]', function(e) {
+        e.preventDefault();
+        const $triggerBtn = $(this);
+        const $btnGroup = $triggerBtn.closest('.cta-button-group');
+        $triggerBtn.attr('aria-expanded', 'true');
+        $btnGroup.find('.preview-btn, .search-inside-trigger-btn').hide();
+        $btnGroup.find('.search-inside-form').show().find('.search-inside-input').trigger('focus');
+    });
+
+    // Handle pressing Escape to collapse the search inside input form back
+    $(document).off('keydown.bookSearchInput').on('keydown.bookSearchInput', '.search-inside-input', function(e) {
+        if (e.key === 'Escape') {
+            const $btnGroup = $(this).closest('.cta-button-group');
+            collapseSearchForm($btnGroup);
+            e.stopPropagation();
+        }
+    });
+
+    // Handle clicking the cancel (&times;) button to collapse the form back
+    $(document).off('click.bookSearchCancel').on('click.bookSearchCancel', '.search-cancel-btn', function(e) {
+        e.preventDefault();
+        collapseSearchForm($(this).closest('.cta-button-group'));
+    });
+
+    // Handle search form submission to open query inside preview dialog modal
+    $(document).off('submit.bookSearchForm').on('submit.bookSearchForm', '.search-inside-form', function(e) {
+        e.preventDefault();
+        const $form = $(this);
+        const query = $form.find('.search-inside-input').val();
+        const ocaid = $form.data('ocaid');
+        const dialog = document.getElementById('bookPreview');
+        if (dialog) {
+            const iframe = dialog.querySelector('iframe');
+            if (iframe) {
+                iframe.src = `https://archive.org/details/${ocaid}?view=theater&wrapper=false&q=${encodeURIComponent(query)}`;
+            }
+            const link = dialog.querySelector('.learn-more a');
+            if (link) {
+                link.href = `https://archive.org/details/${ocaid}`;
+            }
+            dialog.open = true;
+        }
+        collapseSearchForm($form.closest('.cta-button-group'));
     });
 }
 

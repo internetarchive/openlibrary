@@ -149,6 +149,18 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+# Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
+# comments that list which templates use each string. When a string gains or loses one
+# file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
+# turning unrelated edits into overlapping diffs and causing spurious merge conflicts.
+# Writing with a very large width disables wrapping, so each location comment stays on a
+# single line and adding a file just extends that line — unrelated changes no longer
+# share, or conflict on, any lines. (``width=0`` does *not* work: Babel mirrors
+# ``xgettext`` and always wraps comments at 76 regardless, while only unwrapping the
+# message text — the opposite of what we want.)
+POT_WIDTH = 1_000_000
+
+
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
     # Occasional manual bumps are fine to make it more up-to-date
@@ -205,7 +217,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
 
     path = os.path.join(root, "messages.pot")
     with open(path, "wb") as f:
-        write_po(f, catalog, include_lineno=False)
+        write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
 
@@ -319,7 +331,7 @@ def generate_po(args):
 
 
 @functools.cache
-def load_translations(lang):
+def load_translations(lang: str):
     mo_path = os.path.join(root, lang, "messages.mo")
 
     if os.path.exists(mo_path):
@@ -327,18 +339,30 @@ def load_translations(lang):
 
 
 @functools.cache
-def load_locale(lang):
+def load_locale(lang: str):
     try:
         return babel.Locale(lang)
     except babel.UnknownLocaleError:
-        pass
+        return None
 
 
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-        translations = load_translations(req_context.get().lang)
+        try:
+            lang = req_context.get().lang
+        except LookupError:
+            lang = None
+
+        if not lang:
+            print(
+                "Warning: No language set in request context. Returning untranslated string.",
+                file=web.debug,
+            )
+            lang = "en"
+
+        translations = load_translations(lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:

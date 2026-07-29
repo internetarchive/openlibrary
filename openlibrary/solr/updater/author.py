@@ -117,8 +117,8 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
         all_subjects.sort(reverse=True)
         return [top_facets for num, top_facets in all_subjects[:10]]
 
-    def build(self) -> SolrDocument:
-        doc = cast(dict, super().build())
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        doc = cast(dict, super().build(exclude=exclude))
         doc |= self.build_ratings()
         doc |= self.build_reading_log()
         return cast(SolrDocument, doc)

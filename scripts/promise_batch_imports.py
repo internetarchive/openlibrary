@@ -54,20 +54,24 @@ def map_book_to_olbook(book, promise_id):
             return None
         return val
 
-    asin_is_isbn_10 = book.get("ASIN") and book.get("ASIN")[0].isdigit()
+    asin = book.get("ASIN")
+    asin_is_isbn_10 = asin and asin[0].isdigit()
     product_json = book.get("ProductJSON", {})
     publish_date = clean_null(product_json.get("PublicationDate"))
     title = product_json.get("Title")
     isbn = book.get("ISBN") or " "
-    sku = book["BookSKUB"] or book["BookSKU"] or book["BookBarcode"]
+    sku = book.get("BookSKUB") or book.get("BookSKU") or book.get("BookBarcode")
+    if not sku:
+        logger.info(f"No sku found for record: {product_json}")
+        return None
     olbook = {
         "local_id": [f"urn:bwbsku:{sku.upper()}"],
         "identifiers": {
-            **({"amazon": [book.get("ASIN")]} if not asin_is_isbn_10 else {}),
+            **({"amazon": [asin]} if asin and not asin_is_isbn_10 else {}),
             **({"better_world_books": [isbn]} if not is_isbn_13(isbn) else {}),
         },
         **({"isbn_13": [isbn]} if is_isbn_13(isbn) else {}),
-        **({"isbn_10": [book.get("ASIN")]} if asin_is_isbn_10 else {}),
+        **({"isbn_10": [asin]} if asin_is_isbn_10 else {}),
         **({"title": title} if title else {}),
         "authors": ([{"name": clean_null(product_json.get("Author"))}] if clean_null(product_json.get("Author")) else []),
         "publishers": [clean_null(product_json.get("Publisher")) or "????"],
@@ -141,7 +145,7 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
-    olbooks_gen = (map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, "item"))
+    olbooks_gen = (olbook for book in ijson.items(resp.raw, "item") if (olbook := map_book_to_olbook(book, promise_id)) is not None)
 
     # Note: dry_run won't include BookWorm data.
     if dry_run:

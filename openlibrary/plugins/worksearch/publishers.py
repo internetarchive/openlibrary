@@ -31,18 +31,12 @@ class publishers(subjects.subjects):
 
         return render_template("publishers/view", page)
 
-    def is_enabled(self):
-        return "publishers" in web.ctx.features
-
 
 class index(delegate.page):
     path = "/publishers"
 
     def GET(self):
         return render_template("publishers/index")
-
-    def is_enabled(self):
-        return "publishers" in web.ctx.features
 
 
 class publisher_search(delegate.page):

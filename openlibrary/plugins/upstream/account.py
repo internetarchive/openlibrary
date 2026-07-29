@@ -95,123 +95,6 @@ def get_login_error(error_key):
     return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
 
 
-class availability(delegate.page):
-    path = "/internal/fake/availability"
-
-    def POST(self):
-        """Internal private API required for testing on localhost"""
-        return delegate.RawText(json.dumps({}), content_type="application/json")
-
-
-class loans(delegate.page):
-    path = "/internal/fake/loans"
-
-    def POST(self):
-        """Internal private API required for testing on localhost"""
-        return delegate.RawText(json.dumps({}), content_type="application/json")
-
-
-class xauth(delegate.page):
-    path = "/internal/fake/xauth"
-
-    def POST(self):
-        """Internal private API required for testing login on localhost
-        which normally would have to hit archive.org's xauth
-        service. This service is spoofable to return successful and
-        unsuccessful login attempts depending on the provided GET parameters
-        """
-        i = web.input(email="", op=None, password="")
-        # xauth() sends JSON body; web.input() only reads query params + form bodies
-        try:
-            body = json.loads(web.data() or "{}")
-        except json.JSONDecodeError, ValueError:
-            body = {}
-        result = {"error": "incorrect option specified"}
-        if i.op == "authenticate":
-            result = {
-                "success": True,
-                "version": 1,
-                "values": {"token": "dev_placeholder_token"},
-            }
-        elif i.op == "info":
-            result = {
-                "success": True,
-                "values": {
-                    "locked": False,
-                    "email": "openlibrary@example.org",
-                    "itemname": "@openlibrary",
-                    "screenname": "openlibrary",
-                    "verified": True,
-                },
-                "version": 1,
-            }
-        elif i.op == "issue_otp":
-            # Pretend to send an OTP email; accept any email in dev
-            result = {"success": True, "version": 1}
-        elif i.op == "redeem_otp":
-            # Accept "123456" as the dev OTP code; S3 keys no longer returned here
-            if body.get("password") == "123456":
-                result = {
-                    "success": True,
-                    "version": 1,
-                    "values": {
-                        "email": "openlibrary@example.org",
-                        "itemname": "@openlibrary",
-                        "screenname": "openlibrary",
-                        "token": "dev_placeholder_token",
-                    },
-                }
-            else:
-                result = {
-                    "success": False,
-                    "version": 1,
-                    "error": "invalid_otp",
-                }
-        elif i.op == "issue_key":
-            result = {
-                "success": True,
-                "version": 1,
-                "s3": {"access": "foo", "secret": "foo"},
-                "ttl": 3600,
-            }
-        elif i.op == "activate":
-            result = {
-                "success": True,
-                "version": 1,
-                "values": {
-                    "email": "openlibrary@example.org",
-                    "itemname": "@openlibrary",
-                    "screenname": "openlibrary",
-                    "token": "dev_placeholder_token",
-                },
-            }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-
-class s3auth(delegate.page):
-    path = "/internal/fake/s3auth"
-
-    def GET(self):
-        """Fake S3 auth endpoint for local dev. Accepts the dummy keys
-        issued by the fake xauth so the OTP redeem flow can complete."""
-        auth = web.ctx.env.get("HTTP_AUTHORIZATION", "")
-        # Fake keys are "foo:foo" — accept them
-        if "LOW foo:foo" in auth:
-            return delegate.RawText(
-                json.dumps(
-                    {
-                        "authorized": True,
-                        "username": "openlibrary@example.org",
-                        "itemname": "@openlibrary",
-                        "screenname": "openlibrary",
-                        "s3": {"access": "foo", "secret": "foo"},
-                    }
-                ),
-                content_type="application/json",
-            )
-        return delegate.RawText(json.dumps({"authorized": False}), content_type="application/json")
-
-
 class internal_audit(delegate.page):
     path = "/internal/account/audit"
 
@@ -652,7 +535,7 @@ class account_login(delegate.page):
             connect=None,
             password="",
             remember=False,
-            redirect="/",
+            redirect=None,
             test=False,
             access=None,
             secret=None,
@@ -681,7 +564,7 @@ class account_login(delegate.page):
         connect=None,
         password="",
         remember=False,
-        redirect="/",
+        redirect=None,
         test=False,
         access=None,
         secret=None,
@@ -817,11 +700,10 @@ class account_verify(delegate.page):
             )
             raise web.seeother("/account/create")
         add_flash_message("success", _("Your email has been verified. You are now logged in."))
-        return account_login().login(
-            access=r["s3"]["access"],
-            secret=r["s3"]["secret"],
-            redirect=i.redirect or "/account/books",
-        )
+        kwargs = {"access": r["s3"]["access"], "secret": r["s3"]["secret"]}
+        if i.redirect:
+            kwargs["redirect"] = i.redirect
+        return account_login().login(**kwargs)
 
 
 class account_ia_email_forgot(delegate.page):

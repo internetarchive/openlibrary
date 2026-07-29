@@ -909,6 +909,7 @@ class new:
                 "/type/work",
                 "/type/series",
                 "/type/publisher",
+                "/type/tag",
             ]:
                 raise BadRequest("Bad Type: " + json.dumps(type))
 

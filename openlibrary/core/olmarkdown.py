@@ -64,12 +64,28 @@ FENCED_CODE_PREPROCESSOR = FencedCodePreprocessor()
 class LineBreaksPreprocessor(markdown.Preprocessor):
     def run(self, lines):
         for i in range(len(lines) - 1):
-            # append <br/> to all lines expect blank lines and the line before blankline.
+            # Only consider non-blank lines followed by another non-blank line,
+            # and never touch indented code (tabbed) lines.
+            if not (lines[i].strip() and lines[i + 1].strip()):
+                continue
+            if markdown.RE.regExp["tabbed"].match(lines[i]):
+                continue
+
+            # A lone trailing backslash is CommonMark's hard-break marker, which
+            # the Tiptap WYSIWYG editor emits between wrapped lines. OLMarkdown
+            # has no such syntax: left alone the backslash either escapes the "<"
+            # of the <br /> we append (so the tag renders as the literal text
+            # "<br />" to readers) or shows as a stray "\". Drop it either way so
+            # the two renderers agree. See issue #13074.
+            lines[i] = re.sub(r"(?<!\\)\\$", "", lines[i])
+
             if (
-                lines[i].strip()
-                and lines[i + 1].strip()
-                and not markdown.RE.regExp["tabbed"].match(lines[i])
-                and not LINK_REFERENCE_RE.match(lines[i])
+                not LINK_REFERENCE_RE.match(lines[i])
+                # Don't glue a hard break onto a line that immediately precedes a
+                # link-reference definition. This runs before REFERENCE_PREPROCESSOR
+                # strips those definitions, so a <br /> appended here gets orphaned
+                # inside the reference block and leaks into the page as literal markup.
+                and not LINK_REFERENCE_RE.match(lines[i + 1])
                 and not lines[i].lstrip().startswith(">")
             ):
                 lines[i] += "<br />"
