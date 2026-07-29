@@ -85,8 +85,10 @@ $ bodyclass.append('search-page')
         $# num_found_exact is false only when Solr stopped counting early,
         $# making the total a lower bound — say "over" rather than quote it.
         $if param and not search_response.error and len(search_response.docs):
+          $# Count the docs actually rendered rather than assuming a full page:
+          $# exact either way when num_found is, and still right when it isn't.
           $ range_start = (page - 1) * rows + 1
-          $ range_end = min(page * rows, search_response.num_found)
+          $ range_end = range_start + len(search_response.docs) - 1
           $ range_total = commify(search_response.num_found)
           <div class="search-results-stats">
             $if search_response.num_found_exact:
