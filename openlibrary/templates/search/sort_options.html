@@ -74,7 +74,7 @@ $code:
 
      # Flatten for the menu. Sub-sorts become `nested` rows, always visible.
      # A sub-sort repeating its parent's key (Reading Log / "Any") is dropped:
-     # the parent already selects it, and duplicates collide in the keyed list.
+     # the parent already selects it, and both rows would read as checked.
      items = []
      for option in sort_options:
        if exclude and option['sort'] in exclude:
