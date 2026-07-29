@@ -112,36 +112,73 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
+                $# Current filter state, derived from the URL the same way /search does.
+                $# `active_availability` collapses the has_fulltext/public_scan params
+                $# into one value; languages are the selected `language=` codes.
+                $ author_req = input(language=[])
+                $ active_availability = get_active_availability(author_req)
+                $ selected_languages = [lang for lang in (author_req.language if isinstance(author_req.language, list) else [author_req.language]) if lang]
+                $ filter_active = active_availability != 'all' or bool(selected_languages)
+                $# The heading names the author's whole bibliography, so when a filter
+                $# narrows the view we still show the real total (the filtered count
+                $# lives in the status line below). Unfiltered, books_count IS the
+                $# total — so we only pay the extra rows=0 count query when filtering.
+                $ total_work_count = page.get_work_count() if filter_active else books_count
+
                 <h2 class="collapse">
-                    $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
+                    $ungettext("%(count)d work", "%(count)d works", total_work_count, count=total_work_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
 
                 <form method="GET" class="olform pagesearchbox">
-                    <input type="hidden" name="has_fulltext" value="true"/>
-                    $if (query_param('sort')):
-                      <input type="hidden" name="sort" value="$query_param('sort')"/>
-                    $if (query_param('mode')):
-                      <input type="hidden" name="mode" value="$query_param('mode')"/>
+                    $# Preserve the active filters + sort across a search-within-author
+                    $# submit so the keyword search doesn't silently drop them. `filters`
+                    $# carries the scope-local `filters=off` opt-out so "Show all" isn't
+                    $# undone (the stored global pref would otherwise re-apply on submit).
+                    $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort', 'filters']:
+                        $if query_param(k):
+                          <input type="hidden" name="$k" value="$query_param(k)"/>
+                    $for lang in selected_languages:
+                        <input type="hidden" name="language" value="$lang"/>
                     $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
                   </form>
         <div class="clearfix"></div>
 
-                <div class="search-results-stats">
+                $# Unified controls row: sort (left), availability + language filter,
+                $# then the Details/Grid toggle (right-aligned). The filter bar keeps
+                $# its own .search-filter-row wrapper so SearchFilterBar.js still binds
+                $# it (shared with /search); it's shown when there's more than one work
+                $# to act on, or whenever a filter is active so the user can clear it.
+                <div class="search-controls-row">
                     $if books_count > 1:
                         $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
+                    $if filter_active or books_count > 1:
+                        $:render_template("search/filters_disclosure.html", availability_active=(active_availability != 'all'), language_active=bool(selected_languages))
+
                     $if books_count > 0:
                         $:render_template("search/layout_options.html", selected_layout=layout)
-
-                    $if input(mode="everything").mode == "everything":
-                        $if books_count > 0:
-                            <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-                    $else:
-                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
                 </div>
 
-                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
+                $# Always-visible filtered-state line: whenever a global/URL filter is
+                $# narrowing this author's bibliography, say so (at any reduction, not
+                $# only when zero match) and offer a scope-local "Show all". The link
+                $# clears the filters for THIS page via `filters=off`, which
+                $# SearchFilterBar.js honors WITHOUT wiping the stored global reading
+                $# preference — so the user's availability/language choice still applies
+                $# on /search and other authors.
+                $if filter_active:
+                    $# "Show all" returns to the full bibliography: clear the availability
+                    $# + language filters AND any search-within-author query, so the count
+                    $# the link promises (total_work_count) is exactly what gets shown.
+                    $ show_all_url = changequery(has_fulltext=None, public_scan=None, print_disabled=None, language=None, mode=None, page=None, q=None, filters='off')
+                    <p class="search-filter-status collapse">
+                        $if books_count == 0:
+                            $_('No matching works by this author with the current filters.')
+                        $else:
+                            $_('Showing %(shown)s of %(total)s works.', shown=commify(books_count), total=commify(total_work_count))
+                        <a href="$show_all_url">$_('Show all %(count)s works', count=commify(total_work_count))</a>
+                    </p>
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">

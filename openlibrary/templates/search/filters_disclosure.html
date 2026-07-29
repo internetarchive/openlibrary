@@ -1,0 +1,36 @@
+$def with (availability_active=False, language_active=False)
+
+$# Availability + language filter controls, shared by the author page and the
+$# reading log (and bound by SearchFilterBar.js, which seeds the empty controls
+$# and navigates on change). On wide screens both controls sit inline in the
+$# results toolbar; on narrow screens they collapse behind the "Filters" button
+$# below — the panel keeps its `.search-filter-row` hook either way.
+$#
+$# Render AT MOST ONCE per page: the panel id and the button's aria-controls are
+$# a fixed `search-filter-row`, and index.js wires only the first match — a second
+$# include would produce a duplicate id and an unbound control.
+$ active_filter_count = (1 if availability_active else 0) + (1 if language_active else 0)
+
+$# Fold the active-filter count into the button's accessible name so a screen
+$# reader hears "Filters, 2 active" rather than a context-free "Filters 2".
+$if active_filter_count:
+  $ button_label = ungettext('Filters, %(count)s active', 'Filters, %(count)s active', active_filter_count, count=active_filter_count)
+$else:
+  $ button_label = _('Filters')
+
+<button type="button" class="search-filters__toggle tool-button" aria-controls="search-filter-row" aria-expanded="false" aria-label="$button_label">
+  <svg class="search-filters__icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+    <path d="M2 4h12M4 8h8M6.5 12h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>
+  $_('Filters')
+  $if active_filter_count:
+    <span class="search-filters__badge" aria-hidden="true">$active_filter_count</span>
+</button>
+
+<div class="search-filter-row" id="search-filter-row">
+  $# Render the on/off state server-side so the toggle paints in its final
+  $# position — without `checked` it starts off and the client-side seed
+  $# animates it on after load.
+  <ol-toggle variant="card" label="$_('Readable Only')" accessible-label="$_('Filter by availability')" $cond(availability_active, 'checked')></ol-toggle>
+  <ol-select-popover label="$_('Language')" placeholder="$_('Search languages…')" unselected-heading="$_('Languages')" aria-label="$_('Filter by language')"></ol-select-popover>
+</div>

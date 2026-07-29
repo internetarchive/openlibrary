@@ -5,8 +5,10 @@ import web
 from openlibrary.plugins.worksearch.code import (
     _get_readable_count,
     _prepare_solr_query_params,
+    doc_matches_reading_prefs,
     get_doc,
     process_facet,
+    works_by_author,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.request_context import RequestContextVars, req_context
@@ -232,3 +234,65 @@ def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
     assert readable_param["has_fulltext"] == "true"
     assert "public_scan" not in readable_param
     assert mock_query.call_args.kwargs["rows"] == 0
+
+
+def test_works_by_author_merges_availability_and_languages_into_param():
+    """An author page can scope its works by availability + language; the values
+    are merged into the param dict the same way /search expresses them, so
+    run_solr_query rewrites them into identical Solr filters."""
+    with (
+        patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query",
+            return_value=web.storage(docs=[]),
+        ) as mock_query,
+        patch("openlibrary.plugins.worksearch.code.add_availability"),
+    ):
+        works_by_author("OL1A", availability="borrowable", languages=["eng", "fre"])
+    param = mock_query.call_args.kwargs["param"]
+    # 'borrowable' == readable but not public-domain.
+    assert param["has_fulltext"] == "true"
+    assert param["public_scan"] == "false"
+    assert param["language"] == ["eng", "fre"]
+
+
+def test_works_by_author_default_scope_injects_no_filters():
+    """The default availability ('all') with no languages leaves a bare author
+    scope — no availability or language params added to the query."""
+    with (
+        patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query",
+            return_value=web.storage(docs=[]),
+        ) as mock_query,
+        patch("openlibrary.plugins.worksearch.code.add_availability"),
+    ):
+        works_by_author("OL1A")
+    assert mock_query.call_args.kwargs["param"] == {"q": "*:*"}
+
+
+class TestDocMatchesReadingPrefs:
+    """The per-page view-filter predicate used on DB-backed list pages."""
+
+    def test_no_prefs_matches_everything(self):
+        assert doc_matches_reading_prefs({}, "all", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "no_ebook"}, "all", []) is True
+
+    def test_readable_requires_borrowable_or_public(self):
+        assert doc_matches_reading_prefs({"ebook_access": "public"}, "readable", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "borrowable"}, "readable", []) is True
+        assert doc_matches_reading_prefs({"ebook_access": "printdisabled"}, "readable", []) is False
+        assert doc_matches_reading_prefs({"ebook_access": "no_ebook"}, "readable", []) is False
+
+    def test_language_intersection(self):
+        assert doc_matches_reading_prefs({"language": ["eng", "fre"]}, "all", ["fre"]) is True
+        assert doc_matches_reading_prefs({"language": ["eng"]}, "all", ["spa"]) is False
+
+    def test_both_prefs_must_hold(self):
+        doc = {"ebook_access": "public", "language": ["spa"]}
+        assert doc_matches_reading_prefs(doc, "readable", ["spa"]) is True
+        assert doc_matches_reading_prefs(doc, "readable", ["eng"]) is False
+
+    def test_empty_doc_fails_active_filter(self):
+        """An unresolved seed (no Solr fields) is excluded rather than slipping
+        through an active filter unfiltered."""
+        assert doc_matches_reading_prefs({}, "readable", []) is False
+        assert doc_matches_reading_prefs({}, "all", ["eng"]) is False

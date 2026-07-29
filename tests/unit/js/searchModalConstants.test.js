@@ -1,14 +1,17 @@
 import {
     AVAILABILITY_OPTIONS,
+    DEFAULT_AVAILABILITY,
     DEFAULT_SEARCH_MODAL_STRINGS,
+    LS_AVAILABILITY_KEY,
+    LS_LANGUAGES_KEY,
     LS_RECENT_SEARCHES_KEY,
     RECENT_SEARCHES_MAX,
-    SS_LANGUAGES_KEY,
     availabilityFromParams,
     availabilityOptionsFromElement,
     languageNameFromOptions,
     localizeAvailabilityOptions,
     readRecentSearches,
+    readStoredAvailability,
     readStoredLanguages,
     readableEditionLanguages,
     readableLanguageMismatch,
@@ -16,6 +19,8 @@ import {
     saveRecentSearch,
     searchModalStringsFromElement,
     siteLanguageToMarc,
+    writeStoredAvailability,
+    writeStoredLanguages,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/constants';
 
 describe('localizeAvailabilityOptions', () => {
@@ -297,9 +302,9 @@ describe('recent searches (localStorage)', () => {
     });
 });
 
-describe('readStoredLanguages (sessionStorage)', () => {
+describe('readStoredLanguages (localStorage)', () => {
     beforeEach(() => {
-        sessionStorage.clear();
+        localStorage.clear();
         jest.restoreAllMocks();
     });
 
@@ -308,28 +313,77 @@ describe('readStoredLanguages (sessionStorage)', () => {
     });
 
     test('returns the stored array of codes', () => {
-        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify(['eng', 'fre']));
+        localStorage.setItem(LS_LANGUAGES_KEY, JSON.stringify(['eng', 'fre']));
         expect(readStoredLanguages()).toEqual(['eng', 'fre']);
     });
 
     test('returns [] when the parsed value is not an array', () => {
-        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify('eng'));
+        localStorage.setItem(LS_LANGUAGES_KEY, JSON.stringify('eng'));
         expect(readStoredLanguages()).toEqual([]);
     });
 
     test('drops non-string entries so a corrupt value cannot leak a bogus filter', () => {
-        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify(['eng', 1, null, 'spa']));
+        localStorage.setItem(LS_LANGUAGES_KEY, JSON.stringify(['eng', 1, null, 'spa']));
         expect(readStoredLanguages()).toEqual(['eng', 'spa']);
     });
 
     test('returns [] on unparseable JSON', () => {
-        sessionStorage.setItem(SS_LANGUAGES_KEY, '{nope');
+        localStorage.setItem(LS_LANGUAGES_KEY, '{nope');
         expect(readStoredLanguages()).toEqual([]);
     });
 
-    test('returns [] when sessionStorage.getItem throws (private browsing)', () => {
+    test('returns [] when localStorage.getItem throws (private browsing)', () => {
         jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
         expect(readStoredLanguages()).toEqual([]);
+    });
+});
+
+describe('availability/language preference round-trip (localStorage)', () => {
+    beforeEach(() => {
+        localStorage.clear();
+        jest.restoreAllMocks();
+    });
+
+    test('readStoredAvailability falls back to the default when unset', () => {
+        expect(readStoredAvailability()).toBe(DEFAULT_AVAILABILITY);
+    });
+
+    test('writeStoredAvailability round-trips a value', () => {
+        writeStoredAvailability('readable');
+        expect(localStorage.getItem(LS_AVAILABILITY_KEY)).toBe('readable');
+        expect(readStoredAvailability()).toBe('readable');
+    });
+
+    test('writeStoredAvailability coerces a falsy value to the default', () => {
+        writeStoredAvailability('');
+        expect(localStorage.getItem(LS_AVAILABILITY_KEY)).toBe(DEFAULT_AVAILABILITY);
+    });
+
+    test('writeStoredLanguages round-trips through readStoredLanguages', () => {
+        writeStoredLanguages(['eng', 'fre']);
+        expect(localStorage.getItem(LS_LANGUAGES_KEY)).toBe(JSON.stringify(['eng', 'fre']));
+        expect(readStoredLanguages()).toEqual(['eng', 'fre']);
+    });
+
+    test('writeStoredLanguages treats a nullish list as empty', () => {
+        writeStoredLanguages(null);
+        expect(readStoredLanguages()).toEqual([]);
+    });
+
+    test('the preference persists across a simulated session boundary', () => {
+        // localStorage (not sessionStorage) is what makes availability + language
+        // durable across visits — the whole point of the Phase 0 migration.
+        writeStoredAvailability('readable');
+        writeStoredLanguages(['spa']);
+        // A new page load reads the same backing store; nothing is cleared.
+        expect(readStoredAvailability()).toBe('readable');
+        expect(readStoredLanguages()).toEqual(['spa']);
+    });
+
+    test('write helpers are no-ops when localStorage.setItem throws', () => {
+        jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('denied'); });
+        expect(() => writeStoredAvailability('readable')).not.toThrow();
+        expect(() => writeStoredLanguages(['eng'])).not.toThrow();
     });
 });
 
