@@ -868,9 +868,7 @@ msgstr ""
 
 #: subjects.html
 #, python-format
-msgid ""
-"Search is temporarily busy. %(link_start)sRefresh and try "
-"again%(link_end)s."
+msgid "Search is temporarily busy. %(link_start)sRefresh and try again%(link_end)s."
 msgstr ""
 
 #: subjects.html
