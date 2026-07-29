@@ -70,6 +70,17 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
 
         <section class="example">
+          <h3 class="example__title">Sizes</h3>
+          <p>Use <code>size</code> to match the surrounding controls. Heights track the shared <code>--control-height-*</code> tokens, so each size lines up with the same-size button. Medium is the default.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-pagination size="small" total-pages="10" current-page="3"&gt;&lt;/ol-pagination&gt;
+&lt;ol-pagination total-pages="10" current-page="3"&gt;&lt;/ol-pagination&gt;</code></pre>
+          <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <ol-pagination size="small" total-pages="10" current-page="3" label-pagination="Pagination sizes, small"></ol-pagination>
+            <ol-pagination total-pages="10" current-page="3" label-pagination="Pagination sizes, medium"></ol-pagination>
+          </div>
+        </section>
+
+        <section class="example">
           <h3 class="example__title">URL-based Navigation</h3>
           <p>When base-url is provided, pagination renders anchor tags for SEO-friendly links.</p>
           <pre class="example__code"><code class="language-html">&lt;ol-pagination
@@ -581,7 +592,7 @@ The response includes `title`, `authors`, and a `description` field formatted as
       <article class="design-pattern" id="control-alignment">
         <h2 class="design-pattern__title">Control alignment</h2>
 
-        <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination is shown in the medium row as-is — it is not height-locked to the tokens, so this check is a way to eyeball whether it still reads as aligned.</p>
+        <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination ships small and medium only — there is no large row for it.</p>
 
         <div class="control-alignment__guides-toggle">
           <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines"></ol-toggle>
@@ -603,6 +614,9 @@ The response includes `title`, `authors`, and a `description` field formatted as
               <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, small" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
                 <ol-button slot="trigger" size="small" variant="secondary">Language</ol-button>
               </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <ol-pagination size="small" total-pages="5" current-page="3" label-pagination="Alignment pagination, small"></ol-pagination>
             </span>
             <span class="control-row__cell">
               <input class="control-row__field control-row__field--small" type="text" value="Input" aria-label="Alignment input, small">
