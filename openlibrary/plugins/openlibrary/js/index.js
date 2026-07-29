@@ -633,6 +633,13 @@ jQuery(function() {
             .then(module => module.ListBooks.init());
     }
 
+    // Sort options popover (results toolbars)
+    const sortOptions = document.querySelector('.sort-options');
+    if (sortOptions) {
+        import(/* webpackChunkName: "sort-options" */ './sort_options')
+            .then(module => module.initSortOptions(sortOptions));
+    }
+
     // Stats page login counts
     const monthlyLoginStats = document.querySelector('.monthly-login-counts');
     if (monthlyLoginStats) {
