@@ -58,6 +58,12 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-fg: var(--dark-grey);
             --_chip-border: var(--color-border-subtle);
             --_chip-bg-hover: var(--lightest-grey);
+            /* Border darkens in step with the fill on hover, matching
+               ol-button[variant="secondary"]. Derived from the resting border
+               so every variant tracks its own color: a ~8% mix toward black
+               lands the neutral chip exactly on --light-grey (87% → 80%) and
+               nudges each domain tint's border down by a proportional amount. */
+            --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
             --_chip-count-fg: #777;
 
             display: inline-block;
@@ -89,6 +95,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         @media (hover: hover) and (pointer: fine) {
             .chip:hover {
                 background: var(--_chip-bg-hover);
+                border-color: var(--_chip-border-hover);
             }
         }
 
@@ -107,6 +114,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             --_chip-fg: var(--white);
             --_chip-border: var(--primary-blue);
             --_chip-bg-hover: var(--primary-blue);
+            /* This chip lightens on hover via a brightness() filter (below)
+               rather than darkening its fill, so keep the border color put — the
+               filter carries the whole pill, edge included. */
+            --_chip-border-hover: var(--_chip-border);
             --_chip-count-fg: #c6e1f0;
         }
 

@@ -12,9 +12,10 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $ link_class = '%s--redirect js-login-intent' % link_class
     $ href = '/account/login?redirect=%s' % ctx.path
 
-  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
-
-  <a href="$href" class="$link_class icon-link" $ga_attr $:data_attr>
+  <a href="$href" class="$link_class icon-link"
+    $if ga_data:
+      data-ol-link-track="$ga_data"
+    $:data_attr>
     <img class="icon-link__image" src="$img_src" alt="">
     <div class="icon-link__text">$link_text</div>
   </a>

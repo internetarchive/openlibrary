@@ -7,9 +7,9 @@ from infogami.utils.view import render_template
 
 logger = logging.getLogger("openlibrary.design")
 
-# Committed Custom Elements Manifest generated from JSDoc on the Lit components
-# by `npx cem analyze` (see custom-elements-manifest.config.mjs). Regenerated as
-# part of `make lit-components`.
+# Custom Elements Manifest generated from JSDoc on the Lit components by
+# `npx cem analyze` (see custom-elements-manifest.config.mjs), which
+# `make lit-components` runs. Generated, not committed — see .gitignore.
 MANIFEST_PATH = Path(__file__).parents[2] / "components" / "lit" / "custom-elements.json"
 
 
@@ -72,15 +72,18 @@ def _clean_declaration(decl):
 
 
 def load_components():
-    """Index cleaned component API data by tag name from the committed manifest.
+    """Index cleaned component API data by tag name from the generated manifest.
 
     Returns an empty dict if the manifest is missing or unreadable so the design
-    page still renders its hand-written live demos.
+    page still renders its hand-written live demos, minus the API tables.
     """
     try:
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     except OSError, ValueError:
-        logger.warning("Could not read Custom Elements Manifest at %s", MANIFEST_PATH)
+        logger.warning(
+            "Could not read Custom Elements Manifest at %s — the design page's API tables will be empty. Run `make lit-components` to generate it.",
+            MANIFEST_PATH,
+        )
         return {}
     components = {}
     for module in manifest.get("modules", []):
