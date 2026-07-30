@@ -15,11 +15,12 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 SITEMAP_URL = "https://bookdash.org/books-sitemap.xml"
 SITEMAP_NS = {"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 ISBN_RE = re.compile(r"ISBN:\s*([\d\-Xx]+)")
+REQUEST_TIMEOUT = 30
 
 
 def get_sitemap_urls() -> list[str]:
     """Fetches and returns all Bookdash book page URLs from their sitemap."""
-    response = requests.get(SITEMAP_URL)
+    response = requests.get(SITEMAP_URL, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     root = ET.fromstring(response.content)
     urls = [loc.text for loc in root.findall(".//ns:loc", SITEMAP_NS)]
@@ -29,14 +30,18 @@ def get_sitemap_urls() -> list[str]:
 
 def scrape_book_page(url: str) -> dict[str, Any]:
     """Fetches a single Bookdash book page and extracts its raw metadata."""
-    response = requests.get(url)
+    response = requests.get(url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
-    title = soup.find("h1").get_text(strip=True)
+    title_tag = soup.find("h1")
+    if not title_tag:
+        raise ValueError(f"Missing <h1> title on {url}")
+    title = title_tag.get_text(strip=True)
 
-    cover_img = soup.find("picture").find("img")
-    cover_url = cover_img.get("data-src") or cover_img.get("src")
+    cover_url = None
+    if (picture := soup.find("picture")) and (cover_img := picture.find("img")):
+        cover_url = cover_img.get("data-src") or cover_img.get("src")
 
     description_tag = soup.find("meta", attrs={"property": "og:description"})
     description = description_tag["content"] if description_tag else ""

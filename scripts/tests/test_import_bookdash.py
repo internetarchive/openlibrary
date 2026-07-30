@@ -1,6 +1,14 @@
 from unittest.mock import Mock, patch
 
-from scripts.import_bookdash import map_data, scrape_book_page, strip_author_role
+from scripts.import_bookdash import get_sitemap_urls, map_data, scrape_book_page, strip_author_role
+
+SITEMAP_XML = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://bookdash.org/books/</loc></url>
+<url><loc>https://bookdash.org/books/a-beautiful-day/</loc></url>
+<url><loc>https://bookdash.org/books/usuku-oluhle/</loc></url>
+</urlset>
+"""
 
 BOOK_PAGE_HTML = """
 <html>
@@ -29,6 +37,16 @@ SAMPLE_1 = {
     "authors": ["Raeesah Vawda(Designer)", "Lindy Pelzl(Illustrator)", "Elana Bregin(Writer)"],
     "isbn": "978-1-928318-15-6",
 }
+
+
+@patch("scripts.import_bookdash.requests.get")
+def test_get_sitemap_urls(mock_get):
+    mock_get.return_value = Mock(content=SITEMAP_XML.encode(), status_code=200)
+    urls = get_sitemap_urls()
+    assert urls == [
+        "https://bookdash.org/books/a-beautiful-day/",
+        "https://bookdash.org/books/usuku-oluhle/",
+    ]
 
 
 @patch("scripts.import_bookdash.requests.get")
