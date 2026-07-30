@@ -1,4 +1,23 @@
-from scripts.import_bookdash import map_data, strip_author_role
+from unittest.mock import Mock, patch
+
+from scripts.import_bookdash import map_data, scrape_book_page, strip_author_role
+
+BOOK_PAGE_HTML = """
+<html>
+<head>
+<meta property="og:description" content="It's a beautiful day for a picnic.">
+</head>
+<body>
+<h1>A Beautiful Day</h1>
+<picture><img data-src="https://bookdash.org/wp-content/uploads/2016/01/cover.jpg" src="placeholder.jpg"></picture>
+<a href="/languages/eng">English</a>
+<a href="/themes/family-friends-and-home">Family, friends, and home</a>
+<a href="/team-members/raeesah-vawda">Raeesah Vawda(Designer)</a>
+<a href="/team-members/elana-bregin">Elana Bregin(Writer)</a>
+<p>ISBN: 978-1-928318-15-6</p>
+</body>
+</html>
+"""
 
 SAMPLE_1 = {
     "url": "https://bookdash.org/books/a-beautiful-day/",
@@ -10,6 +29,22 @@ SAMPLE_1 = {
     "authors": ["Raeesah Vawda(Designer)", "Lindy Pelzl(Illustrator)", "Elana Bregin(Writer)"],
     "isbn": "978-1-928318-15-6",
 }
+
+
+@patch("scripts.import_bookdash.requests.get")
+def test_scrape_book_page(mock_get):
+    mock_get.return_value = Mock(text=BOOK_PAGE_HTML, status_code=200)
+    scraped = scrape_book_page("https://bookdash.org/books/a-beautiful-day/")
+    assert scraped == {
+        "url": "https://bookdash.org/books/a-beautiful-day/",
+        "title": "A Beautiful Day",
+        "cover_url": "https://bookdash.org/wp-content/uploads/2016/01/cover.jpg",
+        "description": "It's a beautiful day for a picnic.",
+        "languages": ["eng"],
+        "subjects": ["Family, friends, and home"],
+        "authors": ["Raeesah Vawda(Designer)", "Elana Bregin(Writer)"],
+        "isbn": "978-1-928318-15-6",
+    }
 
 
 def test_strip_author_role():
