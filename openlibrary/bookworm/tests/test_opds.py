@@ -67,3 +67,18 @@ def test_all_three_feeds_map_every_sample_publication():
 def test_skips_publication_without_title_or_authors():
     pub = Publication(metadata={"identifier": "urn:isbn:9781737408802"}, links=[])
     assert to_import_record(pub, BWB) is None
+
+
+def test_no_cover_field_emitted():
+    """Cover URLs are intentionally omitted from import records.
+
+    OL's server-side cover fetch is gated by two host allowlists none of these
+    feed hosts satisfy, and the match/merge path (which feed re-imports hit)
+    retries a doomed URL 10x with a 2s sleep — up to 20s wasted per record. So
+    we don't ship a ``cover`` field; covers are a later, dedicated concern. #12844
+    """
+    for name, feed in [("bwb", BWB), ("gutenberg", GUTENBERG), ("lenny", LENNY)]:
+        for pub in _pubs(name):
+            rec = to_import_record(pub, feed)
+            assert rec is not None, f"{name}: record should parse"
+            assert "cover" not in rec, f"{name}: cover should be omitted"
