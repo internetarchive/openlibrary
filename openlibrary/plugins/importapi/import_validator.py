@@ -138,12 +138,17 @@ class import_validator:
             errors.append(e)
 
         # Records sourced from a *registered* provider feed may validate on a
-        # stable provider identifier alone (no ISBN/publisher). The public import
-        # path is unaffected: the source must name a registered feed. #12844
-        if self._is_registered_feed_source(data):
+        # stable provider identifier alone (no ISBN/publisher). To keep the
+        # source prefix from being a free pass, the record must ALSO carry an
+        # `identifiers` entry keyed by that same registered provider -- i.e. a
+        # `project_gutenberg:...` source must present `identifiers.project_gutenberg`.
+        # The public import path is unaffected: the source must name a registered
+        # feed and the identifiers must corroborate it. #12844
+        if feed_providers := self._registered_feed_source_providers(data):
             try:
-                FeedSourcedBook.model_validate(data)
-                return True
+                book = FeedSourcedBook.model_validate(data)
+                if feed_providers & set(book.identifiers):
+                    return True
             except ValidationError as e:
                 errors.append(e)
 
@@ -153,11 +158,11 @@ class import_validator:
         return False
 
     @staticmethod
-    def _is_registered_feed_source(data: dict[str, Any]) -> bool:
-        """True if any ``source_records`` provider names a registered feed."""
+    def _registered_feed_source_providers(data: dict[str, Any]) -> set[str]:
+        """Registered feed providers named as a ``source_records`` prefix."""
         source_records = data.get("source_records") or []
         providers = import_validator._registered_feed_providers()
-        return any(isinstance(record, str) and record.split(":")[0] in providers for record in source_records)
+        return {record.split(":")[0] for record in source_records if isinstance(record, str) and record.split(":")[0] in providers}
 
     @staticmethod
     def _registered_feed_providers() -> set[str]:

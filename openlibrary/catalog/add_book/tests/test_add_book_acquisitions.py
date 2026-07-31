@@ -115,6 +115,23 @@ def test_load_without_acquisitions_still_works(mock_site, add_languages, ia_writ
     assert Acquisition.get_by_edition(edition_id) == []
 
 
+def test_load_skips_malformed_acquisition_without_failing_import(mock_site, add_languages, ia_writeback, acquisitions_db):
+    """A malformed acquisition (missing local_id) is skipped, not fatal, after the edition saves."""
+    rec = {
+        **BASE,
+        "acquisitions": [
+            {"provider_name": "lenny"},  # missing local_id
+            {"provider_name": "lenny", "local_id": "37044775", "data": {"access": "open-access"}},
+        ],
+    }
+    reply = load(rec)
+    assert reply["success"] is True
+
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    rows = Acquisition.get_by_edition(edition_id)
+    assert [row.local_id for row in rows] == ["37044775"]  # malformed skipped, valid kept
+
+
 def test_load_drops_acquisitions_for_unregistered_provider(mock_site, add_languages, ia_writeback, acquisitions_db):
     """The guard: only providers with a registered feed may write acquisitions.
 
