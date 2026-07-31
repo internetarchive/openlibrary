@@ -18,12 +18,15 @@
  * -------------
  */
 :root {
-  /* Warm neutral ramp — "paper to ink" (hue 40–45).
-     Replaces the legacy grey + beige families with one warm ramp. */
-  --neutral-50: hsl(45, 40%, 97%); /* page canvas */
-  --neutral-100: hsl(45, 32%, 94%); /* tinted surface, header chrome */
-  --neutral-200: hsl(44, 26%, 88%); /* subtle borders, dividers */
-  --neutral-300: hsl(43, 18%, 78%); /* strong dividers, disabled bg */
+  /* Warm neutral ramp — "paper to ink" (hue 40–48).
+     Replaces the legacy grey + beige families with one warm ramp. The light
+     end is anchored to the beige on openlibrary.org today (hsl(48, 33%, 83%))
+     so the page reads as warm paper rather than tinted white; the ramp cools
+     and desaturates as it darkens, keeping text ink neutral. */
+  --neutral-50: hsl(48, 44%, 97%); /* lightest tint, raised warm surfaces */
+  --neutral-100: hsl(48, 36%, 94%); /* tinted surface, header chrome */
+  --neutral-200: hsl(47, 31%, 86%); /* page canvas (via --beige), dividers */
+  --neutral-300: hsl(45, 24%, 77%); /* strong dividers, disabled bg */
   --neutral-400: hsl(42, 11%, 62%); /* icons, placeholder (non-text) */
   --neutral-500: hsl(41, 9%, 42%); /* muted text — 5.0:1 on white */
   --neutral-600: hsl(40, 10%, 37%); /* secondary text — 6.1:1 on white */
