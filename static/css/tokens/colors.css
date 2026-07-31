@@ -120,6 +120,20 @@
   --color-disabled-bg: var(--neutral-300);
   --color-disabled-fg: var(--neutral-500);
 
+  /* Selected state for neutral controls — soft blue tint, saturated border,
+     dark-blue text. Shared by ol-button[selected] and
+     ol-toggle[variant="button"][checked] so they can't drift apart. */
+  --color-control-selected-bg: color-mix(in srgb, var(--blue-500) 8%, transparent);
+  --color-control-selected-bg-hover: color-mix(in srgb, var(--blue-500) 12%, transparent);
+  --color-control-selected-border: color-mix(in srgb, var(--blue-500) 35%, transparent);
+  --color-control-selected-border-hover: color-mix(in srgb, var(--blue-500) 50%, transparent);
+
+  /* Opaque equivalents of the two tints above, flattened over --white. Feed
+     these to --control-surface, never the tints: color-mix carries their alpha
+     into the specular highlight, which inverts it into a faint dark line. */
+  --color-control-selected-surface: color-mix(in srgb, var(--blue-500) 8%, var(--white));
+  --color-control-selected-surface-hover: color-mix(in srgb, var(--blue-500) 12%, var(--white));
+
   /* Borders & outline roles */
   --color-border: var(--neutral-500);
   --color-border-hovered: var(--neutral-600);
