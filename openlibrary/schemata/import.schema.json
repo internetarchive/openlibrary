@@ -129,6 +129,19 @@
       "examples": [
         "https://www.example.com/images/8.jpeg"
       ]
+    },
+    "acquisitions": {
+      "type": "array",
+      "description": "Trusted-provider acquisition items (buy/read links, prices) upserted into the acquisitions table by the catalog. Accepted only from trusted cluster imports, not the public import API.",
+      "items": {
+        "type": "object",
+        "required": ["provider_name", "local_id"],
+        "properties": {
+          "provider_name": { "type": "string" },
+          "local_id": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      }
     }
   },
   "definitions": {

@@ -1,0 +1,93 @@
+"""The catalog writes provider acquisitions during import (#12844)."""
+
+from typing import Final
+
+import pytest
+import web
+
+from openlibrary.catalog import add_book
+from openlibrary.catalog.add_book import load
+from openlibrary.core.acquisitions import Acquisition
+from openlibrary.core.db import get_db
+from openlibrary.utils import extract_numeric_id_from_olid
+
+
+@pytest.fixture
+def ia_writeback(monkeypatch):
+    """Prevent ia writeback from making live requests."""
+    monkeypatch.setattr(add_book, "update_ia_metadata_for_ol_edition", lambda olid: {})
+
+
+ACQUISITIONS_DDL: Final = """
+CREATE TABLE acquisitions (
+    id integer primary key,
+    work_id integer not null,
+    edition_id integer not null,
+    provider_name text not null,
+    local_id text not null,
+    data json not null,
+    created timestamp default current_timestamp,
+    updated timestamp default current_timestamp,
+    UNIQUE (local_id, provider_name)
+);
+"""
+
+BASE: Final = {
+    "title": "Flatland",
+    "source_records": ["ia:flatland_test"],
+    "ocaid": "flatland_test",
+    "languages": ["eng"],
+}
+
+
+@pytest.fixture
+def acquisitions_db():
+    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
+    db = get_db()
+    db.query("DROP TABLE IF EXISTS acquisitions;")
+    db.query(ACQUISITIONS_DDL)
+    yield db
+    db.query("DROP TABLE IF EXISTS acquisitions;")
+
+
+def test_load_upserts_acquisitions_for_new_edition(mock_site, add_languages, ia_writeback, acquisitions_db):
+    rec = {
+        **BASE,
+        "acquisitions": [
+            {
+                "provider_name": "lenny",
+                "local_id": "37044775",
+                "data": {"access": "open-access", "url": "https://lenny/read"},
+            }
+        ],
+    }
+    reply = load(rec)
+    assert reply["success"] is True
+
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    rows = Acquisition.get_by_edition(edition_id)
+    assert len(rows) == 1
+    assert rows[0].provider_name == "lenny"
+    assert rows[0].local_id == "37044775"
+    assert rows[0].data["access"] == "open-access"
+
+    # acquisitions must not leak onto the edition object
+    edition = mock_site.get(reply["edition"]["key"])
+    assert edition.get("acquisitions") is None
+
+
+def test_reimport_updates_acquisition_in_place(mock_site, add_languages, ia_writeback, acquisitions_db):
+    load({**BASE, "acquisitions": [{"provider_name": "bwb", "local_id": "urn:isbn:1", "data": {"price": {"currency": "USD", "value": 1.0}}}]})
+    reply = load({**BASE, "acquisitions": [{"provider_name": "bwb", "local_id": "urn:isbn:1", "data": {"price": {"currency": "USD", "value": 2.0}}}]})
+
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    rows = Acquisition.get_by_edition(edition_id)
+    assert len(rows) == 1  # refreshed, not duplicated
+    assert rows[0].data["price"]["value"] == 2.0
+
+
+def test_load_without_acquisitions_still_works(mock_site, add_languages, ia_writeback, acquisitions_db):
+    reply = load(dict(BASE))
+    assert reply["success"] is True
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    assert Acquisition.get_by_edition(edition_id) == []

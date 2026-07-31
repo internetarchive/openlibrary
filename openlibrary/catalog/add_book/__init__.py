@@ -60,7 +60,7 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
-from openlibrary.utils import dicthash, uniq
+from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.request_context import site
@@ -997,6 +997,42 @@ def should_overwrite_promise_item(edition: Edition, from_marc_record: bool = Fal
 
 
 def load(
+    rec: dict,
+    account_key=None,
+    from_marc_record: bool = False,
+    save: bool = True,
+) -> dict:
+    """Add/match an edition, then upsert any provider ``acquisitions`` it carries.
+
+    ``acquisitions`` is not edition data — it is pulled off the record and, once
+    the edition/work are created or matched, written to the acquisitions table
+    keyed on ``(provider_name, local_id)`` with the resolved work/edition ids.
+    The catalog logic itself lives in :func:`_load`. (#12844)
+    """
+    acquisitions = rec.pop("acquisitions", None)
+    reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
+    if acquisitions and save and reply.get("success"):
+        _save_acquisitions(reply, acquisitions)
+    return reply
+
+
+def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
+    """Upsert acquisition rows for a just-created/matched edition (#12844)."""
+    from openlibrary.core.acquisitions import Acquisition
+
+    work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    for acq in acquisitions:
+        Acquisition.upsert(
+            work_id=work_id,
+            edition_id=edition_id,
+            provider_name=acq["provider_name"],
+            local_id=acq["local_id"],
+            data=acq.get("data") or {},
+        )
+
+
+def _load(
     rec: dict,
     account_key=None,
     from_marc_record: bool = False,
