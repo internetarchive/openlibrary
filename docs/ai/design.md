@@ -104,6 +104,27 @@ The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige
 
 Always use semantic tokens. If one doesn't exist for your use case, create it in the appropriate token file rather than using a primitive or hardcoded value.
 
+### Choosing a color token
+
+The common cases, by purpose:
+
+| You are styling… | Use |
+|---|---|
+| Body text | `--color-text` |
+| Supporting text (subtitles, descriptions) | `--color-text-secondary` |
+| Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA only on white / `--neutral-50`, not on the page canvas |
+| Text on a dark or primary-colored fill | `--color-text-inverse` / `--color-on-primary` |
+| The surface of a card, input, or dropdown | `--color-surface` |
+| The page canvas behind those surfaces | `--color-background` |
+| An inset trough or well | `--color-surface-sunken` |
+| Header / footer chrome | `--color-surface-header` |
+| A link | `--color-link`, with `-hover` and `-visited` |
+| A primary button | `--color-primary` (+ `-hover`, `-active`) with `--color-on-primary` text |
+| A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
+| Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
+
+The full set — with live swatches, resolved values, and contrast readouts — is on the Foundations tab of `/developers/design`. Every swatch there click-copies its `var()` expression.
+
 ### Token files
 
 | File | Contents |

@@ -86,6 +86,21 @@
  * ------------------
  * What components consume. Each references a primitive only — this is the
  * dark-mode seam: a future `[data-theme="dark"]` block re-points these.
+ *
+ * Picking a token — the common cases:
+ *
+ * - Text: body copy → `--color-text`; supporting copy → `--color-text-secondary`;
+ *   muted metadata such as bylines, counts, and timestamps → `--color-text-muted`
+ *   (AA only on white and `--neutral-50` — not on the page canvas).
+ * - Surfaces: a card, input, or dropdown → `--color-surface`; the page canvas
+ *   behind it → `--color-background`; an inset trough or well →
+ *   `--color-surface-sunken`.
+ * - Links → `--color-link` / `-hover` / `-visited`; primary actions →
+ *   `--color-primary` with `--color-on-primary` text.
+ * - Status notices → `--color-{success,error,warning}-{fg,bg,border}`.
+ *
+ * Name the purpose, not the shade: if nothing here fits, add a semantic token
+ * to this tier rather than reaching for a primitive or a literal.
  */
 :root {
   color-scheme: light;
