@@ -27,6 +27,15 @@ On first run (or --reset), binary-searches for the uid ~14 days ago so that
 all currently-active loans are reflected after a full Solr re-index or outage.
 Once per cycle, expired loans are evicted via a Solr range query on
 ebook_becomes_available as a safety net for missed return/expire events.
+
+Reindex coordination (known limitation): a full Solr reindex of a work rebuilds
+its edition children WITHOUT these loan fields -- the main indexer is unaware of
+them -- so every reindex WIPES ebook_availability/loan_uid on the affected
+editions. This updater does NOT auto-detect a live reindex; recovery happens
+only on the next restart/--reset, which reconstructs the last ~14 days from the
+changes API. A reindexed borrowed book therefore reads as available until then.
+Stronger guarantees (indexer-side field preservation, or a scheduled re-sync)
+are a maintainer follow-up, deliberately out of scope here.
 """
 
 import contextlib
