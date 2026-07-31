@@ -129,6 +129,8 @@ def extract_local_id(pub: Publication, feed: Feed) -> str | None:
         return match.group(1) if match else None
     if feed.id_strategy == "self_link":
         href = pub.self_href() or ""
+        # Drop any query/fragment so ".../pub/123?x=y" yields "123", not "123?x=y".
+        href = href.split("?", 1)[0].split("#", 1)[0]
         return href.rstrip("/").rsplit("/", 1)[-1] or None
     return None
 

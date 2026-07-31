@@ -132,7 +132,7 @@
     },
     "acquisitions": {
       "type": "array",
-      "description": "Trusted-provider acquisition items (buy/read links, prices) upserted into the acquisitions table by the catalog. Accepted only from trusted cluster imports, not the public import API.",
+      "description": "Provider acquisition items (buy/read links, prices) upserted into the acquisitions table by the catalog. Only honored when provider_name names a registered feed (feed_registry); acquisitions for unregistered providers are dropped. The /api/import endpoint is can_write-gated (bots/admins), and in v1 the acquisition content (url/price) is trusted as-provided from those privileged callers rather than validated.",
       "items": {
         "type": "object",
         "required": ["provider_name", "local_id"],

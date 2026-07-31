@@ -1021,10 +1021,18 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
 
     Guard: an acquisition is only written when its ``provider_name`` names a
     feed registered in ``feed_registry``. ImportBot posts feed records to the
-    (privileged) ``/api/import`` endpoint, so the trust boundary can't be the
-    endpoint — it's feed-registry membership. Acquisitions naming an
-    unregistered provider are dropped, so the public import path cannot mint
-    acquisitions for arbitrary providers.
+    (privileged, ``can_write``-gated) ``/api/import`` endpoint, so the trust
+    boundary can't be the endpoint — it's feed-registry membership. Acquisitions
+    naming an unregistered provider are dropped, so a caller cannot mint
+    acquisitions for an arbitrary (unregistered) provider.
+
+    Scope of the guarantee (v1): this checks the provider *name* only. It does
+    NOT validate the acquisition's ``local_id`` against the record's identifiers
+    or constrain ``data.url``/price. A privileged import caller is therefore
+    trusted not to forge acquisition *content* for a registered provider;
+    tightening that is deferred. Entries missing the required keys are skipped
+    rather than raising, so a malformed acquisition can't 500 an otherwise
+    successful import.
     """
     from openlibrary.bookworm.registry import FeedRegistry
     from openlibrary.core.acquisitions import Acquisition
@@ -1033,7 +1041,11 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
     work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     for acq in acquisitions:
-        provider_name = acq["provider_name"]
+        provider_name = acq.get("provider_name")
+        local_id = acq.get("local_id")
+        if not provider_name or not local_id:
+            logger.warning("Skipping malformed acquisition (missing provider_name/local_id): %r", acq)
+            continue
         if provider_name not in registered:
             logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
             continue
@@ -1041,7 +1053,7 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
             work_id=work_id,
             edition_id=edition_id,
             provider_name=provider_name,
-            local_id=acq["local_id"],
+            local_id=local_id,
             data=acq.get("data") or {},
         )
 

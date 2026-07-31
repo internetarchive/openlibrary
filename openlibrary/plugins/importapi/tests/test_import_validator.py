@@ -213,6 +213,14 @@ class TestFeedRegistrySourcedRecord:
         with pytest.raises(ValidationError):
             import_validator().validate(record)
 
+    def test_spoofed_source_prefix_without_matching_identifier_is_rejected(self, monkeypatch) -> None:
+        """A registered source prefix is not a free pass: the identifiers must corroborate it."""
+        monkeypatch.setattr(import_validator, "_registered_feed_providers", staticmethod(lambda: {"project_gutenberg"}))
+        # Claims a gutenberg source but the identifier is keyed by something else.
+        record = dict(feed_sourced_record, identifiers={"madeup": ["x"]})
+        with pytest.raises(ValidationError):
+            import_validator().validate(record)
+
 
 def test_minimal_complete_record() -> None:
     """

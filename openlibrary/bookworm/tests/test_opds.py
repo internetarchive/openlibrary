@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from openlibrary.bookworm.opds import Feed, Publication, to_import_record
+from openlibrary.bookworm.opds import Feed, Link, Publication, extract_local_id, to_import_record
 
 SAMPLES = Path(__file__).parent / "samples"
 
@@ -67,6 +67,11 @@ def test_all_three_feeds_map_every_sample_publication():
 def test_skips_publication_without_title_or_authors():
     pub = Publication(metadata={"identifier": "urn:isbn:9781737408802"}, links=[])
     assert to_import_record(pub, BWB) is None
+
+
+def test_self_link_id_strips_query_and_fragment():
+    pub = Publication(metadata={"title": "X"}, links=[Link(rel="self", href="https://lenny/v1/api/opds/pub/37044775?format=json#frag")])
+    assert extract_local_id(pub, LENNY) == "37044775"
 
 
 def test_no_cover_field_emitted():
