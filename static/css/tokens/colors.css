@@ -36,6 +36,13 @@
   --neutral-900: hsl(40, 12%, 12%); /* near-black; dark-mode surfaces later */
   --white: hsl(0, 0%, 100%); /* raised surfaces stay pure white */
 
+  /* Page canvas — a one-off that sits off the ramp on purpose. The ramp reads
+     as warm grey, which leaves the full-bleed canvas too cool next to the beige
+     on openlibrary.org (hsl(48, 33%, 83%)); this lands about three quarters of
+     the way from --neutral-200 back to that beige. --color-background is the
+     only consumer. */
+  --paper: hsl(48, 30%, 84%);
+
   /* Blue ramp — the single brand accent. 500/600 are bit-identical to the
      legacy --primary-blue / --link-blue, so the brand does not drift. */
   --blue-50: hsl(202, 80%, 95%);
@@ -90,7 +97,7 @@
   --color-text-inverse: var(--white);
 
   /* Surfaces */
-  --color-background: var(--neutral-50); /* page canvas */
+  --color-background: var(--paper); /* page canvas — what body paints */
   --color-surface: var(--white); /* cards, inputs, dropdowns */
   --color-surface-raised: var(--white);
   --color-surface-sunken: var(--neutral-100); /* troughs, wells */
@@ -152,8 +159,11 @@
 }
 
 /**
- * Component-specific semantic tokens
- * ----------------------------------
+ * Component-specific semantic tokens @internal
+ * --------------------------------------------
+ * Owned by one component each, so they belong in that component's write-up
+ * rather than the shared vocabulary. The marker keeps this tier — and every
+ * group under it, down to the next tier header — off the Foundations page.
  */
 :root {
   /* Chip / tag variants — soft-tint palette (pale background, saturated text

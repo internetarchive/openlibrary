@@ -69,9 +69,10 @@ const MATRIX = [
     ['--color-text-secondary', '--color-surface', 4.5],
     ['--color-text-secondary', '--color-background', 4.5],
     ['--color-text-secondary', '--color-surface-sunken', 4.5],
-    // Muted text is only rated for white / neutral-50 surfaces
+    // Muted text is only rated for white / neutral-50 surfaces — not for the
+    // warm page canvas, which is darker than either
     ['--color-text-muted', '--color-surface', 4.5],
-    ['--color-text-muted', '--color-background', 4.5],
+    ['--color-text-muted', '--neutral-50', 4.5],
     // Links
     ['--color-link', '--color-surface', 4.5],
     ['--color-link', '--color-background', 4.5],
