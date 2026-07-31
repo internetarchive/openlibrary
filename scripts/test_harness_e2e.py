@@ -638,7 +638,9 @@ def report_gaps() -> None:
         ),
         (
             "production deploy",
-            "In dev the updater runs backgrounded inside the solr-updater container (docker/ol-solr-updater-start.sh). Production still needs an olsystem/Jenkins entry to run it on the solr-updater host.",
+            "In dev the updater runs backgrounded inside the solr-updater container "
+            "(docker/ol-solr-updater-start.sh). Production still needs an olsystem/Jenkins "
+            "entry to run it on the solr-updater host.",
         ),
         (
             "Search API",
