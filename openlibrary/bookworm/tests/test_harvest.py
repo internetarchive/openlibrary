@@ -114,3 +114,30 @@ def test_harvest_all_covers_every_feed(bookworm_db):
     results = harvest.harvest_all(session=session)
     assert {r["feed"] for r in results} == {"betterworldbooks", "lenny"}
     assert {r["feed"]: r["records"] for r in results} == {"betterworldbooks": 2, "lenny": 3}
+
+
+def test_one_malformed_publication_is_skipped_not_fatal(bookworm_db):
+    """A single poison publication must not abort the feed (which would wedge the cursor)."""
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    good = json.loads((SAMPLES / "lenny.json").read_text())
+    poison = {"metadata": {"title": "Poison"}, "links": [{"rel": "self"}]}  # link missing href -> ValidationError
+    page = {"publications": [poison, *good], "links": []}
+    session = FakeSession({"https://lenny/opds": page})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+    assert result["records"] == len(good)  # the good ones still made it; poison skipped
+    assert FeedRegistry.get_by_id(feed.id).last_updated is not None  # cursor advanced
+
+
+def test_harvest_all_continues_when_one_feed_errors(bookworm_db):
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    # lenny's URL is absent from the session -> FakeSession.get raises KeyError mid-harvest.
+    session = FakeSession({"https://bwb/opds": feed_page("bwb")})
+
+    results = harvest.harvest_all(session=session)
+    by_feed = {r["feed"]: r for r in results}
+    assert by_feed["betterworldbooks"]["records"] == 2  # healthy feed unaffected
+    assert by_feed["lenny"]["records"] == 0
+    assert by_feed["lenny"].get("error") is True

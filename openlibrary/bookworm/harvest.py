@@ -95,14 +95,20 @@ def harvest_feed(
     max_modified = since
     for page in iter_pages(request_url(feed, since), session, max_pages=max_pages):
         for raw in page.get("publications") or []:
-            pub = opds.Publication(**raw)
-            modified = _as_utc(pub.modified)
-            if client_cursor and modified is not None:
-                if modified <= since:
-                    continue
-                max_modified = max(max_modified, modified)
-            if record := opds.to_import_record(pub, parser_feed):
-                records.append(record)
+            # One malformed publication (bad timestamp, link missing href, non-dict
+            # entry) must not abort the page/feed: that would leave the cursor
+            # un-advanced and re-poison every subsequent cycle. Skip and continue.
+            try:
+                pub = opds.Publication(**raw)
+                modified = _as_utc(pub.modified)
+                if client_cursor and modified is not None:
+                    if modified <= since:
+                        continue
+                    max_modified = max(max_modified, modified)
+                if record := opds.to_import_record(pub, parser_feed):
+                    records.append(record)
+            except Exception:
+                logger.exception("skipping malformed publication in %s", feed.provider_name)
 
     if records:
         _submit(feed.provider_name, records)
@@ -114,5 +120,16 @@ def harvest_feed(
 
 
 def harvest_all(session: requests.Session | None = None, max_pages: int | None = None) -> list[dict[str, Any]]:
-    """Harvest every registered feed once (the bookworm cron tick)."""
-    return [harvest_feed(feed, session=session, max_pages=max_pages) for feed in FeedRegistry.all()]
+    """Harvest every registered feed once (the bookworm cron tick).
+
+    Each feed is isolated: one feed erroring (network, parse, submit) is logged
+    and reported, but must not starve the feeds that follow it.
+    """
+    results: list[dict[str, Any]] = []
+    for feed in FeedRegistry.all():
+        try:
+            results.append(harvest_feed(feed, session=session, max_pages=max_pages))
+        except Exception:
+            logger.exception("harvest failed for %s", feed.provider_name)
+            results.append({"feed": feed.provider_name, "records": 0, "error": True})
+    return results
