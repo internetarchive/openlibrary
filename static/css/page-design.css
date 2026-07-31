@@ -318,6 +318,13 @@ html:has(.ds) {
   display: block;
 }
 
+/* The carousel picks columns, pages and peek off its container width, so a
+   shrink-wrapped host would demo it at the wrong breakpoint. */
+.ds-example__output > ol-carousel {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
 .ds .ds-example__output p {
   width: 100%;
   margin: var(--spacing-stack-xs) 0 0;
