@@ -31,11 +31,13 @@ ebook_becomes_available as a safety net for missed return/expire events.
 Reindex coordination (known limitation): a full Solr reindex of a work rebuilds
 its edition children WITHOUT these loan fields -- the main indexer is unaware of
 them -- so every reindex WIPES ebook_availability/loan_uid on the affected
-editions. This updater does NOT auto-detect a live reindex; recovery happens
-only on the next restart/--reset, which reconstructs the last ~14 days from the
-changes API. A reindexed borrowed book therefore reads as available until then.
-Stronger guarantees (indexer-side field preservation, or a scheduled re-sync)
-are a maintainer follow-up, deliberately out of scope here.
+editions. This updater does NOT auto-detect a reindex, and a *plain restart does
+not recover*: the state file persists in the solr-updater-data volume, so on
+restart it resumes from the surviving last_uid and skips reconstruction entirely.
+Recovery requires --reset (or deleting the state file), which rebuilds the last
+~14 days from the changes API; a reindexed borrowed book reads as available until
+then. Stronger guarantees (indexer-side field preservation, a reindex-triggered
+re-apply, or wipe auto-detection) are a maintainer follow-up, out of scope here.
 """
 
 import contextlib
@@ -112,7 +114,13 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
         if not rows:
             high = mid
             continue
-        row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
+        try:
+            row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.UTC)
+        except KeyError, TypeError, ValueError:
+            # Malformed/missing 'time' on a probe row: treat as "go earlier" rather
+            # than crash startup. Conservative -- worst case we start a bit further back.
+            high = mid
+            continue
         if row_time < target_time:
             low = mid
         else:
@@ -130,15 +138,21 @@ def process_changes(rows: list[dict]) -> dict[str, dict]:
     """
     latest: dict[str, dict] = {}
     for row in rows:
-        identifier = row["identifier"]
-        uid = row["uid"]
+        # Defensive: a single malformed row (missing identifier/uid/event_type, or a
+        # non-int uid) must not crash the whole updater -- skip it and keep going.
+        identifier = row.get("identifier")
+        uid = row.get("uid")
+        event_type = row.get("event_type")
+        if not identifier or not isinstance(uid, int) or event_type is None:
+            logger.warning("Skipping malformed loan-change row: %r", row)
+            continue
         if identifier in latest and latest[identifier]["uid"] >= uid:
             continue
         until = None
-        if row["event_type"] in LOAN_ACTIVE_EVENTS:
+        if event_type in LOAN_ACTIVE_EVENTS:
             with contextlib.suppress(json.JSONDecodeError, TypeError):
                 until = json.loads(row.get("extra") or "{}").get("until")
-        latest[identifier] = {"event_type": row["event_type"], "uid": uid, "until": until}
+        latest[identifier] = {"event_type": event_type, "uid": uid, "until": until}
     return latest
 
 
@@ -165,8 +179,14 @@ def resolve_edition_keys(identifiers: list[str]) -> dict[str, dict]:
     """
     if not identifiers:
         return {}
-    # Quote each term so identifiers with special characters are treated literally
-    quoted = " ".join(f'"{id_}"' for id_ in identifiers)
+
+    # Quote each term so identifiers with special characters are treated literally,
+    # AND backslash-escape embedded " and \ -- otherwise a stray quote in an ocaid
+    # produces a malformed Lucene query that fails every cycle and stalls the poller.
+    def _phrase(id_: str) -> str:
+        return '"' + id_.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+    quoted = " ".join(_phrase(id_) for id_ in identifiers)
     result = get_solr().select(
         query=f"type:edition AND ia:({quoted})",
         fields=["key", "ia", "_root_"],
@@ -234,9 +254,15 @@ def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, dict]
                 "ebook_availability": {"set": EBOOK_UNAVAILABLE},
                 "loan_uid": {"set": state["uid"]},
             }
+            # Always set an expiry so the eviction safety-net can eventually recover
+            # this edition. If 'until' is missing/unparsable we fall back to the max
+            # loan lifetime from now -- otherwise the doc would have no
+            # ebook_becomes_available, a range query could never match it, and a
+            # missed return/expire event would leave it stuck unavailable forever.
             becomes_available = ia_until_to_epoch(state["until"])
-            if becomes_available is not None:
-                update["ebook_becomes_available"] = {"set": becomes_available}
+            if becomes_available is None:
+                becomes_available = int(time.time()) + LOAN_MAX_AGE_DAYS * 86400
+            update["ebook_becomes_available"] = {"set": becomes_available}
             updates.append(update)
         elif state["event_type"] in LOAN_ENDED_EVENTS:
             updates.append(
@@ -275,7 +301,7 @@ def build_eviction_updates() -> list[dict]:
     ]
 
 
-def main(  # noqa: PLR0915
+def main(  # noqa: PLR0915, PLR0912
     ol_config: str,
     state_file: str = "loan-availability-update.state",
     poll_interval: int = POLL_INTERVAL,
@@ -336,7 +362,14 @@ def main(  # noqa: PLR0915
         did_updates = False
 
         if rows:
-            new_uid = max(r["uid"] for r in rows)
+            # Advance the cursor using only rows with a valid int uid, so one malformed
+            # row can neither crash here nor stall the cursor (process_changes skips it too).
+            valid_uids = [r["uid"] for r in rows if isinstance(r.get("uid"), int)]
+            if not valid_uids:
+                logger.warning("Batch of %d rows had no valid uid; sleeping", len(rows))
+                time.sleep(poll_interval)
+                continue
+            new_uid = max(valid_uids)
             id_state = process_changes(rows)
             try:
                 id_to_edition = resolve_edition_keys(list(id_state.keys()))
