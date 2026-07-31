@@ -497,3 +497,76 @@ def test_main_reset_ignores_stale_solr_loan_uid(
     mock_query_uid.assert_not_called()
     mock_find_start.assert_called_once()
     assert state_file.read_text().strip() == "42", "reset resumed from stale Solr loan_uid instead of binary-searching"
+
+
+# --- Regression tests for adversarial code-review findings (2026-07-31) ---
+
+
+def test_process_changes_skips_malformed_rows():
+    """HIGH-1: rows missing identifier/uid/event_type (or a non-int uid) must be skipped,
+    not KeyError-crash the updater."""
+    rows = [
+        {"event_type": "borrow", "uid": 5},  # no identifier
+        {"identifier": "x", "event_type": "borrow"},  # no uid
+        {"identifier": "y", "uid": "not-int", "event_type": "borrow"},  # non-int uid
+        {"identifier": "z", "uid": 9},  # no event_type
+        BORROW_ROW,  # the one valid row
+    ]
+    assert list(process_changes(rows).keys()) == ["bookabc"]
+
+
+def test_find_start_uid_survives_bad_probe_time():
+    """HIGH-1: a probe row with an unparsable 'time' must not crash startup."""
+
+    def fake_changes(after_uid, limit):
+        latest = 500_000
+        if after_uid >= latest:
+            return {"status": "OK", "latest_uid": latest, "rows": []}
+        return {"status": "OK", "latest_uid": latest, "rows": [{"uid": after_uid + 1, "time": "garbage"}]}
+
+    with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
+        mock_lending.get_loan_changes.side_effect = fake_changes
+        uid = find_start_uid(target_age_days=14)  # must not raise
+    assert isinstance(uid, int)
+
+
+def test_resolve_edition_keys_escapes_quotes():
+    """HIGH-2: an ocaid with a quote/backslash must be escaped, not form a malformed
+    Lucene query (which would stall the poller forever)."""
+    mock_result = MagicMock()
+    mock_result.docs = []
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
+        mock_get_solr.return_value.select.return_value = mock_result
+        resolve_edition_keys(['ev"il', "back\\slash"])
+    query = mock_get_solr.return_value.select.call_args.kwargs["query"]
+    assert '\\"' in query  # embedded quote backslash-escaped
+    assert "\\\\" in query  # embedded backslash escaped
+
+
+def test_build_solr_updates_borrow_without_until_sets_fallback():
+    """MEDIUM-6: a borrow with no/unparsable 'until' must still get an
+    ebook_becomes_available (max-lifetime fallback), else eviction can never recover it."""
+    row = {"identifier": "bookabc", "uid": 100, "event_type": "borrow", "extra": "{}"}
+    updates = build_solr_updates(process_changes([row]), ID_TO_EDITION)
+    assert len(updates) == 1
+    becomes = updates[0]["ebook_becomes_available"]["set"]
+    assert isinstance(becomes, int)
+    assert becomes > int(datetime.datetime.now(datetime.UTC).timestamp())
+
+
+@patch("scripts.solr_updater.loan_availability_updater.get_solr")
+@patch("scripts.solr_updater.loan_availability_updater.time")
+@patch("scripts.solr_updater.loan_availability_updater.init_sentry")
+@patch("scripts.solr_updater.loan_availability_updater.lending")
+@patch("scripts.solr_updater.loan_availability_updater.infogami")
+@patch("scripts.solr_updater.loan_availability_updater.load_config")
+def test_main_survives_malformed_row(mock_config, mock_infogami, mock_lending, mock_sentry, mock_time_mod, mock_get_solr, tmp_path):
+    """HIGH-1 end-to-end: a batch containing a malformed row must not crash main; the
+    cursor advances using the valid rows' uids."""
+    solr = MagicMock()
+    mock_get_solr.return_value = solr
+    solr.select.side_effect = _select_side_effect
+    solr.update_in_place.return_value = _OK_RESPONSE
+    malformed = {"identifier": "broken", "event_type": "borrow"}  # missing uid
+    state_file = _run_main_one_iteration(tmp_path, solr, mock_lending, [malformed, _RETURN_ROW])
+    assert state_file.read_text().strip() == "100"  # advanced past the batch via the valid uid; no crash
