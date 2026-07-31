@@ -2,6 +2,9 @@
   Shell for /developers/design: tabs and sidebar, then the section template,
   which supplies a `nav()` macro and a `body()` macro. `ds` is the namespace.
 #}
+{# Falls back to a bare section so the shell still renders with no context at
+   all, which is what test_all_jinja_templates_render_valid_html does. #}
+{% set section = section or {"id": "components", "title": "", "has_code": false} %}
 {% import "design/" + section.id + ".html.jinja" as page with context %}
 <div class="ds" data-ds-root>
     <header class="ds__masthead">
