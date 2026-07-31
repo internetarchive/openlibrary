@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING
 
 import web
 
+from openlibrary.utils import extract_numeric_id_from_olid
+
 from . import db
 from .db import CommonExtras
 
@@ -77,6 +79,25 @@ class Acquisition(web.storage, CommonExtras):
         return [Acquisition._from_row(row) for row in rows]
 
     @staticmethod
+    def get_by_editions(edition_ids: list[int]) -> dict[int, list[Acquisition]]:
+        """Batch-fetch acquisitions for many editions, grouped by ``edition_id``.
+
+        Used to weave acquisitions into a page of search results without N+1
+        queries.
+        """
+        if not edition_ids:
+            return {}
+        rows: ResultSet = db.query(
+            "SELECT * FROM acquisitions WHERE edition_id IN $edition_ids ORDER BY edition_id, provider_name",
+            vars={"edition_ids": edition_ids},
+        )
+        grouped: dict[int, list[Acquisition]] = {}
+        for row in rows:
+            acquisition = Acquisition._from_row(row)
+            grouped.setdefault(acquisition.edition_id, []).append(acquisition)
+        return grouped
+
+    @staticmethod
     def get_by_work(work_id: int) -> list[Acquisition]:
         rows: ResultSet = db.query(
             "SELECT * FROM acquisitions WHERE work_id=$work_id ORDER BY edition_id, provider_name",
@@ -122,3 +143,26 @@ class Acquisition(web.storage, CommonExtras):
                 )
             )
         return Acquisition._from_row(result[0]) if result else None
+
+
+def add_acquisitions(docs: list[dict]) -> None:
+    """Attach provider acquisitions to a page of search-result docs (#12844).
+
+    Edition-scoped: each doc's ``/books/OL...M`` key resolves to an
+    ``edition_id``; matching acquisition rows are attached as
+    ``doc["acquisitions"]``. Batched to avoid N+1 queries. Mirrors
+    ``add_availability``; called from the search pipeline when ``acquisitions``
+    is among the requested fields.
+    """
+    docs_by_edition_id: dict[int, dict] = {}
+    for doc in docs:
+        key = doc.get("key") or ""
+        if key.startswith("/books/OL"):
+            try:
+                docs_by_edition_id[int(extract_numeric_id_from_olid(key))] = doc
+            except ValueError, TypeError:
+                continue
+    if not docs_by_edition_id:
+        return
+    for edition_id, rows in Acquisition.get_by_editions(list(docs_by_edition_id)).items():
+        docs_by_edition_id[edition_id]["acquisitions"] = [{"provider_name": row.provider_name, "local_id": row.local_id, **(row.data or {})} for row in rows]
