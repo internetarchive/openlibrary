@@ -178,8 +178,13 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         record["identifiers"] = {"project_gutenberg": [local_id]}
     elif feed.id_strategy == "self_link":
         record["identifiers"] = {feed.provider_name: [local_id]}
-    if cover := pub.cover():
-        record["cover"] = cover
+    # A ``cover`` URL is intentionally NOT emitted. OL's server-side cover fetch
+    # is gated by two host allowlists (none of these feed hosts satisfy), and on
+    # the match/merge path — which feed re-imports hit constantly — add_cover()
+    # retries a doomed URL 10x with sleep(2), burning up to 20s per record (see
+    # internetarchive/openlibrary#10856 and the covers wiki). Covers for ingested
+    # feeds are a separate, later concern. ``Publication.cover()`` stays available
+    # for that future path. #12844
     if acquisitions := build_acquisition(pub, feed, local_id):
         record["acquisitions"] = acquisitions
     return record
