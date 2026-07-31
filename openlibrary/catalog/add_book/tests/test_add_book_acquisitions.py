@@ -32,6 +32,23 @@ CREATE TABLE acquisitions (
 );
 """
 
+FEED_REGISTRY_DDL: Final = """
+CREATE TABLE feed_registry (
+    id integer primary key,
+    provider_name text not null,
+    feed_type text not null default 'opds',
+    url text not null,
+    last_updated timestamp,
+    data json,
+    created timestamp default current_timestamp,
+    updated timestamp default current_timestamp,
+    UNIQUE (provider_name, url)
+);
+"""
+
+# The catalog only writes acquisitions for providers with a registered feed.
+REGISTERED_PROVIDERS: Final = ["lenny", "bwb"]
+
 BASE: Final = {
     "title": "Flatland",
     "source_records": ["ia:flatland_test"],
@@ -45,9 +62,14 @@ def acquisitions_db():
     web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
     db = get_db()
     db.query("DROP TABLE IF EXISTS acquisitions;")
+    db.query("DROP TABLE IF EXISTS feed_registry;")
     db.query(ACQUISITIONS_DDL)
+    db.query(FEED_REGISTRY_DDL)
+    for provider_name in REGISTERED_PROVIDERS:
+        db.insert("feed_registry", provider_name=provider_name, url=f"https://{provider_name}/feed", feed_type="opds", data="{}")
     yield db
     db.query("DROP TABLE IF EXISTS acquisitions;")
+    db.query("DROP TABLE IF EXISTS feed_registry;")
 
 
 def test_load_upserts_acquisitions_for_new_edition(mock_site, add_languages, ia_writeback, acquisitions_db):
@@ -91,3 +113,25 @@ def test_load_without_acquisitions_still_works(mock_site, add_languages, ia_writ
     assert reply["success"] is True
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     assert Acquisition.get_by_edition(edition_id) == []
+
+
+def test_load_drops_acquisitions_for_unregistered_provider(mock_site, add_languages, ia_writeback, acquisitions_db):
+    """The guard: only providers with a registered feed may write acquisitions.
+
+    ImportBot POSTs feed records to the (privileged) /api/import endpoint, so the
+    trust anchor is feed-registry membership, not the endpoint. A record naming an
+    unregistered provider gets its acquisition silently dropped.
+    """
+    rec = {
+        **BASE,
+        "acquisitions": [
+            {"provider_name": "evilcorp", "local_id": "x1", "data": {"access": "buy"}},
+            {"provider_name": "lenny", "local_id": "37044775", "data": {"access": "open-access"}},
+        ],
+    }
+    reply = load(rec)
+    assert reply["success"] is True
+
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    rows = Acquisition.get_by_edition(edition_id)
+    assert [row.provider_name for row in rows] == ["lenny"]  # evilcorp dropped, lenny kept
