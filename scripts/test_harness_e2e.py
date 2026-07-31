@@ -637,8 +637,8 @@ def report_gaps() -> None:
             "action=changes calls to it instead of relying on this standalone Solr-only harness.",
         ),
         (
-            "docker-compose service",
-            "There is no solr_updater or loan_availability_updater service entry in compose.yaml. The daemon will not start automatically in dev or prod.",
+            "production deploy",
+            "In dev the updater runs backgrounded inside the solr-updater container (docker/ol-solr-updater-start.sh). Production still needs an olsystem/Jenkins entry to run it on the solr-updater host.",
         ),
         (
             "Search API",
