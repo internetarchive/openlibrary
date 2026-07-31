@@ -222,6 +222,10 @@ def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, dict]
     for identifier, state in id_state.items():
         edition = id_to_edition.get(identifier)
         if not edition:
+            # Edition not in Solr (new item, or its work is mid-reindex): no doc to
+            # mark. The event is skipped and last_uid still advances, so this loan is
+            # missed until the ocaid's next event or a --reset rebuild. Accepted as v1
+            # (no dead-letter/retry) -- an unindexed book has no searchable doc anyway.
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
             update: dict = {
@@ -378,6 +382,10 @@ def main(  # noqa: PLR0915
             did_updates = True
 
         if did_updates and not dry_run:
+            # Deliberate hard commit per cycle: the state file is advanced only after a
+            # durable commit, so a crash never leaves state ahead of committed docs.
+            # On a shared Solr this is the conservative choice; tuning commit frequency
+            # (softCommit / leaning on Solr autoCommit) is a maintainer perf follow-up.
             try:
                 solr_update_in_place([], commit=True)
             except Exception:
