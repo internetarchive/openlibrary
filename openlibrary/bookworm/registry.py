@@ -69,6 +69,18 @@ class FeedRegistry(web.storage):
         return [FeedRegistry._from_row(row) for row in rows]
 
     @staticmethod
+    def provider_names() -> set[str]:
+        """The ``provider_name`` of every registered feed.
+
+        This is the trust anchor for acquisitions: the catalog only writes an
+        acquisition whose ``provider_name`` names a registered feed, so records
+        arriving through the (privileged) import API cannot mint acquisitions
+        for arbitrary providers. See :func:`add_book._save_acquisitions`.
+        """
+        rows: ResultSet = db.query("SELECT DISTINCT provider_name FROM feed_registry")
+        return {row.provider_name for row in rows}
+
+    @staticmethod
     def register(
         provider_name: str,
         url: str,

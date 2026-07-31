@@ -185,9 +185,10 @@ class importapi:
         if not edition:
             return self.error("unknown-error", "Failed to parse import data")
 
-        # Acquisitions may only be written by trusted cluster imports (which call
-        # add_book.load directly), never through the public import API. #12844
-        edition.pop("acquisitions", None)
+        # Acquisitions ride along on the import record. ImportBot posts feed
+        # records to this (privileged) endpoint, so the guard against arbitrary
+        # callers minting acquisitions is enforced downstream in add_book.load:
+        # only providers with a registered feed are honored. #12844
 
         try:
             reply = add_book.load(edition, save=not preview)

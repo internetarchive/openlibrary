@@ -1017,16 +1017,30 @@ def load(
 
 
 def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
-    """Upsert acquisition rows for a just-created/matched edition (#12844)."""
+    """Upsert acquisition rows for a just-created/matched edition (#12844).
+
+    Guard: an acquisition is only written when its ``provider_name`` names a
+    feed registered in ``feed_registry``. ImportBot posts feed records to the
+    (privileged) ``/api/import`` endpoint, so the trust boundary can't be the
+    endpoint — it's feed-registry membership. Acquisitions naming an
+    unregistered provider are dropped, so the public import path cannot mint
+    acquisitions for arbitrary providers.
+    """
+    from openlibrary.bookworm.registry import FeedRegistry
     from openlibrary.core.acquisitions import Acquisition
 
+    registered = FeedRegistry.provider_names()
     work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     for acq in acquisitions:
+        provider_name = acq["provider_name"]
+        if provider_name not in registered:
+            logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
+            continue
         Acquisition.upsert(
             work_id=work_id,
             edition_id=edition_id,
-            provider_name=acq["provider_name"],
+            provider_name=provider_name,
             local_id=acq["local_id"],
             data=acq.get("data") or {},
         )
