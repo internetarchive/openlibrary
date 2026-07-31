@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { slotHasContent } from './utils/slot-utils.js';
 
 /**
  * OlToggle - A switch/toggle web component.
@@ -56,6 +57,11 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
         value: { type: String },
+        // Internal: whether the default slot holds real content. Native slot
+        // fallback can't be used here because a whitespace-only text node
+        // still counts as assigned, so pretty-printed markup like
+        // `<ol-toggle label="…">\n</ol-toggle>` would silently lose its label.
+        _hasSlottedLabel: { state: true },
     };
 
     static styles = css`
@@ -282,6 +288,10 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         if (changed.has('checked') || changed.has('value')) this._syncFormValue();
     }
 
+    _handleLabelSlotChange(event) {
+        this._hasSlottedLabel = slotHasContent(event.target);
+    }
+
     _handleClick() {
         if (this.disabled) return;
         this.checked = !this.checked;
@@ -307,10 +317,11 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                     <span class="toggle__knob"></span>
                 </span>
                 <span class="toggle__text">
-                    <slot>
+                    <slot @slotchange=${this._handleLabelSlotChange}></slot>
+                    ${this._hasSlottedLabel ? nothing : html`
                         ${this.label ? html`<span>${this.label}</span>` : nothing}
                         ${this.sublabel ? html`<span class="toggle__sublabel">${this.sublabel}</span>` : nothing}
-                    </slot>
+                    `}
                 </span>
             </button>
         `;
