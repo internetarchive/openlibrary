@@ -1,9 +1,6 @@
 {#
-  Shell for /developers/design. Renders the section tabs and the derived
-  sidebar, then hands off to the section template — which supplies a `nav()`
-  macro for the sidebar and a `body()` macro for the content.
-
-  `ds` is the CSS/JS namespace for the whole design system docs area.
+  Shell for /developers/design: tabs and sidebar, then the section template,
+  which supplies a `nav()` macro and a `body()` macro. `ds` is the namespace.
 #}
 {% import "design/" + section.id + ".html.jinja" as page with context %}
 <div class="ds" data-ds-root>

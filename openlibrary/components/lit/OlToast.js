@@ -69,10 +69,8 @@ export class OlToast extends LitElement {
         // live region until one frame after mount, so screen readers
         // announce it as a mutation rather than as already-present content.
         _announce: { state: true },
-        // Internal: whether the default slot holds real content. Native slot
-        // fallback can't be used here because a whitespace-only text node
-        // still counts as assigned, so pretty-printed markup like
-        // `<ol-toast message="…">\n</ol-toast>` would render an empty toast.
+        // Internal: whether the default slot holds real content — see
+        // slotHasContent() for why native <slot> fallback can't be used.
         _hasSlottedContent: { state: true },
     };
 

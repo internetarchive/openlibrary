@@ -1,23 +1,16 @@
 {#
-  The write-once example macro for /developers/design.
+  The write-once example macro. Markup in the {% call %} body renders twice —
+  live, and escaped as the snippet beside it — so the two can't drift.
 
-  Markup passed in the {% call %} body is rendered twice: live, and escaped as
-  the code snippet beside it. Authoring an example is therefore a single edit,
-  and the snippet can't drift from what it claims to show.
-
-      {% call example("Event-based", "Fires update:page with the page number.") %}
+      {% call example("Event-based", "Fires update:page.") %}
         <ol-pagination total-pages="10" current-page="1"></ol-pagination>
       {% endcall %}
 
-  Pass `code` when the live markup isn't what a reader should copy — demos that
-  loop to generate filler items, or carry a screenful of inline JSON:
-
-      {% call example("Basic usage", code='<ol-carousel label="Trending">...</ol-carousel>') %}
-        <ol-carousel label="Trending">{% for i in range(15) %}...{% endfor %}</ol-carousel>
-      {% endcall %}
+  Pass `code` when the live markup isn't what a reader should copy (loops that
+  generate filler, a screenful of inline JSON).
 #}
-{% macro example(title="", note="", code=none, output_style="", wide=false) %}
-    <section class="ds-example{% if wide %} ds-example--wide{% endif %}">
+{% macro example(title="", note="", code=none, output_style="") %}
+    <section class="ds-example">
         {% if title %}<h4 class="ds-example__title">{{ title }}</h4>{% endif %}
         {% if note %}<p class="ds-example__note">{{ note }}</p>{% endif %}
         {% set rendered = caller() %}
@@ -30,13 +23,13 @@
   A code snippet on its own, for things there is no point rendering live —
   a CSS rule, a JS listener, an import.
 #}
-{% macro code_snippet(source, language="html") %}
+{% macro code_snippet(source) %}
     <div class="ds-code" data-ds-code>
         <button class="ds-code__copy"
                 type="button"
                 data-ds-copy
                 aria-label="Copy code">Copy</button>
-        <pre class="ds-code__pre"><code class="language-{{ language }}">{{ source | dedent | force_escape }}</code></pre>
+        <pre class="ds-code__pre"><code class="language-html">{{ source | dedent | force_escape }}</code></pre>
     </div>
 {% endmacro %}
 {#
@@ -58,9 +51,8 @@
     </article>
 {% endmacro %}
 {#
-  Auto-generated API reference for one Lit component, from the cleaned Custom
-  Elements Manifest declaration built in design.py. Collapsed by default —
-  it's reference material, not something to scroll past.
+  API reference for one Lit component, from the manifest declaration built in
+  design.py. Collapsed: it's reference, not something to scroll past.
 #}
 {% macro api_tables(api) %}
     {% set has_api = api.properties or api.events or api.slots or api.cssProperties or api.cssParts %}
@@ -69,30 +61,27 @@
             <summary class="ds-api__summary">API reference</summary>
             {% if api.properties %}
                 {{ _api_table("Properties", ["Property", "Attribute", "Type", "Default", "Description"],
-                                api.properties, ["name", "attribute", "type", "default"], "description") }}
+                                api.properties, ["name", "attribute", "type", "default"]) }}
             {% endif %}
             {% if api.events %}
-                {{ _api_table("Events", ["Event", "Type", "Description"], api.events, ["name", "type"], "description") }}
+                {{ _api_table("Events", ["Event", "Type", "Description"], api.events, ["name", "type"]) }}
             {% endif %}
             {% if api.slots %}
-                {{ _api_table("Slots", ["Slot", "Description"], api.slots, ["name"], "description", default_label="(default)") }}
+                {{ _api_table("Slots", ["Slot", "Description"], api.slots, ["name"], default_label="(default)") }}
             {% endif %}
             {% if api.cssProperties %}
                 {{ _api_table("CSS custom properties", ["Property", "Default", "Description"],
-                                api.cssProperties, ["name", "default"], "description") }}
+                                api.cssProperties, ["name", "default"]) }}
             {% endif %}
-            {% if api.cssParts %}
-                {{ _api_table("CSS parts", ["Part", "Description"], api.cssParts, ["name"], "description") }}
-            {% endif %}
+            {% if api.cssParts %}{{ _api_table("CSS parts", ["Part", "Description"], api.cssParts, ["name"]) }}{% endif %}
         </details>
     {% endif %}
 {% endmacro %}
 {#
-  One API table. `code_keys` render as <code>, `prose_key` as plain text.
-  `default_label` names the blank value in the first column (the unnamed slot);
-  every other blank cell shows an em dash.
+  One API table. `code_keys` render as <code>, description always last, and
+  `default_label` names the blank first-column value (the unnamed slot).
 #}
-{% macro _api_table(heading, headers, rows, code_keys, prose_key, default_label="") %}
+{% macro _api_table(heading, headers, rows, code_keys, default_label="") %}
     <h5 class="ds-api__group">{{ heading }}</h5>
     <div class="ds-table-wrap">
         <table class="ds-table">
@@ -115,7 +104,7 @@
                                 {% endif %}
                             </td>
                         {% endfor %}
-                        <td>{{ row[prose_key] }}</td>
+                        <td>{{ row.description }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

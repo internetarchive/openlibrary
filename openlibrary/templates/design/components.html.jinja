@@ -1,10 +1,6 @@
 {#
-  Components — the full write-ups, grouped.
-
-  Both the page and the sidebar are built from the COMPONENTS registry in
-  design.py, and each component's demos come from the `demos()` macro in its
-  partial. Adding a component is one registry row plus one partial; nothing
-  here is hand-listed.
+  Components — the full write-ups, built from the COMPONENTS registry in
+  design.py plus each partial's `demos()` macro. Nothing here is hand-listed.
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% macro nav() %}
@@ -31,7 +27,7 @@
 {% macro body() %}
     {% for group, members in groups %}
         <section class="ds-section">
-            <h2 class="ds-section__title">{{ group }}</h2>
+            <h2 class="ds-section__title ds-section__title--eyebrow">{{ group }}</h2>
             {% for component in members %}
                 {% import component.partial as partial with context %}
                 {% call ex.component_article(component, api.get(component.tag) if component.tag else none) %}
@@ -41,13 +37,12 @@
         </section>
     {% endfor %}
     {#
-      Coverage. The CSS components above are hand-documented, so this page has
-      no way to know it is complete — it lists what it hasn't covered instead of
-      implying it has covered everything.
+      Coverage. CSS components are hand-documented, so the page lists what it
+      hasn't covered rather than implying it covered everything.
     #}
     {% if undocumented %}
         <section class="ds-section" id="undocumented">
-            <h2 class="ds-section__title">Not yet documented</h2>
+            <h2 class="ds-section__title ds-section__title--eyebrow">Not yet documented</h2>
             <p class="ds-section__blurb">
                 {{ undocumented | length }} files in <code>static/css/components/</code> that no entry above covers.
                 Page-specific styles and vendor overrides are excluded (see <code>NOT_COMPONENTS</code> in

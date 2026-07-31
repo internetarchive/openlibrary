@@ -1,11 +1,7 @@
 {#
   Foundations — every design token, parsed out of static/css/tokens/*.css by
-  design_tokens.py. Nothing here is hand-listed, so a new token shows up on this
-  page as soon as it's declared.
-
-  Previews always use `var(--token)` rather than the parsed value, so what you
-  see is what the browser resolves. The parsed value is only ever a label, which
-  keeps the page honest for color-mix() and deep var() chains.
+  design_tokens.py, so a new token appears here as soon as it's declared.
+  Previews use `var(--token)`: the parsed value is only ever a label.
 #}
 {% macro nav() %}
     <ul class="ds__nav-list">
@@ -66,9 +62,8 @@
     {% endfor %}
 {% endmacro %}
 {#
-  One heading's worth of tokens. A group with no tokens is a tier header
-  ("1. Primitives"); otherwise it renders its color ramps as strips and
-  everything else as rows.
+  One heading's worth of tokens. No tokens means a tier header; otherwise
+  ramps render as strips and everything else as rows.
 #}
 {% macro token_group(group, category) %}
     {% if group.tokens %}
@@ -86,10 +81,8 @@
     {{ prose(group.blurb, "ds-group__blurb") }}
 {% endmacro %}
 {#
-  A comment body, parsed into blocks by design_tokens.py. The comments in the
-  token CSS are written for a reader — numbered tiers, bulleted rules, ASCII
-  diagrams — so they render as the paragraphs, lists and examples they were
-  written as, rather than being flattened into one run-on paragraph.
+  A comment body, parsed into blocks by design_tokens.py, so the paragraphs,
+  lists and diagrams survive instead of flattening into one paragraph.
 #}
 {% macro prose(blocks, class) %}
     {% for block in blocks %}
@@ -110,10 +103,9 @@
     {% endfor %}
 {% endmacro %}
 {#
-  Inline `backticks` from the CSS comments, rendered as code. Odd segments of
-  the split are the ones that were inside a pair of backticks. Every tag trims
-  on both sides: the output is spliced mid-sentence, so the formatter must not
-  be able to introduce whitespace around a code span.
+  Inline `backticks` rendered as code — odd segments were inside a pair.
+  Gotcha: every tag trims on both sides so djLint can't reformat whitespace
+  into the middle of a sentence.
 #}
 {% macro rich(text) %}
     {%- for part in text.split("`") -%}
@@ -124,10 +116,7 @@
         {%- endif -%}
     {%- endfor -%}
 {% endmacro %}
-{#
-  A numeric color ramp as one continuous strip. Steps sit left to right so the
-  progression — and any uneven jump in it — reads at a glance.
-#}
+{# A ramp as one strip, so an uneven jump in it reads at a glance. #}
 {% macro ramp(prefix, tokens) %}
     <div class="ds-ramp">
         <div class="ds-ramp__strip">
@@ -144,10 +133,7 @@
         </div>
     </div>
 {% endmacro %}
-{#
-  The general token row: preview, name, what it resolves to, and the comment
-  that documents it in the CSS.
-#}
+{# The general token row: preview, name, resolved value, CSS comment. #}
 {% macro token_table(tokens, category) %}
     {% set show_contrast = category.id == "colors" %}
     <div class="ds-table-wrap">
@@ -180,7 +166,7 @@
                                 {% if token.is_color %}<span data-ds-contrast-for="{{ token.name }}"></span>{% endif %}
                             </td>
                         {% endif %}
-                        <td class="ds-token__note">{{ token.description }}</td>
+                        <td class="ds-token__note">{{ rich(token.description) }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -188,9 +174,8 @@
     </div>
 {% endmacro %}
 {#
-  What a token looks like. Colors get a swatch; the dimensional categories get
-  a preview that actually demonstrates the value, which is far more useful than
-  reading "1.25rem".
+  Colors get a swatch; dimensional categories get a preview that demonstrates
+  the value, which beats reading "1.25rem".
 #}
 {% macro preview(token, category) %}
     {% if token.is_color %}

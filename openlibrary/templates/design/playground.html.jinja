@@ -16,8 +16,8 @@
   .control-row sit at exactly the target token height, so a control that over-
   or undershoots reads as misaligned at a glance.
 #}
-{% macro control_row(size, label) %}
-    <div class="example__output control-row control-row--{{ size }}">
+{% macro control_row(size) %}
+    <div class="ds-example__output control-row control-row--{{ size }}">
         <span class="control-row__cell">
             <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
                 Button
@@ -46,7 +46,7 @@
             </ol-select-popover>
         </span>
         <span class="control-row__cell">
-            <input class="control-row__field control-row__field--{{ size }}"
+            <input class="control-row__field"
                    type="text"
                    value="Input"
                    aria-label="Alignment input, {{ size }}">
@@ -79,11 +79,11 @@
             </ol-toggle>
         </div>
         <h3 class="ds-group__title">Small — <code>--control-height-small</code></h3>
-        {{ control_row('small', 'Small') }}
+        {{ control_row("small") }}
         <h3 class="ds-group__title">Medium — <code>--control-height-medium</code></h3>
-        {{ control_row('medium', 'Medium') }}
+        {{ control_row("medium") }}
         <h3 class="ds-group__title">Large — <code>--control-height-large</code></h3>
-        {{ control_row('large', 'Large') }}
+        {{ control_row("large") }}
         <script>
             (function () {
                 const article = document.getElementById('control-alignment');
@@ -197,7 +197,7 @@
         </p>
         {% for size in ["small", "medium", "large"] %}
             <h3 class="ds-group__title">{{ size | capitalize }}</h3>
-            <div class="example__output ds-pattern-bar">
+            <div class="ds-example__output ds-pattern-bar">
                 <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
                     Filter
                 </ol-button>
@@ -227,7 +227,7 @@
             The same controls carrying labels far longer than their designers assumed — long translations,
             unbroken strings, and CJK. Anything that overflows its container or clips its text is a bug.
         </p>
-        <div class="example__output ds-longform">
+        <div class="ds-example__output ds-longform">
             <ol-button variant="secondary">
                 Zustandsänderungsbenachrichtigungseinstellungen
             </ol-button>

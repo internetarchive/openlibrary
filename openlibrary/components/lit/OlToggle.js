@@ -57,10 +57,8 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         sublabel: { type: String },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
         value: { type: String },
-        // Internal: whether the default slot holds real content. Native slot
-        // fallback can't be used here because a whitespace-only text node
-        // still counts as assigned, so pretty-printed markup like
-        // `<ol-toggle label="…">\n</ol-toggle>` would silently lose its label.
+        // Internal: whether the default slot holds real content — see
+        // slotHasContent() for why native <slot> fallback can't be used.
         _hasSlottedLabel: { state: true },
     };
 

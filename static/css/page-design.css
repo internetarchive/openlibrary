@@ -1,9 +1,6 @@
 /**
- * The design system docs at /developers/design.
- *
- * `ds` is the namespace for the shell (masthead, tabs, sidebar); `ds-*` blocks
- * are the content primitives shared across all three sections.
- * Everything here is render-blocking, so keep it to what the page needs.
+ * The design system docs at /developers/design. `ds` namespaces the shell,
+ * `ds-*` the shared content blocks. Render-blocking, so keep it lean.
  */
 
 .ds {
@@ -173,6 +170,27 @@ html:has(.ds) {
   color: var(--color-text);
 }
 
+/* On Components the section title labels a group of components, and the
+   component titles below it are the headings people scan for. At 24px bold it
+   sat 2px from them and read as a sibling; as a quiet eyebrow over a rule it
+   reads as the container it is. */
+/* The eyebrow's rule already marks where a group starts, so the section's own
+   closing rule would land a second hairline a few pixels above it. */
+.ds-section:has(> .ds-section__title--eyebrow) {
+  border-bottom: 0;
+}
+
+.ds-section__title--eyebrow {
+  padding-bottom: var(--spacing-stack-xs);
+  margin-bottom: var(--spacing-stack-md);
+  border-bottom: var(--border-divider);
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 .ds-section__blurb,
 .ds-group__blurb,
 .ds-lead {
@@ -240,9 +258,8 @@ html:has(.ds) {
   line-height: 1.35;
 }
 
-/* A blurb's paragraphs, lists and examples read as one passage, so every block
-   but the last sits closer to the block after it than to whatever follows the
-   blurb. Last of the group, so it wins over the per-block margins above. */
+/* A blurb reads as one passage, so every block but the last sits close to the
+   next. Last of the group, so it wins over the per-block margins above. */
 .ds-prose--tight {
   margin-bottom: var(--spacing-stack-xs);
 }
@@ -284,8 +301,7 @@ html:has(.ds) {
   font-size: var(--font-size-body-medium);
 }
 
-.ds-example__output,
-.example__output {
+.ds-example__output {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-inline-xl);
@@ -1049,6 +1065,8 @@ html:has(.ds) {
 .control-row__field {
   box-sizing: border-box;
   width: 12ch;
+  /* The row publishes the size, so the field inherits rather than re-derives. */
+  height: var(--control-target-height);
   padding: 0 var(--spacing-inset-sm);
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
@@ -1056,18 +1074,6 @@ html:has(.ds) {
   background: var(--color-surface);
   border: var(--border-input);
   border-radius: var(--border-radius-button);
-}
-
-.control-row__field--small {
-  height: var(--control-height-small);
-}
-
-.control-row__field--medium {
-  height: var(--control-height-medium);
-}
-
-.control-row__field--large {
-  height: var(--control-height-large);
 }
 
 /* ----------------------------------------------------------------- desktop */
@@ -1148,6 +1154,8 @@ html:has(.ds) {
 @import "layout/index.css";
 @import "components/header-bar.css";
 @import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
 @import "components/page-banner.css";
 @import "components/header.css";
 @import "components/footer.css";
