@@ -41,7 +41,7 @@ POLL_INTERVAL = 30  # seconds between polls when caught up
 
 # remove after testing.
 LOCAL_DEV = True
-
+DUMMY_ENDPOINT = "http://mock-services:8025"
 
 def read_state(path: Path) -> int:
     """Return last processed uid, or 0 if the state file is absent/corrupt."""
@@ -71,7 +71,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
         if not LOCAL_DEV:
             resp = lending.get_loan_changes(after_uid=0, limit=1)
         else:
-            resp = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": 0, "limit": 1}).json()
+            resp = session.get(DUMMY_ENDPOINT, params={"action": "changes", "after_uid": 0, "limit": 1}).json()
     except Exception:
         logger.exception("Loan changes API unreachable on startup probe; starting from uid 0")
         return 0
@@ -95,7 +95,7 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
             if not LOCAL_DEV:
                 rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
             else:
-                rows = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": mid, "limit": 1}).json().get("rows", [])
+                rows = session.get(DUMMY_ENDPOINT, params={"action": "changes", "after_uid": mid, "limit": 1}).json().get("rows", [])
         except Exception:
             logger.exception("Binary-search probe failed at uid %d; shrinking window", mid)
             high = mid
@@ -285,7 +285,7 @@ def main(
     while True:
         try:
             if LOCAL_DEV:
-                resp = requests.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": last_uid, "limit": BATCH_SIZE}).json()
+                resp = requests.get(DUMMY_ENDPOINT,  params={"action": "changes", "after_uid": last_uid, "limit": BATCH_SIZE}).json()
             else:
                 resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
