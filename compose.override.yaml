@@ -231,6 +231,27 @@ services:
       timeout: 3s
       retries: 5
 
+  # BookWorm feed-ingestion service (#12844). Polls registered feeds on a timer
+  # and submits import records (with acquisitions) to OL's import_item queue.
+  # Runs on ol-home0 in prod (like the affiliate server); dev interval is 5 min.
+  bookworm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-bookworm-start.sh
+    environment:
+      - OL_CONFIG=/openlibrary/conf/openlibrary.yml
+      - BOOKWORM_INTERVAL_SECONDS=300
+    networks:
+      - dbnet
+      - webnet
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+
 volumes:
   ol-vendor:
   ol-build:
