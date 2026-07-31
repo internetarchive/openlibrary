@@ -1,8 +1,9 @@
 """The Open Library design system docs at /developers/design.
 
-Three sections share one shell: Foundations (design tokens), Components, and
-Playground. Each section is one long browsable page — the goal is density, so an
-engineer can scan everything available before picking something.
+Three sections share one shell: Components (the landing section), Foundations
+(design tokens), and Playground. Each section is one long browsable page — the
+goal is density, so an engineer can scan everything available before picking
+something.
 
 Three things here are derived rather than hand-maintained, which is what keeps
 the page from drifting as the system grows:
@@ -45,8 +46,8 @@ class Section:
 
 
 SECTIONS = (
-    Section("foundations", "Foundations"),
     Section("components", "Components", has_code=True),
+    Section("foundations", "Foundations"),
     Section("playground", "Playground"),
 )
 
@@ -425,11 +426,11 @@ class design(delegate.page):
     path = "/developers/design"
 
     def GET(self):
-        return render_template("design", build_context("foundations"))
+        return render_template("design", build_context("components"))
 
 
 class design_section(delegate.page):
-    path = r"/developers/design/(foundations|components|playground)"
+    path = r"/developers/design/(components|foundations|playground)"
 
     def GET(self, section_id):
         return render_template("design", build_context(section_id))
