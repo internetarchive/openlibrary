@@ -5,6 +5,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { contrastRatio, relativeLuminance } from '../../../openlibrary/plugins/openlibrary/js/design-system/contrast.js';
 
 const css = fs.readFileSync(
     path.join(__dirname, '../../../static/css/tokens/colors.css'),
@@ -45,18 +46,14 @@ function hslToRgb(cssValue) {
     return [hue(h + 1 / 3), hue(h), hue(h - 1 / 3)];
 }
 
-function luminance(rgb) {
-    const [r, g, b] = rgb.map((c) =>
-        c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    );
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
+// The luminance and ratio math is imported, not repeated here — the design
+// system page badges tokens with the same functions, so the page and this
+// guard can't disagree about where a threshold falls.
 function contrast(fgToken, bgToken) {
-    const fg = luminance(hslToRgb(resolve(fgToken)));
-    const bg = luminance(hslToRgb(resolve(bgToken)));
-    const [hi, lo] = fg > bg ? [fg, bg] : [bg, fg];
-    return (hi + 0.05) / (lo + 0.05);
+    return contrastRatio(
+        relativeLuminance(hslToRgb(resolve(fgToken))),
+        relativeLuminance(hslToRgb(resolve(bgToken)))
+    );
 }
 
 // [foreground, background, minimum ratio]

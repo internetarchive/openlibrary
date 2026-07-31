@@ -1,74 +1,65 @@
 /**
  * Page behaviour for the design system docs at /developers/design.
- *
- * Everything here is progressive: the page is fully readable with this bundle
- * absent. It adds the code-snippet toggle, click-to-copy, computed contrast
- * badges, a page filter, scrollspy, and syntax highlighting.
+ * All progressive: the page is fully readable with this bundle absent.
  */
-import Prism from 'prismjs';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-css';
+import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor } from './contrast.js';
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
 
 /**
- * Relative luminance per WCAG 2.x, from an already-resolved `rgb()` string.
+ * Highlight the snippets, at most once, and only once they're revealed —
+ * snippets are `display: none` by default, so doing it on load meant parsing a
+ * couple of hundred hidden blocks, and shipping Prism, for nothing.
  */
-function relativeLuminance(color) {
-    const parts = color.match(/[\d.]+/g);
-    if (!parts || parts.length < 3) return null;
-    const [r, g, b] = parts.slice(0, 3).map((value) => {
-        const channel = Number(value) / 255;
-        return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    });
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrastRatio(foreground, background) {
-    const a = relativeLuminance(foreground);
-    const b = relativeLuminance(background);
-    if (a === null || b === null) return null;
-    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+let highlighted = false;
+async function highlightCode(root) {
+    if (highlighted) return;
+    highlighted = true;
+    const [{ default: Prism }] = await Promise.all([
+        import(/* webpackChunkName: "prism" */ 'prismjs'),
+        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-markup'),
+        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-clike'),
+        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-javascript'),
+        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-css'),
+    ]);
+    Prism.highlightAllUnder(root);
 }
 
 /**
- * Resolve a token to a concrete `rgb()` by letting the browser compute it.
- *
- * This is why the ratios can be trusted: `color-mix()` and deep `var()` chains
- * are evaluated by the same engine that paints the swatch, not re-implemented.
- */
-function resolveToken(probe, token) {
-    probe.style.color = `var(${token})`;
-    const resolved = getComputedStyle(probe).color;
-    // A token that isn't a color leaves the probe at its inherited value; the
-    // caller can't tell, so bail on anything with alpha or an empty result.
-    return resolved && !resolved.includes('NaN') ? resolved : null;
-}
-
-/**
- * Badge every color token with its contrast against white and against the page
- * canvas, so the page checks its own documented ratios instead of repeating
- * them from a comment.
+ * Badge every color token with its contrast, measured off what the browser
+ * paints so `color-mix()` and deep `var()` chains stay honest. Reads and writes
+ * stay in separate passes: interleaved, each token forces a style recalc.
  */
 function renderContrastBadges(root) {
-    const targets = root.querySelectorAll('[data-ds-contrast-for]');
+    const targets = [...root.querySelectorAll('[data-ds-contrast-for]')];
     if (!targets.length) return;
 
-    const probe = document.createElement('span');
-    probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
-    root.appendChild(probe);
+    // Write: one probe per token, appended in a single insertion.
+    const fragment = document.createDocumentFragment();
+    const probes = targets.map((target) => {
+        const probe = document.createElement('span');
+        probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;color:var(${target.dataset.dsContrastFor})`;
+        fragment.appendChild(probe);
+        return probe;
+    });
+    root.appendChild(fragment);
 
-    const canvas = getComputedStyle(document.body).backgroundColor;
-    const white = 'rgb(255, 255, 255)';
+    // Read: only the first getComputedStyle costs a recalc, since nothing
+    // dirties the tree in between.
+    const canvas = parseCssColor(getComputedStyle(document.body).backgroundColor);
+    const measured = probes.map((probe) => parseCssColor(getComputedStyle(probe).color));
+    probes.forEach((probe) => probe.remove());
 
-    targets.forEach((target) => {
-        const color = resolveToken(probe, target.dataset.dsContrastFor);
-        if (!color) return;
-        const onWhite = contrastRatio(color, white);
-        const onCanvas = contrastRatio(color, canvas);
-        if (onWhite === null) return;
+    // Write: build every badge, touching no computed style. Each ratio is
+    // measured against its own backdrop, so a translucent token (the
+    // color-mix() control tints) is composited rather than scored as if the
+    // color it was mixed from were painted solid.
+    const canvasRgb = canvas && compositeOver(canvas);
+    targets.forEach((target, index) => {
+        const color = measured[index];
+        if (color === null) return;
+        const onWhite = contrastOn(color, WHITE);
+        const onCanvas = canvasRgb === null ? null : contrastOn(color, canvasRgb);
 
         const level = onWhite >= 7 ? 'AAA' : onWhite >= 4.5 ? 'AA' : onWhite >= 3 ? 'AA·lg' : '—';
         target.innerHTML = '';
@@ -86,27 +77,21 @@ function renderContrastBadges(root) {
 
         target.append(ratio, badge);
     });
-
-    probe.remove();
 }
 
 /**
  * Flip each ramp step's label to white once the step behind it is dark enough.
- *
- * The step count and the point where a ramp turns dark both vary, so this is
- * measured rather than assumed from the step's position.
+ * Measured, not assumed from position — read pass then write pass, as above.
  */
 function initRampLabels(root) {
-    root.querySelectorAll('.ds-ramp__step').forEach((step) => {
-        const luminance = relativeLuminance(getComputedStyle(step).backgroundColor);
-        if (luminance !== null && luminance < 0.4) step.classList.add('ds-ramp__step--dark');
+    const steps = [...root.querySelectorAll('.ds-ramp__step')];
+    const luminances = steps.map((step) => luminanceFromCssColor(getComputedStyle(step).backgroundColor));
+    steps.forEach((step, index) => {
+        if (luminances[index] !== null && luminances[index] < 0.4) step.classList.add('ds-ramp__step--dark');
     });
 }
 
-/**
- * Show-code toggle. State lives as a class on the root element so CSS does the
- * hiding — one class flip regardless of how many snippets are on the page.
- */
+/** Show-code toggle. One class on the root, so CSS does the hiding. */
 function initCodeToggle(root) {
     const toggle = root.querySelector('[data-ds-code-toggle]');
     if (!toggle) return;
@@ -115,18 +100,19 @@ function initCodeToggle(root) {
     root.classList.toggle('ds--code-visible', visible);
     // Set the attribute rather than the property: this runs before <ol-toggle>
     // has necessarily upgraded, and a property set then would be overwritten.
-    if (visible) toggle.setAttribute('checked', '');
+    if (visible) {
+        toggle.setAttribute('checked', '');
+        highlightCode(root);
+    }
 
     toggle.addEventListener('ol-toggle-change', (event) => {
         root.classList.toggle('ds--code-visible', event.detail.checked);
         localStorage.setItem(CODE_VISIBLE_KEY, String(event.detail.checked));
+        if (event.detail.checked) highlightCode(root);
     });
 }
 
-/**
- * Click-to-copy for token names and code blocks. `data-ds-copy-text` supplies
- * the text; without it, the nearest code block's contents are used.
- */
+/** Click-to-copy. `data-ds-copy-text`, else the nearest code block. */
 function initCopy(root) {
     root.addEventListener('click', async(event) => {
         const trigger = event.target.closest('[data-ds-copy]');
@@ -181,5 +167,4 @@ export function initDesignSystem(root) {
     initScrollSpy(root);
     initRampLabels(root);
     renderContrastBadges(root);
-    Prism.highlightAllUnder(root);
 }
