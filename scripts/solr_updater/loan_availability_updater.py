@@ -43,6 +43,7 @@ POLL_INTERVAL = 30  # seconds between polls when caught up
 LOCAL_DEV = True
 DUMMY_ENDPOINT = "http://mock-services:8025"
 
+
 def read_state(path: Path) -> int:
     """Return last processed uid, or 0 if the state file is absent/corrupt."""
     try:
@@ -285,7 +286,7 @@ def main(
     while True:
         try:
             if LOCAL_DEV:
-                resp = requests.get(DUMMY_ENDPOINT,  params={"action": "changes", "after_uid": last_uid, "limit": BATCH_SIZE}).json()
+                resp = requests.get(DUMMY_ENDPOINT, params={"action": "changes", "after_uid": last_uid, "limit": BATCH_SIZE}).json()
             else:
                 resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:

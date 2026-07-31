@@ -181,7 +181,6 @@ def test_resolve_edition_keys_basic():
     assert '"bookxyz"' in call_args
 
 
-
 def test_build_eviction_updates():
     mock_result = MagicMock()
     mock_result.docs = [{"key": "/works/OL99W"}, {"key": "/works/OL100W"}]
