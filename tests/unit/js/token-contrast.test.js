@@ -104,8 +104,12 @@ describe('color token contrast (WCAG AA)', () => {
         const semantic = Object.keys(tokens).filter(
             (name) => name.startsWith('--color-') && !name.startsWith('--color-chip-')
         );
+        // A bare var(--ramp) or a color-mix() over one — both keep the ramp as
+        // the single source of truth. What's banned is a raw color literal.
         for (const name of semantic) {
-            expect(`${name}: ${tokens[name]}`).toMatch(/: var\(--[\w-]+\)$/);
+            const decl = `${name}: ${tokens[name]}`;
+            expect(decl).toMatch(/var\(--[\w-]+\)/);
+            expect(decl).not.toMatch(/#[\da-f]{3,8}\b|hsla?\(|rgba?\(/i);
         }
     });
 });
