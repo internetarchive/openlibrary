@@ -20,6 +20,13 @@
   scroll-margin-top: calc(var(--ds-masthead-height) + var(--spacing-inset-md));
 }
 
+/* Opt out of the site-wide smooth scroll in base/common.css: the sidebar is a
+   directory you click through quickly, and waiting out an animation per jump
+   adds up. Scoped to this page via the scrolling element, which is <html>. */
+html:has(.ds) {
+  scroll-behavior: auto;
+}
+
 /* ---------------------------------------------------------------- masthead */
 
 .ds__masthead {
