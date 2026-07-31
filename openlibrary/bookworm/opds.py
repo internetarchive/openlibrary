@@ -22,6 +22,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from openlibrary.plugins.upstream.utils import get_marc21_language
+
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
 # rel -> the access value we store on the acquisition
@@ -161,10 +163,12 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
     if not local_id or not pub.title or not pub.authors:
         return None
 
+    # OPDS feeds give ISO codes (e.g. "en"); OL editions need MARC21 ("eng").
+    languages = [marc for code in pub.languages if (marc := get_marc21_language(code))]
     record: dict[str, Any] = {
         "title": pub.title,
         "authors": pub.authors,
-        "languages": pub.languages,
+        "languages": languages,
         "source_records": [f"{feed.provider_name}:{local_id}"],
         "publish_date": pub.metadata.get("published", ""),
     }

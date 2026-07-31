@@ -49,7 +49,7 @@ def test_lenny_id_from_self_link():
     assert rec["source_records"] == ["lenny:37044775"]
     assert rec["title"] == "Flatland"
     assert rec["authors"] == [{"name": "Edwin Abbott Abbott"}]
-    assert rec["languages"] == ["en"]  # language was a list here
+    assert rec["languages"] == ["eng"]  # ISO "en" normalized to MARC21
     acq = rec["acquisitions"][0]
     assert acq["data"]["access"] == "open-access"
     assert acq["local_id"] == "37044775"
