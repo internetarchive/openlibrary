@@ -17,6 +17,7 @@ the page from drifting as the system grows:
 import json
 import logging
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 
 from infogami.utils import delegate
@@ -57,8 +58,8 @@ class Component:
     """A registry row. Drives the sidebar and the section order.
 
     ``partial`` names a Jinja template defining a ``demos()`` macro holding the
-    component's write-up. ``kind`` is "lit" for a web component (which gets an
-    API table from the manifest) or "css" for a class-based component.
+    component's write-up. A row with no ``tag`` is a class-based CSS component,
+    which has no manifest entry and so renders without an API table.
     """
 
     id: str
@@ -66,12 +67,11 @@ class Component:
     use_when: str
     partial: str
     group: str = ""
-    kind: str = "lit"
     tag: str = ""
     avoid: str = ""
-    # Which files under static/css/components/ this row documents — the
-    # component's own stylesheet for kind="lit", the class definitions for
-    # kind="css". Used for the coverage report, so the page can show its gaps.
+    # Which files under static/css/components/ this row documents — a Lit
+    # component's own stylesheet, or the class definitions behind a CSS one.
+    # Used for the coverage report, so the page can show its gaps.
     css_files: tuple[str, ...] = ()
 
 
@@ -194,7 +194,6 @@ COMPONENTS = (
         "Inline status next to the thing it describes — info, success, warning, error.",
         "design/components/message.html.jinja",
         group="Feedback",
-        kind="css",
         css_files=("ol-message", "flash-messages"),
     ),
     Component(
@@ -274,10 +273,8 @@ NOT_COMPONENTS = frozenset(
     }
 )
 
-# Legacy class-based components, deliberately undocumented: the design system's
-# answer for each of these is the web component that replaced it, so a write-up
-# would only advertise the thing we want people to stop reaching for. Excluded
-# from the coverage report for the same reason as NOT_COMPONENTS.
+# Legacy class-based components, deliberately undocumented: a write-up would
+# only advertise what the web components replaced. Excluded like NOT_COMPONENTS.
 LEGACY_CSS = frozenset(
     {
         "buttonBtn",
@@ -350,11 +347,12 @@ def _clean_declaration(decl):
     }
 
 
+@cache
 def load_components():
-    """Index cleaned component API data by tag name from the generated manifest.
+    """Component API data by tag name, from the generated manifest.
 
-    Returns an empty dict if the manifest is missing or unreadable so the design
-    page still renders its hand-written live demos, minus the API tables.
+    Cached: it's a build artifact, so it can't change without a restart. Returns
+    empty if unreadable, leaving the live demos minus their API tables.
     """
     try:
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -372,12 +370,10 @@ def load_components():
     return components
 
 
+@cache
 def undocumented_css_components() -> list[str]:
-    """CSS component files that no registry row covers.
-
-    Surfaced on the Components page so it reports its own coverage gaps instead
-    of implying the list is complete.
-    """
+    """CSS component files that no registry row covers, so the page can report
+    its own coverage gaps instead of implying the list is complete."""
     documented = {name for component in COMPONENTS for name in component.css_files}
     try:
         on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
@@ -386,16 +382,17 @@ def undocumented_css_components() -> list[str]:
     return sorted(on_disk - documented - NOT_COMPONENTS - LEGACY_CSS)
 
 
-def component_groups() -> list[tuple[str, list[Component]]]:
-    """COMPONENTS bucketed by group, in registry order.
-
-    Jinja's ``groupby`` sorts alphabetically, which would scramble the
-    deliberate Actions → Overlays → Feedback → Content ordering.
-    """
+def _component_groups() -> tuple[tuple[str, list[Component]], ...]:
+    """COMPONENTS bucketed by group, in registry order — Jinja's ``groupby``
+    sorts alphabetically, scrambling the deliberate ordering."""
     grouped: dict[str, list[Component]] = {}
     for component in COMPONENTS:
         grouped.setdefault(component.group, []).append(component)
-    return list(grouped.items())
+    return tuple(grouped.items())
+
+
+# Derived from a module constant, so it is one too rather than per-request work.
+COMPONENT_GROUPS = _component_groups()
 
 
 @dataclass
@@ -404,8 +401,7 @@ class DesignContext:
 
     section: Section
     sections: tuple[Section, ...] = SECTIONS
-    components: tuple[Component, ...] = COMPONENTS
-    groups: list = field(default_factory=component_groups)
+    groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
     undocumented: list[str] = field(default_factory=list)
@@ -416,7 +412,8 @@ def build_context(section_id: str) -> DesignContext:
     context = DesignContext(section=section)
     if section_id == "foundations":
         context.token_categories = load_token_categories()
-    elif section_id in ("components", "playground"):
+    elif section_id == "components":
+        # Playground renders neither, so it pays for neither.
         context.api = load_components()
         context.undocumented = undocumented_css_components()
     return context

@@ -225,10 +225,15 @@ class TestTokenProperties:
         category = _parse_file(write(tmp_path, "c.css", f":root {{ --x: {value}; }}"))
         assert category.groups[0].tokens[0].is_color is is_color
 
-    def test_deprecated_is_read_from_the_token_comment(self, tmp_path):
-        category = _parse_file(write(tmp_path, "c.css", ":root {\n  --old: red; /* @deprecated use --color-text */\n  --new: blue;\n}\n"))
-        tokens = category.groups[0].tokens
-        assert (tokens[0].deprecated, tokens[1].deprecated) == (True, False)
+    def test_a_marker_never_reaches_the_rendered_note(self, tmp_path):
+        """Markers are UI — they set a flag and are stripped, not shown as prose."""
+        category = _parse_file(write(tmp_path, "c.css", ":root {\n  --old: red; /* @deprecated use --color-text */\n}\n"))
+        assert category.groups[0].tokens[0].description == "use --color-text"
+
+    def test_reference_is_derived_from_the_value(self, tmp_path):
+        body = ":root {\n  --alias: var(--blue-500);\n  --literal: hsl(202, 96%, 37%);\n  --compound: 1px solid var(--blue-500);\n}\n"
+        tokens = _parse_file(write(tmp_path, "c.css", body)).groups[0].tokens
+        assert [token.reference for token in tokens] == ["--blue-500", "", ""]
 
 
 class TestDropInternal:
@@ -306,3 +311,22 @@ class TestRealTokenFiles:
                         duplicates.add(token.name)
                     seen.add(token.name)
         assert not duplicates, f"declared more than once: {sorted(duplicates)}"
+
+
+class TestCoverageExclusions:
+    """Both sets are hand-maintained filenames, the one un-derived thing on a
+    page built to be derived, so a rename leaves a dead entry excluding nothing."""
+
+    def test_every_excluded_css_file_still_exists(self):
+        from openlibrary.plugins.openlibrary.design import CSS_COMPONENTS_DIR, LEGACY_CSS, NOT_COMPONENTS
+
+        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
+        stale = (NOT_COMPONENTS | LEGACY_CSS) - on_disk
+        assert not stale, f"excluded from the coverage report but no longer on disk: {sorted(stale)}"
+
+    def test_every_documented_css_file_still_exists(self):
+        from openlibrary.plugins.openlibrary.design import COMPONENTS, CSS_COMPONENTS_DIR
+
+        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
+        documented = {name for component in COMPONENTS for name in component.css_files}
+        assert not (missing := documented - on_disk), f"registry documents missing stylesheets: {sorted(missing)}"
