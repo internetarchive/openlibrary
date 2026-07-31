@@ -61,16 +61,17 @@
   white-space: nowrap;
 }
 
-/* The masthead chrome is already neutral-100, so hover lifts to white. */
+/* Nav chrome stays neutral — blue is reserved for links in content. The
+   masthead is already neutral-100, so hover lifts to white. */
 .ds__tab:hover {
   background-color: var(--color-surface);
-  color: var(--color-link);
+  color: var(--color-text);
 }
 
 .ds__tab--current,
 .ds__tab--current:hover {
-  background-color: var(--color-control-selected-bg);
-  color: var(--color-link);
+  background-color: var(--color-surface);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -119,11 +120,11 @@
 
 .ds__nav-list a:hover {
   background-color: var(--color-surface-sunken);
-  color: var(--color-link);
+  color: var(--color-text);
 }
 
 .ds__nav-list a.is-current {
-  color: var(--color-link);
+  color: var(--color-text);
   font-weight: 600;
 }
 
