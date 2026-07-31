@@ -65,6 +65,30 @@ class CompleteBook(BaseModel):
         return values
 
 
+class FeedSourcedBook(BaseModel):
+    """
+    A record ingested from a registered provider feed.
+
+    Such feeds (Project Gutenberg, Lenny, ...) are frequently open-access or
+    public-domain and lack both an ISBN/LCCN and a publisher, so a complete
+    record and a strong identifier are both out of reach. A stable provider
+    identifier (``identifiers.project_gutenberg``, ``identifiers.lenny``, ...)
+    plus a title and authors is sufficient. Only honored for records whose
+    ``source_records`` name a registered feed. See #12844.
+    """
+
+    title: NonEmptyStr
+    source_records: NonEmptyList[NonEmptyStr]
+    authors: NonEmptyList[Author]
+    identifiers: dict[str, NonEmptyList[NonEmptyStr]]
+
+    @model_validator(mode="after")
+    def at_least_one_identifier(self):
+        if not self.identifiers:
+            raise ValueError("A feed-sourced record must carry at least one provider identifier")
+        return self
+
+
 class StrongIdentifierBook(BaseModel):
     """
     The model for a book with a title, strong identifier, plus source_records.
@@ -113,7 +137,38 @@ class import_validator:
         except ValidationError as e:
             errors.append(e)
 
+        # Records sourced from a *registered* provider feed may validate on a
+        # stable provider identifier alone (no ISBN/publisher). The public import
+        # path is unaffected: the source must name a registered feed. #12844
+        if self._is_registered_feed_source(data):
+            try:
+                FeedSourcedBook.model_validate(data)
+                return True
+            except ValidationError as e:
+                errors.append(e)
+
         if errors:
             raise errors[0]
 
         return False
+
+    @staticmethod
+    def _is_registered_feed_source(data: dict[str, Any]) -> bool:
+        """True if any ``source_records`` provider names a registered feed."""
+        source_records = data.get("source_records") or []
+        providers = import_validator._registered_feed_providers()
+        return any(isinstance(record, str) and record.split(":")[0] in providers for record in source_records)
+
+    @staticmethod
+    def _registered_feed_providers() -> set[str]:
+        """The ``provider_name`` of every registered feed (empty if unavailable).
+
+        Wrapped defensively: this runs on every incomplete import, including in
+        contexts (unit tests, tooling) with no database configured.
+        """
+        try:
+            from openlibrary.bookworm.registry import FeedRegistry
+
+            return FeedRegistry.provider_names()
+        except Exception:  # noqa: BLE001 - absence of a DB must not break validation
+            return set()
