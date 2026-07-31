@@ -19,20 +19,21 @@
  */
 :root {
   /* Warm neutral ramp — "paper to ink" (hue 40–48).
-     Replaces the legacy grey + beige families with one warm ramp. The light
-     end is anchored to the beige on openlibrary.org today (hsl(48, 33%, 83%))
-     so the page reads as warm paper rather than tinted white; the ramp cools
-     and desaturates as it darkens, keeping text ink neutral. */
-  --neutral-50: hsl(48, 44%, 97%); /* lightest tint, raised warm surfaces */
-  --neutral-100: hsl(48, 36%, 94%); /* tinted surface, header chrome */
-  --neutral-200: hsl(47, 31%, 86%); /* page canvas (via --beige), dividers */
-  --neutral-300: hsl(45, 24%, 77%); /* strong dividers, disabled bg */
-  --neutral-400: hsl(42, 11%, 62%); /* icons, placeholder (non-text) */
-  --neutral-500: hsl(41, 9%, 42%); /* muted text — 5.0:1 on white */
-  --neutral-600: hsl(40, 10%, 37%); /* secondary text — 6.1:1 on white */
-  --neutral-700: hsl(40, 11%, 29%);
-  --neutral-800: hsl(40, 13%, 21%); /* primary text "ink" — 11.7:1 on white */
-  --neutral-900: hsl(40, 16%, 12%); /* near-black; dark-mode surfaces later */
+     Replaces the legacy grey + beige families with one warm ramp. Hue tracks
+     the beige on openlibrary.org today (hsl(48, 33%, 83%)) so the page still
+     reads as paper rather than tinted white, but chroma is pulled back about
+     a quarter from that beige — warm grey, not tan. Saturation keeps falling
+     as the ramp darkens, keeping text ink close to neutral. */
+  --neutral-50: hsl(48, 33%, 97%); /* lightest tint, raised warm surfaces */
+  --neutral-100: hsl(48, 27%, 94%); /* tinted surface, header chrome */
+  --neutral-200: hsl(47, 23%, 86%); /* page canvas (via --beige), dividers */
+  --neutral-300: hsl(45, 18%, 77%); /* strong dividers, disabled bg */
+  --neutral-400: hsl(42, 9%, 62%); /* icons, placeholder (non-text) */
+  --neutral-500: hsl(41, 7%, 42%); /* muted text — 5.0:1 on white */
+  --neutral-600: hsl(40, 8%, 37%); /* secondary text — 6.1:1 on white */
+  --neutral-700: hsl(40, 9%, 29%);
+  --neutral-800: hsl(40, 10%, 21%); /* primary text "ink" — 11.7:1 on white */
+  --neutral-900: hsl(40, 12%, 12%); /* near-black; dark-mode surfaces later */
   --white: hsl(0, 0%, 100%); /* raised surfaces stay pure white */
 
   /* Blue ramp — the single brand accent. 500/600 are bit-identical to the
@@ -104,13 +105,6 @@
      values match the static/images/openlibrary-{development,testing}-*.png favicons */
   --env-badge-development: hsl(136, 50%, 46%);
   --env-badge-testing: hsl(30, 53%, 50%);
-
-  /* Book cover carousel */
-  --book-cover-carousel-background: hsl(47, 54%, 90%);
-  --book-cover-carousel-border-top: hsl(51, 32%, 88%);
-  --book-cover-carousel-border-bottom: hsl(50, 32%, 85%);
-  --book-cover-carousel-cards: hsl(47, 54%, 98%);
-  --book-cover-shadow-color: hsl(48, 35%, 64%);
 
   /* Primary action */
   --color-primary: var(--blue-500);
