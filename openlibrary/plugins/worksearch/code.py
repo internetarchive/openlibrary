@@ -19,6 +19,7 @@ from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
+from openlibrary.core.acquisitions import add_acquisitions
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Edition
@@ -1182,6 +1183,12 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
     if fields == "*" or "availability" in fields:
         docs_for_availability = [(work["editions"]["docs"][0] if work.get("editions", {}).get("docs") else work) for work in processed_response.get("docs", [])]
         await add_availability_async(docs_for_availability)
+
+    if fields == "*" or "acquisitions" in fields:
+        # Weave provider acquisitions from the acquisitions table at query time
+        # (edition-scoped, batched) rather than embedding them in Solr. #12844
+        docs_for_acquisitions = [(work["editions"]["docs"][0] if work.get("editions", {}).get("docs") else work) for work in processed_response.get("docs", [])]
+        add_acquisitions(docs_for_acquisitions)
 
     return processed_response
 
