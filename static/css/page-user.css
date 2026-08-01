@@ -89,18 +89,23 @@ div.siteSearch.darker {
 }
 
 /* The stats line labels the results below it, so it sits closer to them than
-   to the controls above; margin-top adds to the stack gap to split the two. */
+   to the controls above — the filter row's margin-bottom below owns that split.
+   padding-left matches .searchResultItem's inset so the text starts on the
+   result card's content edge rather than its outer box. */
 .search-controls .search-results-stats {
-  margin-top: var(--spacing-sm);
   padding-bottom: 0;
+  padding-left: var(--spacing-inset-sm);
 }
 
+/* Exception to the gap-owns-spacing rule above: the filters are the last
+   control before the results, so they need a block-level break rather than the
+   tighter row gap — most visible against the "Authors" section heading. */
 .search-filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: center;
-  margin: 0;
+  margin: 0 0 var(--spacing-stack-md);
 }
 
 /* Own row on narrow screens: wrapping to the end of a half-empty line reads
