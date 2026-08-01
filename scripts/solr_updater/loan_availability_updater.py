@@ -1,5 +1,23 @@
 """Near-realtime loan availability updater for Solr.
 
+New to this file? The 30-second version
+---------------------------------------
+This is a small standalone daemon -- not a cron, not part of the web app. It
+runs as a backgrounded process inside the solr-updater container (launched by
+docker/ol-solr-updater-start.sh, next to the main solr_updater). Every ~30s it:
+
+  1. Asks IA's loan-changes API what changed since last time
+     (lending.get_loan_changes -> GET services/loans/loan/?action=changes).
+  2. Looks up the Solr EDITION document for each changed book (by ocaid).
+  3. Marks that edition available (1) or unavailable (0) in place, so search
+     can reflect borrowing status within ~a minute instead of Open Library
+     calling archive.org's availability service on every page load.
+  4. Saves a "uid" cursor to a state file so it resumes where it left off; on
+     a cold start it rebuilds from the last ~14 days of loan changes.
+
+Nothing reads these Solr fields yet -- wiring search/pages to them is a
+follow-up. The rest of this docstring is the Solr-specific "why".
+
 Polls IA's loan changes API and atomically updates ebook_availability and
 ebook_becomes_available on EDITION documents (nested children of their work)
 so search results reflect borrowing status within one poll interval at the
