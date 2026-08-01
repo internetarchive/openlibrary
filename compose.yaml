@@ -143,7 +143,7 @@ services:
         max-size: "512m"
         max-file: "4"
 
- 
+
 networks:
   webnet:
   dbnet:
