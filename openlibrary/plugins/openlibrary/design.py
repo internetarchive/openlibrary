@@ -163,6 +163,15 @@ COMPONENTS = (
         tag="ol-options-popover",
     ),
     Component(
+        "menu-popover",
+        "Menu Popover",
+        "Acting on one of a short list of choices — a sort menu, or anything that navigates.",
+        "design/components/menu-popover.html.jinja",
+        group="Overlays",
+        tag="ol-menu-popover",
+        avoid="A choice that is read or submitted later is a value, not an action — use Options Popover.",
+    ),
+    Component(
         "dialog",
         "Dialog",
         "An interruption that must be dealt with before the page continues.",

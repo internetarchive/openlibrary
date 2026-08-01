@@ -31,6 +31,7 @@ from openlibrary.plugins.upstream import (
     checkins,
     covers,
     edits,
+    likes,  # noqa: F401 side effects may be needed
     merge_authors,
     models,
     recentchanges,  # noqa: F401 side effects may be needed
