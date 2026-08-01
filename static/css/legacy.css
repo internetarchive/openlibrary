@@ -418,6 +418,16 @@ input.highlight {
   overflow-x: auto;
 }
 
+/* Filters lead the row; sort and layout only shape the results, so they sit at
+   the far end. Mirrors .search-filter-row__tools on the search page. The auto
+   margin collapses on its own once the row overflows and starts scrolling. */
+.search-results-stats__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+
 /* Search v2 */
 /* openlibrary/macros/SearchResultsWork.html */
 .serp-extras {
