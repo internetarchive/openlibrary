@@ -86,9 +86,29 @@
 #}
 {% macro prose(blocks, class) %}
     {% for block in blocks %}
-        {% set tight = "" if loop.last else " ds-prose--tight" %}
+        {# "The rules:" belongs to the list under it, so a lead-in closes up against
+           what it introduces. Everything else keeps the paragraph gap. #}
+        {% set introduces = not loop.last and blocks[loop.index].kind in ("list", "table", "pre") %}
+        {% set tight = " ds-prose--tight" if introduces else "" %}
         {% if block.kind == "pre" %}
             <pre class="ds-group__diagram{{ tight }}">{{ block.text }}</pre>
+        {% elif block.kind == "table" %}
+            <div class="ds-table-wrap{{ tight }}">
+                <table class="ds-table ds-table--guide">
+                    <thead>
+                        <tr>
+                            {% for cell in block.headers %}<th>{{ rich(cell) }}</th>{% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in block.rows %}
+                            <tr>
+                                {% for cell in row %}<td>{{ rich(cell) }}</td>{% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% elif block.kind == "list" and block.ordered %}
             <ol class="ds-prose-list ds-prose-list--numbered {{ class }}{{ tight }}">
                 {% for item in block.items %}<li>{{ rich(item) }}</li>{% endfor %}

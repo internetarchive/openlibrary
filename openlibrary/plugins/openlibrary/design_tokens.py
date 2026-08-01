@@ -25,6 +25,9 @@ _VAR_RE = re.compile(r"^var\(\s*(--[\w-]+)\s*\)$")
 _RAMP_RE = re.compile(r"^(--[\w-]+?)-(\d+)$")
 _DECORATION_RE = re.compile(r"^[\s*=~_-]+$")
 _LIST_ITEM_RE = re.compile(r"^(?P<marker>[-*•]|\d+\.)\s+(?P<text>\S.*)$")
+# A markdown pipe table, so a comment can carry a lookup table (colors.css).
+_TABLE_ROW_RE = re.compile(r"^\|.*\|$")
+_TABLE_RULE_RE = re.compile(r"^\|[\s|:-]+\|$")
 # Markers are UI, not prose: read off the raw comment, then stripped.
 _MARKER_RE = re.compile(r"\s*@(?:deprecated|internal)\b\s*")
 # ASCII art (spacing.css) keeps its whitespace. Arrows are excluded on purpose:
@@ -43,7 +46,7 @@ _DISPLAY_ORDER = ("colors", "font-families", "line-heights", "spacing", "border-
 
 @dataclass(frozen=True)
 class Block:
-    """One run of a comment body: a paragraph, a list, or preformatted text.
+    """One run of a comment body: a paragraph, a list, a table, or preformatted text.
 
     The comments are written for a reader, so the structure survives instead of
     flattening into one run-on paragraph.
@@ -53,6 +56,8 @@ class Block:
     text: str = ""
     items: tuple[str, ...] = ()
     ordered: bool = False
+    headers: tuple[str, ...] = ()
+    rows: tuple[tuple[str, ...], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -145,6 +150,18 @@ def _dedent(lines: list[str]) -> list[str]:
     return textwrap.dedent("\n".join(lines)).split("\n")
 
 
+def _table_block(rows: list[str]) -> Block:
+    """A run of pipe rows as a table — or a paragraph, if it has no header rule.
+
+    Without the rule the run is prose that happens to use pipes, and rendering
+    it as a headed table would invent a heading it never had.
+    """
+    cells = [tuple(cell.strip() for cell in row.strip("|").split("|")) for row in rows if not _TABLE_RULE_RE.match(row)]
+    if not cells or len(cells) == len(rows):
+        return Block("paragraph", text=" ".join(rows))
+    return Block("table", headers=cells[0], rows=tuple(cells[1:]))
+
+
 def _blocks(lines: list[str]) -> list[Block]:
     """Group a dedented comment body into paragraphs, lists and preformatted runs.
 
@@ -155,10 +172,11 @@ def _blocks(lines: list[str]) -> list[Block]:
     paragraph: list[str] = []
     pre: list[str] = []
     items: list[list[str]] = []
+    table: list[str] = []
     ordered = False
 
     def flush() -> None:
-        nonlocal paragraph, pre, items
+        nonlocal paragraph, pre, items, table
         if paragraph:
             blocks.append(Block("paragraph", text=" ".join(paragraph)))
             paragraph = []
@@ -170,12 +188,19 @@ def _blocks(lines: list[str]) -> list[Block]:
         if items:
             blocks.append(Block("list", items=tuple(" ".join(item) for item in items), ordered=ordered))
             items = []
+        if table:
+            blocks.append(_table_block(table))
+            table = []
 
     for line in lines:
         stripped = line.strip()
         indented = len(line) - len(line.lstrip()) >= _PRE_INDENT
         if not stripped:
             flush()
+        elif _TABLE_ROW_RE.match(stripped):
+            if not table:
+                flush()
+            table.append(stripped)
         elif match := _LIST_ITEM_RE.match(stripped):
             if not items:
                 flush()
@@ -197,7 +222,15 @@ def _blocks(lines: list[str]) -> list[Block]:
 
 def _flatten(blocks: list[Block]) -> str:
     """The blocks as one line, for places that render plain text (token notes)."""
-    return " ".join(" ".join(block.items) if block.kind == "list" else block.text for block in blocks).strip()
+
+    def one(block: Block) -> str:
+        if block.kind == "list":
+            return " ".join(block.items)
+        if block.kind == "table":
+            return " ".join(" ".join(row) for row in (block.headers, *block.rows))
+        return block.text
+
+    return " ".join(one(block) for block in blocks).strip()
 
 
 def _clean_comment(raw: str) -> tuple[str, list[Block]]:

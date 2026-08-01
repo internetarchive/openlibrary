@@ -258,8 +258,8 @@ html:has(.ds) {
   line-height: 1.35;
 }
 
-/* A blurb reads as one passage, so every block but the last sits close to the
-   next. Last of the group, so it wins over the per-block margins above. */
+/* A lead-in sits close to the list, table or diagram it introduces. Last of the
+   group, so it wins over the per-block margins above. */
 .ds-prose--tight {
   margin-bottom: var(--spacing-stack-xs);
 }
@@ -581,6 +581,14 @@ html:has(.ds) {
 
 .ds-table--migration td:last-child {
   white-space: nowrap;
+}
+
+/* A lookup table written into a token file's comment. The left column asks the
+   question and the right answers it, so neither may collapse: split the width
+   rather than letting the base rule hand it all to the last column. */
+.ds-table--guide td:first-child,
+.ds-table--guide td:last-child {
+  width: 50%;
 }
 
 .ds-table tbody tr:last-child td {
@@ -1133,7 +1141,7 @@ html:has(.ds) {
 
   .ds__nav-group {
     display: block;
-    margin-top: var(--spacing-stack-md);
+    margin-bottom: var(--spacing-stack-md);
   }
 
   .ds__nav-group-title {

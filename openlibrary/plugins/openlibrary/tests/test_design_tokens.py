@@ -109,6 +109,18 @@ class TestBlocks:
         _, blocks = _clean_comment(" Raised-control drop shadow.\n     Shared by buttons\n     and the segmented control.\n")
         assert text_of(blocks) == [("paragraph", "Shared by buttons and the segmented control.")]
 
+    def test_a_pipe_table_survives_as_a_table(self):
+        comment = " Colors\n ======\n Which token?\n\n | Styling | Use |\n |---|---|\n | Body text | `--color-text` |\n"
+        _, blocks = _clean_comment(comment)
+        assert text_of(blocks) == [("paragraph", "Which token?"), ("table", "")]
+        assert blocks[1].headers == ("Styling", "Use")
+        assert blocks[1].rows == (("Body text", "`--color-text`"),)
+
+    def test_pipe_rows_without_a_header_rule_stay_prose(self):
+        """No rule means no header row, and inventing one would mislabel the run."""
+        _, blocks = _clean_comment(" Notes\n =====\n | a | b |\n | c | d |\n")
+        assert text_of(blocks) == [("paragraph", "| a | b | | c | d |")]
+
 
 class TestParseFile:
     def test_opening_comment_becomes_the_category_blurb_when_it_restates_the_filename(self, tmp_path):
@@ -289,6 +301,13 @@ class TestRealTokenFiles:
         tokens = {token.name: token for group in colors.groups for token in group.tokens}
         assert tokens["--color-text"].resolved.startswith("hsl(")
         assert tokens["--color-link"].resolved.startswith("hsl(")
+
+    def test_the_colors_blurb_carries_the_which_token_do_i_use_table(self):
+        """The one place a contributor is told how to choose; it renders or it doesn't exist."""
+        colors = next(category for category in load_token_categories() if category.id == "colors")
+        table = next(block for block in colors.blurb if block.kind == "table")
+        assert len(table.headers) == 2
+        assert ("Body text", "`--color-text`") in table.rows
 
     def test_the_deprecated_alias_tier_is_flagged(self):
         colors = next(category for category in load_token_categories() if category.id == "colors")

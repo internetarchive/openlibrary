@@ -1,16 +1,42 @@
 /**
  * Colors
  * ======
- * Two-tier token system (see docs/ai/design.md):
+ * Color has a semantic layer, and it is the layer your CSS should use. Below,
+ * in order: primitive ramps (raw values, no meaning), the purpose-named
+ * `--color-*` tokens built on them, and a deprecated alias for every legacy
+ * name. See docs/ai/design.md.
  *
- *   1. Primitives — raw ramps, no semantic meaning. Never use directly
- *      in component styles.
- *   2. Semantic tokens — purpose-named (`--color-*`), reference primitives
- *      only. This is the layer components consume, and the seam where a
- *      future dark mode swaps values.
- *   3. Deprecated aliases — every legacy token name, re-pointed at the
- *      ramps so existing consumers migrate without edits. Do not use in
- *      new code; migrate to a semantic token when touching a file.
+ * The rules:
+ *
+ *   1. New code uses semantic tokens — pick by purpose, not by shade.
+ *   2. Don't use primitives (`--neutral-500`, `--blue-600`) or raw `hsl()` /
+ *      hex in component styles. If no semantic token fits your case, add one
+ *      here and name the purpose.
+ *   3. When you touch a file that uses a legacy name, migrate it to the
+ *      semantic equivalent. Once an alias's consumer count hits zero, we
+ *      delete it.
+ *
+ * Which token do I use?
+ *
+ * | You are styling… | Use |
+ * |---|---|
+ * | Body text | `--color-text` |
+ * | Supporting text (subtitles, descriptions) | `--color-text-secondary` |
+ * | Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA on white and `--neutral-50` only, not on the page canvas |
+ * | Text on a dark or primary fill | `--color-text-inverse` / `--color-on-primary` |
+ * | The surface of a card, input, or dropdown | `--color-surface` |
+ * | The page canvas behind those surfaces | `--color-background` |
+ * | An inset well or sunken panel | `--color-surface-sunken` |
+ * | Header / footer chrome | `--color-surface-header` |
+ * | A link | `--color-link`, with `-hover` and `-visited` |
+ * | A primary button | `--color-primary` (+ `-hover`, `-active`) with `--color-on-primary` text |
+ * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
+ * | Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
+ *
+ * Why the indirection matters: every semantic token references a primitive,
+ * and that mapping is the dark-mode seam — a future `[data-theme="dark"]`
+ * block re-points the semantic layer and every compliant consumer follows.
+ * Styles written against primitives or literals won't.
  */
 
 /**
