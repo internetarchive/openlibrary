@@ -1,0 +1,105 @@
+$def with (api)
+
+<article class="design-pattern" id="menu-popover">
+    <h2 class="design-pattern__title">Menu Popover</h2>
+
+    <p>A trigger paired with a popover menu of mutually-exclusive choices — the sort-menu shape used across the web. Items render as a plain list with the current one highlighted; there are no radio controls, because nothing is being held as a value.</p>
+
+    <section class="example">
+      <h3 class="example__title">Menu popover or options popover?</h3>
+      <p>The two look similar and behave differently. Pick by what activating an item <em>does</em>:</p>
+      <ul>
+        <li><code>&lt;ol-options-popover&gt;</code> is a <strong>form control</strong> — a radiogroup that holds a value, participates in forms via <code>name</code>, shows its radios, and moves its selection as you arrow through it (selection follows focus). Reach for it when the value is read later, or submitted.</li>
+        <li><code>&lt;ol-menu-popover&gt;</code> is an <strong>action menu</strong> — arrows move focus only, and activating an item does something and closes. Nothing is committed until Enter or a click, which is what makes it safe to wire to navigation or any other change you can't undo by arrowing back. It is deliberately not form-associated.</li>
+      </ul>
+      <p>The sort control on search, author, list, and reading-log pages is the canonical consumer: choosing an item loads a new URL, so arrowing past "Trending" must not navigate.</p>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Basic menu</h3>
+      <p>Give it <code>items</code>, a <code>value</code> for the current choice, and a <code>label</code> that names the menu. Without a slotted trigger, an <code>ol-button</code> is injected showing the current item's label.</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-menu-popover
+  label="Sort by"
+  value="relevance"
+  items='[{"value":"relevance","label":"Relevance"}, ...]'&gt;
+&lt;/ol-menu-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-menu-popover id="demo-menu-sort" label="Sort by" aria-label="Sort order" value="relevance"></ol-menu-popover>
+        <p style="margin-top: 12px; font-size: 13px;">
+          Last selected: <strong id="demo-menu-sort-out">—</strong>
+        </p>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-menu-sort');
+          var out = document.getElementById('demo-menu-sort-out');
+          el.items = [
+            { value: 'relevance', label: 'Relevance' },
+            { value: 'editions', label: 'Most Editions' },
+            { value: 'old', label: 'First Published' },
+            { value: 'new', label: 'Most Recent' },
+            { value: 'rating', label: 'Top Rated' }
+          ];
+          el.addEventListener('ol-menu-popover-select', function(e) {
+            out.textContent = e.detail.value;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Nested items</h3>
+      <p>Mark an item <code>nested</code> to indent it as a subset of the item above. The reading-log sorts use this to hang shelf filters under their parent sort.</p>
+      <pre class="example__code"><code class="language-html">items='[
+  {"value":"readinglog","label":"Reading Log"},
+  {"value":"want_to_read","label":"Want to Read","nested":true},
+  {"value":"already_read","label":"Already Read","nested":true}
+]'</code></pre>
+      <div class="example__output">
+        <ol-menu-popover id="demo-menu-nested" label="Sort by" aria-label="Sort order with nested items" value="readinglog"></ol-menu-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-menu-nested');
+          el.items = [
+            { value: 'relevance', label: 'Relevance' },
+            { value: 'readinglog', label: 'Reading Log' },
+            { value: 'want_to_read', label: 'Want to Read', nested: true },
+            { value: 'currently_reading', label: 'Currently Reading', nested: true },
+            { value: 'already_read', label: 'Already Read', nested: true },
+            { value: 'trending', label: 'Trending' }
+          ];
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Custom trigger via slot</h3>
+      <p>Slot your own trigger when you need control over its size or want it server-rendered — a server-rendered trigger has no layout shift while the component upgrades, which is why the sort control slots one instead of taking the default.</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-menu-popover label="Sort by" value="index" items="..."&gt;
+  &lt;ol-button slot="trigger" size="small"&gt;List Order&lt;/ol-button&gt;
+&lt;/ol-menu-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-menu-popover id="demo-menu-trigger" label="Sort by" aria-label="Sort order with slotted trigger" value="index">
+          <ol-button slot="trigger" size="small">List Order</ol-button>
+        </ol-menu-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-menu-trigger');
+          el.items = [
+            { value: 'index', label: 'List Order' },
+            { value: 'last_modified', label: 'Last Modified' }
+          ];
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Keyboard &amp; accessibility</h3>
+      <p>The panel is a <code>menu</code> of <code>menuitemradio</code> items, with the current one carrying <code>aria-checked</code>. Arrow keys and Home/End move focus between items, wrapping at the ends, and select nothing; Enter, Space, or a click activates the focused item and closes the menu. Escape closes without selecting, and focus returns to the trigger. A roving tabindex keeps the whole menu a single tab stop, and pressing Down on the trigger opens the menu onto the current item.</p>
+      <p>The trigger shows the current item but is named "<em>label</em>, current item" — otherwise it announces a bare value with no clue what it's a value of. This applies to a slotted trigger as well as the injected one; author an <code>aria-label</code> on your trigger to override it.</p>
+    </section>
+
+    $:render_template("design/api_tables", api)
+</article>

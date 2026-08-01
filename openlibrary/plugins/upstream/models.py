@@ -504,6 +504,21 @@ class Author(models.Author):
             request_label="AUTHOR_BOOKS_PAGE",
         )
 
+    def get_readable_book_count(self, q="") -> int:
+        """Number of this author's works readable in-browser, for the sublabel on
+        the author page's "Readable Only" toggle. One rows=0 count query, scoped
+        to the same `q` as the results it labels — the same approach
+        _get_readable_count takes for /search.
+        """
+        return works_by_author(
+            self.get_olid(),
+            rows=0,
+            has_fulltext=True,
+            query=q,
+            facet=False,
+            request_label="AUTHOR_BOOKS_READABLE_COUNT",
+        ).num_found
+
     def get_work_count(self):
         """Returns the number of works by this author."""
         # TODO: avoid duplicate works_by_author calls
