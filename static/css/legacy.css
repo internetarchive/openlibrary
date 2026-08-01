@@ -418,6 +418,16 @@ input.highlight {
   overflow-x: auto;
 }
 
+/* Filters lead the row; sort and layout only shape the results, so they sit at
+   the far end. Mirrors .search-filter-row__tools on the search page. The auto
+   margin collapses on its own once the row overflows and starts scrolling. */
+.search-results-stats__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+
 /* Search v2 */
 /* openlibrary/macros/SearchResultsWork.html */
 .serp-extras {
@@ -915,6 +925,9 @@ div#searchResults .SRPCoverBlank a {
 /* groups when the query names an author. */
 /* openlibrary/templates/work_search.html */
 .search-results-section-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
   margin-top: 0;
   margin-bottom: var(--spacing-stack-xs);
   font-size: 0.75em;
@@ -922,6 +935,14 @@ div#searchResults .SRPCoverBlank a {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--accessible-grey);
+}
+
+/* The result count rides the "Books" label but reads as data, not a label. */
+.search-results-section-label__count {
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 /* Author suggestion row shown above work search results. */
@@ -990,7 +1011,7 @@ div#searchResults .SRPCoverBlank a {
 
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
-  width: 220px;
+  width: var(--search-facets-width);
   padding: 0 15px;
 }
 

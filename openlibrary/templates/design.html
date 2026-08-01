@@ -22,6 +22,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#popover">Popover</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
         <li><a href="#options-popover">Options Popover</a></li>
+        <li><a href="#menu-popover">Menu Popover</a></li>
         <li><a href="#dialog">Dialog</a></li>
         <li><a href="#read-more">Read More</a></li>
         <li><a href="#scorecard">Scorecard</a></li>
@@ -158,6 +159,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
       $:render_template("design/select-popover", components.get("ol-select-popover"))
 
       $:render_template("design/options-popover")
+
+      $:render_template("design/menu-popover", components.get("ol-menu-popover"))
 
       $:render_template("design/dialog")
 
