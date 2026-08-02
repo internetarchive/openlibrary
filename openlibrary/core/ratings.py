@@ -66,6 +66,24 @@ class Ratings(db.CommonExtras):
         return list(oldb.query(query, vars={"limit": limit, "since": since}))
 
     @classmethod
+    def get_recent_ratings(cls, usernames: list[str] | None = None, limit: int = 25, page: int = 1) -> list:
+        """Most recently submitted ratings, newest first.
+
+        Backs the social activity feed. Pass `usernames` to restrict the result
+        to a specific set of patrons (i.e. the ones a viewer follows).
+        """
+        oldb = db.get_db()
+        page = int(page or 1)
+        where = "WHERE username IN $usernames" if usernames else ""
+        query = f"SELECT * FROM ratings {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        return list(
+            oldb.query(
+                query,
+                vars={"usernames": usernames, "limit": limit, "offset": limit * (page - 1)},
+            )
+        )
+
+    @classmethod
     def get_users_ratings(cls, username) -> list:
         oldb = db.get_db()
         query = "select * from ratings where username=$username"
