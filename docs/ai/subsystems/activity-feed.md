@@ -44,6 +44,24 @@ Returns `{scope, following, page, activity: [...]}`. Every item carries `type`, 
 
 `<ol-social-feed>` — `openlibrary/components/lit/OlSocialFeed.js`.
 
+**Every activity type renders into one card skeleton**, following Goodreads' Updates panel:
+
+```
+avatar   Actor  verb  target                        when   [Follow]
+         ┌───────┐  Title
+         │ media │  subtitle
+         └───────┘  [primary action] [secondary]  ★★★★☆
+```
+
+A shelving fills `media` with a book cover and `verb` with the shelf; a list update fills `media` with a fan of three covers and `subtitle` with a book count; a like fills the same slots from the liked list. Nothing about the frame changes.
+
+`_present(item)` is the only place that knows how the types differ — it maps an event onto `{href, covers, title, subtitle, actions}`. **Adding an event type means one `_present` branch, not a new template.** Layout variants are CSS over that single markup, so a card means the same thing to a reader wherever it appears.
+
+Two consequences worth knowing:
+
+- Do not branch on `item.type` in the template. Branch on the *shape* (`item.list` vs `item.work`) inside `_present`, so a new type that produces a list card needs no template change — this is how likes reuse the list rendering.
+- A backtick anywhere inside the `css` tagged template silently ends the literal, and the build fails with a bare `Missing semicolon` pointing far from the cause. Do not put code ticks in CSS comments.
+
 **Not to be confused with `<ol-activity-feed>`**, which is the homepage "What's Happening Now" widget ([#12863](https://github.com/internetarchive/openlibrary/pull/12863)). Different surfaces, shared patterns.
 
 ## Traps

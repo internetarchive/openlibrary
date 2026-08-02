@@ -580,14 +580,25 @@ def seed_likes(rng, verbose=True):
             print("No lists to like yet")
         return
 
+    oldb = db.get_db()
+    now = datetime.now(UTC).replace(tzinfo=None)
     liked = 0
     for patron in PATRONS:
         # Nobody likes their own list.
         candidates = [key for owner, key in lists if owner != patron["username"]]
         for key in rng.sample(candidates, min(len(candidates), rng.randint(1, 2))):
-            if not Likes.patron_liked(patron["username"], key):
-                Likes.like(patron["username"], key)
-                liked += 1
+            if Likes.patron_liked(patron["username"], key):
+                continue
+            Likes.like(patron["username"], key)
+            # `Likes.like` stamps CURRENT_TIMESTAMP, so without this every like
+            # lands in the same second and a whole page of them buries the
+            # reading-log events at the top of the feed.
+            created = now - timedelta(minutes=rng.randint(5, 60 * 24 * 21))
+            oldb.query(
+                "UPDATE likes SET created=$created, modified=$created WHERE username=$username AND key=$key",
+                vars={"created": created, "username": patron["username"], "key": key},
+            )
+            liked += 1
     if verbose:
         print(f"Seeded {liked} likes")
 
