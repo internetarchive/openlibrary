@@ -69,7 +69,7 @@ $var title: Activity Feed Designs
   </nav>
 
   <nav class="feed-gallery__nav" aria-label="Feed scope">
-    $for s in ['auto', 'public', 'following']:
+    $for s in ['auto', 'public', 'following', 'popular']:
       $ suffix = ('&design=%d' % selected) if selected else ''
       <a class="feed-gallery__chip $('is-current' if scope == s else '')"
          href="?scope=$s$suffix$api_param">scope: $s</a>
@@ -84,7 +84,7 @@ $var title: Activity Feed Designs
           <a class="feed-gallery__permalink" href="?design=$v['id']&amp;scope=$scope$api_param">View alone &rsaquo;</a>
         </header>
         <div class="feed-gallery__stage">
-          <ol-social-feed variant="$v['id']" scope="$scope" limit="3" balanced controls refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
+          <ol-social-feed variant="$v['id']" scope="$scope" limit="$v['limit']" balanced $:v['attrs'] refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
         </div>
       </section>
 </div>

@@ -115,6 +115,8 @@ class activity_feed_gallery(delegate.page):
     path = "/developers/design/activity-feed"
 
     # Kept in step with FEED_VARIANTS in openlibrary/components/lit/OlSocialFeed.js.
+    # `attrs` switches on the component chrome a treatment needs; `limit`
+    # overrides the page size where three cards would be too few.
     VARIANTS = (
         {"id": 1, "name": "Spec card", "blurb": "The reviewed design: patron and follow above the rule, book and actions below. Three up on desktop."},
         {"id": 2, "name": "Goodreads river", "blurb": "Full-width rows, one continuous sentence, generous cover, text actions."},
@@ -130,6 +132,16 @@ class activity_feed_gallery(delegate.page):
             "id": 11,
             "name": "Showcase row",
             "blurb": "Three cards across on desktop, stacked on mobile. Refresh the whole row; swipe or press next for older activity.",
+            "attrs": "controls",
+        },
+        {
+            "id": 12,
+            "name": "Discover / Following / Popular",
+            "blurb": (
+                "Bluesky shape: tabs over one scrolling column that loads more as you reach the end. Popular shows one card each from the most-followed readers."
+            ),
+            "attrs": "tabs infinite",
+            "limit": 8,
         },
     )
 
@@ -137,12 +149,13 @@ class activity_feed_gallery(delegate.page):
 
     def GET(self):
         i = web.input(design=None, scope="auto", api=None)
+        variants = [{"attrs": "", "limit": 3, **v} for v in self.VARIANTS]
         selected = safeint(i.design, 0)
-        scope = i.scope if i.scope in ("auto", "public", "following") else "auto"
+        scope = i.scope if i.scope in ("auto", "public", "following", "popular") else "auto"
         user = accounts.get_current_user()
         viewer = user.key.split("/")[-1] if user else ""
         api = self._api_url(i.api)
-        return render_template("design/activity_feed", list(self.VARIANTS), selected, scope, viewer, api, self._api_param(api))
+        return render_template("design/activity_feed", variants, selected, scope, viewer, api, self._api_param(api))
 
     @classmethod
     def _api_param(cls, api: str) -> str:

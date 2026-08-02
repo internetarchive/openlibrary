@@ -225,6 +225,37 @@ class ActivityStream:
         )
         return events[:limit]
 
+    @classmethod
+    def popular_feed(cls, viewer: str | None = None, limit: int = 25, page: int = 1) -> list[ActivityEvent]:
+        """The latest single event from each of the most-followed readers.
+
+        One card per patron rather than a stream, ordered by how many people
+        follow them -- a "who is worth following" view rather than a timeline.
+        """
+        ranked = [row["publisher"] for row in PubSub.most_followed(limit=limit * 2)]
+        usernames = [name for name in ranked if name != viewer]
+        if not usernames:
+            return []
+
+        fetch = limit * 4
+        shelf_rows = cls._shelf_rows_for(usernames, limit=fetch, page=page)
+        rating_rows = Ratings.get_recent_ratings(usernames=usernames, limit=fetch, page=page)
+        list_events = cls._recent_list_adds(limit=fetch, usernames=usernames)
+
+        allowed = set(usernames)
+        events = cls._build_events(
+            shelf_rows=[r for r in shelf_rows if r["username"] in allowed],
+            rating_rows=[r for r in rating_rows if r["username"] in allowed],
+            list_events=[e for e in list_events if e.username in allowed],
+        )
+
+        newest: dict[str, ActivityEvent] = {}
+        for event in events:  # already newest-first
+            newest.setdefault(event.username, event)
+
+        rank = {name: i for i, name in enumerate(usernames)}
+        return sorted(newest.values(), key=lambda e: rank[e.username])[:limit]
+
     # -- assembly ---------------------------------------------------------
 
     @classmethod

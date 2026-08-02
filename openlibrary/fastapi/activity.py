@@ -20,7 +20,7 @@ from openlibrary.fastapi.auth import AuthenticatedUser, get_authenticated_user
 
 router = APIRouter()
 
-Scope = Literal["auto", "public", "following"]
+Scope = Literal["auto", "public", "following", "popular"]
 
 
 class FeedWork(BaseModel):
@@ -59,7 +59,7 @@ class FeedItem(BaseModel):
 
 
 class FeedResponse(BaseModel):
-    scope: Literal["public", "following"]
+    scope: Literal["public", "following", "popular"]
     following: bool
     page: int
     activity: list[FeedItem]
@@ -153,15 +153,20 @@ async def activity_feed(
     fetch = limit * 5 if balanced else limit
 
     events: list[ActivityEvent] = []
-    resolved: Literal["public", "following"] = "public"
+    resolved: Literal["public", "following", "popular"] = "public"
 
-    if scope != "public" and following and viewer:
+    if scope == "popular":
+        events = ActivityStream.popular_feed(viewer=viewer, limit=fetch, page=page)
+        resolved = "popular"
+    elif scope != "public" and following and viewer:
         events = ActivityStream.following_feed(viewer, limit=fetch, page=page)
         resolved = "following"
 
     # Following someone quiet should not leave the patron staring at nothing --
-    # fall back to the community feed rather than an empty page.
-    if not events:
+    # fall back to the community feed rather than an empty page. Popular is an
+    # explicit choice, so it is allowed to come back empty rather than silently
+    # showing something else.
+    if not events and scope != "popular":
         events = ActivityStream.public_feed(viewer=viewer, limit=fetch, page=page)
         resolved = "public"
 

@@ -41,9 +41,11 @@ import { LitElement, css, html } from 'lit';
  * @prop {String} apiUrl - Endpoint to fetch feed JSON from
  * @prop {Number} variant - Layout treatment, 1-10
  * @prop {Number} limit - Events to request per page
- * @prop {String} scope - `auto`, `public`, or `following`
+ * @prop {String} scope - `auto`, `public`, `following`, or `popular`
  * @prop {Boolean} balanced - Keep every card type on screen instead of strict newest-first
  * @prop {Boolean} controls - Show the refresh and older/newer controls
+ * @prop {Boolean} tabs - Show Discover / Following / Popular tabs that switch scope
+ * @prop {Boolean} infinite - Scroll in a fixed-height column, appending pages as you reach the end
  * @prop {String} viewerUsername - Logged-in patron, for follow state and self-filtering
  * @prop {Number} refreshInterval - Seconds between background refreshes; 0 disables
  * @prop {String} heading - Panel heading; omit to render the feed without a panel
@@ -67,6 +69,7 @@ export const FEED_VARIANTS = [
     { id: 9, slug: 'editorial', name: 'Editorial', blurb: 'Uppercase eyebrow, large type, almost no chrome. Actions on hover.' },
     { id: 10, slug: 'people', name: 'People first', blurb: 'Grouped by patron: who they are, then a strip of what they touched.' },
     { id: 11, slug: 'showcase', name: 'Showcase row', blurb: 'Three cards across on desktop, stacked on mobile. Refresh the whole row; swipe or press next for older activity.' },
+    { id: 12, slug: 'tabbed', name: 'Discover / Following / Popular', blurb: 'Bluesky shape: tabs over one scrolling column that loads more as you reach the end. Popular shows one card each from the most-followed readers.' },
 ];
 
 const VARIANT_BY_ID = new Map(FEED_VARIANTS.map((v) => [v.id, v]));
@@ -101,6 +104,8 @@ export class OlSocialFeed extends LitElement {
         scope: { type: String },
         balanced: { type: Boolean },
         controls: { type: Boolean },
+        tabs: { type: Boolean },
+        infinite: { type: Boolean },
         viewerUsername: { type: String, attribute: 'viewer-username' },
         refreshInterval: { type: Number, attribute: 'refresh-interval' },
         heading: { type: String },
@@ -114,6 +119,7 @@ export class OlSocialFeed extends LitElement {
         _page: { state: true },
         _hasMore: { state: true },
         _busy: { state: true },
+        _scope: { state: true },
     };
 
     constructor() {
@@ -124,6 +130,8 @@ export class OlSocialFeed extends LitElement {
         this.scope = 'auto';
         this.balanced = false;
         this.controls = false;
+        this.tabs = false;
+        this.infinite = false;
         this.viewerUsername = '';
         this.refreshInterval = 60;
         this.heading = '';
@@ -137,11 +145,16 @@ export class OlSocialFeed extends LitElement {
         this._page = 1;
         this._hasMore = false;
         this._busy = false;
+        this._scope = '';
         this._timer = null;
     }
 
     connectedCallback() {
         super.connectedCallback();
+        // `scope` is the configured default; `_scope` is what the tabs change.
+        // With tabs on, `auto` names no tab, so nothing would look selected --
+        // start on Discover instead.
+        this._scope = this.tabs && this.scope === 'auto' ? 'public' : this.scope;
         this._load();
         this._startTimer();
     }
@@ -149,6 +162,27 @@ export class OlSocialFeed extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this._stopTimer();
+        this._observer?.disconnect();
+    }
+
+    updated() {
+        this._watchForTheEnd();
+    }
+
+    /** Append the next page once the foot of the column comes into view. */
+    _watchForTheEnd() {
+        if (!this.infinite) return;
+        const sentinel = this.renderRoot.querySelector('.sentinel');
+        if (!sentinel || sentinel === this._watched) return;
+        this._observer?.disconnect();
+        this._observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) this._loadMore();
+            },
+            { root: this.renderRoot.querySelector('.scroller'), rootMargin: '300px' }
+        );
+        this._observer.observe(sentinel);
+        this._watched = sentinel;
     }
 
     _startTimer() {
@@ -169,9 +203,10 @@ export class OlSocialFeed extends LitElement {
         return `${item.type}:${item.username}:${item.work?.key || item.list?.key}:${item.created}`;
     }
 
-    async _load({ background = false } = {}) {
-        if (!background) this._loading = true;
-        const url = `${this.apiUrl}?limit=${this.limit}&page=${this._page}&scope=${this.scope}${this.balanced ? '&balanced=true' : ''}`;
+    async _load({ background = false, append = false } = {}) {
+        if (!background && !append) this._loading = true;
+        const scope = this._scope || this.scope;
+        const url = `${this.apiUrl}?limit=${this.limit}&page=${this._page}&scope=${scope}${this.balanced ? '&balanced=true' : ''}`;
         try {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -185,9 +220,10 @@ export class OlSocialFeed extends LitElement {
                 this._freshKeys = new Set(items.map((item) => this._key(item)).filter((key) => !seen.has(key)));
             }
 
-            this._items = items;
-            // A short page means there is nothing older to turn to.
-            this._hasMore = items.length >= this.limit;
+            this._items = append ? [...this._items, ...items] : items;
+            // A short page means there is nothing older to turn to. Popular is
+            // one card per patron, so it is a single page by definition.
+            this._hasMore = data.scope !== 'popular' && items.length >= this.limit;
             this._error = false;
             this.dispatchEvent(
                 new CustomEvent('ol-social-feed-load', {
@@ -209,6 +245,51 @@ export class OlSocialFeed extends LitElement {
         this._busy = true;
         await this._load({ background: true });
         this._busy = false;
+        this._scope = '';
+    }
+
+    /** Pull the next page in beneath what is already on screen. */
+    async _loadMore() {
+        if (this._busy || !this._hasMore) return;
+        this._busy = true;
+        this._page += 1;
+        await this._load({ append: true });
+        this._busy = false;
+    }
+
+    /** Switch between Discover and Following, starting over at page one. */
+    async _selectScope(scope) {
+        if (this._scope === scope || this._busy) return;
+        this._scope = scope;
+        this._page = 1;
+        this._busy = true;
+        await this._load();
+        this._busy = false;
+    }
+
+    _renderTabs() {
+        if (!this.tabs) return '';
+        const tab = (scope, label) => html`<button
+            class="tab ${this._scope === scope ? 'is-current' : ''}"
+            type="button"
+            role="tab"
+            aria-selected=${this._scope === scope}
+            @click=${() => this._selectScope(scope)}
+        >${label}</button>`;
+        return html`<div class="tabs" role="tablist" aria-label="Feed">
+            ${tab('public', 'Discover')}${tab('following', 'Following')}${tab('popular', 'Popular')}
+        </div>`;
+    }
+
+    _renderMore() {
+        if (!this.infinite) return '';
+        return html`
+            <div class="sentinel" aria-hidden="true"></div>
+            ${this._hasMore
+        ? html`<button class="load-more" type="button" ?disabled=${this._busy}
+                    @click=${() => this._loadMore()}>${this._busy ? 'Loading\u2026' : 'Load more'}</button>`
+        : html`<p class="end">You are all caught up.</p>`}
+        `;
     }
 
     /** Turn to older or newer activity. */
@@ -218,6 +299,7 @@ export class OlSocialFeed extends LitElement {
         this._busy = true;
         await this._load();
         this._busy = false;
+        this._scope = '';
         this._startTimer();
     }
 
@@ -479,18 +561,23 @@ export class OlSocialFeed extends LitElement {
 
         let inner;
         if (this._loading) {
-            inner = html`<div class="state" aria-busy="true">Loading activity&hellip;</div>`;
+            inner = html`${this._renderTabs()}<div class="state" aria-busy="true">Loading activity&hellip;</div>`;
         } else if (this._error) {
             inner = html`<div class="state">
                 Could not load the activity feed.
                 <button class="btn btn--ghost" type="button" @click=${() => this._load()}>Retry</button>
             </div>`;
         } else if (!this._items.length) {
-            inner = html`<div class="state">
-                No recent activity yet. Follow other readers and their updates will show up here.
+            inner = html`${this._renderTabs()}<div class="state">
+                ${{
+        following: 'Nobody you follow has been active lately. Try Discover.',
+        popular: 'No activity yet from the most-followed readers.',
+    }[this._scope] || 'No recent activity yet. Follow other readers and their updates will show up here.'}
             </div>`;
         } else {
-            inner = html`<div class="feed feed--${variant.slug}" aria-live="polite" aria-busy=${this._busy}
+            inner = html`${this._renderTabs()}
+            <div class="${this.infinite ? 'scroller' : ''}">
+            <div class="feed feed--${variant.slug}" aria-live="polite" aria-busy=${this._busy}
                 @touchstart=${(e) => this._onTouchStart(e)} @touchend=${(e) => this._onTouchEnd(e)}>
                 ${this.variant === 10
         ? this._renderPeople()
@@ -499,6 +586,8 @@ export class OlSocialFeed extends LitElement {
                             ${this._renderCard(item)}
                         </div>`
         )}
+            </div>
+            ${this._renderMore()}
             </div>
             ${this._renderControls()}`;
         }
@@ -997,6 +1086,8 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+            .feed--tabbed .content { padding-left: 0; }
+            .scroller { max-height: 65vh; }
 
             /* Same cards, stacked. Refresh stays reachable at the top, and
                paging moves to a full-width control at the foot of the list. */
@@ -1095,6 +1186,77 @@ export class OlSocialFeed extends LitElement {
         .ctl:hover:not(:disabled) { border-color: var(--primary-blue, #0577b5); color: var(--primary-blue, #0577b5); }
         .ctl:disabled { opacity: 0.4; cursor: default; }
 
+        /* == 12. Discover / Following ===================================== */
+        /* One scrolling column under two tabs, appending as you reach the end. */
+
+        .tabs {
+            display: flex;
+            border-bottom: var(--border-width-thin, 1px) solid var(--feed-rule);
+            margin-bottom: 4px;
+        }
+        .tab {
+            font: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            flex: 1;
+            padding: 12px 8px;
+            background: none;
+            border: 0;
+            border-bottom: var(--border-width-heavy, 3px) solid transparent;
+            color: var(--feed-muted);
+            cursor: pointer;
+        }
+        .tab:hover { color: inherit; }
+        .tab.is-current {
+            color: inherit;
+            border-bottom-color: var(--primary-blue, #0577b5);
+        }
+
+        .scroller {
+            max-height: 70vh;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .sentinel { height: 1px; }
+
+        .load-more {
+            font: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 4px;
+            background: none;
+            border: 0;
+            border-top: 1px solid var(--feed-rule);
+            color: var(--primary-blue, #0577b5);
+            cursor: pointer;
+        }
+        .load-more:hover:not(:disabled) { background: var(--grey-fafafa, #fafafa); }
+        .load-more:disabled { color: var(--feed-muted); cursor: default; }
+
+        .end {
+            margin: 0;
+            padding: 18px;
+            text-align: center;
+            color: var(--feed-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--feed-rule);
+        }
+
+        .feed--tabbed { display: flex; flex-direction: column; }
+        .feed--tabbed .card {
+            padding: 16px 4px;
+            border-bottom: 1px solid var(--feed-rule);
+        }
+        .feed--tabbed .content { padding-left: calc(var(--feed-gutter) + 8px); }
+        .feed--tabbed .avatar { width: var(--feed-gutter); height: var(--feed-gutter); }
+        .feed--tabbed .cover { width: 62px; height: 92px; }
+        .feed--tabbed .cover--group { width: 96px; }
+        .feed--tabbed .title { font-size: 1rem; }
+
         /* -- mobile ------------------------------------------------------- */
 
         @media (max-width: 767px) {
@@ -1119,6 +1281,8 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+            .feed--tabbed .content { padding-left: 0; }
+            .scroller { max-height: 65vh; }
 
             /* Same cards, stacked. Refresh stays reachable at the top, and
                paging moves to a full-width control at the foot of the list. */

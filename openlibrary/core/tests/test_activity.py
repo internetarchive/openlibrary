@@ -265,3 +265,48 @@ class TestBalancedSample:
     def test_a_limit_larger_than_the_input_returns_everything(self):
         events = self._events()
         assert len(ActivityStream.balance(events, limit=100)) == len(events)
+
+
+class TestPopularFeed:
+    """Latest event only, from the readers the most people follow."""
+
+    def test_one_event_per_patron_ranked_by_followers(self):
+        most_followed = [{"publisher": "famous"}, {"publisher": "known"}]
+        shelves = [
+            shelf_row(username="famous", work_id=1, created=JAN),
+            shelf_row(username="famous", work_id=2, created=MAR),
+            shelf_row(username="known", work_id=3, created=FEB),
+        ]
+
+        with (
+            patch("openlibrary.core.activity.PubSub.most_followed", return_value=most_followed),
+            patch("openlibrary.core.activity.ActivityStream._shelf_rows_for", return_value=shelves),
+            patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
+        ):
+            events = ActivityStream.popular_feed(limit=10)
+
+        # One card each, most-followed first, and the newest of that patron's.
+        assert [e.username for e in events] == ["famous", "known"]
+        assert events[0].work_id == 2
+
+    def test_excludes_the_viewer(self):
+        with (
+            patch("openlibrary.core.activity.PubSub.most_followed", return_value=[{"publisher": "me"}, {"publisher": "other"}]),
+            patch(
+                "openlibrary.core.activity.ActivityStream._shelf_rows_for",
+                return_value=[
+                    shelf_row(username="me", work_id=1, created=MAR),
+                    shelf_row(username="other", work_id=2, created=FEB),
+                ],
+            ),
+            patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
+        ):
+            events = ActivityStream.popular_feed(viewer="me", limit=10)
+
+        assert [e.username for e in events] == ["other"]
+
+    def test_no_followed_accounts_yields_nothing(self):
+        with patch("openlibrary.core.activity.PubSub.most_followed", return_value=[]):
+            assert ActivityStream.popular_feed(limit=10) == []

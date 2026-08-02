@@ -37,6 +37,8 @@ ActivityStream.attach_works(events)  # fills in each event's Solr work record
 
 `public_feed` restricts to patrons who opted into a public reading log and drops the viewer's own activity. `following_feed` restricts to who the viewer follows and **deliberately does not re-apply the public-reading-log filter** — following is consent, so a private log still reaches the people the patron chose to publish to.
 
+`popular` is a different shape from the other two feeds: the **latest single event** from each of the most-followed readers, ordered by follower count rather than by time. It is a "who is worth following" view, one card per patron, so it is a single page by definition -- `_hasMore` is always false for it, and it deliberately does *not* fall back to the public feed when empty, since it was an explicit choice.
+
 `ActivityStream.balance(events, limit)` trims a page while keeping every card type represented — strict newest-first can return a page of one type, which is fine for a real feed and useless for comparing card designs. The endpoint exposes it as `?balanced=true`, and asks the stream for a deeper pool first, since you cannot spread three types across a pool of three.
 
 ## API
@@ -47,7 +49,7 @@ ActivityStream.attach_works(events)  # fills in each event's Solr work record
 |---|---|---|
 | `limit` | 12 | 1–50 |
 | `page` | 1 | |
-| `scope` | `auto` | `auto` picks following-or-public from the viewer; `public` and `following` force it |
+| `scope` | `auto` | `auto` picks following-or-public from the viewer; `public`, `following` and `popular` force it |
 | `balanced` | `false` | Keep every card type represented instead of strict newest-first |
 
 Returns `{scope, following, page, activity: [...]}`. Every item carries `type`, `username`, `patron_url`, `avatar_url`, `created`, `label`, and optionally `shelf_url`, `rating`, `work`, `list`. One shape serves every rendering of the feed, so a card means the same thing wherever it appears.

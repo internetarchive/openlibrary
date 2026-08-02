@@ -18,7 +18,7 @@ import { collectConsoleErrors } from './helpers';
  */
 
 const FEED_API = process.env.OL_FEED_API || 'http://localhost:18080/api/internal/activity/feed.json';
-const VARIANT_COUNT = 11;
+const VARIANT_COUNT = 12;
 
 function galleryUrl(design?: number): string {
     const params = new URLSearchParams({ api: FEED_API, scope: 'public' });
@@ -142,6 +142,34 @@ test.describe('activity feed design gallery', () => {
 
         await feed.getByRole('button', { name: 'Refresh activity' }).click();
         await expect(feed.locator('.card').first()).toBeVisible();
+    });
+
+    test('the tabbed column switches scope and loads more', async ({ page }) => {
+        await page.goto(galleryUrl(12));
+        const feed = page.locator('ol-social-feed').first();
+        await expect(feed.locator('.feed')).toBeVisible({ timeout: 15_000 });
+
+        // `auto` names no tab, so Discover has to be the one selected on load.
+        await expect(feed.getByRole('tab', { name: 'Discover' })).toHaveAttribute('aria-selected', 'true');
+
+        const before = await feed.locator('.card').count();
+        expect(before).toBeGreaterThan(0);
+
+        // Popular is one card per patron, so it is a single page by definition.
+        await feed.getByRole('tab', { name: 'Popular' }).click();
+        await expect(feed.getByRole('tab', { name: 'Popular' })).toHaveAttribute('aria-selected', 'true');
+        await expect(feed.locator('.card').first()).toBeVisible();
+        const usernames = await feed.locator('.handle').evaluateAll((els) => els.map((e) => e.textContent.trim()));
+        expect(new Set(usernames).size, 'Popular repeated a patron').toBe(usernames.length);
+
+        await feed.getByRole('tab', { name: 'Discover' }).click();
+        await expect(feed.locator('.card').first()).toBeVisible();
+
+        const loadMore = feed.getByRole('button', { name: 'Load more' });
+        if (await loadMore.count()) {
+            await loadMore.click();
+            await expect.poll(() => feed.locator('.card').count()).toBeGreaterThan(before);
+        }
     });
 
     test('captures every variant for review', async ({ page }, testInfo) => {
