@@ -5,7 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from openlibrary.core.activity import ListEvent, RatingEvent, ShelfEvent
+from openlibrary.core.activity import LikeEvent, ListEvent, RatingEvent, ShelfEvent
+from openlibrary.fastapi.activity import FeedList
 
 JAN = datetime(2026, 1, 10, 12, 0, 0)
 
@@ -174,3 +175,37 @@ class TestActivityFeedEndpoint:
     def test_rejects_out_of_range_limits(self, fastapi_client, limit):
         response = fastapi_client.get(f"/api/internal/activity/feed.json?limit={limit}")
         assert response.status_code == 422
+
+
+class TestLikeEvents:
+    """`likes` landed on master 2026-07-31, so list upvotes are now a real event."""
+
+    def _liked_list_event(self, key="/people/bo/lists/OL1L"):
+        return LikeEvent(username="ada", created=JAN, liked_key=key)
+
+    def test_a_liked_list_serialises_as_a_list_card(self, fastapi_client, mock_avatar):
+        feed_list = FeedList(key="/people/bo/lists/OL1L", name="Slow reads", book_count=5, cover_ids=[1, 2])
+        with (
+            patch("openlibrary.fastapi.activity.ActivityStream.public_feed", return_value=[self._liked_list_event()]),
+            patch("openlibrary.fastapi.activity.ActivityStream.attach_works"),
+            patch("openlibrary.fastapi.activity._resolve_list", return_value=feed_list),
+            patch("openlibrary.fastapi.activity.PubSub.is_following", return_value=False),
+        ):
+            response = fastapi_client.get("/api/internal/activity/feed.json")
+
+        (item,) = response.json()["activity"]
+        assert item["type"] == "like"
+        assert item["label"] == "liked a list"
+        assert item["list"]["name"] == "Slow reads"
+
+    def test_a_like_on_a_vanished_list_is_dropped(self, fastapi_client, mock_avatar):
+        # `likes.key` has no foreign key, so the target can simply be gone.
+        with (
+            patch("openlibrary.fastapi.activity.ActivityStream.public_feed", return_value=[self._liked_list_event()]),
+            patch("openlibrary.fastapi.activity.ActivityStream.attach_works"),
+            patch("openlibrary.fastapi.activity._resolve_list", return_value=None),
+            patch("openlibrary.fastapi.activity.PubSub.is_following", return_value=False),
+        ):
+            response = fastapi_client.get("/api/internal/activity/feed.json")
+
+        assert response.json()["activity"] == []

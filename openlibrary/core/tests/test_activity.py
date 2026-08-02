@@ -7,6 +7,7 @@ import pytest
 
 from openlibrary.core.activity import (
     ActivityStream,
+    LikeEvent,
     ListEvent,
     RatingEvent,
     ShelfEvent,
@@ -94,6 +95,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
@@ -110,6 +112,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", return_value={"public_patron"}),
         ):
@@ -128,6 +131,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
@@ -142,6 +146,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
@@ -157,6 +162,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
@@ -183,6 +189,7 @@ class TestActivityStreamFollowingFeed:
             patch("openlibrary.core.activity.PubSub.get_following", return_value=following),
             patch("openlibrary.core.activity.ActivityStream._shelf_rows_for", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
         ):
             events = ActivityStream.following_feed("viewer", limit=10)
@@ -199,6 +206,7 @@ class TestActivityStreamFollowingFeed:
             patch("openlibrary.core.activity.PubSub.get_following", return_value=following),
             patch("openlibrary.core.activity.ActivityStream._shelf_rows_for", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", return_value=set()) as public_mock,
         ):
@@ -206,6 +214,42 @@ class TestActivityStreamFollowingFeed:
 
         assert [e.username for e in events] == ["ada"]
         public_mock.assert_not_called()
+
+
+class TestLikeEvent:
+    def test_builds_from_a_liked_list_key(self):
+        event = LikeEvent.from_row({"username": "ada", "key": "/people/bo/lists/OL1L", "value": 1, "created": JAN})
+        assert event.type == "like"
+        assert event.liked_key == "/people/bo/lists/OL1L"
+
+    def test_ignores_dislikes(self):
+        # "Someone disliked this" is not worth broadcasting.
+        assert LikeEvent.from_row({"username": "ada", "key": "/people/bo/lists/OL1L", "value": -1, "created": JAN}) is None
+
+    def test_a_liked_work_key_becomes_a_work_event(self):
+        # `likes.key` is a generic Infogami key, so it may point at a work.
+        event = LikeEvent.from_row({"username": "ada", "key": "/works/OL59800W", "value": 1, "created": JAN})
+        assert event.work_id == 59800
+        assert event.work_key == "/works/OL59800W"
+
+    def test_an_unrecognised_key_is_dropped(self):
+        assert LikeEvent.from_row({"username": "ada", "key": "/authors/OL1A", "value": 1, "created": JAN}) is None
+
+
+class TestActivityStreamIncludesLikes:
+    def test_likes_join_the_public_feed(self):
+        likes = [{"username": "ada", "key": "/people/bo/lists/OL1L", "value": 1, "created": MAR}]
+
+        with (
+            patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=[]),
+            patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
+            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=likes),
+            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
+        ):
+            events = ActivityStream.public_feed(limit=10)
+
+        assert [e.type for e in events] == ["like"]
 
 
 class TestListEvent:

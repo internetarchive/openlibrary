@@ -246,7 +246,7 @@ export class OlSocialFeed extends LitElement {
     }
 
     _cover(item, size = 'M') {
-        if (item.type === 'list_update') return this._listCovers(item);
+        if (item.list) return this._listCovers(item);
         const work = item.work;
         return html`<a class="cover" href=${work.key}>
             <img
@@ -270,14 +270,14 @@ export class OlSocialFeed extends LitElement {
     }
 
     _title(item) {
-        if (item.type === 'list_update') {
+        if (item.list) {
             return html`<a class="title" href=${item.list.key}>${item.list.name}</a>`;
         }
         return html`<a class="title" href=${item.work.key}>${item.work.title}</a>`;
     }
 
     _byline(item) {
-        if (item.type === 'list_update') {
+        if (item.list) {
             return html`<span class="byline">${item.list.book_count} books</span>`;
         }
         const { author, author_key: authorKey } = item.work;
@@ -286,7 +286,7 @@ export class OlSocialFeed extends LitElement {
     }
 
     _actions(item) {
-        if (item.type === 'list_update') {
+        if (item.list) {
             return html`<a class="btn btn--primary" href=${item.list.key}>View List</a>`;
         }
         const action = primaryAction(item);
@@ -421,7 +421,7 @@ export class OlSocialFeed extends LitElement {
                 <p class="sentence">
                     <a class="handle" href=${item.patron_url}>${item.username}</a> ${this._action(item)}
                 </p>
-                <a class="chip" href=${item.type === 'list_update' ? item.list.key : item.work.key}>
+                <a class="chip" href=${item.list ? item.list.key : item.work.key}>
                     ${this._cover(item, 'S')}
                     <span class="chip__meta">${this._title(item)}${this._byline(item)}</span>
                 </a>

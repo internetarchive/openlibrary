@@ -33,6 +33,7 @@ from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import db
 from openlibrary.core.follows import PubSub
+from openlibrary.core.likes import Likes
 from openlibrary.setup import setup_for_script
 from openlibrary.utils.request_context import site
 
@@ -567,6 +568,30 @@ def seed_lists(rng, verbose=True):
         print(f"Seeded {created} lists")
 
 
+def seed_likes(rng, verbose=True):
+    """Have patrons like each other's lists, so the feed shows like events."""
+    lists = []
+    for patron in PATRONS:
+        if user := site.get().get(f"/people/{patron['username']}"):
+            lists.extend((patron["username"], lst.key) for lst in user.get_lists(limit=50))
+
+    if not lists:
+        if verbose:
+            print("No lists to like yet")
+        return
+
+    liked = 0
+    for patron in PATRONS:
+        # Nobody likes their own list.
+        candidates = [key for owner, key in lists if owner != patron["username"]]
+        for key in rng.sample(candidates, min(len(candidates), rng.randint(1, 2))):
+            if not Likes.patron_liked(patron["username"], key):
+                Likes.like(patron["username"], key)
+                liked += 1
+    if verbose:
+        print(f"Seeded {liked} likes")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -609,6 +634,7 @@ def main():
 
     print("Creating lists:")
     seed_lists(rng)
+    seed_likes(rng)
 
     if args.no_follows:
         clear_follows(args.viewer)

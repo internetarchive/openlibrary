@@ -18,9 +18,9 @@ Two feeds come out of it:
     consent, so this deliberately does *not* re-apply the public-reading-log
     filter.
 
-Only the sources that actually exist today are covered here. Borrow events have
-no public source to read from and are privacy-sensitive; list upvotes are not a
-feature. Neither is faked.
+Only the sources that actually exist today are covered here. Borrow events are
+the one thing the feed cannot show: loans have no public source to read from and
+are privacy-sensitive. That gap is left open rather than faked.
 """
 
 from __future__ import annotations
@@ -32,12 +32,13 @@ from typing import Any, Literal, cast
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
+from openlibrary.core.likes import Likes
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.activity")
 
-EventType = Literal["shelf_change", "rating", "list_update"]
+EventType = Literal["shelf_change", "rating", "list_update", "like"]
 
 # Phrasing is deliberately third-person and past-tense so it reads correctly
 # after a username: "ada_reads added to Want to Read".
@@ -145,6 +146,37 @@ class RatingEvent(ActivityEvent):
 
 
 @dataclass(kw_only=True)
+class LikeEvent(ActivityEvent):
+    """A patron liked something.
+
+    `likes.key` is a generic Infogami key rather than a typed id, so this only
+    accepts the two shapes the feed can actually render -- a patron list and a
+    work -- and drops anything else rather than guessing at a card for it.
+    """
+
+    type: EventType = "like"
+    liked_key: str = ""
+
+    @classmethod
+    def from_row(cls, row: dict) -> LikeEvent | None:
+        # Dislikes are recorded in the same table. "Someone disliked this" is
+        # not something to broadcast.
+        if row.get("value") != 1:
+            return None
+        key = row.get("key") or ""
+        created = row.get("created") or row.get("modified")
+
+        if "/lists/" in key:
+            return cls(username=row["username"], created=created, liked_key=key)
+
+        if key.startswith("/works/OL") and key.endswith("W"):
+            work_id = int(key.removeprefix("/works/OL").removesuffix("W"))
+            return cls(username=row["username"], created=created, liked_key=key, work_id=work_id, work_key=key)
+
+        return None
+
+
+@dataclass(kw_only=True)
 class ListEvent(ActivityEvent):
     type: EventType = "list_update"
     list_key: str = ""
@@ -169,9 +201,12 @@ class ActivityStream:
 
         shelf_rows = Bookshelves.get_recently_logged_books(shelf_ids=FEED_SHELF_IDS, limit=fetch, page=page)
         rating_rows = Ratings.get_recent_ratings(limit=fetch, page=page)
+        like_rows = Likes.get_recent_likes(limit=fetch, page=page)
         list_events = cls._recent_lists(limit=limit)
 
-        candidates = [r["username"] for r in shelf_rows] + [r["username"] for r in rating_rows] + [e.username for e in list_events]
+        candidates = (
+            [r["username"] for r in shelf_rows] + [r["username"] for r in rating_rows] + [r["username"] for r in like_rows] + [e.username for e in list_events]
+        )
         public = cls._public_usernames(candidates)
 
         def visible(username: str) -> bool:
@@ -180,6 +215,7 @@ class ActivityStream:
         events = cls._build_events(
             shelf_rows=[r for r in shelf_rows if visible(r["username"])],
             rating_rows=[r for r in rating_rows if visible(r["username"])],
+            like_rows=[r for r in like_rows if visible(r["username"])],
             list_events=[e for e in list_events if visible(e.username)],
         )
         return events[:limit]
@@ -195,12 +231,14 @@ class ActivityStream:
         fetch = limit * 2
         shelf_rows = cls._shelf_rows_for(usernames, limit=fetch, page=page)
         rating_rows = Ratings.get_recent_ratings(usernames=usernames, limit=fetch, page=page)
+        like_rows = Likes.get_recent_likes(usernames=usernames, limit=fetch, page=page)
         list_events = cls._recent_lists(limit=limit, usernames=usernames)
 
         followed = set(usernames)
         events = cls._build_events(
             shelf_rows=[r for r in shelf_rows if r["username"] in followed],
             rating_rows=[r for r in rating_rows if r["username"] in followed],
+            like_rows=[r for r in like_rows if r["username"] in followed],
             list_events=[e for e in list_events if e.username in followed],
         )
         return events[:limit]
@@ -208,7 +246,7 @@ class ActivityStream:
     # -- assembly ---------------------------------------------------------
 
     @classmethod
-    def _build_events(cls, shelf_rows: list, rating_rows: list, list_events: list) -> list[ActivityEvent]:
+    def _build_events(cls, shelf_rows: list, rating_rows: list, list_events: list, like_rows: list | None = None) -> list[ActivityEvent]:
         """Normalise, collapse duplicates, and sort newest first."""
         events: list[ActivityEvent] = [ShelfEvent.from_row(r) for r in shelf_rows]
 
@@ -224,6 +262,7 @@ class ActivityStream:
             else:
                 events.append(rating_event)
 
+        events.extend(e for row in (like_rows or []) if (e := LikeEvent.from_row(row)))
         events.extend(list_events)
         events = [e for e in events if e.created]
         events.sort(key=lambda e: cast(datetime, e.created), reverse=True)

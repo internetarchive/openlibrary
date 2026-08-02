@@ -78,6 +78,27 @@ class Likes:
         return list(likes)
 
     @classmethod
+    def get_recent_likes(cls, usernames: list[str] | None = None, limit: int = 25, page: int = 1) -> list:
+        """Most recently liked keys, newest first.
+
+        Backs the social activity feed. Dislikes are excluded -- "someone
+        disliked this" is not something to broadcast. Pass `usernames` to
+        restrict the result to a specific set of patrons.
+        """
+        oldb = db.get_db()
+        page = int(page or 1)
+        where = "WHERE value = 1"
+        if usernames:
+            where += " AND username IN $usernames"
+        query = f"SELECT * FROM likes {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        return list(
+            oldb.query(
+                query,
+                vars={"usernames": usernames, "limit": limit, "offset": limit * (page - 1)},
+            )
+        )
+
+    @classmethod
     def patron_liked(cls, username: str, key: str) -> bool:
         """Return whether the patron has liked this key."""
         oldb = db.get_db()
