@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from urllib.parse import urlparse
 
 import web
 
@@ -135,11 +136,34 @@ class activity_feed_gallery(delegate.page):
         scope = i.scope if i.scope in ("auto", "public", "following") else "auto"
         user = accounts.get_current_user()
         viewer = user.key.split("/")[-1] if user else ""
-        # In production nginx routes /api/internal to the FastAPI process, but a
-        # local dev stack has no proxy between the two servers -- so the origin
-        # is overridable, e.g. ?api=http://localhost:18080/api/internal/activity/feed.json
-        api = i.api if i.api and i.api.startswith(("/", "http://localhost:", "http://127.0.0.1:")) else self.DEFAULT_API
-        return render_template("design/activity_feed", list(self.VARIANTS), selected, scope, viewer, api)
+        return render_template("design/activity_feed", list(self.VARIANTS), selected, scope, viewer, self._api_url(i.api))
+
+    @classmethod
+    def _api_url(cls, requested: str | None) -> str:
+        """Resolve the feed endpoint the gallery should fetch from.
+
+        In production nginx routes /api/internal to the FastAPI process, but a
+        local dev stack has no proxy between the two servers -- so the origin is
+        overridable, e.g. ?api=http://localhost:18080/api/internal/activity/feed.json
+
+        Only a same-host origin is accepted. That covers localhost, 127.0.0.1,
+        and the machine's LAN address (so the gallery can be opened from a phone
+        or another desk) without letting the parameter point the page's fetch at
+        an arbitrary server.
+        """
+        if not requested:
+            return cls.DEFAULT_API
+        # `//host/path` is protocol-relative, not a path -- it points at another
+        # origin despite starting with a slash.
+        if requested.startswith("/") and not requested.startswith("//"):
+            return requested
+
+        parsed = urlparse(requested)
+        if parsed.scheme not in ("http", "https") or not parsed.path.startswith("/api/"):
+            return cls.DEFAULT_API
+        if parsed.hostname != urlparse(f"//{web.ctx.host}").hostname:
+            return cls.DEFAULT_API
+        return requested
 
 
 def setup():
