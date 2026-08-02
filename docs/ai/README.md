@@ -197,6 +197,7 @@ Deep-dive references for major system domains. Each covers production architectu
 - [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
 - [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
 - [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
+- [Activity Feed](subsystems/activity-feed.md) — where patron activity actually lives (three unrelated stores), the unified stream, feed API, and how to get populated test data locally
 
 ## Key File Locations
 
