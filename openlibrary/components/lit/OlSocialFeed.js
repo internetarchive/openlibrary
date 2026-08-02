@@ -671,7 +671,10 @@ export class OlSocialFeed extends LitElement {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            min-width: 0;
         }
+
+        .slot { min-width: 0; }
 
         .head {
             display: flex;
@@ -715,9 +718,11 @@ export class OlSocialFeed extends LitElement {
             font-weight: 600;
             text-decoration: none;
             min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            /* Wraps rather than truncates: "added a book to Speculative
+               fiction that earn..." loses the one thing the card is about.
+               overflow-wrap:anywhere keeps an unbroken title from
+               setting the min width. */
+            overflow-wrap: anywhere;
         }
         .target:hover { text-decoration: underline; }
 
@@ -771,26 +776,32 @@ export class OlSocialFeed extends LitElement {
 
 
         /* Card three: the added book sits proud of the list-mates it joined.
-           The mates are blurred and dimmed so they read as context, not as
-           three equal covers. */
-        .cover--group { position: relative; width: 96px; }
-        .cover--group .cover__mate {
-            position: absolute;
-            top: 8px;
-            width: 46px;
-            height: 68px;
-            filter: blur(1.5px);
-            opacity: 0.55;
+           Laid out with flex rather than absolute positioning so it scales to
+           whatever size a variant gives the cover box -- the absolute version broke
+           the moment the magazine and tile treatments resized the box. */
+        .cover--group {
+            width: 92px;
+            align-items: stretch;
+            /* A blur paints outside its element's box. Unclipped it reads as a
+               smudge over whatever sits beside the cover. */
+            overflow: hidden;
             border-radius: var(--border-radius-thumbnail, 6px);
         }
-        .cover--group .cover__mate:nth-of-type(1) { right: 0; transform: rotate(4deg); }
-        .cover--group .cover__mate:nth-of-type(2) { right: 18px; transform: rotate(-3deg); }
         .cover--group .cover__subject {
+            order: -1;
+            flex: 0 0 58%;
             position: relative;
             z-index: 1;
-            width: 62px;
-            outline: var(--border-width-thick, 2px) solid var(--primary-blue, #0577b5);
-            outline-offset: 1px;
+            /* A border rather than an outline: the group clips its overflow,
+               and an outline would be clipped away with the blur. */
+            border: var(--border-width-thick, 2px) solid var(--primary-blue, #0577b5);
+            box-sizing: border-box;
+        }
+        .cover--group .cover__mate {
+            flex: 0 0 40%;
+            margin-left: -20%;
+            filter: blur(1px);
+            opacity: 0.55;
         }
 
         .body {
@@ -923,10 +934,15 @@ export class OlSocialFeed extends LitElement {
         .feed--cover-tiles .head {
             position: absolute;
             inset: auto 0 0 0;
-            z-index: 1;
-            padding: 10px;
+            /* Above the cover: card three's accented cover is itself stacked,
+               and was painting straight over the caption. */
+            z-index: 2;
+            padding: 14px 10px 10px;
             color: var(--white, #fff);
-            background: linear-gradient(to top, hsla(0, 0%, 0%, 0.85), hsla(0, 0%, 0%, 0));
+            /* Covers are arbitrary artwork, so the scrim has to carry the text
+               on a light one too. */
+            background: linear-gradient(to top, hsla(0, 0%, 0%, 0.92) 40%, hsla(0, 0%, 0%, 0.6) 70%, hsla(0, 0%, 0%, 0));
+            text-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.6);
         }
         .feed--cover-tiles .verb, .feed--cover-tiles .when { color: hsla(0, 0%, 100%, 0.85); }
         .feed--cover-tiles .avatar { width: 22px; height: 22px; }
@@ -996,6 +1012,8 @@ export class OlSocialFeed extends LitElement {
         .feed--magazine .content { order: 1; flex-direction: column; }
         .feed--magazine .cover { width: 100%; height: 260px; }
         .feed--magazine .cover img { object-fit: contain; }
+        .feed--magazine .cover__subject { flex-basis: 74%; }
+        .feed--magazine .cover__mate { flex-basis: 26%; margin-left: -6%; }
         .feed--magazine .title {
             font-family: var(--font-family-serif, Georgia, serif);
             font-size: 1.4rem;
@@ -1086,6 +1104,8 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+            .feed--ticker .head { flex: 1 1 50%; }
+            .feed--ticker .body { flex: 1 1 50%; }
             .feed--tabbed .content { padding-left: 0; }
             .scroller { max-height: 65vh; }
 
@@ -1281,6 +1301,8 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+            .feed--ticker .head { flex: 1 1 50%; }
+            .feed--ticker .body { flex: 1 1 50%; }
             .feed--tabbed .content { padding-left: 0; }
             .scroller { max-height: 65vh; }
 

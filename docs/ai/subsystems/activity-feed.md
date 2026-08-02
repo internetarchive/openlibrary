@@ -74,7 +74,9 @@ A shelving fills `media` with a book cover and `verb` with the shelf; a list upd
 Two consequences worth knowing:
 
 - Do not branch on `item.type` in the template. Branch on the *shape* (`item.list` vs `item.work`) inside `_present`, so a new type that produces a list card needs no template change — this is how likes reuse the list rendering.
-- A backtick anywhere inside the `css` tagged template silently ends the literal, and the build fails with a bare `Missing semicolon` pointing far from the cause. Do not put code ticks in CSS comments.
+- A backtick anywhere inside the `css` tagged template ends the literal. An **odd** number fails the build with a bare `Missing semicolon` pointing far from the cause; an **even** number builds cleanly and breaks at runtime, so the component silently stops rendering. Do not put code ticks in CSS comments. This has bitten four times.
+- A blur filter paints outside its element's box. Clip it, or it reads as a smudge over whatever sits beside it.
+- Flex and grid items default to `min-width: auto`, i.e. min-content. A `white-space: nowrap` descendant then sets the card's minimum width and pushes it out of its track. Set `min-width: 0` on cards and slots.
 
 **Not to be confused with `<ol-activity-feed>`**, which is the homepage "What's Happening Now" widget ([#12863](https://github.com/internetarchive/openlibrary/pull/12863)). Different surfaces, shared patterns.
 
