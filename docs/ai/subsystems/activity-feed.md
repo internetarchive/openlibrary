@@ -10,9 +10,20 @@ There is no single event table. Patron activity is spread across three unrelated
 |---|---|---|
 | Shelved a book | Postgres `bookshelves_books` | `Bookshelves.get_recently_logged_books()`, or `PubSub.get_feed()` for a follow graph |
 | Rated a book | Postgres `ratings` | `Ratings.get_recent_ratings()` |
-| Liked a list | Postgres `likes` | `Likes.get_recent_likes()` |
-| Created or changed a list | Infogami things (`/type/list`) | `site.get().things({"type": "/type/list", "sort": "-last_modified"})` |
+| Added a book to a list | Infogami things (`/type/list`) | `site.get().things({"type": "/type/list", "sort": "-last_modified"})`; `List.add_seed` appends, so the last work in `seeds` is the newest add |
 | Borrowed a book | Infogami store + archive.org | Per-user only. **No public global source.** |
+
+Hearting a list is an **action** offered on the list card (`POST /api/like`), not an activity type of its own.
+
+### The three card types
+
+| # | Type | Subject | Actions |
+|---|---|---|---|
+| 1 | `shelf_change` | the book shelved | follow, add to your reading log |
+| 2 | `rating` | the book rated | follow, add to your reading log |
+| 3 | `list_add` | the book added (list is context) | follow, add to your reading log, heart the list |
+
+Rating is its own card, **not** a star tacked onto the shelving — they are two distinct acts and folding them hid one. Card three shows the added book accented with up to two of its new list-mates blurred behind it.
 
 `openlibrary/core/activity.py` normalises each into one `ActivityEvent` and merges them time-ordered.
 
@@ -26,7 +37,7 @@ ActivityStream.attach_works(events)  # fills in each event's Solr work record
 
 `public_feed` restricts to patrons who opted into a public reading log and drops the viewer's own activity. `following_feed` restricts to who the viewer follows and **deliberately does not re-apply the public-reading-log filter** — following is consent, so a private log still reaches the people the patron chose to publish to.
 
-A rating on a book the same patron just shelved folds onto the shelving rather than emitting a second near-identical card.
+`ActivityStream.balance(events, limit)` trims a page while keeping every card type represented — strict newest-first can return a page of one type, which is fine for a real feed and useless for comparing card designs. The endpoint exposes it as `?balanced=true`, and asks the stream for a deeper pool first, since you cannot spread three types across a pool of three.
 
 ## API
 
@@ -37,6 +48,7 @@ A rating on a book the same patron just shelved folds onto the shelving rather t
 | `limit` | 12 | 1–50 |
 | `page` | 1 | |
 | `scope` | `auto` | `auto` picks following-or-public from the viewer; `public` and `following` force it |
+| `balanced` | `false` | Keep every card type represented instead of strict newest-first |
 
 Returns `{scope, following, page, activity: [...]}`. Every item carries `type`, `username`, `patron_url`, `avatar_url`, `created`, `label`, and optionally `shelf_url`, `rating`, `work`, `list`. One shape serves every rendering of the feed, so a card means the same thing wherever it appears.
 
@@ -63,6 +75,10 @@ Two consequences worth knowing:
 - A backtick anywhere inside the `css` tagged template silently ends the literal, and the build fails with a bare `Missing semicolon` pointing far from the cause. Do not put code ticks in CSS comments.
 
 **Not to be confused with `<ol-activity-feed>`**, which is the homepage "What's Happening Now" widget ([#12863](https://github.com/internetarchive/openlibrary/pull/12863)). Different surfaces, shared patterns.
+
+## Planned: a computed `activity_feed` table
+
+Everything above infers events at read time from tables built for other purposes, which is why "which book was added to this list" has to be approximated from seed order. The intended direction is an `activity_feed` table written by a FastAPI background worker every ~minute, recording each event as it happens. That turns the feed into a single indexed read, makes list-add events exact rather than inferred, and gives borrow events somewhere to live if they ever become shareable.
 
 ## Traps
 

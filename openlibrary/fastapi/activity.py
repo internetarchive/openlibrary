@@ -13,11 +13,10 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from openlibrary.core.activity import ActivityEvent, ActivityStream, LikeEvent, ListEvent
+from openlibrary.core.activity import ActivityEvent, ActivityStream, ListAddEvent
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import User
 from openlibrary.fastapi.auth import AuthenticatedUser, get_authenticated_user
-from openlibrary.utils.request_context import site
 
 router = APIRouter()
 
@@ -37,12 +36,13 @@ class FeedWork(BaseModel):
 
 
 class FeedList(BaseModel):
-    """The list a feed event is about."""
+    """The list a book was added to. Context on card three, not its subject."""
 
     key: str
     name: str
     book_count: int
     cover_ids: list[int]
+    like_count: int = 0
 
 
 class FeedItem(BaseModel):
@@ -94,18 +94,14 @@ def _serialise(event: ActivityEvent) -> FeedItem | None:
         )
 
     feed_list = None
-    if isinstance(event, ListEvent):
+    if isinstance(event, ListAddEvent):
         feed_list = FeedList(
             key=event.list_key,
             name=event.name,
             book_count=event.book_count,
             cover_ids=event.cover_ids,
+            like_count=event.like_count,
         )
-    elif isinstance(event, LikeEvent) and "/lists/" in event.liked_key:
-        # A liked list is not part of the recent-lists query, so resolve it here.
-        feed_list = _resolve_list(event.liked_key)
-        if feed_list is None:
-            return None
 
     return FeedItem(
         type=event.type,
@@ -122,27 +118,11 @@ def _serialise(event: ActivityEvent) -> FeedItem | None:
 
 
 def _label(event: ActivityEvent) -> str:
-    if event.type == "list_update":
-        return "updated a list"
+    if event.type == "list_add":
+        return "added a book to"
     if event.type == "rating":
         return "rated"
-    if event.type == "like":
-        return "liked a list" if isinstance(event, LikeEvent) and "/lists/" in event.liked_key else "liked"
     return event.label
-
-
-def _resolve_list(key: str) -> FeedList | None:
-    """Look up a liked list so its card can show a name and covers."""
-    doc = site.get().get(key)
-    if not doc:
-        return None
-    showcase = ActivityStream._list_showcase(doc)
-    return FeedList(
-        key=key,
-        name=showcase["title"],
-        book_count=showcase["count"],
-        cover_ids=showcase["cover_ids"],
-    )
 
 
 def _avatar_url(username: str) -> str:
@@ -163,22 +143,29 @@ async def activity_feed(
     limit: Annotated[int, Query(ge=1, le=50)] = 12,
     page: Annotated[int, Query(ge=1)] = 1,
     scope: Annotated[Scope, Query()] = "auto",
+    balanced: Annotated[bool, Query(description="Keep every card type represented rather than strict newest-first.")] = False,
 ) -> FeedResponse:
     viewer = user.username if user else None
     following = bool(viewer) and PubSub.is_following(viewer)
+
+    # Balancing can only pick a spread of card types out of a pool that has
+    # them. The stream truncates to whatever it is asked for, so ask for more.
+    fetch = limit * 5 if balanced else limit
 
     events: list[ActivityEvent] = []
     resolved: Literal["public", "following"] = "public"
 
     if scope != "public" and following and viewer:
-        events = ActivityStream.following_feed(viewer, limit=limit, page=page)
+        events = ActivityStream.following_feed(viewer, limit=fetch, page=page)
         resolved = "following"
 
     # Following someone quiet should not leave the patron staring at nothing --
     # fall back to the community feed rather than an empty page.
     if not events:
-        events = ActivityStream.public_feed(viewer=viewer, limit=limit, page=page)
+        events = ActivityStream.public_feed(viewer=viewer, limit=fetch, page=page)
         resolved = "public"
+
+    events = ActivityStream.balance(events, limit) if balanced else events[:limit]
 
     ActivityStream.attach_works(events)
 

@@ -8,21 +8,28 @@ import { LitElement, css, html } from 'lit';
  * event carries the actions a reader would want next -- borrow or shelve the
  * book, open the list, follow the patron.
  *
- * ## One container for every activity type
+ * ## One container, three card types
  *
- * Following Goodreads' Updates panel, every event type renders into the *same*
- * card skeleton rather than getting its own bespoke layout:
+ * Following Goodreads' Updates panel, every activity type renders into the
+ * *same* card skeleton rather than getting its own bespoke layout:
  *
  *     avatar   Actor  verb  target                            when   [Follow]
  *              ┌───────┐  Title
  *              │ media │  subtitle
- *              └───────┘  [primary action] [secondary]  ★★★★☆
+ *              └───────┘  [add to reading log]  [type-specific action]
  *
- * A shelving fills `media` with a book cover and `target` with the shelf; a
- * list update fills `media` with a fan of three covers and `subtitle` with a
- * book count. Nothing about the frame changes. Adding an event type means
- * writing one `_present` branch, not a new template -- and a card means the
- * same thing to a reader wherever it appears.
+ * Three types fill it today, in the order they matter:
+ *
+ * 1. `shelf_change` -- shelved on Want to Read / Currently Reading /
+ *    Already Read. Actions: follow, add the book to your own reading log.
+ * 2. `rating` -- gave the book stars. Its own card, not a decoration on the
+ *    shelving. Same actions.
+ * 3. `list_add` -- added the book to one of their lists. The book is the
+ *    subject and the list is context, so the actions are the same two plus
+ *    hearting the list.
+ *
+ * Follow is offered on every card. `_present` is the only code that knows how
+ * the types differ -- a fourth type is one branch there, not a new template.
  *
  * The `variant` property then selects one of ten CSS treatments over that one
  * skeleton. Because they are the same markup and the same data, switching
@@ -35,6 +42,8 @@ import { LitElement, css, html } from 'lit';
  * @prop {Number} variant - Layout treatment, 1-10
  * @prop {Number} limit - Events to request per page
  * @prop {String} scope - `auto`, `public`, or `following`
+ * @prop {Boolean} balanced - Keep every card type on screen instead of strict newest-first
+ * @prop {Boolean} controls - Show the refresh and older/newer controls
  * @prop {String} viewerUsername - Logged-in patron, for follow state and self-filtering
  * @prop {Number} refreshInterval - Seconds between background refreshes; 0 disables
  * @prop {String} heading - Panel heading; omit to render the feed without a panel
@@ -57,6 +66,7 @@ export const FEED_VARIANTS = [
     { id: 8, slug: 'ticker', name: 'Ticker', blurb: 'One compact line each. Sized to sit under a heading as a teaser strip.' },
     { id: 9, slug: 'editorial', name: 'Editorial', blurb: 'Uppercase eyebrow, large type, almost no chrome. Actions on hover.' },
     { id: 10, slug: 'people', name: 'People first', blurb: 'Grouped by patron: who they are, then a strip of what they touched.' },
+    { id: 11, slug: 'showcase', name: 'Showcase row', blurb: 'Three cards across on desktop, stacked on mobile. Refresh the whole row; swipe or press next for older activity.' },
 ];
 
 const VARIANT_BY_ID = new Map(FEED_VARIANTS.map((v) => [v.id, v]));
@@ -89,6 +99,8 @@ export class OlSocialFeed extends LitElement {
         variant: { type: Number, reflect: true },
         limit: { type: Number },
         scope: { type: String },
+        balanced: { type: Boolean },
+        controls: { type: Boolean },
         viewerUsername: { type: String, attribute: 'viewer-username' },
         refreshInterval: { type: Number, attribute: 'refresh-interval' },
         heading: { type: String },
@@ -98,6 +110,10 @@ export class OlSocialFeed extends LitElement {
         _error: { state: true },
         _following: { state: true },
         _freshKeys: { state: true },
+        _hearted: { state: true },
+        _page: { state: true },
+        _hasMore: { state: true },
+        _busy: { state: true },
     };
 
     constructor() {
@@ -106,6 +122,8 @@ export class OlSocialFeed extends LitElement {
         this.variant = 1;
         this.limit = 12;
         this.scope = 'auto';
+        this.balanced = false;
+        this.controls = false;
         this.viewerUsername = '';
         this.refreshInterval = 60;
         this.heading = '';
@@ -115,6 +133,10 @@ export class OlSocialFeed extends LitElement {
         this._error = false;
         this._following = new Set();
         this._freshKeys = new Set();
+        this._hearted = new Set();
+        this._page = 1;
+        this._hasMore = false;
+        this._busy = false;
         this._timer = null;
     }
 
@@ -149,7 +171,7 @@ export class OlSocialFeed extends LitElement {
 
     async _load({ background = false } = {}) {
         if (!background) this._loading = true;
-        const url = `${this.apiUrl}?limit=${this.limit}&scope=${this.scope}`;
+        const url = `${this.apiUrl}?limit=${this.limit}&page=${this._page}&scope=${this.scope}${this.balanced ? '&balanced=true' : ''}`;
         try {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -164,6 +186,8 @@ export class OlSocialFeed extends LitElement {
             }
 
             this._items = items;
+            // A short page means there is nothing older to turn to.
+            this._hasMore = items.length >= this.limit;
             this._error = false;
             this.dispatchEvent(
                 new CustomEvent('ol-social-feed-load', {
@@ -178,6 +202,55 @@ export class OlSocialFeed extends LitElement {
         } finally {
             this._loading = false;
         }
+    }
+
+    /** Reload the current page in place -- the refresh control. */
+    async _refresh() {
+        this._busy = true;
+        await this._load({ background: true });
+        this._busy = false;
+    }
+
+    /** Turn to older or newer activity. */
+    async _turnTo(page) {
+        if (page < 1 || this._busy) return;
+        this._page = page;
+        this._busy = true;
+        await this._load();
+        this._busy = false;
+        this._startTimer();
+    }
+
+    _onTouchStart(e) {
+        this._touchX = e.changedTouches[0].clientX;
+    }
+
+    _onTouchEnd(e) {
+        if (this._touchX === undefined) return;
+        const dx = e.changedTouches[0].clientX - this._touchX;
+        this._touchX = undefined;
+        // Swiping left pulls the next page in from the right, matching how the
+        // arrow beside the row reads.
+        if (dx < -60 && this._hasMore) this._turnTo(this._page + 1);
+        else if (dx > 60 && this._page > 1) this._turnTo(this._page - 1);
+    }
+
+    _renderControls() {
+        if (!this.controls) return '';
+        return html`<div class="controls">
+            <button class="ctl" type="button" ?disabled=${this._busy}
+                @click=${() => this._refresh()} aria-label="Refresh activity">
+                <span aria-hidden="true">↻</span>
+            </button>
+            <button class="ctl" type="button" ?disabled=${this._page <= 1 || this._busy}
+                @click=${() => this._turnTo(this._page - 1)} aria-label="Newer activity">
+                <span aria-hidden="true">‹</span>
+            </button>
+            <button class="ctl ctl--next" type="button" ?disabled=${!this._hasMore || this._busy}
+                @click=${() => this._turnTo(this._page + 1)} aria-label="Older activity">
+                <span class="ctl__text">Older</span> <span aria-hidden="true">›</span>
+            </button>
+        </div>`;
     }
 
     async _toggleFollow(username) {
@@ -221,38 +294,62 @@ export class OlSocialFeed extends LitElement {
      * all of them.
      */
     _present(item) {
-        const isList = Boolean(item.list);
+        const work = item.work;
+        // Adding the book to your own reading log is offered on all three
+        // card types, because all three are ultimately about a book.
+        const actions = [{ kind: 'shelve', label: 'Want to Read', href: work.key }];
 
-        if (isList) {
-            const ids = item.list.cover_ids.length ? item.list.cover_ids : [null];
-            return {
-                href: item.list.key,
-                covers: ids.slice(0, 3),
-                coverAlt: item.list.name,
-                title: item.list.name,
-                subtitle: `${item.list.book_count} ${item.list.book_count === 1 ? 'book' : 'books'}`,
-                subtitleHref: null,
-                actions: [{ label: 'View List', href: item.list.key, primary: true }],
-            };
+        if (item.list) {
+            actions.unshift({
+                kind: 'heart',
+                label: item.list.like_count ? `♥ ${item.list.like_count}` : '♥',
+                accessibleLabel: `Heart the list ${item.list.name}`,
+                listKey: item.list.key,
+            });
         }
 
-        const work = item.work;
-        // A borrowable book leads with Borrow; everything else leads with the shelf.
-        const borrowable = work.ebook_access === 'borrowable' || work.ebook_access === 'public';
+        // Card three shows what the book was filed alongside: the added book,
+        // accented, with up to two of its new shelf-mates behind it.
+        const others = item.list
+            ? (item.list.cover_ids || []).filter((id) => id !== work.cover_id).slice(0, 2)
+            : [];
+
         return {
             href: work.key,
-            covers: [work.cover_id],
+            coverId: work.cover_id,
             coverAlt: `Cover of ${work.title}`,
+            otherCoverIds: others,
             title: work.title,
-            subtitle: work.author ? `by ${work.author}` : 'Unknown author',
-            subtitleHref: work.author ? work.author_key : null,
-            actions: borrowable
-                ? [
-                    { label: 'Borrow', href: work.key, primary: true },
-                    { label: 'Want to Read', href: work.key, primary: false },
-                ]
-                : [{ label: 'Want to Read', href: work.key, primary: true }],
+            author: work.author,
+            authorKey: work.author_key,
+            actions,
         };
+    }
+
+    async _toggleHeart(listKey) {
+        if (!this.viewerUsername) {
+            window.location = `/account/login?redir_url=${encodeURIComponent(window.location.pathname)}`;
+            return;
+        }
+        const hearted = this._hearted.has(listKey);
+        const next = new Set(this._hearted);
+        if (hearted) next.delete(listKey);
+        else next.add(listKey);
+        this._hearted = next;
+
+        try {
+            const response = await fetch('/api/like', {
+                method: hearted ? 'DELETE' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: listKey, value: 1 }),
+            });
+            if (!response.ok) throw new Error('heart failed');
+        } catch {
+            const reverted = new Set(this._hearted);
+            if (hearted) reverted.add(listKey);
+            else reverted.delete(listKey);
+            this._hearted = reverted;
+        }
     }
 
     // -- the one card skeleton --------------------------------------------
@@ -261,7 +358,6 @@ export class OlSocialFeed extends LitElement {
         const slot = this._present(item);
         const following = this._following.has(item.username);
         const isViewer = item.username === this.viewerUsername;
-        const stacked = slot.covers.length > 1;
 
         return html`<article class="card" data-type=${item.type}>
             <div class="head">
@@ -274,6 +370,9 @@ export class OlSocialFeed extends LitElement {
                     ${item.shelf_url
         ? html`<a class="verb" href=${item.shelf_url}>${item.label}</a>`
         : html`<span class="verb">${item.label}</span>`}
+                    ${item.list
+        ? html`<a class="target" href=${item.list.key}>${item.list.name}</a>`
+        : ''}
                 </p>
                 <time class="when">${timeAgo(item.created)}</time>
                 ${isViewer
@@ -287,32 +386,45 @@ export class OlSocialFeed extends LitElement {
             </div>
 
             <div class="content">
-                <a class="cover ${stacked ? 'cover--stack' : ''}" href=${slot.href}
-                    aria-label=${stacked ? slot.coverAlt : ''}>
-                    ${slot.covers.map(
-        (id) => html`<img src=${coverUrl(id)} alt=${stacked ? '' : slot.coverAlt} loading="lazy"
+                <a class="cover ${slot.otherCoverIds.length ? 'cover--group' : ''}" href=${slot.href}>
+                    ${slot.otherCoverIds.map(
+        (id) => html`<img class="cover__mate" src=${coverUrl(id)} alt="" aria-hidden="true" loading="lazy"
                             @error=${(e) => { e.target.src = FALLBACK_COVER; }} />`
     )}
+                    <img class="cover__subject" src=${coverUrl(slot.coverId)} alt=${slot.coverAlt} loading="lazy"
+                        @error=${(e) => { e.target.src = FALLBACK_COVER; }} />
                 </a>
                 <div class="body">
                     <a class="title" href=${slot.href}>${slot.title}</a>
                     <span class="byline">
-                        ${slot.subtitleHref
-        ? html`by <a href=${slot.subtitleHref}>${slot.subtitle.replace(/^by /, '')}</a>`
-        : slot.subtitle}
+                        ${slot.author
+        ? html`by ${slot.authorKey ? html`<a href=${slot.authorKey}>${slot.author}</a>` : slot.author}`
+        : 'Unknown author'}
                     </span>
                     ${item.rating
         ? html`<span class="stars" aria-label="Rated ${item.rating} out of 5"
                             >${'★'.repeat(item.rating)}<span class="stars__empty">${'★'.repeat(5 - item.rating)}</span></span>`
         : ''}
                     <div class="actions">
-                        ${slot.actions.map(
-        (a) => html`<a class="btn ${a.primary ? 'btn--primary' : 'btn--ghost'}" href=${a.href}>${a.label}</a>`
-    )}
+                        ${slot.actions.map((action) => this._renderAction(action))}
                     </div>
                 </div>
             </div>
         </article>`;
+    }
+
+    _renderAction(action) {
+        if (action.kind === 'heart') {
+            const hearted = this._hearted.has(action.listKey);
+            return html`<button
+                class="btn btn--ghost heart ${hearted ? 'is-hearted' : ''}"
+                type="button"
+                aria-pressed=${hearted}
+                aria-label=${action.accessibleLabel}
+                @click=${() => this._toggleHeart(action.listKey)}
+            >${action.label}</button>`;
+        }
+        return html`<a class="btn btn--primary" href=${action.href}>${action.label}</a>`;
     }
 
     /**
@@ -351,7 +463,7 @@ export class OlSocialFeed extends LitElement {
         const slot = this._present(item);
         return html`<figure class="strip__item">
                             <a class="cover" href=${slot.href}>
-                                <img src=${coverUrl(slot.covers[0])} alt=${slot.coverAlt} loading="lazy"
+                                <img src=${coverUrl(slot.coverId)} alt=${slot.coverAlt} loading="lazy"
                                     @error=${(e) => { e.target.src = FALLBACK_COVER; }} />
                             </a>
                             <figcaption>${item.label}</figcaption>
@@ -378,7 +490,8 @@ export class OlSocialFeed extends LitElement {
                 No recent activity yet. Follow other readers and their updates will show up here.
             </div>`;
         } else {
-            inner = html`<div class="feed feed--${variant.slug}" aria-live="polite">
+            inner = html`<div class="feed feed--${variant.slug}" aria-live="polite" aria-busy=${this._busy}
+                @touchstart=${(e) => this._onTouchStart(e)} @touchend=${(e) => this._onTouchEnd(e)}>
                 ${this.variant === 10
         ? this._renderPeople()
         : this._items.map(
@@ -386,7 +499,8 @@ export class OlSocialFeed extends LitElement {
                             ${this._renderCard(item)}
                         </div>`
         )}
-            </div>`;
+            </div>
+            ${this._renderControls()}`;
         }
 
         // The panel is the outer common container: one frame around every
@@ -508,6 +622,16 @@ export class OlSocialFeed extends LitElement {
         .verb { color: var(--link-blue, #04618f); text-decoration: none; }
         a.verb:hover { text-decoration: underline; }
 
+        .target {
+            font-weight: 600;
+            text-decoration: none;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .target:hover { text-decoration: underline; }
+
         .when {
             color: var(--feed-muted);
             font-size: 0.8rem;
@@ -556,14 +680,29 @@ export class OlSocialFeed extends LitElement {
             background: var(--grey-f3f3f3, #f3f3f3);
         }
 
-        /* Three list covers fanned horizontally, overlapping, so each stays
-           legible in the footprint a single cover would take. */
-        .cover--stack { width: 90px; align-items: flex-start; }
-        .cover--stack img {
-            width: 60%;
-            border: var(--border-width, 1px) solid var(--white, #fff);
+
+        /* Card three: the added book sits proud of the list-mates it joined.
+           The mates are blurred and dimmed so they read as context, not as
+           three equal covers. */
+        .cover--group { position: relative; width: 96px; }
+        .cover--group .cover__mate {
+            position: absolute;
+            top: 8px;
+            width: 46px;
+            height: 68px;
+            filter: blur(1.5px);
+            opacity: 0.55;
+            border-radius: var(--border-radius-thumbnail, 6px);
         }
-        .cover--stack img + img { margin-left: -40%; }
+        .cover--group .cover__mate:nth-of-type(1) { right: 0; transform: rotate(4deg); }
+        .cover--group .cover__mate:nth-of-type(2) { right: 18px; transform: rotate(-3deg); }
+        .cover--group .cover__subject {
+            position: relative;
+            z-index: 1;
+            width: 62px;
+            outline: var(--border-width-thick, 2px) solid var(--primary-blue, #0577b5);
+            outline-offset: 1px;
+        }
 
         .body {
             min-width: 0;
@@ -609,6 +748,12 @@ export class OlSocialFeed extends LitElement {
             background: transparent;
             border-color: var(--feed-rule);
             color: inherit;
+        }
+
+        .heart { font: inherit; font-size: 0.85rem; font-weight: 600; }
+        .heart.is-hearted {
+            color: var(--red, #c0392b);
+            border-color: currentColor;
         }
 
         :focus-visible {
@@ -662,7 +807,6 @@ export class OlSocialFeed extends LitElement {
         }
         .feed--river .content { padding-left: calc(var(--feed-gutter) + 8px); }
         .feed--river .cover { width: 110px; height: 165px; }
-        .feed--river .cover--stack { width: 150px; height: 140px; }
         .feed--river .title { font-size: 1.15rem; }
         .feed--river .avatar { width: var(--feed-gutter); height: var(--feed-gutter); }
 
@@ -701,8 +845,6 @@ export class OlSocialFeed extends LitElement {
         .feed--cover-tiles .content { height: 100%; }
         .feed--cover-tiles .cover { width: 100%; height: 100%; }
         .feed--cover-tiles .cover img { border-radius: 0; box-shadow: none; }
-        .feed--cover-tiles .cover--stack { align-items: stretch; }
-        .feed--cover-tiles .cover--stack img { width: 33.34%; margin-left: 0; border: 0; }
         .feed--cover-tiles .body { display: none; }
 
         /* == 4. Dense timeline ============================================ */
@@ -731,7 +873,6 @@ export class OlSocialFeed extends LitElement {
         .feed--timeline .body { flex: 1; }
         .feed--timeline .avatar { width: 22px; height: 22px; }
         .feed--timeline .cover { width: 32px; height: 46px; }
-        .feed--timeline .cover--stack { width: 50px; }
         .feed--timeline .body { flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
         .feed--timeline .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .feed--timeline .byline, .feed--timeline .actions, .feed--timeline .follow { display: none; }
@@ -752,7 +893,6 @@ export class OlSocialFeed extends LitElement {
         }
         .feed--thread .avatar { width: var(--feed-gutter); height: var(--feed-gutter); }
         .feed--thread .cover { width: 46px; height: 68px; }
-        .feed--thread .cover--stack { width: 72px; height: 68px; }
         .feed--thread .title { font-size: 0.92rem; }
 
         /* == 6. Magazine ================================================== */
@@ -767,7 +907,6 @@ export class OlSocialFeed extends LitElement {
         .feed--magazine .content { order: 1; flex-direction: column; }
         .feed--magazine .cover { width: 100%; height: 260px; }
         .feed--magazine .cover img { object-fit: contain; }
-        .feed--magazine .cover--stack { height: 140px; }
         .feed--magazine .title {
             font-family: var(--font-family-serif, Georgia, serif);
             font-size: 1.4rem;
@@ -791,7 +930,6 @@ export class OlSocialFeed extends LitElement {
             padding: 8px;
         }
         .feed--bubbles .cover { width: 34px; height: 50px; }
-        .feed--bubbles .cover--stack { width: 56px; }
         .feed--bubbles .title { font-size: 0.9rem; }
         .feed--bubbles .actions { display: none; }
 
@@ -820,7 +958,6 @@ export class OlSocialFeed extends LitElement {
         .feed--ticker .body { flex: 1; }
         .feed--ticker .avatar { width: 20px; height: 20px; }
         .feed--ticker .cover { width: 26px; height: 38px; }
-        .feed--ticker .cover--stack { width: 40px; }
         .feed--ticker .body { flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; }
         .feed--ticker .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .feed--ticker .byline,
@@ -847,7 +984,6 @@ export class OlSocialFeed extends LitElement {
             color: var(--feed-muted);
         }
         .feed--editorial .cover { width: 70px; height: 104px; }
-        .feed--editorial .cover--stack { width: 110px; height: 104px; }
         .feed--editorial .title { font-size: 1.5rem; line-height: 1.1; }
         .feed--editorial .actions {
             opacity: 0;
@@ -861,6 +997,14 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+
+            /* Same cards, stacked. Refresh stays reachable at the top, and
+               paging moves to a full-width control at the foot of the list. */
+            .feed--showcase { grid-template-columns: 1fr; }
+            .feed--showcase .card { height: auto; }
+            .feed--showcase .content { flex: 0 1 auto; }
+            .controls { justify-content: stretch; }
+            .ctl--next { flex: 1; justify-content: center; }
         }
 
         /* == 10. People first ============================================= */
@@ -889,6 +1033,68 @@ export class OlSocialFeed extends LitElement {
             line-height: 1.2;
         }
 
+        /* == 11. Showcase row ============================================= */
+        /* Three across on desktop, the same cards stacked on mobile. Paging
+           rather than infinite scroll, so the row always holds three. */
+
+        .feed--showcase {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            align-items: stretch;
+        }
+        .feed--showcase .card {
+            background: var(--feed-card-bg);
+            border: var(--border-width-thin, 1px) solid var(--feed-rule);
+            border-radius: var(--border-radius-card, 9px);
+            box-shadow: var(--feed-shadow);
+            padding: 12px 14px 14px;
+            height: 100%;
+        }
+        .feed--showcase .head {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-template-areas:
+                "gutter . follow"
+                "sentence sentence when";
+            row-gap: 6px;
+        }
+        .feed--showcase .gutter { grid-area: gutter; }
+        .feed--showcase .follow { grid-area: follow; }
+        .feed--showcase .sentence { grid-area: sentence; }
+        .feed--showcase .when { grid-area: when; margin-left: 0; align-self: baseline; }
+        .feed--showcase .content {
+            flex: 1;
+            border-top: 1px solid var(--feed-rule);
+            padding-top: 10px;
+        }
+        .feed--showcase .actions { margin-top: auto; }
+
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .ctl {
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-height: 36px;
+            padding: 0 12px;
+            border: var(--border-width-thin, 1px) solid var(--feed-rule);
+            border-radius: var(--border-radius-pill, 9999px);
+            background: var(--feed-card-bg);
+            color: inherit;
+            cursor: pointer;
+        }
+        .ctl:hover:not(:disabled) { border-color: var(--primary-blue, #0577b5); color: var(--primary-blue, #0577b5); }
+        .ctl:disabled { opacity: 0.4; cursor: default; }
+
         /* -- mobile ------------------------------------------------------- */
 
         @media (max-width: 767px) {
@@ -913,6 +1119,14 @@ export class OlSocialFeed extends LitElement {
             .feed--timeline .card { padding-right: 40px; gap: 6px; }
             .feed--timeline .cover { width: 26px; height: 38px; }
             .feed--ticker .card { padding-right: 38px; gap: 6px; }
+
+            /* Same cards, stacked. Refresh stays reachable at the top, and
+               paging moves to a full-width control at the foot of the list. */
+            .feed--showcase { grid-template-columns: 1fr; }
+            .feed--showcase .card { height: auto; }
+            .feed--showcase .content { flex: 0 1 auto; }
+            .controls { justify-content: stretch; }
+            .ctl--next { flex: 1; justify-content: center; }
         }
     `;
 }

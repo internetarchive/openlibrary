@@ -50,19 +50,19 @@ $var title: Activity Feed Designs
   <header class="feed-gallery__intro">
     <h1>Activity feed &mdash; design gallery</h1>
     <p>
-      Ten layout treatments for the My Books social activity feed, all rendered from the
+      Every layout treatment for the My Books social activity feed, all rendered from the
       same live <code>/api/internal/activity/feed.json</code> response. Same books, same
       patrons, same timestamps &mdash; only the presentation differs.
     </p>
     <p class="feed-gallery__note">
       Narrow the browser to see each one at a mobile width. Development scaffolding for
       <a href="https://github.com/internetarchive/openlibrary/issues/10242">issue #10242</a>;
-      nine of these get deleted once a direction is picked.
+      all but the chosen one get deleted once a direction is picked.
     </p>
   </header>
 
   <nav class="feed-gallery__nav" aria-label="Design variants">
-    <a class="feed-gallery__chip $('is-current' if not selected else '')" href="?scope=$scope$api_param">All ten</a>
+    <a class="feed-gallery__chip $('is-current' if not selected else '')" href="?scope=$scope$api_param">All variants</a>
     $for v in variants:
       <a class="feed-gallery__chip $('is-current' if selected == v['id'] else '')"
          href="?design=$v['id']&amp;scope=$scope$api_param">$v['id']. $v['name']</a>
@@ -84,7 +84,7 @@ $var title: Activity Feed Designs
           <a class="feed-gallery__permalink" href="?design=$v['id']&amp;scope=$scope$api_param">View alone &rsaquo;</a>
         </header>
         <div class="feed-gallery__stage">
-          <ol-social-feed variant="$v['id']" scope="$scope" limit="9" refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
+          <ol-social-feed variant="$v['id']" scope="$scope" limit="3" balanced controls refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
         </div>
       </section>
 </div>

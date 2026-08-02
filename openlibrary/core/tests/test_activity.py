@@ -7,8 +7,7 @@ import pytest
 
 from openlibrary.core.activity import (
     ActivityStream,
-    LikeEvent,
-    ListEvent,
+    ListAddEvent,
     RatingEvent,
     ShelfEvent,
     shelf_label,
@@ -95,8 +94,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
             events = ActivityStream.public_feed(limit=10)
@@ -112,8 +110,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", return_value={"public_patron"}),
         ):
             events = ActivityStream.public_feed(limit=10)
@@ -131,8 +128,7 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
             events = ActivityStream.public_feed(viewer="me", limit=10)
@@ -146,31 +142,30 @@ class TestActivityStreamPublicFeed:
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
             events = ActivityStream.public_feed(limit=3)
 
         assert len(events) == 3
 
-    def test_collapses_a_rating_into_the_matching_shelf_event(self):
-        # Rating a book you just marked read is one act, not two feed entries.
+    def test_a_rating_is_its_own_card_not_folded_into_the_shelving(self):
+        # Shelving and rating are two of the three card types, so a patron who
+        # does both produces two cards.
         shelves = [shelf_row(username="ada", work_id=7, bookshelf_id=3, created=JAN)]
         ratings = [rating_row(username="ada", work_id=7, rating=5, created=JAN)]
 
         with (
             patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=ratings),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
         ):
             events = ActivityStream.public_feed(limit=10)
 
-        assert len(events) == 1
-        assert events[0].type == "shelf_change"
-        assert events[0].rating == 5
+        assert sorted(e.type for e in events) == ["rating", "shelf_change"]
+        assert next(e for e in events if e.type == "rating").rating == 5
+        assert next(e for e in events if e.type == "shelf_change").rating is None
 
 
 class TestActivityStreamFollowingFeed:
@@ -189,8 +184,7 @@ class TestActivityStreamFollowingFeed:
             patch("openlibrary.core.activity.PubSub.get_following", return_value=following),
             patch("openlibrary.core.activity.ActivityStream._shelf_rows_for", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
         ):
             events = ActivityStream.following_feed("viewer", limit=10)
 
@@ -206,8 +200,7 @@ class TestActivityStreamFollowingFeed:
             patch("openlibrary.core.activity.PubSub.get_following", return_value=following),
             patch("openlibrary.core.activity.ActivityStream._shelf_rows_for", return_value=shelves),
             patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
+            patch("openlibrary.core.activity.ActivityStream._recent_list_adds", return_value=[]),
             patch("openlibrary.core.activity.ActivityStream._public_usernames", return_value=set()) as public_mock,
         ):
             events = ActivityStream.following_feed("viewer", limit=10)
@@ -216,51 +209,59 @@ class TestActivityStreamFollowingFeed:
         public_mock.assert_not_called()
 
 
-class TestLikeEvent:
-    def test_builds_from_a_liked_list_key(self):
-        event = LikeEvent.from_row({"username": "ada", "key": "/people/bo/lists/OL1L", "value": 1, "created": JAN})
-        assert event.type == "like"
-        assert event.liked_key == "/people/bo/lists/OL1L"
+class TestListAddEvent:
+    """Card three: a patron added a book to one of their lists."""
 
-    def test_ignores_dislikes(self):
-        # "Someone disliked this" is not worth broadcasting.
-        assert LikeEvent.from_row({"username": "ada", "key": "/people/bo/lists/OL1L", "value": -1, "created": JAN}) is None
-
-    def test_a_liked_work_key_becomes_a_work_event(self):
-        # `likes.key` is a generic Infogami key, so it may point at a work.
-        event = LikeEvent.from_row({"username": "ada", "key": "/works/OL59800W", "value": 1, "created": JAN})
-        assert event.work_id == 59800
-        assert event.work_key == "/works/OL59800W"
-
-    def test_an_unrecognised_key_is_dropped(self):
-        assert LikeEvent.from_row({"username": "ada", "key": "/authors/OL1A", "value": 1, "created": JAN}) is None
-
-
-class TestActivityStreamIncludesLikes:
-    def test_likes_join_the_public_feed(self):
-        likes = [{"username": "ada", "key": "/people/bo/lists/OL1L", "value": 1, "created": MAR}]
-
-        with (
-            patch("openlibrary.core.activity.Bookshelves.get_recently_logged_books", return_value=[]),
-            patch("openlibrary.core.activity.Ratings.get_recent_ratings", return_value=[]),
-            patch("openlibrary.core.activity.Likes.get_recent_likes", return_value=likes),
-            patch("openlibrary.core.activity.ActivityStream._recent_lists", return_value=[]),
-            patch("openlibrary.core.activity.ActivityStream._public_usernames", side_effect=set),
-        ):
-            events = ActivityStream.public_feed(limit=10)
-
-        assert [e.type for e in events] == ["like"]
-
-
-class TestListEvent:
-    def test_builds_from_a_list_thing(self):
-        event = ListEvent(
+    def test_carries_both_the_book_and_the_list(self):
+        event = ListAddEvent(
             username="ada",
             created=JAN,
+            work_id=59800,
+            work_key="/works/OL59800W",
             list_key="/people/ada/lists/OL1L",
             name="Books that rewired my brain",
             book_count=4,
             cover_ids=[1, 2, 3],
         )
-        assert event.type == "list_update"
+        assert event.type == "list_add"
+        # The book is the subject, so it enriches from Solr like any other card.
+        assert event.work_id == 59800
         assert event.list_url == "/people/ada/lists/OL1L"
+
+    def test_the_newest_seed_is_the_one_that_was_just_added(self):
+        # `List.add_seed` appends, so the tail of `seeds` is the latest add.
+        seeds = [{"key": "/works/OL1W"}, {"key": "/works/OL2W"}, {"key": "/works/OL3W"}]
+        assert ActivityStream._newest_work_seed(seeds) == 3
+
+    def test_non_work_seeds_are_skipped(self):
+        seeds = [{"key": "/works/OL7W"}, "subject:love", {"key": "/authors/OL1A"}]
+        assert ActivityStream._newest_work_seed(seeds) == 7
+
+    def test_a_list_with_no_book_seeds_yields_nothing(self):
+        assert ActivityStream._newest_work_seed(["subject:love"]) is None
+        assert ActivityStream._newest_work_seed([]) is None
+
+
+class TestBalancedSample:
+    """The design gallery needs every card type visible in every variant."""
+
+    def _events(self):
+        return (
+            [ShelfEvent.from_row(shelf_row(work_id=i, created=MAR)) for i in range(8)]
+            + [RatingEvent.from_row(rating_row(work_id=i, created=FEB)) for i in range(8)]
+            + [ListAddEvent(username="ada", created=JAN, work_id=99, work_key="/works/OL99W", list_key="/people/ada/lists/OL1L", name="L", book_count=1)]
+        )
+
+    def test_every_type_survives_a_small_limit(self):
+        # Newest-first would return eight shelvings and nothing else.
+        picked = ActivityStream.balance(self._events(), limit=4)
+        assert {e.type for e in picked} == {"shelf_change", "rating", "list_add"}
+        assert len(picked) == 4
+
+    def test_order_stays_newest_first_within_the_sample(self):
+        picked = ActivityStream.balance(self._events(), limit=6)
+        assert picked == sorted(picked, key=lambda e: e.created, reverse=True)
+
+    def test_a_limit_larger_than_the_input_returns_everything(self):
+        events = self._events()
+        assert len(ActivityStream.balance(events, limit=100)) == len(events)

@@ -126,6 +126,11 @@ class activity_feed_gallery(delegate.page):
         {"id": 8, "name": "Ticker", "blurb": "One compact line each. Sized to sit under a heading as a teaser strip."},
         {"id": 9, "name": "Editorial", "blurb": "Uppercase eyebrow, large type, almost no chrome. Actions on hover."},
         {"id": 10, "name": "People first", "blurb": "Grouped by patron: who they are, then a strip of what they touched."},
+        {
+            "id": 11,
+            "name": "Showcase row",
+            "blurb": "Three cards across on desktop, stacked on mobile. Refresh the whole row; swipe or press next for older activity.",
+        },
     )
 
     DEFAULT_API = "/api/internal/activity/feed.json"

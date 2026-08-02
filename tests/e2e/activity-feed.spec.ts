@@ -18,7 +18,7 @@ import { collectConsoleErrors } from './helpers';
  */
 
 const FEED_API = process.env.OL_FEED_API || 'http://localhost:18080/api/internal/activity/feed.json';
-const VARIANT_COUNT = 10;
+const VARIANT_COUNT = 11;
 
 function galleryUrl(design?: number): string {
     const params = new URLSearchParams({ api: FEED_API, scope: 'public' });
@@ -116,9 +116,32 @@ test.describe('activity feed design gallery', () => {
         await page.getByRole('link', { name: 'scope: public' }).click();
         expect(await feedItemCount(page), 'feed emptied after clicking a scope chip').toBeGreaterThan(0);
 
-        await page.getByRole('link', { name: 'All ten' }).click();
+        await page.getByRole('link', { name: 'All variants' }).click();
         await expect(page.locator('ol-social-feed')).toHaveCount(VARIANT_COUNT);
         expect(await feedItemCount(page), 'feed emptied after returning to all ten').toBeGreaterThan(0);
+    });
+
+    test('the showcase row pages and refreshes', async ({ page }) => {
+        // Variant 11 is the only one with controls: three across, refresh the
+        // whole row, and turn to older activity rather than scrolling forever.
+        await page.goto(galleryUrl(11));
+        const feed = page.locator('ol-social-feed').first();
+        await expect(feed.locator('.feed')).toBeVisible({ timeout: 15_000 });
+
+        await expect(feed.locator('.card')).toHaveCount(3);
+        // Every card type should be on screen, or the row cannot be judged.
+        const types = await feed.locator('.card').evaluateAll((cards) => cards.map((c) => c.dataset.type));
+        expect(new Set(types).size).toBeGreaterThan(1);
+
+        const newer = feed.getByRole('button', { name: 'Newer activity' });
+        await expect(newer).toBeDisabled();
+
+        await feed.getByRole('button', { name: 'Older activity' }).click();
+        await expect(newer).toBeEnabled();
+        expect(await feed.locator('.card').count()).toBeGreaterThan(0);
+
+        await feed.getByRole('button', { name: 'Refresh activity' }).click();
+        await expect(feed.locator('.card').first()).toBeVisible();
     });
 
     test('captures every variant for review', async ({ page }, testInfo) => {

@@ -90,7 +90,7 @@ class TestGalleryApiParam:
 class TestGalleryVariants:
     def test_variant_ids_are_contiguous_and_match_the_component(self):
         ids = [v["id"] for v in activity_feed_gallery.VARIANTS]
-        assert ids == list(range(1, 11))
+        assert ids == list(range(1, 12))
 
     def test_every_variant_is_described(self):
         for variant in activity_feed_gallery.VARIANTS:

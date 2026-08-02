@@ -5,6 +5,17 @@ shelvings and star ratings live in Postgres, lists live in Infogami. The social
 feed needs one time-ordered stream across all of them, so this module normalises
 each source into a common event shape and merges them.
 
+Three card types come out of it, in the order they matter:
+
+1. ``shelf_change`` -- a book put on Want to Read, Currently Reading or
+   Already Read.
+2. ``rating`` -- a book given stars. Its own card, not a decoration on the
+   shelving, because rating is its own act.
+3. ``list_add`` -- a book added to one of the patron's lists. The book is the
+   subject; the list is context.
+
+Hearting a list is an *action* offered on card three, not a card of its own.
+
 Two feeds come out of it:
 
 ``public_feed``
@@ -32,13 +43,12 @@ from typing import Any, Literal, cast
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
-from openlibrary.core.likes import Likes
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.activity")
 
-EventType = Literal["shelf_change", "rating", "list_update", "like"]
+EventType = Literal["shelf_change", "rating", "list_add"]
 
 # Phrasing is deliberately third-person and past-tense so it reads correctly
 # after a username: "ada_reads added to Want to Read".
@@ -146,43 +156,21 @@ class RatingEvent(ActivityEvent):
 
 
 @dataclass(kw_only=True)
-class LikeEvent(ActivityEvent):
-    """A patron liked something.
+class ListAddEvent(ActivityEvent):
+    """A book added to a patron's list.
 
-    `likes.key` is a generic Infogami key rather than a typed id, so this only
-    accepts the two shapes the feed can actually render -- a patron list and a
-    work -- and drops anything else rather than guessing at a card for it.
+    The book is the subject -- it carries `work_id` like the other two card
+    types, so it enriches from Solr the same way and offers the same
+    add-to-reading-log action. The list is context, and supplies the extra
+    "heart this list" action.
     """
 
-    type: EventType = "like"
-    liked_key: str = ""
-
-    @classmethod
-    def from_row(cls, row: dict) -> LikeEvent | None:
-        # Dislikes are recorded in the same table. "Someone disliked this" is
-        # not something to broadcast.
-        if row.get("value") != 1:
-            return None
-        key = row.get("key") or ""
-        created = row.get("created") or row.get("modified")
-
-        if "/lists/" in key:
-            return cls(username=row["username"], created=created, liked_key=key)
-
-        if key.startswith("/works/OL") and key.endswith("W"):
-            work_id = int(key.removeprefix("/works/OL").removesuffix("W"))
-            return cls(username=row["username"], created=created, liked_key=key, work_id=work_id, work_key=key)
-
-        return None
-
-
-@dataclass(kw_only=True)
-class ListEvent(ActivityEvent):
-    type: EventType = "list_update"
+    type: EventType = "list_add"
     list_key: str = ""
     name: str = ""
     book_count: int = 0
     cover_ids: list[int] = field(default_factory=list)
+    like_count: int = 0
 
     @property
     def list_url(self) -> str:
@@ -201,12 +189,9 @@ class ActivityStream:
 
         shelf_rows = Bookshelves.get_recently_logged_books(shelf_ids=FEED_SHELF_IDS, limit=fetch, page=page)
         rating_rows = Ratings.get_recent_ratings(limit=fetch, page=page)
-        like_rows = Likes.get_recent_likes(limit=fetch, page=page)
-        list_events = cls._recent_lists(limit=limit)
+        list_events = cls._recent_list_adds(limit=limit)
 
-        candidates = (
-            [r["username"] for r in shelf_rows] + [r["username"] for r in rating_rows] + [r["username"] for r in like_rows] + [e.username for e in list_events]
-        )
+        candidates = [r["username"] for r in shelf_rows] + [r["username"] for r in rating_rows] + [e.username for e in list_events]
         public = cls._public_usernames(candidates)
 
         def visible(username: str) -> bool:
@@ -215,7 +200,6 @@ class ActivityStream:
         events = cls._build_events(
             shelf_rows=[r for r in shelf_rows if visible(r["username"])],
             rating_rows=[r for r in rating_rows if visible(r["username"])],
-            like_rows=[r for r in like_rows if visible(r["username"])],
             list_events=[e for e in list_events if visible(e.username)],
         )
         return events[:limit]
@@ -231,14 +215,12 @@ class ActivityStream:
         fetch = limit * 2
         shelf_rows = cls._shelf_rows_for(usernames, limit=fetch, page=page)
         rating_rows = Ratings.get_recent_ratings(usernames=usernames, limit=fetch, page=page)
-        like_rows = Likes.get_recent_likes(usernames=usernames, limit=fetch, page=page)
-        list_events = cls._recent_lists(limit=limit, usernames=usernames)
+        list_events = cls._recent_list_adds(limit=limit, usernames=usernames)
 
         followed = set(usernames)
         events = cls._build_events(
             shelf_rows=[r for r in shelf_rows if r["username"] in followed],
             rating_rows=[r for r in rating_rows if r["username"] in followed],
-            like_rows=[r for r in like_rows if r["username"] in followed],
             list_events=[e for e in list_events if e.username in followed],
         )
         return events[:limit]
@@ -246,23 +228,15 @@ class ActivityStream:
     # -- assembly ---------------------------------------------------------
 
     @classmethod
-    def _build_events(cls, shelf_rows: list, rating_rows: list, list_events: list, like_rows: list | None = None) -> list[ActivityEvent]:
-        """Normalise, collapse duplicates, and sort newest first."""
+    def _build_events(cls, shelf_rows: list, rating_rows: list, list_events: list) -> list[ActivityEvent]:
+        """Normalise every source into events and sort newest first.
+
+        Shelving and rating are separate cards even for the same book by the
+        same patron -- they are two of the three card types, and folding one
+        into the other hid an event the feed is meant to surface.
+        """
         events: list[ActivityEvent] = [ShelfEvent.from_row(r) for r in shelf_rows]
-
-        # Marking a book read and rating it is one act to a reader, so fold the
-        # star onto the shelving rather than emitting two near-identical cards.
-        by_work = {e.dedupe_key: e for e in events}
-        for row in rating_rows:
-            rating_event = RatingEvent.from_row(row)
-            if rating_event is None:
-                continue
-            if existing := by_work.get(rating_event.dedupe_key):
-                existing.rating = rating_event.rating
-            else:
-                events.append(rating_event)
-
-        events.extend(e for row in (like_rows or []) if (e := LikeEvent.from_row(row)))
+        events.extend(e for row in rating_rows if (e := RatingEvent.from_row(row)))
         events.extend(list_events)
         events = [e for e in events if e.created]
         events.sort(key=lambda e: cast(datetime, e.created), reverse=True)
@@ -303,13 +277,18 @@ class ActivityStream:
         return public
 
     @classmethod
-    def _recent_lists(cls, limit: int = 10, usernames: list[str] | None = None) -> list[ListEvent]:
-        """Recently touched patron lists, as feed events.
+    def _recent_list_adds(cls, limit: int = 10, usernames: list[str] | None = None) -> list[ListAddEvent]:
+        """Recently touched patron lists, as "added a book to a list" events.
 
         Lists are Infogami things rather than Postgres rows, so this is a
-        `things` query rather than part of the union above. There is no
-        "book added to list" event to read -- only the list's own
-        `last_modified` -- so a list appears once, as its most recent state.
+        `things` query rather than part of the union above, and there is no
+        per-book event to read. `List.add_seed` appends, though, so the last
+        work in `seeds` is the one most recently added -- which is enough to
+        name the book without diffing revisions.
+
+        That approximation is the reason a computed `activity_feed` table is
+        the right long-term home for this: a worker can record the real event
+        when it happens instead of inferring it afterwards.
         """
         query: dict[str, Any] = {
             "type": "/type/list",
@@ -322,7 +301,7 @@ class ActivityStream:
             logger.warning("could not query recent lists", exc_info=True)
             return []
 
-        events: list[ListEvent] = []
+        events: list[ListAddEvent] = []
         for key in keys:
             owner = cls._list_owner(key)
             if not owner or (usernames is not None and owner not in usernames):
@@ -330,19 +309,46 @@ class ActivityStream:
             doc = site.get().get(key)
             if not doc:
                 continue
+            work_id = cls._newest_work_seed(doc.seeds or [])
+            if work_id is None:
+                # A list of subjects or authors has no book to offer.
+                continue
             showcase = cls._list_showcase(doc)
             events.append(
-                ListEvent(
-                    type="list_update",
+                ListAddEvent(
                     username=owner,
                     created=cls._as_datetime(doc.last_modified),
+                    work_id=work_id,
+                    work_key=_work_key(work_id),
                     list_key=key,
                     name=showcase["title"],
                     book_count=showcase["count"],
                     cover_ids=showcase["cover_ids"],
+                    like_count=cls._like_count(key),
                 )
             )
         return events
+
+    @staticmethod
+    def _newest_work_seed(seeds) -> int | None:
+        """Numeric work id of the most recently added book seed, if any."""
+        for seed in reversed(list(seeds)):
+            key = getattr(seed, "key", None) or (seed.get("key") if isinstance(seed, dict) else None)
+            if isinstance(key, str) and key.startswith("/works/OL") and key.endswith("W"):
+                digits = key.removeprefix("/works/OL").removesuffix("W")
+                if digits.isdigit():
+                    return int(digits)
+        return None
+
+    @staticmethod
+    def _like_count(key: str) -> int:
+        from openlibrary.core.likes import Likes
+
+        try:
+            return Likes.get_count(key).get("likes", 0)
+        except Exception:  # noqa: BLE001 - a heart count is decoration, not the card
+            logger.warning("could not count likes for %s", key, exc_info=True)
+            return 0
 
     @staticmethod
     def _list_owner(key: str) -> str | None:
@@ -386,6 +392,37 @@ class ActivityStream:
             except ValueError:
                 return None
         return None
+
+    @staticmethod
+    def balance(events: list[ActivityEvent], limit: int) -> list[ActivityEvent]:
+        """Trim to `limit` while keeping every card type represented.
+
+        Strict newest-first can return a page of one type, which is fine for a
+        real feed and useless for comparing card designs. Round-robins across
+        types, then restores time order within the sample.
+        """
+        if len(events) <= limit:
+            return events
+
+        buckets: dict[str, list[ActivityEvent]] = {}
+        for event in events:
+            buckets.setdefault(event.type, []).append(event)
+
+        picked: list[ActivityEvent] = []
+        while len(picked) < limit:
+            took = False
+            for bucket in buckets.values():
+                if not bucket:
+                    continue
+                picked.append(bucket.pop(0))
+                took = True
+                if len(picked) == limit:
+                    break
+            if not took:
+                break
+
+        picked.sort(key=lambda e: cast(datetime, e.created), reverse=True)
+        return picked
 
     # -- enrichment -------------------------------------------------------
 
