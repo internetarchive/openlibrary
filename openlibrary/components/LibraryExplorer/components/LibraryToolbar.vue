@@ -545,7 +545,7 @@ export default {
   display: flex;
   justify-content: center;
   pointer-events: none;
-  z-index: 20;
+  z-index: var(--z-index-fixed);
 }
 
 .floating-controls-wrapper .multiselect {

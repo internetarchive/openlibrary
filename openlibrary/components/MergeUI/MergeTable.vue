@@ -349,7 +349,7 @@ table.main {
 table.main thead,
 table.main tfoot {
   position: sticky;
-  z-index: 300;
+  z-index: var(--z-index-dropdown);
 }
 table.main > thead {
   top: 0;

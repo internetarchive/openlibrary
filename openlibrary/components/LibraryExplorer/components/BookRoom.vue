@@ -321,7 +321,7 @@ button {
   position: sticky;
   top: 10px;
   pointer-events: none;
-  z-index: 10;
+  z-index: var(--z-index-fixed);
   display: flex;
 }
 @media (max-width: 450px) {

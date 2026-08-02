@@ -142,7 +142,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: calc(var(--_peek, 0.075) * 100% + 16px);
-            z-index: 1;
+            z-index: var(--z-index-base);
             pointer-events: none;
         }
 
@@ -169,7 +169,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: var(--_arrow-icon-size);
-            z-index: 2;
+            z-index: var(--z-index-raised);
             border: none;
             background: none;
             cursor: pointer;
