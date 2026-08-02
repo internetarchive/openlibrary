@@ -1,6 +1,7 @@
 """Tests for the developer design pages."""
 
 from unittest.mock import patch
+from urllib.parse import unquote
 
 import pytest
 import web
@@ -71,6 +72,21 @@ class TestGalleryApiUrl:
         assert activity_feed_gallery._api_url("http://localhost:8080/account/login") == DEFAULT
 
 
+class TestGalleryApiParam:
+    """Links on the page must carry the override, or navigating empties the feed."""
+
+    def test_the_default_endpoint_needs_no_carrying(self):
+        assert activity_feed_gallery._api_param(DEFAULT) == ""
+
+    def test_an_override_is_carried_url_encoded(self):
+        api = "http://192.168.1.223:18087/api/internal/activity/feed.json"
+        param = activity_feed_gallery._api_param(api)
+        assert param.startswith("&api=")
+        # Unencoded, the :// and / would break out of the query parameter.
+        assert "://" not in param
+        assert unquote(param.removeprefix("&api=")) == api
+
+
 class TestGalleryVariants:
     def test_variant_ids_are_contiguous_and_match_the_component(self):
         ids = [v["id"] for v in activity_feed_gallery.VARIANTS]
@@ -87,8 +103,8 @@ class TestGalleryGet:
         host("localhost:8080")
         captured = {}
 
-        def fake_render(_template, variants, selected, scope, viewer, api):
-            captured.update(selected=selected, scope=scope, viewer=viewer, api=api)
+        def fake_render(_template, variants, selected, scope, viewer, api, api_param):
+            captured.update(selected=selected, scope=scope, viewer=viewer, api=api, api_param=api_param)
             return ""
 
         with (
@@ -102,3 +118,4 @@ class TestGalleryGet:
         assert captured["selected"] == 3
         assert captured["viewer"] == ""
         assert captured["api"] == DEFAULT
+        assert captured["api_param"] == ""

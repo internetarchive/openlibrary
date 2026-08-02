@@ -64,8 +64,11 @@ test.describe('activity feed design gallery', () => {
         // feature guessed work-OLID cover URLs and rendered the wrong books.
         const cover = card.locator('.cover img').first();
         await expect(cover).toHaveAttribute('src', /covers\.openlibrary\.org\/b\/id\/\d+/);
-        await expect(cover).toHaveJSProperty('naturalWidth', await cover.evaluate((img: HTMLImageElement) => img.naturalWidth));
-        expect(await cover.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+        // Poll rather than sampling once: the cover comes from the CDN and may
+        // not have decoded yet when the card first paints.
+        await expect
+            .poll(() => cover.evaluate((img: HTMLImageElement) => img.naturalWidth), { timeout: 15_000 })
+            .toBeGreaterThan(0);
     });
 
     test('follow button reflects pressed state', async ({ page }) => {
@@ -97,6 +100,25 @@ test.describe('activity feed design gallery', () => {
         });
 
         expect(unnamed, 'links/buttons without an accessible name').toEqual([]);
+    });
+
+    test('navigating between variants keeps the feed populated', async ({ page }) => {
+        // The endpoint override lives in the query string, so every link on the
+        // page has to carry it. Drop it and each variant renders empty with
+        // nothing on screen to say why.
+        await page.goto(galleryUrl());
+        await expect(page.locator('ol-social-feed .feed').first()).toBeVisible({ timeout: 15_000 });
+
+        await page.getByRole('link', { name: '5. Social thread' }).click();
+        await expect(page.locator('ol-social-feed')).toHaveCount(1);
+        expect(await feedItemCount(page), 'feed emptied after clicking a variant chip').toBeGreaterThan(0);
+
+        await page.getByRole('link', { name: 'scope: public' }).click();
+        expect(await feedItemCount(page), 'feed emptied after clicking a scope chip').toBeGreaterThan(0);
+
+        await page.getByRole('link', { name: 'All ten' }).click();
+        await expect(page.locator('ol-social-feed')).toHaveCount(VARIANT_COUNT);
+        expect(await feedItemCount(page), 'feed emptied after returning to all ten').toBeGreaterThan(0);
     });
 
     test('captures every variant for review', async ({ page }, testInfo) => {

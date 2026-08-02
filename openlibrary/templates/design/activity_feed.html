@@ -1,4 +1,4 @@
-$def with (variants, selected, scope, viewer, api)
+$def with (variants, selected, scope, viewer, api, api_param)
 
 $# Design gallery for the social activity feed (#10242).
 $#
@@ -11,7 +11,9 @@ $# * variants (list)  -- dicts of id, slug, name, blurb
 $# * selected (int)   -- variant to show alone, or 0 for all of them
 $# * scope (string)   -- feed scope to request: auto, public, or following
 $# * viewer (string)  -- logged-in username, for follow state
-$# * api (string)     -- feed endpoint; overridable for dev stacks with no proxy
+$# * api (string)       -- feed endpoint; overridable for dev stacks with no proxy
+$# * api_param (string) -- the same override as a query fragment, so navigating
+$#                         between variants does not drop it and empty the feed
 
 $var title: Activity Feed Designs
 
@@ -60,17 +62,17 @@ $var title: Activity Feed Designs
   </header>
 
   <nav class="feed-gallery__nav" aria-label="Design variants">
-    <a class="feed-gallery__chip $('is-current' if not selected else '')" href="?scope=$scope">All ten</a>
+    <a class="feed-gallery__chip $('is-current' if not selected else '')" href="?scope=$scope$api_param">All ten</a>
     $for v in variants:
       <a class="feed-gallery__chip $('is-current' if selected == v['id'] else '')"
-         href="?design=$v['id']&amp;scope=$scope">$v['id']. $v['name']</a>
+         href="?design=$v['id']&amp;scope=$scope$api_param">$v['id']. $v['name']</a>
   </nav>
 
   <nav class="feed-gallery__nav" aria-label="Feed scope">
     $for s in ['auto', 'public', 'following']:
       $ suffix = ('&design=%d' % selected) if selected else ''
       <a class="feed-gallery__chip $('is-current' if scope == s else '')"
-         href="?scope=$s$suffix">scope: $s</a>
+         href="?scope=$s$suffix$api_param">scope: $s</a>
   </nav>
 
   $for v in variants:
@@ -79,7 +81,7 @@ $var title: Activity Feed Designs
         <header class="feed-gallery__head">
           <h2>$v['id']. $v['name']</h2>
           <p>$v['blurb']</p>
-          <a class="feed-gallery__permalink" href="?design=$v['id']&amp;scope=$scope">View alone &rsaquo;</a>
+          <a class="feed-gallery__permalink" href="?design=$v['id']&amp;scope=$scope$api_param">View alone &rsaquo;</a>
         </header>
         <div class="feed-gallery__stage">
           <ol-social-feed variant="$v['id']" scope="$scope" limit="9" refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
