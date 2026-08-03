@@ -17,6 +17,22 @@ Tests hit `http://localhost:8080` by default. Point them elsewhere with `OL_BASE
 Two projects are configured so nothing runs twice: `desktop` runs everything
 except `@mobile`, and `mobile` runs only `@mobile`.
 
+### Watching them run
+
+```bash
+npx playwright test --ui        # interactive runner
+npx playwright test --headed    # visible browser, driven live
+```
+
+These are not the same thing. `--ui` runs headless and records a trace you
+scrub through afterwards: pick a test, click an action, and the pane shows the
+real DOM at that moment. It does not open a browser window, and the pane stays
+blank until you select an individual test rather than its `describe` block.
+`--headed` is the one that opens Chromium and lets you watch it work. Add
+`--slow-mo=1000` to follow along.
+
+After any run, `npx playwright show-report` opens the HTML report.
+
 ## Accessibility tests
 
 `a11y.ts` wraps [`@axe-core/playwright`](https://github.com/dequelabs/axe-core-npm)
