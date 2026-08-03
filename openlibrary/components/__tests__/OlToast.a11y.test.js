@@ -5,7 +5,7 @@
  * role/aria-live pairing per type, and the close button's accessible name.
  */
 import { toHaveNoViolations } from 'jest-axe';
-import { checkA11y, cleanup, mount, nextFrames, setupComponentEnv } from './a11y-helpers.js';
+import { checkA11y, cleanup, mount, nextFrames, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlToast.js';
 
 expect.extend(toHaveNoViolations);
@@ -22,7 +22,7 @@ describe('OlToast a11y', () => {
         const el = await mount(`<ol-toast type="${type}" message="Changes saved."></ol-toast>`);
         await nextFrames();
 
-        const toast = el.shadowRoot.querySelector('.toast');
+        const toast = el.shadowRoot.querySelector('[aria-live]');
         expect(toast.getAttribute('role')).toBe(role);
         expect(toast.getAttribute('aria-live')).toBe(live);
         expect(await checkA11y()).toHaveNoViolations();
@@ -30,7 +30,7 @@ describe('OlToast a11y', () => {
 
     test('close button has an accessible name', async() => {
         const el = await mount('<ol-toast message="Changes saved."></ol-toast>');
-        expect(el.shadowRoot.querySelector('.toast__close').getAttribute('aria-label')).toBe('Close');
+        expect(el.shadowRoot.querySelector('button').getAttribute('aria-label')).toBe('Close');
     });
 
     test('regression guard: an unlabelled close button is reported as button-name', async() => {

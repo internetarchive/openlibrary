@@ -19,20 +19,35 @@ export const AXE_COMPONENT_CONFIG = {
 };
 
 /**
- * jsdom implements no media queries. Reduced motion defaults to true so
- * popovers skip their animation states and reach final markup in one update.
+ * jsdom implements no media queries, so every component that calls
+ * matchMedia gets whatever we answer here. Answer only the queries our
+ * components actually ask, and throw on anything else, so a new query
+ * surfaces as a clear failure rather than a silently wrong `false`.
+ *
+ * Reduced motion defaults to true: popovers then skip their animation
+ * states and reach final markup in a single update.
  */
-export function stubMatchMedia({ mobile = false, reducedMotion = true } = {}) {
-    window.matchMedia = jest.fn().mockImplementation((query) => ({
-        matches: query.includes('prefers-reduced-motion') ? reducedMotion : mobile,
-        media: query,
-        onchange: null,
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-    }));
+export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = true } = {}) {
+    const answers = {
+        '(prefers-reduced-motion: reduce)': reducedMotion,
+        '(max-width: 767px)': mobile,
+        '(hover: hover) and (pointer: fine)': hover,
+    };
+    window.matchMedia = jest.fn().mockImplementation((query) => {
+        if (!(query in answers)) {
+            throw new Error(`stubMatchMedia has no answer for "${query}". Add it to the map in test-utils/a11y.js.`);
+        }
+        return {
+            matches: answers[query],
+            media: query,
+            onchange: null,
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        };
+    });
 }
 
 /** Await a Lit element and any Lit children it renders into its shadow root. */

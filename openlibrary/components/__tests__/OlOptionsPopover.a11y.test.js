@@ -5,7 +5,7 @@
  * wiring on the slotted trigger, and the radiogroup of options once open.
  */
 import { toHaveNoViolations } from 'jest-axe';
-import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from './a11y-helpers.js';
+import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlOptionsPopover.js';
 
 expect.extend(toHaveNoViolations);
@@ -78,5 +78,17 @@ describe('OlOptionsPopover a11y', () => {
         const el = await mountOpened();
 
         expect(el.shadowRoot.querySelector('.group-heading').getAttribute('aria-hidden')).toBe('true');
+    });
+
+    test('regression guard: with no label the composed dialog is unnamed', async() => {
+        // OlOptionsPopover passes its aria-label/label down to the inner
+        // OlPopover. Drop both and axe should report the dialog as unnamed.
+        const el = await mount('<ol-options-popover><button slot="trigger" type="button">Options</button></ol-options-popover>');
+        Object.assign(el, { heading: 'AVAILABILITY', items: ITEMS, selected: 'all' });
+        await el.updateComplete;
+        await openPopover(innerPopover(el));
+
+        const results = await checkA11y();
+        expect(results.violations.map((v) => v.id)).toContain('aria-dialog-name');
     });
 });

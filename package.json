@@ -108,9 +108,6 @@
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
     ],
-    "testMatch": [
-      "**/*.test.js"
-    ],
     "transform": {
       "node_modules[\\\\/](lit|lit-html|lit-element|@lit)[\\\\/]": [
         "babel-jest",
@@ -132,7 +129,7 @@
       "\\.[jt]sx?$": "babel-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(lit|lit-html|lit-element|@lit)/)"
+      "node_modules[\\\\/](?!(lit|lit-html|lit-element|@lit)[\\\\/])"
     ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [

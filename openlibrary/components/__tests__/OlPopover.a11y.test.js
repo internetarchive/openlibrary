@@ -6,7 +6,7 @@
  * dialog semantics once open.
  */
 import { toHaveNoViolations } from 'jest-axe';
-import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from './a11y-helpers.js';
+import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlPopover.js';
 
 expect.extend(toHaveNoViolations);
@@ -34,8 +34,7 @@ describe('OlPopover a11y', () => {
     test('open: the panel is a named dialog and the trigger points at it', async() => {
         const el = await openPopover(await mount(POPOVER));
 
-        const panel = el.shadowRoot.querySelector('.panel');
-        expect(panel.getAttribute('role')).toBe('dialog');
+        const panel = el.shadowRoot.querySelector('[role="dialog"]');
         expect(panel.getAttribute('aria-label')).toBe('Edit options');
 
         const trigger = el.querySelector('[slot="trigger"]');
@@ -49,7 +48,18 @@ describe('OlPopover a11y', () => {
         // exit rather than trapping focus. aria-modal would misreport that to AT.
         const el = await openPopover(await mount(POPOVER));
 
-        expect(el.shadowRoot.querySelector('.panel').hasAttribute('aria-modal')).toBe(false);
+        expect(el.shadowRoot.querySelector('[role="dialog"]').hasAttribute('aria-modal')).toBe(false);
+    });
+
+    test('open on mobile: the tray is still a named dialog', async() => {
+        // The tray renders a backdrop and different markup than the desktop
+        // panel, so it needs its own pass rather than riding on the above.
+        setupComponentEnv({ mobile: true });
+        const el = await openPopover(await mount(POPOVER));
+
+        const panel = el.shadowRoot.querySelector('[role="dialog"]');
+        expect(panel.classList.contains('tray')).toBe(true);
+        expect(await checkA11y()).toHaveNoViolations();
     });
 
     test('regression guard: a panel with no aria-label is reported as an unnamed dialog', async() => {
