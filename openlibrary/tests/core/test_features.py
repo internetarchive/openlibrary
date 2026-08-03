@@ -13,10 +13,8 @@ from openlibrary.core.features import Features
 
 def _full_config(**overrides: str) -> str:
     values = {
-        "lists": "true",
         "stats": "true",
         "stats-header": "true",
-        "superfast": "false",
     }
     values.update(overrides)
     lines = ["features:"]
@@ -45,19 +43,15 @@ class TestConstructor:
 
     def test_kwargs_only(self):
         f = Features(
-            lists=True,
             stats=True,
             stats_header=True,
-            superfast=False,
         )
         assert f.stats is True
 
     def test_extra_fields_are_ignored(self):
         f = Features(
-            lists=True,
             stats=True,
             stats_header=True,
-            superfast=False,
             nonexistent=True,
         )
         assert f.stats is True
@@ -71,8 +65,6 @@ class TestFromYaml:
         f = Features.from_yaml(tmp_path / "openlibrary.yml")
         assert f.stats is True
         assert f.stats_header is True
-        assert f.lists is True
-        assert f.superfast is False
 
     def test_missing_field_raises(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"

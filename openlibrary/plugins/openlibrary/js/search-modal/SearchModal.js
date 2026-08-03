@@ -7,7 +7,6 @@ import { repeat } from 'lit/directives/repeat.js';
 // modules here — re-running customElements.define() throws NotSupportedError.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
-import { mode as searchMode } from '../SearchUtils.js';
 import { trackEvent } from '../ol.analytics.js';
 import {
     AVAILABILITY_OPTIONS,
@@ -687,12 +686,14 @@ export class SearchModal extends LitElement {
             border-top: var(--border-divider);
         }
 
-        /* The footer button is the shared <ol-button> primitive (registered by
-           the site-wide Lit bundle — no import here, same as ol-dialog above).
-           ol-button is a light-DOM element styled entirely by the global
+        /* Two <ol-button>s live in this modal's shadow root: the footer
+           "See all results" action (variant="primary") and the language
+           select-popover's injected disclosure trigger (default, secondary).
+           ol-button is styled entirely by the global
            static/css/components/ol-button.css, but that sheet can't cross into
-           this modal's shadow root — so the primary-variant rules it needs are
-           mirrored below. Keep in sync with ol-button.css. */
+           this shadow root — so the rules both buttons need (the secondary
+           default, the primary opt-in, and the disclosure chevron) are mirrored
+           below. Keep in sync with ol-button.css. */
 
         ol-button { display: inline-block; }
 
@@ -707,25 +708,33 @@ export class SearchModal extends LitElement {
         ol-button[disabled],
         ol-button[loading] { pointer-events: none; }
 
-        /* Shared appearance: the host pre-upgrade, the inner button post-upgrade. */
+        /* Shared appearance / secondary default: the host pre-upgrade, the
+           inner button post-upgrade. Raised white pill — same as ol-button.css. */
         ol-button:not([hydrated]),
         ol-button > button {
             position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: var(--spacing-inline-md);
             box-sizing: border-box;
-            height: 38px;
-            padding: 0 var(--spacing-inset-md);
+            height: var(--control-height-medium);
+            padding: 0 var(--spacing-md);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 500;
             line-height: var(--line-height-control);
+            text-align: center;
             white-space: nowrap;
-            background-color: var(--primary-blue);
-            border: 1.5px solid var(--primary-blue);
+            background-color: var(--white);
+            border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--white);
+            color: var(--dark-grey);
+            /* Strength of the specular top edge. Full on the light secondary fill;
+               the dark primary fill dials it down below. */
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
             cursor: pointer;
             user-select: none;
             transition: transform 0.08s;
@@ -733,10 +742,48 @@ export class SearchModal extends LitElement {
 
         ol-button > button:active { transform: scale(0.97); }
 
+        /* Primary — opt-in via variant="primary" (the footer action). */
+        ol-button[variant="primary"]:not([hydrated]),
+        ol-button[variant="primary"] > button {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+            /* Tone the specular highlight to the blue fill and soften it — the
+               white edge reads much louder on a dark fill than on white. */
+            --control-surface: var(--primary-blue);
+            --control-highlight-strength: 18%;
+        }
+
+        /* Selected — the language trigger once a language is picked. Soft blue
+           tint, matching the checked ol-toggle beside it. After the variant
+           rules because it ties them on specificity. */
+        ol-button[selected]:not([hydrated]),
+        ol-button[selected] > button {
+            background-color: var(--color-control-selected-bg);
+            border-color: var(--color-control-selected-border);
+            color: var(--link-blue);
+            /* Opaque twin of the tint — a translucent surface washes out the highlight. */
+            --control-surface: var(--color-control-selected-surface);
+        }
+
         @media (hover: hover) and (pointer: fine) {
-            ol-button > button:hover {
-                background-color: var(--link-blue);
-                border-color: var(--link-blue);
+            /* Scoping is load-bearing (and matches ol-button.css): unscoped, this
+               ties the primary fill rule on specificity and wins on source order,
+               blanking its blue on hover while the text stays white. */
+            ol-button[variant="secondary"] > button:hover {
+                background-color: var(--lightest-grey);
+                border-color: var(--light-grey);
+                --control-surface: var(--lightest-grey);
+            }
+
+            ol-button[variant="primary"] > button:hover {
+                filter: brightness(1.1);
+            }
+
+            ol-button[selected] > button:hover {
+                background-color: var(--color-control-selected-bg-hover);
+                border-color: var(--color-control-selected-border-hover);
+                --control-surface: var(--color-control-selected-surface-hover);
             }
         }
 
@@ -811,6 +858,37 @@ export class SearchModal extends LitElement {
             to { transform: rotate(360deg); }
         }
 
+        /* Disclosure chevron — shown only when the button is a popover trigger.
+           The language select-popover sets aria-haspopup/aria-expanded on its
+           injected trigger, so the chevron appears and rotates automatically. */
+        ol-button > button > .ol-btn-chevron { display: none; }
+
+        ol-button[aria-haspopup] > button > .ol-btn-chevron {
+            /* Reference the external SVG (same file as ol-button.css) rather than
+               an inline data URI: an unquoted url() to a static path has no plus
+               sign or spaces for the CSS formatter to tokenize and mangle (a data
+               URI repeatedly got split on the image/svg+xml token). */
+            --chevron: url(/static/images/icons/chevron-down.svg);
+
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            /* Tuck toward the label and the edge — see ol-button.css. */
+            margin-left: calc(var(--spacing-2xs) * -1);
+            margin-right: calc(var(--spacing-2xs) * -1);
+            background: currentcolor;
+            transition: transform 150ms ease-out;
+            -webkit-mask: var(--chevron) center / 16px no-repeat;
+            mask: var(--chevron) center / 16px no-repeat;
+        }
+
+        ol-button[no-chevron] > button > .ol-btn-chevron { display: none; }
+
+        ol-button[aria-expanded="true"] > button > .ol-btn-chevron {
+            transform: rotate(180deg);
+        }
+
         @media (prefers-reduced-motion: reduce) {
             ol-button > button,
             ol-button > button > .ol-btn-label,
@@ -822,6 +900,10 @@ export class SearchModal extends LitElement {
 
             ol-button[loading] > button > .ol-btn-spinner::before {
                 animation-duration: 2s;
+            }
+
+            ol-button[aria-haspopup] > button > .ol-btn-chevron {
+                transition: none;
             }
         }
 
@@ -909,11 +991,11 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
-        // NoResults analytics: keys (query+filters) already counted empty this
-        // modal session, so re-settling the same dead-end — a filter toggled off
-        // and back, an edit-and-undo — never re-fires. Reset per open.
-        this._noResultsTracked = new Set();
-        this._noResultsTimer   = null;
+        // Search-outcome analytics (NoResults / ResultsShown): keys already
+        // counted this modal session, so re-settling the same query — a filter
+        // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
+        this._outcomeTracked = new Set();
+        this._outcomeTimer   = null;
     }
 
     connectedCallback() {
@@ -930,7 +1012,7 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
-        clearTimeout(this._noResultsTimer);
+        clearTimeout(this._outcomeTimer);
         super.disconnectedCallback();
     }
 
@@ -954,7 +1036,7 @@ export class SearchModal extends LitElement {
 
     _openModal(trigger = 'click') {
         this.open = true;
-        this._noResultsTracked.clear();
+        this._outcomeTracked.clear();
         this._track('Open', trigger);
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
@@ -976,7 +1058,7 @@ export class SearchModal extends LitElement {
     // (false); `clearReadableCount` is false in the main fetch's error path,
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
-        clearTimeout(this._noResultsTimer);
+        clearTimeout(this._outcomeTimer);
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
@@ -1122,7 +1204,7 @@ export class SearchModal extends LitElement {
         return html`
             <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
                 <ol-toggle
-                    variant="card"
+                    variant="button"
                     label=${readable?.label ?? this._i18n.availabilityLabel}
                     sublabel=${sublabel}
                     ?checked=${this._availability === 'readable'}
@@ -1449,27 +1531,30 @@ export class SearchModal extends LitElement {
         trackEvent('SearchModal', action, label);
     }
 
-    // Fire NoResults only for a query the patron has settled on. Deferring the
-    // event behind a short idle window — and re-checking _activeFetchKey when it
-    // fires — drops the transient empties a query passes through while being
-    // typed: each keystroke starts a fresh fetch that supersedes this key, so
-    // only the query left standing counts (rather than every partial string on
-    // the way to it). The per-session Set collapses repeat settles of the same
-    // (query+filters) key — a filter toggled off and back, an edit-and-undo — to
-    // one event. Label by active filter *category* only (never the filter values
-    // or query text; that catalog-gap detail belongs in the server search logs,
-    // not analytics labels) so a genuine catalog gap (`unfiltered`) reads apart
-    // from an over-constrained search (`availability`/`language`/`availability+language`).
-    _scheduleNoResultsTrack(fetchKey) {
-        clearTimeout(this._noResultsTimer);
-        this._noResultsTimer = setTimeout(() => {
+    // Fire a search-outcome event — `ResultsShown` or `NoResults` — only for a
+    // query the patron has settled on. Deferring behind a short idle window (and
+    // re-checking _activeFetchKey when it fires) drops the transient states a
+    // query passes through while being typed: each keystroke starts a fresh fetch
+    // that supersedes this key, so only the query left standing counts (rather
+    // than every partial string on the way to it). The per-session Set collapses
+    // repeat settles of the same key — a filter toggled off and back, an
+    // edit-and-undo — to one event. Both outcomes carry the same active-filter
+    // *category* label (never the filter values or query text; that catalog-gap
+    // detail belongs in the server search logs) so a genuine catalog gap
+    // (`unfiltered`) reads apart from an over-constrained search — and so the
+    // no-results rate NoResults / (NoResults + ResultsShown) is sliceable by
+    // filter state.
+    _scheduleOutcomeTrack(action, fetchKey) {
+        clearTimeout(this._outcomeTimer);
+        this._outcomeTimer = setTimeout(() => {
             if (this._activeFetchKey !== fetchKey) return;   // query moved on
-            if (this._noResultsTracked.has(fetchKey)) return;
-            this._noResultsTracked.add(fetchKey);
+            const key = `${action}:${fetchKey}`;
+            if (this._outcomeTracked.has(key)) return;
+            this._outcomeTracked.add(key);
             const active = [];
             if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
             if (this._languages.length > 0) active.push('language');
-            this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
+            this._track(action, active.length ? active.join('+') : 'unfiltered');
         }, 1200);
     }
 
@@ -1480,9 +1565,9 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
-        // Drop any pending NoResults timer so a search interrupted by closing
-        // the modal doesn't fire a phantom event after the fact.
-        clearTimeout(this._noResultsTimer);
+        // Drop any pending outcome timer so a search interrupted by closing the
+        // modal doesn't fire a phantom event after the fact.
+        clearTimeout(this._outcomeTimer);
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
@@ -1688,12 +1773,10 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
-                // A settled autocomplete that came back empty — schedule (don't
-                // immediately fire) the NoResults event, so only a query the
-                // patron actually stops on is counted. See _scheduleNoResultsTrack.
-                if (this._results.length === 0) {
-                    this._scheduleNoResultsTrack(fetchKey);
-                }
+                // Record the settled outcome — ResultsShown or NoResults —
+                // deferred so only a query the patron actually stops on counts
+                // (not each partial typed on the way). See _scheduleOutcomeTrack.
+                this._scheduleOutcomeTrack(this._results.length === 0 ? 'NoResults' : 'ResultsShown', fetchKey);
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
@@ -1723,13 +1806,12 @@ export class SearchModal extends LitElement {
             });
     }
 
-    // q + mode + spellcheck shared by every /search.json request the modal makes;
+    // q + spellcheck shared by every /search.json request the modal makes;
     // callers layer on limit/fields and the availability/language filters.
     _baseSearchParams(query) {
         const params = new URLSearchParams();
         params.set('q', query);
         params.set('_spellcheck_count', '0');
-        params.set('mode', searchMode.read());
         return params;
     }
 
@@ -1757,7 +1839,6 @@ export class SearchModal extends LitElement {
 
         const params = new URLSearchParams();
         params.set('q', trimmed);
-        params.set('mode', searchMode.read());
         this._appendFilterParams(params);
         return `/search?${params.toString()}`;
     }

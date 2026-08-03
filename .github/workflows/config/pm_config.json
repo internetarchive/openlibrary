@@ -1,0 +1,18 @@
+{
+    "onCallNotificationJob": {
+        "personnel": [
+            {
+                "name": "mek",
+                "slackId": "<@U0AB3N5L7>"
+            },
+            {
+                "name": "jchamp",
+                "slackId": "<@U01ARTHG9EV>"
+            },
+            {
+                "name": "cdrini",
+                "slackId": "<@U709VCNLD>"
+            }
+        ]
+    }
+}

@@ -4,17 +4,18 @@ FastAPI endpoints for patron check-ins.
 
 from __future__ import annotations
 
+from datetime import date as datetime_date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, field_validator, model_validator
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
-from openlibrary.plugins.upstream.checkins import make_date_string
+from openlibrary.plugins.upstream.checkins import is_valid_date, make_date_string
 from openlibrary.utils import extract_numeric_id_from_olid
 
 router = APIRouter()
@@ -23,11 +24,15 @@ router = APIRouter()
 class CheckInRequest(BaseModel):
     """Request model for creating/updating check-in events."""
 
-    event_type: int
-    year: int
-    month: int | None = None
-    day: int | None = None
-    edition_key: str | None = None
+    event_type: int = Field(..., description="Event type enum value (1=start, 2=update, 3=finish)")
+    year: int = Field(..., gt=0, le=9999, description="Four-digit year (1-9999)")
+    month: int | None = Field(None, ge=1, le=12, description="Month (1-12)")
+    day: int | None = Field(None, ge=1, le=31, description="Day (1-31)")
+    edition_key: str | None = Field(
+        None,
+        pattern=r"(?i)^(?:/books/)?OL\d+M$",
+        description="Edition OLID (e.g. OL123M)",
+    )
     event_id: int | None = None
 
     @field_validator("event_type")
@@ -41,6 +46,13 @@ class CheckInRequest(BaseModel):
     def validate_date(self) -> CheckInRequest:
         if self.day and not self.month:
             raise ValueError("Month is required when day is provided")
+        if not is_valid_date(self.year, self.month, self.day):
+            raise ValueError("Invalid calendar date combination")
+        if self.month and self.day:
+            try:
+                datetime_date(self.year, self.month, self.day)
+            except ValueError:
+                raise ValueError("Invalid calendar date combination")
         return self
 
 
@@ -54,7 +66,7 @@ class CheckInResponse(BaseModel):
 @router.post("/works/OL{work_id}W/check-ins")
 @router.post("/works/OL{work_id}W/check-ins.json")
 async def create_or_update_patron_check_in(
-    work_id: int,
+    work_id: Annotated[int, Path(gt=0)],
     data: CheckInRequest,
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> CheckInResponse:
@@ -64,7 +76,9 @@ async def create_or_update_patron_check_in(
     """
     edition_id = None
     if data.edition_key:
-        edition_id = extract_numeric_id_from_olid(data.edition_key)
+        raw_id = extract_numeric_id_from_olid(data.edition_key)
+        if raw_id is not None:
+            edition_id = int(raw_id)
 
     date_str = make_date_string(data.year, data.month, data.day)
 
@@ -93,7 +107,7 @@ async def create_or_update_patron_check_in(
 
 @router.delete("/check-ins/{check_in_id}")
 async def delete_patron_check_in(
-    check_in_id: int,
+    check_in_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> Response:
     """Delete a check-in event by ID.

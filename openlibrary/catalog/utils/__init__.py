@@ -40,6 +40,56 @@ re_l_in_date = re.compile(r"(l\d|\dl)")
 re_end_dot = re.compile(r"[^ .][^ .]\.$", re.UNICODE)
 re_marc_name = re.compile("^(.*?),+ (.*)$")
 re_year = re.compile(r"\b(\d{4})\b")
+re_iso_date = re.compile(r"\b(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})\b")
+re_numeric_date = re.compile(r"\b(?P<month>\d{1,2})/(?P<day>\d{1,2})/(?P<year>\d{4})\b")
+re_day_month_year = re.compile(r"\b(?P<day>\d{1,2})(?:st|nd|rd|th)?[,\s]+(?P<month>[A-Za-z.]+)[,\s]+(?P<year>\d{4})\b", re.IGNORECASE)
+re_month_day_year = re.compile(r"\b(?P<month>[A-Za-z.]+)[,\s]+(?P<day>\d{1,2})(?:st|nd|rd|th)?[,]?\s+(?P<year>\d{4})\b", re.IGNORECASE)
+
+MONTHS = {
+    "jan": 1,
+    "january": 1,
+    "feb": 2,
+    "february": 2,
+    "mar": 3,
+    "march": 3,
+    "apr": 4,
+    "april": 4,
+    "may": 5,
+    "jun": 6,
+    "june": 6,
+    "jul": 7,
+    "july": 7,
+    "aug": 8,
+    "august": 8,
+    "sep": 9,
+    "sept": 9,
+    "september": 9,
+    "oct": 10,
+    "october": 10,
+    "nov": 11,
+    "november": 11,
+    "dec": 12,
+    "december": 12,
+}
+
+
+def full_date_parts(date: str) -> tuple[int, int, int] | None:
+    for regex in (re_iso_date, re_numeric_date, re_day_month_year, re_month_day_year):
+        if m := regex.search(date):
+            year = int(m.group("year"))
+            day = int(m.group("day"))
+            month_value = m.group("month")
+            month: int | None
+            if month_value.isdigit():
+                month = int(month_value)
+            else:
+                month = MONTHS.get(month_value.strip(".").lower())
+            if month is None:
+                return None
+
+            if 1 <= month <= 12 and 1 <= day <= 31:
+                return (year, month, day)
+    return None
 
 
 def key_int(rec):
@@ -62,6 +112,12 @@ def author_dates_match(a: AuthorImportDict, b: dict | Author) -> bool:
             continue
         if a[k] == b[k] or a[k].startswith(b[k]) or b[k].startswith(a[k]):
             continue
+        full_date_a = full_date_parts(a[k])
+        full_date_b = full_date_parts(b[k])
+        if full_date_a and full_date_b:
+            if full_date_a == full_date_b:
+                continue
+            return False
         m1 = re_year.search(a[k])
         if not m1:
             return False

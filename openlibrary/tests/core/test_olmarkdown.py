@@ -159,3 +159,47 @@ def test_olmarkdown_fenced_code():
     # The broken render-shape from the bug report must not appear.
     assert "`<br" not in out
     assert "`\n" not in out
+
+
+def test_olmarkdown_link_url_with_parentheses():
+    """Regression: a ``[text](url)`` link whose URL contains parentheses must
+    render as a link, not as raw markdown source.
+
+    The vendored ``LINK_RE`` (``\\(([^\\)]*)\\)``) stops at the first ``)``, so a
+    URL such as ``..._Kennedy_(sinologist)`` cut the link short, and the
+    backslash-escaped form the Tiptap WYSIWYG editor saves
+    (``..._Kennedy_\\(sinologist\\)``) matched nothing at all. The editor showed
+    a link while the saved author page showed literal markdown
+    (internetarchive/openlibrary#13202).
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    def p(html):
+        # markdown always wraps the result in <p>.
+        return "<p>%s\n</p>" % html
+
+    wiki = "https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"
+    anchor = '<a href="%s" rel="nofollow">George A. Kennedy</a>' % wiki
+
+    # The three forms named in the issue render identically, as they do in
+    # CommonMark and on GitHub: as typed, backslash-escaped (what the editor
+    # saves), and percent-encoded.
+    assert md("[George A. Kennedy](%s)" % wiki) == p(anchor)
+    assert md(r"[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\))") == p(anchor)
+    assert md("[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29)") == p(
+        '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29" rel="nofollow">George A. Kennedy</a>'
+    )
+
+    # The link ends at its own closing paren: surrounding prose, including
+    # later parentheses, stays outside the anchor.
+    body = r"spouse of [George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\)), a scholar."
+    assert md(body) == p("spouse of %s, a scholar." % anchor)
+    assert md("[link](https://example.com/a(b)) then (unrelated) text.") == p('<a href="https://example.com/a(b)" rel="nofollow">link</a> then (unrelated) text.')
+
+    # Links without parentheses, titled links, and parenthesised prose are
+    # unaffected.
+    assert md("[plain](https://example.com/foo)") == p('<a href="https://example.com/foo" rel="nofollow">plain</a>')
+    assert md('[a link](https://example.com/foo "a title")') == p('<a href="https://example.com/foo" title="a title" rel="nofollow">a link</a>')
+    assert md("no link here (just parens) at all") == p("no link here (just parens) at all")

@@ -552,6 +552,8 @@ class SearchResponse:
     docs: list
     num_found: int
     solr_select: str
+    num_found_exact: bool = True
+    """False when Solr stopped counting early, making `num_found` a lower bound."""
     raw_resp: dict = None
     highlighting: dict[str, dict[str, list[str]]] | None = None
     error: str = None
@@ -584,6 +586,7 @@ class SearchResponse:
                 raw_resp=solr_result,
                 docs=solr_result["response"]["docs"],
                 num_found=solr_result["response"]["numFound"],
+                num_found_exact=solr_result["response"].get("numFoundExact", True),
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
@@ -690,6 +693,7 @@ def get_doc(doc: SolrDocument):
         first_edition=doc.get("first_edition", None),
         subtitle=doc.get("subtitle", None),
         cover_edition_key=doc.get("cover_edition_key", None),
+        cover_i=doc.get("cover_i", None),
         languages=doc.get("language", []),
         id_project_gutenberg=doc.get("id_project_gutenberg", []),
         id_project_runeberg=doc.get("id_project_runeberg", []),

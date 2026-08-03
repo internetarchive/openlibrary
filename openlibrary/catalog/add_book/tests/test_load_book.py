@@ -268,6 +268,44 @@ class TestImportAuthor:
         found = author_import_record_to_author(searched_author)
         assert found.key == author_with_birth_and_death["key"]
 
+    def test_duplicate_candidates_are_deduplicated(self, mock_site, monkeypatch):
+        """
+        Regression test for #13015: if the same candidate author is found via
+        multiple name queries (e.g. matched on both its name and an alternate
+        name), it must be deduplicated. Otherwise it's appended twice to the
+        match list, incorrectly triggering pick_from_matches() even though
+        there's only one real candidate.
+        """
+        existing_author = {
+            "name": "William Brewer",
+            "key": "/authors/OL3A",
+            "type": {"key": "/type/author"},
+            "alternate_names": ["Bill Brewer"],
+            "birth_date": "1829",
+            "death_date": "1910",
+        }
+        mock_site.save(existing_author)
+
+        # Both the primary name and the alternate name below match the SAME
+        # existing author record above, via two separate query iterations.
+        searched_author = {
+            "name": "William Brewer",
+            "alternate_names": ["Bill Brewer"],
+            "birth_date": "1829",
+            "death_date": "1910",
+        }
+
+        def fail_if_called(author, matches):
+            raise AssertionError("pick_from_matches() should not be called when only one unique candidate exists — deduplication must have failed.")
+
+        # pick_from_matches() is only invoked when there's more than one
+        # *unique* candidate — patch it to fail the test if dedup didn't happen.
+        monkeypatch.setattr(load_book, "pick_from_matches", fail_if_called)
+
+        found = load_book.find_author(searched_author)
+        assert len(found) == 1
+        assert found[0].key == existing_author["key"]
+
     def test_non_matching_birth_death_creates_new_author(self, mock_site):
         """
         If a year in birth or death date isn't an exact match, create a new record,

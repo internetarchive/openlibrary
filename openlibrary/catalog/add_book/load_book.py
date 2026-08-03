@@ -240,9 +240,9 @@ def find_author(author: AuthorImportDict) -> list[Author]:
     # If author has dates, we only consider dated candidates,
     # otherwise only include undated candidates.
     for a in things:
-        if key := a["key"] in seen:
+        if a["key"] in seen:
             continue
-        seen.add(key)
+        seen.add(a["key"])
         if has_dates(author) != has_dates(a):
             continue
         assert a.type.key == "/type/author"
@@ -321,9 +321,6 @@ def author_import_record_to_author(author_import_record_dict: dict, eastern=Fals
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
         assert existing.type.key == "/type/author"
-        for k in "last_modified", "id", "revision", "created":
-            if existing.k:
-                del existing.k
         new = existing
         if "death_date" in author_import_record and "death_date" not in existing:
             new["death_date"] = author_import_record["death_date"]
