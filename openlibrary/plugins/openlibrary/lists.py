@@ -191,6 +191,13 @@ SeedType = Literal["subject", "author", "work", "edition"]
 
 
 def seed_key_to_seed_type(key: str) -> SeedType:
+    if not key:
+        raise ValueError("Seed key cannot be empty")
+
+    if "/" not in key:
+        # E.g. "subject:foo" or "place:bar"
+        return "subject"
+
     match key.split("/")[1]:
         case "subjects":
             return "subject"
@@ -279,9 +286,6 @@ class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
-
-    def is_enabled(self):
-        return "lists" in web.ctx.features
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate

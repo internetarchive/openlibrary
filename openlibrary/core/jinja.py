@@ -1,7 +1,24 @@
+import textwrap
 from functools import cache as functools_cache
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import escape as _markupsafe_escape
+
+
+def render_jinja_template(template_name: str, **kwargs: Any) -> str:
+    """Render a Jinja template and return the resulting HTML string.
+
+    This is a generic helper to render any Jinja template from the macros
+    directory and pass it values from Templetor templates.
+
+    Usage in Templetor template:
+        $:render_template("MyTemplate.html.jinja", foo="bar")
+    """
+    env = get_jinja_env()
+    template = env.get_template(template_name)
+    return template.render(**kwargs)
 
 
 @functools_cache
@@ -39,7 +56,12 @@ def get_jinja_env() -> Environment:
         return singular if n == 1 else plural
 
     env = Environment(
-        loader=FileSystemLoader(Path(__file__).resolve().parents[1] / "macros"),
+        loader=FileSystemLoader(
+            [
+                Path(__file__).resolve().parents[1] / "macros",
+                Path(__file__).resolve().parents[1] / "templates",
+            ]
+        ),
         autoescape=True,
         undefined=StrictUndefined,
         trim_blocks=True,
@@ -52,6 +74,24 @@ def get_jinja_env() -> Environment:
         newstyle=True,
     )
     env.policies["ext.i18n.trimmed"] = True
+
+    # Expose Templetor's render_template to Jinja templates so they can
+    # include Templetor subtemplates.
+    # Import is deferred to avoid circular imports at module level.
+    from infogami.utils.view import render_template
+
+    env.globals["render_templetor_template"] = render_template
+
+    # A force-escape filter that works even under autoescape=True.
+    # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping
+    # is already active because the template output is wrapped in ``Markup``
+    # and markupsafe treats ``Markup`` → ``escape`` as identity.  This filter
+    # converts its input to a plain ``str`` first, so virtual escaping still
+    # happens.
+    env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
+
+    env.filters["dedent"] = lambda s: textwrap.dedent(str(s)).strip()
+
     # Note on ``env.globals``:
     # Only register a callable here when it is used by roughly 10 or more
     # templates. For one-off helpers, pass the function as a keyword argument

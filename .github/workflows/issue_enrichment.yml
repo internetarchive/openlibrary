@@ -1,0 +1,82 @@
+name: Issue Enrichment
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Debug: manually enrich a specific existing issue"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+concurrency:
+  group: issue-enrichment-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    # openlibrary-bot's account type is "User", not "Bot" (confirmed via the
+    # GitHub API), so `user.type != 'Bot'` alone does NOT exclude it -- it
+    # only catches genuine GitHub Apps (dependabot[bot], renovate[bot], etc).
+    # The explicit login check below is required to skip our own bot's issues.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.type != 'Bot' &&
+       github.event.issue.user.login != 'openlibrary-bot' &&
+       !contains(github.event.issue.labels.*.name, 'agentic-workflows'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enrich issue
+        # Pinned deliberately -- do not restore the floating `@v1`.
+        #
+        # This SHA is the last version confirmed to actually post enrichment output:
+        # "chore: bump Claude Code to 2.1.212 and Agent SDK to 0.3.212" (2026-07-17).
+        # After `@v1` moved past it, every invocation *in this repo* reported success
+        # while posting nothing at all. See PR body for the run-by-run evidence.
+        #
+        # This is NOT a blanket break for all consumers of the action -- it is specific
+        # to workflows that set `allowed_non_write_users`, which turns on subprocess
+        # isolation (`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1`, bubblewrap). Upstream
+        # anthropics/claude-code-action#1547 reports that from pinned CLI 2.1.216 every
+        # Bash call inside that sandbox fails with
+        # `bwrap: Can't create file at /home/.mcp.json: Permission denied` -- so Claude
+        # reasons normally but cannot run `gh issue comment`, and the job still exits 0.
+        # Both this workflow and pr_autoresponder.yml set `allowed_non_write_users: "*"`,
+        # which is why we are in the affected minority and the tracker is not flooded.
+        #
+        # Caveat, so the next person does not over-trust this: our first silent run was
+        # on 2.1.214, below #1547's stated 2.1.216 boundary. So either that boundary is
+        # approximate or a second cause overlaps. The pin is validated empirically
+        # regardless -- dispatching this branch posted real output on #13205 and #13222.
+        #
+        # Pinning to an immutable SHA is also the practice GitHub recommends for
+        # third-party actions, so this is worth keeping even after the upstream
+        # regression is understood. Bump it intentionally, and verify a real issue
+        # gets a comment afterwards.
+        uses: anthropics/claude-code-action@700e7f8316990de46bed556429765647af760efc # v1 @ SDK 0.3.212
+        with:
+          prompt: |
+            @.github/workflows/issue_enrichment.md
+
+            ${{ github.event_name == 'workflow_dispatch' && format('Manual test dispatch: enrich issue #{0}. Fetch its data yourself in Step 1 -- do not assume anything about it from this line.', inputs.issue_number) || format('Issue #{0} was just opened by @{1}.\nTitle: {2}', github.event.issue.number, github.event.issue.user.login, github.event.issue.title) }}
+          claude_args: >-
+            --max-turns 30
+            --allowedTools "Bash(git *) Bash(grep:*) Bash(cat:*) Bash(gh issue view:*)
+            Bash(gh issue comment:*) Bash(gh issue edit:*) Bash(gh issue close:*)
+            Bash(gh issue list:*) Bash(gh pr list:*) Bash(gh api:*) Bash(gh label list:*)"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.OL_BOT_PAT }}
+          # Issues are opened by any public contributor, most of whom have only
+          # read access. claude-code-action's default actor-permission check
+          # requires write access, so it rejects every issue except ones filed
+          # by maintainers -- defeating the workflow's purpose. Bypass is safe
+          # here since --allowedTools is already scoped to issue-only operations.
+          allowed_non_write_users: "*"

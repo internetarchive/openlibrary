@@ -63,20 +63,21 @@
 
 /* Mobile: Take into account the header bar + tab bar */
 html {
-  scroll-padding-top: 100px;
+  scroll-padding-top: 90px;
 }
 
 /* Tablet: @width-breakpoint-tablet = 768px */
+/* Extra 10px for the scrollbar that shows up under the EditionNavBar macro */
 @media only screen and (min-width: 768px) {
   html {
-    scroll-padding-top: 110px;
+    scroll-padding-top: 100px;
   }
 }
 
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media all and (min-width: 960px) {
   html {
-    scroll-padding-top: 0;
+    scroll-padding-top: 75px;
   }
 }
 

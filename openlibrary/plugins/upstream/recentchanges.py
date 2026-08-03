@@ -31,17 +31,11 @@ class index2(delegate.page):
     path = "/recentchanges"
 
     def GET(self):
-        if features.is_enabled("recentchanges_v2"):
-            return index().render()
-        else:
-            return render.recentchanges()
+        return index().render()
 
 
 class index(delegate.page):
     path = "/recentchanges(/[^/0-9][^/]*)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def GET(self, kind):
         return self.render(kind=kind)
@@ -129,9 +123,6 @@ class index_with_date(index):
 class recentchanges_redirect(delegate.page):
     path = r"/recentchanges/goto/(\d+)"
 
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
-
     def GET(self, id):
         id = int(id)
         change = web.ctx.site.get_change(id)
@@ -144,9 +135,6 @@ class recentchanges_redirect(delegate.page):
 
 class recentchanges_view(delegate.page):
     path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
-
-    def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
 
     def get_change_url(self, change):
         t = change.timestamp

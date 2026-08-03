@@ -351,3 +351,8 @@ identifiers:
     name: "urn_nbn"
     url: "https://urn.nb.no/URN:NBN:@@@"
     notes: ""
+-   label: ITAN Book ID
+    name: itan_technologies
+    notes: "Unique book identifier assigned by ITAN Global Publishing, an African literature digital marketplace"
+    url: https://itan.app/bookstore/@@@
+    website: https://itan.app

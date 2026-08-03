@@ -13,6 +13,7 @@ from warnings import deprecated
 
 import qrcode
 import web
+from starlette.datastructures import URL
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -27,7 +28,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
-from openlibrary.core.admin import get_cached_unique_logins_since
+from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.follows import PubSub
@@ -232,27 +233,32 @@ class work_bookshelves(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/work":
+        i = web.input(limit=50, offset=0)
+        data = self.get_editions_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit) or 50,
+            offset=h.safeint(i.offset) or 0,
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
-
-            data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_editions_data(work, limit, offset):
-        limit = min(limit, 1000)
+    def get_editions_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        work = current_site.get(key)
+        if not work or work.type.key != "/type/work":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit or 50, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/edition",
                 "works": work.key,
@@ -260,44 +266,47 @@ class work_editions(delegate.page):
                 "offset": offset,
             }
         )
-        editions = web.ctx.site.get_many(keys, raw=True)
+        editions = current_site.get_many(keys, raw=True)
 
-        size = work.edition_count
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "work": work.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
+        if offset + len(editions) < work.edition_count:
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
-        if offset + len(editions) < size:
-            links["next"] = web.changequery(offset=offset + limit)
-
-        return {"links": links, "size": size, "entries": editions}
+        return {"links": links, "size": work.edition_count, "entries": editions}
 
 
+@deprecated("migrated to fastapi")
 class author_works(delegate.page):
     path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/author":
+        i = web.input(limit=50, offset=0)
+        data = self.get_works_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit, 50),
+            offset=h.safeint(i.offset, 0),
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit, 50)
-            offset = h.safeint(i.offset, 0)
-
-            data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_works_data(author, limit, offset):
-        limit = min(limit, 1000)
+    def get_works_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        author = current_site.get(key)
+        if not author or author.type.key != "/type/author":
+            return None
 
-        keys = web.ctx.site.things(
+        limit = min(limit, 1000)
+        keys = current_site.things(
             {
                 "type": "/type/work",
                 "authors": {"author": {"key": author.key}},
@@ -305,19 +314,18 @@ class author_works(delegate.page):
                 "offset": offset,
             }
         )
-        works = web.ctx.site.get_many(keys, raw=True)
-
+        works = current_site.get_many(keys, raw=True)
         size = author.get_work_count()
+
+        url = url.replace(scheme="", netloc="")
         links = {
-            "self": web.ctx.fullpath,
+            "self": str(url),
             "author": author.key,
         }
-
         if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
-
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
         if offset + len(works) < size:
-            links["next"] = web.changequery(offset=offset + limit)
+            links["next"] = str(url.include_query_params(offset=offset + limit))
 
         return {"links": links, "size": size, "entries": works}
 
@@ -514,6 +522,7 @@ class work_delete(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class hide_banner(delegate.page):
     path = "/hide_banner"
 
@@ -533,6 +542,7 @@ class hide_banner(delegate.page):
         return delegate.RawText(json.dumps({"success": "Preference saved"}), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class create_qrcode(delegate.page):
     path = "/qrcode"
 
@@ -835,12 +845,15 @@ class opds_home(delegate.page):
         return delegate.RawText(json.dumps(get_cached_homepage()))
 
 
+DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
+
+
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"
 
     def POST(self):
-        i = web.input(digest="", msg="")
+        i = web.input(digest="", msg="", comment="")
 
         digest = i.digest
         msg = i.msg
@@ -873,7 +886,7 @@ class unlink_ia_ol(delegate.page):
         # Update records
         try:
             for edition in editions:
-                self.make_dark(edition, ocaid)
+                self.make_dark(edition, ocaid, i.comment)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
             raise web.HTTPError(
@@ -885,7 +898,7 @@ class unlink_ia_ol(delegate.page):
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition, ocaid):
+    def make_dark(edition, ocaid, comment=""):
         data = edition.dict()
         if "ocaid" in data and data["ocaid"] == ocaid:
             del data["ocaid"]
@@ -897,11 +910,12 @@ class unlink_ia_ol(delegate.page):
             web.ctx.ip = web.ctx.ip or "127.0.0.1"
             web.ctx.site.save(
                 data,
-                "Remove OCAID: Item no longer available to borrow.",
+                comment or DEFAULT_UNLINK_COMMENT,
                 action="edit-edition-ocaid",
             )
 
 
+@deprecated("migrated to fastapi")
 class link_ia_ol(delegate.page):
     path = "/api/link"
     encoding = "json"
@@ -953,12 +967,13 @@ class link_ia_ol(delegate.page):
             web.ctx.site.save(data, "Associate OCAID with record", action="edit-edition-ocaid")
 
 
+@deprecated("migrated to fastapi")
 class monthly_logins(delegate.page):
     path = "/api/monthly_logins"
     encoding = "json"
 
     def GET(self):
         return delegate.RawText(
-            json.dumps({"loginCount": get_cached_unique_logins_since()}),
+            json.dumps({"loginCount": get_unique_logins_since()}),
             content_type="application/json",
         )

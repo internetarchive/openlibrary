@@ -24,6 +24,8 @@ from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.core.features import features as ol_features
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -907,6 +909,7 @@ class new:
                 "/type/work",
                 "/type/series",
                 "/type/publisher",
+                "/type/tag",
             ]:
                 raise BadRequest("Bad Type: " + json.dumps(type))
 
@@ -1136,6 +1139,8 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
+            "ol_features": ol_features,
+            "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
             # bad use of globals
             "is_bot": is_bot,

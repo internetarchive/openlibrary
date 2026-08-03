@@ -124,9 +124,9 @@ def test_verify_success(mock_xauth):
     assert result["email"] == "test@example.com"
     assert result["s3"]["access"] == "AKIAIOSFODNN7EXAMPLE"
     assert result["s3"]["secret"] == "wJalrXUtnFEMI"
-    # Confirm token from activate was forwarded to issue_key
+    # Confirm token from activate was forwarded to issue_key as issuer_token
     issue_key_call = mock_xauth.call_args_list[1]
-    assert issue_key_call.kwargs.get("token") == "tok_abc123"
+    assert issue_key_call.kwargs.get("issuer_token") == "tok_abc123"
 
 
 @mock.patch.object(InternetArchiveAccount, "xauth")

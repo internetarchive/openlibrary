@@ -30,6 +30,7 @@ from openlibrary.plugins.upstream.utils import (
     safeget,
     urlencode,
 )
+from openlibrary.plugins.worksearch.author_suggestion import derive_authors
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
@@ -551,6 +552,8 @@ class SearchResponse:
     docs: list
     num_found: int
     solr_select: str
+    num_found_exact: bool = True
+    """False when Solr stopped counting early, making `num_found` a lower bound."""
     raw_resp: dict = None
     highlighting: dict[str, dict[str, list[str]]] | None = None
     error: str = None
@@ -583,6 +586,7 @@ class SearchResponse:
                 raw_resp=solr_result,
                 docs=solr_result["response"]["docs"],
                 num_found=solr_result["response"]["numFound"],
+                num_found_exact=solr_result["response"].get("numFoundExact", True),
                 highlighting=highlighting,
                 solr_select=solr_select,
                 time=time,
@@ -689,6 +693,7 @@ def get_doc(doc: SolrDocument):
         first_edition=doc.get("first_edition", None),
         subtitle=doc.get("subtitle", None),
         cover_edition_key=doc.get("cover_edition_key", None),
+        cover_i=doc.get("cover_i", None),
         languages=doc.get("language", []),
         id_project_gutenberg=doc.get("id_project_gutenberg", []),
         id_project_runeberg=doc.get("id_project_runeberg", []),
@@ -873,14 +878,21 @@ class search(delegate.page):
 
         readable_count = _get_readable_count(param, search_response)
 
+        # Surface an author row above the results when the query names the author
+        # of one of the top works (see author_suggestion.derive_authors). No extra
+        # Solr round-trip: it reuses the docs this same search already returned.
+        q_joined = " ".join(q_list)
+        author_suggestions = derive_authors(search_response.docs, q_joined)
+
         return render.work_search(
-            " ".join(q_list),
+            q_joined,
             search_response,
             get_doc,
             param,
             page,
             rows,
             readable_count,
+            author_suggestions,
             has_solr_editions_enabled=req_context.get().solr_editions,
         )
 

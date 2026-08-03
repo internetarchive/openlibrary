@@ -206,10 +206,12 @@ class TestAccountVerify:
         self._make_handler().GET()
 
         mock_ia_account.verify.assert_called_once_with(token="validtoken")
+        # No explicit redirect is forwarded when the caller didn't request one;
+        # account_login.login()'s own fallback sends the user to /account/books
+        # without clearing the pending patron-intent cookie.
         login_instance.login.assert_called_once_with(
             access="ACCESSKEY",
             secret="SECRETKEY",
-            redirect="/account/books",
         )
 
     @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")

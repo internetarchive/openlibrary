@@ -331,7 +331,7 @@ class SearchFacetsPartial:
     @classmethod
     async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
         user = get_current_user()
-        show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
+        show_merge_authors = user and user.is_librarian_or_higher()
 
         path = data.get("path")
         query = data.get("query", "")

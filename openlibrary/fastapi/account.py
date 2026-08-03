@@ -4,6 +4,7 @@ FastAPI account endpoints for authentication.
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Annotated
 from urllib.parse import unquote, urlparse
@@ -13,8 +14,10 @@ from pydantic import BaseModel, Field
 
 from infogami import config
 from openlibrary import accounts
+from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
 from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user
 from openlibrary.core import stats
+from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -23,9 +26,27 @@ from openlibrary.fastapi.auth import (
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
 
+logger = logging.getLogger("openlibrary.fastapi.account")
+
 router = APIRouter()
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+
+# Allow overriding ia_sync_secret via env var (for dev/test environments).
+# Legacy production config sets this value outside the repo.
+_ia_sync_secret = os.getenv("IA_SYNC_SECRET")
+if _ia_sync_secret:
+    config.ia_sync_secret = _ia_sync_secret  # type: ignore[attr-defined]
+
+
+class AnonymizeResponse(BaseModel):
+    new_username: str = Field(description="The new anonymous username assigned to the patron")
+    booknotes_count: int = Field(description="Number of booknotes deleted")
+    ratings_count: int = Field(description="Number of ratings anonymized")
+    observations_count: int = Field(description="Number of observations anonymized")
+    bookshelves_count: int = Field(description="Number of bookshelf entries anonymized")
+    merge_request_count: int = Field(description="Number of merge requests updated")
+    bestbooks_count: int = Field(description="Number of bestbook entries anonymized")
 
 
 def _safe_redirect(url: str, default: str = "/") -> str:
@@ -321,3 +342,58 @@ async def logout(request: Request) -> Response:
     response.delete_cookie("sfw")
 
     return response
+
+
+@router.post(
+    "/account/anonymize.json",
+    response_model=AnonymizeResponse,
+    tags=["internal"],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+)
+async def anonymize_account(
+    request: Request,
+    test: Annotated[str, Form()] = "false",
+    digest: Annotated[str, Form()] = "",
+    msg: Annotated[str, Form()] = "",
+) -> AnonymizeResponse:
+    test_mode = test == "true"
+
+    try:
+        if not HMACToken.verify(digest, msg, "ia_sync_secret", delimiter=":", unix_time=True):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    except ExpiredTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    except MissingKeyError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Service Unavailable")
+
+    auth_header = request.headers.get("authorization", "")
+    try:
+        _, keys = auth_header.split("LOW ", 1)
+        s3_access, s3_secret = keys.split(":", 1)
+        s3_access = s3_access.strip()
+        s3_secret = s3_secret.strip()
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Malformed Authorization Header")
+
+    xauthn_response = InternetArchiveAccount.s3auth(s3_access, s3_secret)
+    if "error" in xauthn_response:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+
+    ol_account = OpenLibraryAccount.get_by_link(xauthn_response.get("itemname", ""))
+    if not ol_account:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+
+    try:
+        # RunAs sets the auth token on the connection (via site ContextVar)
+        # so that anonymize() can write to infobase as the target user.
+        # This endpoint authenticates via HMAC+S3, not a user session, so
+        # there is no auth token on the connection without RunAs.
+        with RunAs(ol_account.username):
+            result = ol_account.anonymize(test=test_mode)
+    except Exception as e:  # noqa: BLE001
+        logger.error(e)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
+
+    return AnonymizeResponse(**result)

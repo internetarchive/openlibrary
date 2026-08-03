@@ -17,7 +17,6 @@
 
 <script>
 import CONFIGS from '../../configs';
-import Promise from 'promise-polyfill';
 export default {
     props: {
         isbn: {

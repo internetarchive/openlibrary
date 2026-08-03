@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source docker/ol-install-missing-deps.sh
+
 # Clone or update docs wiki so developers and AI assistants can search
 # documentation locally without switching to the browser.
 if [ -d "/openlibrary/docs/wiki/.git" ]; then

@@ -129,6 +129,7 @@ class TestHomeTemplates:
 
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
+        macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         html = str(render_template("home/index", stats=stats, test=True))
 
         assert "Recently Returned" in html

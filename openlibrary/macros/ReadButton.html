@@ -33,7 +33,7 @@ $if any(menu_items) and not is_carousel:
           data-userid="$(loan['userid'])"
         >$label</a>
     <details class="cta-btn cta-btn--available">
-      <summary></summary>
+      <summary aria-label="$_('More reading options')"></summary>
       <ul class="dropper-menu">
         $if listen:
           <li>

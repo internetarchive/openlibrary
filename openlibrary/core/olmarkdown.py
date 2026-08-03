@@ -64,12 +64,28 @@ FENCED_CODE_PREPROCESSOR = FencedCodePreprocessor()
 class LineBreaksPreprocessor(markdown.Preprocessor):
     def run(self, lines):
         for i in range(len(lines) - 1):
-            # append <br/> to all lines expect blank lines and the line before blankline.
+            # Only consider non-blank lines followed by another non-blank line,
+            # and never touch indented code (tabbed) lines.
+            if not (lines[i].strip() and lines[i + 1].strip()):
+                continue
+            if markdown.RE.regExp["tabbed"].match(lines[i]):
+                continue
+
+            # A lone trailing backslash is CommonMark's hard-break marker, which
+            # the Tiptap WYSIWYG editor emits between wrapped lines. OLMarkdown
+            # has no such syntax: left alone the backslash either escapes the "<"
+            # of the <br /> we append (so the tag renders as the literal text
+            # "<br />" to readers) or shows as a stray "\". Drop it either way so
+            # the two renderers agree. See issue #13074.
+            lines[i] = re.sub(r"(?<!\\)\\$", "", lines[i])
+
             if (
-                lines[i].strip()
-                and lines[i + 1].strip()
-                and not markdown.RE.regExp["tabbed"].match(lines[i])
-                and not LINK_REFERENCE_RE.match(lines[i])
+                not LINK_REFERENCE_RE.match(lines[i])
+                # Don't glue a hard break onto a line that immediately precedes a
+                # link-reference definition. This runs before REFERENCE_PREPROCESSOR
+                # strips those definitions, so a <br /> appended here gets orphaned
+                # inside the reference block and leaks into the page as literal markup.
+                and not LINK_REFERENCE_RE.match(lines[i + 1])
                 and not lines[i].lstrip().startswith(">")
             ):
                 lines[i] += "<br />"
@@ -92,6 +108,92 @@ class AutolinkPreprocessor(markdown.Preprocessor):
 AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
 
 
+# Placeholders used to hide parentheses that belong to a link's URL/title
+# from the paren-matching that closes the `(...)` part of `[text](...)`.
+# Private-use-area code points, so they can't collide with real content.
+_LPAREN_PLACEHOLDER = ""
+_RPAREN_PLACEHOLDER = ""
+
+
+class LinkParenPreprocessor(markdown.Preprocessor):
+    """Let `[text](url)` URLs contain parentheses.
+
+    The vendored LINK_RE (`\\(([^\\)]*)\\)`) stops at the first `)`, so it
+    can't parse a URL such as
+    https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)
+    and cuts the link short at the first unescaped `)`. WYSIWYG-edited pages
+    also produce a backslash-escaped form of the same URL
+    (`..._Kennedy_\\(sinologist\\)`), which the base parser doesn't unescape
+    inside a link target either.
+
+    This preprocessor scans each `[text](...)` occurrence and hides every
+    parenthesis that belongs to the URL/title - whether escaped or balanced
+    - behind placeholder characters, leaving only the link's real closing
+    paren as a literal `)`. That lets the unmodified LINK_RE and LinkPattern
+    do the rest. `OLMarkdown.convert` swaps the placeholders back to literal
+    parentheses once rendering is done.
+    """
+
+    def run(self, lines):
+        return [line if markdown.RE.regExp["tabbed"].match(line) else self._process_line(line) for line in lines]
+
+    def _process_line(self, line):
+        out = []
+        i = 0
+        n = len(line)
+        while i < n:
+            if line[i] == "]" and i + 1 < n and line[i + 1] == "(":
+                out.append("](")
+                content, i, closed = self._hide_parens(line, i + 2)
+                out.append(content)
+                if closed:
+                    out.append(")")
+                continue
+            out.append(line[i])
+            i += 1
+        return "".join(out)
+
+    @staticmethod
+    def _hide_parens(line, start):
+        """Hide the link content's parentheses behind placeholders.
+
+        Returns `(hidden_content, next_index, closed)`. `closed` is True
+        when a real closing paren was found; `next_index` then points just
+        past it (the paren itself is not included in `hidden_content`, so
+        the caller can re-append it as a literal `)`). When no closing
+        paren is found, `next_index` is the end of the line and `closed`
+        is False.
+        """
+        depth = 0
+        out = []
+        i = start
+        n = len(line)
+        while i < n:
+            ch = line[i]
+            if ch == "\\" and i + 1 < n and line[i + 1] in "()":
+                out.append(_LPAREN_PLACEHOLDER if line[i + 1] == "(" else _RPAREN_PLACEHOLDER)
+                i += 2
+                continue
+            if ch == "(":
+                depth += 1
+                out.append(_LPAREN_PLACEHOLDER)
+                i += 1
+                continue
+            if ch == ")":
+                if depth == 0:
+                    return "".join(out), i + 1, True
+                depth -= 1
+                out.append(_RPAREN_PLACEHOLDER)
+                i += 1
+                continue
+            out.append(ch)
+            i += 1
+        return "".join(out), i, False
+
+
+LINK_PAREN_PREPROCESSOR = LinkParenPreprocessor()
+
+
 class OLMarkdown(markdown.Markdown):
     """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
 
@@ -111,11 +213,14 @@ class OLMarkdown(markdown.Markdown):
         patterns = self.inlinePatterns
         autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace("http", "https?"))
         patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
+
         p = self.preprocessors
         p.insert(0, FENCED_CODE_PREPROCESSOR)
+        p.insert(1, LINK_PAREN_PREPROCESSOR)
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
         p.append(AUTOLINK_PREPROCESSOR)
 
     def convert(self):
         html = markdown.Markdown.convert(self)
+        html = html.replace(_LPAREN_PLACEHOLDER, "(").replace(_RPAREN_PLACEHOLDER, ")")
         return h.sanitize(html)

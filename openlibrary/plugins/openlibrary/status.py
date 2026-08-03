@@ -19,10 +19,10 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
+from openlibrary.core.features import features as pydantic_features
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
-feature_flags: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
 _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
@@ -49,7 +49,7 @@ class status(delegate.page):
         return render_template(
             "status",
             status_info,
-            feature_flags,
+            features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
             testing_state=testing_state,
             drift_info=drift_info,
@@ -540,9 +540,33 @@ def get_features_enabled():
     return config.features
 
 
+def get_features_table() -> list[dict[str, Any]]:
+    """Build a list of feature flags comparing infogami vs pydantic-settings."""
+    infogami_dict = config.features  # type: ignore[attr-defined]
+    infogami_keys = set(infogami_dict.keys())
+    pydantic_fields = set(pydantic_features.model_fields.keys())
+    all_features = sorted(infogami_keys | pydantic_fields)
+    features_table = []
+    for feature in all_features:
+        infogami_value = infogami_dict.get(feature)
+        pydantic_value = getattr(pydantic_features, feature, None)
+        if isinstance(infogami_value, dict):
+            infogami_str = f"usergroup: {infogami_value.get('usergroup', '?')}"
+        else:
+            infogami_str = str(infogami_value) if infogami_value is not None else ""
+        features_table.append(
+            {
+                "feature": feature,
+                "infogami": infogami_str,
+                "pydantic": str(pydantic_value) if pydantic_value is not None else "",
+            }
+        )
+    return features_table
+
+
 def setup():
     "Basic startup status for the server"
-    global status_info, feature_flags
+    global status_info
     host = socket.gethostname()
     status_info = {
         "Software version": get_software_version(),
@@ -550,7 +574,6 @@ def setup():
         "Host": host,
         "Start time": datetime.datetime.now(datetime.UTC),
     }
-    feature_flags = get_features_enabled()
 
     # Host is e.g. ol-web4.blah.archive.org ; we just want the first subdomain
     first_subdomain = host.split(".")[0] or "unknown"

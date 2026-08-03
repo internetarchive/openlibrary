@@ -87,6 +87,21 @@ export class Carousel {
                 }))
         });
 
+        // Slick's accessibility mode adds role="listbox" to the track and
+        // role="option" to each slide. When slides contain links this creates
+        // nested-interactive violations (WCAG 4.1.2). role="listbox" without
+        // an accessible name also causes aria-input-field-name failures.
+        // Removing both roles keeps the carousel presentational; keyboard
+        // navigation via prev/next buttons is unaffected.
+        // A MutationObserver covers dynamically added slides (loadMore path).
+        const removeCarouselRoles = () => {
+            this.$container.find('.slick-track[role]').removeAttr('role');
+            this.$container.find('.slick-slide[role]').removeAttr('role');
+        };
+        removeCarouselRoles();
+        const observer = new MutationObserver(removeCarouselRoles);
+        observer.observe(this.$container[0], { subtree: true, attributeFilter: ['role'] });
+
         // Slick internally changes the click handlers on the next/prev buttons,
         // so we listen via the container instead
         this.$container.on('click', '.slick-next', (ev) => {

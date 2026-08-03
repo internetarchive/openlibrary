@@ -2,16 +2,15 @@ $def with (api)
 
 <article class="design-pattern" id="select-popover">
     <h2 class="design-pattern__title">Select Popover</h2>
-    <p class="design-pattern__description">The ol-select-popover component pairs a trigger button with a popover containing a multi-select list and an optional filter input. Selected items group above unselected ones; group order stays stable while open and re-sorts when reopened.</p>
 
     <section class="example">
-      <h3 class="example__title">Default usage with auto-search (12 items)</h3>
       <p>With more than <code>8</code> items, a filter input renders automatically. Selected items move to a SELECTED group on next open.</p>
       <pre class="example__code"><code class="language-html">&lt;ol-select-popover
   label="Language"
   placeholder="Filter languages…"
   unselected-heading="LANGUAGES"
   items='[{"value":"en","label":"English"}, ...]'&gt;
+  &lt;ol-button slot="trigger"&gt;Language&lt;/ol-button&gt;
 &lt;/ol-select-popover&gt;</code></pre>
       <div class="example__output">
         <ol-select-popover
@@ -20,7 +19,9 @@ $def with (api)
           placeholder="Filter languages…"
           unselected-heading="LANGUAGES"
           aria-label="Language filter"
-        ></ol-select-popover>
+        >
+          <ol-button slot="trigger">Language</ol-button>
+        </ol-select-popover>
         <p style="margin-top: 12px; font-size: 13px;">
           Selected: <strong id="demo-select-langs-out">(none)</strong>
         </p>
@@ -59,6 +60,7 @@ $def with (api)
   label="Layout"
   unselected-heading="LAYOUTS"
   items='[{"value":"grid","label":"Grid"}, ...]'&gt;
+  &lt;ol-button slot="trigger"&gt;Layout&lt;/ol-button&gt;
 &lt;/ol-select-popover&gt;</code></pre>
       <div class="example__output">
         <ol-select-popover
@@ -66,7 +68,9 @@ $def with (api)
           label="Layout"
           unselected-heading="LAYOUTS"
           aria-label="Layout filter"
-        ></ol-select-popover>
+        >
+          <ol-button slot="trigger">Layout</ol-button>
+        </ol-select-popover>
       </div>
       <script>
         (function() {
@@ -120,7 +124,9 @@ $def with (api)
       <h3 class="example__title">With ol-chip-group showing selections</h3>
       <p>Selected items render as chips in an ol-chip-group next to the trigger. Clicking a chip's close icon removes that selection from the popover.</p>
       <pre class="example__code"><code class="language-html">&lt;div class="row"&gt;
-  &lt;ol-select-popover label="Language" ...&gt;&lt;/ol-select-popover&gt;
+  &lt;ol-select-popover label="Language" ...&gt;
+    &lt;ol-button slot="trigger"&gt;Language&lt;/ol-button&gt;
+  &lt;/ol-select-popover&gt;
   &lt;ol-chip-group&gt;
     &lt;ol-chip selected&gt;English&lt;/ol-chip&gt;
   &lt;/ol-chip-group&gt;
@@ -133,7 +139,9 @@ $def with (api)
             placeholder="Filter languages…"
             unselected-heading="LANGUAGES"
             aria-label="Language filter"
-          ></ol-select-popover>
+          >
+            <ol-button slot="trigger">Language</ol-button>
+          </ol-select-popover>
           <ol-chip-group id="demo-select-chips-group" gap="small"></ol-chip-group>
         </div>
       </div>

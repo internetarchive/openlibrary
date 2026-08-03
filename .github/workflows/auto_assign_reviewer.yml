@@ -1,0 +1,54 @@
+name: Auto-assign Code Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: auto-assign-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    # Self-authored PRs (opened by openlibrary-bot itself) are excluded here --
+    # GitHub rejects requesting a PR's own author as a reviewer (422). Those are
+    # handled directly by code_review_action.yml's own opened/ready_for_review
+    # trigger instead, bypassing the reviewer-request mechanism entirely.
+    if: >
+      !github.event.pull_request.draft &&
+      github.event.pull_request.user.login != 'openlibrary-bot'
+    steps:
+      - name: Request openlibrary-bot as reviewer if not already present
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            const { data: requested } = await github.rest.pulls.listRequestedReviewers({
+              owner, repo, pull_number: prNumber,
+            });
+            if (requested.users.some((u) => u.login === 'openlibrary-bot')) {
+              core.info(`PR #${prNumber} already has openlibrary-bot requested -- skipping.`);
+              return;
+            }
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner, repo, pull_number: prNumber, per_page: 100,
+            });
+            if (reviews.some((r) => r.user.login === 'openlibrary-bot')) {
+              core.info(`PR #${prNumber} already has an openlibrary-bot review -- skipping.`);
+              return;
+            }
+
+            await github.rest.pulls.requestReviewers({
+              owner, repo, pull_number: prNumber,
+              reviewers: ['openlibrary-bot'],
+            });
+            core.info(`Requested openlibrary-bot as reviewer on PR #${prNumber}.`);

@@ -13,10 +13,15 @@
   font-size: 0.8em;
 }
 
+/* Rendered as a row at the end of author and book pages, after the floated
+   content columns; `clear` keeps it below them instead of alongside. */
 .pageHistory__tools {
+  display: block;
+  clear: both;
+  text-align: right;
   font-size: 0.7em;
-  float: right;
-  padding-top: 8px;
+  padding-top: var(--spacing-inset-sm);
+  margin-bottom: calc(-1 * var(--spacing-sm));
 }
 
 /* We assume list items in page history will only have 2 items */

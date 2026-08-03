@@ -37,9 +37,7 @@ def mock_user_factory(monkeypatch):
         is_super_librarian: bool = False,
     ):
         user = MagicMock()
-        user.is_admin.return_value = is_admin
-        user.is_librarian.return_value = is_librarian
-        user.is_super_librarian.return_value = is_super_librarian
+        user.is_librarian_or_higher.return_value = is_admin or is_librarian or is_super_librarian
         monkeypatch.setattr(
             "openlibrary.fastapi.auth.get_current_user",
             lambda: user,

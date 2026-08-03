@@ -418,6 +418,16 @@ input.highlight {
   overflow-x: auto;
 }
 
+/* Filters lead the row; sort and layout only shape the results, so they sit at
+   the far end. Mirrors .search-filter-row__tools on the search page. The auto
+   margin collapses on its own once the row overflows and starts scrolling. */
+.search-results-stats__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+
 /* Search v2 */
 /* openlibrary/macros/SearchResultsWork.html */
 .serp-extras {
@@ -843,7 +853,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -911,6 +921,80 @@ div#searchResults .SRPCoverBlank a {
   border-radius: 4px;
 }
 
+/* Section labels ("Authors"/"Books") shown above the work search result */
+/* groups when the query names an author. */
+/* openlibrary/templates/work_search.html */
+.search-results-section-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accessible-grey);
+}
+
+/* The result count rides the "Books" label but reads as data, not a label. */
+.search-results-section-label__count {
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Author suggestion row shown above work search results. */
+/* openlibrary/macros/SearchAuthorSuggestion.html */
+.search-author-suggestion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-stack-sm);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.search-author-suggestion li {
+  margin-bottom: 0;
+  max-width: none;
+  gap: var(--spacing-inline-lg);
+  /* Keep the avatar to the left of the name on mobile too; the shared */
+  /* .searchResultItem stacks (flex-direction: column) below the tablet */
+  /* breakpoint, which would center the avatar on top. */
+  flex-direction: row;
+}
+
+/* Avatar: a person-icon placeholder layered behind the author photo. The photo */
+/* covers it when it loads; a missing photo (?default=false 404) is hidden by */
+/* index.js, revealing the icon. Mirrors the modal's .result__avatar. */
+.search-author-suggestion .sas-avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: var(--accessible-grey);
+  background: var(--lightest-grey);
+  border-radius: var(--border-radius-avatar);
+}
+
+.search-author-suggestion .sas-avatar__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.search-author-suggestion .sas-avatar__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* openlibrary/templates/languages/index.html */
 /* openlibrary/templates/publishers/view.html */
 /* openlibrary/templates/search/publishers.html */
@@ -927,7 +1011,7 @@ div#searchResults .SRPCoverBlank a {
 
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
-  width: 220px;
+  width: var(--search-facets-width);
   padding: 0 15px;
 }
 
@@ -1833,6 +1917,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component {
     display: flex;
+    align-items: center;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;

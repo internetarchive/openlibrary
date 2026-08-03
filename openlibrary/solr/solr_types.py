@@ -41,6 +41,14 @@ class SolrDocument(TypedDict):
     isbn: Optional[list[str]]
     ebook_access: Optional[Literal['no_ebook', 'unclassified', 'printdisabled', 'borrowable', 'public']]
     ebook_provider: Optional[list[str]]
+    usefulness_score: Optional[int]
+    usefulness_score_normalized: Optional[int]
+    access_score: Optional[int]
+    access_score_normalized: Optional[int]
+    discovery_score: Optional[int]
+    discovery_score_normalized: Optional[int]
+    evaluation_score: Optional[int]
+    evaluation_score_normalized: Optional[int]
     lexile: Optional[list[int]]
     lcc: Optional[list[str]]
     lcc_sort: Optional[str]
@@ -138,5 +146,6 @@ class SolrDocument(TypedDict):
     printdisabled_s: Optional[str]
     lending_edition_s: Optional[str]
     ebook_count_i: Optional[int]
+    last_modified_i: Optional[int]
 
 # fmt: on

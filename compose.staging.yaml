@@ -10,11 +10,14 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
@@ -34,11 +37,14 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+      args:
+        - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
     volumes:
