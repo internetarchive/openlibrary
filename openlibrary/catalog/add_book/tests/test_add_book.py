@@ -522,11 +522,11 @@ class Test_From_MARC:
         assert a.name == "Laura K. Egendorf"
         assert a.birth_date == "1973"
 
-    def test_editior_role_from_700(self, mock_site, add_languages):
+    def test_editor_role_from_700(self, mock_site, add_languages):
         marc = "../../../marc/tests/test_data/bin_input/ithaca_college_75002321.mrc"
         data = open_test_data(marc).read()
         rec = read_edition(MarcBinary(data))
-        rec["source_records"] = ["ia:test_editior_role_from_700"]
+        rec["source_records"] = ["ia:test_editor_role_from_700"]
         reply = load(rec)
         assert reply["success"] is True
         # authors from 700

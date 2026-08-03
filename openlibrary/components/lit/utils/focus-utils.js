@@ -1,24 +1,22 @@
 /**
  * Focus management utilities for web components with shadow DOM.
+ *
+ * `querySelectorAll` stops at shadow boundaries and `document.activeElement`
+ * only reports the outer host, so a manual focus trap can't be written with
+ * either. These helpers do the piercing that trap needs.
  */
 
 /**
- * CSS selector for commonly focusable elements.
- * Excludes elements with tabindex="-1" which are programmatically focusable only.
+ * Commonly focusable elements. Excludes `tabindex="-1"` (programmatic focus only).
+ *
+ * @type {string}
  */
 export const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
- * Gets the currently focused element, traversing through shadow DOM boundaries.
- * Useful when you need to find the actual focused element inside shadow roots.
+ * The focused element, descending through shadow roots.
  *
- * @returns {Element|null} The deepest active element, or null if nothing is focused
- *
- * @example
- * // If focus is inside a web component's shadow DOM:
- * // document.activeElement might return the host element,
- * // but getDeepActiveElement() returns the actual focused input/button inside.
- * const focused = getDeepActiveElement();
+ * @returns {Element|null} The deepest active element, or null if nothing is focused.
  */
 export function getDeepActiveElement() {
     let active = document.activeElement;
@@ -29,21 +27,16 @@ export function getDeepActiveElement() {
 }
 
 /**
- * Whether an element should participate in a focus trap. Excludes disabled
- * elements and elements that aren't currently rendered (e.g. `display: none`,
- * `visibility: hidden`). Calling `.focus()` on a non-rendered element is a
- * silent no-op in browsers — including such elements in a trap list causes
- * Tab/Shift+Tab to appear stuck on the prior element.
+ * Whether an element can participate in a focus trap. Excludes disabled and
+ * non-rendered elements — `.focus()` on those is a silent no-op, which would
+ * make Tab appear stuck on the previous element.
  *
  * @param {HTMLElement} el
- * @returns {Boolean}
+ * @returns {boolean} True where `checkVisibility` is unavailable (older jsdom),
+ *   erring toward inclusion.
  */
 export function isFocusable(el) {
     if (el.disabled) return false;
-    // checkVisibility() is widely supported in evergreen browsers (Chrome 105+,
-    // Safari 17.4+, Firefox 125+) and is the correct API for "would the user
-    // be able to focus this." Where unavailable (older jsdom, ancient browsers)
-    // we err on the side of inclusion — the same behavior we had before.
     if (typeof el.checkVisibility === 'function') {
         return el.checkVisibility({ visibilityProperty: true });
     }
@@ -51,51 +44,94 @@ export function isFocusable(el) {
 }
 
 /**
- * Gets all focusable elements from a slot's assigned content.
- * Handles both elements that are directly focusable and their focusable descendants.
+ * Collect tabbable elements under `root` in depth-first order, piercing shadow
+ * roots and expanding slots — the real Tab order the user sees.
  *
- * @param {HTMLSlotElement} slot - The slot element to get focusable elements from
- * @returns {HTMLElement[]} Array of focusable elements in DOM order
+ * A match on {@link FOCUSABLE_SELECTOR} is a leaf: composites owning their own
+ * keyboard nav expose only their single `tabindex="0"` stop. Hidden/disabled
+ * subtrees and closed shadow roots are skipped.
  *
- * @example
- * const slot = this.renderRoot.querySelector('slot');
- * const focusable = getFocusableFromSlot(slot);
+ * @param {Element|ShadowRoot} root - Subtree to search.
+ * @returns {HTMLElement[]} Tabbable elements in DOM order.
  */
-export function getFocusableFromSlot(slot) {
-    if (!slot) return [];
-
-    const focusable = [];
-    const assignedElements = slot.assignedElements({ flatten: true });
-
-    for (const el of assignedElements) {
-        // Check if the element itself is focusable
-        if (el.matches?.(FOCUSABLE_SELECTOR)) {
-            focusable.push(el);
-        }
-        // Find focusable descendants
-        focusable.push(...el.querySelectorAll(FOCUSABLE_SELECTOR));
-    }
-
-    return focusable.filter(isFocusable);
+export function getTabbableElements(root) {
+    const out = [];
+    if (root) walkTabbables(root, out);
+    return out;
 }
 
 /**
- * Find the index of the focus-trap entry that owns the current focus, walking
- * up the DOM and across shadow boundaries. This lets a focus trap operate on
- * a host element (e.g. a custom-element wrapper around a deeper button) while
- * still recognizing the host as "current" when the inner element is focused.
+ * Like {@link getTabbableElements} but seeded from a `<slot>`'s assigned content
+ * — for a trap that walks named slots (header/body/footer) rather than one
+ * subtree. A custom element in slotted content contributes its real inner
+ * focusable, which a one-slot-deep `querySelectorAll` would miss.
  *
- * @param {HTMLElement[]} focusable - Trap-managed focusable elements
- * @param {Element|null} deepActive - Result of {@link getDeepActiveElement}
- * @returns {Number} Matching index, or -1
+ * @param {HTMLSlotElement|null} slot
+ * @returns {HTMLElement[]} Tabbable elements in DOM order.
+ */
+export function getTabbableFromSlot(slot) {
+    if (!slot) return [];
+    const out = [];
+    for (const el of slot.assignedElements({ flatten: true })) {
+        visitTabbable(el, out);
+    }
+    return out;
+}
+
+/**
+ * Record `el` if it's a tab stop, then decide whether to descend. A tab stop
+ * with a shadow root is a self-contained widget and treated as a leaf; anything
+ * else is descended into, so a `tabindex="0"` row with a nested button
+ * contributes both.
+ *
+ * @param {Element} el
+ * @param {HTMLElement[]} out - Accumulator, mutated in place.
+ * @returns {void}
+ */
+function visitTabbable(el, out) {
+    if (!isFocusable(el)) return;
+    // FOCUSABLE_SELECTOR matches native controls regardless of tabindex, so
+    // exclude -1 explicitly or a roving composite's items would slip through.
+    const isStop = el.matches?.(FOCUSABLE_SELECTOR) && el.getAttribute('tabindex') !== '-1';
+    if (isStop) out.push(el);
+    if (isStop && el.shadowRoot) return;
+    walkTabbables(el.shadowRoot ?? el, out);
+}
+
+/**
+ * Walk a node's children in order, expanding `<slot>`s to their flattened
+ * assigned content so projected light DOM is visited at the slot's position.
+ *
+ * @param {Element|ShadowRoot} node
+ * @param {HTMLElement[]} out - Accumulator, mutated in place.
+ * @returns {void}
+ */
+function walkTabbables(node, out) {
+    for (const child of node.children) {
+        if (child.localName === 'slot') {
+            for (const assigned of child.assignedElements?.({ flatten: true }) ?? []) {
+                visitTabbable(assigned, out);
+            }
+        } else {
+            visitTabbable(child, out);
+        }
+    }
+}
+
+/**
+ * Index of the trap entry owning the current focus, walking up through shadow
+ * boundaries. Lets a trap hold a host element and still recognize it as current
+ * when a deeper inner element is focused.
+ *
+ * @param {HTMLElement[]} focusable - Trap-managed focusable elements.
+ * @param {Element|null} deepActive - Result of {@link getDeepActiveElement}.
+ * @returns {number} Matching index, or -1.
  */
 export function findFocusableIndex(focusable, deepActive) {
     let el = deepActive;
     while (el) {
         const idx = focusable.indexOf(el);
         if (idx !== -1) return idx;
-        // Climb out: first the regular parent chain, then jump over a shadow
-        // boundary to the host element when we hit one.
         const parent = el.parentNode;
         if (parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host) {
             el = parent.host;

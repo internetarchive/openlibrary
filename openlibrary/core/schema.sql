@@ -17,6 +17,17 @@ CREATE TABLE follows (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (subscriber, publisher)
 );
+CREATE TABLE likes (
+    username    TEXT        NOT NULL,
+    key         TEXT        NOT NULL,   -- full infogami key, e.g. /works/OL123W
+    value       SMALLINT    NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+    created     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, key)
+);
+CREATE INDEX likes_key_idx      ON likes (key);
+CREATE INDEX likes_username_idx ON likes (username);
+
 CREATE INDEX subscriber_idx ON follows (subscriber);
 CREATE INDEX publisher_idx ON follows (publisher);
 
