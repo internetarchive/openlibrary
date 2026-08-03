@@ -1,94 +1,82 @@
 /**
- * A11y tests for OlOptionsPopover.
+ * Accessibility tests for OlOptionsPopover.
  *
- * Validates the rendered ARIA structure: trigger button, radiogroup panel,
- * and radio inputs inside labels. Tests closed and open states.
- *
- * Document-level rules disabled — see OlPopover.a11y.test.js for rationale.
+ * Renders the real component so axe inspects its actual shadow DOM: the ARIA
+ * wiring on the slotted trigger, and the radiogroup of options once open.
  */
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { toHaveNoViolations } from 'jest-axe';
+import { checkA11y, cleanup, mount, openPopover, setupComponentEnv } from './a11y-helpers.js';
+import '../lit/OlOptionsPopover.js';
 
 expect.extend(toHaveNoViolations);
 
-const AXE_COMPONENT_CONFIG = {
-    rules: {
-        region: { enabled: false },
-        'landmark-one-main': { enabled: false },
-        'page-has-heading-one': { enabled: false },
-    },
-};
+const ITEMS = [
+    { value: 'all', label: 'Full Card Catalog' },
+    { value: 'readable', label: 'Readable Books Only' },
+];
 
-afterEach(() => {
-    document.body.innerHTML = '';
-});
+const MARKUP = `
+    <ol-options-popover aria-label="Availability">
+        <button slot="trigger" type="button">Availability</button>
+    </ol-options-popover>
+`;
+
+/** The OlPopover this component composes around; it owns the open state. */
+const innerPopover = (el) => el.shadowRoot.querySelector('ol-popover');
+
+async function mountOptions(props = {}) {
+    const el = await mount(MARKUP);
+    Object.assign(el, { label: 'Availability', heading: 'AVAILABILITY', items: ITEMS, selected: 'all', ...props });
+    await el.updateComplete;
+    return el;
+}
+
+async function mountOpened(props = {}) {
+    const el = await mountOptions(props);
+    await openPopover(innerPopover(el));
+    return el;
+}
+
+beforeEach(() => setupComponentEnv());
+afterEach(cleanup);
 
 describe('OlOptionsPopover a11y', () => {
-    test('closed state — default trigger button has no violations', async() => {
-        // Closed: renders a <button> with visible label text and chevron icon.
-        // aria-haspopup="dialog" and aria-expanded="false" are set by OlPopover
-        // on the slotted trigger after firstUpdated().
-        document.body.innerHTML = `
-            <div>
-                <button type="button" aria-haspopup="dialog" aria-expanded="false">
-                    <span>Availability</span>
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results).toHaveNoViolations();
+    test('closed: the slotted trigger advertises the popover it controls', async() => {
+        const el = await mountOptions();
+
+        const trigger = el.querySelector('[slot="trigger"]');
+        expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open state — radiogroup panel has no violations', async() => {
-        // Open: renders a dialog containing a radiogroup.
-        // Each option is an <input type="radio"> inside a <label> — correct
-        // association per WCAG 1.3.1. The radiogroup has aria-label.
-        // group-heading is aria-hidden (it is a visual heading, not the
-        // accessible name — the aria-label on the radiogroup provides that).
-        document.body.innerHTML = `
-            <div>
-                <button type="button" aria-haspopup="dialog" aria-expanded="true" aria-controls="ol-popover-1">
-                    <span>Availability</span>
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-                <div id="ol-popover-1" role="dialog" aria-modal="true" aria-label="Availability" tabindex="-1">
-                    <div class="panel">
-                        <div role="radiogroup" aria-label="Availability">
-                            <div aria-hidden="true">AVAILABILITY</div>
-                            <ul>
-                                <li>
-                                    <label>
-                                        <input type="radio" name="ol-opts-1" value="all" checked />
-                                        <span>Full Card Catalog</span>
-                                    </label>
-                                </li>
-                                <li>
-                                    <label>
-                                        <input type="radio" name="ol-opts-1" value="readable" />
-                                        <span>Readable Books Only</span>
-                                    </label>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results).toHaveNoViolations();
+    test('open: options form a labelled radiogroup inside the dialog', async() => {
+        const el = await mountOpened();
+
+        expect(innerPopover(el).shadowRoot.querySelector('.panel')).not.toBeNull();
+        const group = el.shadowRoot.querySelector('[role="radiogroup"]');
+        expect(group.getAttribute('aria-label')).toBe('Availability');
+        expect(group.querySelectorAll('input[type="radio"]')).toHaveLength(ITEMS.length);
+        expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('open state — radio without label fails (regression guard)', async() => {
-        // Confirms axe catches unlabeled radio inputs — guards against
-        // a future refactor that removes the <label> wrapper.
-        document.body.innerHTML = `
-            <div id="ol-popover-1" role="dialog" aria-modal="true" aria-label="Availability" tabindex="-1">
-                <div role="radiogroup" aria-label="Availability">
-                    <input type="radio" name="ol-opts-1" value="all" />
-                </div>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results.violations.length).toBeGreaterThan(0);
+    test('open: each radio takes its accessible name from its wrapping label', async() => {
+        const el = await mountOpened();
+
+        const radios = [...el.shadowRoot.querySelectorAll('input[type="radio"]')];
+        expect(radios).toHaveLength(ITEMS.length);
+        radios.forEach((radio, i) => {
+            const label = radio.closest('label');
+            expect(label).not.toBeNull();
+            expect(label.textContent).toContain(ITEMS[i].label);
+        });
+    });
+
+    test('open: the visual group heading is hidden from assistive tech', async() => {
+        // The radiogroup's aria-label already names the group, so exposing the
+        // heading as well would announce "Availability" twice.
+        const el = await mountOpened();
+
+        expect(el.shadowRoot.querySelector('.group-heading').getAttribute('aria-hidden')).toBe('true');
     });
 });

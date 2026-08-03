@@ -26,7 +26,7 @@
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "test:js": "jest",
-    "test:a11y": "jest --testPathPatterns='components/__tests__/.*\\.a11y\\.test\\.js$'",
+    "test:a11y": "jest openlibrary/components/__tests__/",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
@@ -98,7 +98,7 @@
   "jest": {
     "roots": [
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
-      "<rootDir>/openlibrary/components/",
+      "<rootDir>/openlibrary/components/__tests__/",
       "<rootDir>/tests/unit/js/"
     ],
     "moduleNameMapper": {
@@ -107,6 +107,32 @@
     },
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
+    ],
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "transform": {
+      "node_modules[\\\\/](lit|lit-html|lit-element|@lit)[\\\\/]": [
+        "babel-jest",
+        {
+          "babelrc": false,
+          "configFile": false,
+          "presets": [
+            [
+              "@babel/preset-env",
+              {
+                "targets": {
+                  "node": "current"
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      "\\.[jt]sx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(lit|lit-html|lit-element|@lit)/)"
     ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [

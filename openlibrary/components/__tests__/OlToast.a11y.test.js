@@ -1,91 +1,41 @@
 /**
- * A11y tests for OlToast.
+ * Accessibility tests for OlToast.
  *
- * Validates aria-live regions, role assignments (status vs alert),
- * and the close button's accessible name across info, success, and error types.
- *
- * Document-level rules disabled — see OlPopover.a11y.test.js for rationale.
+ * Renders the real component so axe inspects its actual shadow DOM: the
+ * role/aria-live pairing per type, and the close button's accessible name.
  */
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { toHaveNoViolations } from 'jest-axe';
+import { checkA11y, cleanup, mount, nextFrames, setupComponentEnv } from './a11y-helpers.js';
+import '../lit/OlToast.js';
 
 expect.extend(toHaveNoViolations);
 
-const AXE_COMPONENT_CONFIG = {
-    rules: {
-        region: { enabled: false },
-        'landmark-one-main': { enabled: false },
-        'page-has-heading-one': { enabled: false },
-    },
-};
-
-afterEach(() => {
-    document.body.innerHTML = '';
-});
+beforeEach(() => setupComponentEnv());
+afterEach(cleanup);
 
 describe('OlToast a11y', () => {
-    test('info toast (default) — role=status, aria-live=polite, no violations', async() => {
-        document.body.innerHTML = `
-            <div
-                role="status"
-                aria-live="polite"
-            >
-                <span aria-hidden="true"><!-- info icon --></span>
-                <span>
-                    <span>Book added to your reading list.</span>
-                </span>
-                <button type="button" aria-label="Close">
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/></svg>
-                </button>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results).toHaveNoViolations();
+    test.each([
+        ['info', 'status', 'polite'],
+        ['success', 'status', 'polite'],
+        ['error', 'alert', 'assertive'],
+    ])('%s toast announces via role=%s aria-live=%s', async(type, role, live) => {
+        const el = await mount(`<ol-toast type="${type}" message="Changes saved."></ol-toast>`);
+        await nextFrames();
+
+        const toast = el.shadowRoot.querySelector('.toast');
+        expect(toast.getAttribute('role')).toBe(role);
+        expect(toast.getAttribute('aria-live')).toBe(live);
+        expect(await checkA11y()).toHaveNoViolations();
     });
 
-    test('success toast — role=status, aria-live=polite, no violations', async() => {
-        document.body.innerHTML = `
-            <div role="status" aria-live="polite">
-                <span aria-hidden="true"><!-- success icon --></span>
-                <span>
-                    <span>Changes saved.</span>
-                </span>
-                <button type="button" aria-label="Close">
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results).toHaveNoViolations();
+    test('close button has an accessible name', async() => {
+        const el = await mount('<ol-toast message="Changes saved."></ol-toast>');
+        expect(el.shadowRoot.querySelector('.toast__close').getAttribute('aria-label')).toBe('Close');
     });
 
-    test('error toast — role=alert, aria-live=assertive, no violations', async() => {
-        // Errors use role="alert" + assertive to interrupt screen readers immediately.
-        document.body.innerHTML = `
-            <div role="alert" aria-live="assertive">
-                <span aria-hidden="true"><!-- error icon --></span>
-                <span>
-                    <span>Could not save changes. Please try again.</span>
-                </span>
-                <button type="button" aria-label="Close">
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="12" y1="6" x2="12" y2="13"/></svg>
-                </button>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results).toHaveNoViolations();
-    });
-
-    test('close button without aria-label fails (regression guard)', async() => {
-        // Guards against the labelClose prop being dropped or defaulting to empty.
-        document.body.innerHTML = `
-            <div role="status" aria-live="polite">
-                <span>Book added.</span>
-                <button type="button">
-                    <svg aria-hidden="true" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/></svg>
-                </button>
-            </div>
-        `;
-        const results = await axe(document.body, AXE_COMPONENT_CONFIG);
-        expect(results.violations.length).toBeGreaterThan(0);
+    test('regression guard: an unlabelled close button is reported as button-name', async() => {
+        await mount('<ol-toast message="Changes saved." label-close=""></ol-toast>');
+        const results = await checkA11y();
+        expect(results.violations.map((v) => v.id)).toContain('button-name');
     });
 });
