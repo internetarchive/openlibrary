@@ -79,6 +79,9 @@ export class OLMarkdownEditor extends LitElement {
       color: var(--dark-grey);
       max-height: 70vh;
       overflow-y: auto;
+      /* Contain the toolbar/popover layering — a shadow root is not a
+         stacking context, so without this their z-index leaks to the page. */
+      isolation: isolate;
     }
 
     .toolbar {
@@ -92,7 +95,8 @@ export class OLMarkdownEditor extends LitElement {
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: var(--z-index-level-5);
+      /* Above the editor content; the popovers below are its descendants. */
+      z-index: var(--z-index-local-1);
     }
 
     .toolbar-divider {
@@ -277,7 +281,7 @@ export class OLMarkdownEditor extends LitElement {
       display: flex;
       gap: var(--spacing-inline-md);
       min-width: 260px;
-      z-index: var(--z-index-level-5);
+      z-index: var(--z-index-local-1);
     }
 
     @media (max-width: 767px) {
@@ -369,7 +373,7 @@ export class OLMarkdownEditor extends LitElement {
       background: var(--white);
       display: flex;
       gap: var(--spacing-inline-sm);
-      z-index: var(--z-index-level-5);
+      z-index: var(--z-index-local-1);
     }
 
     @media (max-width: 767px) {

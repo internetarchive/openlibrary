@@ -54,7 +54,7 @@ export default {
   border-radius: 4px;
   background: black;
   flex-shrink: 0;
-  z-index: 1;
+  z-index: var(--z-index-local-1);
   animation: bookshelf-appear .2s;
 
   transition-property: transform, opacity, filter;
