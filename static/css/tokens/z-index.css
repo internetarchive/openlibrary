@@ -6,7 +6,6 @@
  */
 :root {
   --z-index-level-negative: -1;
-  --z-index-level-zero: 0;
   --z-index-level-1: 1;
   --z-index-level-2: 2;
   --z-index-level-3: 3;
@@ -44,12 +43,14 @@
  *   sticky     --z-index-sticky     3       ← mobile site header
  *   raised     --z-index-raised     2       ← one step above base siblings
  *   base       --z-index-base       1       ← minimum lift above static flow
- *   flat       --z-index-flat       0       ← explicit floor; stacks by document order
  *   behind     --z-index-behind     -1      ← behind parent content (decorative/animations)
+ *
+ * There is no zero token — `z-index: 0` orders nothing (it paints identically
+ * to `auto`); its only effect is creating a stacking context, and the explicit
+ * spelling for that is `isolation: isolate`.
  */
 :root {
   --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
-  --z-index-flat:     var(--z-index-level-zero);     /*  0      – explicit floor: creates a stacking context without lifting (currently no consumers) */
   --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. cover fan ordinals, chevrons) */
   --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. middle cover in fan, page-banner) */
   --z-index-sticky:   var(--z-index-level-3);        /*  3      – mobile sticky site header (#header-bar at ≤960px) */

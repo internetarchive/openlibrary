@@ -98,7 +98,6 @@ test.describe('z-index tokens', () => {
             const read = (name: string) => styles.getPropertyValue(name).trim();
             return {
                 behind: read('--z-index-behind'),
-                flat: read('--z-index-flat'),
                 base: read('--z-index-base'),
                 raised: read('--z-index-raised'),
                 sticky: read('--z-index-sticky'),
@@ -118,7 +117,6 @@ test.describe('z-index tokens', () => {
         // silently turns every tokenised z-index on the page into `auto`.
         expect(tokens).toEqual({
             behind: '-1',
-            flat: '0',
             base: '1',
             raised: '2',
             sticky: '3',
