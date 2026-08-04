@@ -305,7 +305,7 @@ hr {
   margin-left: -100px;
 }
 .book-room.style--book--3d-spines .book:hover {
-  z-index: var(--z-index-base);
+  z-index: var(--z-index-local-1);
 }
 
 .book-room.style--book--3d-flat .css-box {

@@ -352,7 +352,7 @@ table.main {
 table.main thead,
 table.main tfoot {
   position: sticky;
-  z-index: var(--z-index-raised);
+  z-index: var(--z-index-local-1);
 }
 table.main > thead {
   top: 0;

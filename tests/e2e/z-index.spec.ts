@@ -107,6 +107,11 @@ test.describe('z-index tokens', () => {
                 modal: read('--z-index-modal'),
                 overlay: read('--z-index-overlay'),
                 toast: read('--z-index-toast'),
+                local1: read('--z-index-local-1'),
+                local2: read('--z-index-local-2'),
+                local3: read('--z-index-local-3'),
+                local4: read('--z-index-local-4'),
+                local5: read('--z-index-local-5'),
             };
         });
         // An empty string for any of these means tokens.css did not load, which
@@ -122,6 +127,11 @@ test.describe('z-index tokens', () => {
             modal: '9999',
             overlay: '99999',
             toast: '999999',
+            local1: '1',
+            local2: '2',
+            local3: '3',
+            local4: '4',
+            local5: '5',
         });
     });
 
@@ -135,9 +145,9 @@ test.describe('z-index tokens', () => {
             // hit-testing cannot check this pair.
             ['ol-carousel', '.edge-fade', '1'],
             ['ol-carousel', '.arrow', '2'],
-            ['ol-segmented-control', '.pill', '0'],
-            ['ol-segmented-control', '.layer--base', '1'],
-            ['ol-segmented-control', '.layer--active', '2'],
+            ['ol-segmented-control', '.pill', '1'],
+            ['ol-segmented-control', '.layer--base', '2'],
+            ['ol-segmented-control', '.layer--active', '3'],
         ];
 
         for (const [host, inner, expected] of cases) {

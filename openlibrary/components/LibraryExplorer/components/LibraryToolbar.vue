@@ -545,7 +545,8 @@ export default {
   display: flex;
   justify-content: center;
   pointer-events: none;
-  /* Must stay above BookRoom's sticky shelf signs (sticky). */
+  /* Must stay above BookRoom, which is isolated — its whole subtree
+     (shelves, signs) sits at `auto` beneath this. */
   z-index: var(--z-index-fixed);
 }
 

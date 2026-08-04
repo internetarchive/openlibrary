@@ -29,6 +29,8 @@
  *      must use isolation: isolate on their root so values don't leak globally.
  *      A shadow root is NOT a stacking context — a z-index inside a web
  *      component competes with the whole page unless an ancestor isolates it.
+ *      Inside an isolated scope, use the --z-index-local-* ordinals below —
+ *      the semantic bands are for page-level chrome only.
  *   3. Within a band, ties resolve by document order. A component that must
  *      beat its band peers needs its own band or isolation: isolate.
  *
@@ -47,7 +49,7 @@
  */
 :root {
   --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
-  --z-index-flat:     var(--z-index-level-zero);     /*  0      – explicit floor: creates a stacking context without lifting (e.g. segmented-control pill) */
+  --z-index-flat:     var(--z-index-level-zero);     /*  0      – explicit floor: creates a stacking context without lifting (currently no consumers) */
   --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. cover fan ordinals, chevrons) */
   --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. middle cover in fan, page-banner) */
   --z-index-sticky:   var(--z-index-level-3);        /*  3      – mobile sticky site header (#header-bar at ≤960px) */
@@ -56,4 +58,21 @@
   --z-index-modal:    var(--z-index-level-13);       /* 9999    – dialogs and backdrop scrims (e.g. jQuery UI dialog, ui-widget-overlay) */
   --z-index-overlay:  var(--z-index-level-16);       /* 99999   – above modals (e.g. autocomplete triggered inside a dialog) */
   --z-index-toast:    var(--z-index-level-17);       /* 999999  – always on top (e.g. toast-container, colorbox lightbox) */
+}
+
+/**
+ * Local Layers
+ * ============
+ * Ordinal steps for layering INSIDE a component whose root sets
+ * `isolation: isolate`. The ordinals only order siblings within that scope —
+ * they are meaningless outside it. Never use these without isolation on an
+ * ancestor, and never use the semantic bands above for component-internal
+ * ordering. Negative internal layers keep --z-index-behind.
+ */
+:root {
+  --z-index-local-1: 1;
+  --z-index-local-2: 2;
+  --z-index-local-3: 3;
+  --z-index-local-4: 4;
+  --z-index-local-5: 5;
 }
