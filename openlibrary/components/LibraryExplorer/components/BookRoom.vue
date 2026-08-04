@@ -321,7 +321,9 @@ button {
   position: sticky;
   top: 10px;
   pointer-events: none;
-  z-index: var(--z-index-fixed);
+  /* Above the shelves and books (base), below the toolbar's floating controls
+     (fixed) — they overlap when a shelf sign scrolls past the controls. */
+  z-index: var(--z-index-sticky);
   display: flex;
 }
 @media (max-width: 450px) {

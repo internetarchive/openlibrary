@@ -123,7 +123,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
            the track's content height — its segments fill that via height: 100%. */
         .layer--base {
             position: relative;
-            z-index: 1;
+            z-index: var(--z-index-base);
             height: 100%;
         }
 
@@ -133,7 +133,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         .layer--active {
             position: absolute;
-            z-index: 2;
+            z-index: var(--z-index-raised);
             inset: var(--spacing-3xs);
             display: flex;
             pointer-events: none;
@@ -156,7 +156,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
            segment; its shadow can't be clipped, hence its own element. */
         .pill {
             position: absolute;
-            z-index: 0;
+            z-index: var(--z-index-flat);
             /* border-box so _measure()'s width — a segment's border-box width —
                isn't widened by this element's own border. Without it the pill
                overhangs its segment by 2px, swallowing the track's right

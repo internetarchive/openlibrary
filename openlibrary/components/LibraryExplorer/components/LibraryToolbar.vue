@@ -545,6 +545,7 @@ export default {
   display: flex;
   justify-content: center;
   pointer-events: none;
+  /* Must stay above BookRoom's sticky shelf signs (sticky). */
   z-index: var(--z-index-fixed);
 }
 
