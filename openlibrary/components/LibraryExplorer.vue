@@ -8,9 +8,15 @@
       :features="bookRoomFeatures"
       :app-settings="settingsState"
       :jump-to="jumpTo"
+      :filter-state="filterState"
+      :sort-state="sortState"
+      :genre-enriched="genreEnriched"
+      :initial-language-keys="initialLanguageKeys"
+      @update:genre-enriched="genreEnriched = $event"
     />
 
     <LibraryToolbar
+      v-if="!settingsState.selectedClassification.alphabeticalTopNav"
       :filter-state="filterState"
       :settings-state="settingsState"
       :sort-state="sortState"
@@ -23,9 +29,50 @@ import BookRoom from './LibraryExplorer/components/BookRoom.vue';
 import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar.vue';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
+import GENRE from './LibraryExplorer/genre.json';
+import GENRE_BASIC from './LibraryExplorer/genre-basic.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
 import maxBy from 'lodash/maxBy';
+
+// Genre/subgenre slugs, gathered from both genre.json (enriched) and genre-basic.json (the
+// basic/enriched toggle's raw tree) -- basic subgenres use the tags vocabulary's own slug
+// as-is rather than genre.json's live-verified best match, so the two trees don't always
+// agree on a subgenre's slug. Gathering both here means chooseBest/fieldTransform still
+// resolve a proper display name regardless of which tree is currently active.
+const GENRE_SLUG_NAMES = new Map();
+for (const genreData of [GENRE, GENRE_BASIC]) {
+    for (const genre of genreData) {
+        GENRE_SLUG_NAMES.set(genre.short, genre.name);
+        for (const subgenre of genre.children || []) {
+            GENRE_SLUG_NAMES.set(subgenre.short, subgenre.name);
+        }
+    }
+}
+function genreSlugToLabel(slug) {
+    return GENRE_SLUG_NAMES.get(slug) || slug;
+}
+
+// Shared by both the enriched and basic genre trees -- same per-node setup recurForEach
+// already applies to DDC/LCC's roots above.
+function makeGenreRoot(children) {
+    return recurForEach({ children, query: '*' }, n => {
+        n.position = 'root';
+        n.offset = 0;
+        n.requests = {};
+    });
+}
+
+// Verified live against production (openlibrary.org/search.json, number_of_pages_median):
+// [0 TO 29]=184, [30 TO 49]=539, [50 TO 174]=3430, [175 TO 499]=6153, [500 TO 100000]=695
+// (counts for subject_key:horror* at the time of checking -- real, distinct, non-empty buckets).
+export const PAGE_LENGTH_RANGES = {
+    micro: '[0 TO 29]',
+    short: '[30 TO 49]',
+    medium: '[50 TO 174]',
+    long: '[175 TO 499]',
+    massive: '[500 TO 100000]',
+};
 
 class FilterState {
     constructor() {
@@ -36,6 +83,12 @@ class FilterState {
         this.languages = [];
         this.age = '';
         this.year = '[1985 TO 9998]';
+        /** @type {'' | 'fiction' | 'nonfiction'} */
+        this.fiction = '';
+        /** @type {string[]} subject_key slugs, ANDed together */
+        this.tags = [];
+        /** @type {'' | keyof typeof PAGE_LENGTH_RANGES} */
+        this.length = '';
     }
 
     solrQueryParts() {
@@ -48,11 +101,27 @@ class FilterState {
             const langs = this.languages.map(lang => lang.key.split('/')[2]);
             filters.push(`language:(${langs.join(' OR ')})`);
         }
-        if (this.age) {
+        if (this.age === 'adult') {
+            // subject:adult (the same tokenized-match pattern every other age value uses)
+            // actually returns a healthy count, but ~1/3 of it is contaminated by "Young
+            // Adult" subject tags -- there's no real "adult" subject to positively match
+            // against. "Not juvenile" is what "adult" actually means here, and doesn't
+            // have that collision.
+            filters.push('-subject:juvenile');
+        } else if (this.age) {
             filters.push(`subject:${this.age}`);
+        }
+        if (this.fiction) {
+            filters.push(`subject_key:${this.fiction}`);
         }
         if (this.year) {
             filters.push(`first_publish_year:${this.year}`);
+        }
+        for (const tag of this.tags) {
+            filters.push(`subject_key:"${tag}"`);
+        }
+        if (this.length && PAGE_LENGTH_RANGES[this.length]) {
+            filters.push(`number_of_pages_median:${PAGE_LENGTH_RANGES[this.length]}`);
         }
         return filters;
     }
@@ -98,22 +167,91 @@ export default {
                     n.offset = 0;
                     n.requests = {};
                 })
+            },
+            {
+                name: 'Genre',
+                longName: 'Genre & Subgenre',
+                field: 'subject_key',
+                fieldTransform: genreSlugToLabel,
+                toQueryFormat: slug => slug,
+                // subject_key holds every subject on a book, not just genre/subgenre tags -- prefer
+                // an entry that's actually one of ours, falling back to the raw first value.
+                chooseBest: slugs => slugs.find(s => GENRE_SLUG_NAMES.has(s)) || slugs[0],
+                // No genre_sort Solr field exists (genre isn't a rankable/orderable classification
+                // the way DDC/LCC are), and the top nav is a full alphabetical list, not prev/next.
+                supportsPreciseJump: false,
+                alphabeticalTopNav: true,
+                root: makeGenreRoot(GENRE)
             }
         ];
 
+        // Both trees built once up front (not lazily on first toggle) so switching is an
+        // instant swap of an already-built root, not a re-parse of genre-basic.json.
+        const genreRoots = {
+            enriched: classifications[2].root,
+            basic: makeGenreRoot(GENRE_BASIC),
+        };
+
         const urlParams = new URLSearchParams(location.search);
-        let selectedClassification = classifications[0];
+        let selectedClassification = location.pathname.startsWith('/explore/genres')
+            ? classifications.find(c => c.field === 'subject_key')
+            : classifications[0];
         let jumpTo = null;
         if (urlParams.has('jumpTo')) {
             const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
             selectedClassification = classifications.find(c => c.field === classificationName);
             jumpTo = selectedClassification.toQueryFormat(classificationString);
+        } else if (location.hash && selectedClassification.alphabeticalTopNav) {
+            // #-style anchors (e.g. /explore/genres#fantasy) are genre mode's shorthand for
+            // ?jumpTo=subject_key:fantasy -- see BookRoom.vue's hashchange listener for why
+            // this exists as its own mechanism instead of just extending the query-param
+            // form: a hash is meant to be navigated without a full page reload, which
+            // "start at a specific shelf" (e.g. from a homepage genre link) actually wants.
+            jumpTo = selectedClassification.toQueryFormat(decodeURIComponent(location.hash.slice(1)));
         }
+        // Genre Explorer's own filter/sort/enrich state is shareable via URL query params
+        // (?readable=&audience=&fiction=&tags=&length=&sort=&enrich=&language=) -- scoped to
+        // genre mode only, since DDC/LCC's filtering is a wholly different UI
+        // (LibraryToolbar) not represented by these params. `language` needs the fetched
+        // language name list (GenreFilterBar's own async load) to resolve keys to
+        // {name, key} objects, so it's only captured here as raw keys and handed down as a
+        // prop for GenreFilterBar to resolve once ready -- see initialLanguageKeys below and
+        // GenreFilterBar.vue's mounted().
+        const isGenreMode = selectedClassification.alphabeticalTopNav;
+        const filterState = new FilterState();
+        let initialLanguageKeys = [];
+        let genreEnriched = true;
+        if (isGenreMode) {
+            if (urlParams.has('readable') && ['true', 'false', ''].includes(urlParams.get('readable'))) {
+                filterState.has_ebook = urlParams.get('readable');
+            }
+            if (urlParams.has('audience')) filterState.age = urlParams.get('audience');
+            if (urlParams.has('fiction') && ['fiction', 'nonfiction', ''].includes(urlParams.get('fiction'))) {
+                filterState.fiction = urlParams.get('fiction');
+            }
+            if (urlParams.has('length')) filterState.length = urlParams.get('length');
+            if (urlParams.has('tags')) filterState.tags = urlParams.get('tags').split(',').filter(Boolean);
+            if (urlParams.has('language')) initialLanguageKeys = urlParams.get('language').split(',').filter(Boolean);
+            if (urlParams.has('enrich')) genreEnriched = !['0', 'false'].includes(urlParams.get('enrich'));
+        }
+
         return {
-            filterState: new FilterState(),
+            filterState,
+            initialLanguageKeys,
+
+            // Basic/enriched genre-tree toggle -- true (default) matches genre.json, the
+            // tree Genre Explorer has always shown. genreRoots isn't itself read by any
+            // template/child; it's just where the two pre-built trees wait for the
+            // genreEnriched watcher (below) to swap one into settingsState.selectedClassification.
+            genreEnriched,
+            genreRoots,
 
             sortState: {
-                order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
+                order: (isGenreMode && urlParams.has('sort'))
+                    ? urlParams.get('sort')
+                    : (jumpTo && selectedClassification.supportsPreciseJump !== false)
+                        ? `${selectedClassification.field}_sort asc`
+                        : `random_${new Date().toISOString().split(':')[0]}`,
             },
 
             jumpTo,
@@ -183,7 +321,61 @@ export default {
                 .map(([key, val]) => `style--${key}--${val.selected}`)
                 .join(' ');
         }
-    }
+    },
+
+    watch: {
+        genreEnriched(newVal) {
+            const root = newVal ? this.genreRoots.enriched : this.genreRoots.basic;
+            // Mutated in place so settingsState.classifications' own Genre entry (which
+            // selectedClassification below is being replaced FROM, not this array itself)
+            // stays consistent too.
+            const genreClassification = this.settingsState.classifications.find(c => c.field === 'subject_key');
+            genreClassification.root = root;
+            // A new object (not just mutating .root on the existing one) so BookRoom's own
+            // `classification` prop watcher -- which resets activeRoom/breadcrumbs to the
+            // new tree -- actually fires; it isn't deep, so an in-place mutation alone
+            // wouldn't trigger it.
+            this.settingsState.selectedClassification = { ...genreClassification };
+            this.syncGenreFiltersToUrl();
+        },
+        filterState: {
+            deep: true,
+            handler() {
+                this.syncGenreFiltersToUrl();
+            },
+        },
+        'sortState.order'() {
+            this.syncGenreFiltersToUrl();
+        },
+    },
+    methods: {
+        // Mirrors genre mode's filter/sort/enrich state into the URL (replaceState, not
+        // pushState -- picking a filter isn't a "back button" moment) so a shelf's current
+        // view is shareable/bookmarkable. Only 'trending'/'new'/'old'/'rating' (this list
+        // matches GenreFilterBar.vue's own SORT_ITEMS) are ever reflected for `sort` --
+        // the random-seed default and DDC/LCC's own `<field>_sort asc` form aren't
+        // meaningful as a shareable param.
+        syncGenreFiltersToUrl() {
+            if (!this.settingsState.selectedClassification.alphabeticalTopNav) return;
+            const url = new URL(location.href);
+            const params = url.searchParams;
+            const setOrClear = (key, value, isDefault) => {
+                if (isDefault) params.delete(key);
+                else params.set(key, value);
+            };
+            setOrClear('readable', this.filterState.has_ebook, this.filterState.has_ebook === 'true');
+            setOrClear('audience', this.filterState.age, !this.filterState.age);
+            setOrClear('fiction', this.filterState.fiction, !this.filterState.fiction);
+            setOrClear('length', this.filterState.length, !this.filterState.length);
+            setOrClear('tags', this.filterState.tags.join(','), this.filterState.tags.length === 0);
+            const languageKeys = this.filterState.languages.map(lang => lang.key).join(',');
+            setOrClear('language', languageKeys, this.filterState.languages.length === 0);
+            const knownSort = ['trending', 'new', 'old', 'rating'].includes(this.sortState.order);
+            setOrClear('sort', this.sortState.order, !knownSort);
+            setOrClear('enrich', this.genreEnriched ? '1' : '0', this.genreEnriched);
+            history.replaceState(null, '', url);
+        },
+    },
 };
 </script>
 
@@ -364,8 +556,7 @@ hr {
     #5f432d
   );
   border: 0;
-  padding: 10px;
-  padding-top: 36px;
+  padding: 36px 0 10px;
   box-sizing: border-box;
   color: white;
 }
@@ -408,18 +599,13 @@ hr {
 }
 .book-room.style--aesthetic--wip .shelf-carousel {
   border: 0;
-  margin: 0 10px;
+  margin: 0;
   background-color: #563822;
   background-image: linear-gradient(
     to bottom,
     rgba(0, 0, 0, .36),
     #563822 50px
   );
-}
-@media (max-width: 450px) {
-  .book-room.style--aesthetic--wip .shelf-carousel {
-    margin: 0;
-  }
 }
 .book-room.style--aesthetic--wip .class-slider.shelf-label {
   border: 0;

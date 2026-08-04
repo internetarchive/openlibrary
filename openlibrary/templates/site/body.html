@@ -19,8 +19,10 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
   $# on form pages e.g. manage-covers, add-cover we do not display the header
   $# this is consistent with version 1.
   $if show_ol_shell:
-    $:render_template("site/alert")
-    $:render_template("lib/nav_head", None)
+    <div id="site-header-autohide" class="site-header-autohide">
+      $:render_template("site/alert")
+      $:render_template("lib/nav_head", None)
+    </div>
   $# don't render test-body-mobile for iframes
   <main $:('id="test-body-mobile"' if show_ol_shell else '')>
     $if show_ol_shell:
