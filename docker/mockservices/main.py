@@ -390,6 +390,77 @@ async def amazon_get_items(request: Request) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# Matomo Reporting API  (Core Vitals retention scoring, issue #11956)
+# POST /matomo/index.php
+#
+# matomo.archive.org is restricted to IA's network, so retention scoring is
+# otherwise untestable locally. Point the client at this instead:
+#   MATOMO_URL=http://mockservices:8090/matomo
+#
+# Returns visits in the exact shape Live.getLastVisitsDetails does, which is
+# the part worth mocking faithfully: `dimension1` is a FLAT field on the visit
+# (not nested under `customDimensions`, which this endpoint deliberately never
+# returns), and engagement lives in `actionDetails` as a mix of `event` and
+# `action` entries. Reading dimension1 from the wrong place is a real bug this
+# pipeline shipped, so the mock encodes the true wire format.
+# ---------------------------------------------------------------------------
+
+MATOMO_COHORTS = ["visitor", "d0", "d1+", "d7+", "d14+", "d30+", "d90+"]
+
+# (eventCategory, eventAction) pairs the scorer recognises, plus one it does
+# not, so tests can assert unmapped events are ignored rather than crashing.
+MATOMO_SAMPLE_EVENTS = [
+    ("CTAClick", "Read"),
+    ("CTAClick", "Borrow"),
+    ("CTAClick", "Edit"),
+    ("ReadingLog", "WantToRead"),
+    ("MainNav", "MyBooks"),
+    ("PatronImports", "Goodreads"),
+    ("SearchModal", "Open"),
+]
+
+
+def _matomo_visit(index: int, since_timestamp: int) -> dict:
+    """One synthetic visit, deterministic in `index` so tests can assert exactly."""
+    cohort = MATOMO_COHORTS[index % len(MATOMO_COHORTS)]
+    category, action = MATOMO_SAMPLE_EVENTS[index % len(MATOMO_SAMPLE_EVENTS)]
+    return {
+        "idVisit": str(index),
+        # Flat, exactly as the real API returns it.
+        "dimension1": cohort,
+        "visitorId": f"visitor{index:04d}",
+        "userId": None,
+        "firstActionTimestamp": since_timestamp + index,
+        "serverTimestamp": since_timestamp + index,
+        "actionDetails": [
+            {"type": "event", "eventCategory": category, "eventAction": action},
+            {"type": "action", "url": f"https://openlibrary.org/works/OL{index}W/Mock_Book"},
+        ],
+    }
+
+
+@app.post("/matomo/index.php")
+async def matomo_api(request: Request) -> JSONResponse:
+    form = await request.form()
+    method = str(form.get("method", ""))
+
+    if not form.get("token_auth"):
+        return JSONResponse({"result": "error", "message": "Requests to the API must be authenticated"})
+
+    if method != "Live.getLastVisitsDetails":
+        return JSONResponse({"result": "error", "message": f"Mock does not implement {method}"})
+
+    # Honour paging so the client's pagination loop is genuinely exercised.
+    total = int(str(form.get("mock_total_visits", "12")))
+    limit = int(str(form.get("filter_limit", "500")))
+    offset = int(str(form.get("filter_offset", "0")))
+    since = int(str(form.get("minTimestamp", "0")))
+
+    visits = [_matomo_visit(i, since) for i in range(offset, min(offset + limit, total))]
+    return JSONResponse(visits)
+
+
+# ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
 
