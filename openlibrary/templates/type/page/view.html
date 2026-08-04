@@ -9,6 +9,13 @@ $if title.startswith("i18n::") and title.count(':') == 3:
 
 $var title: $title
 
+$# Curated collections get their own bundle: Literata titles and a centered reading column.
+$ is_collection = page.key == '/collections' or page.key.startswith('/collections/')
+$if is_collection:
+    $ _x = ctx.setdefault('cssfile', 'collections')
+    $ bodyclass = ctx.setdefault('bodyclass', [])
+    $ _x = bodyclass.append('collections-page')
+
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
         $:macros.databarView(page)
@@ -16,6 +23,15 @@ $if '<!--suppress-title-->' not in page.body:
             <div class="superNav">
                 <a href="/community">$_("Community")</a> /
             </div>
+        $# The index page lists collections rather than being one, so it gets no label.
+        $if is_collection and page.key != '/collections':
+            $ book_count = get_collection_book_count(page)
+            <p class="collection-eyebrow">
+                <span>$_("Collection")</span>
+                $if book_count:
+                    <span class="collection-eyebrow__separator" aria-hidden="true">&middot;</span>
+                    <span>$ungettext("%(count)s book", "%(count)s books", book_count, count=commify(book_count))</span>
+            </p>
         <h1>$title</h1>
     </div>
 

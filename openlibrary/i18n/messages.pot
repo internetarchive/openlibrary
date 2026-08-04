@@ -7014,6 +7014,17 @@ msgstr ""
 msgid "Community"
 msgstr ""
 
+#: type/page/view.html
+msgid "Collection"
+msgstr ""
+
+#: type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
 #: type/permission/edit.html
 msgid "Readers:"
 msgstr ""

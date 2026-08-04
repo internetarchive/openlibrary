@@ -1635,6 +1635,23 @@ def subject_name_to_key(subject: str, prefix="") -> str:
     return f"/subjects/{prefix}{normalize_subject_name(subject)}"
 
 
+LIST_CAROUSEL_RE = re.compile(r"""\{\{ListCarousel\(\s*["']([^"']+)["']""")
+
+
+@public
+def get_collection_book_count(page) -> int | None:
+    """Number of books a /collections/* page holds, summed over the lists its
+    ListCarousel macros point at. Returns None when the page has no such macro
+    (e.g. it only embeds search-query carousels), so callers can drop the count.
+    """
+    body = page.get("body") or ""
+    # Each key arrives with a display slug appended: /people/x/lists/OL1L/Name.
+    keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
+    if not (lists := [lst for key in sorted(keys) if (lst := web.ctx.site.get(key))]):
+        return None
+    return sum(lst.seed_count for lst in lists)
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 

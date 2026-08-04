@@ -1,0 +1,165 @@
+/**
+ * Collections pages (/collections and its sub-pages)
+ * =================================================
+ * A long-form reading layout: one centered column holding left-aligned text at
+ * a comfortable measure, with images allowed to break out wider than the text.
+ * Titles are set in Literata.
+ */
+
+.collections-page {
+  /* Reading measure for text. Images break out to the wider value.
+     rem, not em: a var() length resolves against the font-size of whatever
+     element uses it, so an em measure would widen the column under every
+     heading rather than holding one column down the page. */
+  --collections-measure: 40rem;
+  --collections-media-width: 60rem;
+  /* The title sits between the two: wider than the reading measure so it isn't
+     forced into a narrow stack, short of the image so it stays a display line. */
+  --collections-title-measure: 48rem;
+}
+
+/* The layout hooks are ids owned by type/page/view.html, and the image rule has
+   to outrank layout/index.css's `div#contentBody img`. */
+/* stylelint-disable selector-max-specificity */
+
+/* === centered column === */
+
+/* Full width so the edit metadata can sit in the page's top-right corner. The
+   title centers itself below it rather than inheriting the head's box.
+   Column, not float, so the two can never overlap on a narrow screen. */
+/* legacy.css caps the head at a hardcoded 1018px, 40px narrower than
+   #contentBody — enough to push the centered title off the body's axis. */
+.collections-page #contentHead {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding: var(--spacing-inset-md);
+}
+
+.collections-page #contentHead #editTools {
+  align-self: flex-end;
+}
+
+/* #contentBody keeps its page padding; each block inside is centered and
+   capped instead, so images can opt out and run wider below. */
+.collections-page #contentBody > * {
+  max-width: var(--collections-measure);
+  margin-inline: auto;
+}
+
+/* === titles === */
+
+/* Kicker above the title: what this page is, and how big. Uppercase and wide
+   tracking let it read as a label at a size small enough to stay subordinate
+   to the title it introduces. */
+.collections-page #contentHead .collection-eyebrow {
+  margin: var(--spacing-stack-lg) auto 0;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accessible-grey);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.collection-eyebrow__separator {
+  margin-inline: 0.35em;
+}
+
+/* Centered, and set off from the metadata above it. The measure keeps a long
+   title breaking into a readable stack rather than one wide line. */
+.collections-page #contentHead h1 {
+  max-width: var(--collections-title-measure);
+  /* No bottom margin: the head's own padding already sets the gap to the body. */
+  margin: var(--spacing-stack-lg) auto 0;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-small);
+  line-height: var(--line-height-display);
+  color: var(--dark-grey);
+  text-align: center;
+}
+
+/* The eyebrow has taken over the gap down from the metadata, so the title only
+   needs the tight pairing gap. Pages without an eyebrow keep the rule above.
+   Ordered after it so the cascade reads in ascending specificity. */
+.collections-page #contentHead .collection-eyebrow + h1 {
+  margin-top: var(--spacing-stack-xs);
+}
+
+.collections-page #contentBody h2,
+.collections-page #contentBody h3,
+.collections-page #contentBody h4,
+.collections-page #contentBody h5,
+.collections-page #contentBody h6 {
+  font-family: var(--font-family-title);
+  line-height: var(--line-height-heading);
+  color: var(--dark-grey);
+  margin-top: var(--spacing-stack-xl);
+}
+
+/* === body text === */
+
+/* Larger and a touch lighter than the site default — at a 40rem measure this
+   lands near 75 characters a line, which is what the long-form reading
+   references are doing. */
+.collections-page #contentBody {
+  font-size: var(--font-size-body-xlarge);
+}
+
+/* common.css sets a color on p and li directly, so inheriting from the
+   container above wouldn't reach them. */
+.collections-page #contentBody p,
+.collections-page #contentBody li {
+  color: var(--darker-grey);
+}
+
+.collections-page #contentBody p {
+  line-height: var(--line-height-relaxed);
+}
+
+/* Drop cap on the paragraph that opens the story. Pages often lead with an
+   image-only paragraph, so the cap moves to the paragraph after it. */
+.collections-page #contentBody > p:first-of-type:not(:has(img))::first-letter,
+.collections-page #contentBody > p:first-of-type:has(img) + p::first-letter {
+  float: left;
+  font-family: var(--font-family-title);
+  /* Cap height set to reach from the first line's cap to the third baseline;
+     the short line-height keeps the float box under three lines so no fourth
+     line indents, and the negative top margin trims Literata's ascent slack. */
+  font-size: 5.4em;
+  font-weight: 500;
+  line-height: 0.86;
+  margin-top: -0.045em;
+  margin-right: 0.06em;
+  color: var(--dark-grey);
+}
+
+/* Two lines once the column narrows — a three-line cap on a phone leaves the
+   lines beside it only ~30 characters wide. */
+/* --width-breakpoint-tablet */
+@media only screen and (max-width: 768px) {
+  .collections-page #contentBody > p:first-of-type:not(:has(img))::first-letter,
+  .collections-page #contentBody > p:first-of-type:has(img) + p::first-letter {
+    font-size: 3.15em;
+    margin-top: 0.02em;
+  }
+}
+
+/* === images === */
+
+/* Images run wider than the text column. :only-child so a paragraph that mixes
+   an inline image with text keeps the reading measure. */
+.collections-page #contentBody > img,
+.collections-page #contentBody > p:has(> img:only-child) {
+  max-width: min(var(--collections-media-width), 100%);
+}
+
+.collections-page #contentBody img {
+  display: block;
+  margin-inline: auto;
+  margin-bottom: var(--spacing-stack-xl);
+  border-radius: var(--border-radius-media);
+}
+
+/* stylelint-enable selector-max-specificity */
