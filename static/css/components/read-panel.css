@@ -130,20 +130,6 @@ ul.ebook-download-options li {
   margin: 5px 0;
 }
 
-.buy-options-table {
-  line-height: 2em;
-}
-
-.buy-options-table .more {
-  margin-left: 0;
-  cursor: pointer;
-}
-
-.buy-options-table + small {
-  display: block;
-  margin-top: 10px;
-}
-
 .cta-section-title.world-cat-link {
   margin-top: 0;
 }
@@ -285,4 +271,112 @@ ul.ebook-download-options li {
   }
   /* stylelint-enable selector-max-specificity */
   /* stylelint-enable max-nesting-depth */
+}
+
+/* Buy popover: full-width trigger button */
+.buy-popover {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-stack-xs);
+}
+
+/* Buy options popover content */
+.buy-options {
+  box-sizing: border-box;
+  width: 100%;
+  background-color: var(--white);
+  border-radius: var(--border-radius-overlay);
+}
+
+@media only screen and (min-width: 768px) {
+  .buy-options {
+    width: 240px;
+  }
+}
+
+.buy-options .buy-option {
+  transition: background-color 0.2s;
+}
+
+.buy-options .buy-option:hover {
+  background-color: var(--lightest-grey);
+}
+
+.buy-options .buy-option__link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  color: var(--dark-grey);
+  text-decoration: none;
+  font-size: var(--font-size-body-medium);
+}
+
+.buy-options .buy-option__price {
+  font-size: var(--font-size-label-medium);
+  color: var(--accessible-grey);
+}
+
+/* Disclaimer with top horizontal border */
+.buy-options .buy-options__disclaimer {
+  display: block;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-top: 1px solid var(--lighter-grey);
+  color: var(--accessible-grey);
+  font-size: var(--font-size-label-medium);
+  line-height: 1.4;
+}
+
+.buy-options .buy-options__disclaimer a {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+
+/* Buy button custom styling (single button with left icon and right arrow) */
+.cta-btn--buy {
+  position: relative;
+  background-color: var(--grey-464646);
+  color: var(--white);
+  margin-top: 0;
+  height: 37px;
+  padding: 0 var(--spacing-inset-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn--buy:hover {
+  background-color: var(--dark-grey);
+}
+
+.cta-btn--buy .btn-icon.cart {
+  position: absolute;
+  left: 12px;
+}
+
+.cta-btn--buy .btn-label {
+  padding: 0;
+}
+
+.cta-btn--buy .arrow-down {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 32px;
+  height: 100%;
+  border-left: 1px solid var(--grey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn--buy .arrow-down::after {
+  content: "";
+  display: block;
+  width: 23px;
+  height: 23px;
+  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
+  background-position: 0;
+  background-size: 45px;
+  filter: brightness(0) invert(1);
 }
