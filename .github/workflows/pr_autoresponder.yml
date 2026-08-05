@@ -1,7 +1,32 @@
 name: PR Auto-Responder
 
-on:
-  pull_request:
+# pull_request_target, not pull_request.
+#
+# Under `pull_request`, a fork-originated run gets a read-only GITHUB_TOKEN and cannot
+# be granted `id-token: write` at all, so claude-code-action dies before doing anything:
+#   Action failed with error: Could not fetch an OIDC token.
+# Since Open Library takes most PRs from forks, this workflow failed on precisely the
+# contributors it exists to welcome, and succeeded only for staff. Recent casualties:
+# #13260, #13252, #13246. `pull_request_target` runs in the base-repo context and keeps
+# both the write token and OIDC.
+#
+# SECURITY -- read before editing the checkout step below.
+#
+# `pull_request_target` is only safe here because this job never executes fork code:
+# `actions/checkout` runs with NO `ref:`, so it checks out the BASE commit. Adding
+# `ref: ${{ github.event.pull_request.head.sha }}` (or head.ref) would check out the
+# contributor's branch and run it with a write token, a PAT and repository secrets in
+# scope. Do not do that.
+#
+# What remains, and is accepted deliberately: the model *reads* untrusted PR content
+# (title, body, diff) while holding OL_BOT_PAT, so prompt injection is a real surface.
+# It is bounded by --allowedTools below and by pr_autoresponder.md, which forbids
+# merging, closing and editing code. `Bash(gh api:*)` is the widest remaining grant --
+# narrowing it to the specific read calls Step 1 needs would shrink the surface further,
+# and is left as a follow-up rather than bundled here because changing allowedTools has
+# already been shown to alter behaviour in ways that need their own test cycle.
+on:  # zizmor: ignore[dangerous-triggers] -- safe: checkout below runs with NO `ref:`, so the base commit is checked out and no fork code is ever executed; see the SECURITY note above
+  pull_request_target:
     types: [opened]
   workflow_dispatch:
     inputs:
@@ -17,7 +42,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pr-autoresponder-${{ github.event.pull_request.number }}
+  # `github.event.pull_request.number` is empty on workflow_dispatch, which collapsed
+  # every manual run into one group named `pr-autoresponder-`. Fall back to the input.
+  group: pr-autoresponder-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
@@ -33,6 +60,8 @@ jobs:
        github.event.pull_request.user.login != 'openlibrary-bot' &&
        !github.event.pull_request.draft)
     steps:
+      # NO `ref:` -- deliberately checks out the base commit, not the PR head. See the
+      # SECURITY note at the top of this file before changing this.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
