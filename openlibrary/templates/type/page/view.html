@@ -10,7 +10,9 @@ $if title.startswith("i18n::") and title.count(':') == 3:
 $var title: $title
 
 $# Curated collections get their own bundle: Literata titles and a centered reading column.
-$ is_collection = page.key == '/collections' or page.key.startswith('/collections/')
+$# /type/i18n_page renders the translated doc, so /collections arrives here as /collections.en.
+$ key = page.key.split('.', 1)[0]
+$ is_collection = key == '/collections' or key.startswith('/collections/')
 $if is_collection:
     $ _x = ctx.setdefault('cssfile', 'collections')
     $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -24,7 +26,7 @@ $if '<!--suppress-title-->' not in page.body:
                 <a href="/community">$_("Community")</a> /
             </div>
         $# The index page lists collections rather than being one, so it gets no label.
-        $if is_collection and page.key != '/collections':
+        $if is_collection and key != '/collections':
             $ book_count = get_collection_book_count(page)
             <p class="collection-eyebrow">
                 <span>$_("Collection")</span>
