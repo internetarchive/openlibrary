@@ -781,7 +781,7 @@ def is_safe_redirect(url: str) -> bool:
     return not url.startswith(("//", "/\\"))
 
 
-def get_language(lang_or_key: str) -> None | Thing | Nothing:
+def get_language(lang_or_key: str) -> Thing | Nothing | None:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
