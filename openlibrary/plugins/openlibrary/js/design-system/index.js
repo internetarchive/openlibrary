@@ -6,6 +6,24 @@ import { WHITE, compositeOver, contrastOn, luminanceFromCssColor, parseCssColor 
 
 const CODE_VISIBLE_KEY = 'ol-design-show-code';
 
+// localStorage throws when storage is blocked (Safari private mode, some
+// enterprise policies). Remembering the toggle isn't worth taking the page down.
+function readStored(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function writeStored(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch {
+        // Preference just doesn't persist.
+    }
+}
+
 /**
  * Highlight the snippets, at most once, and only once they're revealed —
  * snippets are `display: none` by default, so doing it on load meant parsing a
@@ -96,7 +114,7 @@ function initCodeToggle(root) {
     const toggle = root.querySelector('[data-ds-code-toggle]');
     if (!toggle) return;
 
-    const visible = localStorage.getItem(CODE_VISIBLE_KEY) === 'true';
+    const visible = readStored(CODE_VISIBLE_KEY) === 'true';
     root.classList.toggle('ds--code-visible', visible);
     // Set the attribute rather than the property: this runs before <ol-toggle>
     // has necessarily upgraded, and a property set then would be overwritten.
@@ -107,7 +125,7 @@ function initCodeToggle(root) {
 
     toggle.addEventListener('ol-toggle-change', (event) => {
         root.classList.toggle('ds--code-visible', event.detail.checked);
-        localStorage.setItem(CODE_VISIBLE_KEY, String(event.detail.checked));
+        writeStored(CODE_VISIBLE_KEY, String(event.detail.checked));
         if (event.detail.checked) highlightCode(root);
     });
 }

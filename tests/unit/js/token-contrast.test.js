@@ -12,9 +12,11 @@ const css = fs.readFileSync(
     'utf8'
 );
 
-// --token-name: value; declarations (values may be hsl()/hsla()/var())
+// --token-name: value; declarations (values may be hsl()/hsla()/var()).
+// Comments are stripped first: the file documents itself in prose, and a
+// declaration written inside one would shadow the real token (later wins).
 const tokens = {};
-for (const [, name, value] of css.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
+for (const [, name, value] of css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
     tokens[name] = value.trim();
 }
 
