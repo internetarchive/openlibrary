@@ -53,6 +53,14 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "debugpy>=1.6.4",
+  # Build deps are pinned here (not just in [build-system]) so uv locks & caches them.
+  # uv doesn't track build-system.requires in uv.lock, so offline `uv run` can't
+  # fetch them to rebuild the editable `openlibrary` project. hatchling is the
+  # PEP 517 backend; editables is required by uv for the editable install itself.
+  # See https://github.com/astral-sh/uv/issues/8647 and
+  # https://github.com/astral-sh/uv/issues/8414
+  "editables~=0.3",
+  "hatchling>=1.25",
   "mypy==2.1.0",
   "pymemcache==4.0.0",
   "pytest==9.0.3",
