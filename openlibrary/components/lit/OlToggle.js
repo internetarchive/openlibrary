@@ -229,6 +229,13 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--lightest-grey));
             }
 
+            /* The off-state track sits only 6% below the hover fill, so it
+               washes out into the button. Drop it to --light-grey to restore
+               roughly the same separation it has against the resting white. */
+            :host([variant="button"]:not([checked]):not([disabled])) .toggle:hover {
+                --_toggle-track: var(--light-grey);
+            }
+
             :host([variant="button"][checked]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--color-control-selected-bg-hover);
                 --_toggle-border: var(--color-control-selected-border-hover);

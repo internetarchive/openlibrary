@@ -966,11 +966,11 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: design/toggle.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html work_search.html
+#: account/reading_log.html design/toggle.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: work_search.html
+#: account/reading_log.html type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
@@ -990,10 +990,17 @@ msgstr ""
 msgid "Filter by language"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/lists.html search/subjects.html work_search.html
+#: work_search.html
 #, python-format
-msgid "%(count)s hit"
-msgid_plural "%(count)s hits"
+msgid "%(start)s - %(end)s of %(total)s result"
+msgid_plural "%(start)s - %(end)s of %(total)s results"
+msgstr[0] ""
+msgstr[1] ""
+
+#: work_search.html
+#, python-format
+msgid "%(start)s - %(end)s of over %(total)s result"
+msgid_plural "%(start)s - %(end)s of over %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1638,15 +1645,12 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html type/author/view.html
+#: account/reading_log.html search/authors.html search/lists.html search/subjects.html
 #, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: account/reading_log.html
-#, python-format
-msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
-msgstr ""
+msgid "%(count)s hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
 
 #: account/reading_log.html
 msgid "No results found in this shelf"
@@ -2869,7 +2873,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -6006,16 +6010,16 @@ msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: EditionNavBar.html search/layout_options.html site/stats.html
-msgid "Details"
+#: search/layout_options.html
+msgid "View as"
+msgstr ""
+
+#: search/layout_options.html
+msgid "List"
 msgstr ""
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
-
-#: search/layout_options.html
-msgid "View as: "
 msgstr ""
 
 #: search/lists.html
@@ -6198,7 +6202,11 @@ msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sorting by"
+msgid "Sort by"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Sort results"
 msgstr ""
 
 #: search/sort_options.html
@@ -6309,6 +6317,10 @@ msgstr ""
 
 #: site/stats.html
 msgid "Debug Stats"
+msgstr ""
+
+#: EditionNavBar.html site/stats.html
+msgid "Details"
 msgstr ""
 
 #: stats/readinglog.html
@@ -6508,11 +6520,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
