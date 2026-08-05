@@ -80,8 +80,10 @@ export function initEditionsTable() {
             bAutoWidth: false,
             pageLength: currentLength ? currentLength : DEFAULT_LENGTH,
             drawCallback: function() {
-                if ($('#ile-toolbar')) {
-                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items'))['edition'];
+                // A jQuery object is always truthy, so check its length for the toolbar's presence.
+                if ($('#ile-toolbar').length) {
+                    // `ile-items` is unset until the first ILE selection is made.
+                    const editionStorage = JSON.parse(sessionStorage.getItem('ile-items') || '{}').edition || [];
                     const matchEdition = (string) => {
                         return string.match(/OL[0-9]+[a-zA-Z]/);
                     };
