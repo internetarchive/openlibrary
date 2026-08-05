@@ -13,13 +13,14 @@
   font-size: 0.8em;
 }
 
+/* Rendered as a row at the end of author and book pages, after the floated
+   content columns; `clear` keeps it below them instead of alongside. */
 .pageHistory__tools {
+  display: block;
+  clear: both;
+  text-align: right;
   font-size: 0.7em;
   padding-top: var(--spacing-inset-sm);
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  gap: var(--spacing-inline-sm);
   margin-bottom: calc(-1 * var(--spacing-sm));
 }
 

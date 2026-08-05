@@ -57,3 +57,6 @@ manifest-checksum.txt
 
 # Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
 docs/wiki/
+# Playwright output (npm run test:e2e)
+playwright-report/
+test-results/

@@ -320,6 +320,14 @@ jQuery(function() {
             .then((module) => module.initSearchFilterBar(searchFilterBar));
     }
 
+    // Page-local availability toggles (author pages, reading log). Unlike the
+    // search filter bar above, these don't share state across pages.
+    const resultsFilterToggles = document.querySelectorAll('.results-filter-toggle');
+    if (resultsFilterToggles.length) {
+        import(/* webpackChunkName: "results-filter-toggle" */ './results-filter-toggle')
+            .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
+    }
+
     // Author-suggestion avatars request photos with ?default=false, so a missing
     // photo 404s; hide the broken <img> to reveal the placeholder icon behind it
     // (mirrors the header search modal's _onAvatarError).
@@ -631,6 +639,13 @@ jQuery(function() {
     if (document.querySelector('.list-books')) {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
+    }
+
+    // Sort options popover (results toolbars)
+    const sortOptions = document.querySelector('.sort-options');
+    if (sortOptions) {
+        import(/* webpackChunkName: "sort-options" */ './sort_options')
+            .then(module => module.initSortOptions(sortOptions));
     }
 
     // Stats page login counts

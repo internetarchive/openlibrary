@@ -27,6 +27,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.plugins.openlibrary.pd import get_pd_org
 from openlibrary.utils.request_context import site
 
 try:
@@ -706,11 +707,11 @@ class OpenLibraryAccount(Account):
             u.save_preferences(prefs)
 
     def send_pd_email(self):
-        if org := self.pd_authority:
-            if org == "unqualified":
-                org = "vtmas_disabilityresources"
+        if org_id := self.pd_authority:
+            if org_id == "unqualified":
+                org_id = "vtmas_disabilityresources"
             displayname = web.safestr(self.displayname)
-            msg = render_template("email/account/pd_request", displayname=displayname, org=org)
+            msg = render_template("email/account/pd_request", displayname=displayname, org=get_pd_org(org_id))
             web.sendmail(
                 config.from_address,
                 self.email,
