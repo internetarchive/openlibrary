@@ -47,6 +47,15 @@
   margin-inline: auto;
 }
 
+/* Book carousels escape the reading measure and run the full body width.
+   Three shapes can reach the body: the lazy placeholder, the wrapper div the
+   lazy loader swaps in, and a directly rendered section (lazy=False). */
+.collections-page
+  #contentBody
+  > :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section) {
+  max-width: none;
+}
+
 /* === titles === */
 
 /* Kicker above the title: what this page is, and how big. Uppercase and wide
@@ -155,7 +164,10 @@
   max-width: min(var(--collections-media-width), 100%);
 }
 
-.collections-page #contentBody img {
+/* Prose images only: direct children or inside a top-level paragraph. Book
+   covers in carousels sit deeper in the tree and keep their component styles. */
+.collections-page #contentBody > img,
+.collections-page #contentBody > p img {
   display: block;
   margin-inline: auto;
   margin-bottom: var(--spacing-stack-xl);
