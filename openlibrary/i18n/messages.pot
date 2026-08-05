@@ -7715,6 +7715,10 @@ msgstr ""
 msgid "See more books by %(name)s"
 msgstr ""
 
+#: SubjectSearch.html
+msgid "Search for a subject"
+msgstr ""
+
 #: SubjectTags.html
 msgid "Manage Subjects"
 msgstr ""
