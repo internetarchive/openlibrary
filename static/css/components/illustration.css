@@ -9,6 +9,10 @@
   margin-bottom: var(--spacing-stack-sm);
   position: relative;
   z-index: var(--z-index-level-1);
+  /* Contain the cover's behind-parent animation layer (.cover-animation,
+     z-index: behind) explicitly, so it stays contained even if the z-index
+     above is ever removed. */
+  isolation: isolate;
 }
 .illustration img {
   width: 180px;
