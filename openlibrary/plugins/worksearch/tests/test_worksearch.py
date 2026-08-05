@@ -3,8 +3,10 @@ from unittest.mock import patch
 import web
 
 from openlibrary.plugins.worksearch.code import (
+    SearchResponse,
     _get_readable_count,
     _prepare_solr_query_params,
+    describe_solr_query,
     get_doc,
     process_facet,
 )
@@ -232,3 +234,85 @@ def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
     assert readable_param["has_fulltext"] == "true"
     assert "public_scan" not in readable_param
     assert mock_query.call_args.kwargs["rows"] == 0
+
+
+def test_describe_solr_query_omits_user_query_text():
+    """The shape is logged to Sentry, so it must not carry what the patron typed."""
+    secret = "my private search terms"
+    shape = describe_solr_query(
+        "/solr/openlibrary/select",
+        [
+            ("q", "({!edismax v=$workQuery})"),
+            ("workQuery", secret),
+            ("ol.label", "WorkSearch"),
+            ("fq", "type:work"),
+            ("fq", "author_key:OL874808A"),
+            ("start", "0"),
+            ("rows", "20"),
+        ],
+    )
+    assert secret not in repr(shape)
+    assert shape["label"] == "WorkSearch"
+    # Field names are kept; the values they filter on are not.
+    assert shape["fq_fields"] == ["author_key", "type"]
+    assert "OL874808A" not in repr(shape)
+
+
+def test_describe_solr_query_flags_expensive_shapes():
+    shape = describe_solr_query(
+        "/solr/openlibrary/select",
+        [
+            ("ol.label", "ReadingLog"),
+            ("q", "key:(/works/OL1W OR /works/OL2W OR /works/OL3W)"),
+            ("start", "100000"),
+            ("rows", "100"),
+            ("facet.field", "subject_facet"),
+            ("facet.field", "person_facet"),
+            ("spellcheck", "true"),
+        ],
+    )
+    # Deep paging and large boolean queries are the usual culprits.
+    assert shape["start"] == 100000
+    assert shape["or_clauses"] == 2
+    assert shape["facet_fields"] == 2
+    assert shape["spellcheck"] is True
+
+
+def test_describe_solr_query_detects_block_join():
+    shape = describe_solr_query(
+        "/solr/openlibrary/select",
+        [
+            ("q", '_query_:"{!parent which=type:work v=$fullEdQuery}"'),
+            ("fl", "key,editions:[subquery]"),
+        ],
+    )
+    assert shape["block_join"] is True
+    assert shape["subquery"] is True
+    assert shape["label"] == "UNLABELLED"
+
+
+def test_search_response_flags_partial_results():
+    """Solr returns 200 + partialResults when it gives up early; don't swallow it."""
+    solr_result = {
+        "responseHeader": {"QTime": 10001, "partialResults": True},
+        "response": {"docs": [{"key": "/works/OL1W"}], "numFound": 1},
+    }
+    resp = SearchResponse.from_solr_result(solr_result, "", "", time=10.5)
+    assert resp.partial_results is True
+    assert resp.num_found == 1
+
+
+def test_search_response_partial_results_accepts_string_flag():
+    solr_result = {
+        "responseHeader": {"partialResults": "true"},
+        "response": {"docs": [], "numFound": 0},
+    }
+    assert SearchResponse.from_solr_result(solr_result, "", "", time=1.0).partial_results is True
+
+
+def test_search_response_complete_results_not_flagged_partial():
+    solr_result = {
+        "responseHeader": {"QTime": 12},
+        "response": {"docs": [], "numFound": 0},
+    }
+    assert SearchResponse.from_solr_result(solr_result, "", "", time=0.1).partial_results is False
