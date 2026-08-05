@@ -497,8 +497,15 @@ class MyBooksTemplate:
             safe_url = web.net.websafe(url if is_safe_redirect(url) else "/")
             safe_action = web.net.websafe(action)
 
+            # `data-ol-link-track` must be server-rendered, not attached in JS.
+            # Matomo picks these up via a tag-manager trigger (`Data_OL_Link_Track`)
+            # that does not see attributes added after the document is parsed, so an
+            # attribute applied at DOMContentLoaded reaches Athena but never Matomo.
+            # See #13261.
             msg = msg_template % {
-                "link_start": f'<a href="{safe_url}" class="pending-action-link" data-action="{safe_action}"><strong>',
+                "link_start": (
+                    f'<a href="{safe_url}" class="pending-action-link" data-action="{safe_action}" data-ol-link-track="PreserveIntent|Continue"><strong>'
+                ),
                 "link_mid": "</strong> <em>" if name else "</strong>",
                 "name": web.net.websafe(name) if name else "",
                 "link_end": "</em></a>" if name else "</a>",

@@ -617,10 +617,21 @@ class account_login(delegate.page):
         if flash_message := self.perform_post_login_action(action, ol_account):
             add_flash_message("note", _(flash_message))
 
+        has_pending_action = bool(web.cookies().get("pending_action"))
         if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
             redirect = "/account/books"
         else:
             web.setcookie("pending_action", "", expires=-1)
+            if has_pending_action:
+                # This is the silent success path: the intent is resumed by
+                # redirecting straight to it, so no banner renders and there is no
+                # element for a click event to hang off. Hand the event to the next
+                # pageview via a short-lived cookie, which `site/head.html` turns
+                # into a Matomo event and clears — the same one-shot pattern
+                # `ol_activation` uses for ActivationSuccess (#13190). Keeping it in
+                # Matomo means it stays segmentable by device and patron cohort.
+                # See #13261.
+                web.setcookie("ol_pi_resumed", "1", expires=300)
         stats.increment("ol.account.xauth.login")
         raise web.seeother(redirect)
 

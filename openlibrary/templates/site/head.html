@@ -69,6 +69,13 @@ $def with (title)
      _paq.push(['trackEvent', 'Account', 'ActivationSuccess']);
      document.cookie = 'ol_activation=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
    }
+   // One-shot ResumedViaRedirect: cookie set on login when a pending_action is
+   // resumed by redirecting straight to it. No banner renders on that path, so
+   // there is no element to attach a click event to (issue #13261).
+   if (document.cookie.match(/(?:^|;\s*)ol_pi_resumed=1/)) {
+     _paq.push(['trackEvent', 'PreserveIntent', 'ResumedViaRedirect']);
+     document.cookie = 'ol_pi_resumed=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+   }
 
    var _mtm = window._mtm = window._mtm || [];
    _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
