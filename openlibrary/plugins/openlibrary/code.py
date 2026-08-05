@@ -24,7 +24,7 @@ from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
-from openlibrary.core.env import get_ol_env, get_ol_env_name
+from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.core.features import features as ol_features
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
@@ -1144,7 +1144,7 @@ def setup_template_globals():
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
-            "get_ol_env_name": get_ol_env_name,
+            "get_deployment_name": get_deployment_name,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,

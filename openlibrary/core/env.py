@@ -14,7 +14,7 @@ class OLEnv:
         return os.environ.get("LOCAL_DEV") == "true"
 
 
-def get_ol_env_name() -> str:
+def get_deployment_name() -> str:
     """Which deployment this request is served from, based on the host.
 
     Drives dev-facing UI cues (favicon, logo badge) so localhost,

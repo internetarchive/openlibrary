@@ -23,7 +23,7 @@ $def with (title)
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
     <link href="/static/images/openlibrary-167x167.png" rel="apple-touch-icon" sizes="167x167" />
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
-    $ ol_env = get_ol_env_name()
+    $ ol_env = get_deployment_name()
     $if ol_env == 'production':
         <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
         <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
