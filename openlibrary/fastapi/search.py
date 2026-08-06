@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -391,10 +391,9 @@ async def search_facets_json(
     request: Request,
     params: Annotated[PublicQueryOptions, Depends()],
     field: Annotated[
-        list[FacetField] | None,
-        Query(description="Facet field(s) to return. Repeat for multiple."),
-    ] = None,
-    sfw: Annotated[str | None, Cookie()] = None,
+        list[FacetField],
+        Query(min_length=1, description="Facet field(s) to return. Repeat for multiple."),
+    ],
     solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
 ) -> dict[str, list[FacetValue]]:
     """
@@ -406,9 +405,6 @@ async def search_facets_json(
 
     Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
     """
-    if not field:
-        raise HTTPException(status_code=400, detail="At least one 'field' parameter is required.")
-
     search_response = await run_solr_query_async(
         WorkSearchScheme(lang=request.state.lang),
         params.model_dump(exclude_none=True),

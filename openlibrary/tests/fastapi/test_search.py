@@ -400,8 +400,10 @@ class TestSearchFacetsEndpoint:
 
     def test_requires_field_param(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?q=tolkien")
-        assert response.status_code == 400
-        assert "field" in response.json()["detail"]
+        # FastAPI enforces required + min_length=1 on `field`, returns 422 when absent
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any("field" in err["loc"] for err in detail)
 
     def test_rejects_invalid_field(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?field=notafield&q=tolkien")
