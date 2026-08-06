@@ -22,6 +22,7 @@ import os
 import pytest
 import requests
 
+from openlibrary.core import retention
 from openlibrary.core.matomo import MatomoClient
 
 MOCKSERVICES_URL = os.environ.get("MOCKSERVICES_URL", "http://mockservices:8090")
@@ -266,3 +267,22 @@ class TestMatomoMock:
         """A page_size below the feed size must still return everything, in order."""
         visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=5)
         assert [v["idVisit"] for v in visits] == [str(i) for i in range(12)]
+
+    def test_scorer_produces_the_hand_computed_total(self, client):
+        scores = retention.gather_retention_scores(client=client)
+        assert scores["visits"] == 12
+        assert scores["r_total"] == pytest.approx(self.EXPECTED_R_TOTAL)
+        assert sum(c["patrons"] for c in scores["classes"].values()) == self.EXPECTED_PATRONS
+
+    def test_class_contributions_match_by_hand(self, client):
+        classes = retention.gather_retention_scores(client=client)["classes"]
+        assert classes["visitor"]["contribution"] == pytest.approx(2.10)
+        assert classes["registrant"]["contribution"] == pytest.approx(42.00)
+        assert classes["returning"]["contribution"] == pytest.approx(157.50)
+        assert classes["retained"]["contribution"] == pytest.approx(5.00)
+
+    def test_unmapped_events_are_ignored_not_fatal(self, client):
+        """SearchModal|Open is real Matomo traffic the schema has no row for."""
+        events = retention.gather_retention_scores(client=client)["events"]
+        assert "read" in events
+        assert all(name in retention.EVENT_POINTS for name in events)
