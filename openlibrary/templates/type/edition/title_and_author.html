@@ -23,7 +23,7 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
               ($work.first_publish_year)
             </span>
     </div>
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+    $if ctx.user and ctx.user.is_super_librarian_or_higher():
       $ primary_series = work.get_primary_series() if work else None
       $if primary_series:
         <div class="series-line">
