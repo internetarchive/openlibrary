@@ -168,13 +168,13 @@ def _default_facets_response():
         # process_facet_counts renames author_facet → author_key in this dict
         facet_counts={
             "language": [
-                ("English", "English", 665),
-                ("German", "German", 32),
-                ("Spanish", "Spanish", 18),
-                ("Latin", "Latin", 0),  # zero-count entry — should be filtered out
+                ("eng", "English", 665),
+                ("deu", "German", 32),
+                ("spa", "Spanish", 18),
+                ("lat", "Latin", 0),  # zero-count entry — should be filtered out
             ],
             "author_key": [
-                ("J.R.R. Tolkien", "OL9A", 123),
+                ("OL9A", "J.R.R. Tolkien", 123),
             ],
             "subject_facet": [
                 ("Fantasy", "Fantasy", 89),

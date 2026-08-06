@@ -418,13 +418,14 @@ class TestSearchFacetsEndpoint:
         values = data["language"]
         assert len(values) > 0
         assert all("value" in v and "count" in v and "label" in v for v in values)
+        assert values[0] == {"value": "eng", "label": "English", "count": 665}
 
     def test_filters_zero_count_values(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?field=language&q=tolkien")
         assert response.status_code == 200
         data = response.json()
-        # "Latin" has count=0 in the mock — must not appear
-        assert not any(v["value"] == "Latin" for v in data["language"])
+        # "Latin" (code "lat") has count=0 in the mock — must not appear
+        assert not any(v["value"] == "lat" for v in data["language"])
         assert all(v["count"] > 0 for v in data["language"])
 
     def test_returns_multiple_fields(self, fastapi_client, mock_run_solr_query_async):
@@ -441,6 +442,7 @@ class TestSearchFacetsEndpoint:
         data = response.json()
         assert "author_facet" in data
         assert "author_key" not in data
+        assert data["author_facet"] == [{"value": "OL9A", "label": "J.R.R. Tolkien", "count": 123}]
 
     def test_empty_query_returns_valid_response(self, fastapi_client, mock_run_solr_query_async):
         """No q param should still return a valid (unfiltered) facet list."""

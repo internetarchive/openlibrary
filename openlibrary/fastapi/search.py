@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
@@ -54,6 +55,10 @@ FacetField = Literal[
 # process_facet_counts renames author_facet → author_key internally; map back so
 # the response key always matches the caller's requested field name.
 _FACET_INTERNAL_RENAME = {"author_key": "author_facet"}
+
+# Whether to expose internal-only endpoints in the OpenAPI schema.
+# Only shown when running with LOCAL_DEV set (e.g. docker compose).
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
 
 class PublicQueryOptions(BaseModel):
@@ -376,7 +381,12 @@ async def search_authors_json(
     return raw_resp
 
 
-@router.get("/search/facets.json", tags=["search"], response_model=dict[str, list[FacetValue]])
+@router.get(
+    "/search/facets.json",
+    tags=["internal"],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+    response_model=dict[str, list[FacetValue]],
+)
 async def search_facets_json(
     request: Request,
     params: Annotated[PublicQueryOptions, Depends()],
@@ -416,8 +426,8 @@ async def search_facets_json(
             output_key = _FACET_INTERNAL_RENAME.get(facet_field, facet_field)
             if output_key not in result:
                 continue
-            # values are (display_label, filter_value, count) tuples; label differs
+            # values are (filter_value, display_label, count) tuples; label differs
             # from value for author_facet (name vs OL key) and "Name|key" subject fields.
-            result[output_key] = [FacetValue(value=filter_val, label=display_label, count=count) for display_label, filter_val, count in values if count > 0]
+            result[output_key] = [FacetValue(value=value, label=label, count=count) for value, label, count in values if count > 0]
 
     return result
