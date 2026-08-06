@@ -11,8 +11,8 @@ import zipfile
 
 import internetarchive as ia
 import web
-
 from infogami.infobase import utils
+
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import (
     find_image_path,  # noqa: F401 side effects may be needed
@@ -61,11 +61,16 @@ class Uploader:
         :param item: name of archive.org item to look within, e.g. `s_covers_0008`
         :param filename: filename to look for within item
         """
-        zip_command = rf'ia list {item} | grep "{filename}" | wc -l'
         if verbose:
-            print(zip_command)
-        zip_result = subprocess.run(zip_command, shell=True, text=True, capture_output=True, check=True)
-        return int(zip_result.stdout.strip()) == 1
+            print(f"ia list {item}")
+        result = subprocess.run(
+            ["ia", "list", item],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        matches = [line for line in result.stdout.splitlines() if filename in line]
+        return len(matches) == 1
 
 
 class Batch:
@@ -416,9 +421,13 @@ class ZipManager:
 
     @staticmethod
     def count_files_in_zip(filepath):
-        command = f'unzip -l {filepath} | grep "jpg" |  wc -l'
-        result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
-        return int(result.stdout.strip())
+        result = subprocess.run(
+            ["unzip", "-l", filepath],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        return sum(1 for line in result.stdout.splitlines() if "jpg" in line)
 
     def get_zipfile(self, name):
         cid = web.numify(name)

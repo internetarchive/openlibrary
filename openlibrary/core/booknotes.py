@@ -210,5 +210,5 @@ class Booknotes(db.CommonExtras):
                 where=("work_id=$work_id AND username=$username AND edition_id=$edition_id"),
                 vars=where,
             )
-        except:  # we want to catch no entry exists
+        except Exception:  # noqa: BLE001
             return None
