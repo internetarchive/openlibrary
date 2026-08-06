@@ -14,7 +14,6 @@ import datetime
 import logging
 import os
 import re
-from collections.abc import Mapping
 from typing import cast
 
 import requests
@@ -359,7 +358,7 @@ def is_low_quality_book(book_item) -> bool:
     return bool("independently published" in publishers and publish_year >= 2018 and title_words & EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES)
 
 
-def is_published_in_future_year(book_item: Mapping[str, str | list]) -> bool:
+def is_published_in_future_year(book_item) -> bool:
     """
     Prevent import of books with a publication after the current year.
 
