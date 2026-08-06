@@ -267,7 +267,12 @@ dialect = "postgres"
 #          stable scripts where changing join syntax risks introducing bugs
 # Joins:
 #   JJ01 - explicit join type: bare JOIN (implicit INNER) is the codebase convention
-exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01"
+# Postgres:
+#   PG01 - CREATE INDEX without CONCURRENTLY: schema/index files create indexes
+#          on freshly created tables (issued concurrently is not appropriate here;
+#          tables are created in this same snapshot, so CONCURRENTLY is unnecessary
+#          and adds awkward syntax for edge-case workflows
+exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01,PG01"
 
 [tool.sqlfluff.indentation]
 tab_space_size = 4

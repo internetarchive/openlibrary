@@ -23,7 +23,7 @@ $def with (title)
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
     <link href="/static/images/openlibrary-167x167.png" rel="apple-touch-icon" sizes="167x167" />
     <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
-    $ ol_env = get_ol_env()
+    $ ol_env = get_deployment_name()
     $if ol_env == 'production':
         <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
         <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
@@ -98,7 +98,7 @@ $def with (title)
  */
   </script>
 
-    $if "dev" in ctx.features:
+    $if get_ol_env().LOCAL_DEV:
         <link href="$static_url('build/css/page-dev.css')" rel="stylesheet" type="text/css"/>
 
     <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />

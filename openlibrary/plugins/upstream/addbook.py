@@ -285,7 +285,7 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(self, i: web.utils.Storage) -> None | Work | Edition | list[web.utils.Storage]:
+    def find_matches(self, i: web.utils.Storage) -> Work | Edition | list[web.utils.Storage] | None:
         """
         Tries to find an edition, or work, or multiple work candidates that match the
         given input data.
@@ -367,7 +367,7 @@ class addbook(delegate.page):
         publish_year: str | None = None,
         id_name: str | None = None,
         id_value: str | None = None,
-    ) -> None | Edition | list[web.Storage]:
+    ) -> Edition | list[web.Storage] | None:
         """
         Searches solr for potential edition matches.
 
