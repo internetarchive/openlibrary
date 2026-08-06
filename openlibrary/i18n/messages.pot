@@ -2873,7 +2873,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -7712,6 +7712,10 @@ msgstr ""
 #. Short label displayed next to the count of readers who stopped reading this book before finishing, shown in the stats bar on a book page. Example: "348 Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
+msgstr ""
+
+#: SubjectSearch.html
+msgid "Search for a subject"
 msgstr ""
 
 #: SubjectTags.html

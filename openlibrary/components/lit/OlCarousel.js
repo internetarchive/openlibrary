@@ -62,6 +62,9 @@ export class OlCarousel extends LitElement {
     static styles = css`
         :host {
             display: block;
+            /* A shadow root is not a stacking context — without this the
+               edge fades' and arrows' z-index compete with the whole page. */
+            isolation: isolate;
             --_arrow-color: var(--ol-carousel-arrow-color, #333);
             --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, #fff);
             --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, hsl(55, 20%, 83%));
@@ -162,7 +165,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: calc(var(--_peek, 0.075) * 100% + 16px);
-            z-index: 1;
+            z-index: var(--z-index-local-1);
             pointer-events: none;
         }
 
@@ -189,7 +192,7 @@ export class OlCarousel extends LitElement {
             top: 0;
             bottom: 0;
             width: var(--_arrow-icon-size);
-            z-index: 2;
+            z-index: var(--z-index-local-2);
             border: none;
             background: none;
             cursor: pointer;

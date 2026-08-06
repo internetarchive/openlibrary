@@ -209,23 +209,23 @@
 }
 
 .search-result-item__preview-covers :nth-child(1) {
-  z-index: var(--z-index-level-5);
+  z-index: var(--z-index-local-5);
 }
 
 .search-result-item__preview-covers :nth-child(2) {
-  z-index: var(--z-index-level-4);
+  z-index: var(--z-index-local-4);
 }
 
 .search-result-item__preview-covers :nth-child(3) {
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-3);
 }
 
 .search-result-item__preview-covers :nth-child(4) {
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-local-2);
 }
 
 .search-result-item__preview-covers :nth-child(5) {
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-local-1);
 }
 
 .srw__chapters {
@@ -279,7 +279,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .search-result-item__preview-covers :hover {
-    z-index: var(--z-index-level-5);
+    z-index: var(--z-index-local-5);
   }
 
   .search-result-item__preview-covers :hover img {
@@ -292,7 +292,7 @@
 }
 
 .search-result-item__preview-covers :focus-visible {
-  z-index: var(--z-index-level-5);
+  z-index: var(--z-index-local-5);
   box-shadow: var(--box-shadow-focus);
   border-radius: var(--border-radius-thumbnail);
   outline: none;
