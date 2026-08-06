@@ -3,11 +3,12 @@ from __future__ import annotations
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from typing import get_args
 from urllib.parse import urlencode
 
 import pytest
 
-from openlibrary.fastapi.search import PublicQueryOptions
+from openlibrary.fastapi.search import FacetField, PublicQueryOptions
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
 
 
@@ -451,3 +452,11 @@ class TestSearchFacetsEndpoint:
         response = fastapi_client.get("/search/facets.json?field=language")
         assert response.status_code == 200
         assert "language" in response.json()
+
+    def test_facet_field_literal_matches_scheme(self):
+        """FacetField Literal must stay in sync with WorkSearchScheme.facet_fields.
+
+        Guards against drift: if a facet field is added/removed upstream, this
+        fails so the endpoint doesn't silently 422 on (or miss) it.
+        """
+        assert set(get_args(FacetField)) == WorkSearchScheme.facet_fields
