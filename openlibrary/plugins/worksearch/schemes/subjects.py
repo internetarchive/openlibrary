@@ -4,6 +4,7 @@ from datetime import datetime
 from types import MappingProxyType
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.solr.query_utils import fully_escape_query
 
 if typing.TYPE_CHECKING:
     from openlibrary.fastapi.models import SolrInternalsParams
@@ -54,7 +55,7 @@ class SubjectSearchScheme(SearchScheme):
         solr_internals_params: SolrInternalsParams | None = None,
     ) -> list[tuple[str, str]]:
         return [
-            ("q", q),
+            ("q", fully_escape_query(q)),
             ("q.op", "AND"),
             ("defType", "edismax"),
         ]
