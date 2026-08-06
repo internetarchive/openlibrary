@@ -856,9 +856,9 @@ def validate_record(rec: dict) -> None:
         raise SourceNeedsISBN
 
 
-def find_match(rec: dict, edition_pool: dict) -> str | None:
+def find_match(rec: dict) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
-    return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
+    return find_quick_match(rec) or find_threshold_match(rec, build_pool(rec))
 
 
 def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: Edition, save: bool) -> bool:
@@ -1020,15 +1020,8 @@ def load(
 
     normalize_import_record(rec)
 
-    # Resolve an edition if possible, or create and return one if not.
-    edition_pool = build_pool(rec)
-    if not edition_pool:
-        # No match candidates found, add edition
-        return load_data(rec, account_key=account_key, save=save)
-
-    match = find_match(rec, edition_pool)
+    match = find_match(rec)
     if not match:
-        # No match found, add edition
         return load_data(rec, account_key=account_key, save=save)
 
     # We have an edition match at this point
