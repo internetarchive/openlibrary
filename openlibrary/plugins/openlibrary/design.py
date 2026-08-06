@@ -1,9 +1,13 @@
 import json
 import logging
 from pathlib import Path
+from urllib.parse import quote, urlparse
+
+import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, safeint
+from openlibrary import accounts
 
 logger = logging.getLogger("openlibrary.design")
 
@@ -98,6 +102,98 @@ class home(delegate.page):
 
     def GET(self):
         return render_template("design", load_components())
+
+
+class activity_feed_gallery(delegate.page):
+    """Side-by-side gallery of the activity feed's layout treatments.
+
+    Temporary scaffolding for #10242 -- it exists so a design direction can be
+    chosen from real, populated feed data rather than from mockups. It goes away
+    with the nine unchosen variants once that decision is made.
+    """
+
+    path = "/developers/design/activity-feed"
+
+    # Kept in step with FEED_VARIANTS in openlibrary/components/lit/OlSocialFeed.js.
+    # `attrs` switches on the component chrome a treatment needs; `limit`
+    # overrides the page size where three cards would be too few.
+    VARIANTS = (
+        {"id": 1, "name": "Spec card", "blurb": "The reviewed design: patron and follow above the rule, book and actions below. Three up on desktop."},
+        {"id": 2, "name": "Goodreads river", "blurb": "Full-width rows, one continuous sentence, generous cover, text actions."},
+        {"id": 3, "name": "Cover tiles", "blurb": "The cover is the card. Caption strip overlays the bottom. Scrolls horizontally."},
+        {"id": 4, "name": "Dense timeline", "blurb": "A rail of small avatars down the left. Maximum events per screen."},
+        {"id": 5, "name": "Social thread", "blurb": "Bluesky shape: avatar column, prose, and the book as an embedded quote card."},
+        {"id": 6, "name": "Magazine", "blurb": "Two-column masonry, big covers, serif titles, lots of air."},
+        {"id": 7, "name": "Conversation", "blurb": "Activity as messages. Reads as live chatter rather than a log."},
+        {"id": 8, "name": "Ticker", "blurb": "One compact line each. Sized to sit under a heading as a teaser strip."},
+        {"id": 9, "name": "Editorial", "blurb": "Uppercase eyebrow, large type, almost no chrome. Actions on hover."},
+        {"id": 10, "name": "People first", "blurb": "Grouped by patron: who they are, then a strip of what they touched."},
+        {
+            "id": 11,
+            "name": "Showcase row",
+            "blurb": "Three cards across on desktop, stacked on mobile. Refresh the whole row; swipe or press next for older activity.",
+            "attrs": "controls",
+        },
+        {
+            "id": 12,
+            "name": "Discover / Following / Popular",
+            "blurb": (
+                "Bluesky shape: tabs over one scrolling column that loads more as you reach the end. Popular shows one card each from the most-followed readers."
+            ),
+            "attrs": "tabs infinite",
+            "limit": 8,
+        },
+    )
+
+    DEFAULT_API = "/api/internal/activity/feed.json"
+
+    def GET(self):
+        i = web.input(design=None, scope="auto", api=None)
+        variants = [{"attrs": "", "limit": 3, **v} for v in self.VARIANTS]
+        selected = safeint(i.design, 0)
+        scope = i.scope if i.scope in ("auto", "public", "following", "popular") else "auto"
+        user = accounts.get_current_user()
+        viewer = user.key.split("/")[-1] if user else ""
+        api = self._api_url(i.api)
+        return render_template("design/activity_feed", variants, selected, scope, viewer, api, self._api_param(api))
+
+    @classmethod
+    def _api_param(cls, api: str) -> str:
+        """The endpoint override as a query fragment, for links on the page.
+
+        Without this the nav chips drop the override and every variant renders
+        empty with nothing on screen to explain why.
+        """
+        if api == cls.DEFAULT_API:
+            return ""
+        return "&api=" + quote(api, safe="")
+
+    @classmethod
+    def _api_url(cls, requested: str | None) -> str:
+        """Resolve the feed endpoint the gallery should fetch from.
+
+        In production nginx routes /api/internal to the FastAPI process, but a
+        local dev stack has no proxy between the two servers -- so the origin is
+        overridable, e.g. ?api=http://localhost:18080/api/internal/activity/feed.json
+
+        Only a same-host origin is accepted. That covers localhost, 127.0.0.1,
+        and the machine's LAN address (so the gallery can be opened from a phone
+        or another desk) without letting the parameter point the page's fetch at
+        an arbitrary server.
+        """
+        if not requested:
+            return cls.DEFAULT_API
+        # `//host/path` is protocol-relative, not a path -- it points at another
+        # origin despite starting with a slash.
+        if requested.startswith("/") and not requested.startswith("//"):
+            return requested
+
+        parsed = urlparse(requested)
+        if parsed.scheme not in ("http", "https") or not parsed.path.startswith("/api/"):
+            return cls.DEFAULT_API
+        if parsed.hostname != urlparse(f"//{web.ctx.host}").hostname:
+            return cls.DEFAULT_API
+        return requested
 
 
 def setup():

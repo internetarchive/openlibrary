@@ -1,0 +1,90 @@
+$def with (variants, selected, scope, viewer, api, api_param)
+
+$# Design gallery for the social activity feed (#10242).
+$#
+$# Renders every layout treatment off the same live feed response so they can be
+$# compared honestly. Temporary scaffolding: once a direction is chosen, this
+$# page and the nine unchosen variants go away. Styles are inline for the same
+$# reason -- nothing here should outlive the design decision.
+$#
+$# * variants (list)  -- dicts of id, slug, name, blurb
+$# * selected (int)   -- variant to show alone, or 0 for all of them
+$# * scope (string)   -- feed scope to request: auto, public, or following
+$# * viewer (string)  -- logged-in username, for follow state
+$# * api (string)       -- feed endpoint; overridable for dev stacks with no proxy
+$# * api_param (string) -- the same override as a query fragment, so navigating
+$#                         between variants does not drop it and empty the feed
+
+$var title: Activity Feed Designs
+
+<style>
+.feed-gallery { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+.feed-gallery__intro h1 { margin: 0 0 8px; }
+.feed-gallery__intro p { max-width: 68ch; margin: 0 0 8px; }
+.feed-gallery__note { font-size: .875rem; color: var(--grey); }
+.feed-gallery__nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.feed-gallery__chip {
+  border: var(--border-width-thin) solid var(--grey-e7e7e7);
+  border-radius: var(--border-radius-pill);
+  padding: 4px 12px;
+  font-size: .8rem;
+  text-decoration: none;
+  color: inherit;
+  background: var(--white);
+}
+.feed-gallery__chip:hover { border-color: var(--primary-blue); }
+.feed-gallery__chip.is-current {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+}
+.feed-gallery__variant { margin: 40px 0; border-top: var(--border-width-thin) solid var(--grey-e7e7e7); padding-top: 20px; }
+.feed-gallery__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+.feed-gallery__head h2 { margin: 0; font-size: 1.1rem; }
+.feed-gallery__head p { margin: 0; flex: 1; min-width: 240px; color: var(--grey); font-size: .85rem; }
+.feed-gallery__permalink { font-size: .8rem; white-space: nowrap; }
+.feed-gallery__stage { background: var(--white); border-radius: var(--border-radius-card); padding: 16px; }
+</style>
+
+<div id="contentBody" class="feed-gallery">
+  <header class="feed-gallery__intro">
+    <h1>Activity feed &mdash; design gallery</h1>
+    <p>
+      Every layout treatment for the My Books social activity feed, all rendered from the
+      same live <code>/api/internal/activity/feed.json</code> response. Same books, same
+      patrons, same timestamps &mdash; only the presentation differs.
+    </p>
+    <p class="feed-gallery__note">
+      Narrow the browser to see each one at a mobile width. Development scaffolding for
+      <a href="https://github.com/internetarchive/openlibrary/issues/10242">issue #10242</a>;
+      all but the chosen one get deleted once a direction is picked.
+    </p>
+  </header>
+
+  <nav class="feed-gallery__nav" aria-label="Design variants">
+    <a class="feed-gallery__chip $('is-current' if not selected else '')" href="?scope=$scope$api_param">All variants</a>
+    $for v in variants:
+      <a class="feed-gallery__chip $('is-current' if selected == v['id'] else '')"
+         href="?design=$v['id']&amp;scope=$scope$api_param">$v['id']. $v['name']</a>
+  </nav>
+
+  <nav class="feed-gallery__nav" aria-label="Feed scope">
+    $for s in ['auto', 'public', 'following', 'popular']:
+      $ suffix = ('&design=%d' % selected) if selected else ''
+      <a class="feed-gallery__chip $('is-current' if scope == s else '')"
+         href="?scope=$s$suffix$api_param">scope: $s</a>
+  </nav>
+
+  $for v in variants:
+    $if not selected or selected == v['id']:
+      <section class="feed-gallery__variant" id="design-$v['id']">
+        <header class="feed-gallery__head">
+          <h2>$v['id']. $v['name']</h2>
+          <p>$v['blurb']</p>
+          <a class="feed-gallery__permalink" href="?design=$v['id']&amp;scope=$scope$api_param">View alone &rsaquo;</a>
+        </header>
+        <div class="feed-gallery__stage">
+          <ol-social-feed variant="$v['id']" scope="$scope" limit="$v['limit']" balanced $:v['attrs'] refresh-interval="0" api-url="$api" viewer-username="$viewer"></ol-social-feed>
+        </div>
+      </section>
+</div>
