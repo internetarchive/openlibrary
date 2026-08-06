@@ -245,11 +245,6 @@ def reload():
     all_js().reload()
 
 
-def user_can_revert_records():
-    user = web.ctx.site.get_user()
-    return user and (user.is_admin() or user.is_super_librarian())
-
-
 @public
 def get_document(key, limit_redirs=5):
     doc = None
@@ -275,7 +270,8 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        if not web.ctx.site.can_write(key) or not user_can_revert_records():
+        user = web.ctx.site.get_user()
+        if not web.ctx.site.can_write(key) or not (user and user.is_super_librarian_or_higher()):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)

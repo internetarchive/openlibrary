@@ -172,7 +172,7 @@ class recentchanges_view(delegate.page):
 
     # Required for reverting changesets
     def POST(self, id):
-        if not (user := get_current_user()) or not user.is_super_librarian():
+        if not (user := get_current_user()) or not user.is_super_librarian_or_higher():
             raise web.unauthorized()
         id = int(id)
         change = web.ctx.site.get_change(id)
