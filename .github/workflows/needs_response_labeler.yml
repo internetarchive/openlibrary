@@ -1,0 +1,55 @@
+name: Label issues needing a response
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  label:
+    # Continue only if this executed on the main repo
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: 'Add "Needs: Response" unless the commenter is a lead or excluded bot'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const config = JSON.parse(
+              fs.readFileSync('.github/workflows/config/new_comment_digest.json', 'utf8')
+            );
+
+            const commenter = context.payload.comment.user.login;
+            const isLead = (config.leads || []).some((lead) => lead.githubUsername === commenter);
+            const bot = (config.bots || []).find((b) => b.githubUsername === commenter);
+            const isExcludedBot = Boolean(bot) && !bot.triggersNeedsResponse;
+
+            if (context.payload.issue.state !== 'open' || isLead || isExcludedBot) {
+              core.info(`Skipping issue #${context.payload.issue.number} (commenter: ${commenter})`);
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: ['Needs: Response'],
+            });
+
+  publish_error_to_slack:
+    needs: label
+    if: ${{ failure() }}
+    uses: ./.github/workflows/publish_slack_thread_digest.yml
+    with:
+      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+      message: >-
+        Failed to auto-label <${{ github.event.issue.html_url }}|issue #${{ github.event.issue.number }}>
+        as "Needs: Response" — check manually.
+    secrets:
+      slack_token: ${{ secrets.SLACK_TOKEN }}

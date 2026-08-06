@@ -1,0 +1,148 @@
+name: pm_new_comment_digest
+on:
+  schedule:  # 08:45 daily
+    - cron: '45 8 * * *'
+  workflow_dispatch:
+    inputs:
+      slack_channel:
+        description: 'Digest is published to this channel. Include leading `#` symbol in channel name.  Entering an empty string will skip publishing to Slack.'
+        type: string
+      verbose_mode:
+        description: 'Log detailed information about the issues found? (Verbose mode)'
+        type: choice
+        default: 'No'
+        options:
+        - 'Yes'
+        - 'No'
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  gather_digest:
+    # Continue only if this executed on the main repo
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    runs-on: ubuntu-latest
+    env:
+      CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+      VERBOSE: 'No'
+    outputs:
+      channel: ${{ steps.channel.outputs.channel }}
+      parent_message: ${{ steps.gather.outputs.parent_message }}
+      replies_json: ${{ steps.gather.outputs.replies_json }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Apply workflow_dispatch overrides
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          INPUT_CHANNEL: ${{ inputs.slack_channel }}
+          INPUT_VERBOSE: ${{ inputs.verbose_mode }}
+        run: |
+          echo "CHANNEL=$INPUT_CHANNEL" >> "$GITHUB_ENV"
+          echo "VERBOSE=$INPUT_VERBOSE" >> "$GITHUB_ENV"
+      - id: channel
+        run: echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+      - id: gather
+        name: 'Find open issues/PRs currently labeled "Needs: Response"'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const config = JSON.parse(
+              fs.readFileSync('.github/workflows/config/new_comment_digest.json', 'utf8')
+            );
+            const leads = config.leads || [];
+            const verbose = process.env.VERBOSE === 'Yes';
+
+            const findLeadLabel = (labels) => {
+              const match = labels.find((label) => {
+                const name = typeof label === 'string' ? label : label.name || '';
+                return name.startsWith('Lead:');
+              });
+              if (!match) return '';
+              return typeof match === 'string' ? match : match.name;
+            };
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'Needs: Response',
+              per_page: 100,
+            });
+
+            core.info(`${issues.length} issue(s)/PR(s) currently labeled "Needs: Response".`);
+
+            const results = [];
+            for (const issue of issues) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+
+              if (comments.length === 0) {
+                continue;
+              }
+
+              const lastComment = comments[comments.length - 1];
+              results.push({
+                number: issue.number,
+                commentUrl: lastComment.html_url,
+                commenter: lastComment.user.login,
+                issueTitle: issue.title,
+                leadLabel: findLeadLabel(issue.labels),
+              });
+            }
+
+            const replies = results.map((result) => {
+              const lead = leads.find((l) => l.leadLabel === result.leadLabel);
+              let leadLine;
+              if (lead) {
+                leadLine = `Lead: ${lead.slackId}`;
+              } else if (result.leadLabel) {
+                leadLine = result.leadLabel;
+              } else {
+                leadLine = 'Unknown lead';
+              }
+              return `<${result.commentUrl}|Latest comment for: *${result.issueTitle}*>\n${leadLine}\nCommenter: *${result.commenter}*`;
+            });
+
+            if (verbose) {
+              for (const result of results) {
+                core.info(`Issue #${result.number}: ${result.issueTitle}`);
+                core.info(`\t${result.leadLabel}`);
+                core.info(`\tCommenter: ${result.commenter}`);
+                core.info(`\tComment URL: ${result.commentUrl}`);
+              }
+            }
+
+            core.setOutput('parent_message', `${results.length} open issue(s)/PR(s) currently need a response`);
+            core.setOutput('replies_json', JSON.stringify(replies));
+
+  publish_digest:
+    needs: gather_digest
+    if: ${{ needs.gather_digest.outputs.channel != '' }}
+    uses: ./.github/workflows/publish_slack_thread_digest.yml
+    with:
+      channel: ${{ needs.gather_digest.outputs.channel }}
+      message: ${{ needs.gather_digest.outputs.parent_message }}
+      replies_json: ${{ needs.gather_digest.outputs.replies_json }}
+    secrets:
+      slack_token: ${{ secrets.SLACK_TOKEN }}
+
+  publish_error_to_slack:
+    needs: gather_digest
+    if: ${{ failure() }}
+    uses: ./.github/workflows/publish_slack_thread_digest.yml
+    with:
+      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+      message: >-
+        Failed to fetch issues for Slack digest.
+        <https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+label%3A%22Needs%3A+Response%22|These issues>
+        should be manually checked and labeled.
+    secrets:
+      slack_token: ${{ secrets.SLACK_TOKEN }}
