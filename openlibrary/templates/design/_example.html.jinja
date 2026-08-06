@@ -61,7 +61,7 @@
             <summary class="ds-api__summary">API reference</summary>
             {% if api.properties %}
                 {{ _api_table("Properties", ["Property", "Attribute", "Type", "Default", "Description"],
-                                api.properties, ["name", "attribute", "type", "default"]) }}
+                    api.properties, ["name", "attribute", "type", "default"]) }}
             {% endif %}
             {% if api.events %}
                 {{ _api_table("Events", ["Event", "Type", "Description"], api.events, ["name", "type"]) }}
@@ -71,7 +71,7 @@
             {% endif %}
             {% if api.cssProperties %}
                 {{ _api_table("CSS custom properties", ["Property", "Default", "Description"],
-                                api.cssProperties, ["name", "default"]) }}
+                    api.cssProperties, ["name", "default"]) }}
             {% endif %}
             {% if api.cssParts %}{{ _api_table("CSS parts", ["Part", "Description"], api.cssParts, ["name"]) }}{% endif %}
         </details>

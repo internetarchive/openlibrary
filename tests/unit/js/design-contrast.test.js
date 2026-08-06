@@ -15,8 +15,8 @@ import {
 
 // --blue-500, hsl(202, 96%, 37%), as a computed style resolves it.
 const BLUE_500 = [4, 119, 185];
-// --paper, hsl(48, 30%, 84%) — the page canvas.
-const PAPER = [226, 222, 202];
+// --paper, hsl(48, 31%, 84%) — the page canvas.
+const PAPER = [227, 222, 202];
 
 describe('parseCssColor', () => {
     test('reads rgb() as opaque', () => {

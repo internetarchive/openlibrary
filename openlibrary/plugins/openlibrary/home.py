@@ -9,7 +9,7 @@ from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
-from openlibrary.core import admin, cache, ia, lending
+from openlibrary.core import admin, cache, env, ia, lending
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
@@ -69,7 +69,7 @@ def get_cached_homepage():
         key += ".bot"
 
     mc = cache.memcache_memoize(get_homepage, key, timeout=five_minutes, prethread=caching_prethread())
-    devmode = "dev" in web.ctx.features
+    devmode = env.get_ol_env().LOCAL_DEV
     page = mc(devmode)
 
     if not page:
@@ -109,7 +109,7 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
-        if devmode := "dev" in web.ctx.features:
+        if devmode := env.get_ol_env().LOCAL_DEV:
             homepage_data = get_homepage(devmode)
         else:
             homepage_data = get_cached_homepage()
