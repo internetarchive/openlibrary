@@ -793,7 +793,7 @@ class _yaml_edit(_yaml):
 
     def is_admin(self):
         u = delegate.context.user
-        return u and (u.is_admin() or u.is_super_librarian())
+        return u and u.is_super_librarian_or_higher()
 
     def GET(self, key):
         # only allow admin users to edit yaml

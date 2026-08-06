@@ -134,7 +134,7 @@ class merge_work(delegate.page):
             raise web.forbidden()
 
         optional_kwargs = {}
-        if not (user.is_admin() or user.is_super_librarian()):
+        if not user.is_super_librarian_or_higher():
             optional_kwargs["can_merge"] = "false"
 
         return render_template("merge/works", mrid=i.mrid, primary=i.primary, **optional_kwargs)
