@@ -306,8 +306,6 @@ class Edition(models.Edition):
             "lccn",
             "oclc_numbers",
             "ocaid",
-            "dewey_decimal_class",
-            "lc_classifications",
         )
 
         d = {}
@@ -337,37 +335,8 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-        if not d.items():
+        if not self.identifiers:
             self.identifiers = None
-
-    def get_classifications(self):
-        names = ["dewey_decimal_class", "lc_classifications"]
-        return self._process_identifiers(
-            get_identifier_config("edition").classifications,
-            names,
-            self.classifications,
-        )
-
-    def set_classifications(self, classifications):
-        names = ["dewey_decimal_class", "lc_classifications"]
-        d = defaultdict(list)
-        for c in classifications:
-            if "name" not in c or "value" not in c or not re.compile("[a-z0-9_]*").match(c["name"]):
-                continue
-            d[c["name"]].append(c["value"])
-
-        for name in names:
-            self._getdata().pop(name, None)
-        self.classifications = {}
-
-        for name, value in d.items():
-            if name in names:
-                self[name] = value
-            else:
-                self.classifications[name] = value
-
-        if not self.classifications.items():
-            self.classifications = None
 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
