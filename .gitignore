@@ -60,3 +60,7 @@ docs/wiki/
 
 # uv lockfile (we resolve from requirements*.txt; not tracked)
 uv.lock
+
+# Playwright output (npm run test:e2e)
+playwright-report/
+test-results/

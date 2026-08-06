@@ -71,7 +71,7 @@ export class OpenLibraryOTP extends LitElement {
                 position: fixed;
                 inset: 0;
                 background: rgba(0, 0, 0, 0.5);
-                z-index: 1000;
+                z-index: var(--z-index-modal);
                 align-items: center;
                 justify-content: center;
             }
