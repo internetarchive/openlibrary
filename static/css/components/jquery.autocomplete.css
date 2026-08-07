@@ -10,7 +10,7 @@
   max-height: 290px;
   max-width: 600px;
   background-color: var(--white);
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   opacity: 0.95;
   text-align: left;
   list-style: none;
@@ -30,7 +30,7 @@
   */
   line-height: 16px;
   overflow: hidden;
-  border-bottom: 1px solid var(--light-grey);
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 .ac_results li:last-child {

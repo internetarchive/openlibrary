@@ -174,7 +174,7 @@ ol-button[selected] > button {
     /* Nudge the border a touch darker in step with the fill (both drop ~7%
        in lightness) so the whole button reads as one shape on hover, rather
        than the fill darkening inside a static outline. */
-    border-color: var(--light-grey);
+    border-color: var(--color-border-muted);
     --control-surface: var(--color-control-hover);
   }
 

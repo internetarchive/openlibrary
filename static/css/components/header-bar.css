@@ -54,7 +54,7 @@
 .header-bar .dropdown-menu {
   text-align: left;
   background-color: var(--light-beige);
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   border-radius: 3px;
 }
 
@@ -150,7 +150,7 @@
 }
 
 .header-bar .app-drawer .subsection:first-child {
-  border-top: 1px solid var(--dark-beige);
+  border-top: 1px solid var(--color-border-muted);
 }
 
 .header-bar .app-drawer .login-links {

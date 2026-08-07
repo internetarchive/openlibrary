@@ -129,7 +129,7 @@ a.cta-btn--shell:visited {
 
 .cta-btn--shell:disabled,
 a.cta-btn--shell:disabled {
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   color: var(--light-grey);
   cursor: default;
 }
@@ -147,7 +147,7 @@ a.cta-btn--vanilla,
 a.cta-btn--vanilla:visited,
 a.cta-btn--vanilla:link {
   padding: var(--spacing-inset-xs);
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   background: var(--white);
   color: var(--color-text-secondary);
   border-radius: 6px;
@@ -242,7 +242,7 @@ a.cta-btn__badge {
   width: auto;
   display: inline-block;
   margin: 0;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   background-color: var(--light-beige);
   color: var(--color-text-secondary);
 }

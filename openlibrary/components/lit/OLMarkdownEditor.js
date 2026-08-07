@@ -155,7 +155,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .html-block {
-      border: 1px dashed var(--light-grey);
+      border: 1px dashed var(--color-border-muted);
       border-radius: var(--border-radius-card);
       margin: 0.55em 0;
       overflow: hidden;
@@ -165,7 +165,7 @@ export class OLMarkdownEditor extends LitElement {
       display: block;
       padding: 4px 8px;
       background: var(--grey-f4f4f4);
-      border-bottom: 1px dashed var(--light-grey);
+      border-bottom: 1px dashed var(--color-border-muted);
       font-size: 0.7rem;
       font-family: monospace;
       font-weight: 600;

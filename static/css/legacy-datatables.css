@@ -148,7 +148,7 @@ table.display thead th {
 
 tr.even,
 tr.odd {
-  border-bottom: 1px solid var(--light-grey);
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 /*
