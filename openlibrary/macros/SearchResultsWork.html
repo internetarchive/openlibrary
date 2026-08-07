@@ -64,11 +64,18 @@ $code:
     </div>
   <div class="sri__main">
     <span class="bookcover $blur_cover">
-      $ cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png"
+      $ cover_url = get_cover_url(selected_ed)
+      $ cover = cover_url or "/static/images/icons/avatar_book-sm.png"
+      $# width/height reserve layout space before the cover loads (CLS). Solr dimensions when we
+      $# have them, else the placeholder's own 84x115 or a 2:3 book; the real ratio wins on load.
+      $ cover_dims = (selected_ed.get('cover_width'), selected_ed.get('cover_height')) if cover_url else (84, 115)
+      $ cover_w, cover_h = cover_dims if all(cover_dims) else (180, 270)
       <a href="$work_edition_url">
         <img
           itemprop="image"
           src="$cover"
+          width="$cover_w"
+          height="$cover_h"
           alt="$_('Cover of: %(title)s', title=full_title)"
           title="$_('Cover of: %(title)s', title=full_title)"
           $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
