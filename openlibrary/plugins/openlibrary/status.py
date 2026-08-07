@@ -40,11 +40,8 @@ class status(delegate.page):
         if testing_state:
             drift_info, _ = _get_drift_info(testing_state)
         show_testing = testing_state is not None and is_maintainer_user
-        last_deploy = testing_state.last_deploy_at if testing_state else ""
-        has_pending = bool(testing_state) and any(
-            p.pull_latest_sha or p.pending_active is not None or drift_info.get(p.pr, {}).get("merged", False) or not last_deploy or p.added_at > last_deploy
-            for p in testing_state.prs
-        )
+        payload = get_testing_status(testing_state, drift_info) or {}
+        has_pending = payload.get("has_pending", False)
         i = web.input(deploy_triggered=None, drift_refreshed=None)
         return render_template(
             "status",
@@ -210,6 +207,43 @@ class status_refresh(delegate.page):
             raise web.unauthorized()
         _evict_drift_cache()
         raise web.seeother("/status?drift_refreshed=1")
+
+
+def get_testing_status(
+    testing_state: TestingState | None = None,
+    drift_info: dict | None = None,
+) -> dict | None:
+    """Compose the testing-environment status payload.
+
+    Returns a dict with ``last_deploy_at``, ``has_pending``, and a list of
+    PRs (state fields merged with live drift info), or None if there is no
+    testing state file. Shared by the /status page and the FastAPI
+    testing-status API so they can't drift apart.
+    """
+    state = testing_state if testing_state is not None else _load_testing_state()
+    if not state:
+        return None
+    if drift_info is None:
+        drift_info, _ = _get_drift_info(state)
+    last_deploy = state.last_deploy_at
+    has_pending = any(
+        p.pull_latest_sha or p.pending_active is not None or drift_info.get(p.pr, {}).get("merged", False) or not last_deploy or p.added_at > last_deploy
+        for p in state.prs
+    )
+    return {
+        "last_deploy_at": last_deploy,
+        "has_pending": has_pending,
+        "prs": [
+            {
+                **p.to_dict(),
+                "head_sha": drift_info.get(p.pr, {}).get("head_sha", ""),
+                "drift": drift_info.get(p.pr, {}).get("drift", -1),
+                "merged": drift_info.get(p.pr, {}).get("merged", False),
+                "is_new": bool(last_deploy and p.added_at > last_deploy),
+            }
+            for p in state.prs
+        ],
+    }
 
 
 @functools.cache
@@ -387,9 +421,20 @@ def _save_testing_state(state: TestingState) -> None:
     get_dev_merged_status.cache_clear()
 
 
+def _ensure_testing_state_file() -> None:
+    """Create an empty testing state file at startup if missing.
+
+    Keeps the /status page and the testing-status API functional from first
+    boot without a manually created _testing-prs.json. Never overwrites
+    existing state.
+    """
+    if not TESTING_STATE_FILE.exists():
+        TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
+
+
 def _is_maintainer() -> bool:
     user = get_current_user()
-    return bool(user and user.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"]))
+    return bool(user and user.is_maintainer())
 
 
 def _github_get(path: str) -> dict:
@@ -566,6 +611,7 @@ def get_features_table() -> list[dict[str, Any]]:
 
 def setup():
     "Basic startup status for the server"
+    _ensure_testing_state_file()
     global status_info
     host = socket.gethostname()
     status_info = {
