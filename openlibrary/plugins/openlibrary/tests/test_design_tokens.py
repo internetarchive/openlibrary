@@ -302,10 +302,15 @@ class TestRealTokenFiles:
         assert tokens["--color-text"].resolved.startswith("hsl(")
         assert tokens["--color-link"].resolved.startswith("hsl(")
 
-    def test_the_colors_blurb_carries_the_which_token_do_i_use_table(self):
-        """The one place a contributor is told how to choose; it renders or it doesn't exist."""
+    def test_the_colors_file_carries_the_which_token_do_i_use_table(self):
+        """The one place a contributor is told how to choose; it renders or it doesn't exist.
+
+        Read from the whole file, not the opening comment: the guide is free to
+        live in its own section.
+        """
         colors = next(category for category in load_token_categories() if category.id == "colors")
-        table = next(block for block in colors.blurb if block.kind == "table")
+        blurbs = [colors.blurb, *(group.blurb for group in colors.groups)]
+        table = next(block for blurb in blurbs for block in blurb if block.kind == "table")
         assert len(table.headers) == 2
         assert ("Body text", "`--color-text`") in table.rows
 
