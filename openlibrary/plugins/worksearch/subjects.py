@@ -133,7 +133,6 @@ class subjects(delegate.page):
                     web.storage(
                         key=rep_work["key"],
                         title=rep_work["title"],
-                        cover_id=rep_work.get("cover_id"),
                     )
                     if (rep_work := raw.get("representative_work"))
                     else None
@@ -193,7 +192,6 @@ def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
                 representative_work=web.storage(
                     key=doc["key"],
                     title=doc["title"],
-                    cover_id=doc.get("cover_i"),
                 ),
             )
             if normalized:
@@ -515,7 +513,7 @@ class SubjectEngine:
                 rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
                 sort=sort,
                 facet=False,
-                fields=["key", "title", "author_key", "author_name", "cover_i"],
+                fields=["key", "title", "author_key", "author_name"],
                 # fq rather than part of q: it's identical for every subject, so
                 # Solr's filterCache entry is shared across all of them.
                 extra_params=[("fq", NOTABLE_AUTHORS_CANDIDATE_FILTER)],

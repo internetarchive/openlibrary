@@ -155,7 +155,7 @@ class TestDecorateWithNotableAuthors:
             {
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
-                "representative_work": {"key": "/works/OL1W", "title": "Foundation", "cover_id": 12345},
+                "representative_work": {"key": "/works/OL1W", "title": "Foundation"},
             }
         ]
 
@@ -173,7 +173,6 @@ class TestDecorateWithNotableAuthors:
         assert author.name == "Isaac Asimov"
         assert isinstance(author.representative_work, web.storage)
         assert author.representative_work.title == "Foundation"
-        assert author.representative_work.cover_id == 12345
 
     def test_cache_failure_degrades_to_empty_list(self):
         """A solr/memcache/infobase failure hides the widget instead of 500ing the page."""
@@ -254,7 +253,7 @@ class TestComputeNotableAuthors:
         stub_author = web.storage(
             key="/authors/OL1A",
             name="Isaac Asimov",
-            representative_work=web.storage(key="/works/OL1W", title="Foundation", cover_id=1),
+            representative_work=web.storage(key="/works/OL1W", title="Foundation"),
         )
 
         with (
@@ -269,7 +268,7 @@ class TestComputeNotableAuthors:
             {
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
-                "representative_work": {"key": "/works/OL1W", "title": "Foundation", "cover_id": 1},
+                "representative_work": {"key": "/works/OL1W", "title": "Foundation"},
             }
         ]
         assert isinstance(result[0], dict)
@@ -436,29 +435,6 @@ class TestGetNotableAuthorsAsync:
             assert call.kwargs["extra_params"] == [("fq", subjects_module.NOTABLE_AUTHORS_CANDIDATE_FILTER)]
 
     @pytest.mark.asyncio
-    async def test_cover_id_included_in_representative_work(self):
-        """cover_i from Solr flows into representative_work.cover_id for the SubjectAuthors macro's cover thumbnail."""
-        engine = self._make_engine()
-        docs = [
-            {
-                "key": "/works/OL1W",
-                "title": "Foundation",
-                "author_key": ["OL1A"],
-                "author_name": ["Isaac Asimov"],
-                "cover_i": 123456,
-            }
-        ]
-        mock_result = self._make_solr_result(docs)
-
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query_async",
-            return_value=mock_result,
-        ):
-            authors = await engine.get_notable_authors_async("science_fiction")
-
-        assert authors[0].representative_work.cover_id == 123456
-
-    @pytest.mark.asyncio
     async def test_query_is_labelled_for_solr_monitoring(self):
         """Defaults to its own ol.label so this query is attributable in Solr load monitoring."""
         engine = self._make_engine()
@@ -471,21 +447,6 @@ class TestGetNotableAuthorsAsync:
             await engine.get_notable_authors_async("science_fiction")
 
         assert mock_query.call_args.kwargs["request_label"] == "SUBJECT_NOTABLE_AUTHORS"
-
-    @pytest.mark.asyncio
-    async def test_missing_cover_id_is_none(self):
-        """No cover_i on the Solr doc -> cover_id is None, macro omits the cover thumbnail."""
-        engine = self._make_engine()
-        docs = [{"key": "/works/OL1W", "title": "Flatland", "author_key": ["OL1A"], "author_name": ["Edwin Abbott Abbott"]}]
-        mock_result = self._make_solr_result(docs)
-
-        with patch(
-            "openlibrary.plugins.worksearch.code.run_solr_query_async",
-            return_value=mock_result,
-        ):
-            authors = await engine.get_notable_authors_async("science_fiction")
-
-        assert authors[0].representative_work.cover_id is None
 
 
 class TestMergeNotableAuthors:
