@@ -113,20 +113,20 @@ export class OlMenuPopover extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .item:hover {
-                background: var(--lightest-grey);
+                background: var(--color-hover-overlay);
             }
         }
 
         /* No radio to carry the state, so the row shows it — same tint and
            weight ol-options-popover uses. */
         .item[aria-checked="true"] {
-            background: hsla(202, 96%, 37%, 0.08);
-            color: var(--link-blue);
+            background: var(--color-control-selected-bg);
+            color: var(--color-link);
             font-weight: 600;
         }
 
         .item[aria-checked="true"]:hover {
-            background: hsla(202, 96%, 37%, 0.12);
+            background: var(--color-control-selected-bg-hover);
         }
 
         .item:focus-visible {

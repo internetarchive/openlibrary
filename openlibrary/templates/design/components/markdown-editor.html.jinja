@@ -1,0 +1,75 @@
+{% import "design/_example.html.jinja" as ex %}
+{#
+  The seed content is joined from a list of lines rather than written as literal
+  Markdown. Blank lines are significant here — they separate paragraphs and fence
+  code blocks — and the Jinja reformatter collapses blank lines inside a
+  <textarea>, which silently changes what these demos render.
+#}
+{% set SEED_BASIC = [
+"**Bold text** and *italic text* to start with.",
+"",
+"This is a second paragraph with a [link](https://openlibrary.org).",
+] | join("\n") %}
+{% set SEED_HTML = [
+"## Welcome",
+"",
+"Open Library is a non-profit, open source, digital public library.",
+"",
+'<p align="center"><a href="https://example.org/volunteer">Contribute as a <strong>Volunteer</strong></a></p>',
+"",
+"There are several ways to participate:",
+"",
+"* Fix data errors in the catalog",
+"* Translate the website",
+"* Contribute code on GitHub",
+"",
+"<hr>",
+"",
+"Want to create your own collection? Check out [these instructions](/help/faq/collections).",
+] | join("\n") %}
+{% set SEED_CODE = [
+"## Fetching a work",
+"",
+"Open Library exposes a JSON API for every record. Append `.json` to a work key to get the raw data:",
+"",
+"```",
+"import requests",
+"",
+'work = requests.get("https://openlibrary.org/works/OL45804W.json").json()',
+'print(work["title"])',
+"```",
+"",
+"The response includes `title`, `authors`, and a `description` field formatted as Markdown.",
+] | join("\n") %}
+{% macro demos() %}
+{% call ex.example("Default", "Point target-id at an existing textarea. The editor reads its initial content from that textarea and syncs changes back to it, so the textarea stays the value the form submits.",
+code='<textarea id="my-input">\n  **Hello** world\n</textarea>\n<ol-markdown-editor\n target-id="my-input">\n</ol-markdown-editor>') %}
+<textarea id="demo-editor-input" hidden>{{ SEED_BASIC }}</textarea>
+<ol-markdown-editor target-id="demo-editor-input">
+</ol-markdown-editor>
+{% endcall %}
+{% call ex.example("Mixed Markdown and HTML", "enable-html-block exposes the HTML block button. HTML blocks render with a preview and an Edit button for the source.",
+    code='<ol-markdown-editor\n target-id="my-input"\n  enable-html-block>\n</ol-markdown-editor>') %}
+    <textarea id="demo-editor-html" hidden>{{ SEED_HTML }}</textarea>
+    <ol-markdown-editor target-id="demo-editor-html" enable-html-block>
+    </ol-markdown-editor>
+{% endcall %}
+{% call ex.example("Code blocks and inline code", "enable-code exposes the inline-code and code-block buttons. Off by default because only the wiki page renderer is guaranteed to render fenced code blocks.",
+    code='<ol-markdown-editor\n target-id="my-input"\n  enable-code>\n</ol-markdown-editor>') %}
+    <textarea id="demo-editor-code" hidden>{{ SEED_CODE }}</textarea>
+    <ol-markdown-editor target-id="demo-editor-code" enable-code>
+    </ol-markdown-editor>
+{% endcall %}
+{% call ex.example("Change event", "Fires ol-markdown-editor-change on every change, with the raw Markdown in event.detail.value.",
+    code='<ol-markdown-editor\n target-id="my-input"\n  height="100px">\n</ol-markdown-editor>\n\n<script>\n  editor.addEventListener(\'ol-markdown-editor-change\', (e) => {\n    console.log(e.detail.value);\n  });\n</script>') %}
+    <textarea id="demo-editor-event" hidden></textarea>
+    <ol-markdown-editor id="demo-editor-event-component" target-id="demo-editor-event" height="100px">
+    </ol-markdown-editor>
+    <pre id="demo-editor-event-output" class="ds-demo-output"></pre>
+    <script>
+            document.getElementById('demo-editor-event-component').addEventListener('ol-markdown-editor-change', (e) => {
+                document.getElementById('demo-editor-event-output').textContent = e.detail.value;
+            });
+    </script>
+{% endcall %}
+{% endmacro %}

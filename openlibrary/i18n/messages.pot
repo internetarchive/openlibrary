@@ -966,7 +966,7 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html design/toggle.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
@@ -4279,63 +4279,6 @@ msgstr ""
 
 #: covers/saved.html
 msgid "Finished"
-msgstr ""
-
-#: design/toggle.html
-msgid "Toggle"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "A plain toggle: just the switch, a %(label)s, and an optional greyed %(sublabel)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Button variant"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Use %(variant)s for a bordered, raised container styled like %(button)s — a subtle drop shadow, with an inset specular top edge that lights up on hover. When checked, it fills with a soft blue tint, matching a selected row in %(select)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Custom label content"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
-msgstr ""
-
-#: design/toggle.html
-msgid "Dark mode"
-msgstr ""
-
-#: design/toggle.html
-msgid "easier on the eyes"
-msgstr ""
-
-#: design/toggle.html
-msgid "Disabled"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Add %(disabled)s to block interaction."
-msgstr ""
-
-#: design/toggle.html
-msgid "Change event"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Toggling fires %(event)s with the new state in %(detail)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Checked:"
 msgstr ""
 
 #: email/case_created.html

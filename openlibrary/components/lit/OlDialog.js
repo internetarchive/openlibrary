@@ -281,7 +281,7 @@ export class OlDialog extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .close-button:hover {
-                background-color: var(--icon-link-grey);
+                background-color: var(--color-hover-overlay);
             }
         }
 
