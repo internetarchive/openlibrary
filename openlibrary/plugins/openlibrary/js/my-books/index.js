@@ -4,10 +4,13 @@ import myBooksStore from './store';
 import { getListPartials } from '../lists/ListService';
 import { ShowcaseItem, createActiveShowcaseItem, toggleActiveShowcaseItems } from '../lists/ShowcaseItem';
 import { removeChildren } from '../utils';
+import { initContinueReading } from './continueReading';
 
 // XXX : jsdoc
 // XXX : decompose
 export function initMyBooksAffordances(dropperElements, showcaseElements) {
+    initContinueReading();
+
     const showcases = [];
     for (const elem of showcaseElements) {
         const showcase = new ShowcaseItem(elem);

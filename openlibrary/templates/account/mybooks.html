@@ -45,6 +45,15 @@ $def year_span(year, use_local_year=False):
   $# Render carousels
   $if owners_page:
     $:(compact_carousel(loans) or empty_carousel(loans))
+    <div id="continue-reading-container" class="continue-reading-container" style="display: none;">
+      <div class="carousel-section-header">
+        <h2 class="home-h2">$_('Continue Reading')</h2>
+      </div>
+      <div class="carousel-container carousel-container-decorated">
+        <div class="carousel carousel--grid continue-reading-carousel">
+        </div>
+      </div>
+    </div>
   $if owners_page or public:
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
