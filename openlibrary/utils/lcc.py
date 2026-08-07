@@ -213,4 +213,4 @@ def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     def short_len(lcc: str) -> int:
         return len(sortable_lcc_to_short_lcc(lcc))
 
-    return sorted(sortable_lccs, key=short_len, reverse=True)[0]
+    return max(sortable_lccs, key=short_len)
