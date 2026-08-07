@@ -40,17 +40,17 @@ h2.publisher {
 }
 h2.edition-title {
   margin: var(--spacing-stack-sm) 0 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-title);
   font-weight: normal;
   font-size: var(--font-size-title-medium);
 }
 h2 a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: none;
 }
 h2 a:hover {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
   text-decoration: underline;
 }
 
@@ -75,7 +75,7 @@ h3.Question {
   color: var(--brown);
   margin-top: var(--spacing-stack-sm);
   padding-top: var(--spacing-inset-sm);
-  border-top: 1px dotted var(--lighter-grey);
+  border-top: 1px dotted var(--color-border-subtle);
 }
 
 h4 {
@@ -150,7 +150,7 @@ h6.title {
   font-size: var(--font-size-label-medium);
   font-weight: normal !important;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin: 0;
   padding: 0;
 }

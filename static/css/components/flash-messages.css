@@ -56,7 +56,7 @@
 .flash-messages .bookadded h3 em {
   font-style: italic;
   font-weight: 700;
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 
 .flash-messages .bookadded .close {

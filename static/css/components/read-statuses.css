@@ -13,7 +13,7 @@
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: bold;
   width: 100%;
   text-align: left;
