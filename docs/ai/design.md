@@ -67,12 +67,12 @@ Open Library uses a two-tier token system defined as CSS custom properties in `s
 Raw values with no semantic meaning — the base palette. `colors.css` defines five ramps:
 
 - **Warm neutrals** `--neutral-50…900` — one "paper to ink" ramp (hue 41–48) that replaces the legacy grey and beige families. 50 is the lightest tint (raised warm surfaces), 800 is primary text ink. The page canvas is not on the ramp: it's `--paper`, a one-off a shade deeper and warmer than 200, so the full-bleed background stays close to the beige on openlibrary.org today.
-- **Blue** `--blue-50…800` — the single brand accent. 500/600 match the legacy `--primary-blue`/`--link-blue` exactly.
+- **Blue** `--blue-50…800` — the single brand accent. 500 is the brand blue, 600 the link blue.
 - **Status ramps** `--red-*`, `--green-*`, `--amber-*` — muted tints (50/100/200) for backgrounds and borders, plus text-safe foreground steps (500/600/700).
 
 ```css
 --neutral-800: hsl(41, 14%, 21%);
---blue-500: hsl(202, 96%, 37%);
+--blue-500: hsl(206, 95%, 39%);
 --spacing-lg: 1rem;
 --border-radius-lg: 9px;
 ```
