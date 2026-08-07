@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None, book_title='')
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None, book_title='', ol_work_key=None, ol_cover_id=None, ol_cover_edition_key=None, ol_author_names=None)
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -31,6 +31,8 @@ $if any(menu_items) and not is_carousel:
         $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
+        data-ol-action="$(action)"
+        data-ol-book="$json_encode({'workKey': ol_work_key or '', 'title': book_title or '', 'coverId': ol_cover_id, 'coverEditionKey': ol_cover_edition_key or None, 'ocaid': ocaid or None, 'authorNames': list(ol_author_names or [])})"
         >$label</a>
     <details class="cta-btn cta-btn--available">
       <summary aria-label="$_('More reading options')"></summary>
@@ -59,5 +61,7 @@ $else:
         $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
+        data-ol-action="$(action)"
+        data-ol-book="$json_encode({'workKey': ol_work_key or '', 'title': book_title or '', 'coverId': ol_cover_id, 'coverEditionKey': ol_cover_edition_key or None, 'ocaid': ocaid or None, 'authorNames': list(ol_author_names or [])})"
         >$label</a>
   </div>
