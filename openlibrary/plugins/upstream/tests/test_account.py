@@ -352,6 +352,40 @@ class TestAccountLoginRedirect:
             assert call[0][0] != "pending_action"
         mock_web.seeother.assert_called_with("/account/books")
 
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.OpenLibraryAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    @mock.patch("openlibrary.plugins.upstream.account.stats")
+    def test_login_flags_a_directly_resumed_intent_for_matomo(self, mock_stats, mock_web, mock_ol_account_cls, mock_audit_accounts):
+        """The silent success path hands its event to the next pageview.
+
+        When the redirect is usable the intent is resumed without rendering a
+        banner, so there is no element for a click event. `site/head.html` turns
+        this cookie into a `PreserveIntent / ResumedViaRedirect` Matomo event and
+        clears it — the same one-shot pattern as `ol_activation`. See #13261.
+        """
+        handler = account_login()
+        mock_audit_accounts.return_value = {"ia_email": "test@example.com"}
+        mock_ol_account_cls.get_by_email.return_value = mock.MagicMock()
+        mock_web.seeother.side_effect = Exception("seeother")
+
+        def login_with(redirect, pending_action):
+            mock_web.reset_mock()
+            mock_web.cookies.return_value = {"pending_action": pending_action} if pending_action else {}
+            with pytest.raises(Exception, match="seeother"):
+                handler.login(username="test", password="pwd", redirect=redirect)
+            return [call[0] for call in mock_web.setcookie.call_args_list]
+
+        # Usable redirect: intent resumed directly, so flag it for the next pageview.
+        assert ("ol_pi_resumed", "1") in [(c[0], c[1]) for c in login_with("/books", "cookie") if len(c) > 1]
+
+        # Unusable redirect: the banner will render and can be tracked normally,
+        # so no one-shot cookie — that would double-count the same intent.
+        assert not any(c[0] == "ol_pi_resumed" for c in login_with("http://evil.com", "cookie"))
+
+        # No intent to preserve: nothing to report.
+        assert not any(c[0] == "ol_pi_resumed" for c in login_with("/books", None))
+
 
 class TestOtpServiceS3Auth:
     """Tests for S3 key validation on /account/otp/issue and /account/otp/redeem."""

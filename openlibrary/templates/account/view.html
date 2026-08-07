@@ -25,9 +25,17 @@ $var title: $header_title
           document.addEventListener("DOMContentLoaded", function() {
               var container = document.getElementById('pending-action-container');
               if (container) {
+                  $# Impressions are the denominator for the Continue click-through
+                  $# rate. Both come from Matomo, so the ratio holds even though the
+                  $# absolute counts undercount (ad-blockers, DNT) — and it stays
+                  $# segmentable by device and patron cohort (#13261).
+                  if (window._paq) {
+                      window._paq.push(['trackEvent', 'PreserveIntent', 'BannerShown']);
+                  }
+                  $# data-ol-link-track is server-rendered in get_pending_action_banner() —
+                  $# attaching it here instead reached Athena but never Matomo (#13261).
                   var link = container.querySelector('.pending-action-link');
                   if (link) {
-                      link.setAttribute('data-ol-link-track', 'PreserveIntent|Continue');
                       link.addEventListener('click', function() {
                           document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
                       });
