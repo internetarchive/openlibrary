@@ -4,6 +4,7 @@ import asyncio
 import itertools
 import logging
 import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, cast
@@ -119,35 +120,41 @@ class subjects(delegate.page):
         path = subject.key.removeprefix(engine.prefix)
         try:
             raw_authors = get_cached_notable_authors(subject.subject_type, path)
+            # Rehydration is inside the try as well: memcache entries are written
+            # without an expiry under a key_prefix that's stable across deploys,
+            # so a payload in an older shape can outlive the deploy that changed
+            # it, and reading a missing field here would 500 the page for as long
+            # as that entry survives.
+            subject.notable_authors = [
+                web.storage(
+                    key=raw["key"],
+                    name=raw["name"],
+                    representative_work=(web.storage(title=rep_work["title"]) if (rep_work := raw.get("representative_work")) else None),
+                )
+                for raw in raw_authors
+            ]
         except Exception:
             # A cold miss touches solr, memcache and infobase; none of them
             # should be able to take down a page whose main content is ready.
             logger.exception("Failed to load notable authors for %s", subject.key)
-            return
-
-        subject.notable_authors = [
-            web.storage(
-                key=raw["key"],
-                name=raw["name"],
-                representative_work=(
-                    web.storage(
-                        key=rep_work["key"],
-                        title=rep_work["title"],
-                    )
-                    if (rep_work := raw.get("representative_work"))
-                    else None
-                ),
-            )
-            for raw in raw_authors
-        ]
 
 
 def normalize_author_name(name: str) -> str:
     """
-    Collapses case and punctuation, so duplicate author records for one person
-    ("Lynne McTaggart" / "Lynne Mctaggart") don't render as two cards.
+    Collapses case, accents and punctuation, so duplicate author records for one
+    person ("Lynne McTaggart" / "Lynne Mctaggart", "José Saramago" / "Jose
+    Saramago") don't render as two cards.
+
+    Deliberately script-agnostic: an ASCII-only strip would map every Cyrillic
+    or CJK name to "", which the caller reads as "nothing to compare" and skips,
+    silently disabling the check on exactly the subjects that need it most.
+
+    casefold() runs before the decomposition because it can introduce combining
+    marks of its own (Turkish "İ" -> "i" + combining dot).
     """
-    return re.sub(r"[^a-z0-9]", "", name.lower())
+    decomposed = unicodedata.normalize("NFKD", name.casefold())
+    unaccented = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    return re.sub(r"[\W_]", "", unaccented)
 
 
 def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
@@ -189,10 +196,9 @@ def merge_notable_authors(samples: list[list[dict]]) -> list[web.storage]:
             authors[olid] = web.storage(
                 key=f"/authors/{olid}",
                 name=name,
-                representative_work=web.storage(
-                    key=doc["key"],
-                    title=doc["title"],
-                ),
+                # Title only: the card links to the author, not the work, so a
+                # work key would just be cached weight nothing ever reads.
+                representative_work=web.storage(title=doc["title"]),
             )
             if normalized:
                 seen_names.add(normalized)
@@ -513,6 +519,9 @@ class SubjectEngine:
                 rows=NOTABLE_AUTHORS_SAMPLE_SIZE,
                 sort=sort,
                 facet=False,
+                # q is a machine-built subject_key term, never a reader's typing,
+                # and nothing reads the suggestions -- don't make Solr build them.
+                spellcheck_count=0,
                 fields=["key", "title", "author_key", "author_name"],
                 # fq rather than part of q: it's identical for every subject, so
                 # Solr's filterCache entry is shared across all of them.

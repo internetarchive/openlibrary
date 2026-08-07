@@ -155,7 +155,7 @@ class TestDecorateWithNotableAuthors:
             {
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
-                "representative_work": {"key": "/works/OL1W", "title": "Foundation"},
+                "representative_work": {"title": "Foundation"},
             }
         ]
 
@@ -185,6 +185,28 @@ class TestDecorateWithNotableAuthors:
             patch(
                 "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
                 side_effect=OSError("memcache is down"),
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors == []
+
+    def test_stale_cache_shape_degrades_to_empty_list(self):
+        """
+        memcache entries have no expiry and the key_prefix is stable across
+        deploys, so a payload written in an older shape can outlive the change.
+        Rehydrating it must hide the widget, not 500 the page.
+        """
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/science_fiction", subject_type="subject")
+        cached = [{"name": "Isaac Asimov"}]  # no "key": a shape we no longer write
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                return_value=cached,
             ),
         ):
             handler.decorate_with_notable_authors(subject)
@@ -253,7 +275,7 @@ class TestComputeNotableAuthors:
         stub_author = web.storage(
             key="/authors/OL1A",
             name="Isaac Asimov",
-            representative_work=web.storage(key="/works/OL1W", title="Foundation"),
+            representative_work=web.storage(title="Foundation"),
         )
 
         with (
@@ -268,7 +290,7 @@ class TestComputeNotableAuthors:
             {
                 "key": "/authors/OL1A",
                 "name": "Isaac Asimov",
-                "representative_work": {"key": "/works/OL1W", "title": "Foundation"},
+                "representative_work": {"title": "Foundation"},
             }
         ]
         assert isinstance(result[0], dict)
@@ -490,6 +512,18 @@ class TestMergeNotableAuthors:
 
         assert [a.name for a in authors] == ["Lynne McTaggart"]
 
+    def test_dedupes_duplicate_author_records_in_non_latin_scripts(self):
+        """The dedupe has to hold on /subjects/russian_literature too, not just Latin names."""
+        docs = [
+            self._doc(1, ["OL1A"], ["Лев Толстой"]),
+            self._doc(2, ["OL2A"], ["лев толстой"]),
+            self._doc(3, ["OL3A"], ["Антон Чехов"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Лев Толстой", "Антон Чехов"]
+
     def test_skips_authors_with_blank_names(self):
         """The solr updater defaults a missing name to "", which would render a nameless card."""
         docs = [self._doc(1, ["OL1A"], [""]), self._doc(2, ["OL2A"], ["Real Author"])]
@@ -534,3 +568,15 @@ class TestNormalizeAuthorName:
 
     def test_distinct_names_stay_distinct(self):
         assert normalize_author_name("Isaac Asimov") != normalize_author_name("Ray Bradbury")
+
+    def test_collapses_accents(self):
+        assert normalize_author_name("José Saramago") == normalize_author_name("Jose Saramago")
+
+    def test_non_latin_scripts_survive(self):
+        """An ASCII-only strip would empty these, and an empty value skips the dedupe."""
+        assert normalize_author_name("Лев Толстой") != ""
+        assert normalize_author_name("村上春樹") != ""
+
+    def test_non_latin_scripts_still_dedupe(self):
+        assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
+        assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")
