@@ -39,7 +39,7 @@ from infogami import config
 from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
 from infogami.infobase.common import parse_query
-from infogami.utils import delegate, features, stats, view
+from infogami.utils import delegate, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
 from infogami.utils.view import (
@@ -299,11 +299,6 @@ def json_encode(d, indent: int | str | None = None, sort_keys: bool = False) -> 
     # Escape < and > so the output is safe inside <script> tags with unescaped $: output.
     # </> are valid JSON unicode escapes; all parsers decode them correctly.
     return json.dumps(d, indent=indent, sort_keys=sort_keys).replace("<", "\\u003c").replace(">", "\\u003e")
-
-
-@public
-def is_feature_enabled(feature_name: str) -> bool:
-    return features.is_enabled(feature_name)
 
 
 def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
