@@ -11,6 +11,12 @@
             });
         </script>
     {% endcall %}
+    {% call ex.example("Sizes", "Use size to match the surrounding controls. Heights track the shared --control-height-* tokens, so each size lines up with the same-size button. Medium is the default.", output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
+        <ol-pagination size="small" total-pages="10" current-page="3" label-pagination="Pagination sizes, small">
+        </ol-pagination>
+        <ol-pagination total-pages="10" current-page="3" label-pagination="Pagination sizes, medium">
+        </ol-pagination>
+    {% endcall %}
     {% call ex.example("URL-based navigation", "With base-url the component renders anchors instead, for SEO-friendly links.") %}
         <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example">
         </ol-pagination>

@@ -20,6 +20,7 @@ def mock_user():
         {
             "is_admin": lambda slf: False,
             "is_super_librarian": lambda slf: False,
+            "is_super_librarian_or_higher": lambda slf: slf.is_admin() or slf.is_super_librarian(),
             "is_librarian": lambda slf: False,
             "is_usergroup_member": lambda slf, grp: False,
         },
