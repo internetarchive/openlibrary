@@ -3,40 +3,8 @@
  * ======
  * Color has a semantic layer, and it is the layer your CSS should use. Below,
  * in order: primitive ramps (raw values, no meaning), the purpose-named
- * `--color-*` tokens built on them, and a deprecated alias for every legacy
- * name. See docs/ai/design.md.
- *
- * The rules:
- *
- *   1. New code uses semantic tokens — pick by purpose, not by shade.
- *   2. Don't use primitives (`--neutral-500`, `--blue-600`) or raw `hsl()` /
- *      hex in component styles. If no semantic token fits your case, add one
- *      here and name the purpose.
- *   3. When you touch a file that uses a legacy name, migrate it to the
- *      semantic equivalent. Once an alias's consumer count hits zero, we
- *      delete it.
- *
- * Which token do I use?
- *
- * | You are styling… | Use |
- * |---|---|
- * | Body text | `--color-text` |
- * | Supporting text (subtitles, descriptions) | `--color-text-secondary` |
- * | Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA on white and `--neutral-50` only, not on the page canvas |
- * | Text on a dark or primary fill | `--color-text-inverse` / `--color-on-primary` |
- * | The surface of a card, input, or dropdown | `--color-surface` |
- * | The page canvas behind those surfaces | `--color-background` |
- * | An inset well or sunken panel | `--color-surface-sunken` |
- * | Header / footer chrome | `--color-surface-header` |
- * | A link | `--color-link`, with `-hover` and `-visited` |
- * | A primary button | `--color-primary` (+ `-hover`, `-active`) with `--color-on-primary` text |
- * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
- * | Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
- *
- * Why the indirection matters: every semantic token references a primitive,
- * and that mapping is the dark-mode seam — a future `[data-theme="dark"]`
- * block re-points the semantic layer and every compliant consumer follows.
- * Styles written against primitives or literals won't.
+ * `--color-*` tokens built on them, the guide to picking between them, and a
+ * deprecated alias for every legacy name. See docs/ai/design.md.
  */
 
 /**
@@ -52,7 +20,7 @@
      keeping text ink close to neutral. */
   --neutral-50: hsl(48, 38%, 97%); /* lightest tint, raised warm surfaces */
   --neutral-100: hsl(48, 32%, 94%); /* tinted surface, header chrome */
-  --neutral-200: hsl(47, 27%, 86%); /* page canvas (via --beige), dividers */
+  --neutral-200: hsl(47, 27%, 86%); /* dividers, tinted block fills */
   --neutral-300: hsl(45, 22%, 77%); /* strong dividers, disabled bg */
   --neutral-400: hsl(43, 13%, 62%); /* icons, placeholder (non-text) */
   --neutral-500: hsl(42, 11%, 42%); /* muted text — 4.9:1 on white */
@@ -62,6 +30,12 @@
   --neutral-900: hsl(41, 16%, 12%); /* near-black; dark-mode surfaces later */
   --white: hsl(0, 0%, 100%); /* raised surfaces stay pure white */
 
+  /* Overlay ink. The neutral ramp is deliberately low-chroma, which vanishes
+     once diluted: --neutral-900 at 11% shifts R−B by 1/255, i.e. reads as the
+     same cool grey it was meant to replace. This carries enough chroma to stay
+     warm at overlay alphas. Overlays only — far too saturated as a fill. */
+  --ink-overlay: hsl(44, 65%, 26%);
+
   /* Page canvas — a one-off that sits off the ramp on purpose. The ramp reads
      as warm grey, which leaves the full-bleed canvas too cool next to the beige
      on openlibrary.org (hsl(48, 33%, 83%)); this lands about three quarters of
@@ -69,17 +43,22 @@
      only consumer. */
   --paper: hsl(48, 31%, 84%);
 
-  /* Blue ramp — the single brand accent. 500/600 are bit-identical to the
-     legacy --primary-blue / --link-blue, so the brand does not drift. */
-  --blue-50: hsl(202, 80%, 95%);
-  --blue-100: hsl(202, 80%, 91%);
-  --blue-200: hsl(202, 70%, 83%);
-  --blue-300: hsl(203, 55%, 70%);
-  --blue-400: hsl(204, 70%, 53%);
-  --blue-500: hsl(202, 96%, 37%); /* == legacy --primary-blue */
-  --blue-600: hsl(202, 96%, 28%); /* == legacy --link-blue — 7.4:1 on white */
-  --blue-700: hsl(203, 95%, 22%);
-  --blue-800: hsl(206, 90%, 18%); /* visited links */
+  /* Blue ramp — the single brand accent. The legacy --primary-blue /
+     --link-blue sat at hue 202, which is cyan-leaning and reads icy against the
+     warm neutrals, so the whole ramp rotates toward the paper's complement
+     (~225): 206 at the dark end out to 216 at the tints, which also shed a
+     little saturation. The darker steps gain a point of lightness to hold their
+     value through the rotation. Small enough that the brand still reads as the
+     same blue. */
+  --blue-50: hsl(216, 72%, 95%);
+  --blue-100: hsl(215, 70%, 91%);
+  --blue-200: hsl(214, 61%, 83%);
+  --blue-300: hsl(211, 51%, 70%);
+  --blue-400: hsl(208, 69%, 53%);
+  --blue-500: hsl(206, 95%, 39%); /* brand blue — 5.1:1 on white */
+  --blue-600: hsl(206, 95%, 30%); /* link blue — 7.6:1 on white */
+  --blue-700: hsl(208, 93%, 23%);
+  --blue-800: hsl(211, 88%, 19%); /* visited links */
 
   /* Muted status ramps. The 600/700 steps are the text-safe foregrounds
      (AA on white and on their own 50/100 tints); 500 is the object color. */
@@ -150,6 +129,18 @@
   --color-disabled-bg: var(--neutral-300);
   --color-disabled-fg: var(--neutral-500);
 
+  /* Hover for flat interactive rows (popover items, menu items, list rows).
+     An overlay rather than a fill: it composes over whatever surface it lands
+     on, so a row on --color-surface-sunken or -header still darkens instead of
+     matching its own background. At 12% it flattens over white to rgb(238,235,227)
+     — the weight of the black-at-10% this replaced, with the warmth of
+     --neutral-100. */
+  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
+
+  /* Hover fill for raised controls. Opaque on purpose — see the note on
+     --color-control-selected-surface below for why alpha can't go here. */
+  --color-control-hover: var(--neutral-100);
+
   /* Selected state for neutral controls — soft blue tint, saturated border,
      dark-blue text. Shared by ol-button[selected] and
      ol-toggle[variant="button"][checked] so they can't drift apart. */
@@ -166,7 +157,7 @@
 
   /* Borders & outline roles */
   --color-border: var(--neutral-500);
-  --color-border-hovered: var(--neutral-600);
+  --color-border-hover: var(--neutral-600);
   --color-border-focused: var(--blue-500);
   --color-border-error: var(--red-500);
   --color-border-subtle: var(--neutral-200);
@@ -183,6 +174,42 @@
   --color-warning-bg: var(--amber-50);
   --color-warning-border: var(--amber-200);
 }
+
+/**
+ * 3. Which token do I use?
+ * ------------------------
+ * Pick by purpose, not by shade. The rules:
+ *
+ *   1. New code uses semantic tokens.
+ *   2. Don't use primitives (`--neutral-500`, `--blue-600`) or raw `hsl()` /
+ *      hex in component styles. If no semantic token fits your case, add one
+ *      here and name the purpose.
+ *   3. When you touch a file that uses a legacy name, migrate it to the
+ *      semantic equivalent. Once an alias's consumer count hits zero, we
+ *      delete it.
+ *
+ * | You are styling… | Use |
+ * |---|---|
+ * | Body text | `--color-text` |
+ * | Supporting text (subtitles, descriptions) | `--color-text-secondary` |
+ * | Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA on white and `--neutral-50` only, not on the page canvas |
+ * | Text on a dark or primary fill | `--color-text-inverse` / `--color-on-primary` |
+ * | The surface of a card, input, or dropdown | `--color-surface` |
+ * | The page canvas behind those surfaces | `--color-background` |
+ * | An inset well or sunken panel | `--color-surface-sunken` |
+ * | Header / footer chrome | `--color-surface-header` |
+ * | A link | `--color-link`, with `-hover` and `-visited` |
+ * | A primary button | `--color-primary` (+ `-hover`, `-active`) with `--color-on-primary` text |
+ * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
+ * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
+ * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
+ * | Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
+ *
+ * Why the indirection matters: every semantic token references a primitive,
+ * and that mapping is the dark-mode seam — a future `[data-theme="dark"]`
+ * block re-points the semantic layer and every compliant consumer follows.
+ * Styles written against primitives or literals won't.
+ */
 
 /**
  * Component-specific semantic tokens @internal
@@ -243,7 +270,7 @@
 }
 
 /**
- * 3. Deprecated aliases
+ * 4. Deprecated aliases
  * ---------------------
  * Legacy token names re-pointed at the ramps so all existing var() consumers
  * pick up the new palette with zero edits. Do not use these in new code —

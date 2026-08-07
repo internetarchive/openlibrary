@@ -33,13 +33,9 @@ let highlighted = false;
 async function highlightCode(root) {
     if (highlighted) return;
     highlighted = true;
-    const [{ default: Prism }] = await Promise.all([
-        import(/* webpackChunkName: "prism" */ 'prismjs'),
-        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-markup'),
-        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-clike'),
-        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-javascript'),
-        import(/* webpackChunkName: "prism" */ 'prismjs/components/prism-css'),
-    ]);
+    // The default build already carries markup, css, clike and javascript —
+    // the only languages the snippets use — so no component imports are needed.
+    const { default: Prism } = await import(/* webpackChunkName: "prism" */ 'prismjs');
     Prism.highlightAllUnder(root);
 }
 

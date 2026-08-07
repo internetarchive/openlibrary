@@ -7,29 +7,31 @@
       {% endcall %}
 
   Pass `code` when the live markup isn't what a reader should copy (loops that
-  generate filler, a screenful of inline JSON).
+  generate filler, a screenful of inline JSON). Pass `language` alongside it
+  when that snippet isn't markup — "js" or "css" (any Prism language id).
 #}
-{% macro example(title="", note="", code=none, output_style="") %}
+{% macro example(title="", note="", code=none, language="html", output_style="") %}
     <section class="ds-example">
         {% if title %}<h4 class="ds-example__title">{{ title }}</h4>{% endif %}
         {% if note %}<p class="ds-example__note">{{ note }}</p>{% endif %}
         {% set rendered = caller() %}
         <div class="ds-example__output"
              {% if output_style %}style="{{ output_style }}"{% endif %}>{{ rendered }}</div>
-        {{ code_snippet(code if code is not none else rendered) }}
+        {{ code_snippet(code if code is not none else rendered, language) }}
     </section>
 {% endmacro %}
 {#
   A code snippet on its own, for things there is no point rendering live —
-  a CSS rule, a JS listener, an import.
+  a CSS rule, a JS listener, an import. `language` is a Prism language id;
+  markup, css and javascript are the ones the bundle can highlight.
 #}
-{% macro code_snippet(source) %}
+{% macro code_snippet(source, language="html") %}
     <div class="ds-code" data-ds-code>
         <button class="ds-code__copy"
                 type="button"
                 data-ds-copy
                 aria-label="Copy code">Copy</button>
-        <pre class="ds-code__pre"><code class="language-html">{{ source | dedent | force_escape }}</code></pre>
+        <pre class="ds-code__pre"><code class="language-{{ language }}">{{ source | dedent | force_escape }}</code></pre>
     </div>
 {% endmacro %}
 {#
