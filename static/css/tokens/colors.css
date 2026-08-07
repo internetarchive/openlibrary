@@ -100,9 +100,16 @@
 
   /* Text */
   --color-text: var(--neutral-800);
+  --color-text-heading: var(--neutral-700); /* headings sit a step lighter than body ink */
   --color-text-secondary: var(--neutral-600);
   --color-text-muted: var(--neutral-500); /* only readable on white or --neutral-50 */
   --color-text-inverse: var(--white);
+
+  /* Icons. Decorative tier only — 2.5:1 on white, so it can't carry an icon
+     that conveys meaning on its own (WCAG 1.4.11 wants 3:1). Use it for inert
+     chrome: chevrons beside a visible label, inactive glyphs, placeholder
+     marks. A meaningful standalone icon takes --color-text-muted or darker. */
+  --color-icon-muted: var(--neutral-400);
 
   /* Surfaces */
   --color-background: var(--paper); /* page canvas — what body paints */
@@ -159,6 +166,7 @@
   --color-border-hover: var(--neutral-600);
   --color-border-focused: var(--blue-500);
   --color-border-error: var(--red-500);
+  --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);
   --color-focus-ring: var(--blue-500);
 
@@ -194,7 +202,8 @@
  * |---|---|
  * | Body text | `--color-text` |
  * | Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA on white and `--neutral-50` only, not on the page canvas |
- * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
+ * | A default border | `--color-border`; dividers → `--color-border-muted`, hairlines → `--color-border-subtle` |
+ * | An inert icon (chevron beside a label, placeholder glyph) | `--color-icon-muted` — decorative only, see its note above |
  * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
  * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
  *
