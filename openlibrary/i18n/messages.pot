@@ -1332,7 +1332,7 @@ msgstr ""
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: ProlificAuthors.html account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -5698,7 +5698,7 @@ msgstr ""
 msgid "None found."
 msgstr ""
 
-#: ProlificAuthors.html publishers/view.html
+#: publishers/view.html
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
@@ -7430,14 +7430,6 @@ msgstr ""
 msgid "Component"
 msgstr ""
 
-#: ProlificAuthors.html
-msgid "Prolific Authors"
-msgstr ""
-
-#: ProlificAuthors.html
-msgid "who have written the most books on this subject"
-msgstr ""
-
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
@@ -7655,6 +7647,15 @@ msgstr ""
 #. Short label displayed next to the count of readers who stopped reading this book before finishing, shown in the stats bar on a book page. Example: "348 Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
+msgstr ""
+
+#: SubjectAuthors.html
+msgid "Notable Authors"
+msgstr ""
+
+#: SubjectAuthors.html
+#, python-format
+msgid "See more books by %(name)s"
 msgstr ""
 
 #: SubjectSearch.html
