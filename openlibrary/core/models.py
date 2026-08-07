@@ -980,6 +980,14 @@ class User(Thing):
             ]
         )
 
+    def is_super_librarian_or_higher(self) -> bool:
+        return self.is_member_of_any(
+            [
+                "/usergroup/super-librarians",
+                "/usergroup/admin",
+            ]
+        )
+
     def is_beta_tester(self) -> bool:
         return self.is_usergroup_member("/usergroup/beta-testers")
 

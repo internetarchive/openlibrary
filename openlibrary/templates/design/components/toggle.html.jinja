@@ -1,0 +1,36 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Default", "The switch, a label, and an optional greyed sublabel.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-toggle label="Readable Only" sublabel="4.6M">
+        </ol-toggle>
+        <ol-toggle label="Readable Only" sublabel="4.6M" checked>
+        </ol-toggle>
+    {% endcall %}
+    {% call ex.example("Button variant", "A bordered, raised container styled like ol-button variant=\"secondary\". When checked it fills with a soft blue tint, matching a selected row in ol-select-popover.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
+        </ol-toggle>
+        <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked>
+        </ol-toggle>
+    {% endcall %}
+    {% call ex.example("Custom label content", "Put content in the default slot instead of using label / sublabel. Supply accessible-label so the switch still has an accessible name.") %}
+        <ol-toggle accessible-label="Dark mode">
+            <strong>Dark mode</strong> — easier on the eyes
+        </ol-toggle>
+    {% endcall %}
+    {% call ex.example("Disabled", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-toggle label="Readable Only" sublabel="4.6M" disabled>
+        </ol-toggle>
+        <ol-toggle variant="button" label="Readable Only" sublabel="4.6M" checked disabled>
+        </ol-toggle>
+    {% endcall %}
+    {% call ex.example("Change event", "Toggling fires ol-toggle-change with the new state in event.detail.checked.") %}
+        <ol-toggle id="demo-toggle" variant="button" label="Readable Only" sublabel="4.6M">
+        </ol-toggle>
+        <p>Checked: <strong id="demo-toggle-state">false</strong></p>
+        <script>
+            document.getElementById('demo-toggle').addEventListener('ol-toggle-change', (e) => {
+                document.getElementById('demo-toggle-state').textContent = e.detail.checked;
+            });
+        </script>
+    {% endcall %}
+{% endmacro %}
