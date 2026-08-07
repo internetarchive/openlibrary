@@ -1,0 +1,23 @@
+/**
+ * Font Weight Primitives
+ * ======================
+ * Rarely used directly in components — use semantic tokens instead.
+ */
+:root {
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+}
+
+/**
+ * Font Weight Semantic Tokens
+ * ===========================
+ * Reference these throughout the app for consistent emphasis.
+ */
+:root {
+  --font-weight-body:     var(--font-weight-regular);  /* paragraphs, default text */
+  --font-weight-heading:  var(--font-weight-bold);     /* headings */
+  --font-weight-emphasis: var(--font-weight-semibold); /* inline emphasis, strong */
+  --font-weight-button:   var(--font-weight-semibold); /* buttons, CTAs */
+}

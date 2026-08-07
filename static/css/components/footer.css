@@ -22,7 +22,7 @@ footer {
   display: flex;
   width: 100%;
   bottom: 0;
-  font-size: 0.8em;
+  font-size: var(--font-size-meta);
 }
 
 footer #footer-details {
@@ -33,7 +33,7 @@ footer #footer-details {
 
 footer h2 {
   color: var(--dark-grey);
-  font-size: 1em;
+  font-size: var(--font-size-meta);
   margin: 0;
 }
 
@@ -49,7 +49,7 @@ footer ul {
 }
 
 footer ul li {
-  font-size: 1em;
+  font-size: var(--font-size-meta);
   list-style-type: none;
   white-space: nowrap;
   margin: var(--spacing-stack-xs) 0;
