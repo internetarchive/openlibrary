@@ -156,7 +156,7 @@ class Ratings(db.CommonExtras):
         where = {"username": username, "work_id": int(work_id)}
         try:
             return oldb.delete("ratings", where=("work_id=$work_id AND username=$username"), vars=where)
-        except:  # we want to catch no entry exists
+        except ValueError:
             return None
 
     @classmethod

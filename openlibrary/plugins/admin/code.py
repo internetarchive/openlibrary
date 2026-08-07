@@ -167,8 +167,8 @@ class gitpull:
         root = os.path.normpath(root)
 
         p = subprocess.Popen(
-            "cd %s && git pull" % root,
-            shell=True,
+            ["git", "pull"],
+            cwd=root,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )

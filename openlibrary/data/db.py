@@ -198,7 +198,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
             "UPDATE thing set latest_revision=latest_revision+1 WHERE id IN $thing_ids",
             vars=locals(),
         )
-    except:
+    except Exception:
         t.rollback()
         debug("ROLLBACK")
         raise

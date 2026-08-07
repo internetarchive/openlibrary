@@ -142,7 +142,7 @@ class upload:
         if i.source_url:
             try:
                 data = download_external_image(i.source_url)
-            except:
+            except Exception:  # noqa: BLE001
                 error(ERROR_INVALID_URL)
         elif i.file is not None and i.file != {}:
             data = i.file.value
@@ -191,7 +191,7 @@ class upload2:
         if source_url:
             try:
                 data = download_external_image(source_url)
-            except:
+            except Exception:  # noqa: BLE001
                 error(ERROR_INVALID_URL)
 
         if not data:
