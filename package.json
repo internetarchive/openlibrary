@@ -30,6 +30,7 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@babel/core": "^7.24.7",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.3",
