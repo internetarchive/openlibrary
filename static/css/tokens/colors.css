@@ -263,7 +263,6 @@
   /* Admin & merge UI (out of redesign scope — kept verbatim) */
   --admin-row-background: hsl(58, 66%, 81%);
   --admin-table-border: hsl(48, 26%, 73%);
-  --nagios-green: hsl(108, 100%, 50%);
   --merged-purple: hsl(266, 100%, 75%);
   --heart-color: hsl(358, 100%, 74%);
 }
@@ -279,26 +278,18 @@
   /* Blues → blue ramp @deprecated */
   --primary-blue: var(--blue-500);
   --link-blue: var(--blue-600);
-  --lightest-blue: var(--blue-50);
   --mid-blue: var(--blue-400);
   --dark-blue: var(--blue-800);
-  --darker-brand-blue: var(--blue-500);
-  --header-nav-hover-color: var(--blue-600);
   --blue-b0bed9: var(--blue-200);
-  --count-blue-grey: var(--neutral-600);
   --grey-blue: var(--blue-100);
   --button-hover-blue: var(--blue-400);
   --dark-baby-blue: var(--blue-200);
   --mid-baby-blue: var(--blue-100);
-  --baby-blue: var(--blue-50);
   --blue-9fafd1: var(--blue-300);
-  --blue-3366ff: var(--blue-500);
-  --blue-5e88B9: var(--blue-400);
 
   /* Greens → green ramp @deprecated */
   --green: var(--green-500);
   --mid-baby-green: var(--green-100);
-  --baby-green: var(--green-50);
   --dark-green: var(--green-600);
   --soft-green: var(--green-200);
   --soft-green-two: var(--green-300);
@@ -312,7 +303,6 @@
   --orange-three: var(--amber-200);
   --orange-four: var(--amber-200);
   --orange-five: var(--amber-500);
-  --burnt-sienna: var(--amber-600);
 
   /* Reds → red ramp @deprecated */
   --red: var(--red-500);
@@ -322,12 +312,9 @@
 
   /* Pinks @deprecated */
   --mid-baby-pink: var(--red-100);
-  --baby-pink: var(--red-50);
 
   /* Yellows & beiges → neutral / amber ramps @deprecated */
   --dark-yellow: var(--amber-200);
-  --beige-deep: var(--neutral-200);
-  --beige-two: var(--neutral-200);
   --beige-three: var(--neutral-300);
   --beige: var(--neutral-200);
   --beige-pale: var(--neutral-100);
@@ -347,7 +334,6 @@
   --grey-464646: var(--neutral-700);
   --darker-grey: var(--neutral-700);
   --grey-555: var(--neutral-700);
-  --dark-grey-two: var(--neutral-600);
   --grey: var(--neutral-600);
   --accessible-grey: var(--neutral-500);
   --mid-grey: var(--neutral-400);
@@ -373,7 +359,6 @@
   /* Kept literals @deprecated — niche hues with no ramp home (admin, merge UI,
      charts) and alpha tokens, which var() indirection can't carry. */
   --teal: hsl(184, 45%, 26%);
-  --purple: hsl(288, 35%, 45%);
   --magenta: hsl(310, 45%, 45%);
   --blue: hsl(230, 45%, 45%);
   --boxshadow-black: hsla(44, 60%, 18%, 0.15); /* ink-tinted despite the name */

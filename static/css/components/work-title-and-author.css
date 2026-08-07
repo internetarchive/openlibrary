@@ -14,7 +14,7 @@
 .work-title-and-author h1.work-title {
   font-family: var(--font-family-title);
   margin: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-headline-large);
   overflow-wrap: break-word;
 }
@@ -22,7 +22,7 @@
 .work-title-and-author h2.work-subtitle {
   font-family: var(--font-family-subtitle);
   margin: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 1.3em;
   font-weight: normal;
   font-style: italic;
@@ -31,18 +31,18 @@
 .work-title-and-author h2.edition-byline {
   font-size: var(--font-size-title-medium);
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin: 10px 0 20px;
   line-height: var(--line-height-meta);
 }
 
 .work-title-and-author .work-line {
   font-style: oblique;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .work-line a {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .work-title-and-author .series-line a {
@@ -51,7 +51,7 @@
 }
 
 .work-title-and-author .first-published-date {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-label-medium);
 }
 
@@ -109,7 +109,7 @@
   }
 
   .work-title-and-author .share-modal-link .icon-link__text {
-    color: var(--dark-grey);
+    color: var(--color-text);
     font-size: 0.675em;
   }
 

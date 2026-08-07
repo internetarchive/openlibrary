@@ -46,7 +46,7 @@
 }
 
 .subjects-search-input:focus {
-  border-color: var(--blue-3366ff);
+  border-color: var(--color-border-focused);
 }
 
 /* Menu option containers: */
@@ -101,7 +101,7 @@
 }
 
 .subject-type-option--subject {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 
 .subject-type-option--collection {
@@ -199,7 +199,7 @@
 }
 
 .selected-tag .selected-tag__type--subject {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 
 .selected-tag .selected-tag__type--collection {

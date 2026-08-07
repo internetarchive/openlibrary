@@ -26,13 +26,13 @@ footer {
 }
 
 footer #footer-details {
-  color: var(--dark-grey);
+  color: var(--color-text);
   display: flex;
   width: 100%;
 }
 
 footer h2 {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1em;
   margin: 0;
 }
@@ -100,7 +100,7 @@ div#version-details {
 
 /* FIXME: merge with above CSS rule? */
 .version {
-  color: var(--dark-grey);
+  color: var(--color-text);
   border: 1px solid var(--dark-beige);
   border-radius: 3px;
   padding: var(--spacing-inset-sm);

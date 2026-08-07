@@ -55,7 +55,7 @@ table.services th {
   font-size: var(--font-size-label-small);
   font-weight: bold;
   text-transform: uppercase;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 table.services td {
   padding: var(--spacing-inset-xs);
@@ -76,7 +76,7 @@ table.services td.node {
 #adminHistory th {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 0.8675em;
   font-weight: 700;
   padding: var(--spacing-inset-sm);
@@ -112,7 +112,7 @@ div#prolific span {
   font-size: 0.5625em;
   font-family: var(--font-family-body);
   font-weight: normal;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 

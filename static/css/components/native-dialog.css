@@ -7,7 +7,7 @@
 }
 
 .native-dialog--close {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.2em;
 }
 

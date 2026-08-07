@@ -35,7 +35,7 @@
   background: var(--admin-row-background) !important;
 }
 .borrow-table tr.row-available .status-value {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 
 .borrow-table td.status,

@@ -113,7 +113,7 @@
 }
 
 .dialog--close {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.2em;
   /* Increase clickable area to the recommended size (44x44px) according to */
   /* https://www.w3.org/WAI/WCAG21/Understanding/target-size.html */
@@ -148,7 +148,7 @@ div.coverFloatHead {
 
 div.coverFloatHead h2 {
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1em;
   margin: 0;
   padding: 0;
@@ -172,7 +172,7 @@ div.floaterHead {
 div.floaterHead h2 {
   font-weight: normal;
   text-align: center;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.25em;
   margin: 0;
   padding: 0;
@@ -285,7 +285,7 @@ div.floaterBody p {
 }
 
 .ol-cover-form .carousel .cta-btn {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border: 2px solid var(--light-grey);
   border-radius: 6px;
   position: relative;

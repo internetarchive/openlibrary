@@ -190,7 +190,7 @@
 /* "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)." */
 .olform .tip {
   font-size: var(--font-size-label-small);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body) !important;
 }
 

@@ -53,7 +53,7 @@
 }
 
 .mr-dropdown {
-  color: var(--dark-grey);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 13px;
 }
@@ -157,8 +157,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--spacing-inset-sm);
-  border-top: 1px solid var(--lighter-grey);
-  border-bottom: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
   background: var(--grey-fafafa);
 }
 
@@ -265,7 +265,7 @@
 }
 
 .comment-panel__input .comment-panel__reply-btn {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
   text-decoration: none;
   border: none;
@@ -310,7 +310,7 @@
   justify-content: center;
   width: 76px;
   height: 41px;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
   font-size: 13px;
   font-style: normal;
@@ -337,7 +337,7 @@
 
 .mr-comment-toggle__comment-expand.cta-btn {
   background-color: var(--grey-f4f4f4);
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 5px;
   margin-top: var(--spacing-stack-lg);
 }

@@ -130,7 +130,7 @@ ol-banner > .ol-banner__close {
   background: none;
   border: none;
   border-radius: var(--border-radius-sm);
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 

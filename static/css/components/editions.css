@@ -86,7 +86,7 @@ table#editions div.title,
 table#editions div.links,
 .editions-table div.links {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   line-height: 1.5em;
 }
 
@@ -141,7 +141,7 @@ table#editions .highlight,
 }
 
 .lists table#editions td {
-  color: var(--dark-grey);
+  color: var(--color-text);
   vertical-align: top;
 }
 
@@ -204,7 +204,7 @@ table#editions .highlight,
   table#editions tr {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid var(--lighter-grey);
+    border-bottom: 1px solid var(--color-border-subtle);
     padding-bottom: var(--spacing-inset-sm);
     overflow: visible;
   }
