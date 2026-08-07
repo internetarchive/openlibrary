@@ -15,7 +15,7 @@
 
 /* Table wrapper */
 .librarian-queue-wrapper {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: 5px;
 }
 
@@ -53,7 +53,7 @@
 }
 
 .mr-dropdown {
-  color: var(--dark-grey);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 13px;
 }
@@ -66,7 +66,7 @@
   height: 275px;
   width: 269px;
   background: var(--white);
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   box-shadow:
     0 4px 4px var(--light-mid-grey),
     0 4px 4px var(--light-mid-grey);
@@ -87,7 +87,7 @@
   height: 34px;
   border-width: 1px 0;
   border-style: solid;
-  border-color: var(--light-grey);
+  border-color: var(--color-border-muted);
   cursor: default;
 }
 
@@ -125,7 +125,7 @@
   padding: var(--spacing-inset-sm);
   border-width: 1px 0;
   border-style: solid;
-  border-color: var(--light-grey);
+  border-color: var(--color-border-muted);
   height: 34px;
   cursor: pointer;
 }
@@ -157,8 +157,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--spacing-inset-sm);
-  border-top: 1px solid var(--lighter-grey);
-  border-bottom: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
   background: var(--grey-fafafa);
 }
 
@@ -229,7 +229,7 @@
 }
 
 .comment-panel__comment-display {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   background-color: var(--white);
   border-radius: 5px;
   margin-bottom: var(--spacing-stack-sm);
@@ -259,13 +259,13 @@
   min-width: 337px;
   height: 100%;
   resize: none;
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-input);
   margin-right: var(--spacing-inline-sm);
 }
 
 .comment-panel__input .comment-panel__reply-btn {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
   text-decoration: none;
   border: none;
@@ -310,7 +310,7 @@
   justify-content: center;
   width: 76px;
   height: 41px;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
   font-size: 13px;
   font-style: normal;
@@ -337,7 +337,7 @@
 
 .mr-comment-toggle__comment-expand.cta-btn {
   background-color: var(--grey-f4f4f4);
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 5px;
   margin-top: var(--spacing-stack-lg);
 }

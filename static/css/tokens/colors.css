@@ -97,9 +97,16 @@
 
   /* Text */
   --color-text: var(--neutral-800);
+  --color-text-heading: var(--neutral-700); /* headings sit a step lighter than body ink */
   --color-text-secondary: var(--neutral-600);
   --color-text-muted: var(--neutral-500); /* AA only on white / neutral-50 */
   --color-text-inverse: var(--white);
+
+  /* Icons. Decorative tier only — 2.5:1 on white, so it can't carry an icon
+     that conveys meaning on its own (WCAG 1.4.11 wants 3:1). Use it for inert
+     chrome: chevrons beside a visible label, inactive glyphs, placeholder
+     marks. A meaningful standalone icon takes --color-text-muted or darker. */
+  --color-icon-muted: var(--neutral-400);
 
   /* Surfaces */
   --color-background: var(--paper); /* page canvas — what body paints */
@@ -160,6 +167,7 @@
   --color-border-hover: var(--neutral-600);
   --color-border-focused: var(--blue-500);
   --color-border-error: var(--red-500);
+  --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);
   --color-focus-ring: var(--blue-500);
 
@@ -191,6 +199,7 @@
  * | You are styling… | Use |
  * |---|---|
  * | Body text | `--color-text` |
+ * | A heading | `--color-text-heading` |
  * | Supporting text (subtitles, descriptions) | `--color-text-secondary` |
  * | Muted metadata (bylines, counts, timestamps) | `--color-text-muted` — AA on white and `--neutral-50` only, not on the page canvas |
  * | Text on a dark or primary fill | `--color-text-inverse` / `--color-on-primary` |
@@ -200,7 +209,8 @@
  * | Header / footer chrome | `--color-surface-header` |
  * | A link | `--color-link`, with `-hover` and `-visited` |
  * | A primary button | `--color-primary` (+ `-hover`, `-active`) with `--color-on-primary` text |
- * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
+ * | A default border | `--color-border`; dividers → `--color-border-muted`, hairlines → `--color-border-subtle` |
+ * | An inert icon (chevron beside a label, placeholder glyph) | `--color-icon-muted` — decorative only, see its note above |
  * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
  * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
  * | Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
@@ -264,7 +274,6 @@
   /* Admin & merge UI (out of redesign scope — kept verbatim) */
   --admin-row-background: hsl(58, 66%, 81%);
   --admin-table-border: hsl(48, 26%, 73%);
-  --nagios-green: hsl(108, 100%, 50%);
   --merged-purple: hsl(266, 100%, 75%);
   --heart-color: hsl(358, 100%, 74%);
 }
@@ -281,26 +290,18 @@
   /* Blues → blue ramp @deprecated */
   --primary-blue: var(--blue-500);
   --link-blue: var(--blue-600);
-  --lightest-blue: var(--blue-50);
   --mid-blue: var(--blue-400);
   --dark-blue: var(--blue-800);
-  --darker-brand-blue: var(--blue-500);
-  --header-nav-hover-color: var(--blue-600);
   --blue-b0bed9: var(--blue-200);
-  --count-blue-grey: var(--neutral-600);
   --grey-blue: var(--blue-100);
   --button-hover-blue: var(--blue-400);
   --dark-baby-blue: var(--blue-200);
   --mid-baby-blue: var(--blue-100);
-  --baby-blue: var(--blue-50);
   --blue-9fafd1: var(--blue-300);
-  --blue-3366ff: var(--blue-500);
-  --blue-5e88B9: var(--blue-400);
 
   /* Greens → green ramp @deprecated */
   --green: var(--green-500);
   --mid-baby-green: var(--green-100);
-  --baby-green: var(--green-50);
   --dark-green: var(--green-600);
   --soft-green: var(--green-200);
   --soft-green-two: var(--green-300);
@@ -314,7 +315,6 @@
   --orange-three: var(--amber-200);
   --orange-four: var(--amber-200);
   --orange-five: var(--amber-500);
-  --burnt-sienna: var(--amber-600);
 
   /* Reds → red ramp @deprecated */
   --red: var(--red-500);
@@ -324,12 +324,9 @@
 
   /* Pinks @deprecated */
   --mid-baby-pink: var(--red-100);
-  --baby-pink: var(--red-50);
 
   /* Yellows & beiges → neutral / amber ramps @deprecated */
   --dark-yellow: var(--amber-200);
-  --beige-deep: var(--neutral-200);
-  --beige-two: var(--neutral-200);
   --beige-three: var(--neutral-300);
   --beige: var(--neutral-200);
   --beige-pale: var(--neutral-100);
@@ -337,7 +334,6 @@
   --account-icon-border: var(--neutral-300);
   --light-yellow: var(--amber-100);
   --lighter-yellow: var(--amber-50);
-  --dark-beige: var(--neutral-300);
   --light-beige: var(--neutral-100);
   --cream: var(--neutral-100);
   --off-white: var(--neutral-50);
@@ -349,7 +345,6 @@
   --grey-464646: var(--neutral-700);
   --darker-grey: var(--neutral-700);
   --grey-555: var(--neutral-700);
-  --dark-grey-two: var(--neutral-600);
   --grey: var(--neutral-600);
   --accessible-grey: var(--neutral-500);
   --mid-grey: var(--neutral-400);
@@ -375,7 +370,6 @@
   /* Kept literals @deprecated — niche hues with no ramp home (admin, merge
      UI, charts) and alpha tokens (var() indirection can't carry the alpha). */
   --teal: hsl(184, 100%, 21%);
-  --purple: hsl(283, 97%, 61%);
   --magenta: hsl(300, 100%, 50%);
   --blue: hsl(240, 100%, 50%);
   --boxshadow-black: hsla(0, 0%, 0%, 0.15);

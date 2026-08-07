@@ -147,7 +147,7 @@ export class SearchModal extends LitElement {
             flex-shrink: 0;
             width: 20px;
             height: 20px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .search-input {
@@ -162,7 +162,7 @@ export class SearchModal extends LitElement {
             line-height: 1.4;
         }
 
-        .search-input::placeholder { color: var(--accessible-grey); }
+        .search-input::placeholder { color: var(--color-text-muted); }
         .search-input:focus         { outline: none; }
 
         /* Drop the native type="search" clear affordance — the modal renders
@@ -181,7 +181,7 @@ export class SearchModal extends LitElement {
             background: var(--white);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-medium);
             font-weight: 600;
@@ -217,7 +217,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
@@ -248,7 +248,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-circle);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
@@ -352,7 +352,7 @@ export class SearchModal extends LitElement {
         .results-heading {
             margin: 0;
             padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -430,7 +430,7 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 36px;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             background: var(--lightest-grey);
             border-radius: var(--border-radius-avatar);
         }
@@ -465,7 +465,7 @@ export class SearchModal extends LitElement {
         .result__author {
             display: block;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 13px;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -473,7 +473,7 @@ export class SearchModal extends LitElement {
 
         .result__year {
             display: block;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: 400;
         }
@@ -508,7 +508,7 @@ export class SearchModal extends LitElement {
            readable copy isn't in the patron's site language. Informational, not
            a button — muted so it sits below the pill without competing with it. */
         .result__lang {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 400;
             white-space: nowrap;
@@ -516,7 +516,7 @@ export class SearchModal extends LitElement {
 
         .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
             text-align: center;
         }
@@ -572,7 +572,7 @@ export class SearchModal extends LitElement {
             align-items: center;
             justify-content: center;
             height: 28px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .result__recent-icon svg { width: 18px; height: 18px; }
@@ -591,7 +591,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
             opacity: 0;
             transition: opacity 100ms ease;
@@ -728,7 +728,7 @@ export class SearchModal extends LitElement {
             background-color: var(--white);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--dark-grey);
+            color: var(--color-text);
             /* Strength of the specular top edge. Full on the light secondary fill;
                the dark primary fill dials it down below. */
             --control-highlight-strength: 35%;
@@ -745,8 +745,8 @@ export class SearchModal extends LitElement {
         /* Primary — opt-in via variant="primary" (the footer action). */
         ol-button[variant="primary"]:not([hydrated]),
         ol-button[variant="primary"] > button {
-            background-color: var(--primary-blue);
-            border-color: var(--primary-blue);
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
             color: var(--white);
             /* Tone the specular highlight to the blue fill and soften it — the
                white edge reads much louder on a dark fill than on white. */
@@ -761,7 +761,7 @@ export class SearchModal extends LitElement {
         ol-button[selected] > button {
             background-color: var(--color-control-selected-bg);
             border-color: var(--color-control-selected-border);
-            color: var(--link-blue);
+            color: var(--color-link);
             /* Opaque twin of the tint — a translucent surface washes out the highlight. */
             --control-surface: var(--color-control-selected-surface);
         }
@@ -772,7 +772,7 @@ export class SearchModal extends LitElement {
                blanking its blue on hover while the text stays white. */
             ol-button[variant="secondary"] > button:hover {
                 background-color: var(--lightest-grey);
-                border-color: var(--light-grey);
+                border-color: var(--color-border-muted);
                 --control-surface: var(--lightest-grey);
             }
 

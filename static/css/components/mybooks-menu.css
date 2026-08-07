@@ -33,7 +33,7 @@
 
 .mybooks-menu a {
   display: block;
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .mybooks-menu a:link,
@@ -90,9 +90,9 @@
   text-transform: uppercase;
   font-weight: bold;
   font-size: 0.8em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   background: var(--background-grey);
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   border-left: 0;
   border-right: 0;
   margin-bottom: var(--spacing-stack-xs);
@@ -111,8 +111,8 @@
   padding: var(--spacing-inset-xs) 5%;
   font-size: 0.96em;
   background-color: var(--background-grey);
-  border: 1px solid var(--lighter-grey);
-  color: var(--grey);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
 }
 
 /* stylelint-disable selector-max-specificity */
@@ -148,7 +148,7 @@
   float: right;
   font-size: 0.9em;
   margin-top: 1px;
-  color: var(--count-blue-grey);
+  color: var(--color-text-secondary);
   margin-left: var(--spacing-inline-sm);
 }
 
@@ -191,7 +191,7 @@
 
   .mybooks-menu-mobile a {
     text-decoration: none;
-    color: var(--link-blue);
+    color: var(--color-link);
   }
 
   /* all uls */
@@ -240,9 +240,9 @@
     text-transform: uppercase;
     font-weight: bold;
     font-size: 0.8em;
-    color: var(--grey);
+    color: var(--color-text-secondary);
     background: var(--background-grey);
-    border: 1px solid var(--lighter-grey);
+    border: 1px solid var(--color-border-subtle);
     border-left: 0;
     border-right: 0;
     margin-bottom: var(--spacing-stack-xs);
@@ -274,14 +274,14 @@
   .mybooks-menu-mobile hr {
     height: 0;
     margin: var(--spacing-stack-xs) var(--spacing-inline-xl);
-    border-bottom: 1px solid var(--lighter-grey);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   .mybooks-menu-mobile .li-count {
     float: right;
     font-size: 0.9em;
     margin-top: 1px;
-    color: var(--count-blue-grey);
+    color: var(--color-text-secondary);
     margin-left: var(--spacing-inline-sm);
   }
 

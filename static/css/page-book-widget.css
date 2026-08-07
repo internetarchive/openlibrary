@@ -22,7 +22,7 @@ body {
 
 .cta {
   font-family: var(--font-family-body);
-  background: var(--primary-blue);
+  background: var(--color-primary);
   border-radius: 3px;
   width: 130px;
   margin: 0 auto;
@@ -65,7 +65,7 @@ img.bookcover {
 .title {
   font-family: var(--font-family-title);
   margin: 7px auto 0;
-  color: var(--grey-555);
+  color: var(--color-text-heading);
   font-size: 0.8em;
   width: 130px;
 }
@@ -78,7 +78,7 @@ a.noshow {
   font-family: var(--font-family-body);
   font-size: 0.7em;
   font-weight: normal;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin: 5px auto 7px;
   width: 130px;
 }

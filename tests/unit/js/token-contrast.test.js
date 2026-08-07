@@ -65,6 +65,9 @@ const MATRIX = [
     ['--color-text', '--color-surface', 4.5],
     ['--color-text', '--color-background', 4.5],
     ['--color-text', '--color-surface-sunken', 4.5],
+    ['--color-text-heading', '--color-surface', 4.5],
+    ['--color-text-heading', '--color-background', 4.5],
+    ['--color-text-heading', '--color-surface-sunken', 4.5],
     ['--color-text-secondary', '--color-surface', 4.5],
     ['--color-text-secondary', '--color-background', 4.5],
     ['--color-text-secondary', '--color-surface-sunken', 4.5],
@@ -88,7 +91,11 @@ const MATRIX = [
     ['--color-error-fg', '--color-error-bg', 4.5],
     ['--color-warning-fg', '--color-surface', 4.5],
     ['--color-warning-fg', '--color-warning-bg', 4.5],
-    // Non-text UI (3:1): default input border, focus ring, disabled text
+    // Non-text UI (3:1): default input border, focus ring, disabled text.
+    // --color-border-muted and --color-icon-muted are absent on purpose: they
+    // are the decorative tier (1.6:1 and 2.5:1 on white) and carry that caveat
+    // in colors.css. Asserting 3:1 on them would be asserting a promise the
+    // system doesn't make.
     ['--color-border', '--color-surface', 3],
     ['--color-focus-ring', '--color-surface', 3],
     ['--color-focus-ring', '--color-background', 3],

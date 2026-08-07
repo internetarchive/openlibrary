@@ -42,7 +42,7 @@ table.history tr:last-child {
 table.history td {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border-bottom: var(--border-table);
 }
 
@@ -77,7 +77,7 @@ table#pageHistory tbody td {
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory td.when {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
@@ -99,9 +99,9 @@ table#pageHistory td.compare-against {
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory .compare-against a {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-button);
-  color: var(--dark-grey);
+  color: var(--color-text);
   display: inline-block;
   min-width: 64px;
   font-size: var(--font-size-label-small);
@@ -122,14 +122,14 @@ table#pageHistory .compare-against a + a {
 table#pageHistory td.number a,
 table#pageHistory td.when a,
 table#pageHistory td.who a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* stylelint-enable selector-max-specificity */
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory td.comment a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: none;
 }
 
@@ -186,7 +186,7 @@ table#pageHistory .compare-against a:hover {
   border: var(--border-card);
   border-radius: var(--border-radius-card);
   background: var(--beige-pale);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-label-medium);
 }
 
@@ -197,10 +197,10 @@ table#pageHistory .compare-against a:hover {
 /* Match the bordered style of the in-table Changes / vs current buttons. */
 /* Qualify with `a` so this beats the global `a:link` underline/blue rule. */
 a.page-history-compare__submit {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-button);
   background: var(--white);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-label-small);
   font-weight: 500;
   padding: 3px 10px;
@@ -212,7 +212,7 @@ a.page-history-compare__submit {
 }
 
 .page-history-compare__submit.is-disabled {
-  border-color: var(--lighter-grey);
+  border-color: var(--color-border-subtle);
   background: transparent;
   color: var(--mid-grey);
   cursor: not-allowed;
@@ -229,7 +229,7 @@ a.page-history-compare__submit {
   border: 0;
   border-radius: var(--border-radius-button);
   background: transparent;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -237,7 +237,7 @@ a.page-history-compare__submit {
 
 .page-history-compare__clear:hover {
   background: var(--light-grey);
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 /* Mark the rows chosen as A / B with a left accent bar in the selection */

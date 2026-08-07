@@ -214,7 +214,7 @@ export class OlToast extends LitElement {
         }
 
         .toast--info .toast__icon {
-            background-color: var(--primary-blue);
+            background-color: var(--color-primary);
         }
 
         .toast--success .toast__icon {
@@ -247,7 +247,7 @@ export class OlToast extends LitElement {
         .toast__description {
             display: block;
             margin-top: 2px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: normal;
         }
@@ -265,7 +265,7 @@ export class OlToast extends LitElement {
             background: none;
             border: none;
             border-radius: var(--border-radius-sm);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 

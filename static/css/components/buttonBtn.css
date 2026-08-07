@@ -10,7 +10,7 @@
 .btn.primary {
   /* For input[type=submit] */
   border: none;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   /* Important is necessary to override default link color */
   color: var(--white) !important;
   border-radius: 5px;
@@ -42,7 +42,7 @@ a.btn {
 }
 
 .chip--selected {
-  border-color: var(--primary-blue);
+  border-color: var(--color-primary);
   color: var(--primary-blue);
   background-color: var(--grey-e7e7e7);
 }

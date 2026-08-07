@@ -92,8 +92,8 @@ table#pageHistory td.number {
 /* openlibrary/templates/admin/people/edits.html */
 table#pageHistory th,
 table.changeHistory th {
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  color: var(--brown);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-heading);
   text-transform: uppercase !important;
   font-size: 0.6875em;
   padding: var(--spacing-inset-sm);
@@ -101,10 +101,10 @@ table.changeHistory th {
 
 table#pageHistory td,
 table.changeHistory td {
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-sm);
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 table.changeHistory {
@@ -130,14 +130,14 @@ table.changeHistory .comment__cover {
 /* https://openlibrary.org/help/markdown */
 table.help {
   margin: 20px 0;
-  border-top: 1px solid var(--grey-e7e7e7);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 table.help th {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
   vertical-align: top;
   background-color: var(--lightest-grey);
@@ -146,8 +146,8 @@ table.help th {
 table.help td {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
   vertical-align: top;
 }
@@ -255,7 +255,7 @@ div.unordered {
 div.superNav {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-xs);
 }
 
@@ -271,7 +271,7 @@ span.link {
 
 span.tools {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal !important;
   font-family: var(--font-family-body);
 }
@@ -295,7 +295,7 @@ span.tools span.list {
 
 span.tag {
   font-size: 13px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 span.count {
@@ -313,7 +313,7 @@ span.merge {
 
 span.resultTitle {
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 span.resultTitle span.resultType {
@@ -325,7 +325,7 @@ span.resultTitle span.resultType {
 span.resultTitle .bookauthor,
 span.resultTitle .resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   font-weight: normal;
 }
@@ -394,8 +394,8 @@ input.repeat-add {
 }
 
 input.invalid {
-  border-color: var(--red);
-  color: var(--dark-grey);
+  border-color: var(--color-border-error);
+  color: var(--color-text);
 }
 
 input.highlight {
@@ -431,7 +431,7 @@ input.highlight {
 /* Search v2 */
 /* openlibrary/macros/SearchResultsWork.html */
 .serp-extras {
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   background-color: var(--white);
   padding: 0 10px 10px;
   margin-top: var(--spacing-stack-sm);
@@ -457,7 +457,7 @@ div#content {
   width: 958px;
   background-color: var(--white);
   border-radius: 5px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
 }
 
 div#content div.contentLists {
@@ -470,7 +470,7 @@ div#content div.contentLists {
 div#content div#contentLists {
   float: left;
   position: relative;
-  border-top: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
   background: var(--white) url(/static/images/back_results.png) repeat-x;
 }
 /* stylelint-enable selector-max-specificity */
@@ -499,7 +499,7 @@ div.note {
   margin: 0 auto;
   padding: var(--spacing-inset-sm);
   text-align: left;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 
 /* openlibrary/templates/lib/not_logged.html */
@@ -684,7 +684,7 @@ div.siteSearch input[type="text"] {
 .searchPlus {
   font-family: var(--font-family-body);
   font-size: 0.75em;
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: var(--spacing-inset-md) 0;
 }
 
@@ -784,7 +784,7 @@ div.verify span {
 
 .forgot-email-form label {
   font-family: var(--font-family-body);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -899,7 +899,7 @@ div#searchResults .SRPCoverBlank a {
   font-family: var(--font-family-body);
   font-size: 0.7em;
   margin-bottom: -1.5em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0.2em;
 }
 
@@ -913,7 +913,7 @@ div#searchResults .SRPCoverBlank a {
   margin-bottom: 1.5em;
   max-width: 800px;
   font-size: 1em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .authorList .cover {
@@ -934,7 +934,7 @@ div#searchResults .SRPCoverBlank a {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
 }
 
 /* The result count rides the "Books" label but reads as data, not a label. */
@@ -977,7 +977,7 @@ div#searchResults .SRPCoverBlank a {
   width: 48px;
   height: 48px;
   overflow: hidden;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
   background: var(--lightest-grey);
   border-radius: var(--border-radius-avatar);
 }
@@ -1076,7 +1076,7 @@ div.list .copy {
 div.list h5 {
   font-family: var(--font-family-serif);
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin-bottom: var(--spacing-stack-xs);
 }
 
@@ -1088,14 +1088,14 @@ div.list h5 span {
 div.list .tags {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list .owner {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-align: right;
 }
 
@@ -1205,11 +1205,11 @@ div.books .BookTitle {
   margin-left: -31px;
   height: 93px;
   margin-top: -46px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 div.books .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
@@ -1248,8 +1248,8 @@ div.excerpt .attribution {
 /* openlibrary/templates/books/edit/edition.html */
 /* openlibrary/templates/admin/imports-add.html */
 .identifiers td {
-  color: var(--dark-grey);
-  border-bottom: 1px solid var(--lighter-grey);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
 }
 
@@ -1342,14 +1342,14 @@ ul.clean li span.resultTitle {
   height: 100px;
   margin-top: -50px;
   vertical-align: middle;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
   line-height: normal;
 }
 
 /* openlibrary/templates/covers/book_cover.html */
 .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: var(--font-size-label-small);
@@ -1467,7 +1467,7 @@ ul.list-books .resultTitle {
   display: block;
   margin: 0 !important;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 /* `span.resultTitle .bookauthor` is used in: */
@@ -1478,7 +1478,7 @@ ul.list-books .resultTitle {
 ul.list-books .resultTitle .bookauthor,
 ul.list-books span.resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
 }
 
@@ -1665,7 +1665,7 @@ div.postSubmit {
 /* openlibrary/templates/type/list/exports.html */
 #listTools ul {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   margin: 0 0 20px !important;
 }
@@ -1780,7 +1780,7 @@ div#subjectLists p {
   background: inherit;
   border: none;
   padding: 0;
-  color: var(--link-blue);
+  color: var(--color-link);
   border-bottom: 1px solid var(--link-blue);
   margin-bottom: var(--spacing-stack-md);
 }
@@ -1911,7 +1911,7 @@ div#subjectLists p {
   }
 
   .header-bar .logo-component {
-    /* border-right: 1px solid var(--dark-beige); */
+    /* border-right: 1px solid var(--color-border-muted); */
     padding-right: 15px;
   }
 
@@ -1928,7 +1928,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component .dropdown-menu {
     border-radius: 3px;
-    border: 1px solid var(--dark-beige);
+    border: 1px solid var(--color-border-muted);
   }
 
   .header-bar .navigation-component li .dropdown-menu {
@@ -1942,7 +1942,7 @@ div#subjectLists p {
   .header-bar .search-component .search-bar-component {
     width: 100%;
     background-color: var(--grey-fafafa);
-    border: 1px solid var(--dark-beige);
+    border: 1px solid var(--color-border-muted);
     border-radius: 6px;
   }
 

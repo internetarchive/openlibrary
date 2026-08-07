@@ -21,7 +21,7 @@ table#editions .cta-button-group,
 
 table#editions thead,
 .editions-table thead {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
 }
 
 table#editions thead tr,
@@ -86,7 +86,7 @@ table#editions div.title,
 table#editions div.links,
 .editions-table div.links {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   line-height: 1.5em;
 }
 
@@ -134,14 +134,14 @@ table#editions .highlight,
   text-align: left;
   font-weight: normal;
   font-size: 0.6875em;
-  color: var(--brown);
+  color: var(--color-text-heading);
   padding: 0 0 var(--spacing-inset-sm);
   border-left: none;
   border-right: none;
 }
 
 .lists table#editions td {
-  color: var(--dark-grey);
+  color: var(--color-text);
   vertical-align: top;
 }
 
@@ -204,7 +204,7 @@ table#editions .highlight,
   table#editions tr {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid var(--lighter-grey);
+    border-bottom: 1px solid var(--color-border-subtle);
     padding-bottom: var(--spacing-inset-sm);
     overflow: visible;
   }

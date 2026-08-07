@@ -35,7 +35,7 @@
   margin-left: -125px;
   margin-top: -15px;
   padding: 14px 0 5px;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   text-align: center;
   color: var(--light-grey);
   font-size: var(--font-size-label-large);
@@ -43,14 +43,14 @@
 
 .dataTables_length {
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   display: inline-block;
 }
 
 .dataTables_info {
   width: 100%;
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-top: 20px;
 }
 
@@ -61,7 +61,7 @@
   /* stylelint-enable declaration-block-no-duplicate-properties */
   text-align: right;
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 /* Pagination nested */
@@ -148,7 +148,7 @@ table.display thead th {
 
 tr.even,
 tr.odd {
-  border-bottom: 1px solid var(--light-grey);
+  border-bottom: 1px solid var(--color-border-muted);
 }
 
 /*
@@ -159,19 +159,19 @@ table.KeyTable td {
 }
 
 table.KeyTable td.focus {
-  border: 3px solid var(--blue-3366ff);
+  border: 3px solid var(--color-border-focused);
 }
 
 table.display tr.gradeA {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 table.display tr.gradeC {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 table.display tr.gradeX {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 table.display tr.gradeU {
@@ -183,7 +183,7 @@ div.box {
   padding: var(--spacing-inset-sm);
   overflow: auto;
   border: 1px solid var(--dark-baby-blue);
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -215,7 +215,7 @@ tfoot input {
 }
 
 tfoot input.search_init {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 td.group {
@@ -234,7 +234,7 @@ div.dataTables_filter {
   text-align: right;
   font-size: var(--font-size-label-medium);
   margin: 0;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .dataTables_filter input {
@@ -260,7 +260,7 @@ div.dataTables_filter {
   font-size: var(--font-size-label-small);
   padding: var(--spacing-inset-sm);
   margin: 0 var(--spacing-inline-sm);
-  color: var(--link-blue);
+  color: var(--color-link);
   cursor: pointer;
 }
 
@@ -298,23 +298,23 @@ tr.odd.gradeA td.sorting_1 {
 }
 
 tr.odd.gradeA td.sorting_2 {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 tr.odd.gradeA td.sorting_3 {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 tr.even.gradeA td.sorting_1 {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 tr.even.gradeA td.sorting_2 {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 tr.even.gradeA td.sorting_3 {
-  background-color: var(--baby-green);
+  background-color: var(--color-success-bg);
 }
 
 tr.odd.gradeC td.sorting_1 {
@@ -322,23 +322,23 @@ tr.odd.gradeC td.sorting_1 {
 }
 
 tr.odd.gradeC td.sorting_2 {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 tr.odd.gradeC td.sorting_3 {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 tr.even.gradeC td.sorting_1 {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 tr.even.gradeC td.sorting_2 {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 tr.even.gradeC td.sorting_3 {
-  background-color: var(--baby-blue);
+  background-color: var(--color-primary-subtle);
 }
 
 tr.odd.gradeX td.sorting_1 {
@@ -346,23 +346,23 @@ tr.odd.gradeX td.sorting_1 {
 }
 
 tr.odd.gradeX td.sorting_2 {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 tr.odd.gradeX td.sorting_3 {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 tr.even.gradeX td.sorting_1 {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 tr.even.gradeX td.sorting_2 {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 tr.even.gradeX td.sorting_3 {
-  background-color: var(--baby-pink);
+  background-color: var(--color-error-bg);
 }
 
 tr.odd.gradeU td.sorting_1 {

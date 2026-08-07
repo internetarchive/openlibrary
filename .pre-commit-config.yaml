@@ -85,7 +85,10 @@ repos:
           - stylelint@16.22.0
           - stylelint-declaration-strict-value@1.11.1
           - stylelint-prettier@5.0.3
-        args: [--fix]
+        # --allow-empty-input: .stylelintignore covers whole directories (e.g.
+        # static/css/tokens/), so a commit touching only ignored files would
+        # otherwise fail the hook with AllFilesIgnoredError.
+        args: [--fix, --allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v10.8.0

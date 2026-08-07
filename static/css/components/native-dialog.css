@@ -1,13 +1,13 @@
 .native-dialog {
   padding: 10px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-overlay);
   -webkit-box-shadow: 1px 3px 5px var(--darker-grey);
   box-shadow: 1px 3px 5px var(--darker-grey);
 }
 
 .native-dialog--close {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.2em;
 }
 

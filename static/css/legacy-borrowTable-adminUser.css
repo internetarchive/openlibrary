@@ -17,7 +17,7 @@
   vertical-align: bottom;
   padding-bottom: var(--spacing-inset-sm);
   font-family: var(--font-family-body);
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-weight: 600;
   font-size: 0.6875em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
   background: var(--admin-row-background) !important;
 }
 .borrow-table tr.row-available .status-value {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 
 .borrow-table td.status,
