@@ -29,7 +29,6 @@ class Features(BaseSettings):
     # debug: bool # disabled because we should probably get rid of it but we still have a `features.is_enabled("debug")` to deal with we didn't see in #12884
     stats: bool
     stats_header: bool
-    # undo: bool # Warning: this is enabled locally but a usergroup of librarians in testing/production
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> Features:
