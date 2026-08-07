@@ -99,7 +99,7 @@ table#pageHistory td.compare-against {
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory .compare-against a {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   display: inline-block;
@@ -197,7 +197,7 @@ table#pageHistory .compare-against a:hover {
 /* Match the bordered style of the in-table Changes / vs current buttons. */
 /* Qualify with `a` so this beats the global `a:link` underline/blue rule. */
 a.page-history-compare__submit {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-button);
   background: var(--white);
   color: var(--color-text);

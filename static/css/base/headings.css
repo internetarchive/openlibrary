@@ -10,7 +10,7 @@ h1 span.subtitle {
 }
 /* TODO: Check if this class is still used. */
 h1.publisher {
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-size: var(--font-size-headline-medium);
   font-family: var(--font-family-serif) !important;
   font-weight: normal !important;
@@ -24,12 +24,12 @@ h2 {
   font-size: var(--font-size-headline-small);
 }
 h2.author {
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-size: var(--font-size-title-medium);
   font-weight: normal;
 }
 h2.authorEdition {
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-size: var(--font-size-title-small);
   font-weight: normal;
   margin: 0;
@@ -72,7 +72,7 @@ h3.Question {
   font-family: var(--font-family-serif);
   font-size: var(--font-size-title-large);
   font-weight: normal;
-  color: var(--brown);
+  color: var(--color-text-heading);
   margin-top: var(--spacing-stack-sm);
   padding-top: var(--spacing-inset-sm);
   border-top: 1px dotted var(--color-border-subtle);

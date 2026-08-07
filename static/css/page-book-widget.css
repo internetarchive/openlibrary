@@ -65,7 +65,7 @@ img.bookcover {
 .title {
   font-family: var(--font-family-title);
   margin: 7px auto 0;
-  color: var(--grey-555);
+  color: var(--color-text-heading);
   font-size: 0.8em;
   width: 130px;
 }

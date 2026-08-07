@@ -772,7 +772,7 @@ export class SearchModal extends LitElement {
                blanking its blue on hover while the text stays white. */
             ol-button[variant="secondary"] > button:hover {
                 background-color: var(--lightest-grey);
-                border-color: var(--light-grey);
+                border-color: var(--color-border-muted);
                 --control-surface: var(--lightest-grey);
             }
 
