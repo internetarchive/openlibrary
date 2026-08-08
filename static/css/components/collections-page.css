@@ -130,8 +130,8 @@
   /* No bottom margin: the head's own padding already sets the gap to the body. */
   margin: var(--spacing-stack-lg) auto 0;
   font-family: var(--font-family-title);
-  font-size: var(--font-size-display-small);
-  font-weight: 700;
+  font-size: var(--font-size-display-medium);
+  font-weight: 600;
   line-height: var(--line-height-display);
   color: var(--color-text);
   text-align: center;
