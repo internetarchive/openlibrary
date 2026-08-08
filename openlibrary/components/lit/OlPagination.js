@@ -127,7 +127,7 @@ export class OlPagination extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-                background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+                background: var(--color-hover-overlay);
             }
         }
 

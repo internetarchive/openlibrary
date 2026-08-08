@@ -251,7 +251,7 @@ export class OLMarkdownEditor extends LitElement {
     .toolbar-btn svg { width: var(--spacing-xl); height: var(--spacing-xl); stroke-width: 2.2; }
 
     @media (hover: hover) and (pointer: fine) {
-      .toolbar-btn:hover:not(:disabled) { background: var(--lighter-grey); }
+      .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }
     }
 
     .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }

@@ -126,22 +126,22 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover {
-                background: var(--lightest-grey);
+                background: var(--color-hover-overlay);
             }
         }
 
         .item-row:focus-within {
             outline: none;
-            background: var(--lightest-grey);
+            background: var(--color-hover-overlay);
         }
 
         .item--selected .item-row {
-            background: hsla(202, 96%, 37%, 0.08);
+            background: var(--color-control-selected-bg);
         }
 
         .item--selected .item-row:focus-within,
         .item--selected .item-row:hover {
-            background: hsla(202, 96%, 37%, 0.12);
+            background: var(--color-control-selected-bg-hover);
         }
 
         .item-radio {

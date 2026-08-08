@@ -156,6 +156,16 @@ class TestParseFile:
         category = _parse_file(write(tmp_path, "c.css", "/**\n * 2. Semantic tokens\n * ---\n */\n:root { }\n/* Text */\n:root { --color-text: red; }\n"))
         assert [(group.title, len(group.tokens)) for group in category.groups] == [("2. Semantic tokens", 0), ("Text", 1)]
 
+    def test_a_responsive_override_does_not_redeclare_its_token(self, tmp_path):
+        body = ":root { --size: 57px; }\n/* Steps down on phones. */\n@media (max-width: 768px) {\n  :root { --size: 45px; }\n}\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [(group.title, [token.name for token in group.tokens]) for group in category.groups] == [("", ["--size"])]
+
+    def test_a_brace_inside_a_comment_does_not_end_the_masked_block(self, tmp_path):
+        body = "@media (max-width: 768px) {\n  /* --color-{a,b} */\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
 
 class TestRamps:
     def test_a_numeric_color_run_is_a_ramp_and_a_stray_sibling_stays_loose(self, tmp_path):
@@ -302,10 +312,15 @@ class TestRealTokenFiles:
         assert tokens["--color-text"].resolved.startswith("hsl(")
         assert tokens["--color-link"].resolved.startswith("hsl(")
 
-    def test_the_colors_blurb_carries_the_which_token_do_i_use_table(self):
-        """The one place a contributor is told how to choose; it renders or it doesn't exist."""
+    def test_the_colors_file_carries_the_which_token_do_i_use_table(self):
+        """The one place a contributor is told how to choose; it renders or it doesn't exist.
+
+        Read from the whole file, not the opening comment: the guide is free to
+        live in its own section.
+        """
         colors = next(category for category in load_token_categories() if category.id == "colors")
-        table = next(block for block in colors.blurb if block.kind == "table")
+        blurbs = [colors.blurb, *(group.blurb for group in colors.groups)]
+        table = next(block for blurb in blurbs for block in blurb if block.kind == "table")
         assert len(table.headers) == 2
         assert ("Body text", "`--color-text`") in table.rows
 
