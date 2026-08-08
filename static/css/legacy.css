@@ -1874,13 +1874,16 @@ div#subjectLists p {
   }
   /* inlined from components/edit-toolbar--tablet.css */
   /* stylelint-disable selector-max-specificity */
-  div#editTools,
   div#editHistory {
     padding: 2px 5px 0 10px;
     margin-top: -5px;
     float: right;
   }
+  /* #editTools sets its own padding in components/edit-toolbar.css. It shared
+     this rule until that one arrived, and being later in the file this block
+     quietly won, so the databar kept an inset it was no longer meant to have. */
   div#editTools {
+    float: right;
     margin-top: 1px;
     max-width: 280px;
   }
