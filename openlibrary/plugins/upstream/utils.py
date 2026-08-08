@@ -1636,6 +1636,36 @@ def get_collection_book_count(page) -> int | None:
     return sum(lst.seed_count for lst in lists)
 
 
+LEADING_IMAGE_RE = re.compile(r"<p>\s*(<img\b[^>]*>)\s*(?:<br\s*/?>)?\s*(.*?)\s*</p>", re.DOTALL)
+CAPTION_RE = re.compile(r"^<small>(.*)</small>$", re.DOTALL)
+
+
+@public
+def promote_leading_images(html: str) -> str:
+    """Give an image that opens a paragraph its own ``<figure>``.
+
+    Markdown wraps a standalone image in a paragraph, and OL's flavor turns the
+    newline after it into a ``<br>``, so the image ends up sharing that
+    paragraph with its caption or with the opening prose. That caps the image at
+    the reading measure and hands the drop cap to the wrong paragraph. A
+    ``<small>`` tail becomes the figure's caption; anything else goes back to
+    being a paragraph of its own.
+    """
+
+    def split(match: re.Match) -> str:
+        image, tail = match.group(1), match.group(2).strip()
+        caption = ""
+        if inner := CAPTION_RE.match(tail):
+            caption, tail = inner.group(1).strip(), ""
+        figcaption = f"<figcaption>{caption}</figcaption>" if caption else ""
+        return f"<figure>{image}{figcaption}</figure>" + (f"<p>{tail}</p>" if tail else "")
+
+    # Re-run until stable so a paragraph stacking several images splits them all.
+    while (promoted := LEADING_IMAGE_RE.sub(split, html)) != html:
+        html = promoted
+    return html
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 

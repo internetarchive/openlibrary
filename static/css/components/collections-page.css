@@ -130,10 +130,9 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Drop cap on the paragraph that opens the story. Pages often lead with an
-   image-only paragraph, so the cap moves to the paragraph after it. */
-.collections-page #contentBody > p:first-of-type:not(:has(img))::first-letter,
-.collections-page #contentBody > p:first-of-type:has(img) + p::first-letter {
+/* Drop cap on the paragraph that opens the story. A leading image has been
+   promoted out to a <figure> by now, so the first paragraph is that prose. */
+.collections-page #contentBody > p:first-of-type::first-letter {
   float: left;
   font-family: var(--font-family-title);
   /* Cap height set to reach from the first line's cap to the third baseline;
@@ -151,8 +150,7 @@
    lines beside it only ~30 characters wide. */
 /* --width-breakpoint-tablet */
 @media only screen and (max-width: 768px) {
-  .collections-page #contentBody > p:first-of-type:not(:has(img))::first-letter,
-  .collections-page #contentBody > p:first-of-type:has(img) + p::first-letter {
+  .collections-page #contentBody > p:first-of-type::first-letter {
     font-size: 3.15em;
     margin-top: 0.02em;
   }
@@ -160,28 +158,39 @@
 
 /* === images === */
 
-/* Prose images only: direct children or inside a top-level paragraph. Book
-   covers in carousels sit deeper in the tree and keep their component styles. */
+/* Standalone images get the wider measure. promote_leading_images gives an image
+   that opens a paragraph its own <figure>, so it reaches the top level; raw <img>
+   markup in the source is already there. A cap, not a width — a small image sits
+   at its own size rather than being stretched to fill. */
+.collections-page #contentBody > figure,
+.collections-page #contentBody > img {
+  max-width: min(var(--collections-media-width), 100%);
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+/* Prose images only: in a figure, standalone, or left inline in a top-level
+   paragraph. Book covers in carousels sit deeper and keep their component styles. */
 .collections-page #contentBody > img,
+.collections-page #contentBody > figure img,
 .collections-page #contentBody > p img {
   display: block;
-  max-width: min(var(--collections-media-width), 100%);
   margin-inline: auto;
-  margin-bottom: var(--spacing-stack-xl);
   border-radius: var(--border-radius-media);
 }
 
-/* An image inside a paragraph breaks out on its own rather than by widening the
-   paragraph: markdown leaves it in there alongside its caption or the opening
-   prose, and widening the <p> would pull that text off the measure too.
-   Percentage margins resolve against the paragraph, so 50% is its centre line. */
-/* 60em for the image, plus the 2.5em of page padding beside it. */
-@media only screen and (min-width: 62.5em) {
-  .collections-page #contentBody > p img {
-    width: var(--collections-media-width);
-    max-width: none;
-    margin-inline: calc(50% - var(--collections-media-width) / 2);
-  }
+/* An image still inline in a paragraph keeps the reading measure, and carries its
+   own gap — a figure's sits below the caption instead. */
+.collections-page #contentBody > p img {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+/* Centered on the reading measure, so a caption stays readable under a wider image. */
+.collections-page #contentBody > figure figcaption {
+  max-width: var(--collections-measure);
+  margin: var(--spacing-stack-xs) auto 0;
+  font-size: var(--font-size-body-medium);
+  color: var(--accessible-grey);
+  text-align: center;
 }
 
 /* stylelint-enable selector-max-specificity */
