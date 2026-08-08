@@ -54,25 +54,19 @@
   margin-left: auto;
 }
 
-/* Up-link to the index. Set like the eyebrow below it — the two are the page's
-   collection chrome, distinct from the edit metadata alongside. */
+/* Up-link to the index, set as an ordinary link. */
 .collections-page #contentHead .collection-back {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-inline-sm);
+  gap: var(--spacing-inline-xs);
   font-family: var(--font-family-body);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--accessible-grey);
-  text-decoration: none;
-  text-transform: uppercase;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-link);
   white-space: nowrap;
 }
 
 .collections-page #contentHead .collection-back:hover {
-  color: var(--dark-grey);
-  text-decoration: underline;
+  color: var(--color-link-hover);
 }
 
 /* Sized off the label so the two scale together. The nudge back offsets the
