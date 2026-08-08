@@ -5,11 +5,13 @@
  * Do NOT use these directly in components - use semantic tokens instead.
  */
 :root {
-  /* Source Sans 3 is a self-hosted webfont (static/css/fonts/source-sans-3.css).
-     Like Literata below, it only renders on pages whose bundle imports that
-     file; everywhere else this stack falls through to the system sans it has
-     always used. Noto Sans stays in the stack for scripts it doesn't cover. */
-  --font-family-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  /* Schibsted Grotesk is a self-hosted webfont
+     (static/css/fonts/schibsted-grotesk.css). Like Literata below, it only
+     renders on pages whose bundle imports that file; everywhere else this stack
+     falls through to the system sans it has always used. It covers Latin and
+     Latin Extended only, so Greek, Cyrillic and the rest fall through to the
+     system sans too, with Noto Sans behind that. */
+  --font-family-sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   /* Literata is a self-hosted webfont (static/css/fonts/literata.css). It only
      renders on pages whose bundle imports that file; everywhere else this stack
      falls through to the system serifs it has always used. */
