@@ -19,6 +19,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
+from openlibrary.core.env import get_ol_env
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -600,7 +601,8 @@ def get_features_table() -> list[dict[str, str]]:
 
 def setup():
     "Basic startup status for the server"
-    _ensure_testing_state_file()
+    if get_ol_env().LOCAL_DEV:
+        _ensure_testing_state_file()
     global status_info
     host = socket.gethostname()
     status_info = {

@@ -92,15 +92,32 @@ def test_ensure_testing_state_file_does_not_overwrite_existing(tmp_path, monkeyp
     assert json.loads(state_file.read_text())["prs"][0]["pr"] == 13269
 
 
-def test_setup_ensures_testing_state_file(monkeypatch):
+def test_setup_ensures_testing_state_file_in_local_dev(monkeypatch):
     calls = []
     monkeypatch.setattr(status_module, "_ensure_testing_state_file", lambda: calls.append(True))
+    env = MagicMock()
+    env.LOCAL_DEV = True
+    monkeypatch.setattr(status_module, "get_ol_env", lambda: env)
     monkeypatch.setattr(status_module.stats, "increment", lambda *args, **kwargs: None)
     monkeypatch.setattr(status_module, "get_software_version", lambda: "test")
 
     status_module.setup()
 
     assert calls == [True]
+
+
+def test_setup_skips_state_file_creation_outside_local_dev(monkeypatch):
+    calls = []
+    monkeypatch.setattr(status_module, "_ensure_testing_state_file", lambda: calls.append(True))
+    env = MagicMock()
+    env.LOCAL_DEV = False
+    monkeypatch.setattr(status_module, "get_ol_env", lambda: env)
+    monkeypatch.setattr(status_module.stats, "increment", lambda *args, **kwargs: None)
+    monkeypatch.setattr(status_module, "get_software_version", lambda: "test")
+
+    status_module.setup()
+
+    assert calls == []
 
 
 def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
