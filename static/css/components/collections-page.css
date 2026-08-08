@@ -12,7 +12,10 @@
      element uses it, so an em measure would widen the column under every
      heading rather than holding one column down the page. */
   --collections-measure: 40rem;
-  --collections-media-width: 60rem;
+  /* What images break out to. The px cap is what #contentBody can actually give
+     them — <main> is held to 1060px, less its border and padding either side —
+     and it only binds if the reader has scaled their default text up. */
+  --collections-media-width: min(60rem, 1018px);
   /* The title sits between the two: wider than the reading measure so it isn't
      forced into a narrow stack, short of the image so it stays a display line. */
   --collections-title-measure: 48rem;
@@ -157,21 +160,28 @@
 
 /* === images === */
 
-/* Images run wider than the text column. :only-child so a paragraph that mixes
-   an inline image with text keeps the reading measure. */
-.collections-page #contentBody > img,
-.collections-page #contentBody > p:has(> img:only-child) {
-  max-width: min(var(--collections-media-width), 100%);
-}
-
 /* Prose images only: direct children or inside a top-level paragraph. Book
    covers in carousels sit deeper in the tree and keep their component styles. */
 .collections-page #contentBody > img,
 .collections-page #contentBody > p img {
   display: block;
+  max-width: min(var(--collections-media-width), 100%);
   margin-inline: auto;
   margin-bottom: var(--spacing-stack-xl);
   border-radius: var(--border-radius-media);
+}
+
+/* An image inside a paragraph breaks out on its own rather than by widening the
+   paragraph: markdown leaves it in there alongside its caption or the opening
+   prose, and widening the <p> would pull that text off the measure too.
+   Percentage margins resolve against the paragraph, so 50% is its centre line. */
+/* 60em for the image, plus the 2.5em of page padding beside it. */
+@media only screen and (min-width: 62.5em) {
+  .collections-page #contentBody > p img {
+    width: var(--collections-media-width);
+    max-width: none;
+    margin-inline: calc(50% - var(--collections-media-width) / 2);
+  }
 }
 
 /* stylelint-enable selector-max-specificity */
