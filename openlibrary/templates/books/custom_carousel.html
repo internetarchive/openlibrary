@@ -49,6 +49,9 @@ $if test or (books and len(books) >= min_books):
                               target_data = docs[0]
               $ book2 = storage(target_data)
               $ book2['authors'] = book.get('authors', [])
+              $ loan = book.get('loan')
+              $if loan:
+                $ book2['loan'] = loan
               $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
         </div>
       </div>
