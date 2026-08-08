@@ -20,7 +20,19 @@ $if is_collection:
 
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
-        $:macros.databarView(page)
+        $# A collection page shares its top row with a link back up to the index.
+        $if is_collection:
+            <div class="collection-topbar">
+                $if key != '/collections':
+                    <a class="collection-back" href="/collections">
+                        $# Chevron matching OlPagination's: stroked, so it takes the link's color.
+                        <svg class="collection-back__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+                        $_("Collections")
+                    </a>
+                $:macros.databarView(page)
+            </div>
+        $else:
+            $:macros.databarView(page)
         $if page.key.startswith("/community/"):
             <div class="superNav">
                 <a href="/community">$_("Community")</a> /

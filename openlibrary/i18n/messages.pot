@@ -4551,7 +4551,7 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
-#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html type/page/view.html
 msgid "Collections"
 msgstr ""
 

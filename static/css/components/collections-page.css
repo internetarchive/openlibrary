@@ -39,8 +39,48 @@
   padding: var(--spacing-inset-md);
 }
 
+/* The back link and the edit metadata share the top row, in opposite corners.
+   They wrap onto separate lines rather than crushing together on a phone. */
+.collections-page #contentHead .collection-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+}
+
+/* Pinned right by margin rather than space-between, so it stays there on the
+   index page, where there is no back link to sit opposite. */
 .collections-page #contentHead #editTools {
-  align-self: flex-end;
+  margin-left: auto;
+}
+
+/* Up-link to the index. Set like the eyebrow below it — the two are the page's
+   collection chrome, distinct from the edit metadata alongside. */
+.collections-page #contentHead .collection-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accessible-grey);
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.collections-page #contentHead .collection-back:hover {
+  color: var(--dark-grey);
+  text-decoration: underline;
+}
+
+/* Sized off the label so the two scale together. The nudge back offsets the
+   chevron's own side bearing, which reads as a wider gap than the one set. */
+.collections-page .collection-back__chevron {
+  width: 1em;
+  height: 1em;
+  margin-left: -0.15em;
 }
 
 /* #contentBody keeps its page padding; each block inside is centered and
