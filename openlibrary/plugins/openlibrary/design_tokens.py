@@ -20,6 +20,8 @@ BARREL_PATH = TOKENS_DIR.parent / "tokens.css"
 # Comments come first in the alternation, so a declaration written inside a
 # comment is consumed as prose rather than picked up as a token.
 _SCAN_RE = re.compile(r"/\*(?P<comment>.*?)\*/|(?P<name>--[\w-]+)\s*:\s*(?P<value>[^;{}]+);", re.DOTALL)
+_COMMENT_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
+_CONDITIONAL_RE = re.compile(r"@(?:media|supports|container)\b[^{;]*\{")
 _IMPORT_RE = re.compile(r"""@import\s+["']tokens/([\w-]+)\.css["']""")
 _VAR_RE = re.compile(r"^var\(\s*(--[\w-]+)\s*\)$")
 _RAMP_RE = re.compile(r"^(--[\w-]+?)-(\d+)$")
@@ -263,8 +265,33 @@ def _clean_comment(raw: str) -> tuple[str, list[Block]]:
     return "", _blocks([first.strip(), *rest])
 
 
+def _mask_conditional(text: str) -> str:
+    """Blank every ``@media``/``@supports`` block, and the comments introducing it.
+
+    A responsive override redeclares a token the base ``:root`` already
+    documents, so parsing both would list it twice. Offsets and newlines survive
+    the masking, so "a comment on the same line as its token" still reads true.
+    """
+    comment_starts = {match.end(): match.start() for match in _COMMENT_RE.finditer(text)}
+    # Comments carry braces and the word @media, so scan a copy without them.
+    scan = _COMMENT_RE.sub(lambda match: " " * len(match.group()), text)
+    masked = list(text)
+    for match in _CONDITIONAL_RE.finditer(scan):
+        depth, end = 1, match.end()
+        while end < len(scan) and depth:
+            depth += {"{": 1, "}": -1}.get(scan[end], 0)
+            end += 1
+        start = match.start()
+        while (lead := text[:start].rstrip()).endswith("*/"):
+            start = comment_starts[len(lead)]
+        for index in range(start, end):
+            if masked[index] != "\n":
+                masked[index] = " "
+    return "".join(masked)
+
+
 def _parse_file(path: Path) -> TokenCategory:
-    text = path.read_text(encoding="utf-8")
+    text = _mask_conditional(path.read_text(encoding="utf-8"))
     category_title = path.stem.replace("-", " ").title()
     groups: list[TokenGroup] = []
     current = TokenGroup()

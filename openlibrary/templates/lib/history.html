@@ -11,9 +11,9 @@ $ versions = h.recent + h.initial
 <div class="clearfix"></div>
 <div id="pageHistory">
     <div class="head">
-        <h2 class="collapse inline">
+        <h3 class="pageHistory__heading collapse inline">
             $_("History")
-        </h2>
+        </h3>
         <ul class="pageHistory__list inline">
         $if h.initial:
             <li class="title inline">$_("Created %(date)s", date=datestr(h.initial[0].created))</li>

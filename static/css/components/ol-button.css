@@ -23,6 +23,9 @@
  *   - `ol-button:not([hydrated])` (phase 1 — style the outer tag), or
  *   - `ol-button > button`        (phase 2 — style the inner button).
  *
+ * There is also a `.ol-button-static` class — the same look on plain markup
+ * that can't be an <ol-button> at all. See the rule below the base styles.
+ *
  * We use a custom `hydrated` attribute instead of the built-in
  * `:defined` pseudo-class because `:defined` flips the moment the JS
  * class is registered, which is *before* the inner <button> has
@@ -56,9 +59,10 @@ ol-button[loading] {
   pointer-events: none;
 }
 
-/* Shared appearance: host pre-upgrade, inner button post-upgrade. */
+/* Shared appearance: host pre-upgrade, inner button post-upgrade, static twin. */
 ol-button:not([hydrated]),
-ol-button > button {
+ol-button > button,
+.ol-button-static {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -94,9 +98,21 @@ ol-button > button {
   transition: transform 0.08s;
 }
 
+/* Static twin — the secondary button's look on an element that can't be an
+   <ol-button>: chiefly a real <a href> that must navigate without JS, such as
+   the Edit link in the page databar. It joins the selector lists around it
+   rather than restating them, so the two can't drift. Only secondary is wired
+   up; add variants when something needs them. */
+a.ol-button-static:link,
+a.ol-button-static:visited {
+  color: var(--dark-grey);
+  text-decoration: none;
+}
+
 /* Press feedback — tactile scale on activation. The raised shadow and
    specular highlight stay put through the press. */
-ol-button > button:active {
+ol-button > button:active,
+.ol-button-static:active {
   transform: scale(0.97);
 }
 
@@ -107,14 +123,16 @@ ol-button[full-width] > button {
 
 /* Sizes */
 ol-button[size="small"]:not([hydrated]),
-ol-button[size="small"] > button {
+ol-button[size="small"] > button,
+.ol-button-static--small {
   height: var(--control-height-small);
   padding: 0 var(--spacing-sm);
   font-size: var(--font-size-label-medium);
 }
 
 ol-button[size="large"]:not([hydrated]),
-ol-button[size="large"] > button {
+ol-button[size="large"] > button,
+.ol-button-static--large {
   height: var(--control-height-large);
   padding: 0 var(--spacing-lg);
   font-size: var(--font-size-body-large);
@@ -169,7 +187,8 @@ ol-button[selected] > button {
    specular highlight stays toned to the resting color (e.g. a blown-out white
    edge once destructive fills red). Keep --control-surface == background-color. */
 @media (hover: hover) and (pointer: fine) {
-  ol-button[variant="secondary"] > button:hover {
+  ol-button[variant="secondary"] > button:hover,
+  .ol-button-static:hover {
     background-color: var(--color-control-hover);
     /* Nudge the border a touch darker in step with the fill (both drop ~7%
        in lightness) so the whole button reads as one shape on hover, rather
@@ -198,7 +217,8 @@ ol-button[selected] > button {
 }
 
 /* Focus ring */
-ol-button > button:focus-visible {
+ol-button > button:focus-visible,
+.ol-button-static:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: var(--spacing-3xs);
 }
