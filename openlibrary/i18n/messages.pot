@@ -3319,10 +3319,6 @@ msgstr ""
 msgid " by %(name)s"
 msgstr ""
 
-#: FormatExpiry.html books/custom_carousel_card.html
-msgid "Expires"
-msgstr ""
-
 #: books/custom_carousel_card.html
 #, python-format
 msgid "1 person waiting"
@@ -7357,6 +7353,10 @@ msgstr ""
 
 #: EditionNavBar.html
 msgid "Go to next section"
+msgstr ""
+
+#: FormatExpiry.html
+msgid "Expires"
 msgstr ""
 
 #: FulltextSearchSuggestion.html
