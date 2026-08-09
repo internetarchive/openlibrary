@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import io
 from unittest.mock import MagicMock, patch
+
+from PIL import Image
 
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
@@ -198,3 +201,123 @@ class TestAnonymizeAccount:
 
         assert resp.status_code == 500
         assert resp.json()["detail"] == "Internal Server Error"
+
+
+class TestAvatarUpload:
+    def test_upload_avatar_unauthenticated(self, fastapi_client):
+        response = fastapi_client.post("/account/avatar")
+        assert response.status_code == 401
+
+    def test_upload_avatar_success(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        # Create a small valid test JPEG image using Pillow
+        img = Image.new("RGB", (100, 100), color="blue")
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format="JPEG")
+        img_bytes = img_byte_arr.getvalue()
+
+        # Mock OpenLibraryAccount.get_by_username
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+            "s3_keys": {"access": "mock_access", "secret": "mock_secret"},
+        }
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+
+        # Mock site store and models.User.get_avatar_url
+        mock_site = MagicMock()
+        mock_site.store = {"account/testuser": mock_account}
+        site.set(mock_site)
+
+        mock_get_avatar = MagicMock(return_value="https://archive.org/services/img/@testuser-archive?v=1234567")
+        mock_get_avatar.invalidate = MagicMock()
+        monkeypatch.setattr("openlibrary.plugins.upstream.models.User.get_avatar_url", mock_get_avatar)
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("test_avatar.jpg", img_bytes, "image/jpeg")},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert "https://archive.org/services/img/@testuser-archive" in data["avatar_url"]
+
+    def test_upload_avatar_invalid_file_type(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("test.txt", b"not an image file content", "text/plain")},
+        )
+
+        assert response.status_code == 400
+        assert "Invalid or corrupt image file" in response.json()["detail"]
+
+    def test_upload_avatar_file_too_large(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+
+        large_bytes = b"x" * (6 * 1024 * 1024)  # 6 MB
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("large.jpg", large_bytes, "image/jpeg")},
+        )
+
+        assert response.status_code == 400
+        assert "File size exceeds 5MB limit" in response.json()["detail"]
+
+    def test_delete_avatar_unauthenticated(self, fastapi_client):
+        response = fastapi_client.delete("/account/avatar")
+        assert response.status_code == 401
+
+    def test_delete_avatar_success(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+            "avatar_updated": 1234567,
+        }
+        mock_site = MagicMock()
+        mock_site.store = {"account/testuser": mock_account}
+        site.set(mock_site)
+
+        mock_get_avatar = MagicMock(return_value="https://archive.org/services/img/@testuser-archive")
+        monkeypatch.setattr("openlibrary.plugins.upstream.models.User.get_avatar_url", mock_get_avatar)
+
+        response = fastapi_client.delete("/account/avatar")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["message"] == "Profile picture removed successfully"
+        assert "avatar_updated" not in mock_account
+
+    def test_delete_avatar_no_avatar_exists(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        mock_site = MagicMock()
+        mock_site.store = {"account/testuser": mock_account}
+        site.set(mock_site)
+
+        response = fastapi_client.delete("/account/avatar")
+
+        assert response.status_code == 400
+        assert "No custom profile picture exists to remove" in response.json()["detail"]
