@@ -158,21 +158,9 @@
 
 /* === body text === */
 
-/* Larger than the site default — at a 40rem measure this lands near 75
-   characters a line, which is what the long-form reading references are
-   doing. */
 .collections-page #contentBody {
-  font-size: var(--font-size-body-xlarge);
+  font-size: var(--font-size-body-large);
   font-weight: 400;
-}
-
-/* One step down the body ramp on a phone: the reading size is set for a wide
-   column, and 18px inside a narrow one leaves too few words a line. */
-/* --width-breakpoint-tablet */
-@media only screen and (max-width: 768px) {
-  .collections-page #contentBody {
-    font-size: var(--font-size-body-large);
-  }
 }
 
 /* common.css sets a color on p and li directly, so inheriting from the
