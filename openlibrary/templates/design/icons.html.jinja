@@ -2,9 +2,8 @@
   Icons — the curated set and the three ways to draw a glyph from it. `icons`
   is the sprite manifest's name list (design.py load_icons), so a glyph added
   under static/icons/src/ appears in the gallery as soon as `make icons` runs.
-  `icon` is the Templetor icon macro, passed through by design.html: the gallery
-  renders with the real macro rather than a copy of its markup. It is bound only
-  here — templates call it as $:macros.icon(), which is what the page documents.
+  The gallery draws with the real `icon` global (see core/jinja.py) rather than a
+  copy of its markup, so what is shown is what a template gets.
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% macro nav() %}
@@ -46,11 +45,12 @@
                 <tbody>
                     <tr>
                         <td>
-                            A server-rendered <code>.html</code> template. <b>The default.</b>
+                            A server-rendered template, Templetor or Jinja. <b>The default.</b>
                         </td>
                         <td>
-                            <b>The <code>$:macros.icon()</code> macro.</b> A plain inline <code>&lt;svg&gt;</code> against
-                            the page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.
+                            <b><code>$:macros.icon()</code> in Templetor, {% raw %}<code>{{ icon() }}</code>{% endraw %} in
+                                Jinja.</b> One macro behind both — a plain inline <code>&lt;svg&gt;</code> against the
+                            page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.
                         </td>
                     </tr>
                     <tr>
@@ -78,11 +78,28 @@
     <section class="ds-section" id="icon-usage">
         <h2 class="ds-section__title ds-section__title--eyebrow">Usage</h2>
         <div class="ds-group">
-            <h3 class="ds-group__title">In a template</h3>
+            <h3 class="ds-group__title">In a Templetor template</h3>
             <p class="ds-group__blurb">
                 Pass <code>label</code> for an accessible name; without one the icon is <code>aria-hidden</code>.
             </p>
             {{ ex.code_snippet("$:macros.icon(\"search\") \n$:macros.icon(\"globe\", size=\"lg\")\n$:macros.icon(\"globe\", label=_(\"Language\"))") }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a Jinja template</h3>
+            <p class="ds-group__blurb">
+                The same macro, reached through the <code>icon</code> global — nothing to import or pass in.
+            </p>
+            {# Built as a raw block rather than a string literal: djLint reads the
+               snippet's opening braces inside a quoted argument as unterminated
+               template syntax (T027). #}
+            {% set jinja_snippet %}
+                {% raw %}
+                    {{ icon("search") }}
+                    {{ icon("globe", size="lg") }}
+                    {{ icon("globe", label=_("Language")) }}
+                {% endraw %}
+            {% endset %}
+            {{ ex.code_snippet(jinja_snippet) }}
         </div>
         <div class="ds-group">
             <h3 class="ds-group__title">In a Lit component</h3>
@@ -237,11 +254,6 @@
         {% endif %}
     </section>
 {% endmacro %}
-{#
-  The Templetor macro returns a TemplateResult, which autoescape would render
-  as text, so it is stringified and marked safe here rather than at every call.
-  Trimmed to drop the newline Templetor emits after the macro's output.
-#}
 {% macro draw(name, size) %}
-    {{- icon(name, size=size) | string | trim | safe -}}
+    {{- icon(name, size=size) -}}
 {% endmacro %}

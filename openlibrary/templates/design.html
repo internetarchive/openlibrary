@@ -6,6 +6,4 @@ $# Everything below the shell lives in openlibrary/templates/design/.
 $# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
 
-$# `icon` hands the Templetor $:macros.icon() macro to Jinja so the icon gallery draws
-$# with the real macro instead of a second copy of its markup.
-$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, api=data.api, token_categories=data.token_categories, undocumented=data.undocumented, icons=data.icons, icon=macros.icon)
+$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, api=data.api, token_categories=data.token_categories, undocumented=data.undocumented, icons=data.icons)

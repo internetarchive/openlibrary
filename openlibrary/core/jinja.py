@@ -3,7 +3,9 @@ from functools import cache as functools_cache
 from pathlib import Path
 from typing import Any
 
+import web
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
 
@@ -81,6 +83,23 @@ def get_jinja_env() -> Environment:
     from infogami.utils.view import render_template
 
     env.globals["render_templetor_template"] = render_template
+
+    def _icon(name: str, size: str = "md", label: str = "") -> Markup:
+        """Draw an icon from the page sprite. See /developers/design/icons.
+
+        Templetor reaches the macro as ``$:macros.icon(...)``; Jinja has no
+        ``macros`` namespace, so without this global every template that wants
+        an icon has to be handed the macro as a ``render_jinja_template`` kwarg.
+        Returns ``Markup`` because the macro emits trusted SVG and the env
+        autoescapes.
+        """
+        macro = web.template.Template.globals["macros"]["icon"]
+        return Markup(str(macro(name, size=size, label=label)).strip())
+
+    # An exception to the "10 or more templates" rule below: an icon is a design
+    # system primitive any template may need, and the alternative is threading
+    # the macro through every render call.
+    env.globals["icon"] = _icon
 
     # A force-escape filter that works even under autoescape=True.
     # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping
