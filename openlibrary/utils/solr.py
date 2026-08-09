@@ -28,11 +28,14 @@ SolrRequestLabel = Literal[
     "BOOK_SEARCH_READABLE_COUNT",
     "BOOK_CAROUSEL",
     "AUTHOR_BOOKS_PAGE",
+    "AUTHOR_BOOKS_READABLE_COUNT",
     # /get endpoint
     "GET_WORK_SOLR_DATA",
     # Subject, publisher pages
     "SUBJECT_ENGINE_PAGE",
     "SUBJECT_ENGINE_API",
+    # Cached "Notable authors" widget on subject pages
+    "SUBJECT_NOTABLE_AUTHORS",
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     "EDITION_MATCH",

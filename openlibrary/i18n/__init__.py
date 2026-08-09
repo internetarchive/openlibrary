@@ -149,6 +149,18 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
+# Babel wraps every line of messages.pot at 76 chars, including the ``#:`` location
+# comments that list which templates use each string. When a string gains or loses one
+# file, that wrapping re-flows the whole block and rewrites filenames that didn't change,
+# turning unrelated edits into overlapping diffs and causing spurious merge conflicts.
+# Writing with a very large width disables wrapping, so each location comment stays on a
+# single line and adding a file just extends that line — unrelated changes no longer
+# share, or conflict on, any lines. (``width=0`` does *not* work: Babel mirrors
+# ``xgettext`` and always wraps comments at 76 regardless, while only unwrapping the
+# message text — the opposite of what we want.)
+POT_WIDTH = 1_000_000
+
+
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
     # Occasional manual bumps are fine to make it more up-to-date
@@ -205,7 +217,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
 
     path = os.path.join(root, "messages.pot")
     with open(path, "wb") as f:
-        write_po(f, catalog, include_lineno=False)
+        write_po(f, catalog, include_lineno=False, width=POT_WIDTH)
 
     print("Updated strings written to", path)
 

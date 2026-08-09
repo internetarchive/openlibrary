@@ -808,7 +808,7 @@ def is_safe_redirect(url: str) -> bool:
     return not url.startswith(("//", "/\\"))
 
 
-def get_language(lang_or_key: str) -> None | Thing | Nothing:
+def get_language(lang_or_key: str) -> Thing | Nothing | None:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -1499,22 +1499,6 @@ class Request:
 
             return url
         return ""
-
-
-@public
-def get_ol_env() -> str:
-    """Which deployment this request is served from, based on the host.
-
-    Drives dev-facing UI cues (favicon, logo badge) so localhost,
-    testing.openlibrary.org, and production tabs are distinguishable.
-    """
-    match web.ctx.host:
-        case "openlibrary.org" | "www.openlibrary.org":
-            return "production"
-        case "testing.openlibrary.org":
-            return "testing"
-        case _:
-            return "development"
 
 
 @public

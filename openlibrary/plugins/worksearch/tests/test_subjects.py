@@ -5,7 +5,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 import web
 
-from openlibrary.plugins.worksearch.subjects import SubjectEngine
+from openlibrary.plugins.worksearch.subjects import (
+    MAX_NOTABLE_AUTHORS,
+    SubjectEngine,
+    merge_notable_authors,
+    normalize_author_name,
+)
 from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
 
 
@@ -51,7 +56,6 @@ class TestDecorateWithTags:
             mock_ctx.site.get_many.return_value = [mock_tag]
             handler.decorate_with_tags(subject)
 
-        # Should search for "thriller" (slug only), not "genrethriller"
         mock_find.assert_called_once_with("thriller")
         assert subject.tag == mock_tag
 
@@ -92,7 +96,6 @@ class TestDecorateWithTags:
         """A tag whose type doesn't match is added to disambiguations, not subject.tag."""
         handler = self._make_handler()
         subject = web.storage(name="genre:horror", subject_type="subject")
-        # Tag exists but is of type "subject", not "genre"
         mock_tag = self._make_mock_tag("Horror", "subject")
 
         with (
@@ -126,3 +129,454 @@ class TestDecorateWithTags:
 
         mock_find.assert_called_once_with("graphic_novel")
         assert subject.tag == mock_tag
+
+
+class TestDecorateWithNotableAuthors:
+    """Tests for subjects.decorate_with_notable_authors (Phase 1, epic #13135).
+
+    decorate_with_notable_authors reads from get_cached_notable_authors
+    (memcache_memoize-wrapped), which returns plain dicts (memcache
+    round-trips through JSON) -- so these tests check both the cache-read
+    path and the rehydration back into web.storage the Templetor macro needs.
+    """
+
+    def _make_handler(self):
+        return subjects_handler()
+
+    def _make_engine(self, name="subject", prefix="/subjects/"):
+        return SubjectEngine(name=name, key="subjects", prefix=prefix, facet="subject_facet", facet_key="subject_key")
+
+    def test_rehydrates_cached_dicts_into_storage(self):
+        """Cached raw dicts (incl. nested representative_work) come back as web.storage, not bare dicts."""
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/science_fiction", subject_type="subject")
+        cached = [
+            {
+                "key": "/authors/OL1A",
+                "name": "Isaac Asimov",
+                "representative_work": {"title": "Foundation"},
+            }
+        ]
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                return_value=cached,
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        author = subject.notable_authors[0]
+        assert isinstance(author, web.storage)
+        assert author.name == "Isaac Asimov"
+        assert isinstance(author.representative_work, web.storage)
+        assert author.representative_work.title == "Foundation"
+
+    def test_cache_failure_degrades_to_empty_list(self):
+        """A solr/memcache/infobase failure hides the widget instead of 500ing the page."""
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/science_fiction", subject_type="subject")
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                side_effect=OSError("memcache is down"),
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors == []
+
+    def test_stale_cache_shape_degrades_to_empty_list(self):
+        """
+        memcache entries have no expiry and the key_prefix is stable across
+        deploys, so a payload written in an older shape can outlive the change.
+        Rehydrating it must hide the widget, not 500 the page.
+        """
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/science_fiction", subject_type="subject")
+        cached = [{"name": "Isaac Asimov"}]  # no "key": a shape we no longer write
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                return_value=cached,
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors == []
+
+    def test_no_representative_work_stays_none(self):
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/x", subject_type="subject", authors=[])
+        cached = [{"key": "/authors/OL2A", "name": "Jane Doe", "representative_work": None}]
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                return_value=cached,
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors[0].representative_work is None
+
+    def test_empty_cache_result_sets_empty_list(self):
+        handler = self._make_handler()
+        engine = self._make_engine()
+        subject = web.storage(key="/subjects/obscure", subject_type="subject", authors=[])
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_cached_notable_authors",
+                return_value=[],
+            ),
+        ):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors == []
+
+    def test_unknown_subject_type_sets_empty_list(self):
+        """No matching SubjectEngine (shouldn't normally happen) -> bail, widget doesn't render."""
+        handler = self._make_handler()
+        subject = web.storage(key="/subjects/x", subject_type="nonexistent", authors=[])
+
+        with patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", []):
+            handler.decorate_with_notable_authors(subject)
+
+        assert subject.notable_authors == []
+
+
+class TestComputeNotableAuthors:
+    """Tests for the memcache_memoize sync seam (Phase 1, epic #13135).
+
+    _compute_notable_authors is what actually gets cached by
+    get_cached_notable_authors -- it bridges the async Solr-ranking call.
+    """
+
+    def _make_engine(self, name="subject", prefix="/subjects/"):
+        return SubjectEngine(name=name, key="subjects", prefix=prefix, facet="subject_facet", facet_key="subject_key")
+
+    def test_returns_plain_json_encodable_dicts(self):
+        """memcache round-trips through JSON, so the cached payload must be dicts."""
+        from openlibrary.plugins.worksearch.subjects import _compute_notable_authors
+
+        engine = self._make_engine()
+        stub_author = web.storage(
+            key="/authors/OL1A",
+            name="Isaac Asimov",
+            representative_work=web.storage(title="Foundation"),
+        )
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch("web.ctx") as mock_ctx,
+            patch.object(engine, "get_notable_authors_async", return_value=[stub_author]),
+        ):
+            mock_ctx.__contains__ = lambda self, key: key == "site"
+            result = _compute_notable_authors("subject", "science_fiction")
+
+        assert result == [
+            {
+                "key": "/authors/OL1A",
+                "name": "Isaac Asimov",
+                "representative_work": {"title": "Foundation"},
+            }
+        ]
+        assert isinstance(result[0], dict)
+
+    def test_unknown_subject_type_returns_empty_list(self):
+        from openlibrary.plugins.worksearch.subjects import _compute_notable_authors
+
+        with patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", []):
+            result = _compute_notable_authors("nonexistent", "x")
+
+        assert result == []
+
+    def test_no_authors_found_returns_empty_list(self):
+        from openlibrary.plugins.worksearch.subjects import _compute_notable_authors
+
+        engine = self._make_engine()
+
+        with (
+            patch("openlibrary.plugins.worksearch.subjects.SUBJECTS", [engine]),
+            patch("web.ctx") as mock_ctx,
+            patch.object(engine, "get_notable_authors_async", return_value=[]),
+        ):
+            mock_ctx.__contains__ = lambda self, key: key == "site"
+            result = _compute_notable_authors("subject", "obscure_subject")
+
+        assert result == []
+
+
+class TestGetNotableAuthorsAsync:
+    """Tests for SubjectEngine.get_notable_authors_async (Phase 1, epic #13135)."""
+
+    def _make_engine(self):
+        return SubjectEngine(
+            name="subject",
+            key="subjects",
+            prefix="/subjects/",
+            facet="subject_facet",
+            facet_key="subject_facet",
+        )
+
+    def _make_solr_result(self, docs):
+        result = MagicMock()
+        result.docs = docs
+        return result
+
+    @pytest.mark.asyncio
+    async def test_picks_first_occurrence_as_representative_work(self):
+        """Sample is pre-sorted by signal; an author's first-seen work is their representative work."""
+        engine = self._make_engine()
+        docs = [
+            {"key": "/works/OL1W", "title": "Foundation", "author_key": ["OL1A"], "author_name": ["Isaac Asimov"]},
+            {"key": "/works/OL2W", "title": "I, Robot", "author_key": ["OL1A"], "author_name": ["Isaac Asimov"]},
+        ]
+        mock_result = self._make_solr_result(docs)
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ):
+            authors = await engine.get_notable_authors_async("science_fiction")
+
+        assert len(authors) == 1
+        assert authors[0].name == "Isaac Asimov"
+        assert authors[0].representative_work.title == "Foundation"
+
+    @pytest.mark.asyncio
+    async def test_stops_at_max_notable_authors(self):
+        """Scanning stops once MAX_NOTABLE_AUTHORS unique authors are found."""
+        from openlibrary.plugins.worksearch import subjects as subjects_module
+
+        engine = self._make_engine()
+        docs = [
+            {
+                "key": f"/works/OL{i}W",
+                "title": f"Book {i}",
+                "author_key": [f"OL{i}A"],
+                "author_name": [f"Author {i}"],
+            }
+            for i in range(subjects_module.MAX_NOTABLE_AUTHORS + 5)
+        ]
+        mock_result = self._make_solr_result(docs)
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ):
+            authors = await engine.get_notable_authors_async("science_fiction")
+
+        assert len(authors) == subjects_module.MAX_NOTABLE_AUTHORS
+
+    @pytest.mark.asyncio
+    async def test_no_matching_works_returns_empty_list(self):
+        """Graceful fallback: a sparse/under-configured subject shouldn't error out."""
+        engine = self._make_engine()
+        mock_result = self._make_solr_result([])
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ):
+            authors = await engine.get_notable_authors_async("obscure_subject")
+
+        assert authors == []
+
+    @pytest.mark.asyncio
+    async def test_skips_docs_missing_key_or_title(self):
+        """A malformed/incomplete Solr doc (no key or no title) can't be a representative work -- skip it."""
+        engine = self._make_engine()
+        docs = [
+            {"title": "No Key Here", "author_key": ["OL1A"], "author_name": ["Author One"]},
+            {"key": "/works/OL2W", "author_key": ["OL2A"], "author_name": ["Author Two"]},
+            {"key": "/works/OL3W", "title": "Valid Work", "author_key": ["OL3A"], "author_name": ["Author Three"]},
+        ]
+        mock_result = self._make_solr_result(docs)
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ):
+            authors = await engine.get_notable_authors_async("science_fiction")
+
+        assert len(authors) == 1
+        assert authors[0].name == "Author Three"
+
+    @pytest.mark.asyncio
+    async def test_only_the_first_author_of_a_work_is_used(self):
+        """author_key carries no role, so trailing entries (illustrators, narrators) are skipped."""
+        engine = self._make_engine()
+        docs = [
+            {
+                "key": "/works/OL1W",
+                "title": "The Boy Who Harnessed the Wind",
+                "author_key": ["OL1A", "OL2A", "OL3A"],
+                "author_name": ["William Kamkwamba", "Bryan Mealer", "Anna Hymas"],
+            }
+        ]
+        mock_result = self._make_solr_result(docs)
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ):
+            authors = await engine.get_notable_authors_async("irrigation")
+
+        assert [a.name for a in authors] == ["William Kamkwamba"]
+
+    @pytest.mark.asyncio
+    async def test_samples_each_signal_concurrently(self):
+        """One query per signal in NOTABLE_AUTHORS_SORTS, each with the candidate filter."""
+        from openlibrary.plugins.worksearch import subjects as subjects_module
+
+        engine = self._make_engine()
+        mock_result = self._make_solr_result([])
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ) as mock_query:
+            await engine.get_notable_authors_async("science_fiction")
+
+        calls = mock_query.call_args_list
+        assert [c.kwargs["sort"] for c in calls] == list(subjects_module.NOTABLE_AUTHORS_SORTS)
+        for call in calls:
+            assert call.kwargs["extra_params"] == [("fq", subjects_module.NOTABLE_AUTHORS_CANDIDATE_FILTER)]
+
+    @pytest.mark.asyncio
+    async def test_query_is_labelled_for_solr_monitoring(self):
+        """Defaults to its own ol.label so this query is attributable in Solr load monitoring."""
+        engine = self._make_engine()
+        mock_result = self._make_solr_result([])
+
+        with patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query_async",
+            return_value=mock_result,
+        ) as mock_query:
+            await engine.get_notable_authors_async("science_fiction")
+
+        assert mock_query.call_args.kwargs["request_label"] == "SUBJECT_NOTABLE_AUTHORS"
+
+
+class TestMergeNotableAuthors:
+    """Tests for subjects.merge_notable_authors, which blends the per-signal samples."""
+
+    def _doc(self, n, keys=None, names=None, title=None):
+        return {
+            "key": f"/works/OL{n}W",
+            "title": title or f"Book {n}",
+            "author_key": keys or [f"OL{n}A"],
+            "author_name": names or [f"Author {n}"],
+        }
+
+    def test_interleaves_samples_by_rank(self):
+        """Rank 0 of every sample comes before rank 1, so a thin signal still gets represented."""
+        osp = [self._doc(1, ["OL1A"], ["Peskin"]), self._doc(2, ["OL2A"], ["Weinberg"])]
+        readinglog = [self._doc(3, ["OL3A"], ["Carroll"]), self._doc(4, ["OL4A"], ["McTaggart"])]
+
+        authors = merge_notable_authors([osp, readinglog])
+
+        assert [a.name for a in authors] == ["Peskin", "Carroll", "Weinberg", "McTaggart"]
+
+    def test_dedupes_the_same_author_across_samples(self):
+        """An author present in both samples appears once, keeping their highest-ranked work."""
+        osp = [self._doc(1, ["OL1A"], ["Peskin"], title="Intro to QFT")]
+        readinglog = [self._doc(2, ["OL1A"], ["Peskin"], title="Some Other Book")]
+
+        authors = merge_notable_authors([osp, readinglog])
+
+        assert len(authors) == 1
+        assert authors[0].representative_work.title == "Intro to QFT"
+
+    def test_dedupes_duplicate_author_records_by_name(self):
+        """Distinct OLIDs for one person ("Mctaggart" vs "McTaggart") render as one card."""
+        docs = [
+            self._doc(1, ["OL1A"], ["Lynne McTaggart"]),
+            self._doc(2, ["OL2A"], ["Lynne Mctaggart"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Lynne McTaggart"]
+
+    def test_dedupes_duplicate_author_records_in_non_latin_scripts(self):
+        """The dedupe has to hold on /subjects/russian_literature too, not just Latin names."""
+        docs = [
+            self._doc(1, ["OL1A"], ["Лев Толстой"]),
+            self._doc(2, ["OL2A"], ["лев толстой"]),
+            self._doc(3, ["OL3A"], ["Антон Чехов"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Лев Толстой", "Антон Чехов"]
+
+    def test_skips_authors_with_blank_names(self):
+        """The solr updater defaults a missing name to "", which would render a nameless card."""
+        docs = [self._doc(1, ["OL1A"], [""]), self._doc(2, ["OL2A"], ["Real Author"])]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Real Author"]
+
+    def test_skips_docs_with_no_authors(self):
+        docs = [
+            {"key": "/works/OL1W", "title": "Untitled Government Resolution"},
+            self._doc(2, ["OL2A"], ["Real Author"]),
+        ]
+
+        authors = merge_notable_authors([docs])
+
+        assert [a.name for a in authors] == ["Real Author"]
+
+    def test_stops_at_max_notable_authors(self):
+        docs = [self._doc(i) for i in range(MAX_NOTABLE_AUTHORS + 5)]
+
+        authors = merge_notable_authors([docs])
+
+        assert len(authors) == MAX_NOTABLE_AUTHORS
+
+    def test_handles_one_empty_sample(self):
+        """A subject with no osp data at all still produces a list from the other signal."""
+        readinglog = [self._doc(1, ["OL1A"], ["Only Signal"])]
+
+        authors = merge_notable_authors([[], readinglog])
+
+        assert [a.name for a in authors] == ["Only Signal"]
+
+    def test_all_samples_empty_returns_empty_list(self):
+        assert merge_notable_authors([[], []]) == []
+
+
+class TestNormalizeAuthorName:
+    def test_collapses_case_and_punctuation(self):
+        assert normalize_author_name("Lynne McTaggart") == normalize_author_name("lynne mctaggart")
+        assert normalize_author_name("A. M. Michael") == normalize_author_name("A M Michael")
+
+    def test_distinct_names_stay_distinct(self):
+        assert normalize_author_name("Isaac Asimov") != normalize_author_name("Ray Bradbury")
+
+    def test_collapses_accents(self):
+        assert normalize_author_name("José Saramago") == normalize_author_name("Jose Saramago")
+
+    def test_non_latin_scripts_survive(self):
+        """An ASCII-only strip would empty these, and an empty value skips the dedupe."""
+        assert normalize_author_name("Лев Толстой") != ""
+        assert normalize_author_name("村上春樹") != ""
+
+    def test_non_latin_scripts_still_dedupe(self):
+        assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
+        assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")

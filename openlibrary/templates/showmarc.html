@@ -45,7 +45,7 @@ $var title: $title
     $else:
         <p><b>$_("LEADER:")</b> <code>$record.leader</code><br>
         $:record.html()</p>
-   $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+   $if ctx.user and ctx.user.is_super_librarian_or_higher():
        <div>
           <a href="$next_url" class="slick-next adminOnly right">$_("Next")</a>
        </div>

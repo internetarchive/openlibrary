@@ -1,0 +1,266 @@
+{#
+  Playground — cross-component checks that are easier to eyeball than to
+  unit-test. These are QA surfaces: they exist to make drift visible, not to
+  document any single component.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content')] %}
+{% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
+{% macro nav() %}
+    <ul class="ds__nav-list">
+        {% for id, title in CHECKS %}<li><a href="#{{ id }}">{{ title }}</a></li>{% endfor %}
+    </ul>
+{% endmacro %}
+{#
+  One row of every height-locked control at a given size. The dashed guides in
+  .control-row sit at exactly the target token height, so a control that over-
+  or undershoots reads as misaligned at a glance.
+#}
+{% macro control_row(size) %}
+    <div class="ds-example__output control-row control-row--{{ size }}">
+        <span class="control-row__cell">
+            <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+                Button
+            </ol-button>
+        </span>
+        <span class="control-row__cell">
+            <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="primary">
+                Primary
+            </ol-button>
+        </span>
+        <span class="control-row__cell">
+            <ol-segmented-control {% if size != "medium" %}size="{{ size }}"{% endif %} accessible-label="Alignment, {{ size }}">
+                <ol-segment value="grid">
+                    Grid
+                </ol-segment>
+                <ol-segment value="list">
+                    List
+                </ol-segment>
+            </ol-segmented-control>
+        </span>
+        <span class="control-row__cell">
+            <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, {{ size }}" items='{{ SELECT_ITEMS }}'>
+                <ol-button slot="trigger" {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+                    Language
+                </ol-button>
+            </ol-select-popover>
+        </span>
+        <span class="control-row__cell">
+            <input class="control-row__field"
+                   type="text"
+                   value="Input"
+                   aria-label="Alignment input, {{ size }}">
+        </span>
+        {% if size in ("small", "medium") %}
+            <span class="control-row__cell">
+                <ol-pagination {% if size != "medium" %}size="{{ size }}"{% endif %} total-pages="5" current-page="3" label-pagination="Alignment pagination, {{ size }}">
+                </ol-pagination>
+            </span>
+        {% endif %}
+        {% if size == "medium" %}
+            <span class="control-row__cell">
+                <ol-toggle variant="button" label="Readable Only" sublabel="4.6M">
+                </ol-toggle>
+            </span>
+        {% endif %}
+    </div>
+{% endmacro %}
+{% macro body() %}
+    <article class="ds-section" id="control-alignment">
+        <h2 class="ds-section__title">Control alignment</h2>
+        <p class="ds-section__blurb">
+            Each control sets <code>height</code> (not vertical padding) from the same token with
+            <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders,
+            or content. The select popover uses an <code>ol-button</code> as its trigger, so it inherits the
+            button's height tokens for free. Chips sit on a different, pill-shaped scale and are excluded.
+            Pagination ships small and medium only — there is no large row for it. The button-variant
+            toggle is shown in the medium row as-is; it is not height-locked to the tokens, so this is
+            the check for whether it still reads as aligned.
+        </p>
+        <div class="control-alignment__guides-toggle">
+            <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines">
+            </ol-toggle>
+        </div>
+        <h3 class="ds-group__title">Small — <code>--control-height-small</code></h3>
+        {{ control_row("small") }}
+        <h3 class="ds-group__title">Medium — <code>--control-height-medium</code></h3>
+        {{ control_row("medium") }}
+        <h3 class="ds-group__title">Large — <code>--control-height-large</code></h3>
+        {{ control_row("large") }}
+        <script>
+            (function () {
+                const article = document.getElementById('control-alignment');
+                document.getElementById('control-alignment-guides').addEventListener('ol-toggle-change', (e) => {
+                    article.classList.toggle('control-alignment--guides-hidden', !e.detail.checked);
+                });
+            })();
+        </script>
+    </article>
+    <section class="ds-section" id="control-states">
+        <h2 class="ds-section__title">Control states</h2>
+        <p class="ds-section__blurb">
+            Every interactive control in each of its states, side by side. Focus states only show under
+            keyboard focus — tab through the grid rather than clicking.
+        </p>
+        <div class="ds-state-grid">
+            <div class="ds-state-grid__head">Default</div>
+            <div class="ds-state-grid__head">Selected / checked</div>
+            <div class="ds-state-grid__head">Disabled</div>
+            <div>
+                <ol-button variant="secondary">
+                    Secondary
+                </ol-button>
+            </div>
+            <div>
+                <ol-button variant="primary">
+                    Primary
+                </ol-button>
+            </div>
+            <div>
+                <ol-button variant="secondary" disabled>
+                    Secondary
+                </ol-button>
+            </div>
+            <div>
+                <ol-toggle accessible-label="State default">
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-toggle accessible-label="State checked" checked>
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-toggle accessible-label="State disabled" disabled>
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-toggle variant="button" label="Readable" sublabel="4.6M">
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-toggle variant="button" label="Readable" sublabel="4.6M" checked>
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-toggle variant="button" label="Readable" sublabel="4.6M" disabled>
+                </ol-toggle>
+            </div>
+            <div>
+                <ol-chip>
+                    Fiction
+                </ol-chip>
+            </div>
+            <div>
+                <ol-chip selected>
+                    Fiction
+                </ol-chip>
+            </div>
+            <div>
+                <ol-chip variant="neutral">
+                    Fiction
+                </ol-chip>
+            </div>
+            <div>
+                <ol-segmented-control accessible-label="State default">
+                    <ol-segment value="a">
+                        One
+                    </ol-segment>
+                    <ol-segment value="b">
+                        Two
+                    </ol-segment>
+                </ol-segmented-control>
+            </div>
+            <div>
+                <ol-segmented-control value="b" accessible-label="State selected">
+                    <ol-segment value="a">
+                        One
+                    </ol-segment>
+                    <ol-segment value="b">
+                        Two
+                    </ol-segment>
+                </ol-segmented-control>
+            </div>
+            <div>
+                <ol-segmented-control disabled accessible-label="State disabled">
+                    <ol-segment value="a">
+                        One
+                    </ol-segment>
+                    <ol-segment value="b">
+                        Two
+                    </ol-segment>
+                </ol-segmented-control>
+            </div>
+        </div>
+    </section>
+    <section class="ds-section" id="density">
+        <h2 class="ds-section__title">Density</h2>
+        <p class="ds-section__blurb">
+            A realistic toolbar at each control size. Checks that the sizes stay usable together, not just
+            individually — the small row is what most filter bars actually use.
+        </p>
+        {% for size in ["small", "medium", "large"] %}
+            <h3 class="ds-group__title">{{ size | capitalize }}</h3>
+            <div class="ds-example__output ds-pattern-bar">
+                <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+                    Filter
+                </ol-button>
+                <ol-segmented-control {% if size != "medium" %}size="{{ size }}"{% endif %} accessible-label="View, {{ size }}">
+                    <ol-segment value="grid">
+                        Grid
+                    </ol-segment>
+                    <ol-segment value="list">
+                        List
+                    </ol-segment>
+                </ol-segmented-control>
+                <ol-select-popover label="Language" search-threshold="999" aria-label="Density select, {{ size }}" items='{{ SELECT_ITEMS }}'>
+                    <ol-button slot="trigger" {% if size != "medium" %}size="{{ size }}"{% endif %} variant="secondary">
+                        Language
+                    </ol-button>
+                </ol-select-popover>
+                <span class="ds-pattern-bar__spacer"></span>
+                <ol-button {% if size != "medium" %}size="{{ size }}"{% endif %} variant="primary">
+                    Apply
+                </ol-button>
+            </div>
+        {% endfor %}
+    </section>
+    <section class="ds-section" id="long-content">
+        <h2 class="ds-section__title">Long content</h2>
+        <p class="ds-section__blurb">
+            The same controls carrying labels far longer than their designers assumed — long translations,
+            unbroken strings, and CJK. Anything that overflows its container or clips its text is a bug.
+        </p>
+        <div class="ds-example__output ds-longform">
+            <ol-button variant="secondary">
+                Zustandsänderungsbenachrichtigungseinstellungen
+            </ol-button>
+            <ol-button variant="primary" full-width>
+                Continuar con la configuración de la cuenta
+            </ol-button>
+            <ol-chip-group>
+                <ol-chip variant="subject">
+                    Wissenschaftliche Abhandlungen
+                </ol-chip>
+                <ol-chip variant="author">
+                    García Márquez, Gabriel José de la Concordia
+                </ol-chip>
+                <ol-chip variant="place">
+                    Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch
+                </ol-chip>
+            </ol-chip-group>
+            <ol-segmented-control full-width accessible-label="Long labels">
+                <ol-segment value="a">
+                    すべての書籍
+                </ol-segment>
+                <ol-segment value="b">
+                    読めるもののみ
+                </ol-segment>
+            </ol-segmented-control>
+            <ol-banner variant="warning">
+                Une maintenance planifiée est prévue le 12 juin&nbsp;; certains services seront temporairement indisponibles.
+            </ol-banner>
+            <ol-toggle variant="button" label="Afficher uniquement les ouvrages consultables en ligne" sublabel="4,6 M">
+            </ol-toggle>
+        </div>
+    </section>
+{% endmacro %}

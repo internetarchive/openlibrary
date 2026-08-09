@@ -11,6 +11,9 @@ usr/
 static/build/
 static/css/page-dev.less
 build/
+# Custom Elements Manifest — generated from component JSDoc by `npx cem analyze`,
+# which `make lit-components` runs. Read at runtime by plugins/openlibrary/design.py.
+openlibrary/components/lit/custom-elements.json
 *.local
 /.local
 CLAUDE.local.md
@@ -57,3 +60,7 @@ docs/wiki/
 
 # uv lockfile (we resolve from requirements*.txt; not tracked)
 uv.lock
+
+# Playwright output (npm run test:e2e)
+playwright-report/
+test-results/

@@ -1,0 +1,245 @@
+{#
+  Icons — the curated set and the three ways to draw a glyph from it. `icons`
+  is the sprite manifest's name list (design.py load_icons), so a glyph added
+  under static/icons/src/ appears in the gallery as soon as `make icons` runs.
+  `icon` is the Templetor $:icon() macro, passed through by design.html: the
+  gallery renders with the real macro rather than a copy of its markup.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% macro nav() %}
+    <ul class="ds__nav-list">
+        <li><a href="#icon-gallery">Gallery ({{ icons | length }})</a></li>
+        <li><a href="#icon-techniques">Which technique</a></li>
+        <li><a href="#icon-usage">Usage</a></li>
+        <li><a href="#icon-controls">What you control</a></li>
+    </ul>
+{% endmacro %}
+{# Gallery first: finding the glyph is the errand nearly every visit is here
+   for. The technique guidance is what you read once. #}
+{% macro body() %}
+    {{ gallery() }}
+    {{ techniques() }}
+    {{ usage() }}
+    {{ controls() }}
+{% endmacro %}
+{#
+  All three techniques read the same sources under static/icons/src/, so the
+  choice is about where the icon lives, never about how it looks.
+#}
+{% macro techniques() %}
+    <section class="ds-section" id="icon-techniques">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Which technique</h2>
+        <p class="ds-section__blurb">
+            Three ways to render a glyph, all drawing from the same source
+            (<code>static/icons/src/</code>), so an icon looks identical whichever you use.
+            Pick by <em>where</em> the icon lives.
+        </p>
+        <div class="ds-table-wrap">
+            <table class="ds-table ds-table--guide">
+                <thead>
+                    <tr>
+                        <th>Where the icon lives</th>
+                        <th>What to use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            A server-rendered <code>.html</code> template. <b>The default.</b>
+                        </td>
+                        <td>
+                            <b>The <code>$:icon()</code> macro.</b> A plain inline <code>&lt;svg&gt;</code> against
+                            the page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>A web component's own shadow DOM.</td>
+                        <td>
+                            <b>A fragment import from <code>icons.generated.js</code>.</b> Shadow roots can't reach
+                            the page sprite through <code>&lt;use&gt;</code>, so import the glyph and inline it in
+                            your own <code>&lt;svg&gt;</code>. Paints with the component.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Markup inserted from client JS, or a consumer who only has HTML and the element.</td>
+                        <td>
+                            <b>The <code>&lt;ol-icon&gt;</code> element.</b> Self-contained, and the box is reserved
+                            so nothing shifts — but the glyph appears only once the JS upgrades it, so prefer the
+                            macro whenever the markup is server-rendered.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endmacro %}
+{% macro usage() %}
+    <section class="ds-section" id="icon-usage">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Usage</h2>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a template</h3>
+            <p class="ds-group__blurb">
+                Pass <code>label</code> for an accessible name; without one the icon is <code>aria-hidden</code>.
+            </p>
+            {{ ex.code_snippet("$:icon(\"search\") \n$:icon(\"globe\", size=\"lg\")\n$:icon(\"globe\", label=_(\"Language\"))") }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a Lit component</h3>
+            <p class="ds-group__blurb">
+                Import the fragment and wrap it in your own <code>&lt;svg&gt;</code>, which controls size and
+                stroke width through the component's own CSS.
+            </p>
+            {{ ex.code_snippet('import { search } from \'./icons.generated.js\';\nhtml`<svg class="icon" viewBox="0 0 24 24">${search}</svg>`', 'js') }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">As a custom element</h3>
+            {% call ex.example("", "For client-inserted icons and outside consumers.") %}
+                <ol-icon name="search">
+                </ol-icon>
+                <ol-icon name="globe" size="lg" label="Language">
+                </ol-icon>
+            {% endcall %}
+        </div>
+        {% if api and api.get("ol-icon") %}{{ ex.api_tables(api["ol-icon"]) }}{% endif %}
+    </section>
+{% endmacro %}
+{% macro controls() %}
+    <section class="ds-section" id="icon-controls">
+        <h2 class="ds-section__title ds-section__title--eyebrow">What you control</h2>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Size</h3>
+            {# The pixel column is the whole reason anyone opens this section, so
+               it leads the table rather than sitting in the prose below it. #}
+            <div class="ds-table-wrap">
+                <table class="ds-table ds-table--sizes">
+                    <thead>
+                        <tr>
+                            <th>Preset</th>
+                            <th>Box</th>
+                            <th>Stroke, as drawn</th>
+                            <th>Reach for it when</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>sm</code></td>
+                            <td>
+                                <b class="ds-table__figure">16px</b> <span class="ds-table__muted">1rem</span>
+                            </td>
+                            <td>1.33px</td>
+                            <td>Inline with body text, dense toolbars.</td>
+                        </tr>
+                        <tr>
+                            <td><code>md</code></td>
+                            <td>
+                                <b class="ds-table__figure">20px</b> <span class="ds-table__muted">1.25rem</span>
+                            </td>
+                            <td>1.67px</td>
+                            <td>
+                                <b>The default.</b> Almost everything — buttons, menu rows, form affordances.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>lg</code></td>
+                            <td>
+                                <b class="ds-table__figure">24px</b> <span class="ds-table__muted">1.5rem</span>
+                            </td>
+                            <td>2px</td>
+                            <td>Standalone icon buttons, section headers.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="ds-group__blurb">
+                <b>Size scales the stroke with it.</b> Every glyph is drawn 2px thick on a 24×24 grid and the box
+                scales that whole grid, so the stroke stays a constant fraction of the icon — 2px only at
+                <code>lg</code>. That is deliberate: a fixed stroke would make <code>sm</code> read as a heavier,
+                different family. There is no separate stroke control; see
+                <a href="#icon-stroke">stroke weight</a>.
+            </p>
+            <p class="ds-group__blurb">
+                Each preset is a token — <code>--icon-size-sm</code>, <code>-md</code>, <code>-lg</code> — declared
+                in <code>rem</code>, so the pixel figures above hold at the default 16px root and grow with the
+                reader's font size. The macro and <code>&lt;ol-icon&gt;</code> both take
+                <code>size="sm|md|lg"</code>; <code>&lt;ol-icon&gt;</code> also accepts a raw pixel number
+                (<code>size="32"</code>) for one-offs. A fragment import sets <code>width</code>/<code>height</code>
+                on its own wrapping <code>&lt;svg&gt;</code> instead.
+            </p>
+            {# Explicit `code`: the live markup here is the macro's expanded
+               <svg>, which is not what anyone should copy. #}
+            {% call ex.example("", "", code='$:icon("search", size="sm")\n$:icon("search", size="md")\n$:icon("search", size="lg")') %}
+                {{ draw('search', 'sm') }}
+                {{ draw('search', 'md') }}
+                {{ draw('search', 'lg') }}
+            {% endcall %}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Color</h3>
+            <p class="ds-group__blurb">
+                Every glyph is drawn in <code>currentColor</code>, so an icon is simply the text color of wherever
+                it sits. Recolor it by setting <code>color</code> on the icon or any ancestor — no
+                <code>fill</code> or <code>stroke</code> override needed.
+            </p>
+            {% call ex.example("", "", code='<span style="color: var(--color-error-fg)">$:icon("trash")</span>') %}
+            <span style="color: var(--color-error-fg)">{{ draw('trash', 'lg') }}</span>
+{% endcall %}
+</div>
+<div class="ds-group" id="icon-stroke">
+    <h3 class="ds-group__title">Stroke weight</h3>
+    <p class="ds-group__blurb">
+        One weight across the whole set: <b>2px on the 24×24 grid</b>. Because the size presets scale
+        that grid rather than resizing the stroke, what actually lands on screen is 2px at
+        <code>lg</code>, 1.67px at <code>md</code>, 1.33px at <code>sm</code>. Picking a size is the
+        only thing that changes it — there is no stroke knob. A fragment import can override
+        <code>stroke-width</code> on its own wrapper if a component genuinely needs to, but that is the
+        exception.
+    </p>
+</div>
+</section>
+{% endmacro %}
+{% macro gallery() %}
+    <section class="ds-section" id="icon-gallery">
+        <h2 class="ds-section__title">Icons</h2>
+        <p class="ds-section__blurb">
+            One curated set, every glyph on a 24×24 grid at a single 2px stroke, themed with
+            <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy its macro call.
+        </p>
+        {% if not icons %}
+            <p class="ds__empty">
+                Could not read <code>static/icons/manifest.json</code>. Run <code>make icons</code>.
+            </p>
+        {% endif %}
+        {% if icons %}
+            <input type="search"
+                   class="ds-icon-gallery__filter"
+                   data-ds-icon-filter
+                   placeholder="Filter {{ icons | length }} icons…"
+                   aria-label="Filter icons"
+                   aria-controls="ds-icon-grid">
+            <ul class="ds-icon-gallery" id="ds-icon-grid">
+                {% for name in icons %}
+                    {# Clicking a cell copies the macro call, the form you paste most. #}
+                    <li class="ds-icon-gallery__item" data-ds-icon-name="{{ name }}">
+                        <button class="ds-icon-gallery__cell"
+                                type="button"
+                                data-ds-copy
+                                data-ds-copy-text='$:icon("{{ name }}")'
+                                title="Copy $:icon(&quot;{{ name }}&quot;)">
+                            {{ draw(name, "lg") }}
+                            <span class="ds-icon-gallery__name">{{ name }}</span>
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+{% endmacro %}
+{#
+  The Templetor macro returns a TemplateResult, which autoescape would render
+  as text, so it is stringified and marked safe here rather than at every call.
+  Trimmed too: Templetor emits a line per stripped comment, and those blank
+  lines are echoed verbatim into any snippet built from the live markup.
+#}
+{% macro draw(name, size) %}
+    {{- icon(name, size=size) | string | trim | safe -}}
+{% endmacro %}

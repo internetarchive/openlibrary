@@ -6,8 +6,8 @@ from datetime import date, datetime, timedelta
 import requests
 import web
 
-from infogami import config
 from openlibrary.core import cache
+from openlibrary.core.env import get_ol_env
 
 from . import db
 
@@ -88,7 +88,7 @@ class LoanStats(Stats):
 
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
-        if "dev" in config.features:
+        if get_ol_env().LOCAL_DEV:
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):
@@ -99,7 +99,7 @@ class LoanStats(Stats):
 
 
 @cache.memoize(engine="memcache", key="admin._get_visitor_counts_from_graphite", expires=5 * 60)
-def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
+def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
     """
     Read the unique visitors (IP addresses) per day for the last ndays from graphite.
     :param ndays: number of days to read
@@ -114,6 +114,7 @@ def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
                 "tz": "UTC",
                 "format": "json",
             },
+            timeout=5,
         )
         response.raise_for_status()
         visitors = response.json()[0]["datapoints"]

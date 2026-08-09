@@ -28,6 +28,7 @@
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
     "test:js": "jest",
+    "test:a11y": "jest openlibrary/components/__tests__/",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
@@ -65,6 +66,7 @@
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
     "jest": "^30.4.2",
+    "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.4.1",
     "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
@@ -75,6 +77,7 @@
     "lucene-query-parser": "1.2.0",
     "mini-css-extract-plugin": "^2.10.2",
     "prettier": "^3.5.3",
+    "prismjs": "^1.30.0",
     "sinon": "21.1.2",
     "slick-carousel": "1.6.0",
     "style-loader": "^4.0.0",
@@ -98,6 +101,7 @@
   "jest": {
     "roots": [
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
+      "<rootDir>/openlibrary/components/__tests__/",
       "<rootDir>/tests/unit/js/"
     ],
     "moduleNameMapper": {
@@ -106,6 +110,29 @@
     },
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
+    ],
+    "transform": {
+      "node_modules[\\\\/](lit|lit-html|lit-element|@lit)[\\\\/]": [
+        "babel-jest",
+        {
+          "babelrc": false,
+          "configFile": false,
+          "presets": [
+            [
+              "@babel/preset-env",
+              {
+                "targets": {
+                  "node": "current"
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      "\\.[jt]sx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules[\\\\/](?!(lit|lit-html|lit-element|@lit)[\\\\/])"
     ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
