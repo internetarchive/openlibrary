@@ -177,11 +177,12 @@
             <h3 class="ds-group__title">Color</h3>
             <p class="ds-group__blurb">
                 Every glyph is drawn in <code>currentColor</code>, so an icon is simply the text color of wherever
-                it sits. Recolor it by setting <code>color</code> on the icon or any ancestor — no
-                <code>fill</code> or <code>stroke</code> override needed.
+                it sits. Recolor it by setting <code>color</code> on the icon or any ancestor — say
+                <code>.danger { color: var(--color-error-fg) }</code> — with no <code>fill</code> or
+                <code>stroke</code> override needed.
             </p>
-            {% call ex.example("", "", code='<span style="color: var(--color-error-fg)">$:icon("trash")</span>') %}
-            <span style="color: var(--color-error-fg)">{{ draw('trash', 'lg') }}</span>
+            {% call ex.example("", "", code='<span class="danger">$:icon("trash")</span>') %}
+            <span class="ds-demo-danger">{{ draw('trash', 'lg') }}</span>
 {% endcall %}
 </div>
 <div class="ds-group" id="icon-stroke">

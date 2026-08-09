@@ -941,6 +941,12 @@ html:has(.ds) {
   font-weight: 500;
 }
 
+/* Stands in for the reader's own `.danger` in the icon color example: the
+   wrapper sets color, the glyph inherits it through currentColor. */
+.ds-demo-danger {
+  color: var(--color-error-fg);
+}
+
 .ds-demo-textarea {
   box-sizing: border-box;
   width: 100%;
