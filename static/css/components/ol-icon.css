@@ -2,7 +2,7 @@
  * ol-icon.css — shared styles for the icon system.
  *
  * Used by BOTH delivery paths so server-rendered and client-rendered icons are
- * identical: the $:icon() Templetor macro emits <svg class="ol-icon ol-icon--md">,
+ * identical: the $:macros.icon() Templetor macro emits <svg class="ol-icon ol-icon--md">,
  * and the <ol-icon> Lit component renders the same markup into its light DOM.
  *
  * Glyphs are drawn with stroke="currentColor" baked into each sprite <symbol>,
@@ -13,7 +13,7 @@
 /* The <ol-icon> host. Sized from the `size` attribute (present in the HTML
    before the component JS runs), so the box is reserved at first paint and the
    element does not cause layout shift when it upgrades. The glyph itself still
-   appears on upgrade — for instant, JS-free rendering use the $:icon() macro. */
+   appears on upgrade — for instant, JS-free rendering use the $:macros.icon() macro. */
 ol-icon {
   display: inline-flex;
   flex-shrink: 0;

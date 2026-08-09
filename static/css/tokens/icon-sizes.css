@@ -1,7 +1,7 @@
 /**
  * Icon Sizes
  * ==========
- * The size scale for <ol-icon> and the $:icon() macro. One axis only — the
+ * The size scale for <ol-icon> and the $:macros.icon() macro. One axis only — the
  * icon system is a single weight on a 24x24 grid, so size is the only knob.
  *
  * Expressed in rem so icons scale with the user's font-size preference.

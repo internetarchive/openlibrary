@@ -2,8 +2,9 @@
   Icons — the curated set and the three ways to draw a glyph from it. `icons`
   is the sprite manifest's name list (design.py load_icons), so a glyph added
   under static/icons/src/ appears in the gallery as soon as `make icons` runs.
-  `icon` is the Templetor $:icon() macro, passed through by design.html: the
-  gallery renders with the real macro rather than a copy of its markup.
+  `icon` is the Templetor icon macro, passed through by design.html: the gallery
+  renders with the real macro rather than a copy of its markup. It is bound only
+  here — templates call it as $:macros.icon(), which is what the page documents.
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% macro nav() %}
@@ -48,7 +49,7 @@
                             A server-rendered <code>.html</code> template. <b>The default.</b>
                         </td>
                         <td>
-                            <b>The <code>$:icon()</code> macro.</b> A plain inline <code>&lt;svg&gt;</code> against
+                            <b>The <code>$:macros.icon()</code> macro.</b> A plain inline <code>&lt;svg&gt;</code> against
                             the page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.
                         </td>
                     </tr>
@@ -81,7 +82,7 @@
             <p class="ds-group__blurb">
                 Pass <code>label</code> for an accessible name; without one the icon is <code>aria-hidden</code>.
             </p>
-            {{ ex.code_snippet("$:icon(\"search\") \n$:icon(\"globe\", size=\"lg\")\n$:icon(\"globe\", label=_(\"Language\"))") }}
+            {{ ex.code_snippet("$:macros.icon(\"search\") \n$:macros.icon(\"globe\", size=\"lg\")\n$:macros.icon(\"globe\", label=_(\"Language\"))") }}
         </div>
         <div class="ds-group">
             <h3 class="ds-group__title">In a Lit component</h3>
@@ -161,13 +162,14 @@
                 Each preset is a token — <code>--icon-size-sm</code>, <code>-md</code>, <code>-lg</code> — declared
                 in <code>rem</code>, so the pixel figures above hold at the default 16px root and grow with the
                 reader's font size. The macro and <code>&lt;ol-icon&gt;</code> both take
-                <code>size="sm|md|lg"</code>; <code>&lt;ol-icon&gt;</code> also accepts a raw pixel number
-                (<code>size="32"</code>) for one-offs. A fragment import sets <code>width</code>/<code>height</code>
-                on its own wrapping <code>&lt;svg&gt;</code> instead.
+                <code>size="sm|md|lg"</code> — there is no off-scale value. A genuine one-off is a CSS
+                job: set <code>width</code>/<code>height</code> on the <code>&lt;ol-icon&gt;</code> host (the
+                inner <code>&lt;svg&gt;</code> fills it) or on a fragment import's own wrapping
+                <code>&lt;svg&gt;</code>.
             </p>
             {# Explicit `code`: the live markup here is the macro's expanded
                <svg>, which is not what anyone should copy. #}
-            {% call ex.example("", "", code='$:icon("search", size="sm")\n$:icon("search", size="md")\n$:icon("search", size="lg")') %}
+            {% call ex.example("", "", code='$:macros.icon("search", size="sm")\n$:macros.icon("search", size="md")\n$:macros.icon("search", size="lg")') %}
                 {{ draw('search', 'sm') }}
                 {{ draw('search', 'md') }}
                 {{ draw('search', 'lg') }}
@@ -181,7 +183,7 @@
                 <code>.danger { color: var(--color-error-fg) }</code> — with no <code>fill</code> or
                 <code>stroke</code> override needed.
             </p>
-            {% call ex.example("", "", code='<span class="danger">$:icon("trash")</span>') %}
+            {% call ex.example("", "", code='<span class="danger">$:macros.icon("trash")</span>') %}
             <span class="ds-demo-danger">{{ draw('trash', 'lg') }}</span>
 {% endcall %}
 </div>
@@ -224,8 +226,8 @@
                         <button class="ds-icon-gallery__cell"
                                 type="button"
                                 data-ds-copy
-                                data-ds-copy-text='$:icon("{{ name }}")'
-                                title="Copy $:icon(&quot;{{ name }}&quot;)">
+                                data-ds-copy-text='$:macros.icon("{{ name }}")'
+                                title="Copy $:macros.icon(&quot;{{ name }}&quot;)">
                             {{ draw(name, "lg") }}
                             <span class="ds-icon-gallery__name">{{ name }}</span>
                         </button>
@@ -238,8 +240,7 @@
 {#
   The Templetor macro returns a TemplateResult, which autoescape would render
   as text, so it is stringified and marked safe here rather than at every call.
-  Trimmed too: Templetor emits a line per stripped comment, and those blank
-  lines are echoed verbatim into any snippet built from the live markup.
+  Trimmed to drop the newline Templetor emits after the macro's output.
 #}
 {% macro draw(name, size) %}
     {{- icon(name, size=size) | string | trim | safe -}}

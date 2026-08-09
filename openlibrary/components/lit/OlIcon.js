@@ -1,12 +1,16 @@
 import { LitElement, html, nothing } from 'lit';
 
-const SIZE_CLASSES = { sm: 'ol-icon--sm', md: 'ol-icon--md', lg: 'ol-icon--lg' };
+const SIZE_CLASSES = new Map([
+    ['sm', 'ol-icon--sm'],
+    ['md', 'ol-icon--md'],
+    ['lg', 'ol-icon--lg'],
+]);
 
 /**
  * A single icon from the Open Library icon sprite.
  *
  * Renders into the **light DOM** (no shadow root) and references the sprite via
- * a same-document `<use href="#name">`. Both choices are deliberate: the sprite
+ * a same-document `<use href="#icon-name">`. Both choices are deliberate: the sprite
  * is inlined once per page (see the icon_sprite() helper), and same-document
  * references resolve in every browser OL supports — external references
  * (`file.svg#name`) are unreliable in older Safari/iOS. Same-document `<use>`
@@ -15,7 +19,7 @@ const SIZE_CLASSES = { sm: 'ol-icon--sm', md: 'ol-icon--md', lg: 'ol-icon--lg' }
  * instead of using <ol-icon>. In the light DOM the glyph also inherits `color`
  * for its `currentColor` strokes, themed by whatever context it sits in.
  *
- * This is the client-side counterpart of the `$:icon()` Templetor macro — both
+ * This is the client-side counterpart of the `$:macros.icon()` Templetor macro — both
  * point at the same sprite and share static/css/components/ol-icon.css, so an
  * icon looks identical whether server- or component-rendered. Use this inside
  * Lit components; use the macro in server-rendered templates.
@@ -25,9 +29,11 @@ const SIZE_CLASSES = { sm: 'ol-icon--sm', md: 'ol-icon--md', lg: 'ol-icon--lg' }
  *
  * @element ol-icon
  *
- * @prop {String} name  - Icon name (a symbol id in the sprite, e.g. "search").
- * @prop {String} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px), or a
- *                        raw pixel number (e.g. "32") for a one-off size.
+ * @prop {String} name  - Icon name (e.g. "search"); the sprite symbol is "icon-<name>".
+ * @prop {String} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px). For a
+ *                        one-off size, set width/height on the host in CSS — the
+ *                        inner <svg> fills it, and unlike an attribute the box is
+ *                        right before the component upgrades.
  * @prop {String} label - Accessible name. When set, the icon is exposed as
  *                        role="img"; when omitted, it is aria-hidden.
  *
@@ -58,19 +64,16 @@ export class OlIcon extends LitElement {
     render() {
         if (!this.name) return nothing;
 
-        const named = Object.prototype.hasOwnProperty.call(SIZE_CLASSES, this.size);
-        const sizeClass = named ? SIZE_CLASSES[this.size] : SIZE_CLASSES.md;
-        const px = !named && /^\d+$/.test(this.size) ? `${this.size}px` : null;
+        const sizeClass = SIZE_CLASSES.get(this.size) ?? SIZE_CLASSES.get('md');
         const labeled = Boolean(this.label && this.label.trim());
 
         return html`<svg
             class="ol-icon ${sizeClass}"
-            style=${px ? `width:${px};height:${px}` : nothing}
             role=${labeled ? 'img' : nothing}
             aria-label=${labeled ? this.label : nothing}
             aria-hidden=${labeled ? nothing : 'true'}
             focusable="false"
-        ><use href="#${this.name}"></use></svg>`;
+        ><use href="#icon-${this.name}"></use></svg>`;
     }
 }
 

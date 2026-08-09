@@ -233,11 +233,12 @@ def _read_icon_sprite() -> str:
 
 @public
 def icon_sprite() -> str:
-    """Return the inline icon sprite markup, included once near the end of the
-    page body (see site/footer).
+    """Return the inline icon sprite markup, included once at the top of the
+    page body (see site/body) so icons resolve as the response streams.
 
-    Icons are referenced with same-document ``<use href="#name">`` by the
-    ``$:icon()`` macro and the ``<ol-icon>`` component. Same-document references
+    Icons are referenced with same-document ``<use href="#icon-name">`` by the
+    ``$:macros.icon()`` macro and the ``<ol-icon>`` component; symbol ids are
+    namespaced so they cannot collide with page markup. Same-document references
     work in every browser Open Library supports; external references
     (``<use href="file.svg#name">``) are unreliable in the older Safari/iOS
     versions in our browserslist, so the sprite is inlined rather than fetched.
