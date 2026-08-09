@@ -818,9 +818,41 @@ def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
     return acquisitions
 
 
+_COMMON_ISO_TO_MARC = {
+    "ar": "ara",
+    "de": "ger",
+    "en": "eng",
+    "es": "spa",
+    "fr": "fre",
+    "hi": "hin",
+    "it": "ita",
+    "ja": "jpn",
+    "ko": "kor",
+    "pt": "por",
+    "ru": "rus",
+    "zh": "chi",
+}
+
+
 def get_best_edition(
     editions: list[Edition],
+    user_lang: str | None = None,
 ) -> tuple[Edition | None, AbstractBookProvider | None]:
+    """
+    Select the best edition to surface on a work/edition page.
+
+    Ranking criteria (in order of priority):
+    1. Language — prefer editions matching the user's language (``user_lang``).
+       Falls back gracefully to other languages if no same-language edition exists.
+    2. Availability — prefer currently borrowable or publicly accessible editions.
+       Falls back gracefully to the best available edition if none are borrowable.
+    3. Provider rank — prefer IA editions over other providers.
+    4. Field count — prefer editions with more metadata.
+
+    Both availability and language use *boosting* (not hard filtering) so the
+    algorithm always returns a result rather than nothing when the ideal edition
+    is absent from the candidate pool.
+    """
     provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
@@ -829,14 +861,70 @@ def get_best_edition(
     # Here, we prefer the ia editions
     augmented_editions = [(edition, get_book_provider(edition)) for edition in editions]
 
+    def availability_rank(rec: tuple) -> int:
+        """
+        Availability rank tiers (matching readlinks.py statusvals & EbookAccess):
+        0 = Borrow / Read (borrow_available, open, full access, lendable)
+        1 = Waitlist / Checked Out (borrow_unavailable, waiting_loan, checked out)
+        2 = Preview / Sample (sample, printdisabled, restricted)
+        3 = Locate / Print Only (missing, error, or unclassified)
+        """
+        edition = rec[0]
+        avail = (edition.get("availability") if hasattr(edition, "get") else getattr(edition, "availability", None)) or getattr(edition, "availability", {})
+        status = avail.get("status", "") if isinstance(avail, dict) else getattr(avail, "status", "")
+
+        if status in ("borrow_available", "open", "full access", "lendable"):
+            return 0
+        elif status in ("borrow_unavailable", "waiting_loan", "checked out"):
+            return 1
+        elif status in ("sample", "printdisabled", "restricted"):
+            return 2
+        else:
+            return 3
+
+    def language_rank(rec: tuple) -> int:
+        """0 = matches user language (best), 1 = no match or unknown (fallback)."""
+        if not user_lang:
+            return 0
+        marc_lang = None
+        try:
+            from openlibrary.plugins.upstream.utils import convert_iso_to_marc
+
+            marc_lang = convert_iso_to_marc(user_lang)
+        except LookupError, AttributeError, TypeError, ValueError, KeyError:
+            pass
+
+        if not marc_lang:
+            marc_lang = _COMMON_ISO_TO_MARC.get(user_lang.lower())
+
+        target_langs = {user_lang, user_lang.lower(), marc_lang} - {None}
+
+        edition = rec[0]
+        langs = (edition.get("languages") if hasattr(edition, "get") else getattr(edition, "languages", [])) or getattr(edition, "languages", [])
+
+        edition_langs = set()
+        for lang in langs:
+            if hasattr(lang, "get") or isinstance(lang, dict):
+                key = lang.get("key", "")
+            else:
+                key = str(getattr(lang, "key", lang))
+            code = key.split("/")[-1]
+            if code:
+                edition_langs.add(code.lower())
+
+        return 0 if bool(target_langs & edition_langs) else 1
+
     best = multisort_best(
         augmented_editions,
         [
+            # Prefer editions in the user's language
+            ("min", language_rank),
+            # Prefer currently borrowable or open editions
+            ("min", availability_rank),
             # Prefer the providers closest to the top of the list
             ("min", lambda rec: provider_rank_lookup.get(rec[1], float("inf"))),
             # Prefer the editions with the most fields
             ("max", lambda rec: len(dict(rec[0]))),
-            # TODO: Language would go in this queue somewhere
         ],
     )
 
