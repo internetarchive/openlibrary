@@ -99,8 +99,9 @@ export class OlPopover extends LitElement {
             position: fixed;
             z-index: var(--z-index-dropdown);
             background: var(--white);
+            border: var(--border-overlay);
             border-radius: var(--border-radius-overlay);
-            box-shadow: 0 8px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;
@@ -136,41 +137,35 @@ export class OlPopover extends LitElement {
 
         /* ── Mobile tray backdrop ── */
 
+        /* Same scrim as ol-dialog: the tray is modal, so it should push the
+           page back the same way. The blur is declared once and fades with the
+           layer's opacity — transitioning the filter itself buys nothing when
+           its value never changes between states. */
         .backdrop {
             position: fixed;
             inset: 0;
             z-index: var(--z-index-dropdown);
-            background: hsla(0, 0%, 0%, 0.3);
+            background: var(--overlay-backdrop-color);
             opacity: 0;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
+            backdrop-filter: blur(var(--overlay-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--overlay-backdrop-blur));
             pointer-events: none;
         }
 
         .backdrop[data-state="entering"],
         .backdrop[data-state="open"] {
             opacity: 1;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
             pointer-events: auto;
         }
 
         .backdrop[data-state="entering"] {
-            transition:
-                opacity 280ms cubic-bezier(0.23, 1, 0.32, 1),
-                backdrop-filter 280ms cubic-bezier(0.23, 1, 0.32, 1),
-                -webkit-backdrop-filter 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
-            transition:
-                opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                backdrop-filter 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                -webkit-backdrop-filter 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         /* ── Mobile tray panel ── */
