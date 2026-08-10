@@ -13,6 +13,7 @@
         <li><a href="#icon-usage">Usage</a></li>
         <li><a href="#icon-controls">What you control</a></li>
         <li><a href="#icon-sources">Where glyphs come from</a></li>
+        <li><a href="#icon-add">Adding an icon</a></li>
     </ul>
 {% endmacro %}
 {# Gallery first: finding the glyph is the errand nearly every visit is here
@@ -23,6 +24,7 @@
     {{ usage() }}
     {{ controls() }}
     {{ sources() }}
+    {{ adding() }}
 {% endmacro %}
 {#
   All three techniques read the same sources under static/icons/src/, so the
@@ -259,12 +261,46 @@
                 <code>custom/</code> holds original Open Library glyphs, and glyphs adapted from another
                 library get a folder of their own — the build discovers new folders automatically. The
                 one real rule is aesthetic, not technical: a newcomer must be redrawn to the canonical
-                form so the set still reads as a single family. To add an icon: drop the normalized SVG
-                into the right <code>src/</code> folder, record any attribution in
-                <code>static/icons/ATTRIBUTION.md</code>, and run <code>make icons</code> — it lands
-                in the sprite, this gallery, and <code>icons.generated.js</code> in one step.
+                form so the set still reads as a single family. The recipe is
+                <a href="#icon-add">below</a>.
             </p>
         </div>
+    </section>
+{% endmacro %}
+{#
+  The recipe. Three steps, no dependencies — the build script is plain Node, so
+  `make icons` runs anywhere without an npm install.
+#}
+{% macro adding() %}
+    <section class="ds-section" id="icon-add">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Adding an icon</h2>
+        <ol class="ds-prose-list ds-prose-list--numbered">
+            <li>
+                <b>Author the SVG in the canonical form</b> — <code>viewBox="0 0 24 24"</code>,
+                <code>stroke="currentColor"</code>, no <code>width</code>/<code>height</code>, no
+                <code>id</code>s. A glyph copied from <a href="https://lucide.dev">lucide.dev</a> is
+                already in this form — paste it verbatim. (A <code>stroke-width</code> in the source is
+                fine; the build strips it so weight stays themable.)
+            </li>
+            <li>
+                <b>Name the file in kebab-case and drop it in the folder matching its provenance</b> —
+                <code>static/icons/src/lucide/</code> for Lucide geometry,
+                <code>src/custom/</code> for original Open Library work. The file name becomes the
+                icon's name everywhere: <code>pencil.svg</code> is <code>icon("pencil")</code>. A glyph
+                from a new library gets a new folder plus a license section in
+                <code>static/icons/ATTRIBUTION.md</code>.
+            </li>
+            <li>
+                <b>Run <code>make icons</code> and commit.</b> One step regenerates all three outputs:
+                the sprite (a build artifact, not committed), <code>static/icons/manifest.json</code>,
+                and <code>openlibrary/components/lit/icons.generated.js</code>. Commit the source SVG
+                together with those two generated files.
+            </li>
+        </ol>
+        <p class="ds-section__blurb">
+            That's it — the icon now renders through all three techniques and appears in the
+            <a href="#icon-gallery">gallery</a> above.
+        </p>
     </section>
 {% endmacro %}
 {% macro gallery() %}
