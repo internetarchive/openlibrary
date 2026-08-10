@@ -41,30 +41,6 @@ export function initDroppers(dropperElements) {
  * @param {jQuery.Object} $container
  */
 function closeDropper($container) {
-    $container.find('.dropdown').slideUp(25);  // Legacy droppers
-    $container.find('.generic-dropper__dropdown').slideUp(25);  // New generic droppers
+    $container.find('.dropdown').slideUp(25);
     $container.find('.arrow').removeClass('up');
-    $container.removeClass('generic-dropper-wrapper--active');
-}
-
-/**
- * Adds functionality which closes any open droppers
- * when the patron clicks outside of a dropper.
- *
- * **Important Note:** Any overriden Dropper#closeDropper()
- * functionality will not be triggered by this function.
- *
- * @param {NodeList<HTMLElement>} dropperElements
- */
-export function initGenericDroppers(dropperElements) {
-    const genericDroppers = Array.from(dropperElements);
-
-    // Close any open dropdown if the user clicks outside of component:
-    $(document).on('click', function(event) {
-        for (const dropper of genericDroppers) {
-            if (!dropper.contains(event.target)) {
-                closeDropper($(dropper));
-            }
-        }
-    });
 }

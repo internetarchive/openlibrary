@@ -10,12 +10,16 @@
  * and a button to toggle an initially hidden drop-down that provides additional
  * functionality.
  *
+ * The drop-down itself is an `<ol-popover>`, which owns the trigger's ARIA
+ * state, Escape and outside-click dismissal, focus restore, and the mobile
+ * tray presentation. This class is the bridge between that component and the
+ * dropper's own `open`/`close`/`disabled` vocabulary, which the reading log
+ * and list affordances call into.
+ *
  * A dropper can have a "disabled" state.  If a dropper is disabled, it cannot be
  * opened nor closed.  This is useful when the dropdown content contains affordances
  * which make authenticated API requests, as droppers can be disabled for logged-out
  * patrons.
- *
- * This class adds functionality for toggling and closing a dropper's drop-down content.
  *
  * @see `/openlibrary/templates/lib/dropper.html` for base template for this component.
  * @class
@@ -38,15 +42,11 @@ export class Dropper {
         this.dropper = dropper;
 
         /**
-         * jQuery object containing the root element of the dropper.
+         * Reference to the popover that presents this dropper's drop-down.
          *
-         * **Note:** jQuery is only used here for its slide animations.
-         * This can be removed when and if these animations are handled
-         * strictly with CSS.
-         *
-         * @member {JQuery<HTMLElement>}
+         * @member {HTMLElement|null}
          */
-        this.$dropper = $(dropper);
+        this.popover = dropper.querySelector('ol-popover');
 
         /**
          * Reference to the affordance that, when clicked, toggles
@@ -61,7 +61,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperOpen = dropper.classList.contains('generic-dropper-wrapper--active');
+        this.isDropperOpen = Boolean(this.popover && this.popover.open);
 
         /**
          * Tracks whether this dropper is disabled.
@@ -74,11 +74,33 @@ export class Dropper {
     }
 
     /**
-     * Adds click listener to dropper's toggle arrow.
+     * Wires this dropper up to its popover.
+     *
+     * A disabled dropper swallows the trigger click before the popover sees it,
+     * so `onDisabledClick()` can take over — the popover self-manages `open` on
+     * trigger click and offers no veto for opening.
      */
     initialize() {
-        this.dropClick.addEventListener('click', () => {
-            this.toggleDropper();
+        if (this.isDropperDisabled) {
+            if (this.dropClick) {
+                this.dropClick.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    this.onDisabledClick();
+                });
+            }
+            return;
+        }
+
+        // Listen on the wrapper rather than the popover: these events bubble and
+        // compose, so this works whether or not the custom element has upgraded
+        // by the time we get here.
+        this.dropper.addEventListener('ol-popover-open', () => {
+            this.isDropperOpen = true;
+            this.onOpen();
+        });
+        this.dropper.addEventListener('ol-popover-close', () => {
+            this.isDropperOpen = false;
+            this.onClose();
         });
     }
 
@@ -109,47 +131,29 @@ export class Dropper {
     /**
      * Closes dropper if opened; opens dropper if closed.
      *
-     * Toggles value of `isDropperOpen`.
-     *
      * Calls `onDisabledClick()` if this dropper is disabled.
-     * Calls either `onOpen()` or `onClose()` after the dropper
-     * has been toggled.
+     *
+     * `onOpen()` and `onClose()` are not called here — they fire from the
+     * popover's own events, so they run for Escape and outside clicks too.
      */
     toggleDropper() {
         if (this.isDropperDisabled) {
             this.onDisabledClick();
-        } else {
-            this.$dropper.find('.generic-dropper__dropdown').slideToggle(25);
-            this.$dropper.find('.arrow').toggleClass('up');
-            this.$dropper.toggleClass('generic-dropper-wrapper--active');
-            this.isDropperOpen = !this.isDropperOpen;
-
-            if (this.isDropperOpen) {
-                this.onOpen();
-            } else {
-                this.onClose();
-            }
+        } else if (this.popover) {
+            this.popover.open = !this.popover.open;
         }
     }
 
     /**
      * Closes this dropper.
      *
-     * Sets `isDropperOpen` to `false`.
-     *
      * Calls `onDisabledClick()` if this dropper is disabled.
-     * Otherwise, closes dropper and calls `onClose()`.
      */
     closeDropper() {
         if (this.isDropperDisabled) {
             this.onDisabledClick();
-        } else {
-            this.$dropper.find('.generic-dropper__dropdown').slideUp(25);
-            this.$dropper.find('.arrow').removeClass('up');
-            this.$dropper.removeClass('generic-dropper-wrapper--active');
-            this.isDropperOpen = false;
-
-            this.onClose();
+        } else if (this.popover) {
+            this.popover.open = false;
         }
     }
 }

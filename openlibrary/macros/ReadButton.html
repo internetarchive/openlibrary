@@ -22,9 +22,10 @@ $ user = get_current_user()
 $ data_attr = get_preserve_intent_attrs(label, book_title, "book", "/books/%s" % edition_key) if (action == 'borrow') else ""
 $ login_class = "js-login-intent" if (data_attr and not user) else ""
 
-$ menu_items = [listen, edition_key]
-$ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
-$if any(menu_items) and not is_carousel:
+$if listen or edition_key:
+  $# The overflow is an <ol-popover>, the same disclosure the My Books dropper
+  $# uses: Escape and outside-click dismissal, focus restore, and a panel that
+  $# escapes the overflow clipping of carousels and the editions table.
   <div class="cta-dropper cta-button-group">
     <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
         $:analytics_attr(analytics_action)
@@ -32,8 +33,10 @@ $if any(menu_items) and not is_carousel:
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
-    <details class="cta-btn cta-btn--available">
-      <summary aria-label="$_('More reading options')"></summary>
+    <ol-popover class="cta-dropper__popover" placement="bottom-end" aria-label="$_('More reading options')">
+      <button type="button" slot="trigger" class="cta-btn cta-btn--available cta-dropper__toggle" aria-label="$_('More reading options')">
+        <span class="cta-dropper__arrow" aria-hidden="true"></span>
+      </button>
       <ul class="dropper-menu">
         $if listen:
           <li>
@@ -50,7 +53,7 @@ $if any(menu_items) and not is_carousel:
             $:macros.LocateButton(edition_key, icon=True)
           </li>
       </ul>
-    </details>
+    </ol-popover>
   </div>
 $else:
   <div class="cta-button-group">

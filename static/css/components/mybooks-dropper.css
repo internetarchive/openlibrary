@@ -42,10 +42,14 @@
 }
 
 /* Styling for the My Books dropper's dropdown content: */
+/* The popover panel supplies the border, elevation and rounding; match its
+   radius and clip so the content's own backgrounds don't square off the
+   corners. */
 .generic-dropper__dropdown {
   min-width: 200px;
   max-width: 100vw;
-  border: 1px solid var(--mid-grey);
+  border-radius: var(--border-radius-overlay);
+  overflow: hidden;
   background-color: var(--lightest-grey);
 }
 

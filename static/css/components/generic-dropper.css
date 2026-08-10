@@ -1,17 +1,19 @@
+/* No `isolation` and no `z-index` here on purpose. The drop-down is an
+   <ol-popover>, whose panel is position: fixed and elevated to
+   --z-index-dropdown. A stacking context on the wrapper would scope that
+   z-index to this row, and the next row in the list would paint over the
+   open panel. */
 .generic-dropper-wrapper {
   position: relative;
-  isolation: isolate;
   min-height: 50px;
 }
 
-.generic-dropper-wrapper--active {
-  z-index: var(--z-index-level-1);
-}
-
+/* Absolute, but deliberately without a z-index: taking it out of flow keeps
+   the check-in prompt's spacing as it was, while z-index: auto leaves the
+   popover's panel free to elevate above the rest of the page. */
 .generic-dropper {
   position: absolute;
   width: 100%;
-  z-index: var(--z-index-level-14);
 }
 
 .generic-dropper__actions {
@@ -24,9 +26,19 @@
   overflow: hidden;
 }
 
-.generic-dropper__actions * {
+/* Scoped to the two action regions rather than every descendant: the
+   drop-down now lives inside <ol-popover>, which sits in this row. */
+.generic-dropper__actions .generic-dropper__primary,
+.generic-dropper__actions .generic-dropper__primary *,
+.generic-dropper__actions .generic-dropper__dropclick {
   color: var(--dark-grey);
   background-color: var(--lightest-grey);
+}
+
+/* The popover is a flex child of the action row; the caret fills it. */
+.generic-dropper__popover {
+  display: flex;
+  align-items: stretch;
 }
 
 .generic-dropper__actions .generic-dropper__primary {
@@ -48,9 +60,15 @@
 /* stylelint-enable max-nesting-depth */
 
 .generic-dropper__actions .generic-dropper__dropclick {
+  border: 0;
   border-left: 1px solid var(--lighter-grey);
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
   text-decoration: none;
-  height: inherit;
+  height: auto;
+  align-self: stretch;
   width: 32px;
   display: flex;
   justify-content: center;
@@ -63,6 +81,7 @@
 }
 
 .generic-dropper__actions .generic-dropper__dropclick .arrow {
+  display: block;
   width: 23px;
   height: 23px;
   background-image: url(/static/images/icons/icon_dropit.png);
@@ -73,17 +92,19 @@
 }
 
 /* stylelint-disable selector-max-specificity */
-.generic-dropper__actions .generic-dropper__dropclick .arrow.up {
+/* The popover owns aria-expanded on its trigger, so the arrow follows it
+   rather than a class the old JS toggled by hand. */
+.generic-dropper__actions
+  .generic-dropper__dropclick[aria-expanded="true"]
+  .arrow {
   background-position: -22px 0;
 }
 /* stylelint-enable max-nesting-depth */
 /* stylelint-enable selector-max-specificity */
 
+/* Sits in the popover panel, which supplies position, elevation and
+   dismissal. Only the drop-down's own look lives here. */
 .generic-dropper__dropdown {
-  display: none;
-  width: 100%;
-  border-top: 1px solid var(--lighter-grey);
-  position: absolute;
   font-size: var(--font-size-label-medium);
 }
 
@@ -103,50 +124,57 @@
 }
 
 /* dropdown button */
-.cta-dropper details.cta-btn {
-  padding: 0;
-  width: 32px;
+/* The popover stands in for the group's last .cta-btn child, so it carries the
+   1px seam that .cta-button-group would otherwise apply to the button itself. */
+.cta-dropper .cta-dropper__popover {
+  display: flex;
   flex-shrink: 0;
+  margin-left: 1px;
 }
 
-.cta-dropper summary {
-  height: 100%;
-  margin: auto;
+/* Three classes to clear `.cta-button-group .cta-btn`, which resets padding and
+   would otherwise fight the fixed caret width. */
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-dropper .cta-dropper__toggle.cta-btn {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  width: 32px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px 6px 6px 2px;
+  cursor: pointer;
+}
+
+/* The whitening filter lives on the glyph, not the button — on the button it
+   would bleach the blue fill too. */
+.cta-dropper__arrow {
+  display: block;
   width: 24px;
-  /* style for animated arrow on dropdown button. Copied from "Want to Read" dropper above */
-  content: "";
-  background: url(/static/images/icons/icon_dropit.png) no-repeat center;
+  height: 24px;
+  background-image: url(/static/images/icons/icon_dropit.png);
+  background-repeat: no-repeat;
   background-position: 0;
   background-size: 45px;
-  /* whiten arrow png */
   filter: brightness(0) invert(1);
 }
 
-/* hide extra arrow on iOS */
-.cta-dropper summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.cta-dropper summary::-webkit-details-marker {
-  display: none;
-}
-
-.cta-dropper details[open] summary {
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-dropper__toggle[aria-expanded="true"] .cta-dropper__arrow {
   background-position: -22px 48%;
 }
 
 /* dropdown containing Listen/Search/Download/Locate buttons */
+/* The popover panel supplies position, elevation and dismissal. */
 .dropper-menu {
-  z-index: var(--z-index-level-4);
-  border: 1px solid var(--lighter-grey);
   border-radius: 5px;
+  overflow: hidden;
   background-color: var(--white);
-  position: absolute;
-  /* align dropper menu with buttons */
-  right: 0;
-  margin-top: var(--spacing-stack-xs);
-  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 180px;
   max-width: 200px;
 }
 

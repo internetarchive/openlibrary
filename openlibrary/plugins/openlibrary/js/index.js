@@ -385,13 +385,13 @@ jQuery(function() {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    // Generic droppers are not listed here: their drop-down is an <ol-popover>,
+    // which handles outside clicks and Escape itself.
     const droppers = document.querySelectorAll('.dropper');
-    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
-    if (droppers.length || genericDroppers.length) {
+    if (droppers.length) {
         import(/* webpackChunkName: "droppers" */ './dropper')
             .then((module) => {
                 module.initDroppers(droppers);
-                module.initGenericDroppers(genericDroppers);
             });
     }
 

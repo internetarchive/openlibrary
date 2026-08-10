@@ -287,10 +287,24 @@ export class ReadingLists {
         openListModalButton.addEventListener('click', (event) => {
             event.preventDefault();
 
+            // Hold the drop-down open behind the modal. If it auto-closed on the
+            // first click inside the modal it would restore focus to the dropper's
+            // caret, stranding the keyboard behind the overlay. The list creation
+            // flow also reads the open dropper back out of the store.
+            const popover = this.dropper.querySelector('ol-popover');
+            if (popover) {
+                popover.autoClose = false;
+            }
+
             $.colorbox({
                 inline: true,
                 opacity: '0.5',
-                href: '#addList'
+                href: '#addList',
+                onClosed: () => {
+                    if (popover) {
+                        popover.autoClose = true;
+                    }
+                }
             });
         });
     }
