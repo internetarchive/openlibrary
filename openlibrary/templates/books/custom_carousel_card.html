@@ -76,7 +76,7 @@ $else:
     <div class="ol-macro-wrapper">
       $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=(secondary_action and not loan), analytics_override="BookCarousel|CTAClick|%s" % key)
     </div>
-    
+
     $if loan and loan.get('resource_type') == 'bookreader':
       <div class="ol-return-wrapper cta-button-group">
         <form action="/borrow/ia/$(loan.get('ocaid'))" method="post" class="return-form" data-i18n="$json_encode({'confirm_return': _('Really return this book?')})">
