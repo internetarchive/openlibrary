@@ -148,8 +148,10 @@ writeFileSync(MANIFEST_PATH, `${JSON.stringify({ icons: names, aliases: {} }, nu
 //    bare `svg` fragment — wrap it in your own <svg> in the component's render():
 //      import { x } from './icons.generated.js';
 //      html`<svg class="icon" viewBox="0 0 24 24">${x}</svg>`
+// The IIFE wrapper puts the PURE annotation before a call expression — the only
+// position Rolldown (and terser) honor, so unused glyphs tree-shake out.
 const jsExports = names
-    .map((n) => `export const ${camelCase(n)} = /*#__PURE__*/ svg\`${icons.get(n).inner}\`;`)
+    .map((n) => `export const ${camelCase(n)} = /*#__PURE__*/ (() => svg\`${icons.get(n).inner}\`)();`)
     .join("\n");
 const jsModule =
     "/* eslint-disable */\n" +
