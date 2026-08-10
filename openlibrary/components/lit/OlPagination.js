@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { chevronLeft, chevronRight } from './icons.generated.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 
 /**
@@ -174,10 +175,10 @@ export class OlPagination extends LitElement {
     `;
 
     /** Left chevron arrow icon. Sized by CSS. */
-    static _leftArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
+    static _leftArrowIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronLeft}</svg>`;
 
     /** Right chevron arrow icon. Sized by CSS. */
-    static _rightArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
+    static _rightArrowIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronRight}</svg>`;
 
     constructor() {
         super();

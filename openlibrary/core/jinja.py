@@ -84,7 +84,7 @@ def get_jinja_env() -> Environment:
 
     env.globals["render_templetor_template"] = render_template
 
-    def _icon(name: str, size: str = "md", label: str = "") -> Markup:
+    def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
         """Draw an icon from the page sprite. See /developers/design/icons.
 
         Templetor reaches the macro as ``$:macros.icon(...)``; Jinja has no
@@ -94,7 +94,8 @@ def get_jinja_env() -> Environment:
         autoescapes.
         """
         macro = web.template.Template.globals["macros"]["icon"]
-        return Markup(str(macro(name, size=size, label=label)).strip())
+        rendered = macro(name, size=size, label=label, extra_class=extra_class)
+        return Markup(str(rendered).strip())
 
     # An exception to the "10 or more templates" rule below: an icon is a design
     # system primitive any template may need, and the alternative is threading

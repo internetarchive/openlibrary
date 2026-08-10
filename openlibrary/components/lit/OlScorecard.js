@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { chevronDown, clock } from './icons.generated.js';
 
 let _idCounter = 0;
 
@@ -162,10 +163,10 @@ export class OlScorecard extends LitElement {
     };
 
     /** Chevron icon; rotated by callers to indicate open/closed state. */
-    static _chevronIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+    static _chevronIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronDown}</svg>`;
 
     /** Clock icon; shown in the outdated-data warning banner. */
-    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${clock}</svg>`;
 
     static styles = css`
         :host {

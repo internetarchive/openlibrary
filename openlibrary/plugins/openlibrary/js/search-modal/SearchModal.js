@@ -5,7 +5,7 @@ import { repeat } from 'lit/directives/repeat.js';
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError.
-import { x } from '../../../../components/lit/icons.generated.js';
+import { arrowLeft, clock, search, user, x } from '../../../../components/lit/icons.generated.js';
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
@@ -1859,15 +1859,15 @@ export class SearchModal extends LitElement {
 
     // ── Static SVGs ──────────────────────────────────────────────────────
 
-    static _clockIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${clock}</svg>`;
 
-    static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${search}</svg>`;
 
     static _closeIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x}</svg>`;
 
-    static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+    static _backIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${arrowLeft}</svg>`;
 
-    static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    static _personIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${user}</svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);

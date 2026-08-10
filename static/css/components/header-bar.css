@@ -217,6 +217,7 @@
 
 .header-bar .hamburger-component .hamburger__icon {
   width: 22px;
+  height: 22px;
   padding: 0 var(--spacing-inset-sm);
   border-radius: 3px;
   box-sizing: content-box;

@@ -16,7 +16,7 @@ $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
 <span class="nav-bar-wrapper sticky $display_for">
     $if not desktop_only:
         <button class="nav-arrow-left" title="$_('Go to previous section')">
-            <img src="/static/images/nav-arrow.svg" alt="">
+            $:macros.icon("arrow-left", size="sm")
         </button>
 
     <ul class="nav-bar work-menu">
@@ -57,6 +57,6 @@ $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
 
     $if not desktop_only:
         <button class="nav-arrow-right" title="$_('Go to next section')">
-            <img src="/static/images/nav-arrow.svg" alt="">
+            $:macros.icon("arrow-right", size="sm")
         </button>
 </span>

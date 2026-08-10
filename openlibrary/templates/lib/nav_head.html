@@ -45,7 +45,7 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
   $     [ { "subsection": _("Browse") } ] + browseLinks +
   $     [ { "subsection": _("Contribute") } ] + contributeLinks +
   $     [ { "subsection": _("Resources") } ] + resourceLinks,
-  $  'image': '/static/images/hamburger-icon.svg',
+  $  'icon': 'menu',
   $  'image-class': 'hamburger__icon',
   $  'label': 'additional options menu',
   $  'show_mask': True
@@ -111,7 +111,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       title="$_('Search by barcode')"
       href="/barcodescanner?returnTo=/isbn/$$$$$$"
     >
-      <img src="/static/images/icons/barcode_scanner.svg" alt="" width="22" height="22"/>
+      $# Decorative: the link is already named by aria-label.
+      $:macros.icon("scan-barcode", size="lg")
     </a>
   </div>
 

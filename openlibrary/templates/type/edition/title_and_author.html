@@ -1,13 +1,13 @@
 $def with (page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+$def icon_link(link_class, icon_name, link_text, login_redirect=True, ga_data=None):
   $ href = 'javascript:;'
 
   <a href="$href" class="$link_class icon-link"
     $if ga_data:
       data-ol-link-track="$ga_data"
     >
-    <img class="icon-link__image" src="$img_src" alt="">
+    $:macros.icon(icon_name, size="lg", extra_class="icon-link__image")
     <div class="icon-link__text">$link_text</div>
   </a>
 
@@ -59,7 +59,7 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
 
   $if not for_desktop:
     $# On mobile, the 'Share' button appears next to the title and author
-    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_content = icon_link("share-modal-link", "share-2", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content)
 </div>
