@@ -1,11 +1,13 @@
 from dataclasses import dataclass, field
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 
 from openlibrary.core.vendors import (
     AmazonAPI,
     AmazonCreatorsAPI,
+    _get_amazon_metadata,
     amazon_affiliate_url,
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
@@ -308,6 +310,86 @@ def test_get_amazon_metadata() -> None:
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected
+
+
+class TestAmazonMetadataTimeout:
+    """
+    The affiliate-server fetch is still issued synchronously from an async FastAPI
+    path, so its timeout bounds how long a slow upstream stalls the whole worker.
+
+    Before #13277 only `ConnectionError` and `HTTPError` were caught, and
+    `ReadTimeout` is a sibling of neither (`ReadTimeout -> Timeout ->
+    RequestException`). Nothing downstream swallowed it -- `MemcacheMemoize.update()`
+    calls the wrapped function bare -- so capping the timeout without catching
+    `Timeout` would turn a slow hang into a fast 500.
+    """
+
+    ISBN = "059035342X"
+
+    def test_default_timeout_is_2s(self) -> None:
+        """The cap must reach the wire, not just sit in the signature."""
+        mock_get = MagicMock(side_effect=requests.exceptions.ReadTimeout())
+        with (
+            patch("openlibrary.core.vendors.session.get", mock_get),
+            patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+        ):
+            _get_amazon_metadata(id_=self.ISBN, id_type="isbn")
+
+        assert mock_get.call_args.kwargs["timeout"] == 2.0
+
+    def test_high_priority_gets_the_generous_timeout(self) -> None:
+        """
+        `high_priority=True` asks the affiliate server to block and poll its cache --
+        1s per iteration for RETRIES(=5) iterations in scripts/affiliate_server.py --
+        so it cannot answer in under ~1s and may take ~5s. The tight enrichment cap
+        would time out exactly the calls that are meant to wait (this is what breaks
+        the librarian import-by-identifier tool, which asserts on a non-None result).
+        """
+        mock_get = MagicMock(side_effect=requests.exceptions.ReadTimeout())
+        with (
+            patch("openlibrary.core.vendors.session.get", mock_get),
+            patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+        ):
+            _get_amazon_metadata(id_=self.ISBN, id_type="isbn", high_priority=True)
+
+        timeout = mock_get.call_args.kwargs["timeout"]
+        assert timeout == 10.0
+        # Must comfortably exceed the server's own RETRIES-second polling window.
+        assert timeout > 5.0
+
+    def test_explicit_timeout_overrides_both_defaults(self) -> None:
+        mock_get = MagicMock(side_effect=requests.exceptions.ReadTimeout())
+        with (
+            patch("openlibrary.core.vendors.session.get", mock_get),
+            patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+        ):
+            _get_amazon_metadata(id_=self.ISBN, id_type="isbn", high_priority=True, timeout=0.5)
+
+        assert mock_get.call_args.kwargs["timeout"] == 0.5
+
+    @pytest.mark.parametrize(
+        "exception",
+        [
+            requests.exceptions.ReadTimeout(),
+            requests.exceptions.ConnectTimeout(),
+            requests.exceptions.Timeout(),
+            requests.exceptions.ConnectionError(),
+            requests.exceptions.HTTPError(),
+        ],
+        ids=[
+            "read_timeout",
+            "connect_timeout",
+            "timeout",
+            "connection_error",
+            "http_error",
+        ],
+    )
+    def test_returns_none_instead_of_raising(self, exception: Exception) -> None:
+        with (
+            patch("openlibrary.core.vendors.session.get", side_effect=exception),
+            patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+        ):
+            assert _get_amazon_metadata(id_=self.ISBN, id_type="isbn") is None
 
 
 @dataclass

@@ -39,6 +39,23 @@ BWB_AFFILIATE_LINK = "http://www.anrdoezrs.net/links/{}/type/dlg/http://www.bett
 AMAZON_FULL_DATE_RE = re.compile(r"\d{4}-\d\d-\d\d")
 ISBD_UNIT_PUNCT = " : "  # ISBD cataloging title-unit separator punctuation
 
+# Timeout, in seconds, for outbound requests to the affiliate server.
+#
+# Deliberately tight on the enrichment path: that call is still issued synchronously
+# from an async FastAPI path, so it blocks the worker's event loop and stalls
+# unrelated requests. A 10s value here turned a slow Amazon upstream into a ~12h
+# site-wide outage (#13277).
+AFFILIATE_SERVER_TIMEOUT_SECS = 2.0
+
+# ...but `high_priority=True` asks the affiliate server to *block and wait* while it
+# polls for a fresh PA-API result -- `scripts/affiliate_server.py` sleeps 1s per
+# iteration for RETRIES(=5) iterations, so such a request cannot return in under ~1s
+# and legitimately takes up to ~5s. Applying the tight cap there would time out
+# precisely the calls that are supposed to wait, breaking the librarian
+# import-by-identifier tool. These callers are deliberately blocking and are not on
+# the event loop, so they get the generous bound instead.
+AFFILIATE_SERVER_BLOCKING_TIMEOUT_SECS = 10.0
+
 
 def setup(config):
     global affiliate_server_url
@@ -616,7 +633,7 @@ def _get_amazon_metadata(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-    timeout: float = 10.0,
+    timeout: float | None = None,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -629,10 +646,15 @@ def _get_amazon_metadata(
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
     param bool stage_import: stage the id_ for import if not in the cache.
+    :param float timeout: Request timeout. Defaults to the tight enrichment-path cap,
+           or the generous bound when `high_priority` makes the server block and wait.
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
         return None
+
+    if timeout is None:
+        timeout = AFFILIATE_SERVER_BLOCKING_TIMEOUT_SECS if high_priority else AFFILIATE_SERVER_TIMEOUT_SECS
 
     if id_type == "isbn":
         isbn = normalize_isbn(id_)
@@ -657,10 +679,20 @@ def _get_amazon_metadata(
             return data
         else:
             return None
+    # Clause order is deliberate: ConnectionError stays first so the long-standing
+    # "Affiliate Server unreachable" message keeps firing for connect failures, which
+    # prod greps key off. Note that means ConnectTimeout -- a subclass of *both*
+    # ConnectionError and Timeout -- logs as "unreachable" rather than as a timeout.
     except requests.exceptions.ConnectionError:
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
         logger.exception(f"Affiliate Server: id {id_} not found")
+    # ReadTimeout subclasses neither clause above, so before #13277 it escaped
+    # uncaught on exactly the "upstream reachable but slow" case this timeout
+    # bounds -- turning the cap into a fast 500 instead of a graceful degrade.
+    # Callers all treat None as "no Amazon data".
+    except requests.exceptions.Timeout:
+        logger.exception(f"Affiliate Server timed out after {timeout}s: id {id_}")
     return None
 
 
