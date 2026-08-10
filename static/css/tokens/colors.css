@@ -101,6 +101,9 @@
   --color-text-muted: var(--neutral-500); /* AA only on white / neutral-50 */
   --color-text-inverse: var(--white);
 
+  /* Icons */
+  --color-icon-muted: var(--neutral-400); /* inactive / decorative icons — not for text */
+
   /* Surfaces */
   --color-background: var(--paper); /* page canvas — what body paints */
   --color-surface: var(--white); /* cards, inputs, dropdowns */

@@ -1,7 +1,10 @@
 {
   "icons": [
+    "arrow-down-wide-narrow",
     "arrow-left",
     "arrow-right",
+    "arrow-up-down",
+    "arrow-up-narrow-wide",
     "bold",
     "braces",
     "check",
@@ -26,6 +29,7 @@
     "menu",
     "message-square-text",
     "minus",
+    "pencil",
     "quote",
     "redo",
     "scan-barcode",

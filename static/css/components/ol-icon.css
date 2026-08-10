@@ -6,8 +6,10 @@
  * and the <ol-icon> Lit component renders the same markup into its light DOM.
  *
  * Glyphs are drawn with stroke="currentColor" baked into each sprite <symbol>,
- * so an icon's color simply follows the surrounding text color — nothing to set
- * here but box sizing.
+ * so an icon's color simply follows the surrounding text color. Stroke *weight*
+ * is not baked in — the sprite build drops it precisely so it can be set here
+ * and inherit through <use> into the glyph, which is what lets `lg` be drawn
+ * lighter than the raw 24x24 geometry (see tokens/icon-sizes.css).
  */
 
 /* The <ol-icon> host. Sized from the `size` attribute (present in the HTML
@@ -40,21 +42,25 @@ ol-icon[size="lg"] {
   width: var(--icon-size-md);
   height: var(--icon-size-md);
   vertical-align: middle;
+  stroke-width: var(--icon-stroke-md);
 }
 
 .ol-icon--sm {
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
+  stroke-width: var(--icon-stroke-sm);
 }
 
 .ol-icon--md {
   width: var(--icon-size-md);
   height: var(--icon-size-md);
+  stroke-width: var(--icon-stroke-md);
 }
 
 .ol-icon--lg {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
+  stroke-width: var(--icon-stroke-lg);
 }
 
 ol-icon > .ol-icon {

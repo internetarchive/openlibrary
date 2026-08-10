@@ -1,6 +1,13 @@
 # Icon attribution
 
-Most glyphs under `static/icons/src/lucide/` are derived from **Lucide**
+Each subdirectory of `static/icons/src/` holds glyphs from one source; the
+folder name records provenance, and the build treats every folder identically.
+Glyphs adapted from a new library get a folder of their own — add its license
+and attribution as a new section here.
+
+## `src/lucide/` — Lucide
+
+Glyphs under `static/icons/src/lucide/` are derived from **Lucide**
 (https://lucide.dev), the community fork of Feather Icons. They are normalized
 to Open Library's canonical form (24×24 viewBox, `currentColor`, 2px stroke) but
 the path geometry is Lucide's.
@@ -27,5 +34,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ```
 
-Glyphs under `static/icons/src/custom/` and `static/icons/src/animated/` are
-original Open Library work, released under the project's AGPL-3.0 license.
+## `src/custom/` — Open Library originals
+
+Glyphs under `static/icons/src/custom/` are original Open Library work,
+released under the project's AGPL-3.0 license.

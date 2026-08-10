@@ -12,6 +12,7 @@
         <li><a href="#icon-techniques">Which technique</a></li>
         <li><a href="#icon-usage">Usage</a></li>
         <li><a href="#icon-controls">What you control</a></li>
+        <li><a href="#icon-sources">Where glyphs come from</a></li>
     </ul>
 {% endmacro %}
 {# Gallery first: finding the glyph is the errand nearly every visit is here
@@ -21,6 +22,7 @@
     {{ techniques() }}
     {{ usage() }}
     {{ controls() }}
+    {{ sources() }}
 {% endmacro %}
 {#
   All three techniques read the same sources under static/icons/src/, so the
@@ -162,17 +164,17 @@
                             <td>
                                 <b class="ds-table__figure">24px</b> <span class="ds-table__muted">1.5rem</span>
                             </td>
-                            <td>2px</td>
+                            <td>1.75px</td>
                             <td>Standalone icon buttons, section headers.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <p class="ds-group__blurb">
-                <b>Size scales the stroke with it.</b> Every glyph is drawn 2px thick on a 24×24 grid and the box
-                scales that whole grid, so the stroke stays a constant fraction of the icon — 2px only at
-                <code>lg</code>. That is deliberate: a fixed stroke would make <code>sm</code> read as a heavier,
-                different family. There is no separate stroke control; see
+                <b>Size scales the stroke with it.</b> The box scales the whole 24×24 grid, geometry and stroke
+                together, so the weight stays a roughly constant fraction of the icon rather than a fixed
+                hairline. That is deliberate: a fixed stroke would make <code>sm</code> read as a heavier,
+                different family. <code>lg</code> is the one step pulled back from the raw ratio — see
                 <a href="#icon-stroke">stroke weight</a>.
             </p>
             <p class="ds-group__blurb">
@@ -207,21 +209,69 @@
 <div class="ds-group" id="icon-stroke">
     <h3 class="ds-group__title">Stroke weight</h3>
     <p class="ds-group__blurb">
-        One weight across the whole set: <b>2px on the 24×24 grid</b>. Because the size presets scale
-        that grid rather than resizing the stroke, what actually lands on screen is 2px at
-        <code>lg</code>, 1.67px at <code>md</code>, 1.33px at <code>sm</code>. Picking a size is the
-        only thing that changes it — there is no stroke knob. A fragment import can override
-        <code>stroke-width</code> on its own wrapper if a component genuinely needs to, but that is the
-        exception.
+        One weight across the whole set: <b>2 units on the 24×24 grid</b>, which the box scales down with
+        the geometry — 1.33px at <code>sm</code>, 1.67px at <code>md</code>. Carried through, <code>lg</code>
+        would land at a full 2px and read noticeably heavier than the same glyph one step down, so it is
+        corrected to 1.75. Absolute weight then stays near-constant across the scale
+        (1.33 / 1.67 / 1.75px) instead of growing with the box.
+    </p>
+    <p class="ds-group__blurb">
+        Weight is a per-step token — <code>--icon-stroke-sm</code>, <code>-md</code>, <code>-lg</code> — and
+        not baked into the sprite: the build strips <code>stroke-width</code> from each
+        <code>&lt;symbol&gt;</code> precisely so the value can be inherited from the referencing
+        <code>&lt;svg&gt;</code>. (A presentation attribute on the symbol would outrank any inherited value,
+        and CSS cannot select into a <code>&lt;use&gt;</code> shadow tree, so a baked weight would be
+        unoverridable.) Tune the set from those tokens; a component with a genuine reason can set
+        <code>stroke-width</code> on its own wrapper, but that is the exception.
     </p>
 </div>
 </section>
+{% endmacro %}
+{#
+  Answers the "why Lucide, and are we stuck with it?" question head-on: the
+  library is a source of geometry, never a dependency, and mixing sources is
+  the designed-for path, not an escape hatch.
+#}
+{% macro sources() %}
+    <section class="ds-section" id="icon-sources">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Where glyphs come from</h2>
+        <p class="ds-section__blurb">
+            Every glyph is a plain SVG file committed under
+            <code>static/icons/src/&lt;source&gt;/</code>, normalized to the canonical form — 24×24 grid,
+            2px stroke, <code>currentColor</code>. The folder name records provenance and nothing else:
+            the build reads every folder identically, and callers address bare names
+            (<code>icon("search")</code>) that never mention a library.
+        </p>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Why Lucide</h3>
+            <p class="ds-group__blurb">
+                Most geometry today is vendored from
+                <a href="https://lucide.dev">Lucide</a>, the ISC-licensed community fork of Feather —
+                chosen because its design language already <em>is</em> our canonical form, and its
+                coverage makes most icon needs a copy-and-normalize away. That is a head start, not an
+                attachment: there is no package dependency and no runtime coupling, so replacing a
+                glyph's geometry later changes one file, never an API or a call site.
+            </p>
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Mixing sources is the design</h3>
+            <p class="ds-group__blurb">
+                <code>custom/</code> holds original Open Library glyphs, and glyphs adapted from another
+                library get a folder of their own — the build discovers new folders automatically. The
+                one real rule is aesthetic, not technical: a newcomer must be redrawn to the canonical
+                form so the set still reads as a single family. To add an icon: drop the normalized SVG
+                into the right <code>src/</code> folder, record any attribution in
+                <code>static/icons/ATTRIBUTION.md</code>, and run <code>make icons</code> — it lands
+                in the sprite, this gallery, and <code>icons.generated.js</code> in one step.
+            </p>
+        </div>
+    </section>
 {% endmacro %}
 {% macro gallery() %}
     <section class="ds-section" id="icon-gallery">
         <h2 class="ds-section__title">Icons</h2>
         <p class="ds-section__blurb">
-            One curated set, every glyph on a 24×24 grid at a single 2px stroke, themed with
+            One curated set, every glyph on a 24×24 grid at a single stroke weight, themed with
             <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy its macro call.
         </p>
         {% if not icons %}

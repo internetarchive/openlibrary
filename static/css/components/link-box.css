@@ -26,6 +26,12 @@
   border: none;
   background: none;
   cursor: pointer;
+  padding: 0;
+  color: var(--grey);
+}
+
+.link-box .edit-subject-btn:hover {
+  color: var(--dark-grey);
 }
 
 .link-box .clamp h3 {

@@ -5,8 +5,11 @@
 // $:macros.icon() macro / <ol-icon> cover the light-DOM/template case.
 import { svg } from 'lit';
 
+export const arrowDownWideNarrow = /*#__PURE__*/ (() => svg`<path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/>`)();
 export const arrowLeft = /*#__PURE__*/ (() => svg`<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>`)();
 export const arrowRight = /*#__PURE__*/ (() => svg`<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>`)();
+export const arrowUpDown = /*#__PURE__*/ (() => svg`<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>`)();
+export const arrowUpNarrowWide = /*#__PURE__*/ (() => svg`<path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/>`)();
 export const bold = /*#__PURE__*/ (() => svg`<path d="M14 12a4 4 0 0 0 0-8H6v8"/><path d="M15 20a4 4 0 0 0 0-8H6v8Z"/>`)();
 export const braces = /*#__PURE__*/ (() => svg`<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>`)();
 export const check = /*#__PURE__*/ (() => svg`<path d="M20 6 9 17l-5-5"/>`)();
@@ -31,6 +34,7 @@ export const listOrdered = /*#__PURE__*/ (() => svg`<line x1="10" y1="6" x2="21"
 export const menu = /*#__PURE__*/ (() => svg`<path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/>`)();
 export const messageSquareText = /*#__PURE__*/ (() => svg`<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/>`)();
 export const minus = /*#__PURE__*/ (() => svg`<path d="M5 12h14"/>`)();
+export const pencil = /*#__PURE__*/ (() => svg`<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>`)();
 export const quote = /*#__PURE__*/ (() => svg`<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>`)();
 export const redo = /*#__PURE__*/ (() => svg`<path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>`)();
 export const scanBarcode = /*#__PURE__*/ (() => svg`<path d="M2 7V5a2 2 0 0 1 2-2h2"/><path d="M18 3h2a2 2 0 0 1 2 2v2"/><path d="M22 17v2a2 2 0 0 1-2 2h-2"/><path d="M6 21H4a2 2 0 0 1-2-2v-2"/><path d="M6 7v10"/><path d="M10 7.5v9" stroke-width="3"/><path d="M14 7v10"/><path d="M18 7v10"/>`)();

@@ -1,6 +1,8 @@
 /**
  * Build the Open Library icon assets from the canonical sources in
- * static/icons/src/{lucide,custom}/ (each a single 24x24 / currentColor SVG).
+ * static/icons/src/<group>/ (each a single 24x24 / currentColor SVG). Groups
+ * are attribution folders (lucide/, custom/, ...), all read identically — the
+ * set is library-agnostic and new folders are picked up automatically.
  *
  * One source, three outputs:
  *   1. <out>/sprite.svg            — a <symbol> sheet served as a hashed static
@@ -23,13 +25,20 @@
  * Usage: node scripts/build_icon_sprite.mjs [--out <dir>]
  *   --out defaults to static/build/icons
  */
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = join(ROOT, "static", "icons", "src");
-const SRC_GROUPS = ["lucide", "custom"];
+// Every subdirectory of src/ is a source group; the folder name records where
+// the geometry came from and nothing else. Discovered (not hardcoded) so
+// adding glyphs from a new library never touches this script; sorted so the
+// duplicate-name check fails deterministically.
+const SRC_GROUPS = readdirSync(SRC_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
 const MANIFEST_PATH = join(ROOT, "static", "icons", "manifest.json");
 const JS_MODULE_PATH = join(ROOT, "openlibrary", "components", "lit", "icons.generated.js");
 
@@ -50,12 +59,19 @@ const OUT_DIR = outArgIndex !== -1 ? process.argv[outArgIndex + 1] : join(ROOT, 
 
 // Presentation/structural attributes worth carrying from the source <svg> onto
 // the <symbol>. Everything else (xmlns, width, height, class, style, id, aria-*)
-// is dropped — sizing and a11y are decided at the point of use.
+// is dropped — sizing, stroke weight and a11y are decided at the point of use.
+//
+// stroke-width is deliberately NOT kept: a presentation attribute on the
+// <symbol> outranks any inherited value, and CSS cannot select into a <use>
+// shadow tree, so a baked weight would be unoverridable. Dropped, the geometry
+// inherits `stroke-width` from the referencing <svg> — see the --icon-stroke-*
+// tokens in static/css/components/ol-icon.css. Shadow-DOM components are
+// unaffected: they wrap the icons.generated.js fragments in their own <svg> and
+// already set stroke there.
 const KEEP_ATTRS = new Set([
     "viewBox",
     "fill",
     "stroke",
-    "stroke-width",
     "stroke-linecap",
     "stroke-linejoin",
     "stroke-miterlimit",
@@ -102,7 +118,6 @@ function collectIcons() {
     const identifiers = new Map();
     for (const group of SRC_GROUPS) {
         const dir = join(SRC_DIR, group);
-        if (!existsSync(dir)) continue;
         for (const file of readdirSync(dir)) {
             if (!file.endsWith(".svg")) continue;
             const name = basename(file, ".svg");

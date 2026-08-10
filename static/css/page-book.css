@@ -49,6 +49,7 @@
 @import "components/footer.css";
 @import "components/language.css";
 @import "components/editions.css";
+@import "components/pagination.css";
 @import "components/donate.css";
 @import "components/metadata-form.css";
 @import "components/toc.css";
