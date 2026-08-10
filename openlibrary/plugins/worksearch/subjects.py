@@ -66,6 +66,12 @@ class subjects(delegate.page):
             web.ctx.status = "404 Not Found"
             page = render_template("subjects/notfound.tmpl", key)
         else:
+            if subj.work_count is None:
+                # work_count is None exactly when the underlying Solr query
+                # errored (see SearchResponse.from_solr_result) -- including a
+                # connection failure/timeout, where result.error is also None.
+                # Render the normal page; subjects.html degrades gracefully.
+                web.ctx.status = "503 Service Unavailable"
             self.decorate_with_tags(subj)
             self.decorate_with_notable_authors(subj)
             page = render_template("subjects", page=subj)
@@ -433,6 +439,7 @@ class SubjectEngine:
                 phrase=True,
             ),
             work_count=result.num_found,
+            error=result.error,
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
@@ -485,6 +492,18 @@ class SubjectEngine:
                     subject.name = s.name
                     subject[self.key].pop(i)
                     break
+        elif details:
+            # Solr errored (result.facet_counts is None) -- default the detail
+            # fields subjects.html and its macros (PublishingHistory,
+            # RelatedSubjects) read unconditionally, so the page still renders
+            # (degraded) instead of crashing on a missing attribute. Notable
+            # authors are unaffected -- decorate_with_notable_authors already
+            # defaults and fetches independently of this Solr query.
+            subject.subjects = []
+            subject.places = []
+            subject.people = []
+            subject.times = []
+            subject.publishing_history = []
 
         return subject
 

@@ -28,7 +28,10 @@ $ q = query_param('q')
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
+            $if page.work_count is None:
+                <strong>$:_("Search is temporarily busy. %(link_start)sRefresh and try again%(link_end)s.", link_start='<a href="%s">' % ctx.path, link_end='</a>')</strong>
+            $else:
+                <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
         </span>
     </span>
     $if has_tag:

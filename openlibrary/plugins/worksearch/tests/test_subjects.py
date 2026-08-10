@@ -1,10 +1,11 @@
 """Tests for openlibrary.plugins.worksearch.subjects."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import web
 
+from openlibrary.plugins.worksearch.code import SearchResponse
 from openlibrary.plugins.worksearch.subjects import (
     MAX_NOTABLE_AUTHORS,
     SubjectEngine,
@@ -580,3 +581,142 @@ class TestNormalizeAuthorName:
     def test_non_latin_scripts_still_dedupe(self):
         assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
         assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")
+
+
+class TestGetSubjectAsyncSolrError:
+    """Reproduces #13192: a Solr-error sentinel must not silently propagate as a crash."""
+
+    def _make_engine(self):
+        return SubjectEngine(
+            name="subject",
+            key="subjects",
+            prefix="/subjects/",
+            facet="subject_facet",
+            facet_key="subject_key",
+        )
+
+    async def _get_subject_with_error(self, error):
+        engine = self._make_engine()
+        error_response = SearchResponse(
+            facet_counts=None,
+            sort="new",
+            docs=[],
+            num_found=None,
+            solr_select="select?q=subject_key:fiction",
+            error=error,
+            time=0.1,
+        )
+
+        with (
+            patch(
+                "openlibrary.plugins.worksearch.code.run_solr_query_async",
+                new=AsyncMock(return_value=error_response),
+            ),
+            patch(
+                "openlibrary.plugins.worksearch.subjects.add_availability_async",
+                new=AsyncMock(return_value=[]),
+            ),
+        ):
+            return await engine.get_subject_async("/subjects/fiction", details=True)
+
+    @pytest.mark.asyncio
+    async def test_solr_error_sets_subject_error_and_leaves_work_count_none(self):
+        subject = await self._get_subject_with_error("Solr is down")
+
+        assert subject.error == "Solr is down"
+        assert subject.work_count is None
+
+    @pytest.mark.asyncio
+    async def test_solr_error_defaults_detail_fields_so_template_macros_dont_crash(self):
+        """subjects.html and its macros (PublishingHistory, RelatedSubjects) read
+        page.publishing_history/subjects/places/people/times unconditionally.
+        Those are only populated inside the `if details and result.facet_counts:`
+        block, which is skipped whenever Solr errors (facet_counts is None) --
+        so without a default, rendering the page on the error path would crash
+        on one of these instead. (Notable authors are unaffected --
+        decorate_with_notable_authors already defaults/fetches independently.)"""
+        subject = await self._get_subject_with_error(None)
+
+        assert subject.publishing_history == []
+        assert subject.subjects == []
+        assert subject.places == []
+        assert subject.people == []
+        assert subject.times == []
+
+
+class TestSubjectsGetSolrError:
+    """Reproduces #13192 at the handler level: a Solr error must render the normal
+    "subjects" page (degraded, 503) rather than crash -- not a separate template."""
+
+    def _make_handler(self):
+        return subjects_handler()
+
+    def _get_with_error_subject(self, error):
+        handler = self._make_handler()
+        error_subject = web.storage(
+            name="fiction",
+            subject_type="subject",
+            solr_query="subject_key:fiction",
+            work_count=None,
+            error=error,
+            publishing_history=[],
+            subjects=[],
+            places=[],
+            people=[],
+            times=[],
+        )
+
+        with (
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_subject",
+                return_value=error_subject,
+            ),
+            patch("openlibrary.plugins.worksearch.subjects.render_template") as mock_render,
+            patch("openlibrary.plugins.worksearch.subjects.subjects.decorate_with_tags"),
+            patch("openlibrary.plugins.worksearch.subjects.subjects.decorate_with_notable_authors"),
+            patch("web.ctx") as mock_ctx,
+            patch("web.input", return_value=web.storage(sort="readinglog")),
+        ):
+            handler.GET("/subjects/fiction")
+
+        return mock_render, mock_ctx, error_subject
+
+    def test_solr_error_renders_normal_page_degraded_not_crash(self):
+        mock_render, mock_ctx, error_subject = self._get_with_error_subject("Solr is down")
+
+        mock_render.assert_called_once_with("subjects", page=error_subject)
+        assert mock_ctx.status == "503 Service Unavailable"
+
+    def test_solr_connection_failure_with_no_error_message_still_renders_normal_page(self):
+        """A total Solr connection failure/timeout -- the "cold cache" trigger described
+        in #13192 -- leaves result.error itself None (see execute_solr_query_async's
+        httpx.HTTPError handling), so the branch must key off work_count, not error."""
+        mock_render, mock_ctx, error_subject = self._get_with_error_subject(None)
+
+        mock_render.assert_called_once_with("subjects", page=error_subject)
+        assert mock_ctx.status == "503 Service Unavailable"
+
+    def test_zero_work_count_without_error_still_renders_notfound(self):
+        """Regression: a genuine zero-result subject (no Solr error) must still 404."""
+        handler = self._make_handler()
+        empty_subject = web.storage(
+            name="nonexistent",
+            subject_type="subject",
+            solr_query="subject_key:nonexistent",
+            work_count=0,
+            error=None,
+        )
+
+        with (
+            patch(
+                "openlibrary.plugins.worksearch.subjects.get_subject",
+                return_value=empty_subject,
+            ),
+            patch("openlibrary.plugins.worksearch.subjects.render_template") as mock_render,
+            patch("web.ctx") as mock_ctx,
+            patch("web.input", return_value=web.storage(sort="readinglog")),
+        ):
+            handler.GET("/subjects/nonexistent")
+
+        mock_render.assert_called_once_with("subjects/notfound.tmpl", "/subjects/nonexistent")
+        assert mock_ctx.status == "404 Not Found"
