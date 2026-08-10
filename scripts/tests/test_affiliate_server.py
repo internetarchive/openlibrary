@@ -4,8 +4,8 @@
 
 import json
 import sys
-from typing import Any
-from unittest.mock import MagicMock
+from typing import Any, ClassVar
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,6 +19,7 @@ from scripts.affiliate_server import (
     get_isbns_from_book,
     get_isbns_from_books,
     get_pending_books,
+    load_config,
     make_cache_key,
     process_google_book,
 )
@@ -350,3 +351,77 @@ def test_process_google_book_multiple_items():
         ],
     }
     assert process_google_book(input_data) is None
+
+
+class TestLoadConfigClientPrecedence:
+    """
+    Which Amazon client `load_config` picks has been hand-flipped twice with no test
+    guarding it: 035009c64 (2026-06-20) switched to legacy-first, ad85f21b4
+    (2026-07-16) switched back to Creators-first. During the #13277 outage
+    post-mortem the source was read as legacy-first because the docstring and the
+    code had disagreed for a month.
+
+    Creators-first is the intended behavior. These lock it in, including the
+    both-credentials-present case that a side-by-side migration actually produces --
+    the one where the two orderings differ.
+    """
+
+    CREATORS: ClassVar[dict[str, str]] = {"key": "ck", "secret": "cs", "id": "ci", "version": "3.1"}
+    LEGACY: ClassVar[dict[str, str]] = {"key": "lk", "secret": "ls", "id": "li"}
+
+    def _load(self, creators: dict | None, legacy: dict | None):
+        """Run load_config against a synthetic config; return (creators_cls, legacy_cls)."""
+        cfg: dict[str, Any] = {"http_proxy": "http://user:pass@squid:3128"}
+        if creators is not None:
+            cfg["amazon_creators_api"] = creators
+        if legacy is not None:
+            cfg["amazon_api"] = legacy
+
+        with (
+            patch("scripts.affiliate_server.openlibrary_load_config"),
+            patch("scripts.affiliate_server.stats"),
+            patch("scripts.affiliate_server.config", new=cfg),
+            patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
+            patch("scripts.affiliate_server.AmazonAPI") as legacy_cls,
+        ):
+            load_config("openlibrary.yml")
+            return creators_cls, legacy_cls
+
+    def test_both_credentials_present_prefers_creators(self):
+        """The migration state that matters: both configured -> Creators wins."""
+        creators_cls, legacy_cls = self._load(self.CREATORS, self.LEGACY)
+        assert creators_cls.called
+        assert not legacy_cls.called
+
+    def test_only_creators_credentials_uses_creators(self):
+        creators_cls, legacy_cls = self._load(self.CREATORS, None)
+        assert creators_cls.called
+        assert not legacy_cls.called
+
+    def test_only_legacy_credentials_falls_back_to_legacy(self):
+        creators_cls, legacy_cls = self._load(None, self.LEGACY)
+        assert legacy_cls.called
+        assert not creators_cls.called
+
+    def test_no_credentials_raises(self):
+        with pytest.raises(RuntimeError, match="missing required"):
+            self._load(None, None)
+
+    def test_partial_creators_credentials_falls_back_to_legacy(self):
+        """`all(creators_args)` -- one missing key must not half-configure Creators."""
+        creators_cls, legacy_cls = self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)
+        assert legacy_cls.called
+        assert not creators_cls.called
+
+    def test_creators_receives_version_and_proxy(self):
+        """Regression guard: `proxy_creds` was dropped in 035009c64; proxy_url must survive."""
+        creators_cls, _ = self._load(self.CREATORS, self.LEGACY)
+        assert creators_cls.called, "Creators client was not constructed at all"
+        kwargs = creators_cls.call_args.kwargs
+        assert kwargs["version"] == "3.1"
+        assert kwargs["proxy_url"] == "http://user:pass@squid:3128"
+
+    def test_creators_version_defaults_when_absent(self):
+        creators_cls, _ = self._load({"key": "ck", "secret": "cs", "id": "ci"}, None)
+        assert creators_cls.called, "Creators client was not constructed at all"
+        assert creators_cls.call_args.kwargs["version"] == "3.1"
