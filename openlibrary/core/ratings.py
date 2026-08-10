@@ -4,6 +4,7 @@ from typing import TypedDict
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+from .bookdb import BookDBModel
 
 
 class WorkRatingsSummary(TypedDict):
@@ -17,7 +18,7 @@ class WorkRatingsSummary(TypedDict):
     ratings_count_5: int
 
 
-class Ratings(db.CommonExtras):
+class Ratings(BookDBModel):
     TABLENAME = "ratings"
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
     PRIMARY_KEY = ("username", "work_id")
@@ -32,38 +33,33 @@ class Ratings(db.CommonExtras):
                 "week": Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
             },
             "total_star_raters": {
-                "total": Ratings.total_num_unique_raters(),
-                "month": Ratings.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
-                "week": Ratings.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
+                "total": cls.total_unique_users(),
+                "month": cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
             },
         }
 
     @classmethod
     def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
-        oldb = db.get_db()
-        query = "SELECT count(%s work_id) from ratings" % ("DISTINCT" if distinct else "")
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+        """Alias for total_count() with optional distinct support."""
+        if distinct:
+            oldb = db.get_db()
+            query = "SELECT count(DISTINCT work_id) from ratings"
+            if since:
+                query += " WHERE created >= $since"
+            results = oldb.query(query, vars={"since": since})
+            return results[0]["count"] if results else 0
+        return cls.total_count(since=since)
 
     @classmethod
     def total_num_unique_raters(cls, since=None) -> int:
-        oldb = db.get_db()
-        query = "select count(DISTINCT username) from ratings"
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+        """Alias for total_unique_users() — kept for backward compatibility."""
+        return cls.total_unique_users(since=since)
 
     @classmethod
     def most_rated_books(cls, limit=10, since=False) -> list:
-        oldb = db.get_db()
-        query = "select work_id, count(*) as cnt from ratings "
-        if since:
-            query += " WHERE created >= $since"
-        query += " group by work_id order by cnt desc limit $limit"
-        return list(oldb.query(query, vars={"limit": limit, "since": since}))
+        """Alias for most_popular() — kept for backward compatibility."""
+        return cls.most_popular(limit=limit, since=since)
 
     @classmethod
     def get_users_ratings(cls, username) -> list:

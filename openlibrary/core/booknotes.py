@@ -1,9 +1,10 @@
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+from .bookdb import BookDBModel
 
 
-class Booknotes(db.CommonExtras):
+class Booknotes(BookDBModel):
     TABLENAME = "booknotes"
     PRIMARY_KEY = ("username", "work_id", "edition_id")
     NULL_EDITION_VALUE = -1
@@ -13,9 +14,9 @@ class Booknotes(db.CommonExtras):
     def summary(cls) -> dict:
         return {
             "total_notes_created": {
-                "total": cls.total_booknotes(),
-                "month": cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
-                "week": cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
+                "total": cls.total_count(),
+                "month": cls.total_count(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_count(since=DATE_ONE_WEEK_AGO),
             },
             "total_note_takers": {
                 "total": cls.total_unique_users(),
@@ -26,40 +27,13 @@ class Booknotes(db.CommonExtras):
 
     @classmethod
     def total_booknotes(cls, since=None) -> int:
-        oldb = db.get_db()
-        query = f"SELECT count(*) from {cls.TABLENAME}"
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
-
-    @classmethod
-    def total_unique_users(cls, since=None) -> int:
-        """Returns the total number of unique patrons who have made
-        booknotes. `since` may be provided to only return the number of users after
-        a certain datetime.date.
-
-        XXX: This function is identical in all but docstring and db
-        tablename from Bookshelves. This makes @mek think both classes
-        could inherit a common BookDBModel class. Will try to keep
-        this in mind and design accordingly
-        """
-        oldb = db.get_db()
-        query = "select count(DISTINCT username) from booknotes"
-        if since:
-            query += " WHERE created >= $since"
-        results = oldb.query(query, vars={"since": since})
-        return results[0]["count"] if results else 0
+        """Alias for total_count() — kept for backward compatibility."""
+        return cls.total_count(since=since)
 
     @classmethod
     def most_notable_books(cls, limit=10, since=False):
-        """Across all patrons"""
-        oldb = db.get_db()
-        query = "select work_id, count(*) as cnt from booknotes"
-        if since:
-            query += " AND created >= $since"
-        query += " group by work_id order by cnt desc limit $limit"
-        return list(oldb.query(query, vars={"limit": limit, "since": since}))
+        """Alias for most_popular() — kept for backward compatibility."""
+        return cls.most_popular(limit=limit, since=since)
 
     @classmethod
     def get_booknotes_for_work(cls, work_id):

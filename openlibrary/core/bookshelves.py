@@ -6,8 +6,8 @@ from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 
 import web
-
 from infogami.infobase.utils import flatten
+
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
@@ -16,6 +16,7 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from openlibrary.utils.request_context import site
 
 from . import db
+from .bookdb import BookDBModel
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class WorkReadingLogSummary(TypedDict):
     stopped_reading: int
 
 
-class Bookshelves(db.CommonExtras):
+class Bookshelves(BookDBModel):
     TABLENAME = "bookshelves_books"
     PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
     PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType({"Want to Read": 1, "Currently Reading": 2, "Already Read": 3, "Stopped Reading": 4})
@@ -78,19 +79,6 @@ class Bookshelves(db.CommonExtras):
             tuple[int],
             oldb.query(query, vars={"since": since, "shelf_ids": shelf_ids}),
         )
-        return results[0]
-
-    @classmethod
-    def total_unique_users(cls, since: date | None = None) -> int:
-        """Returns the total number of unique users who have logged a
-        book. `since` may be provided to only return the number of users after
-        a certain datetime.date.
-        """
-        oldb = db.get_db()
-        query = "select count(DISTINCT username) from bookshelves_books"
-        if since:
-            query += " WHERE created >= $since"
-        results = cast(tuple[int], oldb.query(query, vars={"since": since}))
         return results[0]
 
     @classmethod
