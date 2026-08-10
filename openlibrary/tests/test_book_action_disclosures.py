@@ -15,6 +15,7 @@ import web
 from bs4 import BeautifulSoup
 
 from infogami.utils import macro
+from infogami.utils.context import context as infogami_ctx
 from openlibrary.utils.request_context import site
 
 
@@ -36,6 +37,13 @@ def render_macro(name, *a, **kw):
     web.template.Template.globals["macros"] = web.storage({k: macro.macrostore[k] for k in macro.macrostore})
     # These macros ask who is logged in; render them as a logged-out patron.
     site.set(web.storage(get_user=lambda: None))
+    # LoanStatus ends in a query_param('debug') block, which reaches for the
+    # request method. The fixture builds ctx.env empty.
+    web.ctx.env.setdefault("REQUEST_METHOD", "GET")
+    # The dropper reads the current path off infogami's context, to send a
+    # logged-out patron back here after signing in.
+    infogami_ctx.path = "/search"
+    infogami_ctx.user = None
     return str(macro.macrostore[name](*a, **kw))
 
 
@@ -167,3 +175,52 @@ def test_no_macro_still_ships_a_retired_access_label(render_template, request_co
 
 def test_not_in_library_macro_is_gone():
     assert not Path("openlibrary/macros/NotInLibrary.html").exists()
+
+
+# ── The action column ─────────────────────────────────────────────────────────
+#
+# Access and Save are separate systems. BookActions groups them in one place so
+# the hierarchy between them is set once rather than re-derived per surface.
+
+
+def book_doc(**overrides):
+    doc = web.storage(key="/works/OL1W", title="Dune", availability={})
+    doc.update(overrides)
+    return doc
+
+
+def test_book_actions_groups_access_above_save(render_template, request_context_fixture):
+    request_context_fixture(lang="en")
+    html = render_macro("BookActions", book_doc())
+    soup = BeautifulSoup(html, "lxml")
+
+    group = soup.find(class_="book-actions")
+    assert group is not None
+
+    regions = [c.get("class")[0] for c in group.find_all("div", recursive=False) if c.get("class")]
+    assert regions == ["book-actions__access", "book-actions__save"]
+
+
+def test_book_actions_can_omit_either_half(render_template, request_context_fixture):
+    request_context_fixture(lang="en")
+
+    no_save = BeautifulSoup(render_macro("BookActions", book_doc(), show_save=False), "lxml")
+    assert no_save.find(class_="book-actions__access") is not None
+    assert no_save.find(class_="book-actions__save") is None
+
+    no_access = BeautifulSoup(render_macro("BookActions", book_doc(), show_access=False), "lxml")
+    assert no_access.find(class_="book-actions__access") is None
+    assert no_access.find(class_="book-actions__save") is not None
+
+
+def test_book_actions_uses_a_shelf_status_the_page_already_loaded(render_template, request_context_fixture):
+    """add_read_statuses() stamps `readinglog` on each doc in one query.
+
+    The dropper must read that rather than querying per book — a search page
+    renders twenty of these.
+    """
+    request_context_fixture(lang="en")
+    html = render_macro("BookActions", book_doc(readinglog=2))
+
+    label = BeautifulSoup(html, "lxml").find(class_="book-progress-btn").get_text(strip=True)
+    assert "Currently Reading" in label

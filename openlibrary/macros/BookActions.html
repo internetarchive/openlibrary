@@ -1,0 +1,47 @@
+$def with (doc, work=None, edition_key=None, show_access=True, show_save=True, show_state=True, listen=True, secondary_action=False, check_loan_status=False, analytics_override=None, lending_state=None, async_lists=True)
+
+$# The action column for one book, wherever a book is listed.
+$#
+$# Two systems live here and they are not the same kind of thing:
+$#
+$#   Access — Read, Borrow, Listen, Preview, Join waitlist, Find in a library.
+$#            A transaction with the Internet Archive or a referral out.
+$#   Save   — the reading log shelf and lists. Private state, no side effects
+$#            beyond the patron's own account.
+$#
+$# They used to be emitted as two full-width buttons stacked with nothing
+$# between them, which read as "two buttons, pick one". Grouping them here
+$# means the hierarchy is set in one place rather than re-derived per surface.
+$#
+$# :param doc: the doc availability is read from — an edition where there is
+$#     one, otherwise the work.
+$# :param work: the doc the shelf hangs off. Defaults to `doc`; pass it
+$#     explicitly where the two differ, e.g. a carousel card showing an
+$#     edition of a work.
+$# :param show_save: render the shelf control. Off where there is nowhere to
+$#     put it, or where the surface cannot host a menu.
+$# :param show_state: caption the access button with the book's availability.
+$# :param async_lists: load the patron's lists over the wire after render,
+$#     rather than querying for them inline.
+
+$ save_doc = work or doc
+
+<div class="book-actions">
+  $if show_access:
+    <div class="book-actions__access">
+      $:macros.LoanStatus(doc, work_key=save_doc.key, listen=listen, secondary_action=secondary_action, check_loan_status=check_loan_status, analytics_override=analytics_override, lending_state=lending_state, show_state=show_state)
+    </div>
+
+  $if show_save:
+    $# `readinglog` is stamped on the doc by add_read_statuses() when the page
+    $# bulk-loads shelves for a whole list. Where it has been, the dropper must
+    $# not go back to the database for each book.
+    $ read_status = None
+    $ read_status_known = False
+    $if hasattr(save_doc, 'keys') and 'readinglog' in save_doc.keys():
+      $ read_status = save_doc['readinglog']
+      $ read_status_known = True
+    <div class="book-actions__save">
+      $:render_template('my_books/dropper', save_doc, edition_key=edition_key, async_load=async_lists, read_status=read_status, read_status_known=read_status_known)
+    </div>
+</div>
