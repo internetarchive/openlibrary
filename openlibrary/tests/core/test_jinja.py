@@ -76,8 +76,8 @@ def _create_validation_env() -> jinja2.Environment:
 
         env.globals["render_templetor_template"] = _stub
 
-    # Stubbed rather than wired to the real macro: this env exists to validate
-    # template structure, and the macro needs infogami's template globals.
+    # Stubbed: this env only validates template structure, and the real macro
+    # needs infogami's template globals.
     env.globals["icon"] = lambda *a, **kw: ""
 
     env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
@@ -135,11 +135,8 @@ class TestGetJinjaEnv:
         assert callable(env.globals["_"])
 
     def test_has_icon_global(self):
-        """Should expose the icon macro as a global.
-
-        Jinja has no ``macros`` namespace, so without this a template can only
-        draw an icon if the render call hands it the macro.
-        """
+        """Should expose the icon macro as a global, since Jinja has no
+        ``macros`` namespace."""
         env = get_jinja_env()
         assert "icon" in env.globals
         assert callable(env.globals["icon"])

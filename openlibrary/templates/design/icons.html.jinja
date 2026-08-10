@@ -1,9 +1,7 @@
 {#
-  Icons — the curated set and the three ways to draw a glyph from it. `icons`
-  is the sprite manifest's name list (design.py load_icons), so a glyph added
-  under static/icons/src/ appears in the gallery as soon as `make icons` runs.
-  The gallery draws with the real `icon` global (see core/jinja.py) rather than a
-  copy of its markup, so what is shown is what a template gets.
+  Icons — the curated set and the three ways to draw a glyph from it. `icons` is
+  the sprite manifest's name list (design.py load_icons). The gallery draws with
+  the real `icon` global, so what is shown is what a template gets.
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% macro nav() %}
@@ -16,8 +14,7 @@
         <li><a href="#icon-add">Adding an icon</a></li>
     </ul>
 {% endmacro %}
-{# Gallery first: finding the glyph is the errand nearly every visit is here
-   for. The technique guidance is what you read once. #}
+{# Gallery first: finding a glyph is the errand; the guidance is read once. #}
 {% macro body() %}
     {{ gallery() }}
     {{ techniques() }}
@@ -26,10 +23,7 @@
     {{ sources() }}
     {{ adding() }}
 {% endmacro %}
-{#
-  All three techniques read the same sources under static/icons/src/, so the
-  choice is about where the icon lives, never about how it looks.
-#}
+{# All three read the same sources, so the choice is where the icon lives. #}
 {% macro techniques() %}
     <section class="ds-section" id="icon-techniques">
         <h2 class="ds-section__title ds-section__title--eyebrow">Which technique</h2>
@@ -93,9 +87,8 @@
             <p class="ds-group__blurb">
                 The same macro, reached through the <code>icon</code> global — nothing to import or pass in.
             </p>
-            {# Built as a raw block rather than a string literal: djLint reads the
-               snippet's opening braces inside a quoted argument as unterminated
-               template syntax (T027). #}
+            {# A raw block, not a string literal: djLint reads the snippet's braces
+               inside a quoted argument as unterminated syntax (T027). #}
             {% set jinja_snippet %}
                 {% raw %}
                     {{ icon("search") }}
@@ -130,8 +123,7 @@
         <h2 class="ds-section__title ds-section__title--eyebrow">What you control</h2>
         <div class="ds-group">
             <h3 class="ds-group__title">Size</h3>
-            {# The pixel column is the whole reason anyone opens this section, so
-               it leads the table rather than sitting in the prose below it. #}
+            {# The pixel column is why anyone opens this section, so it leads. #}
             <div class="ds-table-wrap">
                 <table class="ds-table ds-table--sizes">
                     <thead>
@@ -188,8 +180,7 @@
                 inner <code>&lt;svg&gt;</code> fills it) or on a fragment import's own wrapping
                 <code>&lt;svg&gt;</code>.
             </p>
-            {# Explicit `code`: the live markup here is the macro's expanded
-               <svg>, which is not what anyone should copy. #}
+            {# Explicit `code`: the live markup is the macro's expanded <svg>. #}
             {% call ex.example("", "", code='$:macros.icon("search", size="sm")\n$:macros.icon("search", size="md")\n$:macros.icon("search", size="lg")') %}
                 {{ draw('search', 'sm') }}
                 {{ draw('search', 'md') }}
@@ -229,11 +220,8 @@
 </div>
 </section>
 {% endmacro %}
-{#
-  Answers the "why Lucide, and are we stuck with it?" question head-on: the
-  library is a source of geometry, never a dependency, and mixing sources is
-  the designed-for path, not an escape hatch.
-#}
+{# Answers "why Lucide, and are we stuck with it?" — a source of geometry, never
+   a dependency, and mixing sources is designed for. #}
 {% macro sources() %}
     <section class="ds-section" id="icon-sources">
         <h2 class="ds-section__title ds-section__title--eyebrow">Where glyphs come from</h2>
@@ -267,10 +255,7 @@
         </div>
     </section>
 {% endmacro %}
-{#
-  The recipe. Three steps, no dependencies — the build script is plain Node, so
-  `make icons` runs anywhere without an npm install.
-#}
+{# The recipe: three steps, and `make icons` needs no npm install. #}
 {% macro adding() %}
     <section class="ds-section" id="icon-add">
         <h2 class="ds-section__title ds-section__title--eyebrow">Adding an icon</h2>

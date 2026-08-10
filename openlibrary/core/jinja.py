@@ -87,19 +87,16 @@ def get_jinja_env() -> Environment:
     def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
         """Draw an icon from the icon sprite. See /developers/design/icons.
 
-        Templetor reaches the macro as ``$:macros.icon(...)``; Jinja has no
-        ``macros`` namespace, so without this global every template that wants
-        an icon has to be handed the macro as a ``render_jinja_template`` kwarg.
-        Returns ``Markup`` because the macro emits trusted SVG and the env
-        autoescapes.
+        Jinja has no ``macros`` namespace, so without this global every template
+        wanting an icon must be handed the macro as a render kwarg. ``Markup``
+        because the macro emits trusted SVG and the env autoescapes.
         """
         macro = web.template.Template.globals["macros"]["icon"]
         rendered = macro(name, size=size, label=label, extra_class=extra_class)
         return Markup(str(rendered).strip())
 
     # An exception to the "10 or more templates" rule below: an icon is a design
-    # system primitive any template may need, and the alternative is threading
-    # the macro through every render call.
+    # system primitive any template may need.
     env.globals["icon"] = _icon
 
     # A force-escape filter that works even under autoescape=True.

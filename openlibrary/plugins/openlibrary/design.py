@@ -388,9 +388,8 @@ def load_components():
 def load_icons() -> list[str]:
     """The sorted icon names from the committed sprite manifest.
 
-    Cached alongside the component manifest for the same reason: a build
-    artifact. Returns empty if unreadable, so the page still renders with an
-    empty gallery rather than 500ing.
+    Cached like the component manifest — it is a build artifact. Returns empty
+    if unreadable so the page renders an empty gallery rather than 500ing.
     """
     try:
         manifest = json.loads(ICON_MANIFEST_PATH.read_text(encoding="utf-8"))

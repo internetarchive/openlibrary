@@ -849,10 +849,9 @@
   transition: background-color 0.15s ease;
 }
 
-/* Match the search magnifier (#8a7f71 baked into search-icon.svg;
-   --accessible-grey is the nearest token). The link states are needed to
-   outrank a:link / a:visited / a:hover in base/common.css, which otherwise
-   paint the icon link-blue. */
+/* Match the search magnifier (#8a7f71 in search-icon.svg; --accessible-grey is
+   the nearest token). The link states outrank a:link/:visited/:hover in
+   base/common.css, which would otherwise paint the icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,

@@ -1,21 +1,16 @@
 /**
- * ol-icon.css — shared styles for the icon system.
+ * ol-icon.css — shared styles for the icon system, used by both delivery paths:
+ * the $:macros.icon() macro and the <ol-icon> component's light DOM emit the
+ * same <svg class="ol-icon ol-icon--md">.
  *
- * Used by BOTH delivery paths so server-rendered and client-rendered icons are
- * identical: the $:macros.icon() Templetor macro emits <svg class="ol-icon ol-icon--md">,
- * and the <ol-icon> Lit component renders the same markup into its light DOM.
- *
- * Glyphs are drawn with stroke="currentColor" baked into each sprite <symbol>,
- * so an icon's color simply follows the surrounding text color. Stroke *weight*
- * is not baked in — the sprite build drops it precisely so it can be set here
- * and inherit through <use> into the glyph, which is what lets `lg` be drawn
- * lighter than the raw 24x24 geometry (see tokens/icon-sizes.css).
+ * Color comes from currentColor, baked into each sprite <symbol>. Stroke weight
+ * is not baked in — the build drops it so it can be set here and inherit through
+ * <use> (see tokens/icon-sizes.css).
  */
 
-/* The <ol-icon> host. Sized from the `size` attribute (present in the HTML
-   before the component JS runs), so the box is reserved at first paint and the
-   element does not cause layout shift when it upgrades. The glyph itself still
-   appears on upgrade — for instant, JS-free rendering use the $:macros.icon() macro. */
+/* The <ol-icon> host, sized from the `size` attribute so the box is reserved
+   before the component upgrades. The glyph itself still waits on JS — the macro
+   renders instantly. */
 ol-icon {
   display: inline-flex;
   flex-shrink: 0;
@@ -35,7 +30,7 @@ ol-icon[size="lg"] {
 }
 
 /* The rendered glyph. The .ol-icon--* sizes drive the macro's bare <svg>; inside
-   an <ol-icon> host the svg simply fills the reserved box. */
+   an <ol-icon> host it just fills the reserved box. */
 .ol-icon {
   display: inline-block;
   flex-shrink: 0;

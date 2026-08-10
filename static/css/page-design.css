@@ -657,8 +657,7 @@ html:has(.ds) {
   width: 50%;
 }
 
-/* A scale reference: the numbers are the point, so keep every column but the
-   trailing prose on one line and let the figures carry the weight. */
+/* A scale reference: keep every column but the trailing prose on one line. */
 .ds-table--sizes td:not(:last-child) {
   white-space: nowrap;
 }
@@ -941,8 +940,7 @@ html:has(.ds) {
   font-weight: 500;
 }
 
-/* Stands in for the reader's own `.danger` in the icon color example: the
-   wrapper sets color, the glyph inherits it through currentColor. */
+/* Stands in for the reader's own `.danger` in the icon color example. */
 .ds-demo-danger {
   color: var(--color-error-fg);
 }

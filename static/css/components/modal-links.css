@@ -27,9 +27,8 @@
   line-height: 12px;
 }
 
-/* Sized by the icon system (size="lg"). These were 2em illustrations; as stroke
-   glyphs that reads oversized and thin next to the label, so the system scale
-   governs and only the spacing is set here. */
+/* Sized by the icon system (size="lg"): the old 2em box reads oversized and thin
+   as a stroke glyph, so only spacing is set here. */
 .modal-links .icon-link__image {
   margin-bottom: var(--spacing-stack-xs);
 }

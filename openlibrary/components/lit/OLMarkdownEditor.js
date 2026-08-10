@@ -28,10 +28,8 @@ import * as icons from './icons.generated.js';
  * </form>
  */
 
-// Toolbar glyphs, drawn from the shared icon set (icons.generated.js). Each
-// fragment is wrapped in the editor's <svg> shell so the toolbar CSS
-// (.toolbar-btn svg) keeps governing size and stroke-width. Keys are the
-// editor's local names; values map to canonical icon names.
+// Toolbar glyphs from the shared icon set, keyed by the editor's local names.
+// The <svg> shell keeps .toolbar-btn svg governing size and stroke-width.
 const glyph = (g) => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${g}</svg>`;
 
 const ICONS = {

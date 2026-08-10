@@ -224,12 +224,9 @@ def render_component(
 def icon_sprite_url() -> str:
     """Return the content-hashed URL of the icon sprite asset.
 
-    The sprite is one external file cached sitewide; icons reference it with
-    ``<use href="{sprite}#icon-name">`` from the ``$:macros.icon()`` macro and
-    the ``<ol-icon>`` component. Client JS picks the URL up from the
-    ``<meta name="ol-icon-sprite">`` tag in site/head rather than calling this.
-    ``static_url`` hashes once per process — a rebuild plus web restart picks
-    up changes.
+    Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
+    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    hashes once per process, so a rebuild needs a web restart.
     """
     from openlibrary.plugins.upstream.code import static_url
 

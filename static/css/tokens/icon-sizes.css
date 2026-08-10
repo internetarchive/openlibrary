@@ -1,20 +1,13 @@
 /**
  * Icon Sizes
  * ==========
- * The size scale for <ol-icon> and the $:macros.icon() macro, and the stroke
- * weight each step is drawn at.
+ * The size scale for <ol-icon> and the $:macros.icon() macro, in rem so icons
+ * follow the reader's font size.
  *
- * Sizes are expressed in rem so icons scale with the user's font-size
- * preference. `md` (20px) is the default and matches the existing
- * editor-toolbar glyph size, so adopting the system is visually lossless on
- * those surfaces.
- *
- * Stroke is in 24x24 grid units, which the box scales along with the geometry:
- * a stroke of 2 lands as 1.33px at `sm` and 1.67px at `md`. Held at 2 across
- * the scale, `lg` would land at a full 2px and read noticeably heavier than the
- * same glyph one step down, so it is corrected to 1.75 — the absolute weight
- * then stays near-constant (1.33 / 1.67 / 1.75px) instead of growing with the
- * box.
+ * Stroke is in 24x24 grid units, which the box scales down with the geometry.
+ * Held at 2 throughout, `lg` would land at a full 2px and read heavier than the
+ * same glyph one step down, so it is corrected to 1.75 — keeping absolute weight
+ * near-constant across the scale.
  */
 :root {
   --icon-size-sm: 1rem;     /* 16px – inline with body text, dense toolbars */
