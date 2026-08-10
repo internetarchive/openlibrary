@@ -122,9 +122,6 @@ export class ReadingLogForms {
      * If dropper is disabled, no event listeners will be added.
      */
     initialize() {
-        if (this.primaryButton) {
-            this.primaryButton.removeAttribute('disabled');
-        }
         if (!this.isDropperDisabled) {
             if (this.readingLogForms.length) {
                 for (const form of this.readingLogForms) {
@@ -156,6 +153,9 @@ export class ReadingLogForms {
         this.updatePrimaryButtonText(this.i18n.saving);
 
         const formData = new FormData(form);
+        // `redir` is there so the form still works as a plain POST before this
+        // script loads; over fetch it would turn the JSON reply into a redirect.
+        formData.delete('redir');
         const url = form.getAttribute('action');
 
         const hasAddedBook = formData.get('action') === 'add';

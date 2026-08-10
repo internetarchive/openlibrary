@@ -247,8 +247,18 @@ a.cta-btn__badge {
   color: var(--grey);
 }
 
-.waitinglist-message {
+/**
+ * The caption under an access button. Carries the facts that used to be
+ * dressed up as buttons — "Not available online", "All copies are checked
+ * out", "Preview only" — so the button above can stay a verb.
+ */
+.cta-state {
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-label-medium);
+  line-height: 1.35;
+  color: var(--accessible-grey);
   text-align: center;
+  text-wrap: pretty;
 }
 
 .cta-button-group {

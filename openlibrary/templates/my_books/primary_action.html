@@ -32,12 +32,15 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status, title):
     <input type="hidden" name="action" value="$(action_value)"/>
     <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
     <input type="hidden" name="work_id" value="$(work_key)"/>
+    $# Without JS this is a plain form post, and `redir` sends the patron back to
+    $# the book rather than to raw JSON. The fetch path strips it before sending.
+    <input type="hidden" name="redir" value="true"/>
     $if edition_key:
       <input type="hidden" name="edition_id" value="$(edition_key)"/>
     $if user_key:
       <input type="hidden" name="user-key" value="$(user_key)" />
 
-    <button class="book-progress-btn primary-action $(activated_status) $(login_class)" type="submit" disabled data-ol-link-track="$(track_value)" $:data_attr>
+    <button class="book-progress-btn primary-action $(activated_status) $(login_class)" type="submit" data-ol-link-track="$(track_value)" $:data_attr>
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>
     </button>

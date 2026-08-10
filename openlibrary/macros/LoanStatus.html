@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, lending_state=None)
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, lending_state=None, show_state=True)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -7,6 +7,12 @@ $#     if can't get availability from specified fields
 $# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
+$# * show_state - whether to caption the button with the book's availability.
+$#     Off for carousel cards, which are too narrow for a second line of text.
+$#
+$# Buttons here are verbs, drawn from a closed vocabulary: Read, Borrow, Listen,
+$# Preview, Join waitlist, Find in a library. Anything that describes the book
+$# rather than what happens on click belongs in the state line, not on a button.
 
 $ loanstatus_start_time = time()
 
@@ -52,14 +58,40 @@ $ edition_key = None
 $if is_edition:
   $ edition_key = doc.key.split('/')[2]
 
+$# Locate needs a real edition: /books/{olid}/-/borrow?action=locate looks the
+$# edition up to read its WorldCat URL, so a work OLID 404s. Not every doc that
+$# reaches here carries one — work search asks Solr for `cover_edition_key` but
+$# not `edition_key`, and get_doc() reshapes what it does return. Where no
+$# edition resolves, fall back to searching WorldCat by title and author.
+$#
+$# Two doc shapes arrive: raw Solr dicts (carousels) and the web.storage that
+$# get_doc() builds (search, trending, author pages). They spell these
+$# differently, so check both.
+$ locate_key = edition_key
+$if not locate_key and hasattr(doc, 'get'):
+  $ doc_edition_keys = doc.get('edition_key') or []
+  $ locate_key = (doc_edition_keys[0] if doc_edition_keys else None) or doc.get('cover_edition_key') or doc.get('lending_edition') or doc.get('lending_edition_s')
+
+$ locate_query = None
+$if not locate_key and book_title and hasattr(doc, 'get'):
+  $ locate_query = book_title
+  $ author_names = [a.get('name') for a in (doc.get('authors') or []) if a.get('name')] or (doc.get('author_name') or [])
+  $if author_names:
+    $ locate_query = '%s %s' % (book_title, author_names[0])
+
 $def analytics_attr(action):
   $if analytics_override:
     data-ol-link-track="$analytics_override"
   $else:
     data-ol-link-track="CTAClick|$action"
 
+$def state_line(message):
+  $if show_state and message:
+    <p class="cta-state">$message</p>
+
 $if lending_state == 'borrowed':
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
+  $:state_line(_("On loan to you"))
   $if secondary_action:
     $:macros.ReturnForm(ocaid, user_loan['expiry'])
 
@@ -70,6 +102,7 @@ $elif lending_state == 'partner':
 $elif lending_state == 'open':
   $# Open / Publicly Readable (Unrestricted)
   $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
+  $:state_line(_("Free to read"))
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
 
@@ -80,39 +113,38 @@ $elif lending_state == 'printdisabled':
   $if secondary_action and (availability.get('is_printdisabled') or availability.get('is_lendable')):
     $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, borrow=pd_eligible, printdisabled=not std_borrow, listen=listen, edition_key=edition_key, book_title=book_title)
+  $:state_line(_("Special access for patrons with print disabilities"))
 
 $elif lending_state == 'borrowable':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen, edition_key=edition_key, book_title=book_title)
+  $:state_line(_("Available to borrow"))
 
 $elif lending_state == 'waitlist':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
   $if waiting_loan:
-    $if secondary_action:
-      <p class="waitinglist-message">
-      $ spot = waiting_loan['position']
-      $ wlsize = waiting_loan['wl_size']
-      $if spot == 1:
-        $:_('You are <strong>next</strong> on the waiting list')
-      $else:
-        $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
-      </p>
     <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
       <input type="hidden" name="action" value="leave-waitinglist"/>
       <input
         type="submit"
         class="cta-btn"
         id="unwaitlist_ebook"
-        value="$_('Leave waiting list')"
+        value="$_('Leave waitlist')"
         $:analytics_attr('LeaveWaitlist')
       />
     </form>
+    $ spot = waiting_loan['position']
+    $ wlsize = waiting_loan['wl_size']
+    $if spot == 1:
+      $:state_line(_('You are next on the waiting list'))
+    $else:
+      $:state_line(_('You are #%(spot)d of %(wlsize)d on the waiting list', spot=spot, wlsize=wlsize))
   $else:
     $# "JOIN-WAITLIST" button
     $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
-    $ data_attr = get_preserve_intent_attrs(_('Join Waitlist'), book_title, "book")
+    $ data_attr = get_preserve_intent_attrs(_('Join waitlist'), book_title, "book")
     $ login_class = "js-login-intent" if not user else ""
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
@@ -121,51 +153,45 @@ $elif lending_state == 'waitlist':
           type="submit"
           class="cta-btn cta-btn--unavailable $(login_class)"
           id="waitlist_ebook"
-          value="$_('Join Waitlist')"
+          value="$_('Join waitlist')"
           $:analytics_attr('JoinWaitlist')
           $:data_attr
         />
       </div>
     </form>
-    $if secondary_action:
-      <p class="waitinglist-message">
-        $if wlsize:
-          $_("Readers in line: %(count)s", count=wlsize)
-        $else:
-          $_("You'll be next in line.")
-      </p>
+    $if wlsize:
+      $:state_line(_("Readers in line: %(count)s", count=wlsize))
+    $else:
+      $:state_line(_("You'll be next in line"))
 
 $elif lending_state == 'checkedout':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
-  $# Checked out: Show checkout out + preview if secondary, else just preview
-  <div class="cta-button-group">
-    <a
-      href="$work_key"
-      class="cta-btn cta-btn--missing"
-      title="$_('This book is currently checked out, please check back later.')"
-      $:analytics_attr('CheckedOut')
-    >$_("Checked Out")</a>
-  </div>
+  $# Every copy is on loan. Point at a library rather than at this same page.
+  $if locate_key or locate_query:
+    <div class="cta-button-group">
+      $:macros.LocateButton(locate_key, fallback_query=locate_query)
+    </div>
+  $:state_line(_("All copies are checked out"))
 
 $elif lending_state == 'preview_only':
-  $:macros.BookPreview(ocaid, show_only=True)
+  $:macros.BookPreview(ocaid)
+  $:state_line(_("Preview only"))
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
 
 $else:
-  $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.
-  $# secondary_action means we're on a book page and it's the button under the cover image.
-  $ edition_key = doc.key.split('/')[2]
+  $# No online copy. This is the most common outcome in search results, and it
+  $# used to render a button-shaped <span> reading "Not in Library" that did
+  $# nothing. Send patrons to a library instead, and state the fact as text.
   $if secondary_action:
-      $:macros.LocateButton(edition_key)
-  $elif is_edition:
+      $:macros.LocateButton(locate_key, fallback_query=locate_query)
+  $elif locate_key or locate_query:
       $# Wrapper if locate button is not in read panel
       <div class="cta-button-group">
-        $:macros.LocateButton(edition_key)
+        $:macros.LocateButton(locate_key, fallback_query=locate_query)
       </div>
-  $else:
-      $:macros.NotInLibrary(None, analytics_attr)
+  $:state_line(_("Not available online"))
 
 $:post
 

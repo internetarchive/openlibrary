@@ -933,7 +933,7 @@ msgid "Join waitlist for \"%(title)s\""
 msgstr ""
 
 #: LoanStatus.html widget.html
-msgid "Join Waitlist"
+msgid "Join waitlist"
 msgstr ""
 
 #: widget.html
@@ -3005,8 +3005,8 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/read_button.html
-msgid "Audiobook"
+#: ReadButton.html book_providers/read_button.html
+msgid "Listen"
 msgstr ""
 
 #: book_providers/read_button.html
@@ -7224,10 +7224,6 @@ msgstr[1] ""
 msgid "by an <em>unknown author</em>"
 msgstr ""
 
-#: BookPreview.html
-msgid "Preview Only"
-msgstr ""
-
 #: BookPreviewFloater.html
 msgid "Preview Book"
 msgstr ""
@@ -7332,16 +7328,32 @@ msgid "Loading indicator"
 msgstr ""
 
 #: LoanStatus.html
-msgid "You are <strong>next</strong> on the waiting list"
+msgid "On loan to you"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Free to read"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Special access for patrons with print disabilities"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Available to borrow"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Leave waitlist"
+msgstr ""
+
+#: LoanStatus.html
+msgid "You are next on the waiting list"
 msgstr ""
 
 #: LoanStatus.html
 #, python-format
-msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
-
-#: LoanStatus.html
-msgid "Leave waiting list"
+msgid "You are #%(spot)d of %(wlsize)d on the waiting list"
 msgstr ""
 
 #: LoanStatus.html
@@ -7350,19 +7362,23 @@ msgid "Readers in line: %(count)s"
 msgstr ""
 
 #: LoanStatus.html
-msgid "You'll be next in line."
+msgid "You'll be next in line"
 msgstr ""
 
 #: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
+msgid "All copies are checked out"
 msgstr ""
 
 #: LoanStatus.html
-msgid "Checked Out"
+msgid "Preview only"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Not available online"
 msgstr ""
 
 #: LocateButton.html
-msgid "Locate"
+msgid "Find in a library"
 msgstr ""
 
 #: ManageWaitlistButton.html
@@ -7378,10 +7394,6 @@ msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
 msgstr[0] ""
 msgstr[1] ""
-
-#: NotInLibrary.html
-msgid "Not in Library"
-msgstr ""
 
 #: NotesModal.html
 msgid "My Book Notes"
@@ -7463,10 +7475,6 @@ msgid "Search collection"
 msgstr ""
 
 #: ReadButton.html
-msgid "Special Access"
-msgstr ""
-
-#: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
 msgstr ""
 
@@ -7476,10 +7484,6 @@ msgstr ""
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
-
-#: ReadButton.html
-msgid "Listen"
 msgstr ""
 
 #: RecentChanges.html

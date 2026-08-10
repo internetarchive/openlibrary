@@ -49,5 +49,7 @@ $else:
         </div>
     </a>
   </div>
-  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
+  $# show_state is off here: a carousel card is about 110px wide, with no room
+  $# for a second line under the button.
+  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key, show_state=False)
 </div>

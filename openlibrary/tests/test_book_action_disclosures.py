@@ -8,6 +8,9 @@ aria-haspopup/aria-expanded/aria-controls, Escape and outside-click dismissal,
 and focus restore.
 """
 
+import re
+from pathlib import Path
+
 import web
 from bs4 import BeautifulSoup
 
@@ -82,7 +85,7 @@ def test_read_button_overflow_is_a_popover_not_details(render_template, request_
     # Both overflow items survive the move.
     menu = soup.find(class_="dropper-menu")
     assert "Listen" in menu.get_text()
-    assert "Locate" in menu.get_text()
+    assert "Find in a library" in menu.get_text()
 
 
 def test_read_button_has_no_overflow_when_there_is_nothing_to_put_in_it(render_template, request_context_fixture):
@@ -108,3 +111,59 @@ def test_read_button_overflow_does_not_depend_on_the_analytics_string(render_tem
     html = render_macro("ReadButton", "someocaid", carousel_attr, listen=True, edition_key="OL1M")
 
     assert BeautifulSoup(html, "lxml").find("ol-popover") is not None
+
+
+# ── Access labels are verbs ───────────────────────────────────────────────────
+#
+# The access slot used to carry ten labels mixing verbs (Read, Borrow), a noun
+# (Audiobook) and four statuses (Preview Only, Checked Out, Not in Library,
+# Special Access). Statuses now render as a caption beside the button.
+
+RETIRED_LABELS = ["Preview Only", "Special Access", "Checked Out", "Not in Library", "Audiobook", "Locate"]
+
+
+def test_print_disabled_access_reads_as_a_verb(render_template, request_context_fixture):
+    request_context_fixture(lang="en")
+    html = render_macro("ReadButton", "someocaid", analytics_attr, printdisabled=True)
+    label = BeautifulSoup(html, "lxml").find("a", class_="cta-btn").get_text(strip=True)
+
+    assert label == "Read"
+    # The explanation survives as the link's title, and as the state line.
+    assert "print disabilities" in BeautifulSoup(html, "lxml").find("a", class_="cta-btn")["title"]
+
+
+def test_preview_button_is_never_labelled_preview_only(render_template, request_context_fixture):
+    request_context_fixture(lang="en")
+    html = render_macro("BookPreview", "someocaid")
+    label = BeautifulSoup(html, "lxml").find("a", class_="cta-btn--preview").get_text(strip=True)
+
+    assert label == "Preview"
+
+
+def test_locate_button_names_the_destination(render_template, request_context_fixture):
+    request_context_fixture(lang="en")
+    for icon in (True, False):
+        html = render_macro("LocateButton", "OL1M", icon=icon)
+        assert "Find in a library" in BeautifulSoup(html, "lxml").get_text()
+
+
+def test_no_macro_still_ships_a_retired_access_label(render_template, request_context_fixture):
+    """A guard against the vocabulary drifting back open."""
+    request_context_fixture(lang="en")
+    sources = [
+        Path("openlibrary/macros/ReadButton.html"),
+        Path("openlibrary/macros/BookPreview.html"),
+        Path("openlibrary/macros/LocateButton.html"),
+        Path("openlibrary/macros/LoanStatus.html"),
+        Path("openlibrary/templates/book_providers/read_button.html"),
+    ]
+    for source in sources:
+        text = source.read_text(encoding="utf-8")
+        # Only look at translated strings, so explanatory comments are exempt.
+        translated = re.findall(r"_\(\s*[\"']([^\"']+)[\"']", text)
+        for label in RETIRED_LABELS:
+            assert label not in translated, f"{source} still offers {label!r} as a label"
+
+
+def test_not_in_library_macro_is_gone():
+    assert not Path("openlibrary/macros/NotInLibrary.html").exists()

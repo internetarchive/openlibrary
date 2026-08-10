@@ -3,8 +3,10 @@ $def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label=''
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 $if printdisabled:
+  $# "Special Access" named a category rather than what happens on click; the
+  $# explanation now lives in the state line beside the button.
   $ action = "read"
-  $ label = _("Special Access")
+  $ label = _("Read")
   $ title = _("Special ebook access from the Internet Archive for patrons with qualifying print disabilities")
   $ analytics_action = "PrintDisabled"
 $elif (borrow and not loan):
