@@ -1,3 +1,4 @@
+import importlib
 from dataclasses import dataclass, field
 from unittest.mock import patch
 
@@ -759,6 +760,73 @@ def _make_creators_item() -> CItem:
             ]
         ),
     )
+
+
+class TestAmazonCreatorsAPIConstruction:
+    """
+    Constructing AmazonCreatorsAPI was entirely untested -- only serialize() had
+    coverage, and serialize() is a staticmethod that never touches __init__. So the
+    two things #13277 flagged as "verify before cutting over" had no guard at all:
+    the lazy import, and the proxy-injection fallback.
+    """
+
+    CREDS = ("credential-id", "credential-secret", "internetarchi-20")
+
+    def test_lazy_import_resolves(self) -> None:
+        """
+        __init__ does `from amazon_creatorsapi import AmazonCreatorsApi, Country`
+        at call time, so a missing/renamed dependency surfaces only when the
+        affiliate server boots -- not at import time, and not in most tests.
+
+        The module ships inside `python-amazon-paapi` (requirements.txt), which is
+        NOT an obvious place to find it: a well-meaning dependency bump or swap to
+        a differently-named Amazon SDK breaks this with no other test failing.
+        """
+        module = importlib.import_module("amazon_creatorsapi")
+        assert hasattr(module, "AmazonCreatorsApi")
+        assert hasattr(module.Country, "US")
+
+    def test_proxy_url_is_forwarded_to_the_sdk(self) -> None:
+        with patch("amazon_creatorsapi.AmazonCreatorsApi") as sdk:
+            AmazonCreatorsAPI(*self.CREDS, proxy_url="http://user:pass@squid:3128")
+
+        assert sdk.call_args.kwargs["proxy"] == "http://user:pass@squid:3128"
+
+    def test_no_proxy_url_omits_the_kwarg_entirely(self) -> None:
+        """
+        The fallback path #13277 asked about: with no proxy_url, __init__ passes no
+        `proxy` kwarg at all rather than passing None, so the SDK silently inherits
+        whatever HTTP_PROXY/http_proxy is in the environment. That is intentional,
+        but it means "proxy misconfigured" and "proxy working via env" look
+        identical from the outside -- which is exactly how it could degrade in prod
+        without anyone noticing.
+        """
+        with patch("amazon_creatorsapi.AmazonCreatorsApi") as sdk:
+            AmazonCreatorsAPI(*self.CREDS, proxy_url="")
+
+        assert "proxy" not in sdk.call_args.kwargs
+
+    def test_library_throttling_is_disabled(self) -> None:
+        """
+        This class owns the throttle loop in get_products (1/throttling). Letting the
+        library also sleep would double every inter-call gap.
+        """
+        with patch("amazon_creatorsapi.AmazonCreatorsApi") as sdk:
+            AmazonCreatorsAPI(*self.CREDS, throttling=0.9)
+
+        assert sdk.call_args.kwargs["throttling"] == 0
+        # ...but this class keeps its own value for its own loop.
+        assert AmazonCreatorsAPI(*self.CREDS, throttling=0.9).throttling == 0.9
+
+    def test_credentials_and_version_reach_the_sdk(self) -> None:
+        with patch("amazon_creatorsapi.AmazonCreatorsApi") as sdk:
+            AmazonCreatorsAPI(*self.CREDS, version="3.1")
+
+        kwargs = sdk.call_args.kwargs
+        assert kwargs["credential_id"] == "credential-id"
+        assert kwargs["credential_secret"] == "credential-secret"
+        assert kwargs["tag"] == "internetarchi-20"
+        assert kwargs["version"] == "3.1"
 
 
 # ---- AmazonCreatorsAPI.serialize() tests ------------------------------------
