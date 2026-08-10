@@ -13,7 +13,6 @@ export const check = /*#__PURE__*/ (() => svg`<path d="M20 6 9 17l-5-5"/>`)();
 export const chevronDown = /*#__PURE__*/ (() => svg`<path d="m6 9 6 6 6-6"/>`)();
 export const chevronLeft = /*#__PURE__*/ (() => svg`<path d="m15 18-6-6 6-6"/>`)();
 export const chevronRight = /*#__PURE__*/ (() => svg`<path d="m9 18 6-6-6-6"/>`)();
-export const chevronUp = /*#__PURE__*/ (() => svg`<path d="m18 15-6-6-6 6"/>`)();
 export const circleCheck = /*#__PURE__*/ (() => svg`<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>`)();
 export const clock = /*#__PURE__*/ (() => svg`<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`)();
 export const code = /*#__PURE__*/ (() => svg`<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>`)();
@@ -34,7 +33,7 @@ export const messageSquareText = /*#__PURE__*/ (() => svg`<path d="M22 17a2 2 0 
 export const minus = /*#__PURE__*/ (() => svg`<path d="M5 12h14"/>`)();
 export const quote = /*#__PURE__*/ (() => svg`<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>`)();
 export const redo = /*#__PURE__*/ (() => svg`<path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/>`)();
-export const scanBarcode = /*#__PURE__*/ (() => svg`<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10"/><path d="M12 7v10"/><path d="M17 7v10"/>`)();
+export const scanBarcode = /*#__PURE__*/ (() => svg`<path d="M2 7V5a2 2 0 0 1 2-2h2"/><path d="M18 3h2a2 2 0 0 1 2 2v2"/><path d="M22 17v2a2 2 0 0 1-2 2h-2"/><path d="M6 21H4a2 2 0 0 1-2-2v-2"/><path d="M6 7v10"/><path d="M10 7.5v9" stroke-width="3"/><path d="M14 7v10"/><path d="M18 7v10"/>`)();
 export const search = /*#__PURE__*/ (() => svg`<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>`)();
 export const searchInside = /*#__PURE__*/ (() => svg`<path d="M4 6h11"/><path d="M4 10h7"/><path d="M4 14h5"/><circle cx="15.5" cy="15.5" r="3.5"/><path d="m21 21-2.9-2.9"/>`)();
 export const share2 = /*#__PURE__*/ (() => svg`<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>`)();

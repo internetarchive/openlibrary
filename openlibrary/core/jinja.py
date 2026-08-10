@@ -85,7 +85,7 @@ def get_jinja_env() -> Environment:
     env.globals["render_templetor_template"] = render_template
 
     def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
-        """Draw an icon from the page sprite. See /developers/design/icons.
+        """Draw an icon from the icon sprite. See /developers/design/icons.
 
         Templetor reaches the macro as ``$:macros.icon(...)``; Jinja has no
         ``macros`` namespace, so without this global every template that wants

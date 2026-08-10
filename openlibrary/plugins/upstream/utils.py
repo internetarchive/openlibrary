@@ -12,7 +12,6 @@ from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from html import unescape
 from html.parser import HTMLParser
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
     parse_qs,
@@ -221,31 +220,24 @@ def render_component(
     return html
 
 
-@functools.cache
-def _read_icon_sprite() -> str:
-    sprite_path = Path(__file__).parents[3] / "static" / "build" / "icons" / "sprite.svg"
-    try:
-        return sprite_path.read_text(encoding="utf-8")
-    except OSError:
-        logger.warning("Icon sprite not found at %s; run `make icons`", sprite_path)
-        return ""
-
-
 @public
-def icon_sprite() -> str:
-    """Return the inline icon sprite markup, included once at the top of the
-    page body (see site/body) so icons resolve as the response streams.
+def icon_sprite_url() -> str:
+    """Return the content-hashed URL of the icon sprite asset.
 
-    Icons are referenced with same-document ``<use href="#icon-name">`` by the
-    ``$:macros.icon()`` macro and the ``<ol-icon>`` component; symbol ids are
-    namespaced so they cannot collide with page markup. Same-document references
-    work in every browser Open Library supports; external references
-    (``<use href="file.svg#name">``) are unreliable in the older Safari/iOS
-    versions in our browserslist, so the sprite is inlined rather than fetched.
-    Cached for the process lifetime — a rebuild plus web restart picks up
-    changes.
+    The sprite is one external file cached sitewide; icons reference it with
+    ``<use href="{sprite}#icon-name">`` from the ``$:macros.icon()`` macro and
+    the ``<ol-icon>`` component. Client JS picks the URL up from the
+    ``<meta name="ol-icon-sprite">`` tag in site/head rather than calling this.
+    ``static_url`` hashes once per process — a rebuild plus web restart picks
+    up changes.
     """
-    return _read_icon_sprite()
+    from openlibrary.plugins.upstream.code import static_url
+
+    try:
+        return static_url("build/icons/sprite.svg")
+    except OSError:
+        logger.warning("Icon sprite not found at static/build/icons/sprite.svg; run `make icons`")
+        return "/static/build/icons/sprite.svg"
 
 
 def render_macro(name, args, **kwargs):

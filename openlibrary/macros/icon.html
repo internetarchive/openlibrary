@@ -1,8 +1,9 @@
 $def with (name, size="md", label="", extra_class="")
 $ classes = ("ol-icon ol-icon--%s %s" % (size, extra_class)).strip()
+$ sprite = icon_sprite_url()
 $if label:
-    <svg class="$classes" role="img" aria-label="$label" focusable="false"><use href="#icon-${name}"></use></svg>
+    <svg class="$classes" role="img" aria-label="$label" focusable="false"><use href="$sprite#icon-${name}"></use></svg>
 $else:
-    <svg class="$classes" aria-hidden="true" focusable="false"><use href="#icon-${name}"></use></svg>
+    <svg class="$classes" aria-hidden="true" focusable="false"><use href="$sprite#icon-${name}"></use></svg>
 $# Docs: /developers/design#icon-usage — keep comments below the output (Templetor emits a newline per line above it, which then ships with every icon).
 $# `extra_class` is for positioning/state hooks the call site already owns (a rotation, a one-off size). Size belongs in `size`.

@@ -6,18 +6,28 @@ const SIZE_CLASSES = new Map([
     ['lg', 'ol-icon--lg'],
 ]);
 
+// The hashed sprite URL travels on the <meta name="ol-icon-sprite"> tag in
+// <head>. Resolved lazily (not at module scope) so the module loads in
+// documents without the tag — tests, fragments — falling back to the
+// unhashed path.
+let spriteUrl = null;
+function getSpriteUrl() {
+    spriteUrl ??= document.querySelector('meta[name="ol-icon-sprite"]')?.content || '/static/build/icons/sprite.svg';
+    return spriteUrl;
+}
+
 /**
  * A single icon from the Open Library icon sprite.
  *
- * Renders into the **light DOM** (no shadow root) and references the sprite via
- * a same-document `<use href="#icon-name">`. Both choices are deliberate: the sprite
- * is inlined once per page (see the icon_sprite() helper), and same-document
- * references resolve in every browser OL supports — external references
- * (`file.svg#name`) are unreliable in older Safari/iOS. Same-document `<use>`
- * also cannot cross a shadow boundary, so this element must live in the light
- * DOM; for icons inside another component's shadow root, inline the glyph
- * instead of using <ol-icon>. In the light DOM the glyph also inherits `color`
- * for its `currentColor` strokes, themed by whatever context it sits in.
+ * Renders into the **light DOM** (no shadow root) and references the sprite
+ * asset via `<use href="…sprite.svg#icon-name">`. The sprite is one external
+ * file, content-hashed and cached sitewide; its URL is carried by the
+ * `<meta name="ol-icon-sprite">` tag emitted in site/head. Light DOM is
+ * deliberate: the global ol-icon.css applies, and the glyph inherits `color`
+ * for its `currentColor` strokes, themed by whatever context it sits in. For
+ * icons inside another component's shadow root, inline the glyph from
+ * icons.generated.js instead of using <ol-icon> — shadow icons stay
+ * fetch-independent and paint with the component.
  *
  * This is the client-side counterpart of the `$:macros.icon()` Templetor macro — both
  * point at the same sprite and share static/css/components/ol-icon.css, so an
@@ -48,8 +58,8 @@ export class OlIcon extends LitElement {
         label: { type: String },
     };
 
-    // Light DOM so the global ol-icon.css applies and the external <use>
-    // reference resolves in every supported browser (see class comment).
+    // Light DOM so the global ol-icon.css applies and currentColor inherits
+    // (see class comment).
     createRenderRoot() {
         return this;
     }
@@ -73,7 +83,7 @@ export class OlIcon extends LitElement {
             aria-label=${labeled ? this.label : nothing}
             aria-hidden=${labeled ? nothing : 'true'}
             focusable="false"
-        ><use href="#icon-${this.name}"></use></svg>`;
+        ><use href="${getSpriteUrl()}#icon-${this.name}"></use></svg>`;
     }
 }
 

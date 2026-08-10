@@ -7,9 +7,9 @@ $# `label` is both the accessible name and the hover tooltip. list_books.js
 $# owns what a change does; ?layout= is still resolved server-side.
 $#
 $# These glyphs stay inline rather than using $:macros.icon(). ol-segmented-control
-$# harvests each segment's innerHTML and re-renders it inside its shadow root, and
-$# a same-document <use href="#icon-..."> cannot cross a shadow boundary — the
-$# sprite reference would resolve to nothing and the segment would render empty.
+$# harvests each segment's innerHTML and re-renders it inside its shadow root,
+$# and a sprite <use> reference is not reliable inside a shadow root — the
+$# segment could render empty.
 <ol-segmented-control
   class="tools--layout"
   value="$(selected_layout or default_layout)"

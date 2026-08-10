@@ -846,11 +846,18 @@
   width: 38px;
   min-height: 38px;
   border-radius: var(--border-radius-input);
-  color: var(--grey);
-  opacity: 0.7;
-  transition:
-    background-color 0.15s ease,
-    opacity 0.15s ease;
+  transition: background-color 0.15s ease;
+}
+
+/* Match the search magnifier (#8a7f71 baked into search-icon.svg;
+   --accessible-grey is the nearest token). The link states are needed to
+   outrank a:link / a:visited / a:hover in base/common.css, which otherwise
+   paint the icon link-blue. */
+.search-by-barcode,
+.search-by-barcode:link,
+.search-by-barcode:visited,
+.search-by-barcode:hover {
+  color: var(--accessible-grey);
 }
 
 .search-by-barcode img {
@@ -860,12 +867,10 @@
 .search-by-barcode:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
-  opacity: 1;
 }
 
 @media (hover: hover) {
   .search-by-barcode:hover {
-    opacity: 1;
     background-color: var(--lightest-grey);
   }
 }

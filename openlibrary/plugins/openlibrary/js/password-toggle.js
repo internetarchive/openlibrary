@@ -13,6 +13,8 @@ export function initPasswordToggling(elem) {
     elem.addEventListener('click', () => {
         const revealing = passwordInput.type === 'password';
         passwordInput.type = revealing ? 'text' : 'password';
-        glyph.setAttribute('href', revealing ? '#icon-eye' : '#icon-eye-off');
+        // Keep the server-rendered sprite URL; swap only the fragment.
+        const sprite = glyph.getAttribute('href').split('#')[0];
+        glyph.setAttribute('href', `${sprite}#${revealing ? 'icon-eye' : 'icon-eye-off'}`);
     });
 }

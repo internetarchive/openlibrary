@@ -3,10 +3,11 @@
  * static/icons/src/{lucide,custom}/ (each a single 24x24 / currentColor SVG).
  *
  * One source, three outputs:
- *   1. <out>/sprite.svg            — a <symbol> sheet referenced by same-document
- *                                    <use href="#icon-name"> (the $:macros.icon()
- *                                    macro and the <ol-icon> component). For the
- *                                    document / light DOM.
+ *   1. <out>/sprite.svg            — a <symbol> sheet served as a hashed static
+ *                                    asset and referenced by
+ *                                    <use href="…sprite.svg#icon-name"> (the
+ *                                    $:macros.icon() macro and the <ol-icon>
+ *                                    component). For the document / light DOM.
  *   2. static/icons/manifest.json  — sorted icon-name list (committed; drives the
  *                                    /developers/design gallery + name lint).
  *   3. openlibrary/components/lit/icons.generated.js — Lit `svg` glyph fragments
@@ -32,9 +33,9 @@ const SRC_GROUPS = ["lucide", "custom"];
 const MANIFEST_PATH = join(ROOT, "static", "icons", "manifest.json");
 const JS_MODULE_PATH = join(ROOT, "openlibrary", "components", "lit", "icons.generated.js");
 
-// Symbol ids land in the document's global id namespace (the sprite is inlined
-// into every page), so they are namespaced to keep bare names like "search" or
-// "code" free for page markup. Callers still use the bare name; the macro and
+// Symbol ids are addressed from page markup as URL fragments (…#icon-name), so
+// they are namespaced to keep the refs self-describing and bare names like
+// "search" or "code" free. Callers still use the bare name; the macro and
 // <ol-icon> add the prefix when they build the <use href>.
 const ID_PREFIX = "icon-";
 

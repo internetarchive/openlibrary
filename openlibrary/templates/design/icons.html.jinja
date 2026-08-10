@@ -50,15 +50,15 @@
                         <td>
                             <b><code>$:macros.icon()</code> in Templetor, {% raw %}<code>{{ icon() }}</code>{% endraw %} in
                                 Jinja.</b> One macro behind both — a plain inline <code>&lt;svg&gt;</code> against the
-                            page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.
+                            sprite asset, one file cached sitewide. No JavaScript, no layout shift.
                         </td>
                     </tr>
                     <tr>
                         <td>A web component's own shadow DOM.</td>
                         <td>
-                            <b>A fragment import from <code>icons.generated.js</code>.</b> Shadow roots can't reach
-                            the page sprite through <code>&lt;use&gt;</code>, so import the glyph and inline it in
-                            your own <code>&lt;svg&gt;</code>. Paints with the component.
+                            <b>A fragment import from <code>icons.generated.js</code>.</b> Shadow icons stay
+                            fetch-independent: import the glyph and inline it in your own
+                            <code>&lt;svg&gt;</code>. Paints with the component.
                         </td>
                     </tr>
                     <tr>
