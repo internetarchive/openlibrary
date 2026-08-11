@@ -610,6 +610,43 @@ def get_amazon_metadata(
     )
 
 
+@cache.memoize(
+    engine="memcache",
+    key="get_amazon_metadata_async",
+    expires=dateutil.WEEK_SECS,
+    cacheable=lambda key, value: value is not None,
+)
+async def get_amazon_metadata_async(
+    id_: str,
+    id_type: Literal["asin", "isbn"] = "isbn",
+    resources: Any = None,
+    high_priority: bool = False,
+    stage_import: bool = True,
+) -> dict | None:
+    """Async interface to the Amazon LookupItem API (non-blocking).
+
+    Same semantics as :func:`get_amazon_metadata`, but uses httpx so it never
+    blocks the event loop. Results are cached in memcache for a week.
+    Bare ``None`` results (e.g. a 503 throttle from the affiliate server) are
+    not cached, so the next call retries — matching the sync path's
+    "only the value None will cause re-cache" behaviour.
+
+    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
+    :param str id_type: 'isbn' or 'asin'.
+    :param bool high_priority: Priority in the import queue. High priority
+           goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
+    :return: A single book item's metadata, or None.
+    """
+    return await _get_amazon_metadata_async(
+        id_,
+        id_type=id_type,
+        resources=resources,
+        high_priority=high_priority,
+        stage_import=stage_import,
+    )
+
+
 def _get_amazon_metadata(
     id_: str,
     id_type: Literal["asin", "isbn"] = "isbn",
@@ -661,6 +698,61 @@ def _get_amazon_metadata(
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
         logger.exception(f"Affiliate Server: id {id_} not found")
+    return None
+
+
+async def _get_amazon_metadata_async(
+    id_: str,
+    id_type: Literal["asin", "isbn"] = "isbn",
+    resources: Any = None,
+    high_priority: bool = False,
+    stage_import: bool = True,
+) -> dict | None:
+    """Async mirror of :func:`_get_amazon_metadata` using httpx (non-blocking).
+
+    Uses the same /isbn/ endpoint on the affiliate server and the same ISBN
+    normalization, but makes the HTTP round-trip with the shared
+    ``async_session`` httpx client so it never blocks the event loop.
+
+    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
+    :param str id_type: 'isbn' or 'asin'.
+    :param Any resources: Used for AWSE Commerce Service lookup
+           See https://webservices.amazon.com/paapi5/documentation/get-items.html
+    :param bool high_priority: Priority in the import queue. High priority
+           goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
+    :return: A single book item's metadata, or None.
+    """
+    if not affiliate_server_url:
+        return None
+
+    if id_type == "isbn":
+        isbn = normalize_isbn(id_)
+        if isbn is None:
+            return None
+        id_ = isbn
+        if len(id_) == 13 and id_.startswith("978"):
+            isbn = isbn_13_to_isbn_10(id_)
+            if isbn is None:
+                return None
+            id_ = isbn
+
+    try:
+        priority = "true" if high_priority else "false"
+        stage = "true" if stage_import else "false"
+        r = await async_session.get(
+            f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
+            timeout=10.0,
+        )
+        r.raise_for_status()
+        if data := r.json().get("hit"):
+            return data
+        else:
+            return None
+    except httpx.HTTPStatusError:
+        logger.exception(f"Affiliate Server: id {id_} not found")
+    except httpx.TransportError:
+        logger.exception("Affiliate Server unreachable")
     return None
 
 

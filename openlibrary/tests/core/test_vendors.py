@@ -10,6 +10,7 @@ from openlibrary.core.vendors import (
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
     get_amazon_metadata,
+    get_amazon_metadata_async,
     is_dvd,
     split_amazon_title,
 )
@@ -307,6 +308,54 @@ def test_get_amazon_metadata() -> None:
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
+        assert got == expected
+
+
+@pytest.mark.asyncio
+async def test_get_amazon_metadata_async() -> None:
+    """
+    Async version of get_amazon_metadata: mock a reply from the affiliate
+    server via the shared httpx async session and verify the metadata is
+    returned without blocking.
+    """
+
+    class MockResponse:
+        def raise_for_status(self):
+            return True
+
+        def json(self):
+            return mock_response
+
+    async def mock_async_get(*args, **kwargs):
+        return MockResponse()
+
+    mock_response = {
+        "status": "success",
+        "hit": {
+            "url": "https://www.amazon.com/dp/059035342X/?tag=internetarchi-20",
+            "source_records": ["amazon:059035342X"],
+            "isbn_10": ["059035342X"],
+            "isbn_13": ["9780590353427"],
+            "price": "$5.10",
+            "price_amt": 509,
+            "title": "Harry Potter and the Sorcerer's Stone",
+            "cover": "https://m.media-amazon.com/images/I/51Wbz5GypgL._SL500_.jpg",
+            "authors": [{"name": "Rowling, J.K."}, {"name": "GrandPr_, Mary"}],
+            "publishers": ["Scholastic"],
+            "number_of_pages": 309,
+            "edition_num": "1",
+            "publish_date": "Sep 02, 1998",
+            "product_group": "Book",
+            "physical_format": "paperback",
+        },
+    }
+    expected = mock_response["hit"]
+    isbn = "059035342X"
+    with (
+        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch("openlibrary.core.vendors.affiliate_server_url", new=True),
+    ):
+        got = await get_amazon_metadata_async(id_=isbn, id_type="isbn")
         assert got == expected
 
 

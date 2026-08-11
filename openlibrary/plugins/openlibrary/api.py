@@ -40,7 +40,7 @@ from openlibrary.core.models import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
-    get_amazon_metadata,
+    get_amazon_metadata_async,
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
@@ -335,7 +335,7 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
     id_ = asin or (normalize_isbn(isbn) or isbn)
 
     metadata: dict = {
-        "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
+        "amazon": await get_amazon_metadata_async(id_, id_type=id_type_short) or {},
         "betterworldbooks": {},
     }
     if id_type_short == "isbn":
