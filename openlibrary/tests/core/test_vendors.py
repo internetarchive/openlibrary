@@ -331,7 +331,10 @@ async def test_get_amazon_metadata_async() -> None:
         def json(self):
             return mock_response
 
+    captured_kwargs = {}
+
     async def mock_async_get(*args, **kwargs):
+        captured_kwargs.update(kwargs)
         return MockResponse()
 
     mock_response = {
@@ -355,16 +358,15 @@ async def test_get_amazon_metadata_async() -> None:
         },
     }
     expected = mock_response["hit"]
-    # Use the ISBN-13 form of the same book: the memoized cache key is built
-    # from the raw input, so this keeps this test's cache entry distinct from
-    # the sync test's ISBN-10 one (both entry points share one key scheme).
+    # Use the ISBN-13 form of the same book for a distinct cache key.
     isbn = "9780590353427"
     with (
         patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
-        got = await get_amazon_metadata_async(id_=isbn, id_type="isbn")
+        got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)
         assert got == expected
+        assert captured_kwargs["timeout"] == 5.0
 
 
 @dataclass

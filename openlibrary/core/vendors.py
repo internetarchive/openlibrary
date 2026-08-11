@@ -32,10 +32,6 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 session = requests.Session()
-# Shared by the FastAPI event loop (get_betterworldbooks_metadata,
-# get_amazon_metadata_async) and the async_bridge background loop (the sync
-# get_amazon_metadata wrapper). Fine in production: web.py and FastAPI run in
-# separate processes, so each process uses it on a single event loop.
 async_session = httpx.AsyncClient()
 
 BETTERWORLDBOOKS_API_URL = "https://products.bwbcontent.com/service.aspx?IncludeAmazon=True&ItemId="
@@ -602,6 +598,7 @@ async def get_amazon_metadata_async(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
+    timeout: float = 10.0,  # noqa: ASYNC109
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -620,7 +617,9 @@ async def get_amazon_metadata_async(
            See https://webservices.amazon.com/paapi5/documentation/get-items.html
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
+    :param bool stage_import: stage the id_ for import if not in the cache.
+    :param float timeout: Per-request timeout in seconds for the affiliate
+           server call.
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
@@ -642,7 +641,7 @@ async def get_amazon_metadata_async(
         stage = "true" if stage_import else "false"
         r = await async_session.get(
             f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
-            timeout=10.0,
+            timeout=timeout,
         )
         r.raise_for_status()
         if data := r.json().get("hit"):
@@ -656,12 +655,8 @@ async def get_amazon_metadata_async(
     return None
 
 
-# Sync wrapper for backward compatibility (async_bridge pattern — see
-# openlibrary/core/lending.py). Sync and async callers share the same memcache
-# entries and the same underlying implementation. Note: unlike the old
-# memcache_memoize path (stale value served while a background thread refreshes
-# after expiry), cache.memoize hard-expires the entry, so the first call after a
-# week blocks on the affiliate-server round trip.
+# Sync wrapper for backward compatibility (async_bridge pattern, see
+# openlibrary/core/lending.py); sync callers share the same cache and code path.
 get_amazon_metadata = async_bridge.wrap(get_amazon_metadata_async)
 
 
