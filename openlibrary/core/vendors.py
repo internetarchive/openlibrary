@@ -655,8 +655,7 @@ async def get_amazon_metadata_async(
     return None
 
 
-# Sync wrapper for backward compatibility (async_bridge pattern, see
-# openlibrary/core/lending.py); sync callers share the same cache and code path.
+# Sync wrapper for backward compatibility.
 get_amazon_metadata = async_bridge.wrap(get_amazon_metadata_async)
 
 
