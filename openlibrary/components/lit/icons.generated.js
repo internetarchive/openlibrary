@@ -17,6 +17,7 @@ export const chevronRight = /*#__PURE__*/ (() => svg`<path d="m9 18 6-6-6-6"/>`)
 export const circleCheck = /*#__PURE__*/ (() => svg`<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>`)();
 export const clock = /*#__PURE__*/ (() => svg`<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`)();
 export const code = /*#__PURE__*/ (() => svg`<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>`)();
+export const copy = /*#__PURE__*/ (() => svg`<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>`)();
 export const ellipsis = /*#__PURE__*/ (() => svg`<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>`)();
 export const eye = /*#__PURE__*/ (() => svg`<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`)();
 export const eyeOff = /*#__PURE__*/ (() => svg`<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>`)();

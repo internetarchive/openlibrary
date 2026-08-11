@@ -293,7 +293,8 @@
         <h2 class="ds-section__title">Icons</h2>
         <p class="ds-section__blurb">
             One curated set, every glyph on a 24×24 grid at a single stroke weight, themed with
-            <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy its macro call.
+            <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy it in any of
+            the four usage forms.
         </p>
         {% if not icons %}
             <p class="ds__empty">
@@ -309,21 +310,53 @@
                    aria-controls="ds-icon-grid">
             <ul class="ds-icon-gallery" id="ds-icon-grid">
                 {% for name in icons %}
-                    {# Clicking a cell copies the macro call, the form you paste most. #}
+                    {# Clicking a cell opens the usage popover; without the Popover
+                       API the click falls back to copying the macro call. #}
                     <li class="ds-icon-gallery__item" data-ds-icon-name="{{ name }}">
                         <button class="ds-icon-gallery__cell"
                                 type="button"
-                                data-ds-copy
-                                data-ds-copy-text='$:macros.icon("{{ name }}")'
-                                title="Copy $:macros.icon(&quot;{{ name }}&quot;)">
+                                aria-haspopup="true"
+                                title="Usage for &quot;{{ name }}&quot;">
                             {{ draw(name, "lg") }}
                             <span class="ds-icon-gallery__name">{{ name }}</span>
                         </button>
                     </li>
                 {% endfor %}
             </ul>
+            {{ icon_popover() }}
         {% endif %}
     </section>
+{% endmacro %}
+{# One shared panel for the whole grid. JS fills the snippets for the clicked
+   glyph and anchors the panel to its cell; `hidden` comes off only once the
+   Popover API is confirmed, so unsupported browsers never paint it. #}
+{% macro icon_popover() %}
+    <div class="ds-icon-popover"
+         data-ds-icon-popover
+         popover
+         hidden
+         tabindex="-1">
+        <h3 class="ds-icon-popover__title">
+            <span class="ds-icon-popover__preview" data-ds-icon-popover-preview></span>
+            <code data-ds-icon-popover-name></code>
+        </h3>
+        {% for key, label in [("templetor", "Templetor"), ("jinja", "Jinja"), ("lit", "Lit"), ("html", "HTML")] %}
+            {# The whole well is the copy button — code text and glyph included.
+               data-ds-code makes it a copy target for the shared handler. #}
+            <div class="ds-icon-popover__row">
+                <span class="ds-icon-popover__label">{{ label }}</span>
+                <button class="ds-icon-popover__snippet"
+                        type="button"
+                        data-ds-code
+                        data-ds-copy
+                        aria-label="Copy {{ label }} snippet">
+                    <code class="ds-icon-popover__code" data-ds-snippet="{{ key }}"></code>
+                    {{ icon("copy", size="sm", extra_class="ds-icon-popover__glyph--copy") }}
+                    {{ icon("check", size="sm", extra_class="ds-icon-popover__glyph--check") }}
+                </button>
+            </div>
+        {% endfor %}
+    </div>
 {% endmacro %}
 {% macro draw(name, size) %}
     {{- icon(name, size=size) -}}
