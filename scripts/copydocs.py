@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""Copy docs from one Open Library instance to another (usually openlibrary.org
+into a local dev instance).
+
+Known dev-instance quirks (login is JSON-only, custom save headers require the
+right Opt decl_uri, and only *current* revisions are copied — no
+changeset/transaction history) are documented in docs/ai/README.md →
+Troubleshooting.
+"""
+
 from __future__ import annotations
 
 import json
