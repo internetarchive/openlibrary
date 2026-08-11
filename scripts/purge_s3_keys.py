@@ -40,7 +40,9 @@ def get_affected_keys(limit: int | None = 100_000):
         )
     """
     oldb = db.get_db()
-    rs = oldb.query(query, vars={"limit": limit})
+    with oldb.transaction():
+        oldb.query("SET LOCAL statement_timeout = '450s'")  # 7.5 minutes
+        rs = oldb.query(query, vars={"limit": limit})
     return iter(rs)
 
 
