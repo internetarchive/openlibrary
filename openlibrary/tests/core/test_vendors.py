@@ -254,8 +254,9 @@ def test_betterworldbooks_fmt():
 
 def test_get_amazon_metadata() -> None:
     """
-    Mock a reply from the Amazon Products API so we can do a basic test for
-    get_amazon_metadata() and cached_get_amazon_metadata().
+    Mock a reply from the Amazon affiliate server so we can do a basic test for
+    get_amazon_metadata(), the sync async_bridge wrapper around the canonical
+    get_amazon_metadata_async().
     """
 
     class MockResponse:
@@ -303,8 +304,12 @@ def test_get_amazon_metadata() -> None:
         "physical_format": "paperback",
     }
     isbn = "059035342X"
+
+    async def mock_async_get(*args, **kwargs):
+        return MockResponse()
+
     with (
-        patch("openlibrary.core.vendors.session.get", return_value=MockResponse()),
+        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
@@ -350,7 +355,10 @@ async def test_get_amazon_metadata_async() -> None:
         },
     }
     expected = mock_response["hit"]
-    isbn = "059035342X"
+    # Use the ISBN-13 form of the same book: the memoized cache key is built
+    # from the raw input, so this keeps this test's cache entry distinct from
+    # the sync test's ISBN-10 one (both entry points share one key scheme).
+    isbn = "9780590353427"
     with (
         patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),

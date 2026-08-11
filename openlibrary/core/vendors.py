@@ -23,6 +23,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -31,6 +32,10 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 session = requests.Session()
+# Shared by the FastAPI event loop (get_betterworldbooks_metadata,
+# get_amazon_metadata_async) and the async_bridge background loop (the sync
+# get_amazon_metadata wrapper). Fine in production: web.py and FastAPI run in
+# separate processes, so each process uses it on a single event loop.
 async_session = httpx.AsyncClient()
 
 BETTERWORLDBOOKS_API_URL = "https://products.bwbcontent.com/service.aspx?IncludeAmazon=True&ItemId="
@@ -585,31 +590,6 @@ class AmazonCreatorsAPI:
         return book
 
 
-def get_amazon_metadata(
-    id_: str,
-    id_type: Literal["asin", "isbn"] = "isbn",
-    resources: Any = None,
-    high_priority: bool = False,
-    stage_import: bool = True,
-) -> dict | None:
-    """Main interface to Amazon LookupItem API. Will cache results.
-
-    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
-    :param str id_type: 'isbn' or 'asin'.
-    :param bool high_priority: Priority in the import queue. High priority
-           goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
-    :return: A single book item's metadata, or None.
-    """
-    return cached_get_amazon_metadata(
-        id_,
-        id_type=id_type,
-        resources=resources,
-        high_priority=high_priority,
-        stage_import=stage_import,
-    )
-
-
 @cache.memoize(
     engine="memcache",
     key="get_amazon_metadata_async",
@@ -623,96 +603,16 @@ async def get_amazon_metadata_async(
     high_priority: bool = False,
     stage_import: bool = True,
 ) -> dict | None:
-    """Async interface to the Amazon LookupItem API (non-blocking).
-
-    Same semantics as :func:`get_amazon_metadata`, but uses httpx so it never
-    blocks the event loop. Results are cached in memcache for a week.
-    Bare ``None`` results (e.g. a 503 throttle from the affiliate server) are
-    not cached, so the next call retries — matching the sync path's
-    "only the value None will cause re-cache" behaviour.
-
-    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
-    :param str id_type: 'isbn' or 'asin'.
-    :param bool high_priority: Priority in the import queue. High priority
-           goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
-    :return: A single book item's metadata, or None.
-    """
-    return await _get_amazon_metadata_async(
-        id_,
-        id_type=id_type,
-        resources=resources,
-        high_priority=high_priority,
-        stage_import=stage_import,
-    )
-
-
-def _get_amazon_metadata(
-    id_: str,
-    id_type: Literal["asin", "isbn"] = "isbn",
-    resources: Any = None,
-    high_priority: bool = False,
-    stage_import: bool = True,
-    timeout: float = 10.0,
-) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://webservices.amazon.com/paapi5/documentation/get-items.html
 
-    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
-    :param str id_type: 'isbn' or 'asin'.
-    :param Any resources: Used for AWSE Commerce Service lookup
-           See https://webservices.amazon.com/paapi5/documentation/get-items.html
-    :param bool high_priority: Priority in the import queue. High priority
-           goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
-    :return: A single book item's metadata, or None.
-    """
-    if not affiliate_server_url:
-        return None
-
-    if id_type == "isbn":
-        isbn = normalize_isbn(id_)
-        if isbn is None:
-            return None
-        id_ = isbn
-        if len(id_) == 13 and id_.startswith("978"):
-            isbn = isbn_13_to_isbn_10(id_)
-            if isbn is None:
-                return None
-            id_ = isbn
-
-    try:
-        priority = "true" if high_priority else "false"
-        stage = "true" if stage_import else "false"
-        r = session.get(
-            f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
-            timeout=timeout,
-        )
-        r.raise_for_status()
-        if data := r.json().get("hit"):
-            return data
-        else:
-            return None
-    except requests.exceptions.ConnectionError:
-        logger.exception("Affiliate Server unreachable")
-    except requests.exceptions.HTTPError:
-        logger.exception(f"Affiliate Server: id {id_} not found")
-    return None
-
-
-async def _get_amazon_metadata_async(
-    id_: str,
-    id_type: Literal["asin", "isbn"] = "isbn",
-    resources: Any = None,
-    high_priority: bool = False,
-    stage_import: bool = True,
-) -> dict | None:
-    """Async mirror of :func:`_get_amazon_metadata` using httpx (non-blocking).
-
-    Uses the same /isbn/ endpoint on the affiliate server and the same ISBN
-    normalization, but makes the HTTP round-trip with the shared
-    ``async_session`` httpx client so it never blocks the event loop.
+    Canonical async implementation: makes the HTTP round-trip to the affiliate
+    server with the shared httpx ``async_session`` so it never blocks the event
+    loop. Results are cached in memcache for a week; bare ``None`` results
+    (e.g. a 503 throttle from the affiliate server) are not cached, so the next
+    call retries — matching the historical "only the value None will cause
+    re-cache" behaviour.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
@@ -754,6 +654,15 @@ async def _get_amazon_metadata_async(
     except httpx.TransportError:
         logger.exception("Affiliate Server unreachable")
     return None
+
+
+# Sync wrapper for backward compatibility (async_bridge pattern — see
+# openlibrary/core/lending.py). Sync and async callers share the same memcache
+# entries and the same underlying implementation. Note: unlike the old
+# memcache_memoize path (stale value served while a background thread refreshes
+# after expiry), cache.memoize hard-expires the entry, so the first call after a
+# week blocks on the affiliate-server round trip.
+get_amazon_metadata = async_bridge.wrap(get_amazon_metadata_async)
 
 
 def stage_bookworm_metadata(identifier: str | None) -> dict | None:
@@ -857,29 +766,6 @@ def create_edition_from_amazon_metadata(id_: str, id_type: Literal["asin", "isbn
             if reply and reply.get("success"):
                 return reply["edition"].get("key")
     return None
-
-
-def cached_get_amazon_metadata(*args, **kwargs):
-    """If the cached data is `None`, it's likely a 503 throttling occurred on
-    Amazon's side. Try again to fetch the value instead of using the
-    cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the Amazon API call
-    succeeds but the book has no price data, then {"price": None} will
-    be cached as to not trigger a re-cache (only the value `None`
-    will cause re-cache)
-    """
-
-    # fetch/compose a cache controller obj for
-    # "upstream.code._get_amazon_metadata"
-    memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata,
-        "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS,
-    )
-    # fetch cached value from this controller
-    result = memoized_get_amazon_metadata(*args, **kwargs)
-    # if no result, then recache / update this controller's cached value
-    return result or memoized_get_amazon_metadata.update(*args, **kwargs)[0]
 
 
 class BetterWorldBooksMetadata(TypedDict):
