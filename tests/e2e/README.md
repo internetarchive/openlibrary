@@ -85,7 +85,12 @@ matches no elements passes trivially, which looks identical to a fix that works.
 
 ### Third-party content
 
-`THIRD_PARTY_FRAMES` excludes embedded iframes. The archive.org donation banner
-currently fails `image-alt`, and that markup isn't ours to fix. Pass it
-explicitly rather than relying on a default, so any test that skips part of the
-page says so in its own body.
+The a11y specs block `archive.org` requests before navigating, so the donation
+banner never loads. Axe *does* see inside cross-origin iframes under Playwright
+(injection happens over the devtools protocol, not from the page), and the
+banner's content rotates by campaign — some variants fail `image-alt` — so an
+unblocked scan could flip between runs with no Open Library change.
+
+`THIRD_PARTY_FRAMES` additionally excludes any iframe from the scan, for
+embeds that aren't ours to fix. Pass it explicitly rather than relying on a
+default, so any test that skips part of the page says so in its own body.

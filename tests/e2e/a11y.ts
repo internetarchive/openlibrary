@@ -30,8 +30,11 @@ const WCAG_AA_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 /**
  * Third-party iframes we embed but don't author, so their violations aren't
- * ours to fix. Right now this is the archive.org donation banner, whose close
- * button ships an `<img>` with no alt text.
+ * ours to fix. Axe does scan inside cross-origin frames under Playwright
+ * (injection happens over the devtools protocol, not from the page), so
+ * without this an embed like the archive.org donation banner — whose content
+ * rotates by campaign, some variants failing `image-alt` — would tie a scan's
+ * result to whatever a third party serves that day.
  *
  * Pass this explicitly rather than defaulting to it, so a test that skips
  * part of the page says so in its own body.

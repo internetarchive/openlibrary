@@ -15,6 +15,12 @@ import { a11yCheck, expectNoViolations, THIRD_PARTY_FRAMES } from './a11y';
  * That's why the canary below counts rules evaluated rather than nodes.
  */
 async function gotoSettled(page: Page, path: string): Promise<void> {
+    // Block archive.org before navigating so the donation banner never loads.
+    // Its content rotates by campaign, and axe does scan inside cross-origin
+    // frames under Playwright, so an unblocked scan could flip between runs
+    // with no Open Library change. These scans should only ever see markup
+    // we author.
+    await page.route('https://archive.org/**', (route) => route.abort());
     await page.goto(path);
     await expect(page.locator('#header-bar').first()).toBeVisible();
 }
