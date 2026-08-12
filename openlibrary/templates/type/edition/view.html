@@ -386,7 +386,7 @@ $ lending_state = get_lending_state(edition or work, check_loan_status=bool(ctx.
                 </dl>
             </div>
 
-          $ classifications = edition.get_classifications().multi_items()
+          $ classifications = work.get_classifications().multi_items()
           $if classifications:
             <div class="section">
                 <h3>$_("Classifications")</h3>

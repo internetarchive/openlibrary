@@ -624,15 +624,14 @@ class SaveBookHelper:
                     ):
                         if val := getattr(self.work, field, None):
                             new_work[field] = val
+                classifications = edition_data.pop("classifications", [])
+                new_work.set_classifications(classifications)
 
                 self.work = new_work
                 saveutil.save(self.work)
 
             identifiers = edition_data.pop("identifiers", [])
             self.edition.set_identifiers(identifiers)
-
-            classifications = edition_data.pop("classifications", [])
-            self.edition.set_classifications(classifications)
 
             self.edition.set_physical_dimensions(edition_data.pop("physical_dimensions", None))
             self.edition.set_weight(edition_data.pop("weight", None))
