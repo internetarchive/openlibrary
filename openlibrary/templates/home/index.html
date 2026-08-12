@@ -13,10 +13,11 @@ $add_metatag(property="og:url", content="https://openlibrary.org")
 $add_metatag(property="og:site_name", content="Open Library")
 
 <div id="contentBody">
-
   $:macros.BookPreviewFloater()
 
   $:render_template("home/welcome")
+
+  $:render_template("home/filter_panel")
 
   $if not test:
     $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] readinglog_count:[4 TO *]', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)
@@ -43,4 +44,10 @@ $add_metatag(property="og:site_name", content="Open Library")
   $:render_template("home/stats", stats)
 
   $:render_template("home/about", blog_posts)
+
+  <script type="module">
+    import { initializeFilterPanel } from '/static/js/filter_panel.js';
+
+    initializeFilterPanel();
+  </script>
  </div>

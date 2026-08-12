@@ -1,5 +1,17 @@
 const STORAGE_KEY = 'preferences';
 
+function normalizeLanguageSelection(language) {
+    if (Array.isArray(language)) {
+        return language.filter((value) => typeof value === 'string' && value && value !== 'all');
+    }
+
+    if (typeof language === 'string' && language && language !== 'all') {
+        return [language];
+    }
+
+    return [];
+}
+
 export function getGlobalPreferences() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -14,22 +26,22 @@ export function getGlobalPreferences() {
 
         return {
             mode: parsed.global?.mode || 'all',
-            language: parsed.global?.language || 'all',
-            date: parsed.global?.date || [1900, 2025]
+            language: normalizeLanguageSelection(parsed.global?.language),
         };
     } catch (e) {
-        return { mode: 'all', language: 'all', date: [1900, 2025] };
+        return { mode: 'all'};
     }
 }
 
 export function mapPreferencesToBackend(prefs) {
     const params = {
-        ebook_access: prefs.mode === 'fulltext' ? 'borrowable' : prefs.mode === 'preview' ? 'printdisabled' : null,
-        first_publish_year: prefs.date
+        hasFulltextOnly: prefs.mode === 'fulltext' ? true : null,
     };
 
-    if (prefs.language && prefs.language !== 'all') {
-        params.language = [prefs.language];
+    const languages = normalizeLanguageSelection(prefs.language);
+
+    if (languages.length) {
+        params.language = languages;
     }
 
     return params;
@@ -42,16 +54,11 @@ export function setGlobalPreferences(prefs) {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? JSON.parse(stored) : {};
-        const [startYear, endYear] = prefs.date || [1900, 2025];
-        let sYear = Math.max(1900, Math.min(2025, isNaN(startYear) ? 1900 : startYear));
-        let eYear = Math.max(1900, Math.min(2025, isNaN(endYear) ? 1900 : endYear));
-        if (sYear > eYear) {
-            [sYear, eYear] = [eYear, sYear];
-        }
+
         parsed.global = {
             mode: prefs.mode || 'all',
-            language: prefs.language,
-            date: [sYear, eYear]
+            language: normalizeLanguageSelection(prefs.language),
+
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
@@ -63,7 +70,7 @@ export function resetGlobalPreferences() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? JSON.parse(stored) : {};
-        parsed.global = { mode: 'all', language: 'all', date: [1900, 2025] };
+        parsed.global = { mode: 'all', language: []};
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
         // Silently fail if unable to reset preferences
@@ -95,14 +102,11 @@ function getCookie(name) {
 function checkCookiesAndHydrate() {
     const mode = getCookie('ol_mode');
     const language = getCookie('ol_lang');
-    const dateCookie = getCookie('ol_date');
 
-    if (mode || language || dateCookie) {
-        const date = dateCookie ? dateCookie.split(',').map(Number) : [1900, 2025];
+    if (mode || language) {
         const cookiePrefs = {
             mode: mode || 'all',
-            language: language || 'all',
-            date: date,
+            language: language ? [language] : [],
         };
         setGlobalPreferences(cookiePrefs);
         return cookiePrefs;

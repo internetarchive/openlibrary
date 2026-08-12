@@ -168,7 +168,7 @@ export class Carousel {
 
             // On initial load, fetch with global preferences
             const initialPrefs = getGlobalPreferences();
-            const defaultPrefs = { mode: 'all', language: 'all', date: [1900, 2025] };
+            const defaultPrefs = { mode: 'all', language: 'all'};
             const initialBackendParams = mapPreferencesToBackend(initialPrefs);
             const defaultBackendParams = mapPreferencesToBackend(defaultPrefs);
             // Only reload if preferences differ from defaults or carousel is empty

@@ -12,7 +12,7 @@ describe('getGlobalPreferences', () => {
         const prefs = getGlobalPreferences();
 
         expect(prefs.mode).toBe('all');
-        expect(prefs.language).toBe('all');
+            expect(prefs.language).toEqual([]);
         expect(prefs.date).toEqual([1900, 2025]);
     });
 
@@ -21,7 +21,7 @@ describe('getGlobalPreferences', () => {
         const testData = {
             global: {
                 mode: 'fulltext',
-                language: 'es',
+                    language: ['es'],
                 date: [2002, 2022]
             }
         };
@@ -31,7 +31,7 @@ describe('getGlobalPreferences', () => {
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toBe('es');
+            expect(result.language).toEqual(['es']);
         expect(result.date).toEqual([2002, 2022]);
     });
 
@@ -42,7 +42,7 @@ describe('getGlobalPreferences', () => {
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('all');
-        expect(result.language).toBe('all');
+            expect(result.language).toEqual([]);
         expect(result.date).toEqual([1900, 2025]);
     });
 
@@ -51,7 +51,7 @@ describe('getGlobalPreferences', () => {
 
         // When localStorage works fine, should return what's stored or defaults
         expect(result.mode).toBe('all');
-        expect(result.language).toBe('all');
+            expect(result.language).toEqual([]);
         expect(result.date).toEqual([1900, 2025]);
     });
 });
@@ -62,39 +62,39 @@ describe('setGlobalPreferences', () => {
     });
 
     it('stores preferences in localStorage with correct structure', () => {
-        const prefs = { mode: 'fulltext', language: 'en', date: [2000, 2020] };
+        const prefs = { mode: 'fulltext', language: ['en'], date: [2000, 2020] };
 
         setGlobalPreferences(prefs);
 
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toBe('en');
+        expect(result.language).toEqual(['en']);
         expect(result.date).toEqual([2000, 2020]);
     });
 
     it('clamps date range when startYear > endYear', () => {
-        setGlobalPreferences({ mode: 'fulltext', language: 'es', date: [2025, 2000] });
+        setGlobalPreferences({ mode: 'fulltext', language: ['es'], date: [2025, 2000] });
 
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toBe('es');
+        expect(result.language).toEqual(['es']);
         expect(result.date).toEqual([2000, 2025]);
     });
 
     it('clamps years to valid range (1900-2025)', () => {
-        setGlobalPreferences({ mode: 'fulltext', language: 'es', date: [1800, 2050] });
+        setGlobalPreferences({ mode: 'fulltext', language: ['es'], date: [1800, 2050] });
 
         const result = getGlobalPreferences();
 
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toBe('es');
+        expect(result.language).toEqual(['es']);
         expect(result.date).toEqual([1900, 2025]);
     });
 
     it('silently fails when localStorage quota is exceeded', () => {
-        const prefs = { mode: 'fulltext', language: 'en', date: [2000, 2020] };
+        const prefs = { mode: 'fulltext', language: ['en'], date: [2000, 2020] };
 
         expect(() => {
             setGlobalPreferences(prefs);
@@ -122,7 +122,7 @@ describe('setGlobalPreferences', () => {
         expect(() => {
             setGlobalPreferences({
                 mode: 'fulltext',
-                language: 'en',
+                language: ['en'],
                 date: '2000,2020'
             });
         }).not.toThrow();
@@ -130,7 +130,7 @@ describe('setGlobalPreferences', () => {
         expect(() => {
             setGlobalPreferences({
                 mode: 123,
-                language: 'en',
+                language: ['en'],
                 date: [2000, 2020]
             });
         }).not.toThrow();
@@ -147,18 +147,18 @@ describe('setGlobalPreferences', () => {
 
 describe('resetGlobalPreferences', () => {
     it('resets preferences to defaults', () => {
-        setGlobalPreferences({ mode: 'fulltext', language: 'es', date: [2000, 2020] });
+        setGlobalPreferences({ mode: 'fulltext', language: ['es'], date: [2000, 2020] });
 
         let result = getGlobalPreferences();
         expect(result.mode).toBe('fulltext');
-        expect(result.language).toBe('es');
+        expect(result.language).toEqual(['es']);
         expect(result.date).toEqual([2000, 2020]);
 
         resetGlobalPreferences();
 
         result = getGlobalPreferences();
         expect(result.mode).toBe('all');
-        expect(result.language).toBe('all');
+        expect(result.language).toEqual([]);
         expect(result.date).toEqual([1900, 2025]);
     });
 
@@ -170,65 +170,47 @@ describe('resetGlobalPreferences', () => {
 });
 
 describe('mapPreferencesToBackend', () => {
-    it('transforms mode "fulltext" to ebook_access "borrowable"', () => {
-        const result = mapPreferencesToBackend({ mode: 'fulltext', language: 'all', date: [1900, 2025] });
+    it('transforms mode "fulltext" to hasFulltextOnly true', () => {
+        const result = mapPreferencesToBackend({ mode: 'fulltext', language: [], date: [1900, 2025] });
 
-        expect(result.ebook_access).toBe('borrowable');
-    });
-
-    it('transforms mode "preview" to ebook_access "printdisabled"', () => {
-        const result = mapPreferencesToBackend({ mode: 'preview', language: 'all', date: [1900, 2025] });
-
-        expect(result.ebook_access).toBe('printdisabled');
-    });
-
-    it('transforms mode "all" to ebook_access null', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: 'all', date: [1900, 2025] });
-
-        expect(result.ebook_access).toBe(null);
+        expect(result.hasFulltextOnly).toBe(true);
     });
 
     it('omits language when language is "all"', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: 'all', date: [1900, 2025] });
+        const result = mapPreferencesToBackend({ mode: 'all', language: [], date: [1900, 2025] });
 
         expect(result).not.toHaveProperty('language');
     });
 
     it('wraps specific language in array', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: 'es', date: [1900, 2025] });
+        const result = mapPreferencesToBackend({ mode: 'all', language: ['es'], date: [1900, 2025] });
 
         expect(result.language).toEqual(['es']);
     });
 
     it('passes date range through unchanged', () => {
-        const result = mapPreferencesToBackend({ mode: 'all', language: 'es', date: [2010, 2022] });
-
-        expect(result.first_publish_year).toEqual([2010, 2022]);
+        const result = mapPreferencesToBackend({ mode: 'all', language: ['es'], date: [2010, 2022] });
     });
 
     it('handles missing/null properties gracefully', () => {
         expect(() => {
             const result = mapPreferencesToBackend({ mode: 'fulltext', language: undefined, date: [2000, 2020] });
-            expect(result.ebook_access).toBe('borrowable');
+            expect(result.hasFulltextOnly).toBe(true);
             expect(result).not.toHaveProperty('language');
         }).not.toThrow();
 
         expect(() => {
-            const result = mapPreferencesToBackend({ mode: null, language: 'en', date: [2000, 2020] });
-            expect(result.ebook_access).toBe(null);
+            const result = mapPreferencesToBackend({ mode: null, language: ['en'], date: [2000, 2020] });
             expect(result.language).toEqual(['en']);
         }).not.toThrow();
 
         expect(() => {
-            const result = mapPreferencesToBackend({ mode: 'fulltext', language: 'es' });  // no date
-            expect(result.ebook_access).toBe('borrowable');
-            expect(result.first_publish_year).toBeUndefined();
+            const result = mapPreferencesToBackend({ mode: 'fulltext', language: ['es'] });  // no date
+            expect(result.hasFulltextOnly).toBe(true);
         }).not.toThrow();
 
         expect(() => {
             const result = mapPreferencesToBackend({ mode: 'preview' });
-            expect(result.ebook_access).toBe('printdisabled');
-            expect(result.first_publish_year).toBeUndefined();
             expect(result).not.toHaveProperty('language');
         }).not.toThrow();
     });
@@ -245,7 +227,7 @@ describe('onGlobalPreferencesChange', () => {
         const testData = {
             global: {
                 mode: 'fulltext',
-                language: 'es',
+                    language: ['es'],
                 date: [2000, 2020]
             }
         };
@@ -265,7 +247,7 @@ describe('onGlobalPreferencesChange', () => {
         expect(mockCallback).toHaveBeenCalled();
         expect(mockCallback).toHaveBeenCalledWith({
             mode: 'fulltext',
-            language: 'es',
+                language: ['es'],
             date: [2000, 2020]
         });
 
@@ -296,7 +278,7 @@ describe('onGlobalPreferencesChange', () => {
         const testData = {
             global: {
                 mode: 'preview',
-                language: 'fr',
+                    language: ['fr'],
                 date: [2010, 2023]
             }
         };
@@ -313,7 +295,7 @@ describe('onGlobalPreferencesChange', () => {
 
         expect(mockCallback).toHaveBeenCalledWith({
             mode: 'preview',
-            language: 'fr',
+                language: ['fr'],
             date: [2010, 2023]
         });
 
@@ -342,21 +324,21 @@ describe('updateAllCarousels', () => {
     it('includes current preferences in event detail', () => {
         const dispatchSpy = jest.spyOn(document, 'dispatchEvent');
 
-        setGlobalPreferences({ mode: 'all', language: 'all', date: [1900, 2025] });
+        setGlobalPreferences({ mode: 'all', language: [], date: [1900, 2025] });
 
         updateAllCarousels();
 
         const eventDispatched = dispatchSpy.mock.calls[0][0];
         expect(eventDispatched.detail).toBeDefined();
         expect(eventDispatched.detail.mode).toBe('all');
-        expect(eventDispatched.detail.language).toBe('all');
+        expect(eventDispatched.detail.language).toEqual([]);
         expect(eventDispatched.detail.date).toEqual([1900, 2025]);
 
         jest.restoreAllMocks();
     });
 
     it('creates event with correct preferences data', () => {
-        const testPrefs = { mode: 'fulltext', language: 'es', date: [2000, 2020] };
+        const testPrefs = { mode: 'fulltext', language: ['es'], date: [2000, 2020] };
         setGlobalPreferences(testPrefs);
 
         const dispatchSpy = jest.spyOn(document, 'dispatchEvent');
@@ -366,7 +348,7 @@ describe('updateAllCarousels', () => {
         const eventDispatched = dispatchSpy.mock.calls[0][0];
         expect(eventDispatched.detail).toEqual({
             mode: 'fulltext',
-            language: 'es',
+            language: ['es'],
             date: [2000, 2020]
         });
 

@@ -1,49 +1,68 @@
-<div class="home-filter-section">
-  <div class="home-filter-bar">
-    <div class="home-filter-title">FILTER</div>
+<style>
+  .home-filter-title {
+    font-size: 16px;
+    /* font-weight: 200; */
+    font-size: 100%;
+    color: #035A8C;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
 
-    <div class="home-filter-row home-filter-row-top">
-      <label class="filter-toggle">
-        <input type="checkbox" id="readable-toggle" checked>
-        <span>$_('Readable Only')</span>
-      </label>
-    </div>
+  .home-filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
 
-    <div class="home-filter-row home-filter-row-main">
-      <div class="home-filter-field">
-        <label for="language-select" class="filter-label">$_('Language')</label>
-        <select id="language-select" class="dropdown-menu">
-          $:render_template('languages/language_select_options', include_all=True, selected='all')
-        </select>
-      </div>
+  .home-filter-controls > * {
+    flex-shrink: 0;
+  }
 
-      <div class="home-filter-field home-filter-field-inline">
-        <label for="global-date-start" class="filter-label">$_('From')</label>
-        <input
-          type="number"
-          id="global-date-start"
-          min="1800"
-          max="2025"
-        />
-      </div>
+  .clear-all {
+    padding: 3px var(--spacing-sm);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-button);
+    color: var(--darker-grey);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
 
-      <div class="home-filter-field home-filter-field-inline">
-        <label for="global-date-end" class="filter-label">$_('To')</label>
-        <input
-          type="number"
-          id="global-date-end"
-          min="1800"
-          max="2025"
-        />
-      </div>
-    </div>
+  @media (hover: hover) and (pointer: fine) {
+    .clear-all:hover { background: var(--lightest-grey); }
+  }
 
-    <div class="home-filter-row home-filter-row-bottom">
-      <button id="save-preferences-btn" class="save-btn">$_('Save')</button>
-    </div>
+  .clear-all:focus-visible {
+    outline: var(--focus-width) solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+</style>
+
+<div class="home-filter-section" role="region" aria-label="$_('Home filters')">
+  <div class="home-filter-title">$_('Filter')</div>
+
+  <div class="home-filter-controls">
+    <ol-toggle
+      id="home-filter-availability"
+      variant="button"
+      label="$_('Readable Only')"
+      accessible-label="$_('Filter by availability')"
+    ></ol-toggle>
+
+    <ol-select-popover
+      id="home-filter-language"
+      label="$_('Language')"
+      placeholder="$_('Search languages…')"
+      unselected-heading="$_('Languages')"
+      aria-label="$_('Filter by language')"
+    >
+    </ol-select-popover>
+
+    <button type="button" id="home-filter-clear-all" class="clear-all" hidden>
+      $_('Clear all')
+    </button>
   </div>
 </div>
-
-<script type="module">
-  import '/static/js/preferences-handler.js';
-</script>

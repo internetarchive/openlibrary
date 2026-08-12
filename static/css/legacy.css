@@ -796,8 +796,6 @@ div.verify span {
 
 @import "components/link-box.css";
 
-@import "components/alert.css";
-
 /* Various templates */
 .contentQuarter {
   min-height: 100px;
