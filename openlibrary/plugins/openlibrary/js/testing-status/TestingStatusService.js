@@ -1,25 +1,51 @@
 /**
- * Service layer for the /status Testing Environment table.
+ * Service layer for the /status Testing Environment panel.
  *
- * Talks to the existing web.py endpoints (/status/add, /status/enable, …).
- * Those return a 303 to /status, so `fetch` follows the redirect and hands
- * back the freshly rendered page — one round trip per action instead of
- * "mutate, then re-read".
- *
- * Note on /status/testing.json: the FastAPI endpoint is only same-origin
- * behind the production `/_fast` proxy. Locally FastAPI is a separate origin
- * and its CORS config sets allow_credentials=false, so a cookie-authenticated
- * browser call cannot work there. Reading the server-rendered page keeps this
- * identical across dev, testing, and production.
+ * The read path is FastAPI JSON. Mutations remain on the existing web.py
+ * handlers and are followed by a fresh JSON read so the client has one source
+ * of truth for rendering.
  */
 
 /**
- * POST an action and return the resulting /status document.
+ * Return the same-origin JSON endpoint for the current deployment.
+ *
+ * The testing site exposes FastAPI behind /_fast; local development proxies
+ * the unprefixed path through web.py to the FastAPI container.
+ *
+ * @param {Location|Object} location Browser location, or a hostname-shaped
+ * object for tests.
+ * @return {String}
+ */
+export function testingStatusUrl(location = window.location) {
+    return location.hostname === 'testing.openlibrary.org'
+        ? '/_fast/status/testing.json'
+        : '/status/testing.json';
+}
+
+/**
+ * Fetch the testing-environment state.
+ *
+ * @return {Promise<Object>}
+ */
+export async function getTestingStatus() {
+    const response = await fetch(testingStatusUrl(), {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin'
+    });
+    if (!response.ok) {
+        throw new Error(`Testing status failed: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * POST an action and return its response. The legacy handlers redirect to
+ * /status; callers intentionally discard that HTML and fetch JSON afterward.
  *
  * @param {String} action Endpoint path, e.g. '/status/pull-latest'
  * @param {Object} fields Form fields. Array values are repeated, matching
  *   how web.input(prs=[]) expects multiple checkboxes.
- * @return {Promise<Document>}
+ * @return {Promise<Response>}
  */
 export async function postAction(action, fields = {}) {
     const body = new URLSearchParams();
@@ -34,10 +60,11 @@ export async function postAction(action, fields = {}) {
     const response = await fetch(action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'same-origin',
         body
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
     }
-    return new DOMParser().parseFromString(await response.text(), 'text/html');
+    return response;
 }

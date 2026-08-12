@@ -1,4 +1,4 @@
-$def with (status = {}, features_table = [], dev_merged_status=None, testing_payload=None, is_maintainer=False, show_testing=False, deploy_triggered=False, deploy_failed=False, deploy_unconfigured=False, drift_refreshed=False, jenkins_job_url='')
+$def with (status = {}, features_table = [], dev_merged_status=None, is_maintainer=False, show_testing=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -32,30 +32,7 @@ $var title: $_("Open Library server status")
 <div id="contentBody">
 
   $if show_testing:
-    $# Always rendered, empty or not: it sits outside the panel the controller
-    $# swaps, so it needs a node of its own that is present in both documents.
-    <div data-testing-messages>
-    $if deploy_triggered:
-      <div class="ol-message ol-message--success">
-        $_("Deploy triggered!")
-        $if jenkins_job_url:
-          &mdash; <a href="$jenkins_job_url" target="_blank" rel="noopener noreferrer">$_("View Jenkins progress")</a>
-      </div>
-    $if deploy_failed:
-      <div class="ol-message ol-message--error" role="alert">
-        $_("Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again.")
-      </div>
-    $if deploy_unconfigured:
-      <div class="ol-message ol-message--warning">
-        $_("No Jenkins token is configured, so no build was started. Pending changes were cleared locally.")
-      </div>
-    $if drift_refreshed:
-      <div class="ol-message ol-message--info">
-        $_("GitHub status refreshed.")
-      </div>
-    </div>
-
-    $:render_jinja_template("TestingEnvironment.html.jinja", payload=testing_payload or {}, is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url)
+    $:render_jinja_template("TestingEnvironment.html.jinja", is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url)
 
   $if dev_merged_status:
       <h2> $_("Last Build Result") </h2>
