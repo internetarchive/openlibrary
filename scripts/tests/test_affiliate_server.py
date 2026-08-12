@@ -21,6 +21,7 @@ from scripts.affiliate_server import (
     get_pending_books,
     load_config,
     make_cache_key,
+    process_amazon_batch,
     process_google_book,
 )
 
@@ -396,3 +397,123 @@ class TestLoadConfigRequiresCreatorsAPI:
         """One missing key must fail loudly, not half-configure or revert to legacy."""
         with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
             self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)
+
+
+# ---- 979-prefix ISBN-13 resolution via search (#13316) ----------------------
+#
+# A 979 ISBN-13 has no ISBN-10 equivalent, so `get_items` (an exact-id lookup) can never
+# reach it. These lock in that such identifiers are routed to search instead, and that
+# the routing does not disturb the ISBN-10 / B* ASIN paths.
+
+ISBN_979 = "9798776159572"
+ASIN_979 = "B09MJ3TKX3"
+
+
+def _serialized_979_product() -> dict[str, Any]:
+    """What AmazonCreatorsAPI.serialize() yields for a search-resolved 979 book."""
+    return {
+        "source_records": [f"amazon:{ASIN_979}"],
+        "isbn_10": [],
+        "isbn_13": [ISBN_979],
+        "title": "Pickleball Soap Opera",
+        "authors": [{"name": "Test Author"}],
+        "publish_date": "Jan 01, 2022",
+        "publishers": ["Test Publisher"],
+    }
+
+
+def test_make_cache_key_for_979_product_uses_isbn_13() -> None:
+    """A search-resolved 979 product caches under its ISBN-13, not its B* ASIN.
+
+    This is what lets Submit.GET read the result back: it looks up
+    `amazon_product_{isbn_13 or b_asin}`, which for a 979 request is the ISBN-13.
+    """
+    assert make_cache_key(_serialized_979_product()) == ISBN_979
+
+
+def _run_batch(asins, resolved=_serialized_979_product, direct_products=None):
+    """Run process_amazon_batch with a stubbed Amazon client; return (mock_api, mock_batch)."""
+    mock_api = MagicMock()
+    mock_api.get_products.return_value = direct_products or []
+    mock_api.get_product_by_isbn_13.return_value = resolved() if callable(resolved) else resolved
+
+    with (
+        patch("scripts.affiliate_server.web") as mock_web,
+        patch("scripts.affiliate_server.cache") as _mock_cache,
+        patch("scripts.affiliate_server.stats"),
+        patch("scripts.affiliate_server.config") as mock_config,
+        patch("scripts.affiliate_server.get_current_batch") as mock_batch,
+    ):
+        mock_web.amazon_api = mock_api
+        mock_config.infobase = {"db_parameters": {"db": "test"}}
+        process_amazon_batch(asins)
+
+    return mock_api, mock_batch
+
+
+def test_process_amazon_batch_partitions_direct_and_search() -> None:
+    """A mixed batch makes one batched get_items call plus one search per 979 ISBN."""
+    mock_api, _ = _run_batch(
+        {
+            PrioritizedIdentifier(identifier="0190906766"),
+            PrioritizedIdentifier(identifier=ISBN_979),
+        }
+    )
+
+    # The ISBN-10 goes through the batched path; the 979 ISBN does not.
+    assert mock_api.get_products.call_count == 1
+    assert mock_api.get_products.call_args.args[0] == ["0190906766"]
+    mock_api.get_product_by_isbn_13.assert_called_once_with(ISBN_979, serialize=True)
+
+
+def test_process_amazon_batch_search_only_batch_skips_get_products() -> None:
+    """A batch of only 979 ISBNs makes no get_items call at all."""
+    mock_api, _ = _run_batch({PrioritizedIdentifier(identifier=ISBN_979)})
+
+    mock_api.get_products.assert_not_called()
+    mock_api.get_product_by_isbn_13.assert_called_once_with(ISBN_979, serialize=True)
+
+
+def test_process_amazon_batch_isbn_10_never_searched() -> None:
+    """Regression guard: an ISBN-10 batch is untouched by the new search path."""
+    mock_api, _ = _run_batch({PrioritizedIdentifier(identifier="0190906766")})
+
+    mock_api.get_product_by_isbn_13.assert_not_called()
+    assert mock_api.get_products.call_args.args[0] == ["0190906766"]
+
+
+def test_process_amazon_batch_b_asin_never_searched() -> None:
+    """Regression guard: a B* ASIN is a direct lookup, never a search."""
+    mock_api, _ = _run_batch({PrioritizedIdentifier(identifier="B000KRRIZI")})
+
+    mock_api.get_product_by_isbn_13.assert_not_called()
+    assert mock_api.get_products.call_args.args[0] == ["B000KRRIZI"]
+
+
+def test_979_with_stage_import_false_is_not_staged() -> None:
+    """Regression: stage_import=false must be honoured for search-resolved products.
+
+    The staging filter compares `source_records[0]` — which for a search-resolved product
+    is `amazon:{B-ASIN}` — against the queued identifiers, which for a 979 request hold the
+    *ISBN-13*. Those never compare equal, so without a back-mapping from resolved product
+    to originating identifier the item would be staged despite stage_import=false.
+    """
+    _, mock_batch = _run_batch({PrioritizedIdentifier(identifier=ISBN_979, stage_import=False)})
+
+    mock_batch.return_value.add_items.assert_not_called()
+
+
+def test_979_with_stage_import_true_is_staged() -> None:
+    """The positive counterpart: stage_import=true does stage the resolved product."""
+    _, mock_batch = _run_batch({PrioritizedIdentifier(identifier=ISBN_979, stage_import=True)})
+
+    mock_batch.return_value.add_items.assert_called_once()
+    staged = mock_batch.return_value.add_items.call_args.args[0]
+    assert staged[0]["ia_id"] == f"amazon:{ASIN_979}"
+
+
+def test_unverified_979_search_result_is_not_staged() -> None:
+    """If resolution returns None (ISBN mismatch), nothing is staged."""
+    _, mock_batch = _run_batch({PrioritizedIdentifier(identifier=ISBN_979)}, resolved=None)
+
+    mock_batch.return_value.add_items.assert_not_called()

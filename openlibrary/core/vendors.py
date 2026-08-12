@@ -410,6 +410,13 @@ class AmazonCreatorsAPI:
             **({"proxy": _proxy} if _proxy else {}),
         )
 
+    def _throttle(self) -> None:
+        """Block until at least `1 / self.throttling` seconds have passed since the last call."""
+        wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
+        if wait_time > 0:
+            time.sleep(wait_time)
+        self.last_query_time = time.time()
+
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
         if products := self.get_products([asin], **kwargs):
             return next(self.serialize(p) if serialize else p for p in products)
@@ -427,10 +434,7 @@ class AmazonCreatorsAPI:
         Additional keyword args (e.g. `marketplace`, `resources`) are accepted and silently
         ignored for drop-in compatibility with AmazonAPI.get_products callers.
         """
-        wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
-        if wait_time > 0:
-            time.sleep(wait_time)
-        self.last_query_time = time.time()
+        self._throttle()
 
         item_ids = asins if isinstance(asins, list) else [asins]
         try:
@@ -443,6 +447,83 @@ class AmazonCreatorsAPI:
             return None
 
         return products if not serialize else [self.serialize(p) for p in products]
+
+    def search_items(
+        self,
+        keywords: str,
+        search_index: str = "Books",
+        item_count: int = 10,
+        serialize: bool = False,
+        **kwargs,
+    ) -> list | None:
+        """
+        Keyword search against the Creators API SearchItems operation.
+
+        Unlike `get_products` (an exact ItemId lookup), this resolves items we have no
+        ASIN for.  Note it is *one* item per call with no batching, so it is markedly
+        more expensive per result than `get_products`; use it only where an exact
+        lookup cannot work.
+
+        :param keywords: A word or phrase to search for, e.g. an ISBN-13.
+        :param search_index: Amazon product category to search. Defaults to 'Books'.
+        :param item_count: Maximum results to return (1-10).
+        :param serialize: If True, run each product through serialize() before returning.
+        :return: A list of products (empty if the search found nothing), or None if the
+            call failed — the same contract as `get_products`.
+        """
+        self._throttle()
+
+        try:
+            result = self.api.search_items(
+                keywords=keywords,
+                search_index=search_index,
+                item_count=item_count,
+                **kwargs,
+            )
+        except Exception as e:
+            # ItemsNotFoundError is raised for a legitimately empty result set, so a
+            # failure here is not necessarily an error; log and fail soft either way.
+            logger.info(
+                f"AmazonCreatorsAPI search failed for: {keywords}: {e}",
+                exc_info=True,
+            )
+            return None
+
+        products = (result and result.items) or []
+        return products if not serialize else [self.serialize(p) for p in products]
+
+    def get_product_by_isbn_13(self, isbn_13: str, serialize: bool = False, **kwargs):
+        """
+        Resolve an ISBN-13 that has no ISBN-10 equivalent (i.e. a 979-prefix ISBN) to its
+        Amazon product via keyword search.
+
+        Amazon's `get_items` only accepts an ISBN-10 or a real ASIN.  A 979-prefix
+        ISBN-13 has no ISBN-10 equivalent and Amazon assigns such books an arbitrary
+        ASIN unrelated to the ISBN, so keyword search is the only way to reach them.
+        See #13316, and `amazon_affiliate_url` for the same problem on the link side.
+
+        A keyword search is *not* an exact-match lookup — Amazon may return a different
+        edition, a boxed set, or something unrelated.  A result is therefore accepted
+        only if its own metadata claims the ISBN we asked for; otherwise we would cache
+        and import the wrong book under the right ISBN.
+
+        :param isbn_13: The canonical (digits-only) ISBN-13 to resolve.
+        :param serialize: If True, return the serialized dict rather than the raw item.
+        :return: The matching product, or None if nothing verifiably matched.
+        """
+        products = self.search_items(keywords=isbn_13, **kwargs) or []
+        for product in products:
+            # serialize() sources isbn_13 from external_ids.eans, which is authoritative.
+            if isbn_13 in (serialized := self.serialize(product)).get("isbn_13", []):
+                return serialized if serialize else product
+
+        if products:
+            logger.info(
+                "AmazonCreatorsAPI.get_product_by_isbn_13: %d result(s) for %s, none matching the requested ISBN",
+                len(products),
+                isbn_13,
+            )
+        return None
 
     @staticmethod
     def serialize(product: Any) -> dict:
