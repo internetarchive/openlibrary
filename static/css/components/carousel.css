@@ -146,6 +146,8 @@
   font-size: 1em;
   color: var(--black);
   height: var(--height-blank-cover);
+  width: 130px;
+  box-sizing: border-box;
 }
 
 /* White border */
@@ -189,6 +191,8 @@
   height: var(--height-cover-compact);
   padding: 20% var(--spacing-inset-sm) var(--spacing-inset-sm);
   margin: 0 auto;
+  width: 130px;
+  box-sizing: border-box;
 }
 
 /* Styles for lazy-loading carousel placeholder element */
@@ -203,8 +207,9 @@
 
 .lazy-carousel .loadingIndicator {
   border: 1px var(--grey) solid;
-  width: 80%;
+  background: var(--lightest-grey);
   margin: 0 auto;
+  padding: var(--spacing-inset-lg);
 }
 
 .lazy-carousel-retry,
@@ -218,20 +223,27 @@
 .loan-overlay-badge {
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   background: rgba(0, 0, 0, 0.65);
   color: var(--white);
-  padding: 4px 8px;
+  padding: 4px 0;
   font-size: 0.7em;
   line-height: 1.3;
   z-index: var(--z-index-level-2);
   text-align: center;
-  border-radius: 4px 4px 0 0;
-  white-space: nowrap;
+  border-radius: 0 0 3px 3px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .loan-overlay-badge .local-date-time {
   color: var(--white) !important;
+}
+
+.book-cover-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
 .loan-overlay-badge__waitlist {

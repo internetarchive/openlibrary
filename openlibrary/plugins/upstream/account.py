@@ -1201,13 +1201,26 @@ class account_loans(delegate.page):
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
 
+        i = web.input(page=1)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
-        template = render["account/loans"](user, docs)
-        return mb.render(header_title=_("Loans"), template=template)
+        loan_history_data = get_loan_history_data(username, page=page)
+        template = render["account/loans"](
+            user,
+            docs,
+            history_docs=loan_history_data["docs"],
+            current_page=page,
+            show_next=loan_history_data["show_next"],
+            ia_base_url=CONFIG_IA_DOMAIN,
+        )
+        return mb.render(header_title=_("Loans & History"), template=template)
 
 
 @deprecated("migrated to fastapi")
@@ -1228,18 +1241,11 @@ class account_loan_history(delegate.page):
     @require_login
     def GET(self):
         i = web.input(page=1)
-        page = int(i.page)
-        user = accounts.get_current_user()
-        username = user["key"].split("/")[-1]
-        mb = MyBooksTemplate(username, key="loan_history")
-        loan_history_data = get_loan_history_data(username, page=page)
-        template = render["account/loan_history"](
-            docs=loan_history_data["docs"],
-            current_page=page,
-            show_next=loan_history_data["show_next"],
-            ia_base_url=CONFIG_IA_DOMAIN,
-        )
-        return mb.render(header_title=_("Loan History"), template=template)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
+        raise web.redirect(f"/account/loans?page={page}", status="301 Moved Permanently")
 
 
 @deprecated("migrated to fastapi")

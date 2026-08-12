@@ -1,4 +1,4 @@
-$def with (user, loans, test=False)
+$def with (user, loans, history_docs=None, current_page=1, show_next=False, ia_base_url="", test=False)
 
 <style type="text/css">
 .date, .waitrank {
@@ -45,22 +45,25 @@ th.status {
 
 </style>
 
+<header>
+    <h1 class="details-title">
+        $ungettext("Active Loan (%(count)d)", "Active Loans (%(count)d)", len(loans), count=len(loans))
+    </h1>
+</header>
+
 <div>
   $if len(loans) == 0:
     <div><em>$_("You've not checked out any books at this moment.")</em></div>
     <br>
-$else:
-  $# Have current loans
-  <div class="borrow borrow-table collapse">
-    <table>
-        <thead>
-            <tr>
-                <th class="titles" colspan="2">
-                $ungettext("%(count)d Current Loan", "%(count)d Current Loans", len(loans), count=len(loans))
-                </th>
-                <th class="actions">$_("Loan actions")</th>
-            </tr>
-        </thead>
+  $else:
+    <div class="borrow borrow-table collapse">
+      <table>
+          <thead>
+              <tr>
+                  <th class="titles" colspan="2">$_("Book")</th>
+                  <th class="actions">$_("Loan actions")</th>
+              </tr>
+          </thead>
         <tbody>
         <!-- for each borrow -->
         $for loan in loans:
@@ -105,8 +108,6 @@ $else:
     </table>
   </div>
 </div>
-
-<hr/>
 
 <header>
     <h1 class="details-title">$_("Books You're Waiting For")</h1>
@@ -189,6 +190,28 @@ $else:
               </tbody>
           </table>
         </div>
+</div>
+
+<header>
+    <h1 class="details-title">$_("Loan History")</h1>
+</header>
+
+<div class="mybooks-list">
+  $if history_docs and len(history_docs) > 0:
+    $:macros.OlPaginationArrows(current_page, show_next)
+    <ul class="list-books">
+      $for idx, doc in enumerate(history_docs):
+        $if doc.get('ia_only'):
+          $:macros.IABook(doc=doc, ia_base_url=ia_base_url)
+        $else:
+          $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=None, seq_index=loop.index0)
+    </ul>
+    $:macros.OlPaginationArrows(current_page, show_next)
+  $else:
+    <ul class="list-books">
+        <p>$_("No loans found in your borrow history.")</p>
+        <p>$:_('<a href="/search">Search for a book</a> to borrow.')</p>
+    </ul>
 </div>
 
 <br/>
