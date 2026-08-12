@@ -487,18 +487,6 @@ html:has(.ds) {
   color: var(--color-warning-fg);
 }
 
-.ds-undocumented {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 2px var(--spacing-inline-md);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-family-code);
-  font-size: var(--font-size-label-medium);
-  color: var(--color-text-muted);
-}
-
 /* ------------------------------------------------------------ Icon gallery */
 
 .ds-icon-gallery__filter {

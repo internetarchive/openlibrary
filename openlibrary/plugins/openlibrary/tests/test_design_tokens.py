@@ -335,22 +335,3 @@ class TestRealTokenFiles:
                         duplicates.add(token.name)
                     seen.add(token.name)
         assert not duplicates, f"declared more than once: {sorted(duplicates)}"
-
-
-class TestCoverageExclusions:
-    """Both sets are hand-maintained filenames, the one un-derived thing on a
-    page built to be derived, so a rename leaves a dead entry excluding nothing."""
-
-    def test_every_excluded_css_file_still_exists(self):
-        from openlibrary.plugins.openlibrary.design import CSS_COMPONENTS_DIR, LEGACY_CSS, NOT_COMPONENTS
-
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-        stale = (NOT_COMPONENTS | LEGACY_CSS) - on_disk
-        assert not stale, f"excluded from the coverage report but no longer on disk: {sorted(stale)}"
-
-    def test_every_documented_css_file_still_exists(self):
-        from openlibrary.plugins.openlibrary.design import COMPONENTS, CSS_COMPONENTS_DIR
-
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-        documented = {name for component in COMPONENTS for name in component.css_files}
-        assert not (missing := documented - on_disk), f"registry documents missing stylesheets: {sorted(missing)}"
