@@ -226,7 +226,7 @@ export class OpenLibraryOTP extends LitElement {
         :host { display: inline-block; }
 
         .trigger-btn {
-            background: var(--primary-blue, hsl(202, 96%, 37%));
+            background: var(--primary-blue, hsl(206, 95%, 39%));
             color: var(--ia-button-primary-color, #fff);
             border: none;
             border-radius: 4px;
@@ -239,7 +239,7 @@ export class OpenLibraryOTP extends LitElement {
         }
         .trigger-btn:hover,
         .trigger-btn:focus {
-            background: hsl(202, 96%, 17%);
+            background: hsl(211, 92%, 17%);
             outline: 2px solid currentColor;
             outline-offset: 2px;
         }

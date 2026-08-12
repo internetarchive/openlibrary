@@ -25,7 +25,7 @@ jobs:
       - name: Read Python version
         id: pyversion
         run: echo "version=$(cat .python-version)" >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v8.3.2
         with:
           enable-cache: true
           python-version: ${{ steps.pyversion.outputs.version }}

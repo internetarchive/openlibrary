@@ -64,12 +64,17 @@ Open Library uses a two-tier token system defined as CSS custom properties in `s
 
 ### Tier 1: Primitives
 
-Raw values with no semantic meaning — the base palette.
+Raw values with no semantic meaning — the base palette. `colors.css` defines five ramps:
+
+- **Warm neutrals** `--neutral-50…900` — one "paper to ink" ramp (hue 41–48) that replaces the legacy grey and beige families. 50 is the lightest tint (raised warm surfaces), 800 is primary text ink. The page canvas is not on the ramp: it's `--paper`, a one-off a shade deeper and warmer than 200, so the full-bleed background stays close to the beige on openlibrary.org today.
+- **Blue** `--blue-50…800` — the single brand accent. 500 is the brand blue, 600 the link blue.
+- **Status ramps** `--red-*`, `--green-*`, `--amber-*` — muted tints (50/100/200) for backgrounds and borders, plus text-safe foreground steps (500/600/700).
 
 ```css
---blue-500: hsl(210, 80%, 50%);
---space-16: 16px;
---border-radius-lg: 8px;
+--neutral-800: hsl(41, 14%, 21%);
+--blue-500: hsl(206, 95%, 39%);
+--spacing-lg: 1rem;
+--border-radius-lg: 9px;
 ```
 
 You should rarely use primitives directly in component or template styles.
@@ -79,12 +84,23 @@ You should rarely use primitives directly in component or template styles.
 Semantic tokens reference primitives and describe purpose, not appearance.
 
 ```css
+--color-text: var(--neutral-800);
 --color-link: var(--blue-600);
---color-surface-primary: var(--white);
+--color-surface: var(--white);
 --border-radius-card: var(--border-radius-lg);
 ```
 
-This indirection enables visual redesigns, dark mode, and brand refreshes by changing token values in one place.
+The main semantic groups in `colors.css`: text (`--color-text`, `-secondary`, `-muted`, `-inverse`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{success,error,warning}-{fg,bg,border}`).
+
+Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
+
+This indirection enables visual redesigns, dark mode, and brand refreshes by changing token values in one place. Semantic tokens are the dark-mode seam: a future theme re-points them at different primitives.
+
+`tests/unit/js/token-contrast.test.js` asserts the WCAG AA contrast matrix over these tokens (text ≥ 4.5:1 on its surfaces, non-text UI ≥ 3:1) — palette changes that break accessibility fail `npm test`.
+
+### Deprecated aliases
+
+The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige`, `--primary-blue`, …) at the ramps so old consumers keep working. Never use these in new code; when touching a file that uses one, migrate it to a semantic token.
 
 ### Which tier to use
 
@@ -94,10 +110,10 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 
 | File | Contents |
 |---|---|
-| `static/css/tokens/colors.css` | Color primitives and semantic color tokens |
+| `static/css/tokens/colors.css` | Color primitives, semantic color tokens, deprecated legacy aliases |
 | `static/css/tokens/spacing.css` | Spacing scale |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
-| `static/css/tokens/typography.css` | Font families, sizes, and weights |
+| `static/css/tokens/font-families.css` | Font families and sizes |
 
 ### Tokens in Shadow DOM
 

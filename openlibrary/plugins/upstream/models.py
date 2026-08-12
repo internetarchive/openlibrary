@@ -14,6 +14,7 @@ from infogami.infobase import client
 from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
@@ -41,6 +42,24 @@ def follow_redirect(doc):
         return web.ctx.site.get(key)
     else:
         return doc
+
+
+def find_references(doc):
+    """Yields all references ({"key": ...} dicts) found in the given data.
+
+    Note: infogami's SaveProcessor (infogami/infobase/writequery.py) has a
+    similar method for the same purpose. It is instance-bound, so we keep this
+    small standalone copy; keep the two in sync when either changes.
+    """
+    if isinstance(doc, dict):
+        if len(doc) == 1 and "key" in doc:
+            yield doc["key"]
+        else:
+            for value in doc.values():
+                yield from find_references(value)
+    elif isinstance(doc, list):
+        for value in doc:
+            yield from find_references(value)
 
 
 class Edition(models.Edition):
@@ -306,8 +325,6 @@ class Edition(models.Edition):
             "lccn",
             "oclc_numbers",
             "ocaid",
-            "dewey_decimal_class",
-            "lc_classifications",
         )
 
         d = {}
@@ -337,7 +354,7 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-        if not d.items():
+        if not self.identifiers:
             self.identifiers = None
 
     def get_classifications(self):
@@ -933,6 +950,40 @@ class Changeset(client.Changeset):
         data = {"parent_changeset": self.id}
         comment = "undo " + self.comment
         return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+
+    def get_undo_error(self):
+        """Returns a user-facing message if this changeset cannot be undone, or None.
+
+        Undo saves every changed document at (revision - 1) in a single
+        save_many call, which infobase validates against the current state of
+        every reference. A reference to a record that no longer exists, or that
+        has since been merged into another record (a /type/redirect), makes the
+        whole save fail. That is what made undoing old author merges return 500
+        (see internetarchive/openlibrary#5664). This pre-check detects the
+        failure so the UI can explain it instead of showing an error page.
+        """
+        docs = [self._get_doc(c["key"], c["revision"] - 1) for c in self.changes]
+        in_batch = {doc["key"] for doc in docs}
+
+        refs = {ref for doc in docs for ref in find_references(doc) if ref not in in_batch}
+        things = {t.key: t for t in web.ctx.site.get_many(sorted(refs))}
+
+        for doc in docs:
+            for ref in find_references(doc):
+                if ref in in_batch:
+                    continue
+                thing = things.get(ref)
+                if thing is None:
+                    return _("This merge cannot be undone automatically because %(record)s references %(reference)s, which no longer exists.") % {
+                        "record": doc["key"],
+                        "reference": ref,
+                    }
+                thing_type = thing.type.key if hasattr(thing.type, "key") else thing.type
+                if thing_type == "/type/redirect":
+                    return _(
+                        "This merge cannot be undone automatically because %(record)s references %(reference)s, which has since been merged into another record."
+                    ) % {"record": doc["key"], "reference": ref}
+        return None
 
     def get_undo_changeset(self):
         """Returns the changeset that undone this transaction if one exists, None otherwise."""
