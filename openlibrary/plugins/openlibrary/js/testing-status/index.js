@@ -18,7 +18,6 @@ import { sprintf } from '../i18n.js';
  * in by sprintf().
  */
 export const DEFAULT_STRINGS = {
-    justNow: 'just now',
     noneSelected: 'None selected',
     selected: '%s selected',
     removing: 'Removing #%s…',
@@ -50,8 +49,7 @@ function stringsFromElement(el) {
 
 /**
  * The panel controller. State lives on the instance rather than in module
- * globals so the formatter and the strings stay attached to the one panel
- * they belong to.
+ * globals so the strings stay attached to the one panel they belong to.
  */
 class TestingStatusPanel {
     /**
@@ -60,53 +58,9 @@ class TestingStatusPanel {
     constructor(root) {
         this.root = root;
         this.strings = stringsFromElement(root);
-        // One formatter for the panel's lifetime: constructing an Intl object
-        // negotiates locales, and this runs once per timestamp per render.
-        this.formatter = new Intl.RelativeTimeFormat(document.documentElement.lang || 'en', { numeric: 'auto' });
 
         this.bind();
         this.refreshSelection();
-        this.renderRelativeTimes();
-    }
-
-    /**
-     * Format a timestamp as a coarse relative string ("14 min ago").
-     * @param {Date} date
-     * @return {String}
-     */
-    relativeTime(date) {
-        const seconds = Math.round((Date.now() - date.getTime()) / 1000);
-        if (seconds < 60) return this.strings.justNow;
-
-        const units = [
-            ['day', 86400],
-            ['hour', 3600],
-            ['minute', 60]
-        ];
-        for (const [unit, secondsPer] of units) {
-            if (seconds >= secondsPer) {
-                return this.formatter.format(-Math.round(seconds / secondsPer), unit);
-            }
-        }
-        return this.strings.justNow;
-    }
-
-    /**
-     * Rewrite every <time data-relative-time> to a relative string, keeping the
-     * machine-readable value in the title attribute.
-     */
-    renderRelativeTimes() {
-        this.root.querySelectorAll('time[data-relative-time]').forEach((el) => {
-            const stamp = el.getAttribute('datetime');
-            if (!stamp) return;
-            const date = new Date(stamp);
-            if (Number.isNaN(date.getTime())) return;
-            if (!el.dataset.absolute) {
-                el.dataset.absolute = el.textContent.trim();
-            }
-            el.textContent = this.relativeTime(date);
-            el.title = el.dataset.absolute;
-        });
     }
 
     /**
@@ -155,7 +109,6 @@ class TestingStatusPanel {
         const focused = focusedSelector(this.root);
         this.root.replaceChildren(...incoming.childNodes);
         this.refreshSelection();
-        this.renderRelativeTimes();
         // The control that triggered this update was replaced along with the
         // rest of the panel; put focus back on its successor.
         if (focused) restoreFocus(this.root.querySelector(focused));

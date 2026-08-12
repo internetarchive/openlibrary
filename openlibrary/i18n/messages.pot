@@ -7607,10 +7607,6 @@ msgid "Page %s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "just now"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "None selected"
 msgstr ""
 
@@ -7676,30 +7672,6 @@ msgid "Drift"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "removes on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "updates and enables on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "updates and disables on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "updates on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "enables on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "disables on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 #, python-format
 msgid "Select PR %(num)s"
 msgstr ""
@@ -7742,6 +7714,10 @@ msgid "%(num)d commit behind %(sha)s"
 msgid_plural "%(num)d commits behind %(sha)s"
 msgstr[0] ""
 msgstr[1] ""
+
+#: TestingEnvironment.html.jinja
+msgid "changes on deploy"
+msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format

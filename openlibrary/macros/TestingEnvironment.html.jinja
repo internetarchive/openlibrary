@@ -32,7 +32,6 @@
    every string it returns, so an unescaped `%s` left here would be eaten
    before it ever reached JS. #}
 {% set i18n_strings = {
-    "justNow": _("just now"),
     "noneSelected": _("None selected"),
     "selected": _("%(count)s selected", count="%s"),
     "removing": _("Removing #%(num)s…", num="%s"),
@@ -98,24 +97,13 @@
                         {% set active = pr.get('active', True) %}
                         {% set pending_active = pr.get('pending_active') %}
                         {% set effective_active = active if pending_active is none else pending_active %}
-                        {# One derivation of "what the next deploy does to this row": the note the
-                           drift cell prints, and the amber stripe that flags it. A pin and a
-                           toggle can be staged on the same row, so that pair gets its own
-                           phrasing rather than one note hiding the other. #}
-                        {% set pinning = pr.get('pull_latest_sha') %}
-                        {% if merged %}
-                            {% set pending_note = _("removes on deploy") %}
-                        {% elif pinning and pending_active is not none %}
-                            {% set pending_note = _("updates and enables on deploy") if pending_active else _("updates and disables on deploy") %}
-                        {% elif pinning %}
-                            {% set pending_note = _("updates on deploy") %}
-                        {% elif pending_active is not none %}
-                            {% set pending_note = _("enables on deploy") if pending_active else _("disables on deploy") %}
-                        {% else %}
-                            {% set pending_note = "" %}
-                        {% endif %}
+                        {# One derivation of "does the next deploy touch this row": the note the
+                           drift cell prints, and the amber stripe that flags it. Which change is
+                           staged is left to the pills beside the note and to the deploy plan
+                           below, which itemizes every one of them by name. #}
+                        {% set pending = merged or pr.get('pull_latest_sha') or pending_active is not none %}
                         <tr data-pr="{{ pr['pr'] }}"
-                            class="testing-env__row {%- if merged %} is-merged{% endif %} {%- if drift > 0 %} is-drifted{% endif %} {%- if not active %} is-inactive{% endif %} {%- if pr.get('is_new') %} is-new{% endif %} {%- if pending_note %} is-pending{% endif %}">
+                            class="testing-env__row {%- if merged %} is-merged{% endif %} {%- if drift > 0 %} is-drifted{% endif %} {%- if not active %} is-inactive{% endif %} {%- if pr.get('is_new') %} is-new{% endif %} {%- if pending %} is-pending{% endif %}">
                             {% if is_maintainer %}
                                 <td class="testing-env__col-check">
                                     <input type="checkbox"
@@ -177,15 +165,14 @@
                                                   title="{{ behind_title }}">-{{ drift }}</span>
                                         {% endif %}
                                     {% endif %}
-                                    {% if pending_note %}
-                                        <span class="testing-env__pending">{{ pending_note }}</span>
+                                    {% if pending %}
+                                        <span class="testing-env__pending">{{ _("changes on deploy") }}</span>
                                     {% endif %}
                                 </div>
                             </td>
                             <td class="testing-env__col-added">
                                 <time datetime="{{ pr['added_at'] }}"
-                                      title="{{ _('Added by %(who)s', who=pr.get('added_by', '')) }}"
-                                      data-relative-time>{{ pr['added_at'][:10] }}</time>
+                                      title="{{ _('Added by %(who)s', who=pr.get('added_by', '')) }}">{{ pr['added_at'][:10] }}</time>
                             </td>
                             {% if is_maintainer %}
                                 {# Verbs live out here, past the data, so the drift column reads as
@@ -244,13 +231,13 @@
         <div class="testing-env__deploy-state">
             {% if payload.get('deploying') %}
                 {# Jenkins never reports back, so this is a time window, not a result. #}
-                {% set started %}<time datetime="{{ payload['deploy_started_at'] }}" data-relative-time>{{ payload['deploy_started_at'][:16] | replace('T', ' ') }}</time>{% endset %}
+                {% set started %}<time datetime="{{ payload['deploy_started_at'] }}">{{ payload['deploy_started_at'][:16] | replace('T', ' ') }}</time>{% endset %}
                 <span class="testing-env__status testing-env__status--deploying">
                     <span class="testing-env__dot" aria-hidden="true"></span>
                     {% trans time=started %}Deploying, started {{ time }}{% endtrans %}
                 </span>
             {% elif payload.get('last_deploy_at') %}
-                {% set deployed %}<time datetime="{{ payload['last_deploy_at'] }}" data-relative-time>{{ payload['last_deploy_at'][:16] | replace('T', ' ') }}</time>{% endset %}
+                {% set deployed %}<time datetime="{{ payload['last_deploy_at'] }}">{{ payload['last_deploy_at'][:16] | replace('T', ' ') }}</time>{% endset %}
                 <span class="testing-env__status">
                     <span class="testing-env__dot" aria-hidden="true"></span>
                     {% trans time=deployed %}Last deploy {{ time }}{% endtrans %}
