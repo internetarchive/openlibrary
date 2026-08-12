@@ -7616,32 +7616,32 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "%s selected"
+msgid "%(count)s selected"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "synced %s"
+msgid "synced %(time)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Removing #%s…"
+msgid "Removing #%(num)s…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Updating #%s…"
+msgid "Updating #%(num)s…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Enabling #%s…"
+msgid "Enabling #%(num)s…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Disabling #%s…"
+msgid "Disabling #%(num)s…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7690,6 +7690,14 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "removes on deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "updates and enables on deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "updates and disables on deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

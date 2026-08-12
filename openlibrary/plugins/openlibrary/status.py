@@ -248,8 +248,8 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
             changes.append({**entry, "kind": "add", "detail": p.short_pull_latest or p.short_commit})
         elif p.pull_latest_sha:
             changes.append({**entry, "kind": "pin", "detail": p.short_pull_latest})
-        if p.pending_active is not None:
-            changes.append({**entry, "kind": "enable" if p.pending_active else "disable", "detail": ""})
+        if (toggle := p.pending_toggle) is not None:
+            changes.append({**entry, "kind": "enable" if toggle else "disable", "detail": ""})
     changes.sort(key=lambda c: (_CHANGE_ORDER[c["kind"]], c["pr"]))
     return changes
 
@@ -385,6 +385,16 @@ class TestingPR:
         return self.pull_latest_sha[:7] if self.pull_latest_sha else ""
 
     @property
+    def pending_toggle(self) -> bool | None:
+        """Staged enable/disable, or None when it already matches ``active``.
+
+        Toggling a row off and straight back on leaves ``pending_active`` set to
+        what the PR already is; deploying that changes nothing, so nothing should
+        offer it as a change.
+        """
+        return self.pending_active if self.pending_active != self.active else None
+
+    @property
     def added_date(self) -> str:
         return self.added_at[:10] if self.added_at else ""
 
@@ -399,8 +409,8 @@ class TestingPR:
         }
         if self.pull_latest_sha:
             d["pull_latest_sha"] = self.pull_latest_sha
-        if self.pending_active is not None:
-            d["pending_active"] = self.pending_active
+        if self.pending_toggle is not None:
+            d["pending_active"] = self.pending_toggle
         if self.author:
             d["author"] = self.author
         if self.author_avatar:

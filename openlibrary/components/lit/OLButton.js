@@ -35,10 +35,13 @@ import { LitElement, html, nothing } from 'lit';
  * @prop {"floating"} elevation - Heavier drop shadow for a control that sits
  *   over content (e.g. a save button on cover art) rather than on the page.
  * @prop {"button" | "submit" | "reset"}           type    - Default: "button"
+<<<<<<< HEAD
  * @prop {String} href      - Renders an <a> instead of a <button>.
  * @prop {String} target    - Link target (only with href).
  * @prop {String} rel       - Link rel (only with href).
  * @prop {String} download  - Link download attribute (only with href).
+ * @prop {String} formaction - Endpoint a type="submit" button posts to, overriding
+ *   the form's own action (one form, several verbs).
  * @prop {Boolean} loading    - Shows a spinner and disables interaction.
  * @prop {Boolean} disabled   - Disables interaction.
  * @prop {Boolean} fullWidth  - Button expands to fill its container.
@@ -64,10 +67,14 @@ export class OLButton extends LitElement {
         shape: { type: String, reflect: true },
         elevation: { type: String, reflect: true },
         type: { type: String, reflect: true },
+<<<<<<< HEAD
         href: { type: String, reflect: true },
         target: { type: String },
         rel: { type: String },
         download: { type: String },
+        // Only the inner <button> is form-associated, so a formaction left on the
+        // host would never reach the submitter.
+        formAction: { type: String, attribute: 'formaction', reflect: true },
         loading: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
@@ -155,6 +162,8 @@ export class OLButton extends LitElement {
         return html`
             <button
                 type=${this.type}
+<<<<<<< HEAD
+                formaction=${this.formAction ?? nothing}
                 ?disabled=${inert}
                 aria-busy=${this.loading ? 'true' : 'false'}
                 aria-label=${this.a11yLabel ?? nothing}

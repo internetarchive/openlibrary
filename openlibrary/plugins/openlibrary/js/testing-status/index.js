@@ -16,7 +16,9 @@ const CLOCK_INTERVAL_MS = 30000;
 /**
  * English source strings and runtime fallback. The macro renders the
  * translated copies into the panel's data-i18n attribute; keep the keys and
- * the English text here in lockstep with it.
+ * the English text here in lockstep with it. Its msgids name their
+ * placeholders for translators, but what arrives here is always `%s`, filled
+ * in by sprintf().
  */
 export const DEFAULT_STRINGS = {
     justNow: 'just now',
@@ -179,9 +181,13 @@ class TestingStatusPanel {
             // The deploy section is a rendered plan, not a fixed control — its
             // state line, change list and button turn over together, so swap it
             // wholesale rather than patching the button's disabled attribute.
+            // data-deploy-key is what the swap keys off: the markup itself can't
+            // be compared once the browser has hydrated it and renderRelativeTimes
+            // has rewritten its timestamps, and re-rendering on every tick would
+            // pull the Deploy button out from under whoever is aiming at it.
             const liveDeploy = this.root.querySelector('[data-deploy-section]');
             const newDeploy = incoming.querySelector('[data-deploy-section]');
-            if (liveDeploy && newDeploy && liveDeploy.innerHTML !== newDeploy.innerHTML) {
+            if (liveDeploy && newDeploy && liveDeploy.dataset.deployKey !== newDeploy.dataset.deployKey) {
                 liveDeploy.replaceWith(newDeploy);
             }
         } else {

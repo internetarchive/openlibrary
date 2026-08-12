@@ -95,6 +95,18 @@ def test_pending_changes_itemizes_every_staged_edit():
     assert changes[0]["title"] == "Test PR"
 
 
+def test_pending_changes_ignores_a_toggle_back_to_the_live_state():
+    """Off then on again stages nothing: deploying it would change nothing."""
+    pr = _make_pr(pr_number=13240, active=True, added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_active = True
+    state = _make_state(prs=[pr])
+
+    assert status_module._pending_changes(state, {}) == []
+    assert status_module.get_testing_status(state, {})["has_pending"] is False
+    # And the row the template reads carries no pending toggle either.
+    assert "pending_active" not in pr.to_dict()
+
+
 def test_pending_changes_merged_pr_yields_only_a_removal():
     """The deploy drops merged PRs outright, so nothing else staged on one matters."""
     pr = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")

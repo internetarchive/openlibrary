@@ -519,7 +519,7 @@ a.testing-env__pill:focus-visible {
 }
 
 /* Spans both rows so a long change list keeps the button vertically centred. */
-.testing-env__deploy [data-deploy] {
+.testing-env__deploy-action {
   grid-column: 2;
   grid-row: 1 / span 2;
   justify-self: end;
@@ -655,7 +655,7 @@ a.testing-env__pill:focus-visible {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .testing-env__deploy [data-deploy] {
+  .testing-env__deploy-action {
     grid-column: 1;
     grid-row: auto;
     justify-self: start;
