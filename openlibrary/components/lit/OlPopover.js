@@ -6,6 +6,46 @@ import { getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.j
 let _idCounter = 0;
 
 /**
+ * Whether the browser supports the Popover API (Chrome 114, Safari 17, Firefox 125).
+ * When it does, the panel is promoted to the **top layer**, whose containing block
+ * is always the viewport. Without it, `position: fixed` resolves against the
+ * nearest transformed ancestor instead — so a popover inside any transformed
+ * container (a carousel track, a `will-change` element) renders hundreds of pixels
+ * off and gets clipped. The top layer also escapes ancestor `isolation: isolate`
+ * and z-index stacking. Older browsers keep the plain `position: fixed` path,
+ * which is correct everywhere except under a transformed ancestor.
+ */
+const SUPPORTS_TOP_LAYER =
+    typeof HTMLElement !== 'undefined' &&
+    typeof HTMLElement.prototype.showPopover === 'function';
+
+/**
+ * Show `el` in the top layer, tolerating the states that make `showPopover()`
+ * throw (already open, not yet connected).
+ */
+function _promoteToTopLayer(el) {
+    if (!SUPPORTS_TOP_LAYER || !el || !el.isConnected) return;
+    if (el.matches(':popover-open')) return;
+    try {
+        el.showPopover();
+    } catch {
+        // Not promotable (disconnected mid-flight) — the fixed-position
+        // fallback still paints it in the right place off a transform.
+    }
+}
+
+/** Drop `el` out of the top layer, tolerating an already-hidden element. */
+function _demoteFromTopLayer(el) {
+    if (!SUPPORTS_TOP_LAYER || !el || !el.isConnected) return;
+    if (!el.matches(':popover-open')) return;
+    try {
+        el.hidePopover();
+    } catch {
+        // Already hidden by removal from the DOM.
+    }
+}
+
+/**
  * Open popovers, topmost (most recently shown) last. Escape is a document-level
  * listener, so every open popover sees the keypress; consulting this stack lets
  * only the innermost popover close, dismissing one layer at a time when popovers
@@ -24,8 +64,12 @@ function _removeFromOverlayStack(el) {
  * A reusable popover component that anchors to a trigger element.
  *
  * Renders a trigger slot and a popover panel that opens/closes with animation.
- * The popover uses `position: fixed` to escape overflow clipping and animates
- * from the trigger's location using `transform-origin`.
+ * The panel is promoted to the top layer via the Popover API so it escapes
+ * overflow clipping, ancestor transforms and z-index stacking, falling back to
+ * plain `position: fixed` on browsers without it. It animates from the trigger's
+ * location using `transform-origin`. The `popover` type is `manual`, not `auto`:
+ * this component owns its Escape, outside-click and nesting behaviour, and
+ * `auto` would force-close sibling popovers outside the ancestor chain.
  *
  * Self-manages open state by default — clicking the slotted trigger toggles
  * the popover, Escape and outside-click close it. Consumers can drive `open`
@@ -106,6 +150,21 @@ export class OlPopover extends LitElement {
             pointer-events: none;
         }
 
+        /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
+           border, padding, overflow, system colors) so the top-layer panel is
+           laid out purely by the inline top/left we compute. Must precede
+           .panel.tray, which restates its own inset and margin. */
+        .panel[popover] {
+            inset: auto;
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+            overflow: visible;
+            color: inherit;
+        }
+
         .panel[data-state="preparing"],
         .panel[data-state="entering"] {
             will-change: transform, opacity;
@@ -140,6 +199,14 @@ export class OlPopover extends LitElement {
             position: fixed;
             inset: 0;
             z-index: var(--z-index-dropdown);
+            /* Undo the UA [popover] defaults. width/height matter most: the UA's
+               fit-content beats inset: 0, collapsing the backdrop to 0x0 and
+               taking the dimming layer and its tap-to-dismiss target with it. */
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
             background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
             backdrop-filter: blur(1px);
@@ -301,6 +368,7 @@ export class OlPopover extends LitElement {
                 ${this._mobile ? html`
                     <div
                         class="backdrop"
+                        popover="${ifDefined(SUPPORTS_TOP_LAYER ? 'manual' : undefined)}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
                     ></div>
@@ -320,6 +388,7 @@ export class OlPopover extends LitElement {
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
+                    popover="${ifDefined(SUPPORTS_TOP_LAYER ? 'manual' : undefined)}"
                     data-state="${this._animState}"
                     role="dialog"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
@@ -399,6 +468,12 @@ export class OlPopover extends LitElement {
             const panel = this.shadowRoot.querySelector('.panel');
             if (!panel) return;
 
+            // Promote to the top layer before measuring — a [popover] element is
+            // `display: none` until shown, so offsetWidth/Height would read 0.
+            // Backdrop first: within the top layer, later-shown paints on top.
+            _promoteToTopLayer(this.shadowRoot.querySelector('.backdrop'));
+            _promoteToTopLayer(panel);
+
             // Desktop: measure and position relative to trigger.
             // Use offsetWidth/Height — getBoundingClientRect includes the
             // scale(0.95) transform from the preparing state, under-reporting
@@ -470,6 +545,8 @@ export class OlPopover extends LitElement {
     _cleanup() {
         this._removeListeners();
         this._releaseScrollLock();
+        _demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
+        _demoteFromTopLayer(this.shadowRoot?.querySelector('.backdrop'));
         this._restoreFocus();
     }
 
