@@ -80,7 +80,7 @@ $else:
 
   <div class="ol-action-row">
     <div class="ol-macro-wrapper">
-      $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=(secondary_action and not loan), analytics_override="BookCarousel|CTAClick|%s" % key)
+      $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=(secondary_action and not loan), analytics_override="BookCarousel|{action}Click|%s" % key)
     </div>
 
     $if loan and loan.get('resource_type') == 'bookreader':
@@ -88,7 +88,7 @@ $else:
         <form action="/borrow/ia/$(loan.get('ocaid'))" method="post" class="return-form" data-i18n="$json_encode({'confirm_return': _('Really return this book?')})">
           <input type="hidden" name="action" value="return" />
           <input type="hidden" name="redirect" value="$request.fullpath" />
-          <button type="submit" class="cta-btn cta-btn--available" title="$_('Return book')" aria-label="$_('Return book')">
+          <button type="submit" class="cta-btn cta-btn--available" title="$_('Return book')" aria-label="$_('Return book')" data-ol-link-track="BookCarousel|ReturnClick|$key">
             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M288-192v-72h288q50 0 85-35t35-85q0-50-35-85t-85-35H330l93 93-51 51-180-180 180-180 51 51-93 93h246q80 0 136 56t56 136q0 80-56 136t-136 56H288Z"/></svg>
           </button>
         </form>

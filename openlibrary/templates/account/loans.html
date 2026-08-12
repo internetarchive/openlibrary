@@ -94,7 +94,7 @@ th.status {
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':
                         $:macros.LoanReadForm(loan['ocaid'])
-                        $:macros.ReturnForm(loan['ocaid'], loan['expiry'])
+                        $:macros.ReturnForm(loan['ocaid'], loan['expiry'], analytics_track="LoansAndHistory|ReturnClick")
                     $else:
                         $if loan['expiry'] is None:
                             <span class="red">$_("Not yet downloaded.") </span><br/>
