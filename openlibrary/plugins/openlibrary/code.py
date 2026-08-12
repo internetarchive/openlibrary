@@ -3,7 +3,6 @@ Open Library Plugin.
 """
 
 import datetime
-import functools
 import gzip
 import json
 import logging
@@ -15,7 +14,6 @@ import sys
 from time import time
 from urllib.parse import parse_qs, quote, urlencode
 
-import requests
 import web
 import yaml
 
@@ -373,20 +371,6 @@ class robotstxt(delegate.page):
         is_dev = get_ol_env().LOCAL_DEV or web.ctx.host != "openlibrary.org"
         robots_file = "norobots.txt" if is_dev else "robots.txt"
         return web.ok(open(f"static/{robots_file}").read())
-
-
-@functools.cache
-def fetch_ia_js(filename: str) -> str:
-    return requests.get(f"https://archive.org/includes/{filename}").text
-
-
-class ia_js_cdn(delegate.page):
-    path = r"/cdn/archive.org/(donate\.js|athena\.js)"
-
-    def GET(self, filename):
-        web.header("Content-Type", "text/javascript")
-        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
-        return web.ok(fetch_ia_js(filename))
 
 
 class serviceworker(delegate.page):
