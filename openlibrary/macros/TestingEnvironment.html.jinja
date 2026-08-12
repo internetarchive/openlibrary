@@ -25,22 +25,28 @@
 {% endmacro %}
 {% set repo_url = "https://github.com/internetarchive/openlibrary" %}
 {# Strings the controller renders client-side. Keys and English source text
-   must match DEFAULT_STRINGS in js/testing-status/index.js; `%s` is filled in
-   there via sprintf. #}
+   must match DEFAULT_STRINGS in js/testing-status/index.js.
+
+   Placeholders are named for translators but resolve to the bare `%s` that
+   sprintf() fills in on the client: newstyle gettext runs `%` formatting on
+   every string it returns, so an unescaped `%s` left here would be eaten
+   before it ever reached JS. #}
 {% set i18n_strings = {
     "justNow": _("just now"),
     "noneSelected": _("None selected"),
-    "selected": _("%s selected"),
-    "synced": _("synced %s"),
-    "removing": _("Removing #%s…"),
-    "updating": _("Updating #%s…"),
-    "enabling": _("Enabling #%s…"),
-    "disabling": _("Disabling #%s…"),
+    "selected": _("%(count)s selected", count="%s"),
+    "synced": _("synced %(time)s", time="%s"),
+    "removing": _("Removing #%(num)s…", num="%s"),
+    "updating": _("Updating #%(num)s…", num="%s"),
+    "enabling": _("Enabling #%(num)s…", num="%s"),
+    "disabling": _("Disabling #%(num)s…", num="%s"),
     "deploying": _("Deploying to testing…"),
 } %}
+{# Single-quoted: tojson escapes `'` but not `"`, which would close the
+   attribute on the first key and strand the payload. #}
 <section class="testing-env"
          data-testing-env
-         data-i18n="{{ i18n_strings | tojson }}">
+         data-i18n='{{ i18n_strings | tojson }}'>
     <header class="testing-env__bar">
         <div class="testing-env__identity">
             <h2 class="testing-env__title">{{ _("Testing Environment") }}</h2>
@@ -102,10 +108,21 @@
                         {% set pending_active = pr.get('pending_active') %}
                         {% set effective_active = active if pending_active is none else pending_active %}
                         {# One derivation of "what the next deploy does to this row": the note the
-                           drift cell prints, and the amber stripe that flags it. #}
-                        {% set pending_note = _("removes on deploy") if merged
-                            else _("updates on deploy") if pr.get('pull_latest_sha')
-                        else (_("enables on deploy") if pending_active else _("disables on deploy")) if pending_active is not none %}
+                           drift cell prints, and the amber stripe that flags it. A pin and a
+                           toggle can be staged on the same row, so that pair gets its own
+                           phrasing rather than one note hiding the other. #}
+                        {% set pinning = pr.get('pull_latest_sha') %}
+                        {% if merged %}
+                            {% set pending_note = _("removes on deploy") %}
+                        {% elif pinning and pending_active is not none %}
+                            {% set pending_note = _("updates and enables on deploy") if pending_active else _("updates and disables on deploy") %}
+                        {% elif pinning %}
+                            {% set pending_note = _("updates on deploy") %}
+                        {% elif pending_active is not none %}
+                            {% set pending_note = _("enables on deploy") if pending_active else _("disables on deploy") %}
+                        {% else %}
+                            {% set pending_note = "" %}
+                        {% endif %}
                         <tr data-pr="{{ pr['pr'] }}"
                             class="testing-env__row {%- if merged %} is-merged{% endif %} {%- if drift > 0 %} is-drifted{% endif %} {%- if not active %} is-inactive{% endif %} {%- if pr.get('is_new') %} is-new{% endif %} {%- if pending_note %} is-pending{% endif %}">
                             {% if is_maintainer %}
@@ -202,24 +219,25 @@
                 </tbody>
             </table>
             {% if is_maintainer %}
+                {# formaction carries the endpoint for the plain form post the browser
+                   makes before (or without) the controller; data-bulk is the same
+                   endpoint for the controller's fetch. Written once per action so the
+                   two can't drift. #}
+                {% set bulk_actions = [
+                    ("/status/pull-latest", _("Update"), false),
+                    ("/status/enable", _("Enable"), false),
+                    ("/status/disable", _("Disable"), false),
+                    ("/status/remove", _("Remove"), false),
+                    ("/status/refresh", _("Refresh from GitHub"), true),
+                ] %}
                 <footer class="testing-env__actions">
                     <div class="testing-env__bulk">
                         <span class="testing-env__selected" data-selected-count>{{ _("None selected") }}</span>
-                        <ol-button size="small" type="submit" data-bulk="/status/pull-latest">
-                            {{ _("Update") }}
-                        </ol-button>
-                        <ol-button size="small" type="submit" data-bulk="/status/enable">
-                            {{ _("Enable") }}
-                        </ol-button>
-                        <ol-button size="small" type="submit" data-bulk="/status/disable">
-                            {{ _("Disable") }}
-                        </ol-button>
-                        <ol-button size="small" type="submit" data-bulk="/status/remove">
-                            {{ _("Remove") }}
-                        </ol-button>
-                        <ol-button size="small" type="submit" data-bulk="/status/refresh" data-no-selection>
-                            {{ _("Refresh from GitHub") }}
-                        </ol-button>
+                        {% for action, label, no_selection in bulk_actions %}
+                            <ol-button size="small" type="submit" formaction="{{ action }}" data-bulk="{{ action }}" {% if no_selection %}data-no-selection{% endif %}>
+                                {{ label }}
+                            </ol-button>
+                        {% endfor %}
                     </div>
                 </footer>
             {% endif %}
@@ -231,7 +249,14 @@
        reaches testing.openlibrary.org until Deploy flushes it to Jenkins. #}
     {% set changes = payload.get('pending_changes', []) %}
     {% set kind_labels = {'add': _("Add"), 'pin': _("Update pin"), 'enable': _("Enable"), 'disable': _("Disable"), 'remove': _("Remove")} %}
-    <section class="testing-env__deploy" data-deploy-section>
+    {# Everything this section reports, in one comparable value. The poll swaps
+       the section only when this changes: its markup can't be diffed, since the
+       live copy carries hydrated <ol-button> internals and timestamps the client
+       has already rewritten, neither of which the server ever sends. #}
+    {% set deploy_key %}{{ payload.get("deploying") }}|{{ payload.get('deploy_started_at', '') }}|{{ payload.get('last_deploy_at', '') }}{% for change in changes %}|{{ change['kind'] }}:{{ change['pr'] }}:{{ change['detail'] }}{% endfor %}{% endset %}
+    <section class="testing-env__deploy"
+             data-deploy-section
+             data-deploy-key="{{ deploy_key }}">
         <div class="testing-env__deploy-state">
             {% if payload.get('deploying') %}
                 {# Jenkins never reports back, so this is a time window, not a result. #}
@@ -282,10 +307,19 @@
                 <p class="testing-env__plan-empty">{{ _("Nothing to deploy — testing matches the current set.") }}</p>
             {% endif %}
         </div>
-        {# Disabled rather than dropped while a build runs: the poll swaps this
-           section every 20s, and a button that vanishes takes the layout with it. #}
+        {# Its own form so the button works before the controller loads, and disabled
+           rather than dropped when there is nothing to apply: the poll swaps this
+           section every 20s, and a button that vanishes takes the layout with it.
+           A build already running is not a reason to disable it — Jenkins runs this
+           job one at a time, so a second deploy queues behind the first and lands
+           the newer set, whereas blocking on the presumed window would strand
+           anything staged in the ten minutes after a deploy. #}
         {% if is_maintainer %}
-            <ol-button variant="primary" data-deploy {% if not changes or payload.get('deploying') %}disabled{% endif %}>{{ _("Deploy") }}</ol-button>
+            <form method="post"
+                  action="/status/deploy"
+                  class="testing-env__deploy-action">
+                <ol-button variant="primary" type="submit" data-deploy {% if not changes %}disabled{% endif %}>{{ _("Deploy") }}</ol-button>
+                </form>
         {% endif %}
     </section>
     <div class="testing-env__toast" data-toast hidden aria-live="polite"></div>
