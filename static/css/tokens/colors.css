@@ -73,6 +73,7 @@
   --green-100: hsl(128, 45%, 90%);
   --green-200: hsl(128, 38%, 80%);
   --green-300: hsl(128, 32%, 62%);
+  --green-400: hsl(130, 58%, 35%); /* object color — non-text only */
   --green-500: hsl(130, 50%, 30%);
   --green-600: hsl(130, 48%, 26%);
   --green-700: hsl(131, 50%, 20%);
@@ -173,6 +174,12 @@
   --color-warning-fg: var(--amber-600);
   --color-warning-bg: var(--amber-50);
   --color-warning-border: var(--amber-200);
+
+  /* Counterparts for status *shapes* — switches, bars, dots. The -fg ramps are
+     tuned for AA text and read muddy as a block of color. The neutral one is the
+     same shape switched off: dark enough that a white knob still reads on it. */
+  --color-success-object: var(--green-400);
+  --color-neutral-object: var(--neutral-300);
 }
 
 /**

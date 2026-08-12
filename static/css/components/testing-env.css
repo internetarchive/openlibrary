@@ -3,10 +3,19 @@
  * Markup: openlibrary/macros/TestingEnvironment.html.jinja
  */
 
+/* One card in two bands: the set you are staging, then the apply step that
+   flushes it. The root is just their container — it carries no surface of its
+   own, and the toast sits below the card entirely. */
 .testing-env {
   margin-bottom: var(--spacing-xl);
+}
+
+/* Top band: square along the bottom, where the deploy section joins it.
+   overflow so the table's square corners are clipped by the card's. */
+.testing-env__main {
   border: var(--border-width-thin) solid var(--color-border-subtle);
-  border-radius: var(--border-radius-card);
+  border-bottom: 0;
+  border-radius: var(--border-radius-card) var(--border-radius-card) 0 0;
   background: var(--color-surface);
   overflow: hidden;
 }
@@ -19,15 +28,10 @@
   gap: var(--spacing-md);
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
+  /* Horizontal padding matches the table cells' so the title lines up with
+     the first column. */
+  padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
-}
-
-.testing-env__identity {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-  align-items: center;
 }
 
 .testing-env__title {
@@ -60,34 +64,140 @@
   background: currentcolor;
 }
 
-.testing-env__host,
-.testing-env__host:link,
-.testing-env__host:visited {
-  color: var(--color-text-muted);
-  font-family: var(--font-family-code);
-  font-size: 0.8rem;
-  text-decoration: none;
+/* ── Buttons ────────────────────────────────────────────────── */
+
+/* Hand-rolled rather than <ol-button>: every control here has to be a real
+   submit button in the served markup so the panel works with JS off. */
+.testing-env__btn {
+  display: inline-flex;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  justify-content: center;
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-md);
+  border: var(--border-width-control) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.testing-env__host:hover,
-.testing-env__host:focus-visible {
-  color: var(--color-link-hover);
-  text-decoration: underline;
+.testing-env__btn:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 1px;
 }
 
-/* ── Add-PR row ─────────────────────────────────────────────── */
+/* The bulk buttons sit disabled until something is checked, and Deploy until
+   there is a change to apply — both are steady states, not error feedback. */
+.testing-env__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
+.testing-env__btn:hover:not(:disabled) {
+  background: var(--color-control-hover);
+}
+
+/* flex:none so the icon keeps its box when the label wraps or the button is
+   squeezed — an SVG in a flex row is otherwise fair game for shrinking. */
+.testing-env__btn-icon {
+  flex: none;
+}
+
+.testing-env__btn--small {
+  height: var(--control-height-small);
+  padding: 0 var(--spacing-sm);
+  font-size: var(--font-size-label-medium);
+}
+
+.testing-env__btn--primary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.testing-env__btn--primary:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
+/* ── Row on/off switch ──────────────────────────────────────── */
+
+/* A submit button painted as a switch. aria-pressed is the state it shows;
+   its formaction posts the opposite one, so a click flips the row either way. */
+.testing-env__switch {
+  position: relative;
+  display: block;
+  width: 34px;
+  height: 20px;
+  padding: 0;
+  /* Edge, not outline: the off fill sits near the row surface so it needs a
+     border the on state doesn't — mixed toward the fill so it reads as the
+     shape's own edge instead of a dark ring around it. */
+  border: var(--border-width-control) solid
+    color-mix(in srgb, var(--color-border) 45%, var(--color-neutral-object));
+  border-radius: var(--border-radius-pill);
+  background: var(--color-neutral-object);
+  cursor: pointer;
+}
+
+.testing-env__switch[aria-pressed="true"] {
+  border-color: var(--color-success-object);
+  background: var(--color-success-object);
+}
+
+.testing-env__switch:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.testing-env__switch-knob {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--border-radius-circle);
+  background: var(--color-surface);
+  transform: translateY(-50%);
+  transition: left 0.12s;
+}
+
+.testing-env__switch[aria-pressed="true"] .testing-env__switch-knob {
+  left: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testing-env__switch-knob {
+    transition: none;
+  }
+}
+
+/* ── Add-PR form ────────────────────────────────────────────── */
+
+/* Rides on the right of the header bar; grows into the space the title
+   leaves, capped so it stops short of the full width on a wide viewport. */
 .testing-env__add {
   display: flex;
+  flex: 1 1 20rem;
   gap: var(--spacing-sm);
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
+  justify-content: flex-end;
+  max-width: 32rem;
 }
 
-.testing-env__input {
+/* Qualified by the element to outweigh the global `input[type="text"]` rule,
+   whose right and bottom margin would double the flex gap and push the input
+   off the bar's centre line. */
+input.testing-env__input {
   flex: 1;
   min-width: 0;
-  padding: var(--spacing-sm) var(--spacing-md);
+  height: var(--control-height-medium);
+  margin: 0;
+  padding: 0 var(--spacing-md);
   border: var(--border-width-control) solid var(--color-border-subtle);
   border-radius: var(--border-radius-input);
   background: var(--color-surface);
@@ -102,6 +212,12 @@
 }
 
 /* ── Table ──────────────────────────────────────────────────── */
+
+/* Field-set holders the controls join by id — they hold no markup of their
+   own, so they must not take up space between the add row and the table. */
+.testing-env__anchor-form {
+  margin: 0;
+}
 
 .testing-env__table {
   width: 100%;
@@ -128,39 +244,17 @@
   vertical-align: middle;
 }
 
-/* Status stripe down the left edge — the at-a-glance color code for each row:
-   green = live on testing, grey = disabled, amber = a queued change will alter
-   it on the next deploy. On the first cell, not the row: border-collapse eats
-   tr borders inconsistently, and inset box-shadow survives the hover tint. */
-.testing-env__row {
-  --row-stripe: var(--color-success-fg);
+/* Plain surface is the resting state for a row — a tint means something is
+   true of this row beyond "it's on the box". Drift deliberately isn't one of
+   them: the "N behind" pill already says it, in its own colour. */
+.testing-env__row td {
+  background: var(--color-surface);
 }
 
-.testing-env__row.is-inactive {
-  --row-stripe: var(--color-border);
-}
-
-/* Last of the stripes: a queued change outranks the current on/off state,
-   because "about to change" is the thing worth spotting first. */
-.testing-env__row.is-pending {
-  --row-stripe: var(--color-warning-fg);
-}
-
-.testing-env__row td:first-child {
-  box-shadow: inset 3px 0 0 var(--row-stripe);
-}
-
-/* Kept well below --color-warning-bg so the "N behind" pill, which uses that
-   token at full strength, still reads as a pill against the tinted row. */
-.testing-env__row.is-drifted td {
-  background: color-mix(
-    in srgb,
-    var(--color-warning-bg) 35%,
-    var(--color-surface)
-  );
-}
-
-.testing-env__row.is-new td {
+/* Blue for staged-but-not-deployed. A new row is always pending, so both
+   classes land on the same tint. */
+.testing-env__row.is-new td,
+.testing-env__row.is-pending td {
   background: var(--color-primary-subtle);
 }
 
@@ -174,14 +268,7 @@
   white-space: nowrap;
 }
 
-.testing-env__col-added {
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* Trailing verb column: ragged-right like Added. */
+/* Trailing verb column: ragged-right. */
 .testing-env__col-actions {
   text-align: right;
 }
@@ -345,8 +432,7 @@ a.testing-env__pill:focus-visible {
   text-decoration: underline;
 }
 
-/* Warning-colored to match the row's queued stripe: the note names the change
-   the stripe is flagging. */
+/* Warning-colored: the note names a change the next deploy will apply. */
 .testing-env__pending {
   color: var(--color-warning-fg);
   font-size: 0.7rem;
@@ -377,41 +463,55 @@ a.testing-env__pill:focus-visible {
 
 /* ── Paused rows ────────────────────────────────────────────── */
 
-/* A paused PR isn't on the box, so its row drains of color — grey text, grey
-   avatars, unfilled pills. Deliberately not row-wide opacity: the checkbox and
-   the toggle you resume it with have to stay crisp. Last in the file so this
-   background outranks the drifted and new tints. */
+/* A paused PR isn't on the box, so its row drains of color — grey fill, grey
+   text, grey avatars, unfilled pills. Text is mixed toward the row fill rather
+   than set to a flat grey, so everything sits a shade lighter than muted.
+   Deliberately not row-wide opacity: the checkbox and the toggle you resume it
+   with have to stay crisp. Late in the file so this outranks the pending tint. */
+.testing-env__row.is-inactive {
+  --paused-text: color-mix(
+    in srgb,
+    var(--color-text-muted) 65%,
+    var(--color-surface-sunken)
+  );
+  --paused-text-strong: color-mix(
+    in srgb,
+    var(--color-text-secondary) 70%,
+    var(--color-surface-sunken)
+  );
+}
+
 .testing-env__row.is-inactive td {
   background: var(--color-surface-sunken);
-  color: var(--color-text-muted);
+  color: var(--paused-text);
 }
 
 /* Three classes, so this outranks the global a:link colour without a pseudo. */
 .testing-env__row.is-inactive .testing-env__pr-title {
-  color: var(--color-text-muted);
+  color: var(--paused-text-strong);
   font-weight: 400;
 }
 
 .testing-env__row.is-inactive .testing-env__avatar {
   filter: grayscale(1);
-  opacity: 0.75;
+  opacity: 0.6;
 }
 
 .testing-env__row.is-inactive .testing-env__pill {
   background: none;
-  color: var(--color-text-muted);
+  color: var(--paused-text);
   font-weight: 400;
 }
 
 /* Sunken is the row's own background here, so the tag needs the lighter fill. */
 .testing-env__row.is-inactive .testing-env__tag {
   background: var(--color-surface);
-  color: var(--color-text-muted);
+  color: var(--paused-text);
 }
 
 /* Still clickable, just not competing with the live rows for attention. */
 .testing-env__row.is-inactive .testing-env__row-action {
-  color: var(--color-text-secondary);
+  color: var(--paused-text-strong);
 }
 
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
@@ -421,14 +521,15 @@ a.testing-env__pill:focus-visible {
 
 /* ── Footer actions ─────────────────────────────────────────── */
 
+/* Same horizontal padding as the bar, the cells and the deploy band: one
+   content edge runs the height of the card. */
 .testing-env__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-md);
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-surface-sunken);
+  padding: var(--spacing-md);
 }
 
 .testing-env__bulk {
@@ -446,17 +547,18 @@ a.testing-env__pill:focus-visible {
 }
 
 .testing-env__blank {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-md);
   color: var(--color-text-muted);
 }
 
 /* ── Activity toast ─────────────────────────────────────────── */
 
+/* Below the card, flush with its left edge. */
 .testing-env__toast {
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
-  margin: var(--spacing-md) var(--spacing-lg);
+  margin: var(--spacing-md) 0 0;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-notification);
   background: var(--color-text);
@@ -472,38 +574,35 @@ a.testing-env__pill:focus-visible {
 
 /* ── Deploy section ─────────────────────────────────────────── */
 
-/* The apply step, deliberately separated from the table: everything above
-   stages intent, this is where it takes effect. */
-/* A decisive rule, not the hairline used between table rows: the bulk bar above
-   is also sunken, and the two must not read as one band. */
+/* Bottom band of the card, closing it off. Its border-top is the only seam
+   between staging and applying — the two are one object, read top to bottom:
+   the button, what it will do, then when it last ran. */
 .testing-env__deploy {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--spacing-sm) var(--spacing-lg);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: flex-start;
   margin: 0;
-  padding: var(--spacing-xl);
-  border-top: var(--border-width-thick) solid var(--color-border);
-  background: var(--color-surface-sunken);
+  padding: var(--spacing-lg) var(--spacing-md);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
+  background: var(--color-surface);
 }
 
+/* Card footer, ruled off from the plan above it. Full width so the rule spans
+   the card rather than just the text — the column is flex-start aligned. */
 .testing-env__deploy-state {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-md);
   align-items: center;
-  grid-column: 1;
+  width: 100%;
+  padding-top: var(--spacing-md);
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-.testing-env__plan {
-  grid-column: 1;
-}
-
-/* Spans both rows so a long change list keeps the button vertically centred. */
 .testing-env__deploy-action {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  justify-self: end;
+  margin: 0;
 }
 
 .testing-env__status--deploying {
@@ -531,6 +630,11 @@ a.testing-env__pill:focus-visible {
   font-size: 0.8rem;
 }
 
+/* Full width so the row rules span the card, not just the longest change. */
+.testing-env__plan {
+  width: 100%;
+}
+
 .testing-env__plan-head {
   margin: 0 0 var(--spacing-xs);
   color: var(--color-text-secondary);
@@ -544,23 +648,48 @@ a.testing-env__pill:focus-visible {
   font-size: 0.85rem;
 }
 
+/* No gap — the rows are separated by rules instead, which need to meet. */
+/* Column tracks live on the list, not the row, so every change lines up on the
+   same four rails however long its verb is — "UPDATE PIN" is twice the width of
+   "ADD", and translations stretch further still. The rows opt into these tracks
+   via subgrid below. */
 .testing-env__plan-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2xs);
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
+  column-gap: var(--spacing-sm);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Flex is the pre-subgrid fallback: same row, approximate rails. */
 .testing-env__change {
   display: flex;
   gap: var(--spacing-sm);
   align-items: baseline;
+  padding: var(--spacing-xs) 0;
   font-size: 0.8rem;
 }
 
-/* Fixed rail so the verbs stack into a readable column down the list. */
+/* The row stays a real box — it carries the divider and the padding — while its
+   cells align to the list's tracks. display:contents would align them too, but
+   at the cost of the <li>'s box and its semantics in the a11y tree. */
+@supports (grid-template-columns: subgrid) {
+  .testing-env__change {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+}
+
+/* Between rows only: the head above and the card footer below bring their own
+   spacing, so a rule on the first or last would double up. */
+.testing-env__change + .testing-env__change {
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* min-width only matters to the flex fallback; under subgrid the track is
+   already as wide as the longest verb. */
 .testing-env__change-kind {
   flex: none;
   min-width: 6em;
@@ -623,22 +752,11 @@ a.testing-env__pill:focus-visible {
 /* ── Narrow screens: let the table scroll rather than squash ── */
 
 @media (max-width: 900px) {
-  .testing-env__form {
+  .testing-env__table-wrap {
     overflow-x: auto;
   }
 
   .testing-env__table {
     min-width: 960px;
-  }
-
-  /* Deploy drops below the plan rather than squeezing beside it. */
-  .testing-env__deploy {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .testing-env__deploy-action {
-    grid-column: 1;
-    grid-row: auto;
-    justify-self: start;
   }
 }
