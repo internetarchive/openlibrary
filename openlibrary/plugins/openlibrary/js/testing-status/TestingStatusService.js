@@ -13,29 +13,6 @@
  * identical across dev, testing, and production.
  */
 
-const STATUS_URL = '/status';
-
-/**
- * Fetch a /status URL and parse the response as a document.
- * @param {String} url
- * @param {RequestInit} [init]
- * @return {Promise<Document>}
- */
-async function statusDocument(url, init) {
-    const response = await fetch(url, init);
-    if (!response.ok) {
-        throw new Error(`${url} failed: ${response.status}`);
-    }
-    return new DOMParser().parseFromString(await response.text(), 'text/html');
-}
-
-/**
- * @return {Promise<Document>} The current /status page.
- */
-export function fetchStatusDocument() {
-    return statusDocument(STATUS_URL);
-}
-
 /**
  * POST an action and return the resulting /status document.
  *
@@ -44,7 +21,7 @@ export function fetchStatusDocument() {
  *   how web.input(prs=[]) expects multiple checkboxes.
  * @return {Promise<Document>}
  */
-export function postAction(action, fields = {}) {
+export async function postAction(action, fields = {}) {
     const body = new URLSearchParams();
     for (const [key, value] of Object.entries(fields)) {
         if (Array.isArray(value)) {
@@ -54,9 +31,13 @@ export function postAction(action, fields = {}) {
         }
     }
 
-    return statusDocument(action, {
+    const response = await fetch(action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body
     });
+    if (!response.ok) {
+        throw new Error(`${action} failed: ${response.status}`);
+    }
+    return new DOMParser().parseFromString(await response.text(), 'text/html');
 }

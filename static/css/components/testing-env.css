@@ -75,25 +75,6 @@
   text-decoration: underline;
 }
 
-.testing-env__meta {
-  display: flex;
-  gap: var(--spacing-lg);
-  align-items: center;
-  color: var(--color-text-secondary);
-  font-size: 0.8rem;
-}
-
-.testing-env__sync:empty {
-  display: none;
-}
-
-.testing-env__autorefresh {
-  display: inline-flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  cursor: pointer;
-}
-
 /* ── Add-PR row ─────────────────────────────────────────────── */
 
 .testing-env__add {

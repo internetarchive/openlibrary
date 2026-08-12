@@ -2,9 +2,9 @@
   Testing Environment deploy table for /status.
 
   Server-rendered so the table is readable without JS. The controller in
-  plugins/openlibrary/js/testing-status/ patches only the volatile cells
-  (drift, sync clock, relative timestamps) and wires the row actions —
-  it never builds a row, so this template stays the single source of markup.
+  plugins/openlibrary/js/testing-status/ wires the row actions and re-renders
+  the panel from the server's response — it never builds a row, so this
+  template stays the single source of markup.
 #}
 {% macro person(name, avatar) %}
     {% if name %}
@@ -35,7 +35,6 @@
     "justNow": _("just now"),
     "noneSelected": _("None selected"),
     "selected": _("%(count)s selected", count="%s"),
-    "synced": _("synced %(time)s", time="%s"),
     "removing": _("Removing #%(num)s…", num="%s"),
     "updating": _("Updating #%(num)s…", num="%s"),
     "enabling": _("Enabling #%(num)s…", num="%s"),
@@ -51,14 +50,6 @@
         <div class="testing-env__identity">
             <h2 class="testing-env__title">{{ _("Testing Environment") }}</h2>
             <a class="testing-env__host" href="https://testing.openlibrary.org">testing.openlibrary.org</a>
-        </div>
-        <div class="testing-env__meta">
-            <span class="testing-env__sync" data-sync-label aria-live="polite"></span>
-            <label class="testing-env__autorefresh">
-                {{ _("Auto-refresh") }}
-                <ol-toggle data-autorefresh accessible-label="{{ _('Auto-refresh testing environment status') }}">
-                </ol-toggle>
-            </label>
         </div>
     </header>
     {% if is_maintainer %}
@@ -134,12 +125,12 @@
                                 </td>
                                 {# Leftmost, beside the checkbox, so a scan down the left edge
                                    answers "what's on the box" without reading each row. #}
-                                <td class="testing-env__col-toggle" data-cell="active">
+                                <td class="testing-env__col-toggle">
                                     <ol-toggle data-row-toggle data-pr="{{ pr['pr'] }}" {% if effective_active %}checked{% endif %} accessible-label="{{ _('Enable PR %(num)s on testing', num=pr['pr']) }}">
                                     </ol-toggle>
                                 </td>
                             {% endif %}
-                            <td class="testing-env__pr-cell" data-cell="pr">
+                            <td class="testing-env__pr-cell">
                                 {# Number rail, title clamped at three lines, then a fixed tag slot
                                    at the cell's right edge — the tags land in the same place no
                                    matter how long the title is. Merged state is not tagged here;
@@ -152,14 +143,14 @@
                                     {% if not active %}<span class="testing-env__tag">{{ _("Disabled") }}</span>{% endif %}
                                 </div>
                             </td>
-                            <td data-cell="author">{{ person(pr.get('author'), pr.get('author_avatar')) }}</td>
-                            <td data-cell="assignee">{{ person(pr.get('assignee'), pr.get('assignee_avatar')) }}</td>
+                            <td>{{ person(pr.get('author'), pr.get('author_avatar')) }}</td>
+                            <td>{{ person(pr.get('assignee'), pr.get('assignee_avatar')) }}</td>
                             {# The verdict pill plus, on one line, what the next deploy will do to
                                this row — every "…on deploy" note lives here so the toggle and
                                actions cells stay a single fixed height. The pinned sha is no
                                longer its own column: it rides in each pill's tooltip, and the
                                two pills worth clicking link to the commits behind the number. #}
-                            <td class="testing-env__drift-cell" data-cell="drift">
+                            <td class="testing-env__drift-cell">
                                 {% set pinned = pr['commit'][:7] %}
                                 <div class="testing-env__cell-stack">
                                     {% if merged %}
@@ -200,7 +191,7 @@
                                 {# Verbs live out here, past the data, so the drift column reads as
                                    pure status. The next deploy drops merged PRs anyway, so Remove
                                    is only an early-out. #}
-                                <td class="testing-env__col-actions" data-cell="actions">
+                                <td class="testing-env__col-actions">
                                     {% if merged %}
                                         <button type="button"
                                                 class="testing-env__row-action"
@@ -249,14 +240,7 @@
        reaches testing.openlibrary.org until Deploy flushes it to Jenkins. #}
     {% set changes = payload.get('pending_changes', []) %}
     {% set kind_labels = {'add': _("Add"), 'pin': _("Update pin"), 'enable': _("Enable"), 'disable': _("Disable"), 'remove': _("Remove")} %}
-    {# Everything this section reports, in one comparable value. The poll swaps
-       the section only when this changes: its markup can't be diffed, since the
-       live copy carries hydrated <ol-button> internals and timestamps the client
-       has already rewritten, neither of which the server ever sends. #}
-    {% set deploy_key %}{{ payload.get("deploying") }}|{{ payload.get('deploy_started_at', '') }}|{{ payload.get('last_deploy_at', '') }}{% for change in changes %}|{{ change['kind'] }}:{{ change['pr'] }}:{{ change['detail'] }}{% endfor %}{% endset %}
-    <section class="testing-env__deploy"
-             data-deploy-section
-             data-deploy-key="{{ deploy_key }}">
+    <section class="testing-env__deploy">
         <div class="testing-env__deploy-state">
             {% if payload.get('deploying') %}
                 {# Jenkins never reports back, so this is a time window, not a result. #}
@@ -308,12 +292,12 @@
             {% endif %}
         </div>
         {# Its own form so the button works before the controller loads, and disabled
-           rather than dropped when there is nothing to apply: the poll swaps this
-           section every 20s, and a button that vanishes takes the layout with it.
-           A build already running is not a reason to disable it — Jenkins runs this
-           job one at a time, so a second deploy queues behind the first and lands
-           the newer set, whereas blocking on the presumed window would strand
-           anything staged in the ten minutes after a deploy. #}
+           rather than dropped when there is nothing to apply, so the layout holds
+           still across a re-render. A build already running is not a reason to
+           disable it — Jenkins runs this job one at a time, so a second deploy
+           queues behind the first and lands the newer set, whereas blocking on the
+           presumed window would strand anything staged in the ten minutes after a
+           deploy. #}
         {% if is_maintainer %}
             <form method="post"
                   action="/status/deploy"

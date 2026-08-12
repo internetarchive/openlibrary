@@ -7621,11 +7621,6 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "synced %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
 msgid "Removing #%(num)s…"
 msgstr ""
 
@@ -7650,14 +7645,6 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Testing Environment"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Auto-refresh"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Auto-refresh testing environment status"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
