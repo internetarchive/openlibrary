@@ -1,0 +1,56 @@
+{#
+  Components — the full write-ups, built from the COMPONENTS registry in
+  design.py plus each partial's `demos()` macro. Nothing here is hand-listed.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% macro nav() %}
+    {% for group, members in groups %}
+        <div class="ds__nav-group">
+            <div class="ds__nav-group-title">{{ group }}</div>
+            <ul class="ds__nav-list">
+                {% for component in members %}
+                    <li>
+                        <a href="#{{ component.id }}">{{ component.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+    {% if undocumented %}
+        <div class="ds__nav-group">
+            <ul class="ds__nav-list">
+                <li><a href="#undocumented">Undocumented ({{ undocumented | length }})</a></li>
+            </ul>
+        </div>
+    {% endif %}
+{% endmacro %}
+{% macro body() %}
+    {% for group, members in groups %}
+        <section class="ds-section">
+            <h2 class="ds-section__title ds-section__title--eyebrow">{{ group }}</h2>
+            {% for component in members %}
+                {% import component.partial as partial with context %}
+                {% call ex.component_article(component, api.get(component.tag) if component.tag else none) %}
+                    {{ partial.demos() }}
+                {% endcall %}
+            {% endfor %}
+        </section>
+    {% endfor %}
+    {#
+      Coverage. CSS components are hand-documented, so the page lists what it
+      hasn't covered rather than implying it covered everything.
+    #}
+    {% if undocumented %}
+        <section class="ds-section" id="undocumented">
+            <h2 class="ds-section__title ds-section__title--eyebrow">Not yet documented</h2>
+            <p class="ds-section__blurb">
+                {{ undocumented | length }} files in <code>static/css/components/</code> that no entry above covers.
+                Page-specific styles and vendor overrides are excluded (see <code>NOT_COMPONENTS</code> in
+                <code>design.py</code>); everything here is a genuine gap.
+            </p>
+            <ul class="ds-undocumented">
+                {% for name in undocumented %}<li><code>{{ name }}.css</code></li>{% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+{% endmacro %}

@@ -692,6 +692,7 @@ class account_verify(delegate.page):
             raise web.seeother("/account/create")
         r = InternetArchiveAccount.verify(token=i.t)
         if "error" in r:
+            stats.increment("ol.account.verify.fail")
             if accounts.get_current_user():
                 raise web.seeother("/account/books")
             add_flash_message(
@@ -700,6 +701,8 @@ class account_verify(delegate.page):
             )
             raise web.seeother("/account/create")
         add_flash_message("success", _("Your email has been verified. You are now logged in."))
+        stats.increment("ol.account.verify.success")
+        web.setcookie("ol_activation", "1", expires=300)
         kwargs = {"access": r["s3"]["access"], "secret": r["s3"]["secret"]}
         if i.redirect:
             kwargs["redirect"] = i.redirect

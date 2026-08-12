@@ -86,6 +86,7 @@ jQuery(function() {
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
+    const deleteRecordButtons = document.querySelectorAll('.delete-record');
 
     // conditionally load for user edit page
     if (
@@ -93,7 +94,7 @@ jQuery(function() {
         autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
-        excerpts || links
+        excerpts || links || deleteRecordButtons.length
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -132,6 +133,9 @@ jQuery(function() {
                 }
                 if (autocompleteSeeds) {
                     module.initSeedsMultiInputAutocomplete();
+                }
+                if (deleteRecordButtons.length) {
+                    module.initRecordDeletion(deleteRecordButtons);
                 }
             });
     }
@@ -320,6 +324,20 @@ jQuery(function() {
     if (searchFilterBar) {
         import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
             .then((module) => module.initSearchFilterBar(searchFilterBar));
+    }
+
+    // Page-local availability toggles (author pages, reading log). Unlike the
+    // search filter bar above, these don't share state across pages.
+    const resultsFilterToggles = document.querySelectorAll('.results-filter-toggle');
+    if (resultsFilterToggles.length) {
+        import(/* webpackChunkName: "results-filter-toggle" */ './results-filter-toggle')
+            .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
+    }
+
+    const designSystem = document.querySelector('[data-ds-root]');
+    if (designSystem) {
+        import(/* webpackChunkName: "design-system" */ './design-system')
+            .then((module) => module.initDesignSystem(designSystem));
     }
 
     // Author-suggestion avatars request photos with ?default=false, so a missing
@@ -633,6 +651,13 @@ jQuery(function() {
     if (document.querySelector('.list-books')) {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
+    }
+
+    // Sort options popover (results toolbars)
+    const sortOptions = document.querySelector('.sort-options');
+    if (sortOptions) {
+        import(/* webpackChunkName: "sort-options" */ './sort_options')
+            .then(module => module.initSortOptions(sortOptions));
     }
 
     // Stats page login counts

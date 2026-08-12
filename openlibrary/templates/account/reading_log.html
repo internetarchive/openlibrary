@@ -44,19 +44,37 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
 
+    $# Scoped to this shelf: results-filter-toggle.js only rewrites `mode` in the
+    $# URL and stores nothing, so the search page's filters stay out of it.
+    $ ebooks_only = mode == "ebooks"
+    $ is_filtered = bool(q) or mode != 'everything'
     <div class="search-results-stats">
-      $if q or mode != 'everything':
+      $# Shown while filtered even with no results, so it's always possible to
+      $# switch back off. No sublabel count: unlike the author page, counting a
+      $# shelf's readable books means querying Solr with every logged work id.
+      $if doc_count > 1 or ebooks_only:
+        <ol-toggle
+          class="results-filter-toggle"
+          variant="button"
+          label="$_('Readable Only')"
+          accessible-label="$_('Filter by availability')"
+          data-filter-param="mode"
+          data-filter-value="ebooks"
+          $cond(ebooks_only, 'checked')
+        ></ol-toggle>
+
+      $if is_filtered:
         $ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))
-      $else:
-        $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
 
-      $ layout = get_remembered_layout()
-      $:render_template("search/layout_options.html", selected_layout=layout)
+      $# Sort and layout shape the results rather than filter them, so they sit
+      $# at the far end of the row — same split as the search page.
+      <div class="search-results-stats__tools">
+        $if not is_filtered:
+          $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
 
-      $if mode == "everything" and doc_count > 1:
-        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-      $elif mode != "everything":
-        <span>$:_('— Show <a href="%(url)s">everything</a> in this shelf?', url=changequery(mode='everything'))</span>
+        $ layout = get_remembered_layout()
+        $:render_template("search/layout_options.html", selected_layout=layout)
+      </div>
     </div>
 
     $if not checkin_year:

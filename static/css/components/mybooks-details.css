@@ -10,6 +10,8 @@
   grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
   place-items: start;
   width: min-content;
+  /* Contain the invisible select's lift over the visible dropdown. */
+  isolation: isolate;
 }
 
 .crumbicon > * {
@@ -49,7 +51,7 @@
   inline-size: 100%;
   block-size: 100%;
   opacity: 0.01;
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-local-1);
 }
 
 .dropdown {
@@ -68,7 +70,6 @@
   margin: 6px 10px 0 3px;
   display: inline-block;
   transform: rotate(90deg);
-  z-index: var(--z-index-level-1);
 }
 
 .mybooks-details {

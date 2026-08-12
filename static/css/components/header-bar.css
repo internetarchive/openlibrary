@@ -670,8 +670,8 @@
   transition: transform 0.08s;
 }
 
-/* A subtle darken of the --beige header/body. (--beige itself equals the header
- * background, so it'd be invisible.) */
+/* A subtle darken of the canvas the header sits on. (--beige is a near match
+ * for that canvas, so it'd read as no hover at all.) */
 .navigation-component .browse-popover__trigger:hover,
 .navigation-component .browse-popover__trigger:focus-visible,
 .browse-popover[open] .browse-popover__trigger {

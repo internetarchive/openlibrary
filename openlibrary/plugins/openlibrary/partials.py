@@ -16,7 +16,7 @@ from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
-    get_amazon_metadata,
+    get_amazon_metadata_async,
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
@@ -309,7 +309,7 @@ class AffiliateLinksPartial:
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not bwb_metadata or not bwb_metadata.get("market_price"):
-                amz_metadata = get_amazon_metadata(isbn, resources="prices")
+                amz_metadata = await get_amazon_metadata_async(isbn, resources="prices")
 
         if bwb_metadata and "error" in bwb_metadata:
             bwb_metadata = None
