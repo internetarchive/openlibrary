@@ -233,6 +233,46 @@ Otherwise stay in shadow DOM: you keep style encapsulation, real `<slot>` compos
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
 - Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
 
+## Overlays and the top layer
+
+Any panel that is **anchored to a trigger and positioned from viewport coordinates** — a popover, tooltip, menu, picker — must be promoted to the **top layer**. `position: fixed` is not enough and is the single most common way an overlay ships broken.
+
+A fixed element's containing block is the viewport *only* if no ancestor establishes one. `transform`, `filter`, `perspective`, `backdrop-filter`, `contain` and `will-change` all do — including a bare `translateZ(0)` someone added for GPU compositing, and the transformed track inside a carousel. Under one of those, coordinates read from `getBoundingClientRect()` are resolved against the wrong origin and the panel lands far from its trigger, clipped by the container. Measured on the design-system docs inside a `translateZ(0)` wrapper: **`ol-popover` 441×364px off, `ol-tooltip` 436×367px off**. The top layer also escapes ancestor `isolation: isolate` and z-index stacking, which no z-index value can.
+
+Use `utils/top-layer.js` rather than reaching for the Popover API directly:
+
+```js
+import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
+
+// In render() — emits nothing when the browser lacks support
+html`<div class="panel" popover="${ifDefined(topLayerAttr())}">…</div>`;
+
+// On show, BEFORE measuring; on hide, in your teardown path
+promoteToTopLayer(panel);
+demoteFromTopLayer(panel);
+```
+
+**Always `manual`, never `auto`.** `auto` brings light-dismiss and force-closes sibling popovers outside the ancestor chain, which silently collapses a component's own nesting and dismissal handling (`ol-popover` keeps an open-popover stack so Escape dismisses one layer at a time).
+
+Two UA-stylesheet behaviours bite every time:
+
+1. **`[popover]` is `display: none` until shown.** Promote *before* measuring or `offsetWidth`/`offsetHeight` read 0 and the collision math silently works from a zero-sized panel.
+2. **The UA sets `inset: 0`, `margin: auto`, `width`/`height: fit-content`, `border`, `padding`, `overflow` and system colors on `[popover]`.** Author styles win by cascade origin — but *only for properties they actually declare*. Anything left undeclared inherits the UA value. Both bugs found this way were undeclared properties: `fit-content` beat `inset: 0` and collapsed `ol-popover`'s mobile backdrop to **0×0** (losing the dimming layer and its tap-to-dismiss target), and an undeclared `inset` on `.tooltip` would have combined with the inline `top` to stretch the tooltip to the viewport floor. Add an explicit `.panel[popover] { … }` reset next to the base rule, and place it *before* any variant rule (e.g. `.panel.tray`) that restates its own `inset`/`margin` — they carry equal specificity, so source order decides.
+
+Browsers without the Popover API (Safari < 17, below [the Lit layer's floor](#focus-and-shadow-dom)) keep the plain `position: fixed` path, which is correct everywhere except under a containing-block ancestor. The detection is a module constant in `top-layer.js`; don't re-roll it.
+
+**Pick the overlay mechanism by shape** — three are already correct, and new overlays should join one of them rather than invent a fourth:
+
+| Overlay shape | Mechanism | Why it escapes the trap |
+|---|---|---|
+| Anchored to a trigger (`ol-popover`, `ol-tooltip`) | Popover API via `utils/top-layer.js` | Top layer; containing block is always the viewport |
+| Modal (`ol-dialog`) | native `<dialog>.showModal()` | Promoted to the top layer by the browser — nothing to add |
+| Viewport-fixed, unanchored (`ol-toast-region`, `OpenLibraryOTP`) | portal to `document.body` | No transformed ancestor exists on that path — **an invariant, not an accident**: mount these on `body`, never inside page content |
+
+Composed components (`ol-menu-popover`, `ol-select-popover`, `ol-options-popover`) render through `ol-popover` and inherit the fix — don't add a second panel.
+
+Components that call `getBoundingClientRect()` for *relative* measurement (`ol-segmented-control`'s pill offset, `OLReadMore`'s scroll check) are unaffected: a delta between two rects in the same coordinate space is transform-independent.
+
 ## Lifecycle and Performance
 
 - Clean up listeners, observers, and timers in `disconnectedCallback`.
@@ -461,4 +501,5 @@ _onPopoverOpen() {
 3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables.
 4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) and commit the updated `openlibrary/components/lit/custom-elements.json`.
 5. Add a demo `<section>` for the component to `openlibrary/templates/design.html` — the API tables render automatically from the manifest.
-6. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.
+6. If it renders an anchored overlay panel, promote it to the top layer — see [Overlays and the top layer](#overlays-and-the-top-layer).
+7. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.
