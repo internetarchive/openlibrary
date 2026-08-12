@@ -433,10 +433,6 @@ def test_matched_edition_with_new_language_is_added_even_if_no_existing_language
 
 
 def test_matched_edition_properly_updates_non_language_fields(mock_site, add_languages, ia_writeback):
-    """
-    Ensure a new language is added even if the existing edition has no language
-    field.
-    """
     rec = {
         "ocaid": "test_item",
         "source_records": ["ia:test_item"],
@@ -453,7 +449,7 @@ def test_matched_edition_properly_updates_non_language_fields(mock_site, add_lan
         "ocaid": "test_item",
         "source_records": ["test:1234567890"],  # updated existing field in edition.
         "title": "Test item",
-        "lc_classifications": ["PQ2671.A58"],  # new field not present in edition.
+        "oclc_numbers": ["01234567"],  # new field not present in edition.
     }
     reply = load(matching_rec)
     assert reply["success"] is True
@@ -461,10 +457,9 @@ def test_matched_edition_properly_updates_non_language_fields(mock_site, add_lan
     updated_edition = mock_site.get(reply["edition"]["key"])
 
     expected_source_records = ["ia:test_item", "test:1234567890"]
-    expected_lc_classifications = ["PQ2671.A58"]
 
-    assert expected_source_records == updated_edition.source_records
-    assert expected_lc_classifications == updated_edition.lc_classifications
+    assert updated_edition.source_records == expected_source_records
+    assert updated_edition.oclc_numbers == ["01234567"]
 
 
 class Test_From_MARC:
