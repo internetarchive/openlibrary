@@ -32,6 +32,9 @@ $var title: $_("Open Library server status")
 <div id="contentBody">
 
   $if show_testing:
+    $# Always rendered, empty or not: it sits outside the panel the controller
+    $# swaps, so it needs a node of its own that is present in both documents.
+    <div data-testing-messages>
     $if deploy_triggered:
       <div class="ol-message ol-message--success">
         $_("Deploy triggered!")
@@ -50,6 +53,7 @@ $var title: $_("Open Library server status")
       <div class="ol-message ol-message--info">
         $_("GitHub status refreshed.")
       </div>
+    </div>
 
     $:render_jinja_template("TestingEnvironment.html.jinja", payload=testing_payload or {}, is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url)
 

@@ -110,6 +110,15 @@ class TestingStatusPanel {
         const incoming = doc.querySelector('[data-testing-env]');
         if (!incoming) return;
 
+        // The deploy banners are rendered outside the panel, so swapping only
+        // the panel would drop them: a failed deploy would come back looking
+        // exactly like one that changed nothing.
+        const messages = document.querySelector('[data-testing-messages]');
+        const incomingMessages = doc.querySelector('[data-testing-messages]');
+        if (messages && incomingMessages) {
+            messages.replaceChildren(...incomingMessages.childNodes);
+        }
+
         const focused = focusedSelector(this.root);
         this.root.replaceChildren(...incoming.childNodes);
         this.refreshSelection();
