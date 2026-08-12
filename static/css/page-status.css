@@ -1,0 +1,12 @@
+/**
+ * Stylesheet entry point for /status.
+ * See
+ * - openlibrary/templates/status.html
+ * - openlibrary/macros/TestingEnvironment.html.jinja
+ *
+ * The default site styles plus the maintainer-only Testing Environment panel,
+ * which is far too page-specific to sit in the site-wide page-user bundle.
+ */
+
+@import "page-user.css";
+@import "components/testing-env.css";

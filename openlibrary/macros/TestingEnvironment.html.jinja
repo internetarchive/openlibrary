@@ -1,0 +1,292 @@
+{#
+  Testing Environment deploy table for /status.
+
+  Server-rendered so the table is readable without JS. The controller in
+  plugins/openlibrary/js/testing-status/ patches only the volatile cells
+  (drift, sync clock, relative timestamps) and wires the row actions —
+  it never builds a row, so this template stays the single source of markup.
+#}
+{% macro person(name, avatar) %}
+    {% if name %}
+        <span class="testing-env__person">
+            {% if avatar %}
+                <img class="testing-env__avatar"
+                     src="{{ avatar }}&s=40"
+                     width="20"
+                     height="20"
+                     alt=""
+                     loading="lazy">
+            {% endif %}
+            {{ name }}
+        </span>
+    {% else %}
+        <span class="testing-env__empty">—</span>
+    {% endif %}
+{% endmacro %}
+{% set repo_url = "https://github.com/internetarchive/openlibrary" %}
+{# Strings the controller renders client-side. Keys and English source text
+   must match DEFAULT_STRINGS in js/testing-status/index.js; `%s` is filled in
+   there via sprintf. #}
+{% set i18n_strings = {
+    "justNow": _("just now"),
+    "noneSelected": _("None selected"),
+    "selected": _("%s selected"),
+    "synced": _("synced %s"),
+    "removing": _("Removing #%s…"),
+    "updating": _("Updating #%s…"),
+    "enabling": _("Enabling #%s…"),
+    "disabling": _("Disabling #%s…"),
+    "deploying": _("Deploying to testing…"),
+} %}
+<section class="testing-env"
+         data-testing-env
+         data-i18n="{{ i18n_strings | tojson }}">
+    <header class="testing-env__bar">
+        <div class="testing-env__identity">
+            <h2 class="testing-env__title">{{ _("Testing Environment") }}</h2>
+            <a class="testing-env__host" href="https://testing.openlibrary.org">testing.openlibrary.org</a>
+        </div>
+        <div class="testing-env__meta">
+            <span class="testing-env__sync" data-sync-label aria-live="polite"></span>
+            <label class="testing-env__autorefresh">
+                {{ _("Auto-refresh") }}
+                <ol-toggle data-autorefresh accessible-label="{{ _('Auto-refresh testing environment status') }}">
+                </ol-toggle>
+            </label>
+        </div>
+    </header>
+    {% if is_maintainer %}
+        <form method="post" action="/status/add" class="testing-env__add">
+            <label class="shift" for="testing-env-add">{{ _("Add PRs") }}</label>
+            <input id="testing-env-add"
+                   type="text"
+                   name="pr"
+                   class="testing-env__input"
+                   autocomplete="off"
+                   placeholder="{{ _('PR numbers or URLs, space or comma separated') }}">
+            <ol-button type="submit" variant="secondary">
+                {{ _("Add PRs") }}
+            </ol-button>
+        </form>
+    {% endif %}
+    {% if payload.get('prs') %}
+        <form method="post" id="testing-form" class="testing-env__form">
+            <table class="testing-env__table">
+                <thead>
+                    <tr>
+                        {% if is_maintainer %}
+                            <th scope="col" class="testing-env__col-check">
+                                <input type="checkbox"
+                                       data-select-all
+                                       aria-label="{{ _('Select all PRs') }}">
+                            </th>
+                            <th scope="col">{{ _("On") }}</th>
+                        {% endif %}
+                        <th scope="col">{{ _("PR") }}</th>
+                        <th scope="col">{{ _("Author") }}</th>
+                        <th scope="col">{{ _("Assignee") }}</th>
+                        <th scope="col">{{ _("Drift") }}</th>
+                        <th scope="col" class="testing-env__col-added">{{ _("Added") }}</th>
+                        {% if is_maintainer %}
+                            <th scope="col" class="testing-env__col-actions">
+                                <span class="shift">{{ _("Actions") }}</span>
+                            </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pr in payload['prs'] %}
+                        {% set merged = pr.get('merged', False) %}
+                        {% set drift = pr.get('drift', -1) %}
+                        {% set active = pr.get('active', True) %}
+                        {% set pending_active = pr.get('pending_active') %}
+                        {% set effective_active = active if pending_active is none else pending_active %}
+                        {# One derivation of "what the next deploy does to this row": the note the
+                           drift cell prints, and the amber stripe that flags it. #}
+                        {% set pending_note = _("removes on deploy") if merged
+                            else _("updates on deploy") if pr.get('pull_latest_sha')
+                        else (_("enables on deploy") if pending_active else _("disables on deploy")) if pending_active is not none %}
+                        <tr data-pr="{{ pr['pr'] }}"
+                            class="testing-env__row {%- if merged %} is-merged{% endif %} {%- if drift > 0 %} is-drifted{% endif %} {%- if not active %} is-inactive{% endif %} {%- if pr.get('is_new') %} is-new{% endif %} {%- if pending_note %} is-pending{% endif %}">
+                            {% if is_maintainer %}
+                                <td class="testing-env__col-check">
+                                    <input type="checkbox"
+                                           name="prs"
+                                           value="{{ pr['pr'] }}"
+                                           aria-label="{{ _('Select PR %(num)s', num=pr['pr']) }}">
+                                </td>
+                                {# Leftmost, beside the checkbox, so a scan down the left edge
+                                   answers "what's on the box" without reading each row. #}
+                                <td class="testing-env__col-toggle" data-cell="active">
+                                    <ol-toggle data-row-toggle data-pr="{{ pr['pr'] }}" {% if effective_active %}checked{% endif %} accessible-label="{{ _('Enable PR %(num)s on testing', num=pr['pr']) }}">
+                                    </ol-toggle>
+                                </td>
+                            {% endif %}
+                            <td class="testing-env__pr-cell" data-cell="pr">
+                                {# Number rail, title clamped at three lines, then a fixed tag slot
+                                   at the cell's right edge — the tags land in the same place no
+                                   matter how long the title is. Merged state is not tagged here;
+                                   the drift pill already says it. #}
+                                <div class="testing-env__pr-line">
+                                    <a class="testing-env__pr-num" href="{{ repo_url }}/pull/{{ pr['pr'] }}">#{{ pr['pr'] }}</a>
+                                    <a class="testing-env__pr-title"
+                                       href="{{ repo_url }}/pull/{{ pr['pr'] }}"
+                                       title="{{ pr['title'] }}">{{ pr['title'] }}</a>
+                                    {% if not active %}<span class="testing-env__tag">{{ _("Disabled") }}</span>{% endif %}
+                                </div>
+                            </td>
+                            <td data-cell="author">{{ person(pr.get('author'), pr.get('author_avatar')) }}</td>
+                            <td data-cell="assignee">{{ person(pr.get('assignee'), pr.get('assignee_avatar')) }}</td>
+                            {# The verdict pill plus, on one line, what the next deploy will do to
+                               this row — every "…on deploy" note lives here so the toggle and
+                               actions cells stay a single fixed height. The pinned sha is no
+                               longer its own column: it rides in each pill's tooltip, and the
+                               two pills worth clicking link to the commits behind the number. #}
+                            <td class="testing-env__drift-cell" data-cell="drift">
+                                {% set pinned = pr['commit'][:7] %}
+                                <div class="testing-env__cell-stack">
+                                    {% if merged %}
+                                        <span class="testing-env__pill testing-env__pill--merged"
+                                              title="{{ _('Merged to master, pinned at %(sha)s', sha=pinned) }}">{{ _("merged") }}</span>
+                                    {% elif drift == 0 %}
+                                        <span class="testing-env__pill testing-env__pill--ok"
+                                              title="{{ _('Up to date, pinned at %(sha)s', sha=pinned) }}">{{ _("OK") }}</span>
+                                    {% elif drift < 0 %}
+                                        {# Nothing to compare against, so this one points at the pinned commit. #}
+                                        <a class="testing-env__pill testing-env__pill--unknown"
+                                           href="{{ repo_url }}/commit/{{ pr['commit'] }}"
+                                           title="{{ _('Drift unknown, pinned at %(sha)s', sha=pinned) }}">?</a>
+                                    {% else %}
+                                        {# Linked to the same compare endpoint the drift count came
+                                           from, when there is a head to compare against. #}
+                                        {% set behind_title = ngettext('%(num)d commit behind %(sha)s', '%(num)d commits behind %(sha)s', drift, num=drift, sha=pinned) %}
+                                        {% if pr.get('head_sha') %}
+                                            <a class="testing-env__pill testing-env__pill--behind"
+                                               href="{{ repo_url }}/compare/{{ pr['commit'] }}...{{ pr['head_sha'] }}"
+                                               title="{{ behind_title }}">-{{ drift }}</a>
+                                        {% else %}
+                                            <span class="testing-env__pill testing-env__pill--behind"
+                                                  title="{{ behind_title }}">-{{ drift }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if pending_note %}
+                                        <span class="testing-env__pending">{{ pending_note }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="testing-env__col-added">
+                                <time datetime="{{ pr['added_at'] }}"
+                                      title="{{ _('Added by %(who)s', who=pr.get('added_by', '')) }}"
+                                      data-relative-time>{{ pr['added_at'][:10] }}</time>
+                            </td>
+                            {% if is_maintainer %}
+                                {# Verbs live out here, past the data, so the drift column reads as
+                                   pure status. The next deploy drops merged PRs anyway, so Remove
+                                   is only an early-out. #}
+                                <td class="testing-env__col-actions" data-cell="actions">
+                                    {% if merged %}
+                                        <button type="button"
+                                                class="testing-env__row-action"
+                                                data-row-action="/status/remove"
+                                                data-pr="{{ pr['pr'] }}">{{ _("remove") }}</button>
+                                    {% elif drift > 0 and not pr.get('pull_latest_sha') %}
+                                        <button type="button"
+                                                class="testing-env__row-action"
+                                                data-row-action="/status/pull-latest"
+                                                data-pr="{{ pr['pr'] }}">{{ _("update") }}</button>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if is_maintainer %}
+                <footer class="testing-env__actions">
+                    <div class="testing-env__bulk">
+                        <span class="testing-env__selected" data-selected-count>{{ _("None selected") }}</span>
+                        <ol-button size="small" type="submit" data-bulk="/status/pull-latest">
+                            {{ _("Update") }}
+                        </ol-button>
+                        <ol-button size="small" type="submit" data-bulk="/status/enable">
+                            {{ _("Enable") }}
+                        </ol-button>
+                        <ol-button size="small" type="submit" data-bulk="/status/disable">
+                            {{ _("Disable") }}
+                        </ol-button>
+                        <ol-button size="small" type="submit" data-bulk="/status/remove">
+                            {{ _("Remove") }}
+                        </ol-button>
+                        <ol-button size="small" type="submit" data-bulk="/status/refresh" data-no-selection>
+                            {{ _("Refresh from GitHub") }}
+                        </ol-button>
+                    </div>
+                </footer>
+            {% endif %}
+        </form>
+    {% else %}
+        <p class="testing-env__blank">{{ _("No PRs in testing set.") }}</p>
+    {% endif %}
+    {# Apply step. Everything above stages intent in the state file; nothing
+       reaches testing.openlibrary.org until Deploy flushes it to Jenkins. #}
+    {% set changes = payload.get('pending_changes', []) %}
+    {% set kind_labels = {'add': _("Add"), 'pin': _("Update pin"), 'enable': _("Enable"), 'disable': _("Disable"), 'remove': _("Remove")} %}
+    <section class="testing-env__deploy" data-deploy-section>
+        <div class="testing-env__deploy-state">
+            {% if payload.get('deploying') %}
+                {# Jenkins never reports back, so this is a time window, not a result. #}
+                {% set started %}<time datetime="{{ payload['deploy_started_at'] }}" data-relative-time>{{ payload['deploy_started_at'][:16] | replace('T', ' ') }}</time>{% endset %}
+                <span class="testing-env__status testing-env__status--deploying">
+                    <span class="testing-env__dot" aria-hidden="true"></span>
+                    {% trans time=started %}Deploying, started {{ time }}{% endtrans %}
+                </span>
+            {% elif payload.get('last_deploy_at') %}
+                {% set deployed %}<time datetime="{{ payload['last_deploy_at'] }}" data-relative-time>{{ payload['last_deploy_at'][:16] | replace('T', ' ') }}</time>{% endset %}
+                <span class="testing-env__status">
+                    <span class="testing-env__dot" aria-hidden="true"></span>
+                    {% trans time=deployed %}Last deploy {{ time }}{% endtrans %}
+                </span>
+            {% else %}
+                <span class="testing-env__status testing-env__status--idle">{{ _("Never deployed") }}</span>
+            {% endif %}
+            {% if jenkins_job_url %}
+                <a class="testing-env__jenkins"
+                   href="{{ jenkins_job_url }}"
+                   target="_blank"
+                   rel="noopener noreferrer">{{ _("View Jenkins") }}</a>
+            {% endif %}
+        </div>
+        <div class="testing-env__plan">
+            {% if changes %}
+                <p class="testing-env__plan-head">
+                    {{ ngettext("%(num)d change will be applied", "%(num)d changes will be applied", changes | length, num=changes | length) }}
+                </p>
+                <ul class="testing-env__plan-list">
+                    {% for change in changes %}
+                        <li class="testing-env__change testing-env__change--{{ change['kind'] }}">
+                            {# .get() so an unrecognised kind degrades to its raw name; the env
+                               is StrictUndefined, and a missing key would 500 the whole page. #}
+                            <span class="testing-env__change-kind">{{ kind_labels.get(change['kind'], change['kind']) }}</span>
+                            <a class="testing-env__change-pr"
+                               href="{{ repo_url }}/pull/{{ change['pr'] }}">#{{ change['pr'] }}</a>
+                            <span class="testing-env__change-title">{{ change['title'] }}</span>
+                            {% if change['kind'] == 'remove' %}
+                                <span class="testing-env__change-detail">{{ _("merged to master") }}</span>
+                            {% elif change['detail'] %}
+                                <span class="testing-env__change-detail testing-env__change-detail--sha">{{ change['detail'] }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="testing-env__plan-empty">{{ _("Nothing to deploy — testing matches the current set.") }}</p>
+            {% endif %}
+        </div>
+        {# Disabled rather than dropped while a build runs: the poll swaps this
+           section every 20s, and a button that vanishes takes the layout with it. #}
+        {% if is_maintainer %}
+            <ol-button variant="primary" data-deploy {% if not changes or payload.get('deploying') %}disabled{% endif %}>{{ _("Deploy") }}</ol-button>
+        {% endif %}
+    </section>
+    <div class="testing-env__toast" data-toast hidden aria-live="polite"></div>
+</section>

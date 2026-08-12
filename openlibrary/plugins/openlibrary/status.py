@@ -31,6 +31,11 @@ _JENKINS_URL = "https://jenkins.openlibrary.org/job/testing-deploy/buildWithPara
 _JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
+# Jenkins never calls back, so a triggered deploy is only ever presumed to be
+# running. After this long we stop claiming it is, without claiming it worked.
+_DEPLOY_WINDOW = 10 * 60  # 10 minutes
+# Reading order for the pending-change plan: additions first, removals last.
+_CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 
 class status(delegate.page):
@@ -41,22 +46,18 @@ class status(delegate.page):
         if testing_state:
             drift_info, _ = _get_drift_info(testing_state)
         show_testing = testing_state is not None and is_maintainer_user
-        payload = get_testing_status(testing_state, drift_info) or {}
-        has_pending = payload.get("has_pending", False)
         i = web.input(deploy_triggered=None, drift_refreshed=None)
         return render_template(
             "status",
             status_info,
             features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
-            testing_state=testing_state,
-            drift_info=drift_info,
+            testing_payload=get_testing_status(testing_state, drift_info) or {},
             is_maintainer=is_maintainer_user,
             show_testing=show_testing,
             deploy_triggered=bool(i.deploy_triggered),
             drift_refreshed=bool(i.drift_refreshed),
             jenkins_job_url=_JENKINS_JOB_URL,
-            has_pending=has_pending,
         )
 
 
@@ -194,9 +195,10 @@ class status_deploy(delegate.page):
         drift_info, _ = _get_drift_info(state)
         state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False)]
         state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+        if triggered := _trigger_rebuild(state):
+            state.deploy_started_at = state.last_deploy_at
         _save_testing_state(state)
         _evict_drift_cache()
-        triggered = _trigger_rebuild()
         raise web.seeother("/status?deploy_triggered=1" if triggered else "/status")
 
 
@@ -210,15 +212,59 @@ class status_refresh(delegate.page):
         raise web.seeother("/status?drift_refreshed=1")
 
 
+def _is_deploying(state: TestingState) -> bool:
+    """Whether a Jenkins build is presumed to still be running.
+
+    Jenkins gives us no completion signal, so this is a time window, not an
+    observation: it says a build was started recently, never that it worked.
+    """
+    if not state.deploy_started_at:
+        return False
+    with contextlib.suppress(ValueError):
+        started = datetime.datetime.fromisoformat(state.deploy_started_at)
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=datetime.UTC)
+        return (datetime.datetime.now(datetime.UTC) - started).total_seconds() < _DEPLOY_WINDOW
+    return False
+
+
+def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
+    """The plan: what deploying would change, one entry per staged change.
+
+    Every row action writes staged intent that only status_deploy applies, so
+    this walks the same fields it flushes. A PR merged to master is dropped by
+    the deploy regardless of what else is staged on it, so it yields one
+    ``remove`` and nothing more.
+    """
+    last_deploy = state.last_deploy_at
+    changes: list[dict[str, Any]] = []
+    for p in state.prs:
+        entry = {"pr": p.pr, "title": p.title}
+        if drift_info.get(p.pr, {}).get("merged", False):
+            changes.append({**entry, "kind": "remove", "detail": ""})
+            continue
+        if not last_deploy or p.added_at > last_deploy:
+            # A pin staged on a PR that isn't live yet isn't a separate change:
+            # it's just the SHA the PR lands at, so report the effective one.
+            changes.append({**entry, "kind": "add", "detail": p.short_pull_latest or p.short_commit})
+        elif p.pull_latest_sha:
+            changes.append({**entry, "kind": "pin", "detail": p.short_pull_latest})
+        if p.pending_active is not None:
+            changes.append({**entry, "kind": "enable" if p.pending_active else "disable", "detail": ""})
+    changes.sort(key=lambda c: (_CHANGE_ORDER[c["kind"]], c["pr"]))
+    return changes
+
+
 def get_testing_status(
     testing_state: TestingState | None = None,
     drift_info: dict | None = None,
 ) -> dict | None:
     """Compose the testing-environment status payload.
 
-    Returns a dict with ``last_deploy_at``, ``has_pending``, and a list of
-    PRs (state fields merged with live drift info), or None if there is no
-    testing state file. Shared by the /status page and the FastAPI
+    Returns a dict with ``last_deploy_at``, ``has_pending``, the itemized
+    ``pending_changes`` plan, whether a deploy is presumed in flight, and a
+    list of PRs (state fields merged with live drift info), or None if there
+    is no testing state file. Shared by the /status page and the FastAPI
     testing-status API so they can't drift apart.
     """
     state = testing_state if testing_state is not None else _load_testing_state()
@@ -227,13 +273,13 @@ def get_testing_status(
     if drift_info is None:
         drift_info, _ = _get_drift_info(state)
     last_deploy = state.last_deploy_at
-    has_pending = any(
-        p.pull_latest_sha or p.pending_active is not None or drift_info.get(p.pr, {}).get("merged", False) or not last_deploy or p.added_at > last_deploy
-        for p in state.prs
-    )
+    pending_changes = _pending_changes(state, drift_info)
     return {
         "last_deploy_at": last_deploy,
-        "has_pending": has_pending,
+        "deploy_started_at": state.deploy_started_at,
+        "deploying": _is_deploying(state),
+        "pending_changes": pending_changes,
+        "has_pending": bool(pending_changes),
         "prs": [
             {
                 **p.to_dict(),
@@ -388,10 +434,13 @@ class TestingPR:
 class TestingState:
     last_deploy_at: str  # ISO timestamp, empty if never deployed
     prs: list[TestingPR] = field(default_factory=list)
+    # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
+    deploy_started_at: str = ""
 
     def to_dict(self) -> dict:
         return {
             "last_deploy_at": self.last_deploy_at,
+            "deploy_started_at": self.deploy_started_at,
             "prs": [p.to_dict() for p in self.prs],
         }
 
@@ -400,6 +449,7 @@ class TestingState:
         return cls(
             last_deploy_at=d.get("last_deploy_at", ""),
             prs=[TestingPR.from_dict(p) for p in d.get("prs", [])],
+            deploy_started_at=d.get("deploy_started_at", ""),
         )
 
 
@@ -561,14 +611,12 @@ def _parse_pr_number(value: str) -> int:
     return int(value.lstrip("#"))
 
 
-def _trigger_rebuild() -> bool:
-    """Call Jenkins to trigger a rebuild. No-op if jenkins_token is not configured."""
+def _trigger_rebuild(state: TestingState) -> bool:
+    """Call Jenkins to rebuild from ``state``. No-op if jenkins_token is not configured."""
     token = getattr(config, "jenkins_token", None)
     if not token:
         return False
-    state = _load_testing_state()
-    prs = state.prs if state else []
-    lines = "\n".join(f"origin pull/{p.pr}/head  # {p.title}" for p in prs if p.active)
+    lines = "\n".join(f"origin pull/{p.pr}/head  # {p.title}" for p in state.prs if p.active)
     url = f"{_JENKINS_URL}?{urlencode({'token': token, 'GH_REPO_AND_BRANCH': lines})}"
     try:
         urllib.request.urlopen(url, timeout=10)

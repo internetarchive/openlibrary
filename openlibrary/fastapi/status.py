@@ -40,11 +40,23 @@ class TestingPRResponse(BaseModel):
     is_new: bool = Field(False, description="Whether the PR was added since the last deploy")
 
 
+class PendingChangeResponse(BaseModel):
+    """One staged change that the next deploy would apply."""
+
+    pr: int = Field(..., description="GitHub pull request number")
+    title: str = Field(..., description="PR title")
+    kind: str = Field(..., description="One of: add, pin, enable, disable, remove")
+    detail: str = Field("", description="Short SHA for add/pin changes; empty otherwise")
+
+
 class TestingStatusResponse(BaseModel):
     """Status of the testing environment (the /status deploy table)."""
 
     last_deploy_at: str = Field(..., description="ISO timestamp of the last deploy; empty if never deployed")
+    deploy_started_at: str = Field("", description="ISO timestamp of the last deploy Jenkins accepted")
+    deploying: bool = Field(False, description="Whether a build is presumed still running; a time window, not an observed result")
     has_pending: bool = Field(..., description="Whether there are pending changes ready to deploy")
+    pending_changes: list[PendingChangeResponse] = Field(default_factory=list, description="What the next deploy would apply")
     prs: list[TestingPRResponse] = Field(..., description="PRs in the testing set")
 
 

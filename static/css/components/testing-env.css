@@ -1,0 +1,663 @@
+/**
+ * Testing Environment deploy table on /status.
+ * Markup: openlibrary/macros/TestingEnvironment.html.jinja
+ */
+
+.testing-env {
+  margin-bottom: var(--spacing-xl);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+/* ── Header bar ─────────────────────────────────────────────── */
+
+.testing-env__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.testing-env__identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.testing-env__title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.2rem;
+}
+
+.testing-env__status {
+  display: inline-flex;
+  gap: var(--spacing-2xs);
+  align-items: center;
+  padding: var(--spacing-3xs) var(--spacing-sm);
+  border-radius: var(--border-radius-chip);
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.testing-env__status--idle {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+}
+
+.testing-env__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--border-radius-circle);
+  background: currentcolor;
+}
+
+.testing-env__host,
+.testing-env__host:link,
+.testing-env__host:visited {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-code);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.testing-env__host:hover,
+.testing-env__host:focus-visible {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+.testing-env__meta {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.testing-env__sync:empty {
+  display: none;
+}
+
+.testing-env__autorefresh {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  cursor: pointer;
+}
+
+/* ── Add-PR row ─────────────────────────────────────────────── */
+
+.testing-env__add {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.testing-env__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-width-control) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+  font-size: 0.85rem;
+}
+
+.testing-env__input:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* ── Table ──────────────────────────────────────────────────── */
+
+.testing-env__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.testing-env__table th {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.testing-env__table td {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 0;
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+/* Status stripe down the left edge — the at-a-glance color code for each row:
+   green = live on testing, grey = disabled, amber = a queued change will alter
+   it on the next deploy. On the first cell, not the row: border-collapse eats
+   tr borders inconsistently, and inset box-shadow survives the hover tint. */
+.testing-env__row {
+  --row-stripe: var(--color-success-fg);
+}
+
+.testing-env__row.is-inactive {
+  --row-stripe: var(--color-border);
+}
+
+/* Last of the stripes: a queued change outranks the current on/off state,
+   because "about to change" is the thing worth spotting first. */
+.testing-env__row.is-pending {
+  --row-stripe: var(--color-warning-fg);
+}
+
+.testing-env__row td:first-child {
+  box-shadow: inset 3px 0 0 var(--row-stripe);
+}
+
+/* Kept well below --color-warning-bg so the "N behind" pill, which uses that
+   token at full strength, still reads as a pill against the tinted row. */
+.testing-env__row.is-drifted td {
+  background: color-mix(
+    in srgb,
+    var(--color-warning-bg) 35%,
+    var(--color-surface)
+  );
+}
+
+.testing-env__row.is-new td {
+  background: var(--color-primary-subtle);
+}
+
+/* Every column but the PR title is sized to its content, so the title keeps
+   all the slack. */
+.testing-env__col-check,
+.testing-env__col-toggle,
+.testing-env__col-actions,
+.testing-env__drift-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.testing-env__col-added {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Trailing verb column: ragged-right like Added. */
+.testing-env__col-actions {
+  text-align: right;
+}
+
+/* ── Cell contents ──────────────────────────────────────────── */
+
+/* The one elastic column: every other cell is nowrap content sized to fit, so
+   giving this one the leftover width keeps titles on a single line. */
+.testing-env__pr-cell {
+  width: 100%;
+}
+
+/* Fixed rail so titles line up down the column regardless of PR number width;
+   an auto slot at the right edge so tags land in the same place on every row. */
+.testing-env__pr-line {
+  display: grid;
+  grid-template-columns: 4.25em minmax(0, 1fr) auto;
+  gap: var(--spacing-sm);
+  align-items: baseline;
+}
+
+/* :link/:visited to outrank the global a:link underline. */
+.testing-env__pr-num,
+.testing-env__pr-num:link,
+.testing-env__pr-num:visited {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-code);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* Clamped at three lines — enough for any real PR title to wrap in full while
+   still bounding row height. The full title rides in the link's title
+   attribute for the rare one that clips. */
+.testing-env__pr-title,
+.testing-env__pr-title:link,
+.testing-env__pr-title:visited {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.testing-env__pr-num:hover,
+.testing-env__pr-num:focus-visible,
+.testing-env__pr-title:hover,
+.testing-env__pr-title:focus-visible {
+  text-decoration: underline;
+}
+
+.testing-env__row.is-merged .testing-env__pr-title {
+  color: var(--color-text-muted);
+}
+
+.testing-env__tag {
+  display: inline-block;
+  padding: 1px var(--spacing-xs);
+  border-radius: var(--border-radius-badge);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.testing-env__person {
+  display: inline-flex;
+  gap: var(--spacing-2xs);
+  align-items: center;
+  white-space: nowrap;
+}
+
+.testing-env__avatar {
+  border-radius: var(--border-radius-avatar);
+}
+
+/* Indented past the 20px avatar slot so the dash lines up with the names in
+   the rows around it instead of butting against a long name in the previous
+   column. */
+.testing-env__empty {
+  display: inline-block;
+  padding-left: calc(20px + var(--spacing-2xs));
+  color: var(--color-text-muted);
+}
+
+/* ── Cell stacks ────────────────────────────────────────────── */
+
+/* Never set display:flex on a <td> — it overrides display:table-cell and drops
+   the cell out of the table layout. Flex the wrapper inside instead. */
+.testing-env__cell-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+/* Pill first, its "…on deploy" note beside it on the same line: the cell is
+   nowrap-sized, so stacking would only make row heights uneven. */
+.testing-env__drift-cell .testing-env__cell-stack {
+  flex-wrap: nowrap;
+}
+
+/* min-width so a one-glyph verdict ("?") reads as the same chip as "-12". */
+.testing-env__pill {
+  display: inline-block;
+  min-width: 3.25em;
+  padding: var(--spacing-3xs) var(--spacing-sm);
+  border-radius: var(--border-radius-chip);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Each modifier publishes its foreground as --pill-fg so the linked-pill rule
+   below can keep a pill's own colour without restating it per modifier. */
+.testing-env__pill--ok {
+  --pill-fg: var(--color-success-fg);
+
+  background: var(--color-success-bg);
+  color: var(--pill-fg);
+}
+
+.testing-env__pill--behind {
+  --pill-fg: var(--color-warning-fg);
+
+  background: var(--color-warning-bg);
+  color: var(--pill-fg);
+}
+
+.testing-env__pill--merged {
+  --pill-fg: var(--color-primary-active);
+
+  background: var(--color-primary-subtle);
+  color: var(--pill-fg);
+}
+
+.testing-env__pill--unknown {
+  --pill-fg: var(--color-text-muted);
+
+  background: var(--color-surface-sunken);
+  color: var(--pill-fg);
+}
+
+/* A linked pill keeps its own colour instead of the global link blue, so the
+   two that navigate (behind → the compare view, unknown → the pinned commit)
+   still read as chips. */
+a.testing-env__pill:link,
+a.testing-env__pill:visited {
+  color: var(--pill-fg);
+  text-decoration: none;
+}
+
+a.testing-env__pill:hover,
+a.testing-env__pill:focus-visible {
+  text-decoration: underline;
+}
+
+/* Warning-colored to match the row's queued stripe: the note names the change
+   the stripe is flagging. */
+.testing-env__pending {
+  color: var(--color-warning-fg);
+  font-size: 0.7rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* A link, not a button: the drift chip is the subject, this is the follow-up. */
+.testing-env__row-action {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font-family: inherit;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.testing-env__row-action:hover {
+  color: var(--color-link-hover);
+}
+
+.testing-env__row-action:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Paused rows ────────────────────────────────────────────── */
+
+/* A paused PR isn't on the box, so its row drains of color — grey text, grey
+   avatars, unfilled pills. Deliberately not row-wide opacity: the checkbox and
+   the toggle you resume it with have to stay crisp. Last in the file so this
+   background outranks the drifted and new tints. */
+.testing-env__row.is-inactive td {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+}
+
+/* Three classes, so this outranks the global a:link colour without a pseudo. */
+.testing-env__row.is-inactive .testing-env__pr-title {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.testing-env__row.is-inactive .testing-env__avatar {
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+
+.testing-env__row.is-inactive .testing-env__pill {
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* Sunken is the row's own background here, so the tag needs the lighter fill. */
+.testing-env__row.is-inactive .testing-env__tag {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+/* Still clickable, just not competing with the live rows for attention. */
+.testing-env__row.is-inactive .testing-env__row-action {
+  color: var(--color-text-secondary);
+}
+
+/* Last of the row backgrounds: pointer feedback beats every state tint. */
+.testing-env__row:hover td {
+  background: var(--color-control-hover);
+}
+
+/* ── Footer actions ─────────────────────────────────────────── */
+
+.testing-env__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-surface-sunken);
+}
+
+.testing-env__bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.testing-env__selected {
+  margin-right: var(--spacing-2xs);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.testing-env__blank {
+  padding: var(--spacing-lg);
+  color: var(--color-text-muted);
+}
+
+/* ── Activity toast ─────────────────────────────────────────── */
+
+.testing-env__toast {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-notification);
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-code);
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+.testing-env__toast[hidden] {
+  display: none;
+}
+
+/* ── Deploy section ─────────────────────────────────────────── */
+
+/* The apply step, deliberately separated from the table: everything above
+   stages intent, this is where it takes effect. */
+/* A decisive rule, not the hairline used between table rows: the bulk bar above
+   is also sunken, and the two must not read as one band. */
+.testing-env__deploy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  align-items: center;
+  margin: 0;
+  padding: var(--spacing-xl);
+  border-top: var(--border-width-thick) solid var(--color-border);
+  background: var(--color-surface-sunken);
+}
+
+.testing-env__deploy-state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  grid-column: 1;
+}
+
+.testing-env__plan {
+  grid-column: 1;
+}
+
+/* Spans both rows so a long change list keeps the button vertically centred. */
+.testing-env__deploy [data-deploy] {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: end;
+}
+
+.testing-env__status--deploying {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.testing-env__status--deploying .testing-env__dot {
+  animation: testing-env-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes testing-env-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testing-env__status--deploying .testing-env__dot {
+    animation: none;
+  }
+}
+
+.testing-env__jenkins {
+  font-size: 0.8rem;
+}
+
+.testing-env__plan-head {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.testing-env__plan-empty {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.testing-env__plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.testing-env__change {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: baseline;
+  font-size: 0.8rem;
+}
+
+/* Fixed rail so the verbs stack into a readable column down the list. */
+.testing-env__change-kind {
+  flex: none;
+  min-width: 6em;
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.testing-env__change--add .testing-env__change-kind {
+  color: var(--color-success-fg);
+}
+
+.testing-env__change--pin .testing-env__change-kind {
+  color: var(--color-warning-fg);
+}
+
+.testing-env__change--remove .testing-env__change-kind {
+  color: var(--color-primary-active);
+}
+
+.testing-env__change-pr,
+.testing-env__change-pr:link,
+.testing-env__change-pr:visited {
+  flex: none;
+  color: var(--color-text);
+  font-family: var(--font-family-code);
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.testing-env__change-pr:hover,
+.testing-env__change-pr:focus-visible {
+  text-decoration: underline;
+}
+
+/* min-width:0 so the ellipsis actually engages inside the flex row. */
+.testing-env__change-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.testing-env__change-detail {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+/* The plan is the only place a pinned SHA is spelled out — the table reduced
+   it to a tooltip on the drift pill. */
+.testing-env__change-detail--sha {
+  font-family: var(--font-family-code);
+  font-size: 0.75rem;
+}
+
+/* ── Narrow screens: let the table scroll rather than squash ── */
+
+@media (max-width: 900px) {
+  .testing-env__form {
+    overflow-x: auto;
+  }
+
+  .testing-env__table {
+    min-width: 960px;
+  }
+
+  /* Deploy drops below the plan rather than squeezing beside it. */
+  .testing-env__deploy {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .testing-env__deploy [data-deploy] {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+  }
+}

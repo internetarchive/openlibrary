@@ -1,5 +1,6 @@
 """Tests for the testing-environment status API and its underlying helper."""
 
+import datetime
 import json
 from unittest.mock import MagicMock, patch
 
@@ -73,6 +74,82 @@ def test_get_testing_status_returns_none_without_state():
         assert status_module.get_testing_status() is None
 
 
+def test_pending_changes_itemizes_every_staged_edit():
+    """One entry per staged change, ordered add → pin → enable → disable → remove."""
+    new_pr = _make_pr(pr_number=13269)  # added after last deploy
+    pinned = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pinned.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    toggled = _make_pr(pr_number=13240, added_at="2026-08-01T10:00:00+00:00")
+    toggled.pending_active = False
+    state = _make_state(prs=[new_pr, pinned, toggled])
+
+    changes = status_module._pending_changes(state, {})
+
+    assert [(c["kind"], c["pr"]) for c in changes] == [
+        ("add", 13269),
+        ("pin", 13238),
+        ("disable", 13240),
+    ]
+    assert changes[0]["detail"] == "1d23364"
+    assert changes[1]["detail"] == "9f8e7d6"
+    assert changes[0]["title"] == "Test PR"
+
+
+def test_pending_changes_merged_pr_yields_only_a_removal():
+    """The deploy drops merged PRs outright, so nothing else staged on one matters."""
+    pr = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {13238: {"merged": True}})
+
+    assert [c["kind"] for c in changes] == ["remove"]
+
+
+def test_pending_changes_folds_a_pin_into_an_unlanded_add():
+    """A PR that isn't live yet lands at its staged SHA, so that's one change, not two."""
+    pr = _make_pr(pr_number=13269)  # added after last deploy
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {})
+
+    assert [c["kind"] for c in changes] == ["add"]
+    assert changes[0]["detail"] == "9f8e7d6"  # the SHA that actually goes live
+
+
+def test_pending_changes_empty_when_deployed_set_matches():
+    state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
+
+    assert status_module._pending_changes(state, {}) == []
+    assert status_module.get_testing_status(state, {})["has_pending"] is False
+
+
+def test_pending_changes_counts_everything_before_first_deploy():
+    state = _make_state(prs=[_make_pr()], last_deploy_at="")
+
+    changes = status_module._pending_changes(state, {})
+
+    assert [c["kind"] for c in changes] == ["add"]
+
+
+@pytest.mark.parametrize(
+    ("age_seconds", "expected"),
+    [(60, True), (status_module._DEPLOY_WINDOW + 60, False)],
+)
+def test_is_deploying_is_a_window_not_a_result(age_seconds, expected):
+    started = datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=age_seconds)
+    state = _make_state()
+    state.deploy_started_at = started.isoformat()
+
+    assert status_module._is_deploying(state) is expected
+
+
+def test_is_deploying_false_without_a_triggered_build():
+    """No Jenkins token means no build was accepted, so nothing is in flight."""
+    assert status_module._is_deploying(_make_state()) is False
+
+
 def test_ensure_testing_state_file_creates_empty_state(tmp_path, monkeypatch):
     state_file = tmp_path / "_testing-prs.json"
     monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
@@ -124,7 +201,10 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     mock_maintainer_user(is_maintainer=True)
     payload = {
         "last_deploy_at": "2026-08-05T18:00:00+00:00",
+        "deploy_started_at": "",
+        "deploying": False,
         "has_pending": True,
+        "pending_changes": [{"pr": 13269, "title": "Test PR", "kind": "add", "detail": "1d23364"}],
         "prs": [
             {
                 "pr": 13269,
