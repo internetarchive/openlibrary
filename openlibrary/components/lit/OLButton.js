@@ -26,8 +26,6 @@ import { LitElement, html, nothing } from 'lit';
  * @prop {"primary" | "secondary" | "destructive"} variant - Default: "secondary"
  * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
  * @prop {"button" | "submit" | "reset"}           type    - Default: "button"
- * @prop {String} formaction - Endpoint a type="submit" button posts to, overriding
- *   the form's own action (one form, several verbs).
  * @prop {Boolean} loading    - Shows a spinner and disables interaction.
  * @prop {Boolean} disabled   - Disables interaction.
  * @prop {Boolean} fullWidth  - Button expands to fill its container.
@@ -49,9 +47,6 @@ export class OLButton extends LitElement {
         variant: { type: String, reflect: true },
         size: { type: String, reflect: true },
         type: { type: String, reflect: true },
-        // Only the inner <button> is form-associated, so a formaction left on the
-        // host would never reach the submitter.
-        formAction: { type: String, attribute: 'formaction', reflect: true },
         loading: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
@@ -117,7 +112,6 @@ export class OLButton extends LitElement {
         return html`
             <button
                 type=${this.type}
-                formaction=${this.formAction ?? nothing}
                 ?disabled=${this.loading || this.disabled}
                 aria-busy=${this.loading ? 'true' : 'false'}
                 aria-label=${this.a11yLabel ?? nothing}
