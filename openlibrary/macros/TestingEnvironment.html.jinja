@@ -321,7 +321,9 @@
                             <a class="testing-env__change-pr"
                                href="{{ repo_url }}/pull/{{ change['pr'] }}">#{{ change['pr'] }}</a>
                             <span class="testing-env__change-title">{{ change['title'] }}</span>
-                            {% if change['kind'] == 'remove' %}
+                            {# Both causes of a removal are kind "remove"; only the merged one
+                               may say so. A maintainer's own removal needs no reason. #}
+                            {% if change.get('reason') == 'merged' %}
                                 <span class="testing-env__change-detail">{{ _("merged to master") }}</span>
                             {% elif change['detail'] %}
                                 <span class="testing-env__change-detail testing-env__change-detail--sha">{{ change['detail'] }}</span>

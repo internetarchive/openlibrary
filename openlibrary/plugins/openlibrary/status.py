@@ -256,7 +256,7 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     for p in state.prs:
         entry = {"pr": p.pr, "title": p.title}
         if drift_info.get(p.pr, {}).get("merged", False):
-            changes.append({**entry, "kind": "remove", "detail": ""})
+            changes.append({**entry, "kind": "remove", "reason": "merged", "detail": ""})
             continue
         if not last_deploy or p.added_at > last_deploy:
             # A pin staged on a PR that isn't live yet isn't a separate change:
@@ -269,10 +269,12 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     # Deployed but no longer in the set: removed, and still on the box until the
     # next deploy drops it. State files written before `deployed` existed start
     # empty here, so their first deploy is what makes removals visible.
+    # ``reason`` separates these from the merged ones above, which are the same
+    # kind for a different cause and must not borrow each other's wording.
     remaining = {p.pr for p in state.prs}
     for pr, title in state.deployed.items():
         if pr not in remaining:
-            changes.append({"pr": pr, "title": title, "kind": "remove", "detail": ""})
+            changes.append({"pr": pr, "title": title, "kind": "remove", "reason": "dropped", "detail": ""})
     changes.sort(key=lambda c: (_CHANGE_ORDER[c["kind"]], c["pr"]))
     return changes
 
