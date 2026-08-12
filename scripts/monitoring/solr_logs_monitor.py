@@ -73,9 +73,7 @@ class RequestLogEntry(SolrLogEntry):
 
     @staticmethod
     def parse_log_entry(match: re.Match) -> RequestLogEntry:
-        # Ignore any tokens that aren't `key=value`; a single unexpected token
-        # would otherwise fail the whole line, and we'd silently stop reporting.
-        fields = dict(kvp.split("=", 1) for kvp in match.group("message").split(" ") if "=" in kvp)
+        fields = {kvp.split("=", 1)[0]: kvp.split("=", 1)[1] for kvp in match.group("message").split(" ")}
         return RequestLogEntry(
             timestamp=match.group("timestamp"),
             log_level=match.group("log_level"),
