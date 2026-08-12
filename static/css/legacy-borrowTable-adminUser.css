@@ -5,9 +5,6 @@
  */
 
 /* stylelint-disable selector-max-specificity */
-.borrow-table {
-  margin: var(--spacing-stack-xl) 0 var(--spacing-stack-lg);
-}
 .borrow-table table {
   width: 100%;
   font-family: var(--font-family-body);

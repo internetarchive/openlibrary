@@ -17,7 +17,7 @@ $def year_span(year, use_local_year=False):
           count = mybooks[key].total_results
           return render_template("books/custom_carousel", **{
               "books": books,
-              "title": "%s (%d)" % (title, count),
+              "title": title if key == "loans" else "%s (%d)" % (title, count),
               "url": url,
               "key": key,
               "min_books": 1,
@@ -35,7 +35,7 @@ $def year_span(year, use_local_year=False):
 
   $# Data for carousels
   $ readlog_url = "/people/%s/books/" % username
-  $ loans = ["loans", _('My Loans'), "/account/loans"]
+  $ loans = ["loans", _('Loans & History'), "/account/loans"]
   $ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
   $ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
   $ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
@@ -62,7 +62,7 @@ $code:
         count = mybooks[key].total_results
         return render_template("books/mobile_carousel", **{
             "books": books,
-            "title": "%s (%d)" % (title, count),
+            "title": title if key == "loans" else "%s (%d)" % (title, count),
             "url": url,
             "key": key,
             "min_books": 1,
@@ -146,14 +146,7 @@ $def empty_mobile_carousel(data):
             </a>
           </div>
         </li>
-        <li>
-          <div class="carousel-section-header">
-            <a data-ol-link-track="MyBooksSidebar|LoanHistory" href="/account/loan-history">
-              $_("Loan History")
-              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
-            </a>
-          </div>
-        </li>
+
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">
