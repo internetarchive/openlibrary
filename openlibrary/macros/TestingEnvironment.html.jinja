@@ -41,6 +41,9 @@
     "disabling": _("Disabling #%(num)s…", num="%s"),
     "deploying": _("Deploying to testing…"),
 } %}
+{# Rendered with no payload by the structural template test, which walks every
+   macro without data; calling .get() on an undefined name raises. #}
+{% set payload = payload | default({}, true) %}
 {# Single-quoted: tojson escapes `'` but not `"`, which would close the
    attribute on the first key and strand the payload. #}
 <section class="testing-env"

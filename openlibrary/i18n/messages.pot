@@ -667,6 +667,14 @@ msgid "View Jenkins progress"
 msgstr ""
 
 #: status.html
+msgid "Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again."
+msgstr ""
+
+#: status.html
+msgid "No Jenkins token is configured, so no build was started. Pending changes were cleared locally."
+msgstr ""
+
+#: status.html
 msgid "GitHub status refreshed."
 msgstr ""
 

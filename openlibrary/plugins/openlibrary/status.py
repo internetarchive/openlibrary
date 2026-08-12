@@ -1,6 +1,7 @@
 import contextlib
 import datetime
 import functools
+import http.client
 import json
 import re
 import socket
@@ -45,7 +46,7 @@ class status(delegate.page):
         if testing_state:
             drift_info, _ = _get_drift_info(testing_state)
         show_testing = testing_state is not None and is_maintainer_user
-        i = web.input(deploy_triggered=None, drift_refreshed=None)
+        i = web.input(deploy_triggered=None, deploy_failed=None, deploy_unconfigured=None, drift_refreshed=None)
         return render_template(
             "status",
             status_info,
@@ -55,6 +56,8 @@ class status(delegate.page):
             is_maintainer=is_maintainer_user,
             show_testing=show_testing,
             deploy_triggered=bool(i.deploy_triggered),
+            deploy_failed=bool(i.deploy_failed),
+            deploy_unconfigured=bool(i.deploy_unconfigured),
             drift_refreshed=bool(i.drift_refreshed),
             jenkins_job_url=_JENKINS_JOB_URL,
         )
@@ -193,12 +196,21 @@ class status_deploy(delegate.page):
         # Remove PRs that have already been merged into master
         drift_info, _ = _get_drift_info(state)
         state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False)]
+        # Nothing above is persisted until Jenkins accepts the build, so a failed
+        # trigger leaves every staged change intact and retryable.
+        outcome = _trigger_rebuild(state)
+        if outcome == "failed":
+            raise web.seeother("/status?deploy_failed=1")
         state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
-        if triggered := _trigger_rebuild(state):
+        # What this build puts on the box: active PRs only, the same filter
+        # _trigger_rebuild sends. Recorded so a later removal has a set to be
+        # missing from — nothing else survives one.
+        state.deployed = {p.pr: p.title for p in state.prs if p.active}
+        if outcome == "triggered":
             state.deploy_started_at = state.last_deploy_at
         _save_testing_state(state)
         _evict_drift_cache()
-        raise web.seeother("/status?deploy_triggered=1" if triggered else "/status")
+        raise web.seeother("/status?deploy_triggered=1" if outcome == "triggered" else "/status?deploy_unconfigured=1")
 
 
 class status_refresh(delegate.page):
@@ -234,6 +246,10 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     this walks the same fields it flushes. A PR merged to master is dropped by
     the deploy regardless of what else is staged on it, so it yields one
     ``remove`` and nothing more.
+
+    Removal is the one action that stages nothing: it deletes the row. Those are
+    recovered at the end by diffing ``state.deployed`` — what the last deploy
+    built — against what is left.
     """
     last_deploy = state.last_deploy_at
     changes: list[dict[str, Any]] = []
@@ -250,6 +266,13 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
             changes.append({**entry, "kind": "pin", "detail": p.short_pull_latest})
         if (toggle := p.pending_toggle) is not None:
             changes.append({**entry, "kind": "enable" if toggle else "disable", "detail": ""})
+    # Deployed but no longer in the set: removed, and still on the box until the
+    # next deploy drops it. State files written before `deployed` existed start
+    # empty here, so their first deploy is what makes removals visible.
+    remaining = {p.pr for p in state.prs}
+    for pr, title in state.deployed.items():
+        if pr not in remaining:
+            changes.append({"pr": pr, "title": title, "kind": "remove", "detail": ""})
     changes.sort(key=lambda c: (_CHANGE_ORDER[c["kind"]], c["pr"]))
     return changes
 
@@ -445,12 +468,18 @@ class TestingState:
     prs: list[TestingPR] = field(default_factory=list)
     # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
     deploy_started_at: str = ""
+    # {pr number: title} of what the last deploy actually built. Removing a PR
+    # deletes it from `prs` outright, so this is the only record that the box is
+    # still running it — without it a removal is invisible and undeployable.
+    deployed: dict[int, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
             "last_deploy_at": self.last_deploy_at,
             "deploy_started_at": self.deploy_started_at,
             "prs": [p.to_dict() for p in self.prs],
+            # JSON object keys are strings; from_dict puts them back to int.
+            "deployed": {str(pr): title for pr, title in self.deployed.items()},
         }
 
     @classmethod
@@ -459,6 +488,7 @@ class TestingState:
             last_deploy_at=d.get("last_deploy_at", ""),
             prs=[TestingPR.from_dict(p) for p in d.get("prs", [])],
             deploy_started_at=d.get("deploy_started_at", ""),
+            deployed={int(pr): title for pr, title in d.get("deployed", {}).items()},
         )
 
 
@@ -620,18 +650,24 @@ def _parse_pr_number(value: str) -> int:
     return int(value.lstrip("#"))
 
 
-def _trigger_rebuild(state: TestingState) -> bool:
-    """Call Jenkins to rebuild from ``state``. No-op if jenkins_token is not configured."""
+def _trigger_rebuild(state: TestingState) -> str:
+    """Call Jenkins to rebuild from ``state``.
+
+    Returns ``"triggered"``, ``"failed"`` (Jenkins unreachable or refused), or
+    ``"unconfigured"`` when there is no jenkins_token, as in local dev.
+    """
     token = getattr(config, "jenkins_token", None)
     if not token:
-        return False
+        return "unconfigured"
     lines = "\n".join(f"origin pull/{p.pr}/head  # {p.title}" for p in state.prs if p.active)
     url = f"{_JENKINS_URL}?{urlencode({'token': token, 'GH_REPO_AND_BRANCH': lines})}"
     try:
         urllib.request.urlopen(url, timeout=10)
-        return True
-    except urllib.error.URLError, ValueError:
-        return False
+        return "triggered"
+    except OSError, http.client.HTTPException, ValueError:
+        # OSError covers URLError/HTTPError plus the read-timeout and dropped-
+        # connection errors that escape urlopen unwrapped.
+        return "failed"
 
 
 @public

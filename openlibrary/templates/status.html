@@ -1,7 +1,6 @@
-$def with (status = {}, features_table = [], dev_merged_status=None, testing_payload=None, is_maintainer=False, show_testing=False, deploy_triggered=False, drift_refreshed=False, jenkins_job_url='')
+$def with (status = {}, features_table = [], dev_merged_status=None, testing_payload=None, is_maintainer=False, show_testing=False, deploy_triggered=False, deploy_failed=False, deploy_unconfigured=False, drift_refreshed=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
-$ _x = ctx.setdefault('cssfile', 'status')
 
 <style type="text/css">
   table th {
@@ -22,7 +21,8 @@ $ _x = ctx.setdefault('cssfile', 'status')
     display: table-row;
   }
 
-  /* Testing Environment styles live in static/css/components/testing-env.css */
+  /* Testing Environment styles live in static/css/components/testing-env.css,
+     imported by the default page-user bundle this page falls back to. */
 </style>
 
 <div id="contentHead">
@@ -37,6 +37,14 @@ $ _x = ctx.setdefault('cssfile', 'status')
         $_("Deploy triggered!")
         $if jenkins_job_url:
           &mdash; <a href="$jenkins_job_url" target="_blank" rel="noopener noreferrer">$_("View Jenkins progress")</a>
+      </div>
+    $if deploy_failed:
+      <div class="ol-message ol-message--error" role="alert">
+        $_("Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again.")
+      </div>
+    $if deploy_unconfigured:
+      <div class="ol-message ol-message--warning">
+        $_("No Jenkins token is configured, so no build was started. Pending changes were cleared locally.")
       </div>
     $if drift_refreshed:
       <div class="ol-message ol-message--info">
