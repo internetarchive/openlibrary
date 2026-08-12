@@ -100,4 +100,6 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/api/volumes/(.+)", "json"),
     (r"/api/volumes/(.+)", None),
     (r"/prices", "json"),
+    # FastAPI /status/testing.json (testing-environment status)
+    (r"/status/testing", "json"),
 ]
