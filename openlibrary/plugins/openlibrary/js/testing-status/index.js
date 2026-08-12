@@ -2,16 +2,13 @@
  * Orchestration controller for the /status Testing Environment table.
  *
  * The table is rendered server-side by macros/TestingEnvironment.html.jinja.
- * This controller never builds a row — it patches the volatile cells (PR tags,
- * commit/drift, on-toggle, header status) from a freshly fetched copy of the
- * page, so the template stays the single source of row markup.
+ * Every action posts to the endpoint the markup already names and gets the
+ * re-rendered page back, so the template stays the single source of markup
+ * and this controller never builds a row.
  */
 
-import { fetchStatusDocument, postAction } from './TestingStatusService';
+import { postAction } from './TestingStatusService';
 import { sprintf } from '../i18n.js';
-
-const POLL_INTERVAL_MS = 20000;
-const CLOCK_INTERVAL_MS = 30000;
 
 /**
  * English source strings and runtime fallback. The macro renders the
@@ -24,13 +21,18 @@ export const DEFAULT_STRINGS = {
     justNow: 'just now',
     noneSelected: 'None selected',
     selected: '%s selected',
-    synced: 'synced %s',
     removing: 'Removing #%s…',
     updating: 'Updating #%s…',
     enabling: 'Enabling #%s…',
     disabling: 'Disabling #%s…',
     deploying: 'Deploying to testing…'
 };
+
+/**
+ * Attributes that mark a control worth refocusing after an update, most
+ * specific first. See focusedSelector().
+ */
+const FOCUS_ATTRS = ['data-row-toggle', 'data-row-action', 'data-bulk', 'data-deploy'];
 
 /**
  * @param {Element} el
@@ -48,8 +50,8 @@ function stringsFromElement(el) {
 
 /**
  * The panel controller. State lives on the instance rather than in module
- * globals so the timers, the formatter and the strings all stay attached to
- * the one panel they belong to.
+ * globals so the formatter and the strings stay attached to the one panel
+ * they belong to.
  */
 class TestingStatusPanel {
     /**
@@ -59,22 +61,12 @@ class TestingStatusPanel {
         this.root = root;
         this.strings = stringsFromElement(root);
         // One formatter for the panel's lifetime: constructing an Intl object
-        // negotiates locales, and this runs once per timestamp per tick.
+        // negotiates locales, and this runs once per timestamp per render.
         this.formatter = new Intl.RelativeTimeFormat(document.documentElement.lang || 'en', { numeric: 'auto' });
-        this.pollTimer = null;
-        this.lastSyncedAt = null;
 
         this.bind();
         this.refreshSelection();
         this.renderRelativeTimes();
-        this.renderSyncLabel();
-
-        // Keep the relative timestamps honest without polling the server.
-        setInterval(() => {
-            if (document.hidden) return;
-            this.renderRelativeTimes();
-            this.renderSyncLabel();
-        }, CLOCK_INTERVAL_MS);
     }
 
     /**
@@ -112,15 +104,9 @@ class TestingStatusPanel {
             if (!el.dataset.absolute) {
                 el.dataset.absolute = el.textContent.trim();
             }
-            setText(el, this.relativeTime(date));
+            el.textContent = this.relativeTime(date);
             el.title = el.dataset.absolute;
         });
-    }
-
-    renderSyncLabel() {
-        const label = this.root.querySelector('[data-sync-label]');
-        if (!label) return;
-        setText(label, this.lastSyncedAt ? sprintf(this.strings.synced, this.relativeTime(this.lastSyncedAt)) : '');
     }
 
     /**
@@ -157,12 +143,8 @@ class TestingStatusPanel {
     }
 
     /**
-     * Patch volatile cells and the deploy section from a freshly fetched
-     * document. Falls back to replacing the panel's contents when the set of
-     * PRs has changed, since added or removed rows can't be patched in place.
-     *
-     * Either way the root element itself survives, so the delegated listeners
-     * and the timers that reference it stay valid.
+     * Swap in the panel from a freshly rendered document. The root element
+     * itself survives, so the delegated listeners that reference it stay valid.
      *
      * @param {Document} doc Freshly fetched /status document.
      */
@@ -170,42 +152,17 @@ class TestingStatusPanel {
         const incoming = doc.querySelector('[data-testing-env]');
         if (!incoming) return;
 
-        const liveRows = Array.from(this.root.querySelectorAll('tr[data-pr]'));
-        const incomingRows = Array.from(incoming.querySelectorAll('tr[data-pr]'));
-        const sameRowSet =
-            liveRows.length === incomingRows.length &&
-            liveRows.every((row, i) => row.dataset.pr === incomingRows[i].dataset.pr);
-
-        if (sameRowSet) {
-            liveRows.forEach((row, i) => patchRow(row, incomingRows[i]));
-            // The deploy section is a rendered plan, not a fixed control — its
-            // state line, change list and button turn over together, so swap it
-            // wholesale rather than patching the button's disabled attribute.
-            // data-deploy-key is what the swap keys off: the markup itself can't
-            // be compared once the browser has hydrated it and renderRelativeTimes
-            // has rewritten its timestamps, and re-rendering on every tick would
-            // pull the Deploy button out from under whoever is aiming at it.
-            const liveDeploy = this.root.querySelector('[data-deploy-section]');
-            const newDeploy = incoming.querySelector('[data-deploy-section]');
-            if (liveDeploy && newDeploy && liveDeploy.dataset.deployKey !== newDeploy.dataset.deployKey) {
-                liveDeploy.replaceWith(newDeploy);
-            }
-        } else {
-            this.root.replaceChildren(...incoming.childNodes);
-            this.refreshSelection();
-            // The replacement markup carries the server's defaults, so re-assert
-            // the one control whose state lives on this side.
-            const autorefresh = this.root.querySelector('[data-autorefresh]');
-            if (autorefresh) autorefresh.checked = Boolean(this.pollTimer);
-        }
-
-        this.lastSyncedAt = new Date();
+        const focused = focusedSelector(this.root);
+        this.root.replaceChildren(...incoming.childNodes);
+        this.refreshSelection();
         this.renderRelativeTimes();
-        this.renderSyncLabel();
+        // The control that triggered this update was replaced along with the
+        // rest of the panel; put focus back on its successor.
+        if (focused) restoreFocus(this.root.querySelector(focused));
     }
 
     /**
-     * Run an action, showing progress and patching the result back in.
+     * Run an action, showing progress and swapping the result back in.
      *
      * @param {String} action Endpoint path.
      * @param {Object} fields Form fields.
@@ -217,33 +174,8 @@ class TestingStatusPanel {
             this.applyUpdate(await postAction(action, fields));
             this.setToast('');
         } catch {
-            // The server is the source of truth; a reload beats a half-patched table.
+            // The server is the source of truth; a reload beats a stale table.
             window.location.reload();
-        }
-    }
-
-    /** Poll once, ignoring transient failures so a blip doesn't kill the loop. */
-    async poll() {
-        // A backgrounded tab is still throttled rather than stopped, and each
-        // tick costs a full page render server-side.
-        if (document.hidden) return;
-        try {
-            this.applyUpdate(await fetchStatusDocument());
-        } catch {
-            // Leave the last known good state on screen.
-        }
-    }
-
-    /**
-     * @param {Boolean} enabled
-     */
-    setPolling(enabled) {
-        if (this.pollTimer) {
-            clearInterval(this.pollTimer);
-            this.pollTimer = null;
-        }
-        if (enabled) {
-            this.pollTimer = setInterval(() => this.poll(), POLL_INTERVAL_MS);
         }
     }
 
@@ -251,8 +183,8 @@ class TestingStatusPanel {
      * Attach every listener the panel needs.
      *
      * Delegated from the panel root rather than bound per element: applyUpdate()
-     * replaces the contents of the volatile cells, which would silently discard
-     * listeners bound directly to the inline row buttons inside them.
+     * replaces the panel's contents, which would silently discard listeners
+     * bound directly to the row buttons inside it.
      */
     bind() {
         // closest() climbs past the panel, so every match is checked against it.
@@ -301,87 +233,55 @@ class TestingStatusPanel {
         });
 
         this.root.addEventListener('ol-toggle-change', (event) => {
-            const { checked } = event.detail;
-
-            if (event.target.matches('[data-autorefresh]')) {
-                this.setPolling(checked);
-                return;
-            }
-
             const rowToggle = event.target.closest('[data-row-toggle]');
-            if (rowToggle) {
-                const pr = rowToggle.dataset.pr;
-                this.runAction(
-                    checked ? '/status/enable' : '/status/disable',
-                    { prs: [pr] },
-                    sprintf(checked ? this.strings.enabling : this.strings.disabling, pr)
-                );
-            }
-        });
+            if (!rowToggle) return;
 
-        // Catch up on whatever changed while the tab was in the background.
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.pollTimer) this.poll();
+            const { checked } = event.detail;
+            const pr = rowToggle.dataset.pr;
+            this.runAction(
+                checked ? '/status/enable' : '/status/disable',
+                { prs: [pr] },
+                sprintf(checked ? this.strings.enabling : this.strings.disabling, pr)
+            );
         });
     }
 }
 
 /**
- * Write text only when it differs, so a tick over an unchanged panel doesn't
- * dirty layout.
- * @param {Element} el
- * @param {String} text
+ * Describe the focused control so it can be found again in the replacement
+ * markup. Returns null when focus is outside the panel, or on something the
+ * swap doesn't disturb.
+ *
+ * @param {Element} root
+ * @return {String|null} A selector matching the control, e.g.
+ *   '[data-row-toggle][data-pr="1234"]'.
  */
-function setText(el, text) {
-    if (el.textContent !== text) el.textContent = text;
+function focusedSelector(root) {
+    // A shadow-DOM control reports its host here, which is what the selectors
+    // below match on anyway.
+    const active = document.activeElement;
+    if (!active || !root.contains(active)) return null;
+
+    const attr = FOCUS_ATTRS.find((name) => active.hasAttribute(name));
+    if (!attr) return null;
+
+    const value = active.getAttribute(attr);
+    const pr = active.dataset.pr;
+    return `[${attr}${value ? `="${value}"` : ''}]${pr ? `[data-pr="${pr}"]` : ''}`;
 }
 
 /**
- * Patch one row's volatile cells from its freshly fetched counterpart.
+ * Focus a control in the replacement markup, once it can take focus: a
+ * freshly inserted <ol-toggle> delegates focus to a button its first render
+ * hasn't produced yet, so focusing it any earlier lands nowhere.
  *
- * Which cells are volatile is declared by the template, as [data-cell]: the
- * markup and the list of what to repaint stay one thing.
- *
- * Cells are compared before they are written: replacing markup that hasn't
- * changed would tear down and re-upgrade an <ol-toggle> — shadow root, form
- * association and focus with it — on every poll.
- *
- * @param {Element} row Live row.
- * @param {Element} source Same row from the fetched document.
+ * @param {Element|null} el
  */
-function patchRow(row, source) {
-    if (row.className !== source.className) row.className = source.className;
-
-    const sourceCells = indexCells(source);
-    row.querySelectorAll('[data-cell]').forEach((target) => {
-        const replacement = sourceCells[target.dataset.cell];
-        if (!replacement) return;
-
-        // A toggle is state, not markup: flip it in place so the element the
-        // user just clicked survives the round trip.
-        const toggle = target.querySelector('ol-toggle');
-        const newToggle = replacement.querySelector('ol-toggle');
-        if (toggle && newToggle) {
-            toggle.checked = newToggle.hasAttribute('checked');
-            return;
-        }
-
-        if (target.innerHTML !== replacement.innerHTML) {
-            target.innerHTML = replacement.innerHTML;
-        }
-    });
-}
-
-/**
- * @param {Element} row
- * @return {Object<String, Element>} The row's [data-cell] elements by name.
- */
-function indexCells(row) {
-    const cells = {};
-    row.querySelectorAll('[data-cell]').forEach((cell) => {
-        cells[cell.dataset.cell] = cell;
-    });
-    return cells;
+async function restoreFocus(el) {
+    if (!el) return;
+    // undefined on a plain <button>, which is already focusable.
+    await el.updateComplete;
+    el.focus();
 }
 
 /**
