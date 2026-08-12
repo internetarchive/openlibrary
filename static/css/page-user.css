@@ -32,12 +32,18 @@
  * - /read
  * - /recentchanges
  * - /search/authors
+ * - /status
  * - /subjects
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
 @import "components/flash-messages.css";
 @import "components/provider-table.css";
+/* Carried site-wide (+1.9KB gzipped) rather than in a page-status bundle of its
+   own: a new page-*.css entry point only exists once assets are rebuilt, and
+   patch deploys can't do that, so /status would 500 on the very server the
+   panel is for. See scripts/deployment/patchdeploy.sh. */
+@import "components/testing-env.css";
 
 body {
   background-color: var(--color-background);
