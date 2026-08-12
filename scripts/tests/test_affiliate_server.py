@@ -353,24 +353,22 @@ def test_process_google_book_multiple_items():
     assert process_google_book(input_data) is None
 
 
-class TestLoadConfigClientPrecedence:
+class TestLoadConfigRequiresCreatorsAPI:
     """
-    Which Amazon client `load_config` picks has been hand-flipped twice with no test
-    guarding it: 035009c64 (2026-06-20) switched to legacy-first, ad85f21b4
-    (2026-07-16) switched back to Creators-first. During the #13277 outage
-    post-mortem the source was read as legacy-first because the docstring and the
-    code had disagreed for a month.
+    The Creators API is the only supported Amazon client as of #13277; the legacy
+    PA-API fallback was removed once Creators was confirmed live in production.
 
-    Creators-first is the intended behavior. These lock it in, including the
-    both-credentials-present case that a side-by-side migration actually produces --
-    the one where the two orderings differ.
+    Before that, `load_config` silently downgraded to legacy whenever Creators
+    credentials were incomplete -- which is why the outage post-mortem could not tell
+    from the code which client was serving traffic. These pin that a downgrade can no
+    longer happen quietly.
     """
 
     CREATORS: ClassVar[dict[str, str]] = {"key": "ck", "secret": "cs", "id": "ci", "version": "3.1"}
     LEGACY: ClassVar[dict[str, str]] = {"key": "lk", "secret": "ls", "id": "li"}
 
     def _load(self, creators: dict | None, legacy: dict | None):
-        """Run load_config against a synthetic config; return (creators_cls, legacy_cls)."""
+        """Run load_config against a synthetic config; return the patched Creators class."""
         cfg: dict[str, Any] = {"http_proxy": "http://user:pass@squid:3128"}
         if creators is not None:
             cfg["amazon_creators_api"] = creators
@@ -382,46 +380,19 @@ class TestLoadConfigClientPrecedence:
             patch("scripts.affiliate_server.stats"),
             patch("scripts.affiliate_server.config", new=cfg),
             patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
-            patch("scripts.affiliate_server.AmazonAPI") as legacy_cls,
         ):
             load_config("openlibrary.yml")
-            return creators_cls, legacy_cls
+            return creators_cls
 
-    def test_both_credentials_present_prefers_creators(self):
-        """The migration state that matters: both configured -> Creators wins."""
-        creators_cls, legacy_cls = self._load(self.CREATORS, self.LEGACY)
-        assert creators_cls.called
-        assert not legacy_cls.called
+    def test_creators_credentials_build_the_client(self):
+        assert self._load(self.CREATORS, None).called
 
-    def test_only_creators_credentials_uses_creators(self):
-        creators_cls, legacy_cls = self._load(self.CREATORS, None)
-        assert creators_cls.called
-        assert not legacy_cls.called
+    def test_only_legacy_credentials_raises(self):
+        """Legacy creds no longer buy a working affiliate server -- fail, don't downgrade."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load(None, self.LEGACY)
 
-    def test_only_legacy_credentials_falls_back_to_legacy(self):
-        creators_cls, legacy_cls = self._load(None, self.LEGACY)
-        assert legacy_cls.called
-        assert not creators_cls.called
-
-    def test_no_credentials_raises(self):
-        with pytest.raises(RuntimeError, match="missing required"):
-            self._load(None, None)
-
-    def test_partial_creators_credentials_falls_back_to_legacy(self):
-        """`all(creators_args)` -- one missing key must not half-configure Creators."""
-        creators_cls, legacy_cls = self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)
-        assert legacy_cls.called
-        assert not creators_cls.called
-
-    def test_creators_receives_version_and_proxy(self):
-        """Regression guard: `proxy_creds` was dropped in 035009c64; proxy_url must survive."""
-        creators_cls, _ = self._load(self.CREATORS, self.LEGACY)
-        assert creators_cls.called, "Creators client was not constructed at all"
-        kwargs = creators_cls.call_args.kwargs
-        assert kwargs["version"] == "3.1"
-        assert kwargs["proxy_url"] == "http://user:pass@squid:3128"
-
-    def test_creators_version_defaults_when_absent(self):
-        creators_cls, _ = self._load({"key": "ck", "secret": "cs", "id": "ci"}, None)
-        assert creators_cls.called, "Creators client was not constructed at all"
-        assert creators_cls.call_args.kwargs["version"] == "3.1"
+    def test_partial_creators_credentials_raises(self):
+        """One missing key must fail loudly, not half-configure or revert to legacy."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)
