@@ -62,6 +62,7 @@ from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.utils.lcc import clean_raw_lcc
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.request_context import site
 
@@ -892,7 +893,6 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: Ed
     edition_list_fields = [
         "local_id",
         "lccn",
-        "lc_classifications",
         "oclc_numbers",
         "source_records",
         "languages",
@@ -960,6 +960,12 @@ def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any],
         if work_subjects != deduped_subjects:
             work["subjects"] = deduped_subjects
             need_work_save = True
+
+    if "lc_classifications" in rec:
+        work_lc_class = {clean_raw_lcc(v) for v in work.get("lc_classifications", [])}
+        work_lc_class.update(clean_raw_lcc(v) for v in rec.get("lc_classifications", []))
+        work["lc_classifications"] = list(work_lc_class)
+        need_work_save = True
 
     # Add cover to work, if needed
     if not work.get("covers") and edition.get_covers():
