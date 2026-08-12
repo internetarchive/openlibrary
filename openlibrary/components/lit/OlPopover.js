@@ -2,48 +2,9 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
+import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
 let _idCounter = 0;
-
-/**
- * Whether the browser supports the Popover API (Chrome 114, Safari 17, Firefox 125).
- * When it does, the panel is promoted to the **top layer**, whose containing block
- * is always the viewport. Without it, `position: fixed` resolves against the
- * nearest transformed ancestor instead — so a popover inside any transformed
- * container (a carousel track, a `will-change` element) renders hundreds of pixels
- * off and gets clipped. The top layer also escapes ancestor `isolation: isolate`
- * and z-index stacking. Older browsers keep the plain `position: fixed` path,
- * which is correct everywhere except under a transformed ancestor.
- */
-const SUPPORTS_TOP_LAYER =
-    typeof HTMLElement !== 'undefined' &&
-    typeof HTMLElement.prototype.showPopover === 'function';
-
-/**
- * Show `el` in the top layer, tolerating the states that make `showPopover()`
- * throw (already open, not yet connected).
- */
-function _promoteToTopLayer(el) {
-    if (!SUPPORTS_TOP_LAYER || !el || !el.isConnected) return;
-    if (el.matches(':popover-open')) return;
-    try {
-        el.showPopover();
-    } catch {
-        // Not promotable (disconnected mid-flight) — the fixed-position
-        // fallback still paints it in the right place off a transform.
-    }
-}
-
-/** Drop `el` out of the top layer, tolerating an already-hidden element. */
-function _demoteFromTopLayer(el) {
-    if (!SUPPORTS_TOP_LAYER || !el || !el.isConnected) return;
-    if (!el.matches(':popover-open')) return;
-    try {
-        el.hidePopover();
-    } catch {
-        // Already hidden by removal from the DOM.
-    }
-}
 
 /**
  * Open popovers, topmost (most recently shown) last. Escape is a document-level
@@ -368,7 +329,7 @@ export class OlPopover extends LitElement {
                 ${this._mobile ? html`
                     <div
                         class="backdrop"
-                        popover="${ifDefined(SUPPORTS_TOP_LAYER ? 'manual' : undefined)}"
+                        popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
                     ></div>
@@ -388,7 +349,7 @@ export class OlPopover extends LitElement {
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
-                    popover="${ifDefined(SUPPORTS_TOP_LAYER ? 'manual' : undefined)}"
+                    popover="${ifDefined(topLayerAttr())}"
                     data-state="${this._animState}"
                     role="dialog"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
@@ -471,8 +432,8 @@ export class OlPopover extends LitElement {
             // Promote to the top layer before measuring — a [popover] element is
             // `display: none` until shown, so offsetWidth/Height would read 0.
             // Backdrop first: within the top layer, later-shown paints on top.
-            _promoteToTopLayer(this.shadowRoot.querySelector('.backdrop'));
-            _promoteToTopLayer(panel);
+            promoteToTopLayer(this.shadowRoot.querySelector('.backdrop'));
+            promoteToTopLayer(panel);
 
             // Desktop: measure and position relative to trigger.
             // Use offsetWidth/Height — getBoundingClientRect includes the
@@ -545,8 +506,8 @@ export class OlPopover extends LitElement {
     _cleanup() {
         this._removeListeners();
         this._releaseScrollLock();
-        _demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
-        _demoteFromTopLayer(this.shadowRoot?.querySelector('.backdrop'));
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.backdrop'));
         this._restoreFocus();
     }
 
