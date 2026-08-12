@@ -1,3 +1,4 @@
+import importlib
 from dataclasses import dataclass, field
 from unittest.mock import patch
 
@@ -759,6 +760,21 @@ def _make_creators_item() -> CItem:
             ]
         ),
     )
+
+
+def test_amazon_creatorsapi_lazy_import_resolves() -> None:
+    """
+    `AmazonCreatorsAPI.__init__` does `from amazon_creatorsapi import ...` at call
+    time, so a missing dependency surfaces only when the affiliate server boots.
+
+    This matters more since #13277 removed the legacy PA-API fallback: there is no
+    longer a second client to degrade to, so a broken import is a total outage. The
+    module ships inside `python-amazon-paapi` (requirements.txt), which is not an
+    obvious place to look, so a dependency bump can break it with nothing else failing.
+    """
+    module = importlib.import_module("amazon_creatorsapi")
+    assert hasattr(module, "AmazonCreatorsApi")
+    assert hasattr(module.Country, "US")
 
 
 # ---- AmazonCreatorsAPI.serialize() tests ------------------------------------
