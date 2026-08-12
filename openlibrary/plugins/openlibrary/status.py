@@ -41,25 +41,18 @@ _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 
 class status(delegate.page):
     def GET(self):
-        testing_state = _load_testing_state()
         is_maintainer_user = _is_maintainer()
-        drift_info = {}
-        if testing_state:
-            drift_info, _ = _get_drift_info(testing_state)
-        show_testing = testing_state is not None and is_maintainer_user
-        i = web.input(deploy_triggered=None, deploy_failed=None, deploy_unconfigured=None, drift_refreshed=None)
+        # The panel reads its state from FastAPI in the browser. Keep only this
+        # lightweight existence/permission check so non-maintainers do not get
+        # a shell that would immediately produce a 403 from the JSON endpoint.
+        show_testing = _load_testing_state() is not None and is_maintainer_user
         return render_template(
             "status",
             status_info,
             features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
-            testing_payload=get_testing_status(testing_state, drift_info) or {},
             is_maintainer=is_maintainer_user,
             show_testing=show_testing,
-            deploy_triggered=bool(i.deploy_triggered),
-            deploy_failed=bool(i.deploy_failed),
-            deploy_unconfigured=bool(i.deploy_unconfigured),
-            drift_refreshed=bool(i.drift_refreshed),
             jenkins_job_url=_JENKINS_JOB_URL,
         )
 

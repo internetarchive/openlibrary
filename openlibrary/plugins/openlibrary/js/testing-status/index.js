@@ -1,74 +1,141 @@
-/**
- * Progressive enhancement for the /status Testing Environment panel.
- *
- * The panel is rendered server-side by macros/TestingEnvironment.html.jinja and
- * is fully operable without this file: every control is a submit button whose
- * formaction names an endpoint that redirects back to /status. All this adds is
- * doing that round trip with fetch and swapping the result in, so the page
- * doesn't reload. It never builds a row — the template stays the single source
- * of markup.
- */
-
-import { postAction } from './TestingStatusService';
+import { getTestingStatus, postAction } from './TestingStatusService';
 import { sprintf } from '../i18n.js';
 
+const REPO_URL = 'https://github.com/internetarchive/openlibrary';
+
 /**
- * English source strings and runtime fallback. The macro renders the
- * translated copies into the panel's data-i18n attribute; keep the keys and
- * the English text here in lockstep with it. Its msgids name their
- * placeholders for translators, but what arrives here is always `%s`, filled
- * in by sprintf().
+ * English fallbacks for the translated strings embedded in the page shell.
+ * Placeholder values are normalized to %s by the server template.
  */
 export const DEFAULT_STRINGS = {
+    loading: 'Loading testing environment…',
+    loadError: 'Could not load the testing environment.',
+    retry: 'Try again',
+    actionComplete: 'Action completed.',
+    actionFailed: 'Could not complete that action.',
+    deployTriggered: 'Deploy triggered!',
+    deployFailed: 'Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again.',
+    deployUnconfigured: 'No Jenkins token is configured, so no build was started. Pending changes were cleared locally.',
+    githubRefreshed: 'GitHub status refreshed.',
+    title: 'Testing Environment',
+    addPrs: 'Add PRs',
+    addPlaceholder: 'PR numbers or URLs, space or comma separated',
+    add: 'Add PRs',
+    addChange: 'Add',
+    selectAll: 'Select all PRs',
+    on: 'On',
+    pr: 'PR',
+    author: 'Author',
+    assignee: 'Assignee',
+    drift: 'Drift',
+    actions: 'Actions',
+    disabled: 'Disabled',
+    merged: 'merged',
+    ok: 'OK',
     noneSelected: 'None selected',
     selected: '%s selected',
+    selectPr: 'Select PR #%s',
+    prOnTesting: 'PR #%s on testing',
+    changeOnDeploy: 'changes on deploy',
     removing: 'Removing #%s…',
     updating: 'Updating #%s…',
     enabling: 'Enabling #%s…',
     disabling: 'Disabling #%s…',
-    deploying: 'Deploying to testing…'
+    deploying: 'Deploying to testing…',
+    adding: 'Adding PRs…',
+    update: 'Update',
+    updatePin: 'Update pin',
+    enable: 'Enable',
+    disable: 'Disable',
+    remove: 'Remove',
+    refresh: 'Refresh from GitHub',
+    deploy: 'Deploy',
+    changeOne: '%s change will be applied',
+    changeMany: '%s changes will be applied',
+    nothingToDeploy: 'Nothing to deploy — testing matches the current set.',
+    mergedToMaster: 'merged to master',
+    unknown: 'Drift unknown, pinned at %s',
+    currentCommit: 'Up-to-date, pinned at %s',
+    behindOne: '%s commit behind %s',
+    behindMany: '%s commits behind %s',
+    neverDeployed: 'Never deployed',
+    deployingStarted: 'Deploying, started %s',
+    lastDeploy: 'Last deploy %s',
+    viewJenkins: 'View Jenkins',
+    noPrs: 'No PRs in testing set.'
 };
 
-/**
- * Attributes that mark a control worth refocusing after an update, most
- * specific first. See focusedSelector().
- */
 const FOCUS_ATTRS = ['data-row-toggle', 'data-row-action', 'data-bulk', 'data-deploy'];
 
-/**
- * @param {Element} el
- * @return {Object} DEFAULT_STRINGS overlaid with the element's translations.
- */
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function stringsFromElement(el) {
     try {
         const raw = el.dataset.i18n;
         if (raw) return { ...DEFAULT_STRINGS, ...JSON.parse(raw) };
     } catch {
-        // A malformed payload falls back to English rather than blanking the UI.
+        // A malformed translation payload falls back to English.
     }
     return DEFAULT_STRINGS;
 }
 
-/**
- * The panel controller. State lives on the instance rather than in module
- * globals so the strings stay attached to the one panel they belong to.
- */
+function formatTime(value) {
+    return String(value || '').slice(0, 16).replace('T', ' ');
+}
+
+function safeHttpUrl(value) {
+    if (!value || String(value).startsWith('//')) return '';
+    try {
+        const url = new URL(value, window.location.origin);
+        if (url.protocol === 'https:') return url.href;
+        return url.protocol === 'http:' && url.origin === window.location.origin ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
+function person(name, avatar) {
+    if (!name) return '<span class="testing-env__empty">—</span>';
+    const avatarUrl = safeHttpUrl(avatar);
+    const image = avatarUrl
+        ? `<img class="testing-env__avatar" src="${escapeHtml(avatarUrl)}&amp;s=40" width="20" height="20" alt="" loading="lazy">`
+        : '';
+    return `<span class="testing-env__person">${image}${escapeHtml(name)}</span>`;
+}
+
+function focusedSelector(root) {
+    const active = document.activeElement;
+    if (!active || !root.contains(active)) return null;
+
+    const attr = FOCUS_ATTRS.find((name) => active.hasAttribute(name));
+    if (!attr) return null;
+    if (active.dataset.pr) return `[${attr}][data-pr="${active.dataset.pr}"]`;
+
+    const action = active.getAttribute('formaction');
+    return action ? `[${attr}][formaction="${action}"]` : `[${attr}]`;
+}
+
 class TestingStatusPanel {
-    /**
-     * @param {Element} root The [data-testing-env] element.
-     */
     constructor(root) {
         this.root = root;
         this.strings = stringsFromElement(root);
-
+        this.busy = true;
         this.bind();
-        this.refreshSelection();
+        this.setBusy(true);
+        this.loadStatus();
     }
 
-    /**
-     * Show a transient message in the console strip at the foot of the panel.
-     * @param {String} message Empty string hides the strip.
-     */
+    text(key, ...args) {
+        return sprintf(this.strings[key] || DEFAULT_STRINGS[key] || key, ...args);
+    }
+
     setToast(message) {
         const toast = this.root.querySelector('[data-toast]');
         if (!toast) return;
@@ -76,92 +143,334 @@ class TestingStatusPanel {
         toast.hidden = !message;
     }
 
-    /** Update the "N selected" label and enable/disable the bulk buttons. */
+    setBusy(busy) {
+        this.busy = busy;
+        this.root.setAttribute('aria-busy', busy ? 'true' : 'false');
+        this.root.querySelectorAll('button').forEach((button) => {
+            if (busy) {
+                button.dataset.statusDisabled = button.disabled ? 'true' : 'false';
+                button.disabled = true;
+            } else if (button.dataset.statusDisabled !== undefined) {
+                button.disabled = button.dataset.statusDisabled === 'true';
+                delete button.dataset.statusDisabled;
+            }
+        });
+        if (!busy) this.refreshSelection();
+    }
+
     refreshSelection() {
         const checked = this.root.querySelectorAll('input[name="prs"]:checked');
         const label = this.root.querySelector('[data-selected-count]');
         if (label) {
             label.textContent = checked.length
-                ? sprintf(this.strings.selected, checked.length)
+                ? this.text('selected', checked.length)
                 : this.strings.noneSelected;
         }
-        // Server-rendered they start enabled, so a no-JS click on an empty
-        // selection posts nothing and the endpoint bounces straight back.
         this.root.querySelectorAll('[data-bulk]').forEach((button) => {
-            if (button.hasAttribute('data-no-selection')) return;
-            button.disabled = checked.length === 0;
+            if (!button.hasAttribute('data-no-selection')) {
+                button.disabled = checked.length === 0;
+            }
         });
     }
 
-    /**
-     * @return {String[]} PR numbers of the checked rows.
-     */
     selectedPrs() {
-        return Array.from(this.root.querySelectorAll('input[name="prs"]:checked')).map((cb) => cb.value);
+        return Array.from(this.root.querySelectorAll('input[name="prs"]:checked'))
+            .map((checkbox) => checkbox.value);
     }
 
-    /**
-     * Swap in the panel from a freshly rendered document. The root element
-     * itself survives, so the delegated listeners that reference it stay valid.
-     *
-     * @param {Document} doc Freshly fetched /status document.
-     */
-    applyUpdate(doc) {
-        const incoming = doc.querySelector('[data-testing-env]');
-        if (!incoming) return;
+    renderLoading() {
+        this.root.innerHTML = `
+            <div class="testing-env__main">
+                <p class="testing-env__blank" data-testing-loading role="status" aria-live="polite">${escapeHtml(this.strings.loading)}</p>
+            </div>`;
+    }
 
-        // The deploy banners are rendered outside the panel, so swapping only
-        // the panel would drop them: a failed deploy would come back looking
-        // exactly like one that changed nothing.
-        const messages = document.querySelector('[data-testing-messages]');
-        const incomingMessages = doc.querySelector('[data-testing-messages]');
-        if (messages && incomingMessages) {
-            messages.replaceChildren(...incomingMessages.childNodes);
+    renderError() {
+        this.root.innerHTML = `
+            <div class="testing-env__main">
+                <div class="testing-env__blank" role="alert">
+                    <p>${escapeHtml(this.strings.loadError)}</p>
+                    <button type="button" class="testing-env__btn testing-env__btn--small" data-retry>
+                        ${escapeHtml(this.strings.retry)}
+                    </button>
+                </div>
+            </div>`;
+    }
+
+    renderPersonColumn(value, avatar) {
+        return `<td>${person(value, avatar)}</td>`;
+    }
+
+    renderDrift(pr) {
+        const pinned = String(pr.commit || '').slice(0, 7);
+        const merged = pr.merged === true;
+        const drift = Number(pr.drift);
+        let pill;
+
+        if (merged) {
+            pill = `<span class="testing-env__pill testing-env__pill--merged" title="${escapeHtml(this.text('mergedToMaster'))}">${escapeHtml(this.strings.merged)}</span>`;
+        } else if (drift === 0) {
+            pill = `<span class="testing-env__pill testing-env__pill--ok" title="${escapeHtml(this.text('currentCommit', pinned))}">${escapeHtml(this.strings.ok)}</span>`;
+        } else if (drift < 0 || Number.isNaN(drift)) {
+            const href = `${REPO_URL}/commit/${encodeURIComponent(pr.commit || '')}`;
+            pill = `<a class="testing-env__pill testing-env__pill--unknown" href="${escapeHtml(href)}" title="${escapeHtml(this.text('unknown', pinned))}">?</a>`;
+        } else {
+            const behindText = drift === 1
+                ? this.text('behindOne', drift, pinned)
+                : this.text('behindMany', drift, pinned);
+            const headSha = pr.head_sha ? encodeURIComponent(pr.head_sha) : '';
+            const compareUrl = `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${headSha}`;
+            const pillContent = `-${escapeHtml(drift)}`;
+            pill = pr.head_sha
+                ? `<a class="testing-env__pill testing-env__pill--behind" href="${escapeHtml(compareUrl)}" title="${escapeHtml(behindText)}">${pillContent}</a>`
+                : `<span class="testing-env__pill testing-env__pill--behind" title="${escapeHtml(behindText)}">${pillContent}</span>`;
         }
 
+        const pendingActive = pr.pending_active;
+        const hasPendingToggle = pendingActive !== undefined && pendingActive !== null;
+        const pending = merged || Boolean(pr.pull_latest_sha) || hasPendingToggle;
+        const pendingNote = pending
+            ? `<span class="testing-env__pending">${escapeHtml(this.text('changeOnDeploy'))}</span>`
+            : '';
+        return `<td class="testing-env__drift-cell">
+            <div class="testing-env__cell-stack">${pill}${pendingNote}</div>
+        </td>`;
+    }
+
+    renderRow(pr, isMaintainer) {
+        const merged = pr.merged === true;
+        const active = pr.active !== false;
+        const pendingActive = pr.pending_active;
+        const effectiveActive = pendingActive === undefined || pendingActive === null
+            ? active
+            : pendingActive;
+        const pending = merged || Boolean(pr.pull_latest_sha) || (pendingActive !== undefined && pendingActive !== null);
+        const classes = [
+            'testing-env__row',
+            merged ? 'is-merged' : '',
+            !active ? 'is-inactive' : '',
+            pr.is_new ? 'is-new' : '',
+            pending ? 'is-pending' : ''
+        ].filter(Boolean).join(' ');
+        const prNumber = escapeHtml(pr.pr);
+        const prUrl = `${REPO_URL}/pull/${encodeURIComponent(pr.pr)}`;
+        const title = escapeHtml(pr.title);
+        const tag = !active
+            ? `<span class="testing-env__tag">${escapeHtml(this.strings.disabled)}</span>`
+            : '';
+        const controls = isMaintainer
+            ? `<td class="testing-env__col-check">
+                    <input type="checkbox" form="testing-bulk-form" name="prs" value="${prNumber}"
+                           aria-label="${escapeHtml(this.text('selectPr', pr.pr))}">
+               </td>
+               <td class="testing-env__col-toggle">
+                    <button type="submit" class="testing-env__switch" form="testing-row-form"
+                            formaction="/status/${effectiveActive ? 'disable' : 'enable'}" name="prs" value="${prNumber}"
+                            data-row-toggle data-pr="${prNumber}" aria-pressed="${effectiveActive ? 'true' : 'false'}"
+                            aria-label="${escapeHtml(this.text('prOnTesting', pr.pr))}">
+                        <span class="testing-env__switch-knob" aria-hidden="true"></span>
+                    </button>
+               </td>`
+            : '';
+        let action = '';
+        if (isMaintainer && merged) {
+            action = `<button type="submit" class="testing-env__row-action" form="testing-row-form"
+                       formaction="/status/remove" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}">
+                       ${escapeHtml(this.strings.remove)}</button>`;
+        } else if (isMaintainer && Number(pr.drift) > 0 && !pr.pull_latest_sha) {
+            action = `<button type="submit" class="testing-env__row-action" form="testing-row-form"
+                       formaction="/status/pull-latest" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}">
+                       ${escapeHtml(this.strings.update)}</button>`;
+        }
+
+        return `<tr data-pr="${prNumber}" class="${classes}">
+            ${controls}
+            <td class="testing-env__pr-cell">
+                <div class="testing-env__pr-line">
+                    <a class="testing-env__pr-num" href="${prUrl}">#${prNumber}</a>
+                    <a class="testing-env__pr-title" href="${prUrl}" title="${title}">${title}</a>
+                    ${tag}
+                </div>
+            </td>
+            ${this.renderPersonColumn(pr.author, pr.author_avatar)}
+            ${this.renderPersonColumn(pr.assignee, pr.assignee_avatar)}
+            ${this.renderDrift(pr)}
+            ${isMaintainer ? `<td class="testing-env__col-actions">${action}</td>` : ''}
+        </tr>`;
+    }
+
+    renderChange(change) {
+        const labels = {
+            add: this.strings.addChange,
+            pin: this.text('updatePin'),
+            enable: this.strings.enable,
+            disable: this.strings.disable,
+            remove: this.strings.remove
+        };
+        const detail = change.reason === 'merged'
+            ? `<span class="testing-env__change-detail">${escapeHtml(this.strings.mergedToMaster)}</span>`
+            : change.detail
+                ? `<span class="testing-env__change-detail testing-env__change-detail--sha">${escapeHtml(change.detail)}</span>`
+                : '';
+        return `<li class="testing-env__change testing-env__change--${escapeHtml(change.kind)}">
+            <span class="testing-env__change-kind">${escapeHtml(labels[change.kind] || change.kind)}</span>
+            <a class="testing-env__change-pr" href="${REPO_URL}/pull/${encodeURIComponent(change.pr)}">#${escapeHtml(change.pr)}</a>
+            <span class="testing-env__change-title">${escapeHtml(change.title)}</span>
+            ${detail}
+        </li>`;
+    }
+
+    renderDeploy(payload, isMaintainer) {
+        const changes = payload.pending_changes || [];
+        const changeCount = changes.length;
+        const plan = changeCount
+            ? `<p class="testing-env__plan-head">${escapeHtml(changeCount === 1
+                ? this.text('changeOne', changeCount)
+                : this.text('changeMany', changeCount))}</p>
+               <ul class="testing-env__plan-list">${changes.map((change) => this.renderChange(change)).join('')}</ul>`
+            : `<p class="testing-env__plan-empty">${escapeHtml(this.strings.nothingToDeploy)}</p>`;
+        const jenkinsUrl = safeHttpUrl(this.root.dataset.jenkinsUrl);
+        const deployButton = isMaintainer
+            ? `<form method="post" action="/status/deploy" class="testing-env__deploy-action">
+                   <button type="submit" class="testing-env__btn testing-env__btn--primary" formaction="/status/deploy"
+                           data-deploy ${changeCount ? '' : 'disabled'}>
+                       <svg class="testing-env__btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                           <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+                           <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" />
+                           <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" />
+                           <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" />
+                       </svg>
+                       ${escapeHtml(this.strings.deploy)}
+                   </button>
+               </form>`
+            : '';
+        let status;
+        if (payload.deploying) {
+            status = `<span class="testing-env__status testing-env__status--deploying"><span class="testing-env__dot" aria-hidden="true"></span>
+                ${escapeHtml(this.text('deployingStarted', formatTime(payload.deploy_started_at)))}</span>`;
+        } else if (payload.last_deploy_at) {
+            status = `<span class="testing-env__status"><span class="testing-env__dot" aria-hidden="true"></span>
+                ${escapeHtml(this.text('lastDeploy', formatTime(payload.last_deploy_at)))}</span>`;
+        } else {
+            status = `<span class="testing-env__status testing-env__status--idle">${escapeHtml(this.strings.neverDeployed)}</span>`;
+        }
+        const jenkinsLink = jenkinsUrl
+            ? `<a class="testing-env__jenkins" href="${escapeHtml(jenkinsUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(this.strings.viewJenkins)}</a>`
+            : '';
+        return `<section class="testing-env__deploy">
+            ${deployButton}
+            <div class="testing-env__plan">${plan}</div>
+            <div class="testing-env__deploy-state">${status}${jenkinsLink}</div>
+        </section>`;
+    }
+
+    renderPayload(payload) {
+        const isMaintainer = this.root.dataset.maintainer === 'true';
+        const prs = payload.prs || [];
+        const addForm = isMaintainer
+            ? `<form method="post" action="/status/add" class="testing-env__add" data-add-form>
+                   <label class="shift" for="testing-env-add">${escapeHtml(this.strings.addPrs)}</label>
+                   <input id="testing-env-add" type="text" name="pr" class="testing-env__input" autocomplete="off"
+                          placeholder="${escapeHtml(this.strings.addPlaceholder)}">
+                   <button type="submit" class="testing-env__btn testing-env__btn--primary">${escapeHtml(this.strings.add)}</button>
+               </form>`
+            : '';
+        const table = prs.length
+            ? `<div class="testing-env__table-wrap">
+                   <table class="testing-env__table">
+                       <thead><tr>
+                           ${isMaintainer ? `<th scope="col" class="testing-env__col-check"><input type="checkbox" data-select-all aria-label="${escapeHtml(this.strings.selectAll)}"></th><th scope="col">${escapeHtml(this.strings.on)}</th>` : ''}
+                           <th scope="col">${escapeHtml(this.strings.pr)}</th>
+                           <th scope="col">${escapeHtml(this.strings.author)}</th>
+                           <th scope="col">${escapeHtml(this.strings.assignee)}</th>
+                           <th scope="col">${escapeHtml(this.strings.drift)}</th>
+                           ${isMaintainer ? `<th scope="col" class="testing-env__col-actions"><span class="shift">${escapeHtml(this.strings.actions)}</span></th>` : ''}
+                       </tr></thead>
+                       <tbody>${prs.map((pr) => this.renderRow(pr, isMaintainer)).join('')}</tbody>
+                   </table>
+               </div>`
+            : `<p class="testing-env__blank">${escapeHtml(this.strings.noPrs)}</p>`;
+        const forms = isMaintainer
+            ? `<form method="post" id="testing-bulk-form" class="testing-env__anchor-form"></form>
+               <form method="post" id="testing-row-form" class="testing-env__anchor-form"></form>`
+            : '';
+        const actions = isMaintainer
+            ? `<footer class="testing-env__actions"><div class="testing-env__bulk">
+                   <span class="testing-env__selected" data-selected-count>${escapeHtml(this.strings.noneSelected)}</span>
+                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/pull-latest" data-bulk>${escapeHtml(this.strings.update)}</button>
+                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/enable" data-bulk>${escapeHtml(this.strings.enable)}</button>
+                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/disable" data-bulk>${escapeHtml(this.strings.disable)}</button>
+                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/remove" data-bulk>${escapeHtml(this.strings.remove)}</button>
+                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/refresh" data-bulk data-no-selection>${escapeHtml(this.strings.refresh)}</button>
+               </div></footer>`
+            : '';
+        return `<div class="testing-env__main">
+            <header class="testing-env__bar"><h2 class="testing-env__title">${escapeHtml(this.strings.title)}</h2>${addForm}</header>
+            ${forms}${table}${actions}
+        </div>
+        ${this.renderDeploy(payload, isMaintainer)}
+        <div class="testing-env__toast" data-toast hidden aria-live="polite"></div>`;
+    }
+
+    applyPayload(payload) {
         const focused = focusedSelector(this.root);
-        this.root.replaceChildren(...incoming.childNodes);
+        this.root.innerHTML = this.renderPayload(payload);
         this.refreshSelection();
-        // The control that triggered this update was replaced along with the
-        // rest of the panel; put focus back on its successor.
         if (focused) {
             const successor = this.root.querySelector(focused);
             if (successor) successor.focus();
         }
     }
 
-    /**
-     * Run an action, showing progress and swapping the result back in.
-     *
-     * @param {String} action Endpoint path.
-     * @param {Object} fields Form fields.
-     * @param {String} message Progress text for the toast.
-     */
-    async runAction(action, fields, message) {
-        this.setToast(message);
+    async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
+        if (manageBusy) this.setBusy(true);
+        if (showLoading) this.renderLoading();
         try {
-            this.applyUpdate(await postAction(action, fields));
-            this.setToast('');
+            const payload = await getTestingStatus();
+            this.applyPayload(payload);
+            return true;
         } catch {
-            // The server is the source of truth; a reload beats a stale table.
-            window.location.reload();
+            if (renderError) this.renderError();
+            return false;
+        } finally {
+            if (manageBusy) this.setBusy(false);
         }
     }
 
-    /**
-     * What a button posts and what to say while it posts, or null to let the
-     * browser submit it normally.
-     *
-     * Every case reads its endpoint from the same formaction the plain form
-     * post would use, so the two paths can't disagree about where they go.
-     *
-     * @param {HTMLButtonElement} button
-     * @return {{fields: Object, message: String}|null}
-     */
+    actionResultMessage(action, response) {
+        try {
+            const url = new URL(response.url, window.location.href);
+            if (action.endsWith('/deploy')) {
+                if (url.searchParams.has('deploy_failed')) return this.strings.deployFailed;
+                if (url.searchParams.has('deploy_unconfigured')) return this.strings.deployUnconfigured;
+                if (url.searchParams.has('deploy_triggered')) return this.strings.deployTriggered;
+            }
+            if (action.endsWith('/refresh')) return this.strings.githubRefreshed;
+        } catch {
+            // A malformed redirect URL falls back to the generic confirmation.
+        }
+        return this.strings.actionComplete;
+    }
+
+    async runAction(action, fields, message) {
+        if (this.busy) return;
+        this.setBusy(true);
+        this.setToast(message);
+        try {
+            const response = await postAction(action, fields);
+            const loaded = await this.loadStatus(false, false, false);
+            this.setToast(loaded ? this.actionResultMessage(action, response) : this.strings.loadError);
+        } catch {
+            this.setToast(this.strings.actionFailed);
+        } finally {
+            this.setBusy(false);
+        }
+    }
+
     planFor(button) {
         const action = button.getAttribute('formaction');
         const pr = button.dataset.pr;
-
         if (button.hasAttribute('data-row-toggle')) {
             const verb = action.endsWith('disable') ? this.strings.disabling : this.strings.enabling;
             return { fields: { prs: [pr] }, message: sprintf(verb, pr) };
@@ -173,7 +482,6 @@ class TestingStatusPanel {
         if (button.hasAttribute('data-bulk')) {
             const prs = this.selectedPrs();
             if (!prs.length && !button.hasAttribute('data-no-selection')) return null;
-            // The button's own label is already translated server-side.
             return { fields: { prs }, message: `${button.textContent.trim()}…` };
         }
         if (button.hasAttribute('data-deploy')) {
@@ -182,30 +490,38 @@ class TestingStatusPanel {
         return null;
     }
 
-    /**
-     * Attach every listener the panel needs.
-     *
-     * Delegated from the panel root rather than bound per element: applyUpdate()
-     * replaces the panel's contents, which would silently discard listeners
-     * bound directly to the buttons inside it.
-     */
     bind() {
         this.root.addEventListener('click', (event) => {
-            // closest() climbs past the panel, so the match is checked against it.
-            const button = event.target.closest('button[formaction]');
+            const button = event.target.closest('button');
             if (!button || !this.root.contains(button)) return;
-
+            if (button.hasAttribute('data-retry')) {
+                event.preventDefault();
+                this.loadStatus(true);
+                return;
+            }
+            if (!button.hasAttribute('formaction')) return;
             const plan = this.planFor(button);
             if (!plan) return;
             event.preventDefault();
             this.runAction(button.getAttribute('formaction'), plan.fields, plan.message);
         });
 
+        this.root.addEventListener('submit', (event) => {
+            if (this.busy) return;
+            const form = event.target.closest('form[data-add-form]');
+            if (!form || !this.root.contains(form)) return;
+            event.preventDefault();
+            const input = form.querySelector('input[name="pr"]');
+            const value = input?.value.trim();
+            if (!value) return;
+            this.runAction(form.action, { pr: value }, this.strings.adding);
+        });
+
         this.root.addEventListener('change', (event) => {
             const selectAll = event.target.closest('[data-select-all]');
             if (selectAll) {
-                this.root.querySelectorAll('input[name="prs"]').forEach((cb) => {
-                    cb.checked = selectAll.checked;
+                this.root.querySelectorAll('input[name="prs"]').forEach((checkbox) => {
+                    checkbox.checked = selectAll.checked;
                 });
             }
             if (selectAll || event.target.matches('input[name="prs"]')) {
@@ -215,37 +531,6 @@ class TestingStatusPanel {
     }
 }
 
-/**
- * Describe the focused control so it can be found again in the replacement
- * markup. Returns null when focus is outside the panel, or on something the
- * swap doesn't disturb.
- *
- * @param {Element} root
- * @return {String|null} A selector matching the control, e.g.
- *   '[data-row-toggle][data-pr="1234"]'.
- */
-function focusedSelector(root) {
-    const active = document.activeElement;
-    if (!active || !root.contains(active)) return null;
-
-    const attr = FOCUS_ATTRS.find((name) => active.hasAttribute(name));
-    if (!attr) return null;
-
-    // A row control is unique by its PR. Deliberately not keyed on formaction:
-    // a toggle's flips to the opposite endpoint in the very markup we're
-    // looking it up in. The bulk buttons have no PR and differ only by where
-    // they post, so those key on formaction instead.
-    if (active.dataset.pr) return `[${attr}][data-pr="${active.dataset.pr}"]`;
-    const action = active.getAttribute('formaction');
-    return action ? `[${attr}][formaction="${action}"]` : `[${attr}]`;
-}
-
-/**
- * Entry point. Called from plugins/openlibrary/js/index.js when the panel
- * is present on the page.
- *
- * @param {Element} root The [data-testing-env] element.
- */
 export function init(root) {
     new TestingStatusPanel(root);
 }

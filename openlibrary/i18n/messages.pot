@@ -659,26 +659,6 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
-msgid "Deploy triggered!"
-msgstr ""
-
-#: status.html
-msgid "View Jenkins progress"
-msgstr ""
-
-#: status.html
-msgid "Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again."
-msgstr ""
-
-#: status.html
-msgid "No Jenkins token is configured, so no build was started. Pending changes were cleared locally."
-msgstr ""
-
-#: status.html
-msgid "GitHub status refreshed."
-msgstr ""
-
-#: status.html
 msgid "Last Build Result"
 msgstr ""
 
@@ -2445,7 +2425,7 @@ msgstr ""
 msgid "add"
 msgstr ""
 
-#: TestingEnvironment.html.jinja admin/sync.html
+#: admin/sync.html
 msgid "remove"
 msgstr ""
 
@@ -7651,36 +7631,39 @@ msgid "Page %s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "None selected"
+msgid "Loading testing environment…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(count)s selected"
+msgid "Could not load the testing environment."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Removing #%(num)s…"
+msgid "Try again"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Updating #%(num)s…"
+msgid "Action completed."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Enabling #%(num)s…"
+msgid "Could not complete that action."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Disabling #%(num)s…"
+msgid "Deploy triggered!"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Deploying to testing…"
+msgid "Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "No Jenkins token is configured, so no build was started. Pending changes were cleared locally."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "GitHub status refreshed."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7716,6 +7699,27 @@ msgid "Drift"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Disabled"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "merged"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "OK"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "None selected"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(count)s selected"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 #, python-format
 msgid "Select PR %(num)s"
 msgstr ""
@@ -7726,45 +7730,39 @@ msgid "PR %(num)s on testing"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Disabled"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Merged to master, pinned at %(sha)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "merged"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Up to date, pinned at %(sha)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "OK"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Drift unknown, pinned at %(sha)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(num)d commit behind %(sha)s"
-msgid_plural "%(num)d commits behind %(sha)s"
-msgstr[0] ""
-msgstr[1] ""
-
-#: TestingEnvironment.html.jinja
 msgid "changes on deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "update"
+#, python-format
+msgid "Removing #%(num)s…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Updating #%(num)s…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Enabling #%(num)s…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Disabling #%(num)s…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Deploying to testing…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Adding PRs…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Update pin"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7780,30 +7778,46 @@ msgid "Refresh from GitHub"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "No PRs in testing set."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Update pin"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "Deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "%(num)d change will be applied"
-msgid_plural "%(num)d changes will be applied"
-msgstr[0] ""
-msgstr[1] ""
+msgid "%(num)s change will be applied"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(num)s changes will be applied"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Nothing to deploy — testing matches the current set."
+msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "merged to master"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Nothing to deploy — testing matches the current set."
+#, python-format
+msgid "Drift unknown, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Up-to-date, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(num)s commit behind %(sha)s"
+msgid_plural "%(num)s commits behind %(sha)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: TestingEnvironment.html.jinja
+msgid "Never deployed"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7817,11 +7831,11 @@ msgid "Last deploy %(time)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Never deployed"
+msgid "View Jenkins"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "View Jenkins"
+msgid "No PRs in testing set."
 msgstr ""
 
 #: TrendingBadge.html
