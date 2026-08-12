@@ -109,7 +109,7 @@ def main():
                     print(f"Records updated this session: {updated_count}")
                     return 130
             # After each batch:
-            print(f"{updated_count:>11} records updated")
+            print(f"{updated_count:>11} records updated", flush=True)
 
     print(f"Records updated this session: {updated_count}")
     return 0
