@@ -1,7 +1,6 @@
 import logging
 import re
 import sys
-from collections import defaultdict
 from datetime import datetime
 from functools import cached_property
 from typing import cast
