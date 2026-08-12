@@ -32,9 +32,6 @@ class RequestLogEntry(SolrLogEntry):
     thread_info: str
     context: str
     class_handler: str
-    # Solr <= 9 logs `webapp=/solr`; Solr 10 dropped it (and added `rid=`), so
-    # this is absent on newer versions.
-    webapp: str | None
     path: str
     params: str
     status: int
@@ -86,12 +83,11 @@ class RequestLogEntry(SolrLogEntry):
             context=match.group("context"),
             class_handler=match.group("class_handler"),
             message=match.group("message"),
-            webapp=fields.get("webapp"),
             path=fields["path"],
             params=fields["params"],
             status=int(fields["status"]),
             qtime=int(fields["QTime"]),
-            other_fields={k: v for k, v in fields.items() if k not in {"webapp", "path", "params", "status", "QTime"}},
+            other_fields={k: v for k, v in fields.items() if k not in {"path", "params", "status", "QTime"}},
         )
 
 

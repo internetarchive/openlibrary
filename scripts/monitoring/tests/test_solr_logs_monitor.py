@@ -20,7 +20,7 @@ class TestRequestLogEntry:
         assert entry.thread_info == "qtp1997548433-42-null-243439"
         assert entry.context == "c: s: r: x:openlibrary t:null-243439"
         assert entry.class_handler == "o.a.s.c.S.Request"
-        assert entry.webapp == "/solr"
+        assert entry.other_fields.get("webapp") == "/solr"
         assert entry.path == "/select"
         assert (
             entry.params
@@ -55,11 +55,12 @@ class TestRequestLogEntry:
         """Solr 10 omits `webapp=`; the line must still yield metrics."""
         entry = parse_log_entry(SAMPLE_LOG_LINE_SOLR_10)
         assert isinstance(entry, RequestLogEntry)
-        assert entry.webapp is None
         assert entry.path == "/select"
         assert entry.status == 0
         assert entry.qtime == 9
-        # Fields other than webapp/path/params/status/QTime still fall through.
+        # webapp is simply absent from other_fields, rather than a dedicated
+        # attribute that's None - Solr 10 just never sent it.
+        assert "webapp" not in entry.other_fields
         assert entry.other_fields == {"hits": "0"}
 
     def test_solr_10_label_still_extracted(self):
