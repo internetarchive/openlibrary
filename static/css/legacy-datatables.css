@@ -73,26 +73,11 @@ table.display thead th {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables sorting
+ *
+ * The .sort-indicator rules live in components/editions.css: they have to
+ * apply before this lazily-imported stylesheet lands, or the server-rendered
+ * icons stack up unstyled until the editions-table chunk loads.
  */
-
-/* One icon per sort state, shown by the sorting class DataTables sets on the th.
-   Before the table upgrades no state class exists, so no indicator renders. */
-th .sort-indicator__icon {
-  display: none;
-  margin-left: var(--spacing-inline-xs);
-}
-
-/* This DataTables version keeps the base `sorting` class when a direction
-   class is added, so the unsorted icon must exclude both. */
-th.sorting:not(.sorting_asc, .sorting_desc) .sort-indicator__icon--none {
-  display: inline-block;
-  color: var(--color-icon-muted);
-}
-
-th.sorting_asc .sort-indicator__icon--asc,
-th.sorting_desc .sort-indicator__icon--desc {
-  display: inline-block;
-}
 
 .sorting:hover {
   text-decoration: none;

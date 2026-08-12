@@ -41,6 +41,29 @@ table#editions thead tr th.title:focus,
 }
 /* stylelint-enable max-nesting-depth */
 
+/* One icon per sort state, shown by the sorting class DataTables sets on the th.
+   Before the table upgrades no state class exists, so no indicator renders.
+   These have to sit here rather than in the DataTables stylesheet, which only
+   arrives with the lazily-imported editions-table chunk. */
+.editions-table th .sort-indicator__icon {
+  display: none;
+  margin-left: var(--spacing-inline-xs);
+}
+
+/* This DataTables version keeps the base `sorting` class when a direction
+   class is added, so the unsorted icon must exclude both. */
+.editions-table
+  th.sorting:not(.sorting_asc, .sorting_desc)
+  .sort-indicator__icon--none {
+  display: inline-block;
+  color: var(--color-icon-muted);
+}
+
+.editions-table th.sorting_asc .sort-indicator__icon--asc,
+.editions-table th.sorting_desc .sort-indicator__icon--desc {
+  display: inline-block;
+}
+
 table#editions th,
 .editions-table th {
   font-family: var(--font-family-body);
