@@ -260,7 +260,7 @@ msgstr ""
 msgid "history"
 msgstr ""
 
-#: TestingEnvironment.html.jinja diff.html
+#: diff.html
 msgid "Added"
 msgstr ""
 
@@ -7714,7 +7714,7 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Enable PR %(num)s on testing"
+msgid "PR %(num)s on testing"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7756,11 +7756,6 @@ msgid "changes on deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Added by %(who)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "update"
 msgstr ""
 
@@ -7785,21 +7780,7 @@ msgid "Update pin"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-#, python-format
-msgid "Deploying, started %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Last deploy %(time)s"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Never deployed"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "View Jenkins"
+msgid "Deploy"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7818,7 +7799,21 @@ msgid "Nothing to deploy — testing matches the current set."
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Deploy"
+#, python-format
+msgid "Deploying, started %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Last deploy %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Never deployed"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "View Jenkins"
 msgstr ""
 
 #: TrendingBadge.html

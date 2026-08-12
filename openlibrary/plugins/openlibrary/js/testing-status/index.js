@@ -1,10 +1,12 @@
 /**
- * Orchestration controller for the /status Testing Environment table.
+ * Progressive enhancement for the /status Testing Environment panel.
  *
- * The table is rendered server-side by macros/TestingEnvironment.html.jinja.
- * Every action posts to the endpoint the markup already names and gets the
- * re-rendered page back, so the template stays the single source of markup
- * and this controller never builds a row.
+ * The panel is rendered server-side by macros/TestingEnvironment.html.jinja and
+ * is fully operable without this file: every control is a submit button whose
+ * formaction names an endpoint that redirects back to /status. All this adds is
+ * doing that round trip with fetch and swapping the result in, so the page
+ * doesn't reload. It never builds a row — the template stays the single source
+ * of markup.
  */
 
 import { postAction } from './TestingStatusService';
@@ -83,6 +85,8 @@ class TestingStatusPanel {
                 ? sprintf(this.strings.selected, checked.length)
                 : this.strings.noneSelected;
         }
+        // Server-rendered they start enabled, so a no-JS click on an empty
+        // selection posts nothing and the endpoint bounces straight back.
         this.root.querySelectorAll('[data-bulk]').forEach((button) => {
             if (button.hasAttribute('data-no-selection')) return;
             button.disabled = checked.length === 0;
@@ -111,7 +115,10 @@ class TestingStatusPanel {
         this.refreshSelection();
         // The control that triggered this update was replaced along with the
         // rest of the panel; put focus back on its successor.
-        if (focused) restoreFocus(this.root.querySelector(focused));
+        if (focused) {
+            const successor = this.root.querySelector(focused);
+            if (successor) successor.focus();
+        }
     }
 
     /**
@@ -133,44 +140,56 @@ class TestingStatusPanel {
     }
 
     /**
+     * What a button posts and what to say while it posts, or null to let the
+     * browser submit it normally.
+     *
+     * Every case reads its endpoint from the same formaction the plain form
+     * post would use, so the two paths can't disagree about where they go.
+     *
+     * @param {HTMLButtonElement} button
+     * @return {{fields: Object, message: String}|null}
+     */
+    planFor(button) {
+        const action = button.getAttribute('formaction');
+        const pr = button.dataset.pr;
+
+        if (button.hasAttribute('data-row-toggle')) {
+            const verb = action.endsWith('disable') ? this.strings.disabling : this.strings.enabling;
+            return { fields: { prs: [pr] }, message: sprintf(verb, pr) };
+        }
+        if (button.hasAttribute('data-row-action')) {
+            const verb = action.endsWith('remove') ? this.strings.removing : this.strings.updating;
+            return { fields: { prs: [pr] }, message: sprintf(verb, pr) };
+        }
+        if (button.hasAttribute('data-bulk')) {
+            const prs = this.selectedPrs();
+            if (!prs.length && !button.hasAttribute('data-no-selection')) return null;
+            // The button's own label is already translated server-side.
+            return { fields: { prs }, message: `${button.textContent.trim()}…` };
+        }
+        if (button.hasAttribute('data-deploy')) {
+            return { fields: {}, message: this.strings.deploying };
+        }
+        return null;
+    }
+
+    /**
      * Attach every listener the panel needs.
      *
      * Delegated from the panel root rather than bound per element: applyUpdate()
      * replaces the panel's contents, which would silently discard listeners
-     * bound directly to the row buttons inside it.
+     * bound directly to the buttons inside it.
      */
     bind() {
-        // closest() climbs past the panel, so every match is checked against it.
-        const closestIn = (target, selector) => {
-            const match = target.closest(selector);
-            return match && this.root.contains(match) ? match : null;
-        };
-
         this.root.addEventListener('click', (event) => {
-            const rowAction = closestIn(event.target, '[data-row-action]');
-            if (rowAction) {
-                event.preventDefault();
-                const pr = rowAction.dataset.pr;
-                const action = rowAction.dataset.rowAction;
-                const verb = action.endsWith('remove') ? this.strings.removing : this.strings.updating;
-                this.runAction(action, { prs: [pr] }, sprintf(verb, pr));
-                return;
-            }
+            // closest() climbs past the panel, so the match is checked against it.
+            const button = event.target.closest('button[formaction]');
+            if (!button || !this.root.contains(button)) return;
 
-            const bulk = closestIn(event.target, '[data-bulk]');
-            if (bulk) {
-                event.preventDefault();
-                const prs = this.selectedPrs();
-                if (!prs.length && !bulk.hasAttribute('data-no-selection')) return;
-                // The button's own label is already translated server-side.
-                this.runAction(bulk.dataset.bulk, { prs }, `${bulk.textContent.trim()}…`);
-                return;
-            }
-
-            if (closestIn(event.target, '[data-deploy]')) {
-                event.preventDefault();
-                this.runAction('/status/deploy', {}, this.strings.deploying);
-            }
+            const plan = this.planFor(button);
+            if (!plan) return;
+            event.preventDefault();
+            this.runAction(button.getAttribute('formaction'), plan.fields, plan.message);
         });
 
         this.root.addEventListener('change', (event) => {
@@ -183,19 +202,6 @@ class TestingStatusPanel {
             if (selectAll || event.target.matches('input[name="prs"]')) {
                 this.refreshSelection();
             }
-        });
-
-        this.root.addEventListener('ol-toggle-change', (event) => {
-            const rowToggle = event.target.closest('[data-row-toggle]');
-            if (!rowToggle) return;
-
-            const { checked } = event.detail;
-            const pr = rowToggle.dataset.pr;
-            this.runAction(
-                checked ? '/status/enable' : '/status/disable',
-                { prs: [pr] },
-                sprintf(checked ? this.strings.enabling : this.strings.disabling, pr)
-            );
         });
     }
 }
@@ -210,31 +216,19 @@ class TestingStatusPanel {
  *   '[data-row-toggle][data-pr="1234"]'.
  */
 function focusedSelector(root) {
-    // A shadow-DOM control reports its host here, which is what the selectors
-    // below match on anyway.
     const active = document.activeElement;
     if (!active || !root.contains(active)) return null;
 
     const attr = FOCUS_ATTRS.find((name) => active.hasAttribute(name));
     if (!attr) return null;
 
-    const value = active.getAttribute(attr);
-    const pr = active.dataset.pr;
-    return `[${attr}${value ? `="${value}"` : ''}]${pr ? `[data-pr="${pr}"]` : ''}`;
-}
-
-/**
- * Focus a control in the replacement markup, once it can take focus: a
- * freshly inserted <ol-toggle> delegates focus to a button its first render
- * hasn't produced yet, so focusing it any earlier lands nowhere.
- *
- * @param {Element|null} el
- */
-async function restoreFocus(el) {
-    if (!el) return;
-    // undefined on a plain <button>, which is already focusable.
-    await el.updateComplete;
-    el.focus();
+    // A row control is unique by its PR. Deliberately not keyed on formaction:
+    // a toggle's flips to the opposite endpoint in the very markup we're
+    // looking it up in. The bulk buttons have no PR and differ only by where
+    // they post, so those key on formaction instead.
+    if (active.dataset.pr) return `[${attr}][data-pr="${active.dataset.pr}"]`;
+    const action = active.getAttribute('formaction');
+    return action ? `[${attr}][formaction="${action}"]` : `[${attr}]`;
 }
 
 /**
