@@ -209,6 +209,12 @@ jQuery(function() {
             .then(module => module.init(readingLogConfig));
     }
 
+    const testingEnv = document.querySelector('[data-testing-env]');
+    if (testingEnv) {
+        import(/* webpackChunkName: "testing-status" */ './testing-status')
+            .then((module) => module.init(testingEnv));
+    }
+
     if (document.getElementsByClassName('toast').length) {
         import(/* webpackChunkName: "Toast" */ './Toast')
             .then((module) => {
