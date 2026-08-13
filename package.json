@@ -18,7 +18,7 @@
     "build-assets:lit-components": "make lit-components",
     "build-assets:lit-manifest": "npx cem analyze",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
-    "check:icons": "node scripts/build_icon_sprite.mjs && git diff --exit-code static/icons/manifest.json openlibrary/components/lit/icons.generated.js",
+    "check:icons": "node scripts/build_icon_sprite.mjs && git diff --exit-code static/icons/sprite.svg static/icons/manifest.json openlibrary/components/lit/icons.generated.js",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint .",
     "lint:css": "stylelint \"static/**/*.css\" \"openlibrary/**/*.css\"",

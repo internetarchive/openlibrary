@@ -10,7 +10,7 @@ const SIZE_CLASSES = new Map([
 // lazily so the module still loads where the tag is absent (tests, fragments).
 let spriteUrl = null;
 function getSpriteUrl() {
-    spriteUrl ??= document.querySelector('meta[name="ol-icon-sprite"]')?.content || '/static/build/icons/sprite.svg';
+    spriteUrl ??= document.querySelector('meta[name="ol-icon-sprite"]')?.content || '/static/icons/sprite.svg';
     return spriteUrl;
 }
 

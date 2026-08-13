@@ -1,17 +1,18 @@
 /**
  * Build the icon assets from static/icons/src/<group>/ (24x24, currentColor
- * SVGs; groups are attribution folders, all read identically). Three outputs:
- *   1. <out>/sprite.svg  — <symbol> sheet for <use> from the document/light DOM.
- *   2. static/icons/manifest.json (committed) — sorted name list.
- *   3. openlibrary/components/lit/icons.generated.js (committed) — inline Lit
- *      fragments for shadow-DOM components, which can't reach the sprite.
+ * SVGs; groups are attribution folders, all read identically). Three outputs,
+ * all committed so a fresh checkout renders icons without running a build:
+ *   1. static/icons/sprite.svg — <symbol> sheet for <use> from the document/light DOM.
+ *   2. static/icons/manifest.json — sorted name list.
+ *   3. openlibrary/components/lit/icons.generated.js — inline Lit fragments for
+ *      shadow-DOM components, which can't reach the sprite.
  *
  * No dependencies, only Node built-ins, so `make icons` and the freshness check
  * run anywhere without an npm install.
  *
- * Usage: node scripts/build_icon_sprite.mjs [--out <dir>]  (default static/build/icons)
+ * Usage: node scripts/build_icon_sprite.mjs
  */
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,6 +24,7 @@ const SRC_GROUPS = readdirSync(SRC_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
+const SPRITE_PATH = join(ROOT, "static", "icons", "sprite.svg");
 const MANIFEST_PATH = join(ROOT, "static", "icons", "manifest.json");
 const JS_MODULE_PATH = join(ROOT, "openlibrary", "components", "lit", "icons.generated.js");
 
@@ -33,9 +35,6 @@ const ID_PREFIX = "icon-";
 // A name becomes a JS identifier too, so "3d-view.svg" would emit
 // `export const 3dView` and break the build from a generated file.
 const NAME_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
-
-const outArgIndex = process.argv.indexOf("--out");
-const OUT_DIR = outArgIndex !== -1 ? process.argv[outArgIndex + 1] : join(ROOT, "static", "build", "icons");
 
 // Carried from the source <svg> onto the <symbol>; everything else is dropped so
 // sizing, stroke weight and a11y are decided at the point of use. stroke-width in
@@ -120,18 +119,19 @@ function collectIcons() {
 const icons = collectIcons();
 const names = [...icons.keys()].sort();
 
-// 1. Sprite sheet (build output, served as a static asset).
-const symbols = names.map((n) => icons.get(n).symbol).join("");
+// 1. Sprite sheet, served as a static asset. One <symbol> per line: the file is
+// committed, so a single-line sprite would make every icon change one unreadable
+// diff and every concurrent icon PR an unmergeable conflict.
+const symbols = names.map((n) => icons.get(n).symbol).join("\n");
 const sprite =
     `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">` +
-    `<defs>${symbols}</defs></svg>\n`;
-mkdirSync(OUT_DIR, { recursive: true });
-writeFileSync(join(OUT_DIR, "sprite.svg"), sprite, "utf8");
+    `<defs>\n${symbols}\n</defs></svg>\n`;
+writeFileSync(SPRITE_PATH, sprite, "utf8");
 
-// 2. Manifest (committed).
+// 2. Manifest.
 writeFileSync(MANIFEST_PATH, `${JSON.stringify({ icons: names, aliases: {} }, null, 2)}\n`, "utf8");
 
-// 3. Lit glyph module for shadow-DOM components (committed). The IIFE puts the
+// 3. Lit glyph module for shadow-DOM components. The IIFE puts the
 // PURE annotation before a call expression — the only position Rolldown (and
 // terser) honor, so unused glyphs tree-shake out.
 const jsExports = names
@@ -146,6 +146,6 @@ const jsModule =
 writeFileSync(JS_MODULE_PATH, jsModule, "utf8");
 
 console.log(`Built ${names.length} icons:`);
-console.log(`  sprite   → ${join(OUT_DIR, "sprite.svg")}`);
+console.log(`  sprite   → ${SPRITE_PATH}`);
 console.log(`  manifest → ${MANIFEST_PATH}`);
 console.log(`  module   → ${JS_MODULE_PATH}`);

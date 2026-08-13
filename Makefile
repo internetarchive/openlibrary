@@ -54,12 +54,9 @@ lit-components: node_modules
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
 
 icons:
-	# Build the icon sprite (and regenerate the committed static/icons/manifest.json)
-	mkdir -p $(BUILD)/icons_new
-	node scripts/build_icon_sprite.mjs --out $(BUILD)/icons_new
-	mkdir -p $(BUILD)/icons
-	rm -rf $(BUILD)/icons
-	mv $(BUILD)/icons_new $(BUILD)/icons
+	# Regenerate the committed icon outputs (sprite, manifest, Lit glyph module).
+	# Only needed after editing static/icons/src/ — a plain checkout already has them.
+	node scripts/build_icon_sprite.mjs
 
 i18n:
 	python ./scripts/i18n-messages compile
