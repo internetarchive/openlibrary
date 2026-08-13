@@ -58,8 +58,10 @@ emitted files.
   CSS but *before* the url rewrite, so it sees everything.
 - The `#` prefix works because Vite's url processing skips fragment-style urls.
 - This relies on Vite-internal ordering, so `closeBundle` also scans the output
-  for leaked `data:image/` URIs or undecoded `__OL__` placeholders and logs a
-  loud warning if a future Vite upgrade breaks the mechanism.
+  for undecoded `#__OL__` placeholders or stray JS chunks (**fails the build**)
+  and leaked `data:image/` URIs (warns — `bundlesize` CI catches inline bloat,
+  and the source may intentionally use data URIs, which Vite passes through)
+  if a future Vite upgrade breaks the mechanism.
 
 ### `@charset` handling
 

@@ -79,31 +79,36 @@ function cssUrlPassthrough() {
         // decode from disk in closeBundle (the final phase) instead.
         closeBundle() {
             for (const fileName of readdirSync(outDir)) {
-                if (!fileName.endsWith('.css')) continue;
-                const filePath = resolve(outDir, fileName);
-                let source = readFileSync(filePath, 'utf8');
-                const decoded = source.replace(placeholderRe, (_m, url) => `url(${url})`);
-                if (decoded !== source) {
-                    writeFileSync(filePath, decoded);
-                    source = decoded;
-                }
-                // Regression guard: the passthrough relies on Vite's internal
-                // postcss plugin ordering and `#`-url skipping, which are not
-                // public API. If a Vite upgrade ever inlines assets again or
-                // breaks the placeholder decoding, fail loudly instead of
-                // silently shipping bloated/broken CSS.
-                if (/data:image\//.test(source)) {
-                    console.warn(`[css-url-passthrough] ${fileName}: found data:image/ URIs — Vite inlined assets despite the passthrough; check Vite version compatibility.`);
-                }
-                if (source.includes('__OL__')) {
-                    console.warn(`[css-url-passthrough] ${fileName}: leftover __OL__ placeholders — decoding failed; check Vite version compatibility.`);
-                }
-            }
-            // Vite 8 omits the stub JS chunk for pure-CSS entries natively;
-            // warn if a future version stops doing so.
-            for (const fileName of readdirSync(outDir)) {
-                if (fileName.endsWith('.js')) {
-                    console.warn(`[css-url-passthrough] ${fileName}: unexpected JS file in CSS output — a Vite upgrade may have stopped omitting pure-CSS stub chunks; check Vite version compatibility.`);
+                if (fileName.endsWith('.css')) {
+                    const filePath = resolve(outDir, fileName);
+                    let source = readFileSync(filePath, 'utf8');
+                    const decoded = source.replace(placeholderRe, (_m, url) => `url(${url})`);
+                    if (decoded !== source) {
+                        writeFileSync(filePath, decoded);
+                        source = decoded;
+                    }
+                    // Regression guard: the passthrough relies on Vite's
+                    // internal postcss plugin ordering and `#`-url skipping,
+                    // which are not public API. If a Vite upgrade ever
+                    // breaks the placeholder decoding, fail the build
+                    // instead of silently shipping broken CSS. The `#__OL__`
+                    // marker only ever comes from the encode plugin, so its
+                    // presence after decoding is an unambiguous failure.
+                    if (source.includes('#__OL__')) {
+                        throw new Error(`[css-url-passthrough] ${fileName}: leftover __OL__ placeholders — decoding failed; check Vite version compatibility.`);
+                    }
+                    // Data URIs are ambiguous: they may be Vite-inlined
+                    // assets OR intentionally written in source (Vite skips
+                    // data URIs, so they pass through untouched). Warn only
+                    // — `bundlesize` CI catches genuine inline bloat.
+                    if (/data:image\//.test(source)) {
+                        console.warn(`[css-url-passthrough] ${fileName}: found data:image/ URIs — Vite may have inlined assets despite the passthrough, or the source intentionally uses a data URI; check Vite version compatibility.`);
+                    }
+                } else if (fileName.endsWith('.js')) {
+                    // Vite 8 omits the stub JS chunk for pure-CSS entries
+                    // natively; fail the build if a future version stops
+                    // doing so.
+                    throw new Error(`[css-url-passthrough] ${fileName}: unexpected JS file in CSS output — a Vite upgrade may have stopped omitting pure-CSS stub chunks; check Vite version compatibility.`);
                 }
             }
         },
