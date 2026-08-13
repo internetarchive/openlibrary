@@ -261,15 +261,23 @@ Two UA-stylesheet behaviours bite every time:
 
 Browsers without the Popover API (Safari < 17, below [the Lit layer's floor](#focus-and-shadow-dom)) keep the plain `position: fixed` path, which is correct everywhere except under a containing-block ancestor. The detection is a module constant in `top-layer.js`; don't re-roll it.
 
-**Pick the overlay mechanism by shape** — three are already correct, and new overlays should join one of them rather than invent a fourth:
+**Pick the overlay mechanism by shape** — four are already correct, and new overlays should join one of them rather than invent a fifth:
 
 | Overlay shape | Mechanism | Why it escapes the trap |
 |---|---|---|
 | Anchored to a trigger (`ol-popover`, `ol-tooltip`) | Popover API via `utils/top-layer.js` | Top layer; containing block is always the viewport |
 | Modal (`ol-dialog`) | native `<dialog>.showModal()` | Promoted to the top layer by the browser — nothing to add |
 | Viewport-fixed, unanchored (`ol-toast-region`, `OpenLibraryOTP`) | portal to `document.body` | No transformed ancestor exists on that path — **an invariant, not an accident**: mount these on `body`, never inside page content |
+| Small panel anchored *inside* the component's own box (`OLMarkdownEditor`'s link/image/overflow menus) | in-flow `position: absolute` against a `position: relative` wrapper | Never reads viewport coordinates, so the containing-block trap cannot apply — but see the conditions below |
 
 Composed components (`ol-menu-popover`, `ol-select-popover`, `ol-options-popover`) render through `ol-popover` and inherit the fix — don't add a second panel.
+
+The fourth row is only safe while both conditions hold, and they are *not* enforced by anything:
+
+1. **The panel fits inside the scroll container.** `OLMarkdownEditor` wraps everything in `.editor-wrapper { max-height: 70vh; overflow-y: auto }`, and `overflow-x: visible` computes to `auto` next to it — so the container clips on both axes. Vertically there is headroom by construction (`.editor-input` is `min-height: 200px`, the panels are ~40px). Horizontally there is not: the link panel is `min-width: 260px`, and measured on the real edit surfaces it clears the right edge by 256–502px, but a container narrower than **~470px** pushes it 20–40px past and raises a horizontal scrollbar. The demo on `/developers/design` sits at 478px and is already 2px over.
+2. **The narrow-container mitigation actually fires.** It is a `@media (max-width: 767px)` rule that pins the panel `left`/`right` — keyed to the **viewport**, so a narrow editor inside a wide viewport gets nothing. A container query would be the honest fix if this ever needs one.
+
+Prefer `ol-popover` for anything larger, anything that must escape its container, or anything on a new surface. `OLMarkdownEditor` deliberately does not use it: its toolbar `preventDefault()`s mousedown to keep the ProseMirror selection alive while you type a URL, and `ol-popover` moves focus into the panel and restores it on close, which would apply the link to the wrong range.
 
 Components that call `getBoundingClientRect()` for *relative* measurement (`ol-segmented-control`'s pill offset, `OLReadMore`'s scroll check) are unaffected: a delta between two rects in the same coordinate space is transform-independent.
 
