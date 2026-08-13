@@ -8,12 +8,14 @@
  *
  * See docs/ai/css-vite-migration.md for background.
  *
- * Note: the pre-commit stylelint hook pins its own stylelint version
- * (stylelint@16.22.0 in .pre-commit-config.yaml) while this plugin imports
- * the repo's installed stylelint (^16.x). Keep to the stable plugin API
- * (createPlugin / utils.report) so it works under both.
+ * This is CommonJS (not ESM) deliberately: the pre-commit stylelint hook runs
+ * in an isolated node env with no repo `node_modules` (pre-commit.ci sandbox)
+ * and resolves `stylelint` via NODE_PATH. `require()` honors NODE_PATH while
+ * ESM `import` does not, so an ESM plugin cannot find `stylelint` there.
+ * `createPlugin` / `utils.report` are stable across the pinned versions
+ * (stylelint@16.22.0 in .pre-commit-config.yaml and the repo's ^16.x).
  */
-import stylelint from 'stylelint';
+const stylelint = require('stylelint');
 
 const ruleName = 'ol/import-at-top';
 
@@ -67,4 +69,4 @@ ruleFunction.ruleName = ruleName;
 ruleFunction.messages = messages;
 ruleFunction.meta = meta;
 
-export default stylelint.createPlugin(ruleName, ruleFunction);
+module.exports = stylelint.createPlugin(ruleName, ruleFunction);

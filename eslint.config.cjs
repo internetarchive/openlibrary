@@ -36,6 +36,7 @@ module.exports = [
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
+      "stylelint/*.cjs",
     ],
     languageOptions: {
       sourceType: "script",

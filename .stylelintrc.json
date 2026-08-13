@@ -2,7 +2,7 @@
   "extends": ["stylelint-prettier/recommended"],
   "plugins": [
     "stylelint-declaration-strict-value",
-    "./stylelint/ol-import-at-top.mjs"
+    "./stylelint/ol-import-at-top.cjs"
   ],
   "rules": {
     "scale-unlimited/declaration-strict-value": [

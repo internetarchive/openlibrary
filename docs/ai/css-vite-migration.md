@@ -36,7 +36,7 @@ to before (all 17 files), so cascade order is unchanged.
 ### Enforced by lint
 
 A repo-local stylelint rule `ol/import-at-top`
-(`stylelint/ol-import-at-top.mjs`, registered in `.stylelintrc.json`) flags any
+(`stylelint/ol-import-at-top.cjs`, registered in `.stylelintrc.json`) flags any
 `@import` after the first statement, so a regression here fails `npm run lint`
 (CI), the pre-commit stylelint hook, and editor linting — not just the build.
 `@charset` and blockless `@layer` statements may still precede imports per spec;
