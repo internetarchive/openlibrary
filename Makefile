@@ -22,7 +22,7 @@ endif
 
 css: node_modules
 	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx vite build -c vite-css.config.mjs
+	BUILD_DIR=$(BUILD)/css_new npx vite build -c vite-css.config.mjs
 	mkdir -p $(BUILD)/css
 	rm -rf $(BUILD)/css
 	mv $(BUILD)/css_new $(BUILD)/css

@@ -7,7 +7,7 @@
     "watch": "npx concurrently --names js,css --prefix-colors --kill-others npm:watch:js npm:watch:css",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
-    "watch:css": "env NODE_ENV=development npx vite build -c vite-css.config.mjs --watch",
+    "watch:css": "npx vite build -c vite-css.config.mjs --watch --mode development",
     "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
     "watch:lit-manifest": "npx cem analyze --watch",
     "build-assets": "make js && make css && make components && make lit-components",

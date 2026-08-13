@@ -14,7 +14,7 @@
  *
  * Usage:
  *   npx vite build -c vite-css.config.mjs
- *   npx vite build -c vite-css.config.mjs --watch
+ *   npx vite build -c vite-css.config.mjs --watch --mode development  (readable dev output)
  *
  * Build output defaults to static/build/css. Set BUILD_DIR to override.
  */
@@ -24,8 +24,6 @@ import { resolve } from 'path';
 
 const outDir = resolve(process.env.BUILD_DIR || 'static/build/css');
 
-// Matches webpack: minify for production builds, keep readable output in dev watch mode.
-const isDev = process.env.NODE_ENV === 'development';
 // docker (and other environments without working file watchers) set this via `npm run watch-polling`.
 const forcePolling = process.env.FORCE_POLLING === 'true';
 
@@ -115,7 +113,10 @@ function cssUrlPassthrough() {
     };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+    // Don't clear the shared terminal in `npm run watch`, where webpack and
+    // Vite log to the same screen (Vite clears the screen on build by default).
+    clearScreen: false,
     plugins: [cssUrlPassthrough()],
     css: {
         postcss: {
@@ -125,7 +126,9 @@ export default defineConfig({
     build: {
         outDir,
         emptyOutDir: true,
-        cssMinify: !isDev,
+        // Minify in every mode except explicit dev watch (`watch:css` passes
+        // `--mode development`); `vite build` defaults to mode 'production'.
+        cssMinify: mode !== 'development',
         sourcemap: false,
         // `vite build --watch` uses the rollup watcher; enable polling for
         // environments (e.g. docker bind mounts) that need it. This implies
@@ -138,4 +141,4 @@ export default defineConfig({
             },
         },
     },
-});
+}));

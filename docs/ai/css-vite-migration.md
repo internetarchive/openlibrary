@@ -80,9 +80,9 @@ legacy-importing files.
 
 - The 7 legacy-importing outputs no longer start with `@charset "utf-8";`
   (see above).
-- `NODE_ENV` gating: `make css` sets `NODE_ENV=production` explicitly so
-  production output is always minified regardless of the shell environment;
-  `watch:css` uses `NODE_ENV=development` for readable unminified output
+- `mode` gating: `make css` runs `vite build` (defaults to `mode=production`),
+  so production output is always minified regardless of the shell environment;
+  `watch:css` passes `--mode development` for readable unminified output
   (matches the old webpack dev behavior).
 
 ## Speed
