@@ -88,6 +88,54 @@ export function buildPartialsUrl(component, params = {}) {
     return url;
 }
 
+/**
+ * Returns an `HTMLElement` that was created using the given `markup`.
+ *
+ * `markup` is expected to be well-formed, and only have a single root
+ * element.
+ *
+ * @param {string} markup HTML markup for a single element
+ * @returns {HTMLElement}
+ */
+export function createElementFromMarkup(markup) {
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    return template.content.children[0];
+}
+
+/**
+ * Waits until the given element is visible in the viewport, then resolves.
+ *
+ * @param {HTMLElement} elem
+ * @param {IntersectionObserverInit} options
+ * @returns {Promise<void>}
+ */
+export async function whenVisible(elem, options = {}) {
+    return new Promise((resolve) => {
+        const intersectionObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+                    // Stop observing once the element is visible
+                    observer.unobserve(entry.target);
+                    observer.disconnect();
+                    resolve();
+                });
+            },
+            Object.assign({
+                root: null,
+                rootMargin: '200px',
+                threshold: 0
+            }, options)
+        );
+
+        intersectionObserver.observe(elem);
+    });
+}
+
 export function queueAction(actionName, itemName, targetUrl, itemType) {
     const data = {
         name: itemName,

@@ -22,6 +22,7 @@ from openlibrary.plugins.openlibrary.partials import (
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
+    SubjectPublishingHistoryPartial,
 )
 
 router = APIRouter()
@@ -49,6 +50,16 @@ async def search_facets_partial(
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
     return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes")
+
+
+@router.get("/partials/SubjectPublishingHistory.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_publishing_history_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's publishing-history chart HTML.
+    """
+    return await SubjectPublishingHistoryPartial.generate_async(key=key)
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

@@ -378,6 +378,29 @@ class SearchFacetsPartial:
         }
 
 
+class SubjectPublishingHistoryPartial:
+    """Handler for the subject page's publishing-history chart."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=[{"name": "publish_year", "limit": -1}],
+            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+            request_label="SUBJECT_PUBLISHING_HISTORY",
+        )
+        macro = render_macro(
+            "PublishingHistory",
+            (),
+            publishing_history=subject.get("publishing_history", []),
+            async_load=False,
+            key=key,
+        )
+        return {"partials": str(macro["__body__"])}
+
+
 @dataclass
 class FullTextSuggestionsPartialResult:
     body: dict

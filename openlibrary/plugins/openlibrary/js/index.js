@@ -314,6 +314,12 @@ jQuery(function() {
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
+    const subjectPublishingHistory = document.getElementById('subjectPublishingHistory');
+    if (subjectPublishingHistory) {
+        import(/* webpackChunkName: "subjects" */ './subjects')
+            .then((module) => module.initPublishingHistory(subjectPublishingHistory));
+    }
+
     const searchFilterBar = document.querySelector('.search-filter-row');
     if (searchFilterBar) {
         import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
