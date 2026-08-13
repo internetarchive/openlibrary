@@ -799,12 +799,17 @@ msgstr ""
 msgid "See all works"
 msgstr ""
 
-#: merge/authors.html publishers/view.html subjects.html type/author/view.html
-#, python-format
-msgid "%(count)d work"
-msgid_plural "%(count)d works"
-msgstr[0] ""
-msgstr[1] ""
+#: subjects.html
+msgid "works"
+msgstr ""
+
+#: subjects.html
+msgid "readable now"
+msgstr ""
+
+#: subjects.html
+msgid "years in print"
+msgstr ""
 
 #: subjects.html
 #, python-format
@@ -813,6 +818,14 @@ msgstr ""
 
 #: subjects.html
 msgid "Disambiguations"
+msgstr ""
+
+#: subjects.html
+msgid "Related subjects"
+msgstr ""
+
+#: SearchResultsWork.html subjects.html
+msgid "Show more"
 msgstr ""
 
 #: trending.html
@@ -5276,6 +5289,13 @@ msgstr ""
 msgid "Visit this author's page in a new window"
 msgstr ""
 
+#: merge/authors.html publishers/view.html type/author/view.html
+#, python-format
+msgid "%(count)d work"
+msgid_plural "%(count)d works"
+msgstr[0] ""
+msgstr[1] ""
+
 #: merge/authors.html
 msgid "Comment:"
 msgstr ""
@@ -7521,10 +7541,6 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html
