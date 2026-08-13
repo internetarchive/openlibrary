@@ -64,7 +64,13 @@
   .book-actions__layout {
     flex-direction: row;
     align-items: flex-start;
-    gap: var(--spacing-inline-xs);
+    /* The default inline gap. Access and Save are different kinds of thing and
+       should not read as a split button; two pixels was not enough daylight. */
+    gap: var(--spacing-inline-md);
+    /* The access button's own top margin is what used to separate the controls
+       from the cover, and aligning the two tops meant giving it up. The gap
+       belongs to the row either way. */
+    margin-top: var(--spacing-stack-sm);
   }
 
   .book-actions__access {
