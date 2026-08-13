@@ -7,7 +7,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import web
 
@@ -30,8 +30,11 @@ logger = logging.getLogger("openlibrary.worksearch")
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
+FacetSpec = str | dict[str, Any]
+"""A bare Solr facet field name, or a {"name": ..., "sort"/"limit": ...} spec."""
+
 # Facets requested when details=True and no facet_fields override is given.
-DEFAULT_FACET_FIELDS = [
+DEFAULT_FACET_FIELDS: list[FacetSpec] = [
     {"name": "author_facet", "sort": "count"},
     "language",
     "publisher_facet",
@@ -281,13 +284,14 @@ The key-like paths for a subject, eg:
 
 async def get_subject_async(
     key: SubjectPseudoKey,
-    details=False,
+    details: bool = False,
     offset=0,
     sort="editions",
     limit=DEFAULT_RESULTS,
     request_label: SolrRequestLabel = "UNLABELLED",
-    facet_fields: list | None = None,
-    **filters,
+    *,
+    facet_fields: list[FacetSpec] | None = None,
+    **filters: Any,
 ) -> Subject:
     """Returns data related to a subject.
 
@@ -378,13 +382,14 @@ class SubjectEngine:
     async def get_subject_async(
         self,
         key,
-        details=False,
+        details: bool = False,
         offset=0,
         limit=DEFAULT_RESULTS,
         sort="new",
         request_label: SolrRequestLabel = "UNLABELLED",
-        facet_fields: list | None = None,
-        **filters,
+        *,
+        facet_fields: list[FacetSpec] | None = None,
+        **filters: Any,
     ):
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import (

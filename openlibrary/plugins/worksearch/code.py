@@ -347,7 +347,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
@@ -493,7 +495,9 @@ async def run_solr_query_async(
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
