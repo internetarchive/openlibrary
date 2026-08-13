@@ -401,6 +401,29 @@ class SubjectPublishingHistoryPartial:
         return {"partials": str(macro["__body__"])}
 
 
+class SubjectRelatedPartial:
+    """Handler for the subject page's related subjects/places/people/times widget."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
+            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+            request_label="SUBJECT_RELATED",
+        )
+        macro = render_macro(
+            "RelatedSubjects",
+            (),
+            page=subject,
+            async_load=False,
+            key=key,
+        )
+        return {"partials": str(macro["__body__"])}
+
+
 @dataclass
 class FullTextSuggestionsPartialResult:
     body: dict

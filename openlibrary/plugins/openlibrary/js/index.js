@@ -320,6 +320,12 @@ jQuery(function() {
             .then((module) => module.initPublishingHistory(subjectPublishingHistory));
     }
 
+    const subjectRelatedFacets = document.getElementById('subjectRelatedFacets');
+    if (subjectRelatedFacets) {
+        import(/* webpackChunkName: "subjects" */ './subjects')
+            .then((module) => module.initRelatedSubjects(subjectRelatedFacets));
+    }
+
     const searchFilterBar = document.querySelector('.search-filter-row');
     if (searchFilterBar) {
         import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')

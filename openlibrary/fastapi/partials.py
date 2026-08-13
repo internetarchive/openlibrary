@@ -23,6 +23,7 @@ from openlibrary.plugins.openlibrary.partials import (
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
     SubjectPublishingHistoryPartial,
+    SubjectRelatedPartial,
 )
 
 router = APIRouter()
@@ -60,6 +61,16 @@ async def subject_publishing_history_partial(
     Get the subject page's publishing-history chart HTML.
     """
     return await SubjectPublishingHistoryPartial.generate_async(key=key)
+
+
+@router.get("/partials/SubjectRelated.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_related_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's related subjects/places/people/times widget HTML.
+    """
+    return await SubjectRelatedPartial.generate_async(key=key)
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

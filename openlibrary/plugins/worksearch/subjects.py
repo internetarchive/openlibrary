@@ -75,16 +75,10 @@ class subjects(delegate.page):
             # subjects.html doesn't render `works` -- the on-page carousel
             # runs its own query via `page.solr_query`.
             limit=0,
-            # subjects.html only renders these facets synchronously; publish_year
-            # is fetched by the PublishingHistory partial instead (see
-            # SubjectPublishingHistoryPartial), and author_facet/language/
-            # publisher_facet/has_fulltext are used solely by /publishers/<name>.
-            facet_fields=[
-                "subject_facet",
-                "person_facet",
-                "place_facet",
-                "time_facet",
-            ],
+            # All facets subjects.html used are now fetched by the
+            # PublishingHistory/RelatedSubjects partials instead (see
+            # SubjectPublishingHistoryPartial/SubjectRelatedPartial).
+            facet_fields=[],
             filters={"public_scan_b": "false", "lending_edition_s": "*"},
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
