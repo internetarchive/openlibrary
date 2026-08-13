@@ -1,4 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
 /**
  * A tooltip component that displays contextual information on hover/focus.
@@ -7,6 +9,10 @@ import { LitElement, html, css, nothing } from 'lit';
  * and arrow. The tooltip appears after a short delay and is shown/hidden
  * instantly with no animation. Each tooltip is independent — moving from one
  * trigger to another hides the old tooltip and shows the new one.
+ *
+ * The panel is promoted to the top layer via the Popover API so it escapes
+ * overflow clipping, ancestor transforms and z-index stacking, falling back to
+ * plain `position: fixed` on browsers without it. See ./utils/top-layer.js.
  *
  * @element ol-tooltip
  *
@@ -76,6 +82,17 @@ export class OlTooltip extends LitElement {
             pointer-events: none;
             user-select: none;
             width: max-content;
+        }
+
+        /* Undo the UA [popover] defaults this rule does not already override.
+           inset matters most: the UA's inset: 0 combines with our inline top
+           to stretch the tooltip down to the viewport floor. */
+        .tooltip[popover] {
+            inset: auto;
+            height: auto;
+            margin: 0;
+            border: none;
+            overflow: visible;
         }
 
         .tooltip[data-visible] {
@@ -172,6 +189,7 @@ export class OlTooltip extends LitElement {
                 class="tooltip"
                 id="${this._tooltipId}"
                 role="tooltip"
+                popover="${ifDefined(topLayerAttr())}"
                 ?data-visible="${this._visible}"
                 style="top: ${this._position.top}px; left: ${this._position.left}px;"
             >
@@ -266,6 +284,10 @@ export class OlTooltip extends LitElement {
             const tooltip = this.shadowRoot.querySelector('.tooltip');
             if (!tooltip) return;
 
+            // Promote before measuring — a [popover] element is display: none
+            // until shown, so offsetWidth/Height would read 0.
+            promoteToTopLayer(tooltip);
+
             this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
             this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
                 bubbles: true, composed: true
@@ -277,6 +299,7 @@ export class OlTooltip extends LitElement {
         if (!this._visible) return;
 
         window.removeEventListener('scroll', this._onScroll, true);
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.tooltip'));
         this._visible = false;
         this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
             bubbles: true, composed: true
@@ -418,4 +441,6 @@ export class OlTooltip extends LitElement {
     }
 }
 
-customElements.define('ol-tooltip', OlTooltip);
+if (!customElements.get('ol-tooltip')) {
+    customElements.define('ol-tooltip', OlTooltip);
+}

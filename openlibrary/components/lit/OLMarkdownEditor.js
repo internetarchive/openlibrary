@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 /**
  * A WYSIWYG markdown editor built on Tiptap.
@@ -494,6 +495,20 @@ export class OLMarkdownEditor extends LitElement {
         if (!e.target.closest('.toolbar-btn')) e.preventDefault();
     }
 
+    /**
+     * Escape closes the overflow menu and returns focus to its trigger, which
+     * would otherwise be removed from the DOM under the user's focus. Scoped to
+     * the menu's wrapper — the link and image inputs handle their own Escape.
+     */
+    _handleOverflowKeydown(e) {
+        if (e.key !== 'Escape' || !this.showOverflowMenu) return;
+        e.stopPropagation();
+        this.showOverflowMenu = false;
+        this.updateComplete.then(() => {
+            this.shadowRoot.querySelector('.overflow-menu-wrapper .toolbar-btn')?.focus();
+        });
+    }
+
     _focusEditor(e) {
         if (!this.editor) return;
         if (e && e.target.closest('.html-block')) return;
@@ -605,7 +620,13 @@ export class OLMarkdownEditor extends LitElement {
         }));
     }
 
-    _renderButton({ title, icon, action, isActive = false, isDisabled = false, customColor = null }) {
+    /**
+     * `isPressed` defaults to `isActive` so plain format toggles need nothing
+     * extra; pass `null` for a disclosure trigger, where `aria-pressed` would
+     * claim a formatting state the button doesn't have. `isExpanded` marks the
+     * button as a disclosure and reflects whether its panel is open.
+     */
+    _renderButton({ title, icon, action, isActive = false, isDisabled = false, customColor = null, isPressed = isActive, isExpanded = null }) {
         const isBtnDisabled = !this.editor || isDisabled;
 
         return html`
@@ -613,7 +634,8 @@ export class OLMarkdownEditor extends LitElement {
         type="button"
         title="${title}"
         aria-label="${title}"
-        aria-pressed="${isActive}"
+        aria-pressed="${ifDefined(isPressed === null ? undefined : isPressed)}"
+        aria-expanded="${ifDefined(isExpanded === null ? undefined : isExpanded)}"
         class="toolbar-btn ${isActive ? 'is-active' : ''}"
         style="${customColor ? `color: ${customColor};` : ''}"
         @click="${action}"
@@ -661,7 +683,7 @@ export class OLMarkdownEditor extends LitElement {
             ${this._renderButton({ title: 'Bold', icon: ICONS.bold, action: () => this.formatText('bold'), isActive: this._isActive('bold') })}
             ${this._renderButton({ title: 'Italic', icon: ICONS.italic, action: () => this.formatText('italic'), isActive: this._isActive('italic') })}
             <div class="link-popover-wrapper">
-              ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover })}
+              ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover, isPressed: this._isActive('link'), isExpanded: this.showLinkPopover })}
               ${this.showLinkPopover ? html`
                 <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
                   <input type="url" class="link-input" placeholder="https://..." .value="${this.linkInputValue}" @input="${this.handleLinkInput}" @keydown="${this.handleLinkKeydown}" />
@@ -672,7 +694,7 @@ export class OLMarkdownEditor extends LitElement {
             </div>
             <div class="link-popover-wrapper">
               <span class="overflow-secondary">
-                ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover })}
+                ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover, isPressed: null, isExpanded: this.showImagePopover })}
               </span>
               ${this.showImagePopover ? html`
                 <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
@@ -692,8 +714,8 @@ export class OLMarkdownEditor extends LitElement {
               ${this.enableCode ? this._renderButton({ title: 'Code Block', icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
               ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
             </span>
-            <div class="overflow-menu-wrapper overflow-toggle">
-              ${this._renderButton({ title: 'More', icon: ICONS.more, action: () => { this.showOverflowMenu = !this.showOverflowMenu; if (this.showOverflowMenu) this.showLinkPopover = false; }, isActive: this.showOverflowMenu })}
+            <div class="overflow-menu-wrapper overflow-toggle" @keydown="${this._handleOverflowKeydown}">
+              ${this._renderButton({ title: 'More', icon: ICONS.more, action: () => { this.showOverflowMenu = !this.showOverflowMenu; if (this.showOverflowMenu) this.showLinkPopover = false; }, isActive: this.showOverflowMenu, isPressed: null, isExpanded: this.showOverflowMenu })}
               ${this.showOverflowMenu ? html`
                 <div class="overflow-menu" @mousedown="${(e) => e.stopPropagation()}">
                   ${secondaryButtons}
