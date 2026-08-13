@@ -39,9 +39,9 @@ function installPopoverApiStub() {
     };
 }
 
-function installMatchMediaStub() {
+function installMatchMediaStub(matches = false) {
     window.matchMedia = (query) => ({
-        matches: false,
+        matches: typeof matches === 'function' ? matches(query) : matches,
         media: query,
         addEventListener() {},
         removeEventListener() {},
@@ -153,5 +153,108 @@ describe('ol-popover top-layer promotion', () => {
 
         el._cleanup();
         expect(() => el._cleanup()).not.toThrow();
+    });
+});
+
+/**
+ * The close path hangs off a single `transitionend`. When that event never
+ * arrives — a backgrounded tab paints no frames, and preparing → exiting
+ * changes no animatable property — the panel stayed promoted, above the page
+ * and holding focus, while the trigger already reported aria-expanded="false".
+ */
+describe('ol-popover close fallback', () => {
+    let popoverApi;
+
+    let realScrollTo;
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        installMatchMediaStub();
+        // jsdom has no scrollTo; releasing the mobile scroll lock calls it.
+        realScrollTo = window.scrollTo;
+        window.scrollTo = () => {};
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        window.scrollTo = realScrollTo;
+        jest.useRealTimers();
+        popoverApi?.restore();
+        popoverApi = null;
+        document.body.innerHTML = '';
+    });
+
+    it('demotes and restores focus when transitionend never fires', async() => {
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+        const trigger = el.querySelector('[slot="trigger"]');
+        trigger.focus();
+
+        await openAndSettle(el);
+        const panel = panelOf(el);
+        expect(popoverApi.isOpen(panel)).toBe(true);
+
+        el.open = false;
+        await el.updateComplete;
+        expect(el._animState).toBe('exiting');
+
+        // No transitionend in jsdom, exactly as in a tab that paints no frames.
+        jest.advanceTimersByTime(400);
+
+        expect(el._animState).toBe('closed');
+        expect(popoverApi.isOpen(panel)).toBe(false);
+        expect(document.activeElement).toBe(trigger);
+    });
+
+    it('lets a real transitionend win, without a second cleanup', async() => {
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+
+        await openAndSettle(el);
+        const panel = panelOf(el);
+
+        el.open = false;
+        await el.updateComplete;
+        panel.dispatchEvent(new Event('transitionend'));
+        expect(el._animState).toBe('closed');
+
+        // The armed timer must not fire a second cleanup into the closed popover.
+        const hideCalls = HTMLElement.prototype.hidePopover.mock.calls.length;
+        jest.advanceTimersByTime(400);
+        expect(HTMLElement.prototype.hidePopover.mock.calls.length).toBe(hideCalls);
+    });
+
+    it('cancels the pending close when reopened mid-exit', async() => {
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+
+        await openAndSettle(el);
+        el.open = false;
+        await el.updateComplete;
+
+        await openAndSettle(el);
+        jest.advanceTimersByTime(400);
+
+        expect(el._animState).not.toBe('closed');
+        expect(popoverApi.isOpen(panelOf(el))).toBe(true);
+    });
+
+    it('takes only one body scroll lock when reopened mid-exit', async() => {
+        // A second lock would outlive the single _releaseScrollLock() and leave
+        // <body> pinned at position: fixed for the rest of the session.
+        installMatchMediaStub((q) => q.includes('max-width'));
+        popoverApi = installPopoverApiStub();
+        const el = await mountPopover();
+
+        await openAndSettle(el);
+        el.open = false;
+        await el.updateComplete;
+        await openAndSettle(el);
+
+        el.open = false;
+        await el.updateComplete;
+        jest.advanceTimersByTime(400);
+
+        expect(document.body.style.position).toBe('');
     });
 });

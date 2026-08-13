@@ -7,6 +7,13 @@ import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top
 let _idCounter = 0;
 
 /**
+ * How long to wait for the exit `transitionend` before finishing the close
+ * ourselves. Comfortably past the longest exit transition (150ms panel, 200ms
+ * tray) so it never truncates a real animation.
+ */
+const CLOSE_FALLBACK_MS = 400;
+
+/**
  * Open popovers, topmost (most recently shown) last. Escape is a document-level
  * listener, so every open popover sees the keypress; consulting this stack lets
  * only the innermost popover close, dismissing one layer at a time when popovers
@@ -304,6 +311,7 @@ export class OlPopover extends LitElement {
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
+        this._closeFallbackId = null;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -398,6 +406,9 @@ export class OlPopover extends LitElement {
     // ── Show / Hide ─────────────────────────────────────────────
 
     _show() {
+        // Reopening mid-exit cancels the pending close rather than letting its
+        // timer fire into the reopened popover.
+        this._clearCloseFallback();
         this._prevFocus = getDeepActiveElement();
 
         document.addEventListener('click', this._onOutsideClick, true);
@@ -413,7 +424,10 @@ export class OlPopover extends LitElement {
         this._mobile = window.matchMedia('(max-width: 767px)').matches;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        if (this._mobile) {
+        // Guard on _scrollLocked: reopening during the exit transition would take
+        // a second refcount that the single _releaseScrollLock() never gives
+        // back, pinning <body> for good.
+        if (this._mobile && !this._scrollLocked) {
             lockBodyScroll();
             this._scrollLocked = true;
         }
@@ -486,6 +500,36 @@ export class OlPopover extends LitElement {
         }
 
         this._animState = 'exiting';
+        this._armCloseFallback();
+    }
+
+    /**
+     * `transitionend` drives the whole close path — top-layer demotion, listener
+     * removal, scroll unlock, focus restore — so a transition that never runs
+     * strands the panel in the top layer, above the page, holding focus inside a
+     * `role="dialog"` whose trigger already reports `aria-expanded="false"`.
+     *
+     * Two ways to miss the event: a backgrounded tab paints no frames, so the
+     * transition never starts; and closing while still in "preparing" changes no
+     * property at all (preparing and exiting both compute to `opacity: 0` with
+     * the same transform), so nothing transitions. Finish the close on a timer
+     * when the event doesn't arrive.
+     */
+    _armCloseFallback() {
+        this._clearCloseFallback();
+        this._closeFallbackId = setTimeout(() => {
+            this._closeFallbackId = null;
+            if (this._animState !== 'exiting') return;
+            this._animState = 'closed';
+            this._cleanup();
+        }, CLOSE_FALLBACK_MS);
+    }
+
+    _clearCloseFallback() {
+        if (this._closeFallbackId) {
+            clearTimeout(this._closeFallbackId);
+            this._closeFallbackId = null;
+        }
     }
 
     _onTransitionEnd(e) {
@@ -504,6 +548,7 @@ export class OlPopover extends LitElement {
      * Removes all global listeners, unlocks scroll, and restores focus.
      */
     _cleanup() {
+        this._clearCloseFallback();
         this._removeListeners();
         this._releaseScrollLock();
         demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
@@ -919,6 +964,7 @@ export class OlPopover extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._clearCloseFallback();
         this._removeListeners();
         this._releaseScrollLock();
     }
