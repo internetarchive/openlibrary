@@ -8,7 +8,7 @@
  *   - entry: static/css/tokens.css, static/css/ol-components.css, static/css/page-*.css
  *   - @import resolution (css-loader import:true) -> Vite handles natively (postcss-import)
  *   - minification (css-minimizer-webpack-plugin) -> esbuild via cssMinify
- *   - url() passthrough (webpack url:false) -> see cssUrlPassthrough()
+ *   - url() passthrough (webpack url:false) -> see the publicDir comment below
  *   - no JS output (webpack's RemoveJSAssetsPlugin) -> Vite 8 omits the stub
  *     JS chunk for pure-CSS entries natively, so no plugin needed
  *
@@ -19,7 +19,7 @@
  * Build output defaults to static/build/css. Set BUILD_DIR to override.
  */
 import { defineConfig } from 'vite';
-import { readdirSync, readFileSync, writeFileSync } from 'fs';
+import { readdirSync } from 'fs';
 import { resolve } from 'path';
 
 const outDir = resolve(process.env.BUILD_DIR || 'static/build/css');
@@ -41,91 +41,29 @@ cssFiles.forEach((file) => {
 });
 
 /*
- * Preserve root-absolute url(/static/...) references exactly as written
- * (webpack's css-loader does this via `url: false`). Without this, Vite
- * would inline small images as base64 data URIs and emit/rewrite larger
- * ones, changing both the payload and the served paths.
- *
- * Mechanism: a PostCSS plugin encodes each root-absolute url() as
- * `url(#__OL__/static/...)` inside a `Once` hook. `Once` runs right after
- * postcss-import inlines the raw imported CSS but BEFORE Vite's internal
- * url-rewriting plugin (which skips urls starting with `#`), so nothing
- * gets inlined or rewritten. A Vite plugin then decodes the placeholders
- * back in the emitted CSS files (in closeBundle, after minification).
+ * webpack `url: false` parity: leave root-absolute url(/static/...) exactly as
+ * written. Vite has no such flag — it would inline small /static/ assets as
+ * base64 data URIs and rewrite the rest, breaking the paths nginx serves
+ * directly. Setting `publicDir: '.'` makes every root-absolute url() resolve
+ * to a *public asset*, the one class Vite deliberately leaves unprocessed
+ * (public urls are keyed relative to publicDir, so only the project root
+ * matches urls that carry the /static/ prefix). `copyPublicDir` is disabled
+ * below so the whole project isn't copied into the build output. Scope is
+ * intentionally global: any root-absolute url pointing at an existing project
+ * file is left untouched — that's the contract here.
  */
-const encodeStaticUrls = {
-    postcssPlugin: 'ol-encode-static-urls',
-    Once(root) {
-        root.walkDecls((decl) => {
-            if (decl.value && decl.value.includes('url(')) {
-                decl.value = decl.value.replace(
-                    /url\((['"]?)(\/[^'")]*)\1\)/g,
-                    (_match, _quote, url) => `url("#__OL__${url}")`,
-                );
-            }
-        });
-    },
-};
-
-function cssUrlPassthrough() {
-    // `url(#__OL__/static/...)` -> `url(/static/...)`, handling both the
-    // quoted form (before minification) and unquoted form (after).
-    const placeholderRe = /url\("?#__OL__([^)"']+)"?\)/g;
-    return {
-        name: 'css-url-passthrough',
-        // Vite's CSS minification runs after plugin generateBundle hooks, so
-        // decode from disk in closeBundle (the final phase) instead.
-        closeBundle() {
-            for (const fileName of readdirSync(outDir)) {
-                if (fileName.endsWith('.css')) {
-                    const filePath = resolve(outDir, fileName);
-                    let source = readFileSync(filePath, 'utf8');
-                    const decoded = source.replace(placeholderRe, (_m, url) => `url(${url})`);
-                    if (decoded !== source) {
-                        writeFileSync(filePath, decoded);
-                        source = decoded;
-                    }
-                    // Regression guard: the passthrough relies on Vite's
-                    // internal postcss plugin ordering and `#`-url skipping,
-                    // which are not public API. If a Vite upgrade ever
-                    // breaks the placeholder decoding, fail the build
-                    // instead of silently shipping broken CSS. The `#__OL__`
-                    // marker only ever comes from the encode plugin, so its
-                    // presence after decoding is an unambiguous failure.
-                    if (source.includes('#__OL__')) {
-                        throw new Error(`[css-url-passthrough] ${fileName}: leftover __OL__ placeholders — decoding failed; check Vite version compatibility.`);
-                    }
-                    // Data URIs are ambiguous: they may be Vite-inlined
-                    // assets OR intentionally written in source (Vite skips
-                    // data URIs, so they pass through untouched). Warn only
-                    // — `bundlesize` CI catches genuine inline bloat.
-                    if (/data:image\//.test(source)) {
-                        console.warn(`[css-url-passthrough] ${fileName}: found data:image/ URIs — Vite may have inlined assets despite the passthrough, or the source intentionally uses a data URI; check Vite version compatibility.`);
-                    }
-                } else if (fileName.endsWith('.js')) {
-                    // Vite 8 omits the stub JS chunk for pure-CSS entries
-                    // natively; fail the build if a future version stops
-                    // doing so.
-                    throw new Error(`[css-url-passthrough] ${fileName}: unexpected JS file in CSS output — a Vite upgrade may have stopped omitting pure-CSS stub chunks; check Vite version compatibility.`);
-                }
-            }
-        },
-    };
-}
-
 export default defineConfig(({ mode }) => ({
+    // webpack `url: false` parity for root-absolute urls — see the comment above.
+    publicDir: '.',
     // Don't clear the shared terminal in `npm run watch`, where webpack and
     // Vite log to the same screen (Vite clears the screen on build by default).
     clearScreen: false,
-    plugins: [cssUrlPassthrough()],
-    css: {
-        postcss: {
-            plugins: [encodeStaticUrls],
-        },
-    },
     build: {
         outDir,
         emptyOutDir: true,
+        // The whole project is the "public dir" (see publicDir above) — never
+        // copy it into outDir.
+        copyPublicDir: false,
         // Minify in every mode except explicit dev watch (`watch:css` passes
         // `--mode development`); `vite build` defaults to mode 'production'.
         cssMinify: mode !== 'development',

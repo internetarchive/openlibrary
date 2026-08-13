@@ -46,22 +46,23 @@ imports nested inside rules/media are always flagged.
 
 Vite inlines small `/static/images/...` assets as base64 data URIs by default,
 which roughly **doubles** gzip size on image-heavy pages and would fail the
-`bundlesize` CI check. Solved with a PostCSS plugin that runs in the `Once`
-phase and encodes each root-absolute `url(/static/...)` as
-`url(#__OL__/static/...)`; a `closeBundle` hook decodes the placeholders in the
-emitted files.
+`bundlesize` CI check. Vite has no `url:false` equivalent, so the config uses
+an escape hatch: `publicDir: '.'` makes every root-absolute `url(/static/...)`
+resolve to a *public asset* — the one class of asset Vite deliberately leaves
+unprocessed. `copyPublicDir: false` prevents the whole project from being
+copied into the build output.
 
-- **Gotcha discovered while debugging:** a PostCSS plugin using the
-  `Declaration` visitor runs *after* Vite's internal url-rewriting plugin
-  (`UrlRewritePostcssPlugin`, which also runs in `Once`) and sees nothing left
-  to encode. `Once` runs right after postcss-import inlines the raw imported
-  CSS but *before* the url rewrite, so it sees everything.
-- The `#` prefix works because Vite's url processing skips fragment-style urls.
-- This relies on Vite-internal ordering, so `closeBundle` also scans the output
-  for undecoded `#__OL__` placeholders or stray JS chunks (**fails the build**)
-  and leaked `data:image/` URIs (warns — `bundlesize` CI catches inline bloat,
-  and the source may intentionally use data URIs, which Vite passes through)
-  if a future Vite upgrade breaks the mechanism.
+- **Gotcha:** Vite keys public urls *relative to* `publicDir`, so a narrower
+  value like `publicDir: 'static'` does **not** match `/static/...` urls (the
+  same file is keyed as `/images/...` there); only the project root matches
+  urls that carry the `/static/` prefix.
+- **Scope is intentionally global:** any root-absolute `url()` pointing at an
+  existing project file is left untouched — the whole build is a CSS
+  passthrough. Relative urls are still resolved/rewritten by Vite (none exist
+  in `static/css/` today).
+
+(No runtime guard: if a future Vite version stops treating public urls in CSS
+as unprocessed, output would visibly bloat and the `bundlesize` CI check fails.)
 
 ### `@charset` handling
 
@@ -107,7 +108,7 @@ container (`docker compose exec`) matters for the dev loop.
   page-edit 36/36, page-form 38/38, page-plain 39/39, page-user 39/39,
   page-lists 40/40, page-book 15/15).
 - **`url()` content sets are identical** (`comm` diff empty).
-- **Zero data URIs, zero emitted assets, zero leftover placeholders.**
+- **Zero data URIs, zero emitted assets** (every url passes through untouched).
 - **Selector parity ~100%** (no missing selectors vs webpack output).
 - **Raw sizes within ~0.2–1%** (esbuild vs cssnano minifier variance):
 
