@@ -93,8 +93,6 @@ module.exports = [
       },
       globals: {
         ...globals.browser,
-        $: "readonly",
-        jQuery: "readonly",
       },
     },
     rules: {

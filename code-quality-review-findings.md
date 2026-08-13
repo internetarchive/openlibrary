@@ -111,8 +111,8 @@ ignores them — the real mapping is `CHUNK_NAME_MAP` in
 ## 5. [Medium] Regex source-mutation plugins are the least-tested magic here
 
 - [x] **Add unit tests for the two transform plugins** — done
-- [ ] *(optional, long-term)* Replace `injectJqueryGlobals` with explicit
-      `import $ from 'jquery'` in the ~30 affected files
+- [x] **Replace `injectJqueryGlobals` with explicit `import $ from 'jquery'`** — done
+- [x] **Replace `jqueryUiAmdDeps` with explicit wrapper modules** — done
 
 `injectJqueryGlobals` and `jqueryUiAmdDeps` parse and rewrite JS with regexes.
 The plan (D3) recommended `@rollup/plugin-inject`; the custom plugin is
@@ -121,21 +121,45 @@ there was **zero unit coverage** for either transform, and the regexes can
 false-positive: `(?<![\w$])\$(?![\w${])` matches `$` inside strings/comments,
 injecting an unused `import $ from 'jquery'` into modules that don't need it.
 
-**Fix applied:** both plugins + `chunkName`/`CHUNK_NAME_MAP` were extracted from
-`vite-js.config.mjs` into a new importable `vite-js-plugins.mjs` (config now
-imports from it). New `tests/unit/js/vite-js-plugins.test.js` covers: `$`/`jQuery`
-injection, both-names case, already-imports guard, self-declared-`$` guard,
-`$foo` non-match, node_modules skip, no-usage skip; AMD dep injection order,
-jquery exclusion, non-jquery-ui skip, no-define skip; chunk-name remapping,
-`main` special case, basename fallback. **16/16 pass; full jest suite 583/583.**
+**Fix applied (round 1):** both plugins + `chunkName`/`CHUNK_NAME_MAP` were
+extracted from `vite-js.config.mjs` into a new importable `vite-js-plugins.mjs`
+(config now imports from it). New `tests/unit/js/vite-js-plugins.test.js`
+covered: `$`/`jQuery` injection, both-names case, already-imports guard,
+self-declared-`$` guard, `$foo` non-match, node_modules skip, no-usage skip; AMD
+dep injection order, jquery exclusion, non-jquery-ui skip, no-define skip;
+chunk-name remapping, `main` special case, basename fallback. **16/16 pass.**
 
 To import the repo-root `.mjs` from jest, added a `moduleNameMapper` entry for
 `vite-js-plugins.mjs` and widened the jest transform regex to cover `.mjs`.
 Also registered `vite-js-plugins.mjs` in eslint's Vite-config block.
 
+**Fix applied (round 2 — the codemod):** the injection was replaced with
+one-time explicit imports. An eslint `no-undef` scan (AST-based, immune to the
+regex false-positives) found **31 source files + 4 test files** genuinely
+reference unbound `$`/`jQuery` — not the ~30/14 the regexes suggested, and the
+regexes were in fact injecting unused imports into 5 files (SearchModal's
+`/[.…。]+$/` regex literal, `jQuery` in comments in Dropper/nonjquery_utils,
+etc.). Each file now has `import $ from 'jquery';` (index.js gets both `$` and
+`jQuery`). `injectJqueryGlobals()` was deleted from `vite-js-plugins.mjs` and
+its tests removed. `$`/`jQuery` were removed from eslint's globals so unbound
+usage is a hard `no-undef` error again. **PARITY OK; jest 575/575; lint clean.**
+
+**Fix applied (round 3 — jquery-ui AMD):** `jqueryUiAmdDeps` was also deleted.
+Its regex parsed another library's UMD wrapper at build time — a maintenance
+boundary. Replaced by **four explicit wrapper modules**
+(`openlibrary/plugins/openlibrary/js/jquery-ui-{tabs,dialog,autocomplete,sortable}.js`),
+each listing its AMD `define([...])` deps in topological order as plain
+`import`s; the 7 importing files now import the wrapper for the widget they
+use. Per-widget tree-shaking is unchanged (verified: autocomplete 22 KB entry,
+covers 3 KB + 26 KB touch-punch, dialog 66 KB — identical to the plugin era).
+New tests verify each wrapper against the installed jquery-ui package (files
+exist + valid topo order + dialog closure completeness), so a jquery-ui upgrade
+that changes the AMD graph fails loudly instead of breaking at runtime.
+
 **Notes:**
-- The explicit-imports cleanup (#5b) remains an open follow-up; the plugin is
-  now at least covered by tests.
+- An earlier hand-rolled `jquery-ui.js` bootstrap forced a 79 KB shared chunk
+  onto every widget page; the per-widget wrappers avoid that by importing only
+  each widget's own closure.
 -
 
 ---

@@ -1,81 +1,64 @@
+import fs from 'fs';
+import path from 'path';
 import {
-    jqueryUiAmdDeps,
-    injectJqueryGlobals,
     chunkName,
     CHUNK_NAME_MAP,
 } from 'vite-js-plugins.mjs';
 
-describe('injectJqueryGlobals', () => {
-    const plugin = injectJqueryGlobals();
-    const projectFile = (name = 'foo.js') => `/repo/openlibrary/plugins/openlibrary/js/${name}`;
-    const result = (code, id) => plugin.transform(code, id);
-    const injected = (code, id) => result(code, id)?.code;
+describe('jquery-ui wrapper modules', () => {
+    // The explicit jquery-ui-*.js bootstrap modules replace the old
+    // jqueryUiAmdDeps transform plugin: each lists its AMD `define([...])`
+    // deps in topological order. These tests pin the wrappers to jquery-ui's
+    // actual AMD graph, so an upgrade that adds/removes a dep (or breaks the
+    // format) fails loudly here instead of at runtime.
+    const JQ = path.join(__dirname, '../../..', 'node_modules/jquery-ui');
+    const WRAPPER_DIR = path.join(__dirname, '../../..', 'openlibrary/plugins/openlibrary/js');
+    const wrappers = ['jquery-ui-tabs', 'jquery-ui-dialog', 'jquery-ui-autocomplete', 'jquery-ui-sortable'];
 
-    test('injects `import $` when code uses bare `$(`', () => {
-        const code = '$(document).ready(function () {});';
-        expect(injected(code, projectFile())).toBe(`import $ from 'jquery';\n${code}`);
+    const depsOf = (file) => {
+        const code = fs.readFileSync(path.join(JQ, file), 'utf8');
+        const match = code.match(/define\s*\(\s*\[([\s\S]*?)\]\s*,\s*factory\s*\)/);
+        if (!match) return [];
+        return [...match[1].matchAll(/"([^"\\]+)"/g)]
+            .map((m) => m[1])
+            .filter((d) => d !== 'jquery'); // jquery is a window global
+    };
+
+    // Wrapper imports use the bare `jquery-ui/...` specifier; map to the file
+    // path relative to the jquery-ui package root for the checks below.
+    const stripSpecifier = (spec) => spec.replace(/^jquery-ui\//, '');
+
+    test.each(wrappers)('%s lists jquery-ui files that all exist', (name) => {
+        const code = fs.readFileSync(path.join(WRAPPER_DIR, `${name}.js`), 'utf8');
+        const files = [...code.matchAll(/^import '([^']+)';/gm)].map((m) => stripSpecifier(m[1]));
+        expect(files.length).toBeGreaterThan(0);
+        for (const f of files) {
+            expect(() => fs.statSync(path.join(JQ, `${f}.js`))).not.toThrow();
+        }
     });
 
-    test('injects `import jQuery` when code uses bare `jQuery`', () => {
-        const code = 'jQuery.each([1, 2], function () {});';
-        expect(injected(code, projectFile())).toBe(`import jQuery from 'jquery';\n${code}`);
+    test.each(wrappers)('%s is a valid topological order of jquery-ui AMD deps', (name) => {
+        const code = fs.readFileSync(path.join(WRAPPER_DIR, `${name}.js`), 'utf8');
+        const files = [...code.matchAll(/^import '([^']+)';/gm)].map((m) => `${stripSpecifier(m[1])}.js`);
+        const pos = new Map(files.map((f, i) => [f, i]));
+        for (const f of files) {
+            for (const dep of depsOf(f)) {
+                const resolved = path.resolve(path.join(JQ, path.dirname(f)), dep);
+                const rel = resolved.slice(JQ.length + 1) + (resolved.endsWith('.js') ? '' : '.js');
+                expect(pos.has(rel)).toBe(true);
+                expect(pos.get(rel)).toBeLessThan(pos.get(f));
+            }
+        }
     });
 
-    test('injects both as separate statements when both identifiers are used', () => {
-        const code = '$("div").hide();\njQuery("span").show();';
-        const out = injected(code, projectFile());
-        expect(out).toContain('import $ from \'jquery\';');
-        expect(out).toContain('import jQuery from \'jquery\';');
-    });
-
-    test('leaves modules that already import jquery alone', () => {
-        const code = 'import $ from \'jquery\';\n$(\'div\').hide();';
-        expect(result(code, projectFile())).toBeNull();
-    });
-
-    test('leaves modules that declare their own `$` binding alone', () => {
-        const code = 'const $ = function () {};\n$(\'x\');';
-        expect(result(code, projectFile())).toBeNull();
-    });
-
-    test('does not treat `$foo` as the jquery identifier', () => {
-        const code = 'const $foo = 1;\nconsole.log($foo);';
-        expect(result(code, projectFile())).toBeNull();
-    });
-
-    test('leaves node_modules untouched', () => {
-        const code = '$("x");';
-        expect(result(code, '/repo/node_modules/jquery-ui/ui/widgets/tabs.js')).toBeNull();
-    });
-
-    test('returns null for files with no jquery usage', () => {
-        const code = 'export const x = 1;';
-        expect(result(code, projectFile())).toBeNull();
-    });
-});
-
-describe('jqueryUiAmdDeps', () => {
-    const plugin = jqueryUiAmdDeps();
-    const uiFile = (name = 'tabs.js') => `/repo/node_modules/jquery-ui/ui/widgets/${name}`;
-    const result = (code, id) => plugin.transform(code, id);
-    const injected = (code, id) => result(code, id)?.code;
-
-    test('injects side-effect imports for relative AMD deps, in order', () => {
-        const code = 'define(["jquery", "../widget", "../position"], factory);';
-        const out = injected(code, uiFile());
-        expect(out).not.toBeNull();
-        expect(out).toContain('import \'/repo/node_modules/jquery-ui/ui/widget.js\';');
-        expect(out).toContain('import \'/repo/node_modules/jquery-ui/ui/position.js\';');
-        // jquery itself is a window global — not imported
-        expect(out).not.toContain('jquery.js');
-    });
-
-    test('returns null for non-jquery-ui files', () => {
-        expect(result('define(["a"], factory);', '/repo/openlibrary/plugins/openlibrary/js/foo.js')).toBeNull();
-    });
-
-    test('returns null when there is no AMD define', () => {
-        expect(result('const x = 1;', uiFile())).toBeNull();
+    test('dialog wrapper includes every direct AMD dep of the dialog widget', () => {
+        const code = fs.readFileSync(path.join(WRAPPER_DIR, 'jquery-ui-dialog.js'), 'utf8');
+        const files = new Set([...code.matchAll(/^import '([^']+)';/gm)].map((m) => `${stripSpecifier(m[1])}.js`));
+        for (const dep of depsOf('ui/widgets/dialog.js')) {
+            const resolved = path.resolve(path.join(JQ, 'ui/widgets'), dep);
+            const rel = resolved.slice(JQ.length + 1) + (resolved.endsWith('.js') ? '' : '.js');
+            expect(files.has(rel)).toBe(true);
+        }
     });
 });
 

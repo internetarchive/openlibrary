@@ -1,3 +1,4 @@
+import $ from 'jquery';
 // Slick#1.6.0 is not on npm
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.css';

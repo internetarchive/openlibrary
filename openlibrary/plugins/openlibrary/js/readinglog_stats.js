@@ -1,4 +1,5 @@
 // @ts-check
+import $ from 'jquery';
 import fromPairs from 'lodash/fromPairs';
 import isUndefined from 'lodash/isUndefined';
 import includes from 'lodash/includes';

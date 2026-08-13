@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import { debounce } from './nonjquery_utils.js';
 
 export function initSignupForm() {

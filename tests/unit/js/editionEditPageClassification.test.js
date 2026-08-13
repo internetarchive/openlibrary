@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import { initClassificationValidation } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import sinon from 'sinon';
 import * as testData from './html-test-data';

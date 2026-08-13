@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
 * OpenLibrary-specific convenience functions for use with Archive.org athena.js
 *

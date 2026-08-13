@@ -105,12 +105,22 @@ Added to `index.js`: `core-js/es/array/flat-map`, `object/from-entries`,
 (`for await…of` lowers to a `Symbol.asyncIterator`-based helper — no regenerator
 needed; that's a Babel-ism Oxc doesn't use.)
 
-### D3: `$` / `jQuery` globals — custom inject plugin
-30 modules use bare `$`/`jQuery`. A tiny `transform` plugin
-(`ol-inject-jquery-globals`) injects `import $/jQuery from 'jquery'`. **Bugs the
-browser caught:** (1) `import jQuery, $ from 'jquery'` is a syntax error (two
-statements needed); (2) the "module declares its own `$`" guard must require a
-*standalone* `$`, else `const $tabs` falsely suppressed injection.
+### D3: `$` / `jQuery` globals — codemodmed to explicit imports (plugin deleted)
+Initially a tiny `transform` plugin (`ol-inject-jquery-globals`) injected
+`import $/jQuery from 'jquery'` into modules using bare `$`. **Bugs the browser
+caught:** (1) `import jQuery, $ from 'jquery'` is a syntax error (two statements
+needed); (2) the "module declares its own `$`" guard must require a *standalone*
+`$`, else `const $tabs` falsely suppressed injection. The regexes could also
+false-positive on `$` in strings/regex literals and `jQuery` in comments,
+injecting unused imports.
+
+**Superseded:** an eslint `no-undef` scan (AST-based, immune to those
+false-positives) found **31 source files + 4 test files** that genuinely
+reference unbound `$`/`jQuery`; each now has an explicit
+`import $ from 'jquery';` (index.js gets both `$` and `jQuery` — it sets
+`window.$`/`window.jQuery`). The inject plugin was deleted, and `$`/`jQuery`
+were removed from eslint's globals so unbound usage is a `no-undef` error
+again.
 
 ### D4: `sw.js` — IIFE, one entry per invocation
 Rolldown treats `format:'iife'` as `codeSplitting:false`, which only allows
@@ -123,22 +133,28 @@ Rolldown names chunks after the imported *file*, webpack after the
 `modals→modal-links`, `readinglog_stats→readinglog-stats`, …), remapped via a
 `chunkFileNames` function.
 
-### NEW: jquery-ui AMD interop — solved with a plugin, zero source changes
+### NEW: jquery-ui AMD interop — explicit wrapper modules (plugin deleted)
 jquery-ui 1.14 ships **UMD only**; its inter-module deps are AMD
 `define(["jquery","../widget",…], factory)`. Vite has no AMD loader, so importing
 `jquery-ui/ui/widgets/tabs` alone ran the UMD browser-globals branch
 `factory(jQuery)` *without* `../widget` → **`$.widget is not a function`**.
 
-Fix: a `jquery-ui-amd-deps` transform plugin extracts each file's AMD
-`define([...])` deps and injects side-effect `import`s for them, so they execute
-in order before the importing module — the same thing webpack's built-in AMD
-support did. **No source changes needed** and per-widget tree-shaking is
-restored: `tabs` chunk 4 KB gzip, `autocomplete` 7 KB, `dialog` 19 KB (dialog
-legitimately pulls button/draggable/resizable), with shared jquery-ui modules
-deduped into shared chunks by rolldown.
+**Superseded:** an earlier `jquery-ui-amd-deps` transform plugin regex-extracted
+each file's AMD `define([...])` deps and injected side-effect `import`s. That
+worked (per-widget tree-shaking restored: `tabs` 4 KB gzip, `autocomplete` 7 KB,
+`dialog` 19 KB) but parsed another library's internals at build time — a
+maintenance boundary. Post-review it was replaced by **four explicit wrapper
+modules** (`openlibrary/plugins/openlibrary/js/jquery-ui-{tabs,dialog,autocomplete,sortable}.js`),
+each listing its AMD deps in topological order as plain `import`s. The 7
+importing files now import the wrapper for the widget they use; the plugin and
+its regex were deleted. Per-widget tree-shaking is unchanged (autocomplete 22 KB
+raw entry, covers 3 KB + 26 KB touch-punch, dialog 66 KB) and jquery-ui upgrades
+that alter the AMD graph are caught by unit tests that verify each wrapper
+against the installed package (tests/unit/js/vite-js-plugins.test.js).
 
-(First attempt was a hand-rolled ordered `jquery-ui.js` bootstrap, which worked
-but forced a 79 KB shared chunk onto every widget page. Replaced by the plugin.)
+(The even earlier hand-rolled `jquery-ui.js` bootstrap forced a 79 KB shared
+chunk onto every widget page — the wrappers avoid that by importing only each
+widget's own closure.)
 
 ### D7: bundlesize limits recalibrated
 Rolldown inlines per-chunk deps; webpack hid shared deps in a giant 133 KB gzip

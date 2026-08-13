@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import { isbnOverride } from './isbnOverride';
 import {
     parseIsbn,

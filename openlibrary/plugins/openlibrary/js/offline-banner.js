@@ -1,3 +1,4 @@
+import $ from 'jquery';
 export function initOfflineBanner() {
 
     window.addEventListener('offline', () => {

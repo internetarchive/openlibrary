@@ -1,3 +1,5 @@
+import $ from 'jquery';
+import jQuery from 'jquery';
 // API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite lowers
 // syntax only (Oxc); these replace babel `preset-env` `useBuiltIns: 'usage'` for
 // the ES2018+ APIs used in this codebase (see docs/ai/js-vite-migration-progress.md).
@@ -6,7 +8,6 @@ import 'core-js/es/object/from-entries';
 import 'core-js/es/promise/finally';
 import 'core-js/es/symbol/async-iterator';
 import initSentry from './sentry';
-import 'jquery';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';

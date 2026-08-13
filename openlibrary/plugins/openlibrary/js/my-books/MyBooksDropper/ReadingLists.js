@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Defines functionality related to the My Books dropper's list affordances.
  * @module my-books/MyBooksDropper/ReadingLists

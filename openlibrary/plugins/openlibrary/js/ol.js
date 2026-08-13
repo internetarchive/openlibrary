@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import { initSearchModal } from './search-modal/SearchModal';
 
 /*

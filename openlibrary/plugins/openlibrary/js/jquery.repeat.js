@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import Template from './template';
 import { isbnOverride } from '../../openlibrary/js/isbnOverride';
 
