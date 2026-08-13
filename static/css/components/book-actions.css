@@ -72,10 +72,48 @@
     min-width: 0;
   }
 
+  /* Both controls are one control size — `ol-button[size="small"]` — so a card
+     reads as a pair rather than as two things that happen to sit together. The
+     geometry is copied, not the palette: the access button keeps its filled CTA
+     colours, and only the metrics, corner and press feel come from the button
+     system. `min-height` rather than `height` because long verbs wrap here. */
+  .book-actions__access .cta-btn,
+  .book-actions__save .generic-dropper__actions {
+    min-height: var(--control-height-small);
+    border-radius: var(--border-radius-button);
+    box-shadow: var(--box-shadow-raised);
+    transition: transform 0.08s;
+  }
+
   /* Long verbs — "Find in a library" — wrap onto a second line rather than
-     being clipped, which is the one thing a reader cannot recover from. */
+     being clipped, which is the one thing a reader cannot recover from. The
+     flex centring is what keeps a one-line label centred at a fixed height. */
   .book-actions__access .cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-inline-sm);
+    margin-top: 0;
+    padding: var(--spacing-3xs) var(--spacing-sm);
+    font-size: var(--font-size-label-medium);
+    line-height: var(--line-height-control);
     white-space: normal;
+  }
+
+  /* The bordered row is what a reader sees as the save button — the trigger
+     inside it just fills it — so the control's edge belongs here. Height is set
+     rather than left to `min-height`: this row is a flex container built for a
+     labelled button beside a caret, and it keeps reserving room for the label
+     even with the label hidden. Nothing here wraps, so pinning it is safe. */
+  .book-actions__save .generic-dropper__actions {
+    height: var(--control-height-small);
+    border-color: var(--color-border-subtle);
+  }
+
+  /* Tactile press, the same one ol-button uses. */
+  .book-actions__access .cta-btn:active,
+  .book-actions__save .generic-dropper__actions:active {
+    transform: scale(0.97);
   }
 
   /* One disclosure per book. The access button carries its own overflow — a
@@ -103,12 +141,13 @@
     display: none;
   }
 
-  /* Sized here rather than left to the content: the trigger is slotted into
+  /* Square, at the same control height as the access button beside it. Sized
+     here rather than left to the content: the trigger is slotted into
      <ol-popover>'s shadow tree, so its width does not reach back out to size
      this column, and the column would collapse to the border. */
   .book-actions__save {
     flex: 0 0 auto;
-    width: 34px;
+    width: var(--control-height-small);
   }
 
   /* The wrapper reserves height for a check-in prompt and lifts the dropper out
@@ -129,10 +168,20 @@
     display: none;
   }
 
+  /* The grey fill reads as one half of a split button, which is what it is at
+     full width. Alone beside a filled CTA it should read as a secondary button,
+     so it takes ol-button's surface. */
   .book-actions__save .generic-dropper__actions .generic-dropper__dropclick {
     width: 100%;
-    height: 32px;
+    height: var(--control-height-small);
     border-left: 0;
+    background-color: var(--white);
+  }
+
+  /* Sized against a 26px control rather than the 32px one it was drawn for. */
+  .book-actions__save .generic-dropper__glyph svg {
+    width: 16px;
+    height: 16px;
   }
 
   /* Matches the specificity generic-dropper.css uses for the caret, which is
