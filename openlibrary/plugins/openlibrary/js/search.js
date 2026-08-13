@@ -142,4 +142,3 @@ function fetchPartials(param) {
             return resp.json();
         });
 }
-
