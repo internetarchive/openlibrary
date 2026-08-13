@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from typing import get_args
 from urllib.parse import urlencode
 
 import pytest
 
-from openlibrary.fastapi.search import PublicQueryOptions
+from openlibrary.fastapi.search import FacetField, PublicQueryOptions
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
 
 
@@ -391,3 +394,69 @@ class TestOpenAPIDocumentation:
 
         # This test always passes - it's just for debug output
         assert True
+
+
+class TestSearchFacetsEndpoint:
+    """Tests for the /search/facets.json endpoint."""
+
+    def test_requires_field_param(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?q=tolkien")
+        # FastAPI enforces required + min_length=1 on `field`, returns 422 when absent
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any("field" in err["loc"] for err in detail)
+
+    def test_rejects_invalid_field(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=notafield&q=tolkien")
+        # FastAPI validates FacetField Literal and returns 422 for unknown values
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any(err.get("input") == "notafield" for err in detail)
+
+    def test_returns_facet_values_for_single_field(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&q=lord+of+the+rings")
+        assert response.status_code == 200
+        data = response.json()
+        assert "language" in data
+        values = data["language"]
+        assert len(values) > 0
+        assert all("value" in v and "count" in v and "label" in v for v in values)
+        assert values[0] == {"value": "eng", "label": "English", "count": 665}
+
+    def test_filters_zero_count_values(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        # "Latin" (code "lat") has count=0 in the mock — must not appear
+        assert not any(v["value"] == "lat" for v in data["language"])
+        assert all(v["count"] > 0 for v in data["language"])
+
+    def test_returns_multiple_fields(self, fastapi_client, mock_run_solr_query_async):
+        response = fastapi_client.get("/search/facets.json?field=language&field=subject_facet&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        assert "language" in data
+        assert "subject_facet" in data
+
+    def test_author_facet_key_maps_to_author_facet(self, fastapi_client, mock_run_solr_query_async):
+        """Response key should be 'author_facet' even though Solr returns 'author_key' internally."""
+        response = fastapi_client.get("/search/facets.json?field=author_facet&q=tolkien")
+        assert response.status_code == 200
+        data = response.json()
+        assert "author_facet" in data
+        assert "author_key" not in data
+        assert data["author_facet"] == [{"value": "OL9A", "label": "J.R.R. Tolkien", "count": 123}]
+
+    def test_empty_query_returns_valid_response(self, fastapi_client, mock_run_solr_query_async):
+        """No q param should still return a valid (unfiltered) facet list."""
+        response = fastapi_client.get("/search/facets.json?field=language")
+        assert response.status_code == 200
+        assert "language" in response.json()
+
+    def test_facet_field_literal_matches_scheme(self):
+        """FacetField Literal must stay in sync with WorkSearchScheme.facet_fields.
+
+        Guards against drift: if a facet field is added/removed upstream, this
+        fails so the endpoint doesn't silently 422 on (or miss) it.
+        """
+        assert set(get_args(FacetField)) == WorkSearchScheme.facet_fields

@@ -215,24 +215,24 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover {
-                background: var(--icon-link-grey);
+                background: var(--color-hover-overlay);
             }
         }
 
         .item-row:focus-within {
             outline: none;
-            background: var(--icon-link-grey);
+            background: var(--color-hover-overlay);
         }
 
         .item--selected .item-row {
-            background: hsla(202, 96%, 37%, 0.08);
-            color: var(--link-blue);
+            background: var(--color-control-selected-bg);
+            color: var(--color-link);
             font-weight: 600;
         }
 
         .item--selected .item-row:focus-within,
         .item--selected .item-row:hover {
-            background: hsla(202, 96%, 37%, 0.12);
+            background: var(--color-control-selected-bg-hover);
         }
 
         .item-checkbox {
@@ -288,7 +288,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .clear-button:hover {
-                background: var(--lightest-grey);
+                background: var(--color-hover-overlay);
             }
         }
 

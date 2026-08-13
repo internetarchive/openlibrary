@@ -8,7 +8,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+    $if ctx.user and ctx.user.is_super_librarian_or_higher():
         <span class="adminOnly right">
             <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
         </span>
@@ -106,7 +106,7 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="id-errors-author" class="note" style="display: none"></div>
                         <div id="hiddenAuthorIdentifiers"></div>
                         <div id="identifiers-display">
-                            $ admin = ctx.user.is_admin() or ctx.user.is_super_librarian()
+                            $ admin = ctx.user.is_super_librarian_or_higher()
                             $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
                         </div>
                         <br>

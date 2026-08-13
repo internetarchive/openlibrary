@@ -51,7 +51,6 @@ from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import (
-    AmazonAPI,
     AmazonCreatorsAPI,
     clean_amazon_metadata_for_load,
 )
@@ -638,8 +637,8 @@ def load_config(configfile):
 
     web.amazon_api = None
 
-    # Prefer the new Creators API if credentials are configured; fall back to
-    # legacy PA-API (amazon_api) for side-by-side comparison during migration.
+    # The Creators API is the only supported Amazon client; the legacy PA-API
+    # fallback was removed once Creators was confirmed live in prod (#13277).
     creators_cfg = config.get("amazon_creators_api") or {}
     creators_args = [
         creators_cfg.get("key"),
@@ -647,12 +646,6 @@ def load_config(configfile):
         creators_cfg.get("id"),
     ]
     creators_version = creators_cfg.get("version", "3.1")
-    legacy_cfg = config.get("amazon_api") or {}
-    legacy_args = [
-        legacy_cfg.get("key"),
-        legacy_cfg.get("secret"),
-        legacy_cfg.get("id"),
-    ]
 
     if all(creators_args):
         web.amazon_api = AmazonCreatorsAPI(
@@ -662,11 +655,8 @@ def load_config(configfile):
             proxy_url=http_proxy_url,
         )
         logger.info("AmazonCreatorsAPI Initialized")
-    elif all(legacy_args):
-        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
-        logger.info("AmazonAPI (legacy PA-API) Initialized")
     else:
-        raise RuntimeError(f"{configfile} is missing required amazon_creators_api or amazon_api keys.")
+        raise RuntimeError(f"{configfile} is missing required amazon_creators_api keys.")
 
 
 def setup_env():

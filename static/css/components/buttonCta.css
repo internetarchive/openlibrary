@@ -78,7 +78,7 @@ a.cta-btn--primary {
 a.cta-btn--available:hover,
 a.cta-btn--preview:hover,
 a.cta-btn--primary:hover {
-  background-color: hsl(202, 96%, 17%);
+  background-color: hsl(211, 92%, 17%);
 }
 
 .cta-btn--available:disabled,
@@ -108,7 +108,7 @@ a.cta-btn--unavailable {
 
 .cta-btn--unavailable:hover,
 a.cta-btn--unavailable:hover {
-  background-color: hsl(202, 96%, 17%);
+  background-color: hsl(211, 92%, 17%);
 }
 
 .cta-btn--shell.cta-btn--external,
@@ -137,7 +137,7 @@ a.cta-btn--shell:disabled {
 .cta-btn--sponsor,
 a.cta-btn--sponsor {
   border: 2px solid var(--link-blue);
-  background: hsl(202, 40%, 95%);
+  background: var(--blue-50);
 }
 
 .cta-btn--vanilla,

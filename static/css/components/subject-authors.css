@@ -1,0 +1,92 @@
+/**
+ * SubjectAuthors
+ * Card layout for the "Notable authors" widget: author photo, name, and a
+ * representative work.
+ */
+
+/* Top margin comes from .widget-box ul. */
+.subjectAuthors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: 0;
+  list-style: none;
+}
+
+.subjectAuthors-item {
+  margin: 0;
+}
+
+.subjectAuthors-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+}
+
+/* Outranks the global a:link / a:hover underline. Includes :hover because touch
+   fires it on tap, and the underline shouldn't return there. */
+.subjectAuthors-card:link,
+.subjectAuthors-card:visited,
+.subjectAuthors-card:hover {
+  text-decoration: none;
+}
+
+/* No transition: the tint snaps in on arrival. */
+@media (hover: hover) and (pointer: fine) {
+  .subjectAuthors-card:hover {
+    background: var(--color-control-hover);
+  }
+}
+
+/* 131x180 matches the author placeholder, which shows through (rounded
+   rectangle, not a circle, so the silhouette reads) when there's no photo.
+   The photo rides above the placeholder as a second background layer: a photo
+   that 404s silently fails to paint, where a broken <img> would draw the
+   browser's error icon on top. --author-photo is set inline per card.
+
+   2.25rem rather than the square's 2.5rem: the portrait aspect turns the same
+   width into a much taller box, and this is now the tallest thing in the row. */
+.subjectAuthors-avatar {
+  flex: none;
+  width: 2.25rem;
+  aspect-ratio: 131 / 180;
+  border-radius: var(--border-radius-thumbnail);
+  background-color: var(--color-surface-sunken);
+  background-image:
+    var(--author-photo, none), url(/static/images/icons/avatar_author-lg.png);
+  background-position: center, center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.subjectAuthors-text {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.subjectAuthors-name {
+  display: block;
+  font-size: var(--font-size-label-large);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-link);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subjectAuthors-blurb {
+  display: block;
+  font-size: var(--font-size-label-medium);
+  line-height: 1.25;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -328,6 +328,12 @@ jQuery(function() {
             .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
     }
 
+    const designSystem = document.querySelector('[data-ds-root]');
+    if (designSystem) {
+        import(/* webpackChunkName: "design-system" */ './design-system')
+            .then((module) => module.initDesignSystem(designSystem));
+    }
+
     // Author-suggestion avatars request photos with ?default=false, so a missing
     // photo 404s; hide the broken <img> to reveal the placeholder icon behind it
     // (mirrors the header search modal's _onAvatarError).
