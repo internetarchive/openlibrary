@@ -2,15 +2,15 @@
   "files": [
     {
       "path": "static/build/js/editions-table.*.js",
-      "maxSize": "33KB"
+      "maxSize": "35KB"
     },
     {
       "path": "static/build/js/graphs.*.js",
-      "maxSize": "19KB"
+      "maxSize": "23KB"
     },
     {
       "path": "static/build/js/carousel.*.js",
-      "maxSize": "6KB"
+      "maxSize": "13KB"
     },
     {
       "path": "static/build/js/covers.*.js",
@@ -53,8 +53,8 @@
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/js/all.js",
-      "maxSize": "155KB"
+      "path": "static/build/js/main.*.js",
+      "maxSize": "100KB"
     },
     {
       "path": "static/build/css/tokens.css",

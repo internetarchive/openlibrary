@@ -32,8 +32,6 @@ module.exports = [
   // Configuration for build and config files (CommonJS)
   {
     files: [
-      "webpack.config.js",
-      "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
       "stylelint/*.cjs",

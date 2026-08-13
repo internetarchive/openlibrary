@@ -1,3 +1,10 @@
+// API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite/esbuild
+// transpiles syntax only; these replace babel `preset-env` `useBuiltIns: 'usage'`
+// for the ES2018+ APIs used in this codebase (see docs/ai/js-vite-migration-progress.md).
+import 'core-js/es/array/flat-map';
+import 'core-js/es/object/from-entries';
+import 'core-js/es/promise/finally';
+import 'core-js/es/symbol/async-iterator';
 import initSentry from './sentry';
 import 'jquery';
 import { exposeGlobally } from './jsdef';
