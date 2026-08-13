@@ -1,0 +1,228 @@
+/**
+ * Verified against the real layout instead of guessed:
+ *   - .page-heading-search-box has a single 20px padding (see
+ *     components/page-heading-search-box.css) -- that's the *entire* gap
+ *     between this element and the real page edge. #test-body-mobile
+ *     (layout/index.css) has no padding of its own and is exactly
+ *     max-width:1060px; margin:0 auto -- so cancelling that one 20px
+ *     value is enough to go flush. No viewport-bleed trick needed, and
+ *     one shouldn't be used here -- it overshoots past a boundary that
+ *     was never actually in the way.
+ *   - .subjectTagEdit is `float:right` upstream, not positioned -- it's
+ *     repointed to sit inside the flush band below.
+ */
+
+.page-heading-search-box {
+  position: relative;
+}
+
+.subject-masthead {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3xl);
+  background: var(--color-surface-header);
+  padding: var(--spacing-inset-xl);
+  /* Cancels .page-heading-search-box's own 20px padding on the left,
+       right and top so this sits flush with the real container edge.
+       The bottom margin becomes the gap before the search box below. */
+  margin: -20px -20px var(--spacing-3xl);
+  /* Square, edge-to-edge -- matches how the equivalent band already
+       renders elsewhere on production subject/publisher pages. */
+  border-radius: 0;
+}
+
+.subject-masthead__body {
+  position: relative;
+  z-index: var(--z-index-base);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.subject-masthead__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-small);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 var(--spacing-stack-sm);
+  color: var(--color-text);
+}
+
+.subject-masthead__blurb {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-large);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 58ch;
+  margin: 0 0 var(--spacing-stack-lg);
+}
+
+.subject-masthead__stats {
+  display: flex;
+  gap: var(--spacing-3xl);
+  flex-wrap: wrap;
+}
+
+.subject-masthead__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-masthead__stat-value {
+  font-size: var(--font-size-headline-small);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.subject-masthead__stat-value a,
+.subject-masthead__stat-link .subject-masthead__stat-value {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.subject-masthead__stat-value:hover,
+.subject-masthead__stat-link:hover .subject-masthead__stat-value {
+  text-decoration: underline;
+}
+
+.subject-masthead__stat-label {
+  font-size: var(--font-size-label-small);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-3xs);
+}
+
+/* --- Edit button ------------------------------------------------------
+   Upstream ships this as `float: right` inside .page-heading-search-box.
+   That worked when the masthead had no background of its own to sit on;
+   now that it does, the button needs to be pinned to it directly rather
+   than floating independently. !important is deliberate here: it's
+   overriding a rule from a different, earlier-loaded component file
+   (components/page-heading-search-box.css) whose load order relative to
+   this file isn't guaranteed. */
+.subjectTagEdit {
+  position: absolute !important;
+  float: none !important;
+  top: var(--spacing-2xl);
+  right: var(--spacing-2xl);
+  padding: 0 !important;
+  z-index: var(--z-index-raised);
+}
+
+/* --- Cover fan -----------------------------------------------
+   z-index-base / z-index-raised are used exactly as documented in
+   tokens/z-index.css ("cover fan ordinals" / "middle cover in fan"):
+   every cover sits on the same base band and relies on DOM order for
+   its position in the stack, then jumps to `raised` on hover. */
+
+.subject-masthead__covers {
+  position: relative;
+  z-index: var(--z-index-base);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: var(--spacing-lg);
+}
+
+.subject-masthead__cover {
+  position: relative;
+  z-index: var(--z-index-base);
+  display: block;
+  width: 92px;
+  height: 138px;
+  margin-left: -38px;
+  border-radius: var(--border-radius-thumbnail);
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+  box-shadow: 0 6px 14px
+    color-mix(in srgb, var(--book-cover-shadow-color) 70%, transparent);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.subject-masthead__cover:first-child {
+  margin-left: 0;
+}
+
+/* Small alternating rotation + lift per position is what reads as a
+   fanned stack instead of a straight row of overlapping rectangles. */
+.subject-masthead__cover:nth-child(1) {
+  transform: rotate(-9deg) translateY(10px);
+}
+.subject-masthead__cover:nth-child(2) {
+  transform: rotate(-5deg) translateY(4px);
+}
+.subject-masthead__cover:nth-child(3) {
+  transform: rotate(-1deg);
+}
+.subject-masthead__cover:nth-child(4) {
+  transform: rotate(3deg) translateY(3px);
+}
+.subject-masthead__cover:nth-child(5) {
+  transform: rotate(7deg) translateY(8px);
+}
+.subject-masthead__cover:nth-child(6) {
+  transform: rotate(11deg) translateY(14px);
+}
+
+.subject-masthead__cover:hover {
+  transform: translateY(-10px) scale(1.05) !important;
+  box-shadow: 0 16px 28px
+    color-mix(in srgb, var(--book-cover-shadow-color) 85%, transparent);
+  z-index: var(--z-index-raised);
+}
+
+.subject-masthead__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Shown when a featured work has neither cover_id nor cover_edition_key --
+   a subtle diagonal weave reads as "book spine" rather than a dead box. */
+.subject-masthead__cover-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--neutral-200),
+    var(--neutral-200) 8px,
+    var(--neutral-300) 8px,
+    var(--neutral-300) 16px
+  );
+}
+
+@media (max-width: 700px) {
+  .subject-masthead {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-3xl) var(--spacing-2xl);
+  }
+
+  .subject-masthead__title {
+    font-size: var(--font-size-headline-medium);
+  }
+
+  .subject-masthead__stats {
+    gap: var(--spacing-2xl);
+  }
+
+  .subject-masthead__covers {
+    order: -1;
+    padding-left: 0;
+    margin-bottom: var(--spacing-2xl);
+    justify-content: center;
+  }
+
+  .subject-masthead__cover {
+    width: 72px;
+    height: 108px;
+    margin-left: -30px;
+  }
+}

@@ -100,6 +100,11 @@ class subjects(delegate.page):
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
+                # Short masthead blurb. Editable description
+                # first, fall back to the tag body. None if neither is
+                # set -- template hides the blurb line entirely.
+                blurb = subject.tag.get("tag_description") or subject.tag.get("body")
+                subject.blurb = blurb.strip() if blurb else None
 
             for tag in subject.disambiguations:
                 slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
@@ -337,6 +342,68 @@ async def get_subject_async(
 get_subject = async_bridge.wrap(get_subject_async)
 
 
+def _filtered_publishing_year_range(publishing_history: list[list[int]], trim_pct: float = 0.01) -> tuple[int, int] | tuple[None, None]:
+    """
+
+    The 1000 < year <= current_year+1 check in get_subject_async already
+    kills obviously broken years. This handles the sneakier case: a
+    single mis-dated but *plausible-looking* edition (say, a reprint
+    tagged 1500) that still drags the range out to "1500-2025".
+
+    We trim `trim_pct` of total edition COUNT off each end of the
+    distribution, not off the year values. A lone stray edition has a
+    tiny count, so it gets trimmed even though its year sits far from
+    where most editions actually are.
+    """
+    if not publishing_history:
+        return None, None
+
+    ordered = sorted(publishing_history, key=lambda pair: pair[0])
+    total = sum(count for _year, count in ordered)
+    if total == 0:
+        return None, None
+
+    lo_cut = total * trim_pct
+    hi_cut = total * (1 - trim_pct)
+
+    running = 0
+    start_year = ordered[0][0]
+    for year, count in ordered:
+        running += count
+        if running >= lo_cut:
+            start_year = year
+            break
+
+    running = 0
+    end_year = ordered[-1][0]
+    for year, count in reversed(ordered):
+        running += count
+        if running >= total - hi_cut:
+            end_year = year
+            break
+
+    return start_year, end_year
+
+
+def _curated_related_tags(tags: list, limit: int = 8) -> tuple[list, list]:
+    """Rank by count, split into a top set + the rest, so the
+    template can show a curated list plus a 'show more' toggle instead
+    of every facet Solr hands back."""
+    ranked = sorted(tags or [], key=lambda t: t.get("count", 0), reverse=True)
+    return ranked[:limit], ranked[limit:]
+
+
+def _get_featured_works(works: list, limit: int = 6) -> list:
+    """
+    Editable pick with a signal-driven fallback. Currently
+    just takes the top N works as already ranked/sorted by the search
+    query (relevance/edition_count), since there's no curated-picks
+    field on Subject yet. Swap in an editable override here once one
+    exists (e.g. subject.tag.featured_works).
+    """
+    return (works or [])[:limit]
+
+
 @dataclass
 class SubjectEngine:
     name: str
@@ -436,6 +503,11 @@ class SubjectEngine:
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
+        # Featured works for the masthead cover stack. Works
+        # off whatever `subject.works` already has, so this runs
+        # whether or not details=True.
+        subject.featured_works = _get_featured_works(subject.works)
+
         if details and result.facet_counts:
             result.facet_counts = {
                 facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
@@ -458,15 +530,21 @@ class SubjectEngine:
             subject.people = result.facet_counts["person_facet"]
             subject.times = result.facet_counts["time_facet"]
 
+            # Curated + ranked, so "Keep exploring" isn't a
+            # dump of every facet Solr returns
+            subject.subjects_top, subject.subjects_more = _curated_related_tags(subject.subjects)
+            subject.places_top, subject.places_more = _curated_related_tags(subject.places)
+            subject.people_top, subject.people_more = _curated_related_tags(subject.people)
+            subject.times_top, subject.times_more = _curated_related_tags(subject.times)
+
             subject.authors = result.facet_counts["author_key"]
             subject.publishers = result.facet_counts["publisher_facet"]
             subject.languages = result.facet_counts["language"]
 
-            # Phase 1 (epic #13135): "Notable authors" is computed and
+            # "Notable authors" is computed and
             # cached separately -- see get_cached_notable_authors and
             # subjects.decorate_with_notable_authors -- rather than fetched
             # unconditionally here on every request.
-
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = date.today().year
@@ -478,6 +556,16 @@ class SubjectEngine:
                 )
                 if 1000 < year <= current_year + 1
             ]
+
+            # Masthead stat "years in print", outlier-filtered
+            # so one bad date doesn't blow up the range
+            start_year, end_year = _filtered_publishing_year_range(subject.publishing_history)
+            if start_year is None:
+                subject.years_in_print = None
+            elif start_year == end_year:
+                subject.years_in_print = str(start_year)
+            else:
+                subject.years_in_print = f"{start_year}–{end_year}"  # noqa: RUF001
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[self.key]):

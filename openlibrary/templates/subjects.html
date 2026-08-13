@@ -14,27 +14,61 @@ $ q = query_param('q')
         $ link_cta = _("Edit")
         $ elem_title = _("Edit tag for this subject") if has_tag else _("Create tag for this subject")
         $ link_track = "CTAClick|SubjectPageTagEdit"
-        <a
-          class="editTagButton"
-          href="$link_url"
-          title="$elem_title"
-          data-ol-link-track="$link_track"
-          accesskey="e"
-          rel="nofollow"
-        >$link_cta</a>
+        <a class="editTagButton" href="$link_url" title="$elem_title" data-ol-link-track="$link_track" accesskey="e" rel="nofollow">$link_cta</a>
       </div>
-    <h1 class="inline">
-        $page.name
-    </h1>
-    <span class="heading">
-        <span class="count" id="coversCount">
-            <strong><span><a href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
-        </span>
-    </span>
-    $if has_tag:
-      <p class="tag-description" itemprop="description">
-        $:format(sanitize(page.tag['tag_description']))
-      </p>
+
+    <div class="subject-masthead">
+      <div class="subject-masthead__body">
+        <h1 class="subject-masthead__title">$page.name</h1>
+
+        $# Phase 2: short blurb pulled from the editable Tag description,
+        $# falling back to the tag body. Hidden entirely if neither is set.
+        $ blurb = page.get('blurb')
+        $if blurb:
+          <p class="subject-masthead__blurb" itemprop="description">$:format(sanitize(blurb))</p>
+
+        $# Phase 2: stat row -- works, readable-now, years-in-print
+        <div class="subject-masthead__stats">
+            <div class="subject-masthead__stat">
+                <a class="subject-masthead__stat-link" href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">
+                    <span class="subject-masthead__stat-value" id="coversCount">$page.work_count</span>
+                </a>
+                <span class="subject-masthead__stat-label">$_("works")</span>
+            </div>
+            $if page.get('ebook_count'):
+                <div class="subject-masthead__stat">
+                    <span class="subject-masthead__stat-value">$page.ebook_count</span>
+                    <span class="subject-masthead__stat-label">$_("readable now")</span>
+                </div>
+            $if page.get('years_in_print'):
+                <div class="subject-masthead__stat">
+                    <span class="subject-masthead__stat-value">$page.years_in_print</span>
+                    <span class="subject-masthead__stat-label">$_("years in print")</span>
+                </div>
+        </div>
+      </div>
+
+      $# Phase 4: featured works -- fanned cover stack. Editable pick
+      $# with a signal-driven fallback (currently top N by relevance).
+      $# Stacking/rotation is handled entirely in CSS (nth-child) now --
+      $# no inline z-index -- so DOM order alone controls the fan.
+      $if page.get('featured_works'):
+          <div class="subject-masthead__covers">
+              $for work in page.featured_works:
+                  <a href="$work.key" class="subject-masthead__cover" title="$work.title">
+                      $if work.cover_id:
+                          <img src="https://covers.openlibrary.org/b/id/$(work.cover_id)-M.jpg" alt="$work.title" loading="lazy"/>
+                      $elif work.cover_edition_key:
+                          $# Some works only carry cover_edition_key (no top-level cover_i)
+                          $# -- this is why the rest of the site still shows a cover for
+                          $# them while cover_id alone would fall through to the placeholder.
+                          <img src="https://covers.openlibrary.org/b/olid/$(work.cover_edition_key)-M.jpg" alt="$work.title" loading="lazy"/>
+                      $else:
+                          <span class="subject-masthead__cover-placeholder"></span>
+                  </a>
+          </div>
+    </div>
+
     <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
@@ -61,7 +95,43 @@ $ q = query_param('q')
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>
-    $:macros.RelatedSubjects(page)
+
+    $# Phase 3: curated, ranked related-tag lists with a "show more"
+    $# toggle instead of dumping every facet Solr returns.
+    $#
+    $# People / Places / Times are temporarily left out of the render on
+    $# purpose -- they're still computed and cached server-side
+    $# (page.people_top / page.places_top / page.times_top all exist),
+    $# just not shown yet. Add these tuples back in when that section
+    $# gets its own design pass:
+    $#   (_("People"), page.get('people_top'), page.get('people_more')),
+    $#   (_("Places"), page.get('places_top'), page.get('places_more')),
+    $#   (_("Times"), page.get('times_top'), page.get('times_more')),
+    $# Uses the same <ol-chip>/<ol-chip-group> components as the upstream
+    $# RelatedSubjects macro (see openlibrary/macros/RelatedSubjects.html)
+    $# instead of a bespoke list, so this matches every other chip on the
+    $# site. The curation on top of it -- capped + ranked with a "show
+    $# more" toggle instead of dumping the whole facet -- is the Phase 3 work.
+    $ keep_exploring_sections = [(_("Related subjects"), page.get('subjects_top'), page.get('subjects_more'))]
+    <div class="keep-exploring">
+        $for label, top, more in keep_exploring_sections:
+            $if top:
+                <div class="related-tags">
+                    <h3>$label</h3>
+                    <ol-chip-group gap="small">
+                        $for tag in top:
+                            <ol-chip size="small" href="$tag.key">$tag.name</ol-chip>
+                    </ol-chip-group>
+                    $if more:
+                        <details class="related-tags__more">
+                            <summary>$_("Show more")</summary>
+                            <ol-chip-group gap="small">
+                                $for tag in more:
+                                    <ol-chip size="small" href="$tag.key">$tag.name</ol-chip>
+                            </ol-chip-group>
+                        </details>
+                </div>
+    </div>
 
     <div class="clearfix"></div>
     $:macros.SubjectAuthors(page.get('notable_authors', []))
