@@ -3,7 +3,7 @@ import logging
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Literal, TypedDict, TypeVar, cast, override
+from typing import Any, Literal, TypedDict, TypeVar, cast, override
 from urllib import parse
 
 import web
@@ -225,7 +225,13 @@ class AbstractBookProvider[TProviderMetadata]:
         edition_key: str,
         ed_or_solr: Edition | dict,
         analytics_attr: Callable[[str], str],
+        state_line: Callable[..., Any] | None = None,
     ) -> TemplateResult | str:
+        """
+        :param state_line: LoanStatus.html's caption renderer, passed in so the
+            partner caption obeys the same show_state and restates rules as
+            every other access state. Omitted means no caption.
+        """
         acq_sorted = sorted(
             (p for p in self.get_acquisitions(ed_or_solr) if p.ebook_access >= EbookAccess.PRINTDISABLED),
             key=lambda p: p.ebook_access,
@@ -245,6 +251,7 @@ class AbstractBookProvider[TProviderMetadata]:
             acquisition,
             self.long_name or domain,
             analytics_attr,
+            state_line,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None) -> TemplateResult:

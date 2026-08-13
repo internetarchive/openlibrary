@@ -342,19 +342,28 @@ differs from the audit's proposal where the data doesn't exist — see §14.
 | `lending_state` | Old label | Button (shipped) | State line (shipped) |
 |---|---|---|---|
 | `borrowed` | Read | **Read** | On loan to you |
-| `open` | Read | **Read** | Free to read |
-| `partner` (open access) | Read | **Read on {Provider}** | — |
-| `partner` (sample) | Preview | **Preview** | — |
-| `partner` (audio) | Audiobook | **Listen** | — |
+| `open` | Read | **Read** | Free to read *(restates)* |
+| `partner` (open access) | Read | **Read** | On {Provider} |
+| `partner` (sample) | Preview | **Preview** | Preview only *(restates)* |
+| `partner` (audio) | Audiobook | **Listen** | On {Provider} |
 | `printdisabled` | Special Access | **Read** | Special access for patrons with print disabilities |
-| `borrowable` | Borrow | **Borrow** | Available to borrow |
+| `borrowable` | Borrow | **Borrow** | Available to borrow *(restates)* |
 | `waitlist` (not waiting) | Join Waitlist | **Join waitlist** | Readers in line: {n} / You'll be next in line |
 | `waitlist` (waiting) | Leave waiting list | **Leave waitlist** | You are #{n} of {m} on the waiting list |
 | `checkedout` | Checked Out *(dead link)* | **Find in a library** | All copies are checked out |
-| `preview_only` | Preview Only | **Preview** | Preview only |
+| `preview_only` | Preview Only | **Preview** | Preview only *(restates)* |
 | `locate` | Not in Library *(dead span)* | **Find in a library** | Not available online |
 
 The last three are the states that previously shipped a button with no action.
+
+*(restates)* marks a caption that only re-says the button's verb. Those carry
+`cta-state--restates-button` and are hidden inside `@container book-actions
+(max-width: 150px)`, so carousels show only the captions that add something.
+"Free to read" is one of them: nothing on Open Library is ever paid, so the
+distinction a reader is actually drawing is Read vs Borrow, and the button says
+that already. The partner captions drop "free" for the same reason and name a
+destination instead — the one fact the button never carries — so they stay
+visible at every density.
 
 ---
 
@@ -695,7 +704,7 @@ owns #13264 should know the event vocabulary is about to shift.
 | `openlibrary/macros/NotInLibrary.html` | *Deleted* | 0 |
 | `openlibrary/macros/BookPreview.html` | Preview | 0 |
 | `openlibrary/macros/PreviewSearchInside.html` | Preview + Search inside pair | 3 |
-| `openlibrary/templates/book_providers/read_button.html` | Partner-provider access | 0, 1 |
+| `openlibrary/templates/book_providers/read_button.html` | Partner-provider access + host-naming caption | 0, 1 |
 | `openlibrary/templates/my_books/primary_action.html` | Shelf button label, logged-out branch, `redir` | 0, 1 |
 | `openlibrary/templates/my_books/dropdown_content.html` | Menu contents, `redir` | 0, 1 |
 | `openlibrary/templates/my_books/dropper.html` | Shelf state, precomputed-status params | 2 |

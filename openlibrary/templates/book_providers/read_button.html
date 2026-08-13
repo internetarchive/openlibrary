@@ -1,8 +1,17 @@
-$def with(edition_key, acquisition, provider_name, analytics_attr)
+$def with(edition_key, acquisition, provider_name, analytics_attr, state_line=None)
 $# :param edition_key str:
 $# :param Acquisition acquisition:
 $# :param provider_name str:
 $# :param analytics_attr Callable[[str], str]:
+$# :param state_line Callable[..., str] | None: LoanStatus.html's caption
+$#     renderer. Partner books are the only readable state whose button leaves
+$#     Open Library, so the caption names the destination. It leaves "free"
+$#     unsaid — readers can assume that of anything here — which leaves the
+$#     line carrying only the fact the button cannot.
+
+$def caption(message, restates=False):
+  $if state_line:
+    $:state_line(message, restates=restates)
 
 $if acquisition.access == 'open-access':
   <div class="cta-button-group">
@@ -24,6 +33,7 @@ $if acquisition.access == 'open-access':
           $:analytics_attr('Read')
       >$_('Read')</a>
   </div>
+  $:caption(_('On %(provider)s', provider=provider_name))
 $elif acquisition.access == 'sample':
   <div class="cta-button-group">
     <a href="/books/${edition_key}/-/borrow?action=read"
@@ -33,3 +43,4 @@ $elif acquisition.access == 'sample':
       $:analytics_attr('Preview')
     >$_('Preview')</a>
   </div>
+  $:caption(_("Preview only"), restates=True)

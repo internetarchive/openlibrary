@@ -3014,6 +3014,15 @@ msgstr ""
 msgid "Read free online from %s"
 msgstr ""
 
+#: book_providers/read_button.html
+#, python-format
+msgid "On %(provider)s"
+msgstr ""
+
+#: LoanStatus.html book_providers/read_button.html
+msgid "Preview only"
+msgstr ""
+
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
 msgstr ""
@@ -7367,10 +7376,6 @@ msgstr ""
 
 #: LoanStatus.html
 msgid "All copies are checked out"
-msgstr ""
-
-#: LoanStatus.html
-msgid "Preview only"
 msgstr ""
 
 #: LoanStatus.html

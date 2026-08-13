@@ -104,13 +104,18 @@ $if lending_state == 'borrowed':
     $:macros.ReturnForm(ocaid, user_loan['expiry'])
 
 $elif lending_state == 'partner':
-  $# Partner Trusted Book Provider Read Buttons
-  $:book_provider.render_read_button(edition_key, doc, analytics_attr)
+  $# Partner Trusted Book Provider Read Buttons. state_line goes along so the
+  $# caption can name the host, which is worth saying here and only here: this
+  $# is the one readable state whose button leaves Open Library.
+  $:book_provider.render_read_button(edition_key, doc, analytics_attr, state_line=state_line)
 
 $elif lending_state == 'open':
   $# Open / Publicly Readable (Unrestricted)
   $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
-  $:state_line(_("Free to read"))
+  $# Nothing on Open Library is ever paid, so "free" is never the open question:
+  $# the distinction a reader is drawing is Read vs Borrow, and the button says
+  $# that already. Restating, exactly as "Available to borrow" restates Borrow.
+  $:state_line(_("Free to read"), restates=True)
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
 
