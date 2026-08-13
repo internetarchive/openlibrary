@@ -49,7 +49,7 @@ classic script** with ~55 dynamic imports. Rollup/Vite **cannot** emit
 `footer.html` already loads a `<script type="module">` (lit-components), so this
 is consistent. Consequence: the browser floor rises to Safari 11.1 / iOS 11.3
 (native `type=module` + dynamic import) — the `Android >= 5` (Chrome 37) tail is
-dropped *regardless of polyfills*. esbuild `target` is `['safari11.1','ios11.3']`
+dropped *regardless of polyfills*. The `target` is `['safari11.1','ios11.3']`
 to match `package.json`'s browserslist (Chrome/Edge/Firefox are "last 3 years" =
 116/117+, never constraining anything Safari 11.1 doesn't). An earlier draft
 hardcoded `chrome61`/`edge16`/`firefox60`, which are *older* than the real floor
@@ -97,13 +97,13 @@ issues that only show up at the real path `/static/build/js/`:
    modules out of the entry, so no lazy chunk imports it.
 
 ### D2: Polyfills — curated, not `core-js/stable`
-Vite/esbuild transpiles **syntax only**. Measured: no polyfills 108 KB gzip;
+Vite lowers **syntax only** (Oxc). Measured: no polyfills 108 KB gzip;
 `core-js/stable` **177 KB** (blows the 155 KB budget); **curated 118 KB** ✅.
 Added to `index.js`: `core-js/es/array/flat-map`, `object/from-entries`,
 `promise/finally`, `symbol/async-iterator` — exactly what babel
 `useBuiltIns:'usage'` would have emitted for the ES2018+ APIs the code uses.
 (`for await…of` lowers to a `Symbol.asyncIterator`-based helper — no regenerator
-needed; that's a Babel-ism esbuild doesn't use.)
+needed; that's a Babel-ism Oxc doesn't use.)
 
 ### D3: `$` / `jQuery` globals — custom inject plugin
 30 modules use bare `$`/`jQuery`. A tiny `transform` plugin
@@ -167,7 +167,7 @@ this). No build-tool marker is emitted (dropped post-review).
    (applied after minification) instead of a `generateBundle` plugin.
 6. **LightningCSS (Vite 8 default) rejects IE star-hacks** the JS-imported CSS
    had but the CSS build never touched (removed from `legacy-datatables.css`).
-7. **`regenerator-runtime` isn't a dep and isn't needed** — esbuild uses its own
+7. **`regenerator-runtime` isn't a dep and isn't needed** — Oxc uses its own
    helpers.
 8. **`npm uninstall workbox-webpack-plugin` would delete the workbox packages
    `sw.js` imports directly** (they were only transitive) — promoted the 6
