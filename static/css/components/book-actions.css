@@ -106,6 +106,28 @@
     white-space: normal;
   }
 
+  /* The "leaves the site" arrow is a background image pinned 8px from the right
+     edge, which works on a 200px button and collides with the centred label on a
+     card. Partner buttons — Listen on LibriVox, Read on Gutenberg — are the ones
+     that carry it, and they are also the ones with the longest labels. The link
+     still opens in a new tab and still says where it goes in its title.
+     `.carousel-section .cta-btn.cta-btn--external` reserves 24px on the right
+     for that arrow, and `.cta-btn--w-icon` sets its own padding; both outrank a
+     two-class selector, so the padding is restated here rather than left to the
+     shared rule above — otherwise the label sits off-centre in dead space. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__access .cta-btn.cta-btn--external,
+  .book-actions__access .cta-btn.cta-btn--w-icon {
+    padding: var(--spacing-3xs) var(--spacing-sm);
+    background-image: none;
+  }
+
+  /* The label pads itself as well as the button, which on a 26px control is
+     8px of padding inside a 26px box. The button owns the padding here. */
+  .book-actions__access .cta-btn .btn-label {
+    padding: 0;
+  }
+
   /* The bordered row is what a reader sees as the save button — the trigger
      inside it just fills it — so the control's edge belongs here. Height is set
      rather than left to `min-height`: this row is a flex container built for a
