@@ -22,7 +22,7 @@
 /* stylelint-disable selector-max-specificity */
 body,
 div#content {
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-enable selector-max-specificity */
 

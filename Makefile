@@ -16,7 +16,9 @@ all: git css js components lit-components i18n
 frontend: css js components lit-components
 
 node_modules: package-lock.json package.json
+ifeq ($(LOCAL_DEV),true)
 	npm ci --no-audit --no-fund
+endif
 
 css: node_modules
 	mkdir -p $(BUILD)/css_new

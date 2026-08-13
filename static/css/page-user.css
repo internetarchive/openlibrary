@@ -40,12 +40,12 @@
 @import "components/provider-table.css";
 
 body {
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-disable selector-max-specificity */
 div#background {
   width: 100%;
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-enable selector-max-specificity */
 div.message {

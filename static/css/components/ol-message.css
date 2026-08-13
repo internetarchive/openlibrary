@@ -5,9 +5,8 @@
 }
 .ol-message,
 .ol-message--info {
-  /* hue/saturation from --primary-blue: hsl(202, 96%, 37%) */
-  background-color: hsl(202, 96%, 90%);
-  color: hsl(202, 96%, 35%);
+  background-color: var(--blue-100);
+  color: var(--blue-600);
   border: 1px solid currentColor;
 }
 .ol-message--warning {

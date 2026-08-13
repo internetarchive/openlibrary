@@ -1,13 +1,14 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
+import { slotHasContent } from './utils/slot-utils.js';
 
 /**
  * A transient notification message ("toast").
  *
  * The common case sets the message via the `message` (and optional `description`)
  * attributes, which the component styles consistently. For uncommon rich
- * content (links, custom markup), provide light-DOM children instead — the
- * attribute-driven markup is the default slot's fallback, so slotted content
- * automatically replaces it.
+ * content (links, custom markup), provide light-DOM children instead — real
+ * slotted content replaces the attribute-driven markup. Whitespace between the
+ * tags does not count as content, so pretty-printed markup keeps its `message`.
  *
  * The toast announces itself to screen readers, auto-dismisses after
  * `timeout` milliseconds (unless `persistent`), and removes itself from the
@@ -68,6 +69,9 @@ export class OlToast extends LitElement {
         // live region until one frame after mount, so screen readers
         // announce it as a mutation rather than as already-present content.
         _announce: { state: true },
+        // Internal: whether the default slot holds real content — see
+        // slotHasContent() for why native <slot> fallback can't be used.
+        _hasSlottedContent: { state: true },
     };
 
     static styles = css`
@@ -367,6 +371,10 @@ export class OlToast extends LitElement {
         }
     }
 
+    _handleSlotChange(event) {
+        this._hasSlottedContent = slotHasContent(event.target);
+    }
+
     /**
      * Pause the auto-dismiss timer, keeping the remaining time. Called on
      * hover/focus, and by <ol-toast-region> while the stack is expanded.
@@ -450,10 +458,11 @@ export class OlToast extends LitElement {
                 <span class="toast__icon">${icon}</span>
                 <span class="toast__body">
                     ${this._announce ? html`
-                        <slot>
+                        <slot @slotchange=${this._handleSlotChange}></slot>
+                        ${this._hasSlottedContent ? nothing : html`
                             <span class="toast__message">${this.message}</span>
                             ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                        </slot>
+                        `}
                     ` : ''}
                 </span>
                 <button
