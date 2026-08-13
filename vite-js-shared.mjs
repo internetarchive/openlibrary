@@ -8,39 +8,21 @@
  *
  * See docs/ai/js-vite-migration-progress.md for the full rationale.
  */
-import { createRequire } from 'module';
 import { resolve } from 'path';
-
-const require = createRequire(import.meta.url);
-
-/*
- * Read the real installed version so the build marker can never drift from
- * what's actually in node_modules (package.json only pins a semver range).
- */
-export const VITE_VERSION = require('vite/package.json').version;
 
 export const JS_OUT_DIR = resolve(process.env.BUILD_DIR || 'static/build/js');
 
+/*
+ * AGPLv3 license header/footer (GNU LibreJS magnet comment). Applied via
+ * `output.postBanner` / `output.postFooter` in both configs so every emitted
+ * file carries the license after minification. This replaces the Makefile's
+ * shell loop (which prepended the header to every .js file post-build).
+ */
+export const AGPL_LICENSE_HEADER = '// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0';
+export const AGPL_LICENSE_FOOTER = '\n// @license-end';
+
 // docker / bind-mount environments set this via `npm run watch-polling`.
 const forcePolling = process.env.FORCE_POLLING === 'true';
-
-/*
- * Build-tool marker: prepend a "built by Vite …" comment to every output so
- * any deployed file is attributable at a glance. rolldown-vite ignores
- * `output.banner`, so do it in `generateBundle`. The AGPL license header is
- * still added by the Makefile's build-agnostic shell loop.
- */
-export function jsBuildMarker(configFile) {
-    return {
-        name: 'js-build-marker',
-        generateBundle(_options, bundle) {
-            const marker = `/* built by Vite ${VITE_VERSION} (${configFile}) */\n`;
-            for (const item of Object.values(bundle)) {
-                if (item.type === 'chunk') item.code = marker + item.code;
-            }
-        },
-    };
-}
 
 /*
  * Options shared verbatim by both configs. Only the output-shape keys

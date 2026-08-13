@@ -75,11 +75,8 @@ rm -rf "$VITE_DIR" && mkdir -p "$VITE_DIR"
 BUILD_DIR="$VITE_DIR" npx vite build -c vite-js.config.mjs >/dev/null 2>&1
 BUILD_DIR="$VITE_DIR" IIFE_ENTRY=sw npx vite build -c vite-js-iife.config.mjs >/dev/null 2>&1
 BUILD_DIR="$VITE_DIR" IIFE_ENTRY=partnerLib npx vite build -c vite-js-iife.config.mjs >/dev/null 2>&1
-# Apply the same AGPL license loop the Makefile uses (Vite output is unlicensed here).
-for js in "$VITE_DIR"/*.js; do
-    printf '// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0\n' | cat - "$js" > /tmp/js.parity && mv /tmp/js.parity "$js"
-    printf '\n// @license-end\n' >> "$js"
-done
+# The AGPL license header/footer is added by the Vite configs themselves
+# (output.postBanner/postFooter) — no post-processing here.
 
 fail=0
 check() { # check <description> <command...>
@@ -123,11 +120,6 @@ echo "== 5. sw.js shape (self-contained classic script) =="
 check "sw.js has no import/export" sh -c "! grep -qE '^(import|export) ' '$VITE_DIR/sw.js'"
 check "sw.js is an IIFE" grep -q '^(function' "$VITE_DIR/sw.js"
 check "sw.js bundles workbox" grep -q 'workbox:core:' "$VITE_DIR/sw.js"
-
-echo "== 6. Vite marker =="
-for f in all.js sw.js partnerLib.js; do
-    check "marker in $f" grep -q 'built by Vite' "$VITE_DIR/$f"
-done
 
 echo
 echo "== gzip sizes (informational; Vite inlines per-chunk deps) =="

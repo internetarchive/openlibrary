@@ -31,7 +31,7 @@ Verified end-to-end:
   modal opens and slick carousels advance. **This test caught three real bugs the
   earlier root-served mock missed — see "real-app bugs" below.**
 - **`scripts/js-build-parity.sh` → "PARITY OK"** (entries, chunk names, license
-  headers, sourcemaps, `sw.js` shape, Vite marker).
+  headers, sourcemaps, `sw.js` shape).
 - `sw.js` is a self-contained IIFE (workbox 7.4.1 bundled, no `import`/`export`);
   8.7 KB gzip vs webpack 14.4 KB (workbox ESM tree-shakes better).
 
@@ -145,9 +145,13 @@ Rolldown inlines per-chunk deps; webpack hid shared deps in a giant 133 KB gzip
 vendor chunk. Per-chunk gzip grew even though total fell −33%. Updated:
 `graphs` 19→23 KB, `carousel` 6→13 KB, `editions-table` 33→35 KB.
 
-### D8/D11: license header + marker
-Makefile license loop stays (build-agnostic). Vite marker via `generateBundle`
-plugin — **rolldown-vite silently ignores `output.banner`**.
+### D8: AGPL license header — moved into the Vite configs
+Both configs apply the LibreJS magnet comment via `output.postBanner`
+(`AGPL_LICENSE_HEADER`) + `output.postFooter` (`// @license-end`), shared from
+`vite-js-shared.mjs`. Applied after minification so the comments survive;
+rolldown-vite ignores `output.banner`, `postBanner` is the supported
+alternative. The Makefile's post-build shell loop was deleted (it duplicated
+this). No build-tool marker is emitted (dropped post-review).
 
 ---
 
@@ -159,7 +163,8 @@ plugin — **rolldown-vite silently ignores `output.banner`**.
    the project root dir is literally `openlibrary` — guard on `node_modules`.
 3. **`const $tabs` is not a `$` declaration** — regex guard needs standalone `$`.
 4. **IIFE = single input** in rolldown (not just "no code splitting").
-5. **`output.banner` is ignored** by rolldown-vite → `generateBundle` instead.
+5. **`output.banner` is ignored** by rolldown-vite → use `output.postBanner`
+   (applied after minification) instead of a `generateBundle` plugin.
 6. **LightningCSS (Vite 8 default) rejects IE star-hacks** the JS-imported CSS
    had but the CSS build never touched (removed from `legacy-datatables.css`).
 7. **`regenerator-runtime` isn't a dep and isn't needed** — esbuild uses its own
@@ -193,11 +198,12 @@ different URLs → entry side effects run twice. Fixed with the facade entry.
 
 **New:** `vite-js.config.mjs`, `vite-js-iife.config.mjs`, `main-entry.js`,
 `scripts/js-build-parity.sh`, and (post-review) `vite-js-shared.mjs` (shared
-build options + marker) + `vite-js-plugins.mjs` (transform plugins + chunk
-names, unit-tested in `tests/unit/js/vite-js-plugins.test.js`)
+build options + AGPL license constants) + `vite-js-plugins.mjs` (transform
+plugins + chunk names, unit-tested in `tests/unit/js/vite-js-plugins.test.js`)
 
 **Edited:**
-- `Makefile` — `js` target: three Vite builds + license loop (webpack removed)
+- `Makefile` — `js` target: three Vite builds (license loop removed; the Vite
+  configs now emit the AGPL header/footer)
 - `package.json` — `watch:js` runs the three configs under `concurrently`;
   removed `webpack`, `webpack-cli`, `babel-loader`, `style-loader`, `css-loader`,
   `workbox-webpack-plugin`; added 6 direct `workbox-*` deps (+ lockfile)

@@ -17,7 +17,7 @@
  */
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
-import { commonBuildOptions, jsBuildMarker } from './vite-js-shared.mjs';
+import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
 
 const ENTRY = process.env.IIFE_ENTRY || 'sw';
 
@@ -33,12 +33,15 @@ if (!entries[ENTRY]) {
 export default defineConfig(({ mode }) => ({
     publicDir: '.',
     clearScreen: false,
-    plugins: [jsBuildMarker('vite-js-iife.config.mjs')],
     build: {
         ...commonBuildOptions({ mode }),
-        rollupOptions: {
+        rolldownOptions: {
             input: { [ENTRY]: entries[ENTRY] },
             output: {
+                // AGPLv3 license header/footer (LibreJS magnet comment). Applied
+                // after minification (postBanner/postFooter) so they survive.
+                postBanner: AGPL_LICENSE_HEADER,
+                postFooter: AGPL_LICENSE_FOOTER,
                 format: 'iife',
                 entryFileNames: '[name].js',
                 chunkFileNames: '[name].[hash].js',

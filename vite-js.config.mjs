@@ -14,8 +14,8 @@
  *                               scripts (service worker + external partner lib;
  *                               neither code-splits).
  *
- * Shared options (outDir, sourcemaps, targets, marker plugin, …) live in
- * vite-js-shared.mjs and the transform plugins + chunk naming in
+ * Shared options (outDir, sourcemaps, targets, AGPL license header/footer, …)
+ * live in vite-js-shared.mjs and the transform plugins + chunk naming in
  * vite-js-plugins.mjs; this file only wires them together.
  *
  * See docs/ai/js-vite-migration-progress.md for the full rationale and the
@@ -27,7 +27,7 @@
  */
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
-import { commonBuildOptions, jsBuildMarker } from './vite-js-shared.mjs';
+import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
 import { jqueryUiAmdDeps, injectJqueryGlobals, chunkName } from './vite-js-plugins.mjs';
 
 export default defineConfig(({ mode }) => ({
@@ -43,16 +43,20 @@ export default defineConfig(({ mode }) => ({
     // as data URIs or rewriting/copying them (which breaks nginx-served paths).
     publicDir: '.',
     clearScreen: false,
-    plugins: [jqueryUiAmdDeps(), injectJqueryGlobals(), jsBuildMarker('vite-js.config.mjs')],
+    plugins: [jqueryUiAmdDeps(), injectJqueryGlobals()],
     build: {
         ...commonBuildOptions({ mode }),
-        rollupOptions: {
+        rolldownOptions: {
             input: {
                 // Thin facade (main-entry.js) — the real app is a dynamic chunk
                 // so lazy chunks never import the entry (see main-entry.js).
                 all: resolve('openlibrary/plugins/openlibrary/js/main-entry.js'),
             },
             output: {
+                // AGPLv3 license header/footer (LibreJS magnet comment). Applied
+                // after minification (postBanner/postFooter) so they survive.
+                postBanner: AGPL_LICENSE_HEADER,
+                postFooter: AGPL_LICENSE_FOOTER,
                 entryFileNames: '[name].js',
                 chunkFileNames: (info) => `${chunkName(info)}.[hash].js`,
                 assetFileNames: '[name][extname]',
