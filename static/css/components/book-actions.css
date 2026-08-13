@@ -31,6 +31,21 @@
   container: book-actions / inline-size;
 }
 
+/**
+ * A surface that always wants the one-row shape, whatever width it ends up with
+ * — carousels, where the card straddles the threshold below: grid columns are
+ * `auto-fill, minmax(140px, 1fr)` and the legacy carousel drops to one book per
+ * row on a phone.
+ *
+ * Capping the query container at the threshold is what makes the narrow branch
+ * match, so the shape is asked for in one line rather than restated as a second
+ * copy of every rule in it. The cap is on the action column alone; the card and
+ * its cover are unaffected.
+ */
+.book-actions--compact {
+  max-width: 150px;
+}
+
 .book-actions__layout {
   display: flex;
   flex-direction: column;
@@ -61,21 +76,39 @@
  * shelf. Its accessible name is unchanged and still names the book.
  */
 @container book-actions (max-width: 150px) {
+  /* A grid rather than a flex row, so the caption can span the controls instead
+     of being boxed into the width left over beside the shelf button. */
   .book-actions__layout {
-    flex-direction: row;
-    align-items: flex-start;
-    /* The default inline gap. Access and Save are different kinds of thing and
-       should not read as a split button; two pixels was not enough daylight. */
-    gap: var(--spacing-inline-md);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    /* Access and Save are different kinds of thing and should not read as a
+       split button; two pixels was not enough daylight. Row gap is zero — the
+       caption carries its own top margin. */
+    gap: 0 var(--spacing-inline-md);
     /* The access button's own top margin is what used to separate the controls
        from the cover, and aligning the two tops meant giving it up. The gap
        belongs to the row either way. */
     margin-top: var(--spacing-stack-sm);
   }
 
+  /* The caption is emitted inside the access slot, so the slot gives up its box
+     and its children become grid items directly. Nothing here paints, so there
+     is no box to lose. */
   .book-actions__access {
-    flex: 1;
+    display: contents;
+  }
+
+  .book-actions__access > * {
+    grid-column: 1;
     min-width: 0;
+  }
+
+  /* "On Project Gutenberg" is the widest thing in the column and the one line
+     that should not wrap, so it gets the full width — including the strip under
+     the shelf button, which is only one control tall. */
+  .book-actions__access > .cta-state {
+    grid-column: 1 / -1;
   }
 
   /* Both controls are one control size — `ol-button[size="small"]` — so a card
@@ -128,6 +161,14 @@
     padding: 0;
   }
 
+  /* 22px was drawn for the full-size button and leaves a 26px control almost
+     all glyph — the headphones on a LibriVox card being the one you meet most.
+     16px is what the shelf glyph already takes at this size. */
+  .book-actions__access .cta-btn .btn-icon {
+    width: 16px;
+    height: 16px;
+  }
+
   /* The bordered row is what a reader sees as the save button — the trigger
      inside it just fills it — so the control's edge belongs here. Height is set
      rather than left to `min-height`: this row is a flex container built for a
@@ -174,7 +215,8 @@
      <ol-popover>'s shadow tree, so its width does not reach back out to size
      this column, and the column would collapse to the border. */
   .book-actions__save {
-    flex: 0 0 auto;
+    grid-row: 1;
+    grid-column: 2;
     width: var(--control-height-small);
   }
 

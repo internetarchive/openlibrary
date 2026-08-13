@@ -1,4 +1,4 @@
-$def with (doc, work=None, edition_key=None, show_access=True, show_save=True, show_state=True, show_check_in=True, listen=True, secondary_action=False, check_loan_status=False, analytics_override=None, lending_state=None, async_lists=True)
+$def with (doc, work=None, edition_key=None, show_access=True, show_save=True, show_state=True, show_check_in=True, listen=True, secondary_action=False, check_loan_status=False, analytics_override=None, lending_state=None, async_lists=True, compact=False)
 
 $# The action column for one book, wherever a book is listed.
 $#
@@ -25,13 +25,17 @@ $# :param show_check_in: render the "when did you finish it?" prompt under the
 $#     shelf control. Costs a query per book, so browse surfaces leave it off.
 $# :param async_lists: load the patron's lists over the wire after render,
 $#     rather than querying for them inline.
+$# :param compact: ask for the one-row shape outright, instead of leaving it to
+$#     the width the column happens to get. For surfaces that always want it —
+$#     see book-actions.css.
 
 $ save_doc = work or doc
+$ compact_class = ' book-actions--compact' if compact else ''
 
 $# Two elements, not one: `.book-actions` is the query container, and an element
 $# cannot be styled by a query against itself, so the arrangement of the slots
 $# lives on the inner one. See book-actions.css.
-<div class="book-actions">
+<div class="book-actions$compact_class">
  <div class="book-actions__layout">
   $if show_access:
     <div class="book-actions__access">

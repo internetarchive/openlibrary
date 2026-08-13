@@ -59,5 +59,9 @@ $else:
   $# or a card built from something that is not a work — the save control is left
   $# out rather than pointed at the wrong key.
   $ save_doc = work if work and (work.get('key') or '').startswith('/works/') else None
-  $:macros.BookActions(book, work=save_doc, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key, show_save=bool(save_doc), show_check_in=False)
+  $# `compact` rather than letting the column measure itself: grid carousels size
+  $# their columns with auto-fill and the legacy one drops to a single book per
+  $# row on small screens, so the card lands either side of the query's threshold
+  $# and the same carousel would show a row here and two stacked buttons there.
+  $:macros.BookActions(book, work=save_doc, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key, show_save=bool(save_doc), show_check_in=False, compact=True)
 </div>
