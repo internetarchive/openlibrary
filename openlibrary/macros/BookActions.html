@@ -1,4 +1,4 @@
-$def with (doc, work=None, edition_key=None, show_access=True, show_save=True, show_state=True, listen=True, secondary_action=False, check_loan_status=False, analytics_override=None, lending_state=None, async_lists=True)
+$def with (doc, work=None, edition_key=None, show_access=True, show_save=True, show_state=True, show_check_in=True, listen=True, secondary_action=False, check_loan_status=False, analytics_override=None, lending_state=None, async_lists=True)
 
 $# The action column for one book, wherever a book is listed.
 $#
@@ -21,12 +21,18 @@ $#     edition of a work.
 $# :param show_save: render the shelf control. Off where there is nowhere to
 $#     put it, or where the surface cannot host a menu.
 $# :param show_state: caption the access button with the book's availability.
+$# :param show_check_in: render the "when did you finish it?" prompt under the
+$#     shelf control. Costs a query per book, so browse surfaces leave it off.
 $# :param async_lists: load the patron's lists over the wire after render,
 $#     rather than querying for them inline.
 
 $ save_doc = work or doc
 
+$# Two elements, not one: `.book-actions` is the query container, and an element
+$# cannot be styled by a query against itself, so the arrangement of the slots
+$# lives on the inner one. See book-actions.css.
 <div class="book-actions">
+ <div class="book-actions__layout">
   $if show_access:
     <div class="book-actions__access">
       $:macros.LoanStatus(doc, work_key=save_doc.key, listen=listen, secondary_action=secondary_action, check_loan_status=check_loan_status, analytics_override=analytics_override, lending_state=lending_state, show_state=show_state)
@@ -42,6 +48,7 @@ $ save_doc = work or doc
       $ read_status = save_doc['readinglog']
       $ read_status_known = True
     <div class="book-actions__save">
-      $:render_template('my_books/dropper', save_doc, edition_key=edition_key, async_load=async_lists, read_status=read_status, read_status_known=read_status_known)
+      $:render_template('my_books/dropper', save_doc, edition_key=edition_key, async_load=async_lists, read_status=read_status, read_status_known=read_status_known, show_check_in=show_check_in)
     </div>
+ </div>
 </div>

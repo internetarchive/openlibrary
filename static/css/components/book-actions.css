@@ -1,0 +1,172 @@
+/* The action column always renders the shelf dropper, so it carries the
+   dropper's styles with it. Before this, carousels showed an access button and
+   nothing else, and the pages built around them — home, subject — never needed
+   these. Importing them here means a page bundle that renders a book only has
+   to ask for the action column. Duplicate imports are deduped by the bundler. */
+@import "generic-dropper.css";
+@import "mybooks-dropper.css";
+@import "mybooks-menu.css";
+@import "read-statuses.css";
+
+/**
+ * The action column for one book: Access above, Save below.
+ *
+ * How much of it fits is a question about the column, not about the page. A
+ * search result gets 200px, a carousel card gets about 110px, and the same
+ * search result on a phone gets the full width of the row — so the surface
+ * cannot answer it, and neither can a media query. `container-type` lets one
+ * piece of markup ask the only party that knows.
+ *
+ * The roomy shape is the default and the narrow shape is the override, so a
+ * browser without container queries (Safari < 16) keeps today's layout rather
+ * than getting the compact one everywhere.
+ *
+ * `container-type` applies layout containment, which is the same containment a
+ * transform applies — so it is worth knowing that it does NOT trap the dropper's
+ * `position: fixed` panel the way a transformed carousel track does. Verified in
+ * Chrome with a probe: a fixed child of this element still resolves against the
+ * viewport. Re-check if the panel ever starts landing in the wrong place.
+ */
+.book-actions {
+  container: book-actions / inline-size;
+}
+
+.book-actions__layout {
+  display: flex;
+  flex-direction: column;
+  /* Access and Save are different kinds of thing — a transaction with the
+     Internet Archive versus private account state — so they get a gap between
+     them rather than sitting flush like a pair of equal choices. */
+  gap: var(--spacing-stack-sm);
+}
+
+/* Both are hidden until a narrow container asks for one of them. */
+.generic-dropper__glyph {
+  display: none;
+}
+
+.generic-dropper__glyph svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+/**
+ * Narrow: a carousel card, or any column too tight for two labelled controls.
+ *
+ * Access keeps its label, because a reader scanning covers is deciding whether
+ * the book is readable at all. Save gives its up: the shelf name is dropped and
+ * the disclosure trigger, which at full width is only a caret beside the shelf
+ * button, becomes the whole control — a plus, or a check once the book is on a
+ * shelf. Its accessible name is unchanged and still names the book.
+ */
+@container book-actions (max-width: 150px) {
+  .book-actions__layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--spacing-inline-xs);
+  }
+
+  .book-actions__access {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Long verbs — "Find in a library" — wrap onto a second line rather than
+     being clipped, which is the one thing a reader cannot recover from. */
+  .book-actions__access .cta-btn {
+    white-space: normal;
+  }
+
+  /* One disclosure per book. The access button carries its own overflow — a
+     second caret for Listen, download options, Locate — and two carets will not
+     fit here even if the rule allowed it. The save menu wins the slot: a reader
+     scanning a carousel is browsing, and the ways-to-read list is one click away
+     on the book itself. */
+  .book-actions__access .cta-dropper__popover {
+    display: none;
+  }
+
+  /* Without the overflow beside it, the access button is no longer part of a
+     group and gets its corners back. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__access .cta-dropper.cta-button-group > .cta-btn:first-child {
+    border-radius: var(--border-radius-button);
+  }
+
+  .book-actions__access .cta-state {
+    font-size: var(--font-size-label-small);
+  }
+
+  /* A caption that only repeats the button's verb is not worth a line here. */
+  .book-actions__access .cta-state--restates-button {
+    display: none;
+  }
+
+  /* Sized here rather than left to the content: the trigger is slotted into
+     <ol-popover>'s shadow tree, so its width does not reach back out to size
+     this column, and the column would collapse to the border. */
+  .book-actions__save {
+    flex: 0 0 auto;
+    width: 34px;
+  }
+
+  /* The wrapper reserves height for a check-in prompt and lifts the dropper out
+     of flow so that prompt keeps its spacing. Neither applies to a card. */
+  .book-actions__save .generic-dropper-wrapper {
+    min-height: 0;
+  }
+
+  .book-actions__save .generic-dropper {
+    position: static;
+  }
+
+  .book-actions__save .generic-dropper__popover {
+    flex: 1;
+  }
+
+  .book-actions__save .generic-dropper__primary {
+    display: none;
+  }
+
+  .book-actions__save .generic-dropper__actions .generic-dropper__dropclick {
+    width: 100%;
+    height: 32px;
+    border-left: 0;
+  }
+
+  /* Matches the specificity generic-dropper.css uses for the caret, which is
+     the rule being overridden. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__save
+    .generic-dropper__actions
+    .generic-dropper__dropclick
+    .arrow {
+    display: none;
+  }
+
+  /* The menu hides whichever shelf the primary button is already offering, so
+     the same choice is not presented twice — `hidden` on a shelf button means
+     exactly that, and ReadingLogForms.js moves it as the shelf changes. Here
+     the primary button is not on screen, so that shelf has to come back, or an
+     unshelved book offers every shelf except "Want to Read".
+     `!important` because it is countering the `.hidden` helper, which is itself
+     `!important`; the alternative is a second class for JS to keep in sync. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__save .read-statuses .nostyle-btn.hidden {
+    display: block !important;
+  }
+
+  .book-actions__save .generic-dropper__glyph--add {
+    display: block;
+  }
+
+  /* Set by my_books/dropper.html when the book is on a shelf. */
+  .book-actions__save [data-shelf] .generic-dropper__glyph--add {
+    display: none;
+  }
+
+  .book-actions__save [data-shelf] .generic-dropper__glyph--saved {
+    display: block;
+  }
+}

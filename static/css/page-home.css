@@ -20,6 +20,7 @@
 @import "components/header.css";
 @import "components/book.css";
 @import "components/carousel.css";
+@import "components/book-actions.css";
 @import "components/category-item.css";
 @import "components/loading-indicator.css";
 @import "components/home.css";

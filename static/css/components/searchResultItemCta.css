@@ -15,16 +15,8 @@
   margin-top: 5px;
 }
 
-/**
- * Access and Save are different kinds of thing — a transaction with the
- * Internet Archive versus private account state — so they get a gap between
- * them rather than sitting flush like a pair of equal choices.
- */
-.book-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-stack-sm);
-}
+/* The action column's own layout lives in components/book-actions.css. */
+
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {
   .searchResultItem .searchResultItemCTA {

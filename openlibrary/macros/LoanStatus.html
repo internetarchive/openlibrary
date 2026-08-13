@@ -8,7 +8,8 @@ $# * secondary_action - whether to display elements (e.g. preview, search inside
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
 $# * show_state - whether to caption the button with the book's availability.
-$#     Off for carousel cards, which are too narrow for a second line of text.
+$#     Off only where a surface wants no caption at all; narrowness is handled
+$#     by CSS, not by this flag.
 $#
 $# Buttons here are verbs, drawn from a closed vocabulary: Read, Borrow, Listen,
 $# Preview, Join waitlist, Find in a library. Anything that describes the book
@@ -85,9 +86,16 @@ $def analytics_attr(action):
   $else:
     data-ol-link-track="CTAClick|$action"
 
-$def state_line(message):
+$# A caption earns its line by saying something the button does not. "Available
+$# to borrow" under a *Borrow* button only repeats the verb; "All copies are
+$# checked out" under *Find in a library* explains why the verb changed.
+$# Restating captions are marked rather than dropped, so the narrow-container
+$# rule in book-actions.css can hide them where vertical room is scarce while
+$# they still read normally in a full-width row.
+$def state_line(message, restates=False):
   $if show_state and message:
-    <p class="cta-state">$message</p>
+    $ restates_class = ' cta-state--restates-button' if restates else ''
+    <p class="cta-state$(restates_class)">$message</p>
 
 $if lending_state == 'borrowed':
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
@@ -119,7 +127,7 @@ $elif lending_state == 'borrowable':
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen, edition_key=edition_key, book_title=book_title)
-  $:state_line(_("Available to borrow"))
+  $:state_line(_("Available to borrow"), restates=True)
 
 $elif lending_state == 'waitlist':
   $if secondary_action:
@@ -176,7 +184,7 @@ $elif lending_state == 'checkedout':
 
 $elif lending_state == 'preview_only':
   $:macros.BookPreview(ocaid)
-  $:state_line(_("Preview only"))
+  $:state_line(_("Preview only"), restates=True)
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
 

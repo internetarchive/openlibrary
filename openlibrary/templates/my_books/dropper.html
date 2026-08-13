@@ -1,4 +1,4 @@
-$def with(page, edition_key=None, async_load=False, read_status=None, read_status_known=False)
+$def with(page, edition_key=None, async_load=False, read_status=None, read_status_known=False, show_check_in=True)
 
 $# read_status / read_status_known let a caller hand in a shelf status it has
 $# already loaded. Pages that render many droppers should: one bulk query for
@@ -33,7 +33,10 @@ $if not work_key:
 $if not ctx.user:
   $ additional_classes += ' generic-dropper--disabled'
 
-$ data = { "work-key": work_key or "" }
+$# `shelf` is here for CSS, not for JS: where the container is too narrow for the
+$# primary button, the disclosure trigger is the only save control on screen and
+$# has to show saved-or-not by itself. Absent means "on no shelf".
+$ data = { "work-key": work_key or "", "shelf": users_work_read_status or "" }
 
 $ title = work.get('title', '') if work else (edition.get('title', '') if edition else '')
 $ primary_action = render_template('my_books/primary_action', work_key, edition_key, (ctx.user and ctx.user.key), users_work_read_status, page_url, title)
@@ -41,7 +44,9 @@ $ dropdown_content = render_template('my_books/dropdown_content', user_lists, se
 $ dropper_label = _('More reading options for %(title)s', title=title) if title else _('More reading options')
 $:render_template('lib/dropper', primary_action, dropdown_content, classes=additional_classes, data=data, dropdown_label=dropper_label)
 
-$if ctx.user and work_key:
+$# One query per book, so surfaces that render many droppers at once (carousels)
+$# turn it off rather than pay for a prompt nobody reads while browsing.
+$if show_check_in and ctx.user and work_key:
     $ last_read_date = get_latest_read_date(work_key)
     $ date = last_read_date['event_date'] if last_read_date else None
     $ event_id = last_read_date['id'] if last_read_date else None

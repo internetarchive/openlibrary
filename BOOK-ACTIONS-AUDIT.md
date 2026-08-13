@@ -20,13 +20,14 @@
 |---|---|---|---|
 | **0** | Label vocabulary + state line | Done | `a91d0d4c9` |
 | **1** | Logged-out default, one disclosure implementation | Done | `5ad066897` |
-| **2** | Extract `BookActions`; Save in carousels | **Part done, part blocked** | `fcfd352f0` |
+| **2** | Extract `BookActions`; Save in carousels | **Done** | `fcfd352f0`, + density commit |
 | **3** | Surface intent replaces ad-hoc booleans | Not started | — |
 
-Findings cleared: **F4, F5, F6, F7, F8, F9, F11, F12**, plus **F1** structurally.
-Still open: **F2** (blocked), **F3**, **F10** (half), **F13**, **F14**.
+Findings cleared: **F1, F2, F4, F5, F6, F7, F8, F9, F11, F12**.
+Still open: **F3**, **F10** (half), **F13**, **F14**.
 
-Nothing has been pushed or opened as a PR.
+Nothing has been pushed or opened as a PR. Commit hashes above predate the
+rebase onto `93af75078` (12 Aug); see `git log`.
 
 ---
 
@@ -160,7 +161,7 @@ two with a control that offer nothing but an access button.
 | # | Finding | Severity | Status |
 |---|---|---|---|
 | F1 | Two mental models stacked in one column with no signal they differ | Blocker | Addressed structurally — `BookActions` |
-| F2 | Carousels cannot save a book at all | Blocker | **Blocked** — see §14 |
+| F2 | Carousels cannot save a book at all | Blocker | Fixed — §7a, §13 |
 | F3 | My Books shelf carousels show the wrong verb ("Borrow" on *Currently Reading*) | Blocker | Open — Phase 3 |
 | F4 | Logged-out readers offered "Add to List" instead of "Want to Read" | High | Fixed |
 | F5 | The shelf button ships to the browser `disabled` | High | Fixed |
@@ -175,12 +176,6 @@ two with a control that offer nothing but an access button.
 | F14 | Grid view hides capability with CSS instead of configuring it | Low | Open |
 
 ### Detail on the ones still open
-
-**F2 — carousels cannot save.** `custom_carousel_card.html` renders `LoanStatus`
-and nothing else. On the home page, subject pages, publisher pages and the
-related-works carousel on every book page, there is no way to add a book to a
-shelf or a list. A reader who sees something interesting has two options: borrow
-it now, or navigate away and come back.
 
 **F3 — My Books shows the wrong verb.** *Currently Reading*, *Want to Read*,
 *Already Read* and *Stopped Reading* on the My Books landing page render with
@@ -242,6 +237,57 @@ one kebab — is the closest available precedent.
 | G | **Capability by surface intent** | **Chosen policy** — composes with D |
 
 ---
+
+## 7a. Density — the axis the audit was missing
+
+Decided 12 Aug, after the audit's option review. Option **D** (access + save,
+one menu) is the roomy shape; option **C** (access + an icon disclosure) is the
+same component with the labels dropped. They are not two designs — they are one
+design at two densities, and the audit had no axis for that.
+
+**Intent decides which actions exist. Density decides how much of them shows.**
+A My Books carousel is `manage` *and* tight; a search row is `discover` *and*
+roomy; a search row on a phone is `discover` *and* tight. One knob could not
+express that.
+
+Density is **CSS**, not a template parameter, because the deciding factor is the
+width of the column and no surface knows it. `.book-actions` is a query
+container; the compact shape is an override on it, so browsers without container
+queries (Safari < 16) keep the roomy shape rather than getting the wrong one.
+
+### What changes when the container is narrow (≤ 150px)
+
+| | Roomy | Narrow |
+|---|---|---|
+| Arrangement | Access above Save | Access and Save side by side |
+| Access | Filled button + its own overflow caret | Filled button, **overflow dropped** |
+| Save | Shelf-named split button + caret | The caret alone: **+**, or **✓** when shelved |
+| Menu | Shelf · lists · everything | **Shelf and lists only** |
+| State line | Every caption | Captions that add something the button doesn't |
+
+**Decisions behind that table**
+
+1. **One disclosure per book still holds.** The access button's overflow and the
+   save menu cannot both fit, so the save menu takes the slot. Ways-to-read is
+   one click away on the book page; the shelf is not reachable any other way
+   from a carousel. This is what makes the `+` mean exactly one thing.
+2. **The `+` opens the menu**; it is not a one-click *Want to Read*. Same
+   affordance, same behaviour, both densities.
+3. **A caption earns its line.** "Available to borrow" under *Borrow* and
+   "Preview only" under *Preview* restate the verb and are marked
+   `cta-state--restates-button`; the narrow rule hides them. "All copies are
+   checked out", "Not available online", waitlist position and "On loan to you"
+   stay — they are why the verb is what it is, and they are what lets a reader
+   skip a row fast.
+4. **Logged-out readers get the save control in carousels too**, per rule 3.
+   The login-intent volume this adds is worth measuring (see §12).
+5. **Rule 3 is amended.** "Always labelled" becomes "always present, always
+   *named*" — the accessible name is on the trigger and does not change with
+   the glyph.
+
+Still open, deliberately: on a `manage` surface the shelf name should be the
+card's state line (that is what fixes F3), and the shelf name is exactly what
+the narrow shape drops. That needs the intent axis, so it lands with Phase 3.
 
 ## 8. The proposed model
 
@@ -345,9 +391,11 @@ Templates only. Clears F5 · F7 · F8 · F9 · F12.
 ### Phase 1 — logged-out default, one disclosure ✅ `5ad066897`
 Clears F4 · F6 · F10 (partial) · F11.
 
-### Phase 2 — extract `BookActions`, put it in carousels ⚠️ `fcfd352f0`
-Extraction done and wired into the row shell; carousels blocked (§14).
-Clears F1. **F2 outstanding.**
+### Phase 2 — extract `BookActions`, put it in carousels ✅
+`fcfd352f0` extracted the component and wired the row shell. The density commit
+put it in carousel cards, both render paths (inline and the load-more /
+lazy-carousel partials), with shelf status bulk-loaded once per carousel.
+Clears F1 · F2.
 
 ### Phase 3 — surface intent ⬜
 Add `intent` to `BookActions`; migrate all fourteen call sites; retire `cta`,
@@ -420,6 +468,33 @@ shows on search rows.
 `macros/BookActions.html`; search rows wired through it; the read-status N+1
 fixed (see §14).
 
+**Density, and Save in carousels (F2)**
+`.book-actions` became a query container with a `__layout` child — a container
+query cannot style the element it queries, so the arrangement needs its own
+element. The compact shape hides the shelf button, turns the disclosure trigger
+into a `+`/`✓`, drops the access overflow and the restating captions. Carousel
+cards now render `BookActions`; `custom_carousel.html` and `CarouselCardPartial`
+both bulk-load shelf status with `add_read_statuses()` and pass the work-level
+doc down, since a card may be showing an edition. The check-in prompt is off in
+carousels — it costs a query per book.
+
+Four things had to be fixed to make a dropper work inside a card:
+
+- `page-home.css`, `page-subject.css` and `page-book.css` never imported the
+  dropper's CSS, because until now a carousel card had no dropper.
+  `book-actions.css` imports what the action column needs and the page bundles
+  ask for it by one line; the bundler dedupes.
+- `.carousel button { position: absolute }` — a pre-hydration hack for slick's
+  injected arrows, which now live in `<ol-carousel>`'s shadow DOM — was taking
+  every button in a card out of flow and stacking the whole shelf menu on one
+  line. Scoped to `.carousel > button`.
+- The menu hides whichever shelf the primary button already offers. With the
+  primary button off screen, an unshelved book offered every shelf *except*
+  "Want to Read". The narrow rule puts it back.
+- `container-type` applies layout containment, so it was worth checking whether
+  it traps `position: fixed` panels the way a transformed track does. Probed in
+  Chrome: it does not.
+
 **Test coverage added:** `openlibrary/tests/test_book_action_disclosures.py`
 (12 tests — disclosure structure, label vocabulary with a guard against drift,
 action-column grouping, precomputed shelf status). `tests/unit/js/droppers.test.js`
@@ -477,11 +552,13 @@ The audit was written from a source read. Seven things it got wrong or missed:
    clipped. `.carousel-container`'s `isolation: isolate` would independently
    scope the panel's z-index.
 
-   **Fix:** promote the panel to the **top layer** via the native Popover API.
-   Caveats: it changes a shared component backing the search sort menu and every
-   dropper, and the Popover API needs **Safari 17+** against a Lit layer whose
-   real floor is ~Safari 15.4 — so it needs a `position: fixed` fallback and is a
-   browser-support decision, not a feature-branch call.
+   **Fix, since shipped elsewhere:** promote the panel to the **top layer** via
+   the native Popover API, with a `position: fixed` fallback below Safari 17.
+   That is **PR #13324** (`popover/fix/top-layer`), open. Separately **PR
+   #13220** rebuilds `ol-carousel` on native scroll snapping and removes the
+   transform. Either one unblocks this; the branch merges #13324 because the
+   panel has to clear the carousel *and* the section below it. **This branch
+   cannot ship before #13324 lands.**
 
 7. **An N+1 nobody had noticed.** `work_search.html` bulk-loads shelf statuses
    via `add_read_statuses()` — one query stamping `readinglog` on every doc — and
@@ -598,10 +675,11 @@ owns #13264 should know the event vocabulary is about to shift.
 
 **Then, on this branch:**
 
-6. Manually check the mobile bottom tray and focus restore (§13, unverified).
-7. Decide the `ol-popover` top-layer question (§14.6) — it gates F2, and it fixes
-   the tooltip-in-carousel class of bug generally.
-8. Phase 3, or F2 once (7) is decided.
+6. Manually check the mobile bottom tray and focus restore (§13, unverified),
+   and the narrow shape at phone widths — only desktop card widths were measured.
+7. Land **#13324** (top layer). It gates F2; this branch merges it locally.
+8. Phase 3 — the intent axis. It is what fixes F3, and it is what lets a
+   `manage` card spend its state line on the shelf name (§7a).
 
 ---
 
@@ -631,7 +709,9 @@ owns #13264 should know the event vocabulary is about to shift.
 | `openlibrary/components/lit/OLButton.js` | Button variants | Reuse |
 | `static/css/components/generic-dropper.css` | Dropper + read-button overflow | 0, 1 |
 | `static/css/components/buttonCta.css` | `.cta-btn`, `.cta-state` | 0 |
-| `static/css/components/searchResultItemCta.css` | `.book-actions` grouping | 2 |
+| `static/css/components/book-actions.css` | **New.** Action-column layout and the density rule | 2 |
+| `static/css/components/carousel.css` | Card shell; the `> button` scoping fix | 2 |
+| `static/css/page-{home,subject,book}.css` | Bundles that render a book and now need the dropper | 2 |
 | `static/css/legacy.css:1525` | Grid-layout suppression | 3 — remove |
 | `openlibrary/plugins/openlibrary/js/dropper/Dropper.js` | Bridge to `ol-popover` | 1 |
 | `openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/*` | Shelf forms, check-ins, lists | 1, 2 |

@@ -82,7 +82,11 @@
 /* JavaScript only block, but needed to avoid reflows */
 /* Without, on slower connections, there will be a flash when buttons */
 /* are added. */
-.carousel button {
+/* Direct children only: the buttons this hides are the previous/next arrows the
+   carousel script appends to this element. Cards now contain buttons of their
+   own — the shelf control and its menu — and a descendant selector took those
+   out of flow too, stacking the whole menu on one line. */
+.carousel > button {
   border: 0;
   position: absolute;
   color: transparent;

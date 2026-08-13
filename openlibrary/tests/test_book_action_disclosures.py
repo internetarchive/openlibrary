@@ -197,7 +197,12 @@ def test_book_actions_groups_access_above_save(render_template, request_context_
     group = soup.find(class_="book-actions")
     assert group is not None
 
-    regions = [c.get("class")[0] for c in group.find_all("div", recursive=False) if c.get("class")]
+    # The query container and the thing it arranges have to be two elements: a
+    # container query cannot style the container it is querying.
+    layout = group.find("div", class_="book-actions__layout", recursive=False)
+    assert layout is not None
+
+    regions = [c.get("class")[0] for c in layout.find_all("div", recursive=False) if c.get("class")]
     assert regions == ["book-actions__access", "book-actions__save"]
 
 
@@ -224,3 +229,53 @@ def test_book_actions_uses_a_shelf_status_the_page_already_loaded(render_templat
 
     label = BeautifulSoup(html, "lxml").find(class_="book-progress-btn").get_text(strip=True)
     assert "Currently Reading" in label
+
+
+def test_shelf_status_reaches_the_wrapper_for_css(render_template, request_context_fixture):
+    """The saved/not-saved glyph is chosen in CSS, not by JS.
+
+    Where the column is too narrow for the shelf button, the disclosure trigger
+    is the only save control on screen, so it has to show saved-or-not by
+    itself — and the only thing it can key off is an attribute on an ancestor.
+    """
+    request_context_fixture(lang="en")
+    unshelved = BeautifulSoup(render_macro("BookActions", book_doc()), "lxml")
+    assert unshelved.find(class_="my-books-dropper").get("data-shelf") is None
+
+    shelved = BeautifulSoup(render_macro("BookActions", book_doc(readinglog=2)), "lxml")
+    assert shelved.find(class_="my-books-dropper").get("data-shelf") == "2"
+
+
+def test_disclosure_trigger_carries_a_glyph_for_every_density(render_template, request_context_fixture):
+    """One trigger, three glyphs, one shown at a time.
+
+    Which is right depends on how much room the container has, which only CSS
+    knows, so all three ship and the cascade picks.
+    """
+    request_context_fixture(lang="en")
+    soup = BeautifulSoup(render_macro("BookActions", book_doc()), "lxml")
+    trigger = soup.find(class_="generic-dropper__dropclick")
+
+    assert trigger.find(class_="arrow") is not None
+    assert trigger.find(class_="generic-dropper__glyph--add") is not None
+    assert trigger.find(class_="generic-dropper__glyph--saved") is not None
+    # The name has to hold still while the glyph changes.
+    assert trigger.get("aria-label")
+
+
+def test_state_line_marks_captions_that_only_repeat_the_button(render_template, request_context_fixture):
+    """ "Available to borrow" under a *Borrow* button says nothing new.
+
+    Marked rather than dropped, so a full-width row still reads normally while
+    a card can spend the line on something else.
+    """
+    request_context_fixture(lang="en")
+    borrowable = book_doc(availability={"status": "borrow_available", "is_lendable": True})
+    soup = BeautifulSoup(render_macro("LoanStatus", borrowable, lending_state="borrowable"), "lxml")
+    state = soup.find(class_="cta-state")
+    assert "cta-state--restates-button" in state.get("class")
+
+    # A caption that explains why the verb changed is not a repeat.
+    soup = BeautifulSoup(render_macro("LoanStatus", book_doc(), lending_state="checkedout"), "lxml")
+    state = soup.find(class_="cta-state")
+    assert "cta-state--restates-button" not in state.get("class")

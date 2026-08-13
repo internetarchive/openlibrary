@@ -1803,6 +1803,7 @@ div#subjectLists p {
 
 @import "components/rating-form.css";
 @import "components/searchResultItemCta.css";
+@import "components/book-actions.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @media only screen and (min-width: 768px) {

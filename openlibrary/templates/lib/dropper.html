@@ -20,7 +20,24 @@ $# toggle the panel as well as submit.
       </div>
       <ol-popover class="generic-dropper__popover" placement="bottom-end" aria-label="$label">
         <button type="button" slot="trigger" class="generic-dropper__dropclick" aria-label="$label">
+          $# Three glyphs, one visible at a time, because which one is right is a
+          $# question of how much room the container has — and that is only known
+          $# to CSS. Wide enough for the primary button and its label, and this is
+          $# a caret beside them; too narrow, and the primary button is hidden and
+          $# this becomes the only save control, so it has to say "save" (plus) or
+          $# "saved" (check) on its own. The button's accessible name is the
+          $# aria-label above and does not change with the glyph.
           <span class="arrow" aria-hidden="true"></span>
+          <span class="generic-dropper__glyph generic-dropper__glyph--add" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </span>
+          <span class="generic-dropper__glyph generic-dropper__glyph--saved" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </span>
         </button>
         <div class="generic-dropper__dropdown">
           $:dropdown_content
