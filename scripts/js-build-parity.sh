@@ -11,7 +11,7 @@
 # Vite inlines per-chunk deps), so sizes are compared structurally, not
 # byte-for-byte — see docs/ai/js-vite-migration-progress.md.
 #
-# Usage: scripts/js-build-parity.sh [webpack_out_dir] [vite_out_dir]
+# Usage: scripts/js-build-parity.sh [webpack_out_dir] [vite_out_dir] [git_ref]
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -19,12 +19,30 @@ cd "$REPO_ROOT"
 
 WP_DIR="${1:-/tmp/js_wp}"
 VITE_DIR="${2:-/tmp/js_vite}"
+# Default to the most recent commit that still contained webpack.config.js
+# (works before merge, after merge, and in shallow clones with --all).
+# `git log --follow` includes the deletion commit itself, so walk the list and
+# pick the first ref at which the file still exists.
+WP_GIT_REF="${3:-}"
+if [ -z "$WP_GIT_REF" ]; then
+    for r in $(git log --all --follow --format=%H -- webpack.config.js); do
+        if git cat-file -e "$r:webpack.config.js" 2>/dev/null; then
+            WP_GIT_REF="$r"
+            break
+        fi
+    done
+fi
 
-echo "== Recovering webpack.config.js from git =="
+if [ -z "$WP_GIT_REF" ]; then
+    echo "Error: could not determine a git ref containing webpack.config.js" >&2
+    exit 1
+fi
+
+echo "== Recovering webpack.config.js from git ref ${WP_GIT_REF} =="
 # webpack.config.js uses `context: __dirname`, so it must sit in the repo root
 # for the relative entry paths to resolve.
 WP_CONFIG="$REPO_ROOT/webpack.config.parity.tmp.js"
-git show HEAD:webpack.config.js > "$WP_CONFIG"
+git show "${WP_GIT_REF}:webpack.config.js" > "$WP_CONFIG"
 
 # webpack was removed from devDependencies after the migration, so install it
 # (plus its loaders) into a throwaway prefix to rebuild the baseline.

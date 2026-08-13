@@ -35,7 +35,7 @@ async function highlightCode(root) {
     highlighted = true;
     // The default build already carries markup, css, clike and javascript —
     // the only languages the snippets use — so no component imports are needed.
-    const { default: Prism } = await import(/* webpackChunkName: "prism" */ 'prismjs');
+    const { default: Prism } = await import('prismjs');
     Prism.highlightAllUnder(root);
 }
 

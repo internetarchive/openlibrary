@@ -54,6 +54,10 @@ module.exports = [
       "openlibrary/components/vite.config.mjs",
       "openlibrary/components/vite-lit.config.mjs",
       "vite-css.config.mjs",
+      "vite-js.config.mjs",
+      "vite-js-iife.config.mjs",
+      "vite-js-plugins.mjs",
+      "vite-js-shared.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",

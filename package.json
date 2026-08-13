@@ -102,7 +102,8 @@
     ],
     "moduleNameMapper": {
       "\\.css$": "<rootDir>/tests/unit/js/styleMock.js",
-      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js"
+      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js",
+      "^vite-js-plugins\\.mjs$": "<rootDir>/vite-js-plugins.mjs"
     },
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"
@@ -125,7 +126,7 @@
           ]
         }
       ],
-      "\\.[jt]sx?$": "babel-jest"
+      "\\.(?:[cm]?[jt]sx?)$": "babel-jest"
     },
     "transformIgnorePatterns": [
       "node_modules[\\\\/](?!(lit|lit-html|lit-element|@lit)[\\\\/])"

@@ -192,7 +192,9 @@ different URLs → entry side effects run twice. Fixed with the facade entry.
 **Deleted:** `webpack.config.js`, `vue.config.js`
 
 **New:** `vite-js.config.mjs`, `vite-js-iife.config.mjs`, `main-entry.js`,
-`scripts/js-build-parity.sh`
+`scripts/js-build-parity.sh`, and (post-review) `vite-js-shared.mjs` (shared
+build options + marker) + `vite-js-plugins.mjs` (transform plugins + chunk
+names, unit-tested in `tests/unit/js/vite-js-plugins.test.js`)
 
 **Edited:**
 - `Makefile` — `js` target: three Vite builds + license loop (webpack removed)
@@ -205,7 +207,9 @@ different URLs → entry side effects run twice. Fixed with the facade entry.
 - `static/css/legacy-datatables.css` — removed 2 dead IE star-hacks
 - `bundlesize.config.json` — 3 limits recalibrated; `all.js` → `main.*.js`
 - `docs/ai/README.md` — JS build section now describes the Vite toolchain
-- `docs/ai/css-vite-migration.md` — `watch:js` is Vite now
+- `docs/ai/js-vite-migration-plan.md` + this file — the migration plan/progress
+  record (the CSS migration notes live in `docs/ai/css.md`; the old
+  `css-vite-migration.md` companion doc was never created on this branch)
 
 ---
 

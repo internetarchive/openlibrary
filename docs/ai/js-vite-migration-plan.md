@@ -2,10 +2,11 @@
 
 Plan for replacing `webpack.config.js` with a Vite build for the JavaScript
 entry points, applying the methodology (and avoiding the mistakes) of the CSS
-migration. Companion doc: [`css-vite-migration.md`](css-vite-migration.md).
+migration. Companion doc: [`css.md`](css.md) (CSS conventions + build notes).
 
-> **Status: plan only.** Nothing here is committed work. Items marked ✅ were
-> verified while writing this plan; ⚠️ must be confirmed during the migration.
+> **Status: executed.** This was the pre-migration plan; see
+> [`js-vite-migration-progress.md`](js-vite-migration-progress.md) for how it
+> actually went (several decisions changed during execution).
 
 ---
 
@@ -195,7 +196,7 @@ manual smoke of the async-chunk pages on testing with the marker visible.
   `workbox-webpack-plugin` (already unused), delete `vue.config.js`.
 - Keep `@babel/preset-env` + `core-js` if polyfills move to explicit imports
   (D2); drop them if the floor is relaxed.
-- Write the migration doc (mirror `css-vite-migration.md`), add the JS marker
+- Write the migration doc (mirror the CSS migration notes in `css.md`), add the JS marker
   (D11), update `docs/ai/README.md` if it references the webpack build.
 
 ---
@@ -418,8 +419,8 @@ marker comment in the Sources tab.
 
 ## 10. Useful references
 
-- `docs/ai/css-vite-migration.md` — the completed CSS migration (methodology,
-  parity checks, marker).
+- `docs/ai/css.md` — the completed CSS migration (conventions + build notes,
+  methodology, parity checks, marker).
 - `vite-css.config.mjs` — mode gating, `clearScreen`, polling, marker plugin.
 - `openlibrary/components/vite-lit.config.mjs` — ESM output, browser target,
   terser, sourcemaps.
