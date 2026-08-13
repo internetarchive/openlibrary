@@ -31,6 +31,15 @@ with their import groups; section-header comments that head rules below them
 **Zero risk:** after the moves, the webpack build output was **byte-identical**
 to before (all 17 files), so cascade order is unchanged.
 
+### Enforced by lint
+
+A repo-local stylelint rule `ol/import-at-top`
+(`stylelint/ol-import-at-top.mjs`, registered in `.stylelintrc.json`) flags any
+`@import` after the first statement, so a regression here fails `npm run lint`
+(CI), the pre-commit stylelint hook, and editor linting — not just the build.
+`@charset` and blockless `@layer` statements may still precede imports per spec;
+imports nested inside rules/media are always flagged.
+
 ### `url()` passthrough (webpack `url:false` parity)
 
 Vite inlines small `/static/images/...` assets as base64 data URIs by default,
