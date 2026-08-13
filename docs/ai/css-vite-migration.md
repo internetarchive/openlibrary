@@ -5,12 +5,14 @@ entry points (`tokens`, `ol-components`, `page-*.css`).
 
 ## Status: done (wired into the build)
 
-`vite-css.config.mjs` compiles the same 17 entries with `@import` resolution,
-esbuild minification, and a small plugin that deletes Vite's stub JS chunks.
-The `css` Make target, `watch:css`, `watch`, and `watch-polling` now use Vite.
-`webpack.config.css.js` is deleted; `mini-css-extract-plugin`,
-`css-minimizer-webpack-plugin`, and `glob` were removed from devDependencies
-(`css-loader` stays — the JS webpack config still uses it).
+`vite-css.config.mjs` compiles the same 17 entries with `@import` resolution and
+esbuild minification. (No stub-JS cleanup is needed: Vite 8 omits the empty JS
+chunk for pure-CSS entries natively — earlier webpack needed
+RemoveJSAssetsPlugin for the same quirk.) The `css` Make target, `watch:css`,
+`watch`, and `watch-polling` now use Vite. `webpack.config.css.js` is deleted;
+`mini-css-extract-plugin`, `css-minimizer-webpack-plugin`, and `glob` were
+removed from devDependencies (`css-loader` stays — the JS webpack config still
+uses it).
 
 ## Key findings
 
@@ -59,10 +61,23 @@ emitted files.
   for leaked `data:image/` URIs or undecoded `__OL__` placeholders and logs a
   loud warning if a future Vite upgrade breaks the mechanism.
 
+### `@charset` handling
+
+`legacy.css` used to declare `@charset "utf-8";` at the top; webpack's
+css-loader hoisted it into every output whose entry imported legacy.css (7 of
+17). postcss-import strips `@charset` from inlined files (and warns when one
+sits anywhere but the very first statement), so the declaration was simply
+removed from `legacy.css` — this silences the 7 "`@charset` must precede all
+other statements" warnings, and the output simply lacks the declaration.
+`@charset "utf-8";` is semantically meaningless for HTTP-served CSS (the
+charset comes from HTTP headers; utf-8 is the default), so this is not a
+functional loss — just a ~16-byte-per-file diff vs webpack's output on the 7
+legacy-importing files.
+
 ### Minor output diffs vs webpack
 
-- `@charset "utf-8";` is dropped (postcss-import strips it). Harmless for UTF-8
-  CSS served with HTTP charset headers; ~19 bytes.
+- The 7 legacy-importing outputs no longer start with `@charset "utf-8";`
+  (see above).
 - `NODE_ENV` gating: `make css` sets `NODE_ENV=production` explicitly so
   production output is always minified regardless of the shell environment;
   `watch:css` uses `NODE_ENV=development` for readable unminified output

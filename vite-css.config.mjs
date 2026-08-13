@@ -9,7 +9,8 @@
  *   - @import resolution (css-loader import:true) -> Vite handles natively (postcss-import)
  *   - minification (css-minimizer-webpack-plugin) -> esbuild via cssMinify
  *   - url() passthrough (webpack url:false) -> see cssUrlPassthrough()
- *   - no JS output (webpack's RemoveJSAssetsPlugin) -> companion plugin below
+ *   - no JS output (webpack's RemoveJSAssetsPlugin) -> Vite 8 omits the stub
+ *     JS chunk for pure-CSS entries natively, so no plugin needed
  *
  * Usage:
  *   npx vite build -c vite-css.config.mjs
@@ -98,19 +99,11 @@ function cssUrlPassthrough() {
                     console.warn(`[css-url-passthrough] ${fileName}: leftover __OL__ placeholders — decoding failed; check Vite version compatibility.`);
                 }
             }
-        },
-    };
-}
-
-// Vite emits a companion (empty) JS chunk for every pure-CSS entry — the
-// same problem webpack's RemoveJSAssetsPlugin solves. Delete them here.
-function removeCompanionJsChunks() {
-    return {
-        name: 'remove-companion-js-chunks',
-        generateBundle(_options, bundle) {
-            for (const [fileName, chunk] of Object.entries(bundle)) {
-                if (chunk.type === 'chunk' && fileName.endsWith('.js')) {
-                    delete bundle[fileName];
+            // Vite 8 omits the stub JS chunk for pure-CSS entries natively;
+            // warn if a future version stops doing so.
+            for (const fileName of readdirSync(outDir)) {
+                if (fileName.endsWith('.js')) {
+                    console.warn(`[css-url-passthrough] ${fileName}: unexpected JS file in CSS output — a Vite upgrade may have stopped omitting pure-CSS stub chunks; check Vite version compatibility.`);
                 }
             }
         },
@@ -118,7 +111,7 @@ function removeCompanionJsChunks() {
 }
 
 export default defineConfig({
-    plugins: [cssUrlPassthrough(), removeCompanionJsChunks()],
+    plugins: [cssUrlPassthrough()],
     css: {
         postcss: {
             plugins: [encodeStaticUrls],
