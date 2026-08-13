@@ -69,16 +69,14 @@ class subjects(delegate.page):
 
         # this needs to be updated to include:
         # q=public_scan_b:true+OR+lending_edition_s:*
+        # No facets, no docs: subjects.html doesn't render `works` (the on-page
+        # carousel runs its own query via `page.solr_query`), and every facet it
+        # used is now fetched by the PublishingHistory/RelatedSubjects partials
+        # instead (see SubjectPublishingHistoryPartial/SubjectRelatedPartial).
+        # This leaves just a plain work_count query.
         subj = get_subject(
             key,
-            details=True,
-            # subjects.html doesn't render `works` -- the on-page carousel
-            # runs its own query via `page.solr_query`.
             limit=0,
-            # All facets subjects.html used are now fetched by the
-            # PublishingHistory/RelatedSubjects partials instead (see
-            # SubjectPublishingHistoryPartial/SubjectRelatedPartial).
-            facet_fields=[],
             filters={"public_scan_b": "false", "lending_edition_s": "*"},
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
