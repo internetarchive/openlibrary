@@ -418,6 +418,49 @@ describe('indicators', () => {
     });
 });
 
+describe('translatable labels', () => {
+    it('labels the tablist and each indicator from the English defaults', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        expect(el.shadowRoot.querySelector('.indicators').getAttribute('aria-label'))
+            .toBe('Carousel pages');
+        expect(el.shadowRoot.querySelectorAll('.indicator')[1].getAttribute('aria-label'))
+            .toBe('Go to page 2 of 3');
+    });
+
+    it('takes translated labels from attributes', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        el.setAttribute('label-pages', 'Pages du carrousel');
+        el.setAttribute('label-go-to-page', 'Aller à la page {page} sur {total}');
+        await el.updateComplete;
+
+        expect(el.shadowRoot.querySelector('.indicators').getAttribute('aria-label'))
+            .toBe('Pages du carrousel');
+        expect(el.shadowRoot.querySelectorAll('.indicator')[2].getAttribute('aria-label'))
+            .toBe('Aller à la page 3 sur 3');
+    });
+
+    it('lets a translation reorder or drop placeholders', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        el.labelGoToPage = '{total} ページ中 {page} ページ目へ';
+        await el.updateComplete;
+        expect(el.shadowRoot.querySelectorAll('.indicator')[0].getAttribute('aria-label'))
+            .toBe('3 ページ中 1 ページ目へ');
+
+        el.labelGoToPage = 'Page {page}';
+        await el.updateComplete;
+        expect(el.shadowRoot.querySelectorAll('.indicator')[0].getAttribute('aria-label'))
+            .toBe('Page 1');
+    });
+
+    it('leaves an unknown placeholder empty rather than printing it', async() => {
+        const { el } = await mountCarousel(18, { showIndicators: true });
+        el.labelGoToPage = 'Page {page} of {pages}';
+        await el.updateComplete;
+        expect(el.shadowRoot.querySelectorAll('.indicator')[0].getAttribute('aria-label'))
+            .toBe('Page 1 of ');
+    });
+});
+
 describe('lazy covers', () => {
     it('observes items against the scroller with a one-viewport lookahead', async() => {
         const { scroller } = await mountCarousel(18, { lazy: true });

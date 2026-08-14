@@ -19,6 +19,9 @@ import { LitElement, html, css, nothing } from 'lit';
  * @prop {String} label - Accessible label for the carousel region (default: "Carousel")
  * @prop {String} labelPrevious - Aria-label for previous arrow (default: "Previous page")
  * @prop {String} labelNext - Aria-label for next arrow (default: "Next page")
+ * @prop {String} labelPages - Aria-label for the page indicator tablist (default: "Carousel pages")
+ * @prop {String} labelGoToPage - Aria-label template for each page indicator, use {page} and
+ *                                {total} as placeholders (default: "Go to page {page} of {total}")
  * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
  * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail: { page: Number, totalPages: Number }
@@ -50,6 +53,8 @@ export class OlCarousel extends LitElement {
         label: { type: String },
         labelPrevious: { type: String, attribute: 'label-previous' },
         labelNext: { type: String, attribute: 'label-next' },
+        labelPages: { type: String, attribute: 'label-pages' },
+        labelGoToPage: { type: String, attribute: 'label-go-to-page' },
         showIndicators: { type: Boolean, attribute: 'show-indicators' },
         _page: { type: Number, state: true },
         _totalPages: { type: Number, state: true },
@@ -286,9 +291,12 @@ export class OlCarousel extends LitElement {
         super();
         this.peek = 0.03;
         this.gap = 8;
+        // Translatable label defaults (English). Consumers pass $_() values in.
         this.label = 'Carousel';
         this.labelPrevious = 'Previous page';
         this.labelNext = 'Next page';
+        this.labelPages = 'Carousel pages';
+        this.labelGoToPage = 'Go to page {page} of {total}';
         this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
@@ -638,20 +646,26 @@ export class OlCarousel extends LitElement {
 
     // ── Render ──
 
+    /** Replace {key} placeholders in a translatable label template. Matches
+     *  the same helper in <ol-pagination>. */
+    _interpolateLabel(template, values) {
+        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+    }
+
     _renderIndicators() {
         if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
             <div
                 class="indicators"
                 role="tablist"
-                aria-label="Carousel pages"
+                aria-label=${this.labelPages}
                 @keydown=${this._onIndicatorKeydown}
             >
                 ${Array.from({ length: this._totalPages }, (_, i) => html`
                     <button
                         class="indicator"
                         role="tab"
-                        aria-label="Go to page ${i + 1} of ${this._totalPages}"
+                        aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
                         aria-current=${i === this._page ? 'true' : 'false'}
                         aria-selected=${i === this._page ? 'true' : 'false'}
                         tabindex=${i === this._page ? '0' : '-1'}
