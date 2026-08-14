@@ -34,10 +34,10 @@ module.exports = [
   {
     files: [
       "webpack.config.js",
-      "webpack.config.css.js",
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
+      "stylelint/*.cjs",
     ],
     languageOptions: {
       sourceType: "script",
@@ -56,6 +56,7 @@ module.exports = [
     files: [
       "openlibrary/components/vite.config.mjs",
       "openlibrary/components/vite-lit.config.mjs",
+      "vite-css.config.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
