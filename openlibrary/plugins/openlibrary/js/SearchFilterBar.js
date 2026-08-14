@@ -21,8 +21,10 @@
  *    bar — the user gets the filters they last set in this session.
  *
  * The full language catalogue is fetched lazily on first popover open.
- * Context-aware facet counts are fetched
- * in parallel with the catalogue whenever there is an active search query.
+ * Context-aware facet counts are fetched in parallel with the catalogue
+ * whenever there is an active search query. Counts and the merge into the
+ * catalogue live in searchFacets.js, shared with the header search modal —
+ * this file doesn't duplicate that logic.
  */
 
 import {
@@ -172,12 +174,17 @@ export function initSearchFilterBar(container) {
         languageEl.selected = currentParams.getAll('language');
 
         // Defer fetching the full catalogue + context-aware counts until the
-        // popover is first asked for. Most searches never touch the language
-        // filter, avoiding both the /languages.json and /search/facets.json
-        // requests. The URL is fixed for the life of the page, so one load
-        // serves every subsequent open.
+        // popover is first asked to open. On later opens of the same dropper
+        // (same page load / same query) the counts are already merged into
+        // `items`; nothing to re-fetch, and `load` below resolves immediately.
         let loaded = false;
 
+        /**
+         * Loads the catalogue + counts into languageEl.items. Passed to
+         * openWhenCountsReady() as the work to race against the open budget,
+         * so the panel opens once at its final size — no spinner-then-collapse
+         * jump under the pointer, and no stale position from a mid-open resize.
+         */
         async function loadLanguageItems() {
             if (loaded) return;
             loaded = true;
@@ -186,7 +193,11 @@ export function initSearchFilterBar(container) {
             languageEl.loading = true;
 
             try {
-                // Fetch catalogue and counts in parallel to minimise latency.
+                // fetchFacetCounts() strips any existing filter on `field`
+                // itself before forwarding params — Solr ANDs an fq on the
+                // field being counted, so leaving e.g. language=eng in would
+                // zero out every other language. No manual stripping needed
+                // here; pass currentParams straight through.
                 const [options, counts] = await Promise.all([
                     fetchLanguageOptions(),
                     hasQuery && field
@@ -197,17 +208,24 @@ export function initSearchFilterBar(container) {
                 languageEl.items = (hasQuery && counts.length > 0)
                     ? mergeFacetCounts(options, counts, languageEl.selected || [])
                     : options;
-            } catch (_err) {
+            } catch (err) {
                 // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
                 // init. Filtering must never break (spec requirement).
+                // eslint-disable-next-line no-console
+                console.warn('SearchFilterBar: facet counts fetch failed, falling back to uncounted list', err);
+                // Allow a retry on the next open (e.g. flaky mobile network)
+                // instead of leaving the popover permanently stuck on the
+                // uncounted default list for the rest of the page's life.
                 loaded = false;
             } finally {
                 languageEl.loading = false;
             }
         }
 
-        // Hold the panel shut while the first load runs, so it opens once at its
-        // final size instead of resizing and re-sorting under the pointer.
+        // Cancelable pre-open event: hold the panel shut, load, then show it
+        // once (openWhenCountsReady handles the 500ms open budget + calling
+        // popover.show()). Anything not listening for this event still opens
+        // instantly, unaffected.
         languageEl.addEventListener('ol-select-popover-request-open', (e) => {
             openWhenCountsReady(e, loadLanguageItems);
         });
