@@ -6,6 +6,9 @@
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
  */
 
+/* Import all common components */
+@import "legacy.css";
+
 footer,
 div#bottom,
 .siteSearch {
@@ -180,6 +183,3 @@ div#listsWork p {
   padding-left: 0;
   margin-bottom: var(--spacing-stack-xs) !important;
 }
-
-/* Import all common components */
-@import "legacy.css";

@@ -4,8 +4,8 @@
 
 import json
 import sys
-from typing import Any
-from unittest.mock import MagicMock
+from typing import Any, ClassVar
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,6 +19,7 @@ from scripts.affiliate_server import (
     get_isbns_from_book,
     get_isbns_from_books,
     get_pending_books,
+    load_config,
     make_cache_key,
     process_google_book,
 )
@@ -350,3 +351,48 @@ def test_process_google_book_multiple_items():
         ],
     }
     assert process_google_book(input_data) is None
+
+
+class TestLoadConfigRequiresCreatorsAPI:
+    """
+    The Creators API is the only supported Amazon client as of #13277; the legacy
+    PA-API fallback was removed once Creators was confirmed live in production.
+
+    Before that, `load_config` silently downgraded to legacy whenever Creators
+    credentials were incomplete -- which is why the outage post-mortem could not tell
+    from the code which client was serving traffic. These pin that a downgrade can no
+    longer happen quietly.
+    """
+
+    CREATORS: ClassVar[dict[str, str]] = {"key": "ck", "secret": "cs", "id": "ci", "version": "3.1"}
+    LEGACY: ClassVar[dict[str, str]] = {"key": "lk", "secret": "ls", "id": "li"}
+
+    def _load(self, creators: dict | None, legacy: dict | None):
+        """Run load_config against a synthetic config; return the patched Creators class."""
+        cfg: dict[str, Any] = {"http_proxy": "http://user:pass@squid:3128"}
+        if creators is not None:
+            cfg["amazon_creators_api"] = creators
+        if legacy is not None:
+            cfg["amazon_api"] = legacy
+
+        with (
+            patch("scripts.affiliate_server.openlibrary_load_config"),
+            patch("scripts.affiliate_server.stats"),
+            patch("scripts.affiliate_server.config", new=cfg),
+            patch("scripts.affiliate_server.AmazonCreatorsAPI") as creators_cls,
+        ):
+            load_config("openlibrary.yml")
+            return creators_cls
+
+    def test_creators_credentials_build_the_client(self):
+        assert self._load(self.CREATORS, None).called
+
+    def test_only_legacy_credentials_raises(self):
+        """Legacy creds no longer buy a working affiliate server -- fail, don't downgrade."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load(None, self.LEGACY)
+
+    def test_partial_creators_credentials_raises(self):
+        """One missing key must fail loudly, not half-configure or revert to legacy."""
+        with pytest.raises(RuntimeError, match="missing required amazon_creators_api"):
+            self._load({"key": "ck", "secret": None, "id": "ci"}, self.LEGACY)

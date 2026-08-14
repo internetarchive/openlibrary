@@ -1,0 +1,115 @@
+{#
+  The write-once example macro. Markup in the {% call %} body renders twice —
+  live, and escaped as the snippet beside it — so the two can't drift.
+
+      {% call example("Event-based", "Fires update:page.") %}
+        <ol-pagination total-pages="10" current-page="1"></ol-pagination>
+      {% endcall %}
+
+  Pass `code` when the live markup isn't what a reader should copy (loops that
+  generate filler, a screenful of inline JSON). Pass `language` alongside it
+  when that snippet isn't markup — "js" or "css" (any Prism language id).
+#}
+{% macro example(title="", note="", code=none, language="html", output_style="") %}
+    <section class="ds-example">
+        {% if title %}<h4 class="ds-example__title">{{ title }}</h4>{% endif %}
+        {% if note %}<p class="ds-example__note">{{ note }}</p>{% endif %}
+        {% set rendered = caller() %}
+        <div class="ds-example__output"
+             {% if output_style %}style="{{ output_style }}"{% endif %}>{{ rendered }}</div>
+        {{ code_snippet(code if code is not none else rendered, language) }}
+    </section>
+{% endmacro %}
+{#
+  A code snippet on its own, for things there is no point rendering live —
+  a CSS rule, a JS listener, an import. `language` is a Prism language id;
+  markup, css and javascript are the ones the bundle can highlight.
+#}
+{% macro code_snippet(source, language="html") %}
+    <div class="ds-code" data-ds-code>
+        <button class="ds-code__copy"
+                type="button"
+                data-ds-copy
+                aria-label="Copy code">Copy</button>
+        <pre class="ds-code__pre"><code class="language-{{ language }}">{{ source | dedent | force_escape }}</code></pre>
+    </div>
+{% endmacro %}
+{#
+  Wraps one component's write-up. Handles the heading, the "use when" /
+  "avoid" lines, and the API table, so partials only contain examples.
+#}
+{% macro component_article(component, api) %}
+    <article class="ds-component" id="{{ component.id }}">
+        <header class="ds-component__header">
+            <h3 class="ds-component__title">
+                {{ component.title }}
+                {% if component.tag %}<code class="ds-component__tag">&lt;{{ component.tag }}&gt;</code>{% endif %}
+            </h3>
+            <p class="ds-component__use-when"><b>Use when:</b> {{ component.use_when }}</p>
+            {% if component.avoid %}<p class="ds-component__avoid"><b>Avoid:</b> {{ component.avoid }}</p>{% endif %}
+        </header>
+        {{ caller() }}
+        {% if api %}{{ api_tables(api) }}{% endif %}
+    </article>
+{% endmacro %}
+{#
+  API reference for one Lit component, from the manifest declaration built in
+  design.py. Collapsed: it's reference, not something to scroll past.
+#}
+{% macro api_tables(api) %}
+    {% set has_api = api.properties or api.events or api.slots or api.cssProperties or api.cssParts %}
+    {% if has_api %}
+        <details class="ds-api">
+            <summary class="ds-api__summary">API reference</summary>
+            {% if api.properties %}
+                {{ _api_table("Properties", ["Property", "Attribute", "Type", "Default", "Description"],
+                    api.properties, ["name", "attribute", "type", "default"]) }}
+            {% endif %}
+            {% if api.events %}
+                {{ _api_table("Events", ["Event", "Type", "Description"], api.events, ["name", "type"]) }}
+            {% endif %}
+            {% if api.slots %}
+                {{ _api_table("Slots", ["Slot", "Description"], api.slots, ["name"], default_label="(default)") }}
+            {% endif %}
+            {% if api.cssProperties %}
+                {{ _api_table("CSS custom properties", ["Property", "Default", "Description"],
+                    api.cssProperties, ["name", "default"]) }}
+            {% endif %}
+            {% if api.cssParts %}{{ _api_table("CSS parts", ["Part", "Description"], api.cssParts, ["name"]) }}{% endif %}
+        </details>
+    {% endif %}
+{% endmacro %}
+{#
+  One API table. `code_keys` render as <code>, description always last, and
+  `default_label` names the blank first-column value (the unnamed slot).
+#}
+{% macro _api_table(heading, headers, rows, code_keys, default_label="") %}
+    <h5 class="ds-api__group">{{ heading }}</h5>
+    <div class="ds-table-wrap">
+        <table class="ds-table">
+            <thead>
+                <tr>
+                    {% for header in headers %}<th>{{ header }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        {% for key in code_keys %}
+                            <td>
+                                {% if row[key] %}
+                                    <code>{{ row[key] }}</code>
+                                {% elif loop.first and default_label %}
+                                    <span class="ds-table__muted">{{ default_label }}</span>
+                                {% else %}
+                                    <span class="ds-table__muted">—</span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        <td>{{ row.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}

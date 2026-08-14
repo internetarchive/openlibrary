@@ -40,7 +40,7 @@ from openlibrary.core.models import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
-    get_amazon_metadata,
+    get_amazon_metadata_async,
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
@@ -335,7 +335,7 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
     id_ = asin or (normalize_isbn(isbn) or isbn)
 
     metadata: dict = {
-        "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
+        "amazon": await get_amazon_metadata_async(id_, id_type=id_type_short) or {},
         "betterworldbooks": {},
     }
     if id_type_short == "isbn":
@@ -845,12 +845,15 @@ class opds_home(delegate.page):
         return delegate.RawText(json.dumps(get_cached_homepage()))
 
 
+DEFAULT_UNLINK_COMMENT = "Unlink OCAID: Item no longer available"
+
+
 class unlink_ia_ol(delegate.page):
     path = "/api/unlink"
     encoding = "json"
 
     def POST(self):
-        i = web.input(digest="", msg="")
+        i = web.input(digest="", msg="", comment="")
 
         digest = i.digest
         msg = i.msg
@@ -883,7 +886,7 @@ class unlink_ia_ol(delegate.page):
         # Update records
         try:
             for edition in editions:
-                self.make_dark(edition, ocaid)
+                self.make_dark(edition, ocaid, i.comment)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
             raise web.HTTPError(
@@ -895,7 +898,7 @@ class unlink_ia_ol(delegate.page):
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition, ocaid):
+    def make_dark(edition, ocaid, comment=""):
         data = edition.dict()
         if "ocaid" in data and data["ocaid"] == ocaid:
             del data["ocaid"]
@@ -907,7 +910,7 @@ class unlink_ia_ol(delegate.page):
             web.ctx.ip = web.ctx.ip or "127.0.0.1"
             web.ctx.site.save(
                 data,
-                "Remove OCAID: Item no longer available to borrow.",
+                comment or DEFAULT_UNLINK_COMMENT,
                 action="edit-edition-ocaid",
             )
 

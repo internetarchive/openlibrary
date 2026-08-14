@@ -70,10 +70,15 @@ export class MyBooksDropper extends Dropper {
         const splitKey = this.workKey ? this.workKey.split('/') : [''];
         const workOlid = splitKey[splitKey.length - 1];
 
+        // The check-in container is only rendered for authenticated patrons, so
+        // construct the components only when it exists — a `CheckInComponents`
+        // built without one is truthy but uninitialized, and throws on `initialize()`.
+        const checkInContainer = workOlid ? document.querySelector(`#check-in-container-${workOlid}`) : null;
+
         /**
          * @type {CheckInComponents|null}
          */
-        this.checkInComponents = workOlid ? new CheckInComponents(document.querySelector(`#check-in-container-${workOlid}`)) : null;
+        this.checkInComponents = checkInContainer ? new CheckInComponents(checkInContainer) : null;
 
         /**
          * References this dropper's reading log buttons.

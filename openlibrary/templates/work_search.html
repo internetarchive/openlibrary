@@ -48,7 +48,7 @@ $ bodyclass.append('search-page')
         $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
         <div class="search-filter-row" id="search-filter-row">
           <ol-toggle
-            variant="card"
+            variant="button"
             label="$_('Readable Only')"
             accessible-label="$_('Filter by availability')"
             sublabel="$readable_sublabel"
@@ -59,6 +59,16 @@ $ bodyclass.append('search-page')
             unselected-heading="$_('Languages')"
             aria-label="$_('Filter by language')"
           ></ol-select-popover>
+
+          $# Result-shaping tools, not filters: same row, but pushed right.
+          $if param and not search_response.error and len(search_response.docs):
+            <div class="search-filter-row__tools">
+              $if search_response.num_found > 1:
+                $:render_template("search/sort_options.html", search_response.sort)
+
+              $if search_response.num_found > 0:
+                $:render_template("search/layout_options.html", selected_layout=layout)
+            </div>
         </div>
 
         $# Availability and language chips are rendered server-side on the first
@@ -72,16 +82,22 @@ $ bodyclass.append('search-page')
             $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
         </span>
 
+        $# num_found_exact is false only when Solr stopped counting early,
+        $# making the total a lower bound — say "over" rather than quote it.
         $if param and not search_response.error and len(search_response.docs):
-          <div class="search-results-stats">
-            $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
-
-            $if search_response.num_found > 1:
-              $:render_template("search/sort_options.html", search_response.sort)
-
-            $if search_response.num_found > 0:
-              $:render_template("search/layout_options.html", selected_layout=layout)
-          </div>
+          $# Count the docs actually rendered rather than assuming a full page:
+          $# exact either way when num_found is, and still right when it isn't.
+          $ range_start = (page - 1) * rows + 1
+          $ range_end = range_start + len(search_response.docs) - 1
+          $ range_total = commify(search_response.num_found)
+          $if search_response.num_found_exact:
+            $ results_stats = ungettext('%(start)s - %(end)s of %(total)s result', '%(start)s - %(end)s of %(total)s results', search_response.num_found, start=range_start, end=range_end, total=range_total)
+          $else:
+            $ results_stats = ungettext('%(start)s - %(end)s of over %(total)s result', '%(start)s - %(end)s of over %(total)s results', search_response.num_found, start=range_start, end=range_end, total=range_total)
+          $# With author suggestions the count moves onto the "Books" heading row,
+          $# where it sits next to the group it actually counts.
+          $if not author_suggestions:
+            <div class="search-results-stats">$results_stats</div>
     </div>
 
 
@@ -127,7 +143,10 @@ $ bodyclass.append('search-page')
           $if author_suggestions:
             <h2 class="search-results-section-label">$_("Authors")</h2>
             $:macros.SearchAuthorSuggestion(author_suggestions)
-            <h2 class="search-results-section-label">$_("Books")</h2>
+            <h2 class="search-results-section-label">
+              $_("Books")
+              <span class="search-results-section-label__count">$results_stats</span>
+            </h2>
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
