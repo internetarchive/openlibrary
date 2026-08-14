@@ -52,6 +52,13 @@ const KEEP_ATTRS = new Set([
     "clip-rule",
 ]);
 
+/**
+ * Attributes of an SVG open tag, as a plain object. Values are read from the
+ * double-quoted form only, which is what the optimized sources use.
+ *
+ * @param {string} openTag - The inside of a `<svg …>` tag, without the brackets.
+ * @returns {Record<string, string>} Attribute name -> value, in source order.
+ */
 function parseAttrs(openTag) {
     const attrs = {};
     for (const m of openTag.matchAll(/([\w:-]+)\s*=\s*"([^"]*)"/g)) {
@@ -60,12 +67,25 @@ function parseAttrs(openTag) {
     return attrs;
 }
 
-/** kebab-case icon name -> camelCase JS identifier (arrow-left -> arrowLeft). */
+/**
+ * kebab-case icon name -> camelCase JS identifier (arrow-left -> arrowLeft).
+ *
+ * @param {string} name - Icon name, already validated against NAME_RE.
+ * @returns {string} The JS identifier for that icon's export.
+ */
 function camelCase(name) {
     return name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 }
 
-/** Pull the optimized <svg> apart into its root attributes and inner markup. */
+/**
+ * Pull the optimized <svg> apart into its root attributes and inner markup.
+ *
+ * @param {string} svg - Full contents of a source .svg file.
+ * @param {string} name - Icon name, used in error messages.
+ * @returns {{attrs: Record<string, string>, inner: string}} Root attributes and
+ *   the markup between the open and close tags.
+ * @throws {Error} If there is no <svg> root or it has no viewBox.
+ */
 function parseSvg(svg, name) {
     const open = svg.match(/<svg\b([^>]*)>/);
     if (!open) throw new Error(`No <svg> root in ${name}`);
@@ -75,7 +95,12 @@ function parseSvg(svg, name) {
     return { attrs, inner };
 }
 
-/** The kept root attributes, in source order, as an attribute string. */
+/**
+ * The kept root attributes, in source order, as an attribute string.
+ *
+ * @param {Record<string, string>} attrs - Parsed root attributes.
+ * @returns {string} Space-separated `name="value"` pairs for KEEP_ATTRS only.
+ */
 function keptAttrs(attrs) {
     return Object.entries(attrs)
         .filter(([key]) => KEEP_ATTRS.has(key))
@@ -83,15 +108,38 @@ function keptAttrs(attrs) {
         .join(" ");
 }
 
+/**
+ * The <symbol> the sprite sheet references by id.
+ *
+ * @param {string} name - Icon name; ID_PREFIX is prepended to form the id.
+ * @param {Record<string, string>} attrs - Parsed root attributes.
+ * @param {string} inner - The source <svg>'s inner markup.
+ * @returns {string} A single-line <symbol> element.
+ */
 function toSymbol(name, attrs, inner) {
     return `<symbol id="${ID_PREFIX}${name}" ${keptAttrs(attrs)}>${inner}</symbol>`;
 }
 
-/** The standalone <svg> <ol-icon> inlines. Same attrs as the symbol, no id. */
+/**
+ * The standalone <svg> <ol-icon> inlines. Same attrs as the symbol, no id.
+ *
+ * @param {Record<string, string>} attrs - Parsed root attributes.
+ * @param {string} inner - The source <svg>'s inner markup.
+ * @returns {string} A single-line <svg> element.
+ */
 function toSvg(attrs, inner) {
     return `<svg ${keptAttrs(attrs)}>${inner}</svg>`;
 }
 
+/**
+ * Read every source group and build both renderings of each icon. Names must be
+ * unique across groups and must not collide once camelCased, since both outputs
+ * key on them — the sprite by id, the module by export name.
+ *
+ * @returns {Map<string, {symbol: string, svg: string}>} Icon name -> its
+ *   <symbol> (sprite) and standalone <svg> (Lit module) markup.
+ * @throws {Error} On an invalid name, a duplicate name, or an identifier clash.
+ */
 function collectIcons() {
     const icons = new Map();
     // camelCase identifier -> the name that claimed it. Distinct names can still
