@@ -37,7 +37,7 @@ import {
     readStoredLanguages,
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
-import { fetchFacetCounts } from './search-modal/searchFacets.js';
+import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './search-modal/searchFacets.js';
 import { trackEvent } from './ol.analytics.js';
 
 // Every query param the availability filter owns, across all of its values.
@@ -53,26 +53,6 @@ const AVAILABILITY_PARAM_KEYS = [
 // against WorkSearchScheme.facet_fields).
 /** @type {Map<HTMLElement, string>} */
 let POPOVER_FIELD_CONFIG;
-
-// ── Merge helpers ──────────────────────────────────────────────────────────
-
-/**
- * Merge context-aware facet counts from the API into the item list, then
- * sort and filter according to the issue spec:
- * @param {Array<{value: string, label: string}>} items - Full catalogue list.
- * @param {Array<{value: string, count: number}>} counts - API response.
- * @param {string[]} selectedValues - Currently selected item values.
- * @returns {Array<{value: string, label: string, count: number}>}
- */
-export function mergeFacetCounts(items, counts, selectedValues) {
-    const countMap = new Map(counts.map(c => [c.label, c.count]));
-    const selectedSet = new Set(selectedValues);
-
-    return items
-        .map(it => ({ ...it, count: countMap.get(it.label) ?? 0 }))
-        .filter(it => it.count > 0 || selectedSet.has(it.value))
-        .sort((a, b) => b.count - a.count);
-}
 
 // ── sessionStorage helpers ─────────────────────────────────────────────────
 
@@ -192,13 +172,13 @@ export function initSearchFilterBar(container) {
         languageEl.selected = currentParams.getAll('language');
 
         // Defer fetching the full catalogue + context-aware counts until the
-        // popover first opens. Most searches never touch the language filter,
-        // avoiding both the /languages.json and /search/facets.json requests.
-        // On subsequent opens of the same dropper (same page load / same query):
-        //   counts are already merged into items; nothing to re-fetch.
+        // popover is first asked for. Most searches never touch the language
+        // filter, avoiding both the /languages.json and /search/facets.json
+        // requests. The URL is fixed for the life of the page, so one load
+        // serves every subsequent open.
         let loaded = false;
 
-        languageEl.addEventListener('ol-popover-open', async() => {
+        async function loadLanguageItems() {
             if (loaded) return;
             loaded = true;
 
@@ -220,9 +200,16 @@ export function initSearchFilterBar(container) {
             } catch (_err) {
                 // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
                 // init. Filtering must never break (spec requirement).
+                loaded = false;
             } finally {
                 languageEl.loading = false;
             }
+        }
+
+        // Hold the panel shut while the first load runs, so it opens once at its
+        // final size instead of resizing and re-sorting under the pointer.
+        languageEl.addEventListener('ol-select-popover-request-open', (e) => {
+            openWhenCountsReady(e, loadLanguageItems);
         });
 
         languageEl.addEventListener('ol-select-popover-change', (e) => {

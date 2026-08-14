@@ -38,6 +38,8 @@ let _idCounter = 0;
  *     ≥1 item is selected (default "SUGGESTIONS").
  * @prop {String} clearLabel - Label for the clear-selections button (default
  *     "Clear selections").
+ * @prop {String} loadingLabel - Text shown beside the spinner while `loading`
+ *   is set (default "Loading…").
  * @prop {String} noMatchesLabel - Empty-state text when the filter has no
  *     matches (default "No matches").
  *
@@ -48,6 +50,13 @@ let _idCounter = 0;
  *     detail: { selected: String[], added: String|null, removed: String|null }
  * @fires ol-select-popover-clear - Fires when the clear-selections button is
  *     clicked. A change event also fires with the cleared selection.
+ * @fires ol-select-popover-request-open - Cancelable; fires when the patron
+ *     activates the trigger on a closed panel. detail: { focusFirst: Boolean }.
+ *     Calling preventDefault() defers the open: the panel stays shut until the
+ *     listener calls show(). For hosts that load items on demand — the panel
+ *     then opens once, at its final size, instead of resizing and re-sorting
+ *     under the pointer. A host that defers owns any busy affordance, and
+ *     should keep the wait short enough not to need one.
  *
  * @slot trigger - Optional custom trigger element. When omitted, a default
  *     `<ol-button>` is injected, labelled by the current selection: `label`
@@ -91,6 +100,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         suggestionsHeading: { type: String, attribute: 'suggestions-heading' },
         clearLabel: { type: String, attribute: 'clear-label' },
         noMatchesLabel: { type: String, attribute: 'no-matches-label' },
+        loadingLabel: { type: String, attribute: 'loading-label' },
         _query: { state: true },
         loading: { type: Boolean, reflect: true },
     };
@@ -356,6 +366,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.suggestionsHeading = 'SUGGESTIONS';
         this.clearLabel = 'Clear selections';
         this.noMatchesLabel = 'No matches';
+        this.loadingLabel = 'Loading…';
         this._query = '';
         this._panelId = `ol-select-popover-${++_idCounter}`;
         // Mirrors the inner ol-popover's open state via its open/close events.
@@ -368,6 +379,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // destroys its DOM node, so its focus is lost).
         this._restoreFocusToValue = null;
         this.loading = false;
+        // True between a host cancelling ol-select-popover-request-open and the
+        // show() that follows, so repeat clicks don't stack up new requests.
+        this._openDeferred = false;
+        // Bound once so the capture listener dedupes across reconnects.
+        this._onTriggerClickCapture = this._onTriggerClickCapture.bind(this);
     }
 
     updated(changedProperties) {
@@ -422,6 +438,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         if (!this.getAttribute('role')) {
             this.setAttribute('role', 'group');
         }
+        // Capture on the host so this runs before the click reaches ol-popover's
+        // own trigger handler — the only point where the open can still be
+        // intercepted (see _requestOpen).
+        this.addEventListener('click', this._onTriggerClickCapture, true);
         const hasConsumerTrigger = Array.from(this.children).some(
             el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
         );
@@ -568,7 +588,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         ? html`
                         <div class="loading-row" role="status" aria-live="polite">
                             <span class="loading-spinner" aria-hidden="true"></span>
-                            <span>Loading…</span>
+                            <span>${this.loadingLabel}</span>
                         </div>`
         : html`
                     <ul
@@ -628,18 +648,77 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         // Native button click handles Enter/Space — let it bubble to ol-popover's
         // own click toggle. We only handle ArrowDown, which opens the popover and
         // moves focus into the list (vs. plain click, which focuses the filter).
-        if (e.key === 'ArrowDown' && !this._isOpen) {
+        if (e.key === 'ArrowDown' && !this._panelOpen) {
             e.preventDefault();
-            const popover = this.shadowRoot?.querySelector('ol-popover');
-            if (!popover) return;
-            this._pendingFocusFirst = true;
-            popover.open = true;
+            if (!this._requestOpen({ focusFirst: true })) return;
+            this.show({ focusFirst: true });
         }
+    }
+
+    // Whether the panel is actually open. `_isOpen` only tracks ol-popover's
+    // open/close events, and a programmatic `open = false` emits no close event
+    // — so anything gating an *open* has to read the panel itself.
+    get _panelOpen() {
+        return !!this.shadowRoot?.querySelector('ol-popover')?.open;
+    }
+
+    // Gate the trigger click on _requestOpen. Runs in the capture phase on the
+    // host, so stopping it here keeps ol-popover from opening the panel.
+    _onTriggerClickCapture(e) {
+        if (this._panelOpen || this._openDeferred) return;
+        if (!e.target.closest?.('[slot="trigger"]')) return;
+        if (this._requestOpen()) return;
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    /**
+     * Ask permission to open. A listener that calls preventDefault() on
+     * `ol-select-popover-request-open` takes ownership: the panel stays shut,
+     * and it's the listener's job to call show() once its items are ready.
+     * Lets a host that loads items on demand open the panel once, at its final
+     * size, instead of resizing and re-sorting under the pointer.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {boolean} True when the caller may open the panel itself.
+     */
+    _requestOpen({ focusFirst = false } = {}) {
+        const evt = new CustomEvent('ol-select-popover-request-open', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { focusFirst },
+        });
+        this.dispatchEvent(evt);
+        if (!evt.defaultPrevented) return true;
+
+        this._openDeferred = true;
+        this._pendingFocusFirst = focusFirst;
+        return false;
+    }
+
+    /**
+     * Open the panel. Public counterpart to a deferred
+     * `ol-select-popover-request-open` — safe to call unconditionally.
+     *
+     * @param {Object} [opts]
+     * @param {boolean} [opts.focusFirst] - Focus the list rather than the filter.
+     * @returns {void}
+     */
+    show({ focusFirst = false } = {}) {
+        this._openDeferred = false;
+        if (focusFirst) this._pendingFocusFirst = true;
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover) popover.open = true;
     }
 
     _onPopoverOpen() {
         this._isOpen = true;
         this._query = '';
+        // However it ended up open — show(), or a second click falling through
+        // while a deferred open was still pending — the deferral is over.
+        this._openDeferred = false;
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
