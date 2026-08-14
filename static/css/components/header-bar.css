@@ -24,13 +24,24 @@
   position: relative;
 }
 
+/* Shown at every width. This was display:none below 30em, so on most phones in
+   portrait (360–430px) the hamburger was a logged-out patron's only route to an
+   account — and it does nothing until the drawer's JS loads. Only Sign Up shows
+   here; .hide-me keeps Log In for >=768px, as before. Sign Up alone is ~77px and
+   stays on the header's first row, where showing both wraps the hamburger onto
+   a second one. */
 .header-bar .auth-component {
-  display: none;
+  display: block;
+  margin-right: var(--spacing-inline-sm);
   padding: var(--spacing-inset-xs);
   padding-right: 0;
   -webkit-box-ordinal-group: 4;
   -ms-flex-order: 3;
   order: 3;
+}
+
+.header-bar .auth-component .hide-me {
+  display: none;
 }
 
 .header-bar .auth-component li {
@@ -45,10 +56,6 @@
 .header-bar .auth-component li button,
 .header-bar .auth-component li a {
   color: var(--dark-grey);
-}
-
-.header-bar .auth-component .hide-me {
-  display: none;
 }
 
 .header-bar .dropdown-menu {
@@ -352,11 +359,6 @@
 @media only screen and (min-width: 30em) {
   .header-bar {
     margin: 0 auto;
-  }
-
-  .header-bar .auth-component {
-    margin-right: var(--spacing-inline-sm);
-    display: block;
   }
 
   .header-bar .logo-component {
