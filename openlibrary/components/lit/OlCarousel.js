@@ -12,6 +12,12 @@ import { LitElement, html, css, nothing } from 'lit';
  * Off-page items are deliberately not `inert` — in a scroll container they
  * are legitimately reachable by tab, screen reader and find-in-page.
  *
+ * Deferring off-page images is the browser's job: put the real URL in `src`
+ * and mark it `loading="lazy"`. A scroll container clips its overflow, so
+ * off-page items never intersect the viewport and are never fetched. Do not
+ * pass a placeholder `src` with the real URL parked in a data attribute —
+ * that is a pre-`loading` carousel-library convention and it defeats this.
+ *
  * @element ol-carousel
  *
  * @prop {Number} peek - Fraction of item width visible at edges (0–0.5, default: 0.03)
@@ -284,9 +290,6 @@ export class OlCarousel extends LitElement {
      *  fling's momentum tail, short enough to still feel immediate. */
     static _scrollEndFallbackDelay = 120;
 
-    /** Cover lookahead: one viewport width either side of the scrollport. */
-    static _lazyRootMargin = '0px 100%';
-
     constructor() {
         super();
         this.peek = 0.03;
@@ -314,8 +317,6 @@ export class OlCarousel extends LitElement {
 
         /** @type {ResizeObserver|null} */
         this._resizeObserver = null;
-        /** @type {IntersectionObserver|null} */
-        this._lazyObserver = null;
         this._scrollEndTimer = null;
 
         this._onScroll = this._onScroll.bind(this);
@@ -338,8 +339,6 @@ export class OlCarousel extends LitElement {
         super.disconnectedCallback();
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
-        this._lazyObserver?.disconnect();
-        this._lazyObserver = null;
         clearTimeout(this._scrollEndTimer);
     }
 
@@ -349,7 +348,6 @@ export class OlCarousel extends LitElement {
         this._recalculate();
         this._applyTrackLayout();
         this._refreshGeometry();
-        this._setupLazyLoading();
     }
 
     updated(changedProperties) {
@@ -550,38 +548,6 @@ export class OlCarousel extends LitElement {
         }));
     }
 
-    // ── Lazy covers ──
-
-    /** Swap `data-lazy` → `src` as items approach the scrollport. Consumers
-     *  using plain `loading="lazy"` need none of this — it works natively
-     *  inside a scroll container, which it could not on a transformed track. */
-    _setupLazyLoading() {
-        const scroller = this._scroller;
-        if (!scroller || typeof IntersectionObserver === 'undefined') return;
-
-        this._lazyObserver = new IntersectionObserver((entries) => {
-            for (const entry of entries) {
-                if (!entry.isIntersecting) continue;
-                entry.target.querySelectorAll?.('img[data-lazy]').forEach((img) => {
-                    img.src = img.dataset.lazy;
-                    img.removeAttribute('data-lazy');
-                });
-                this._lazyObserver?.unobserve(entry.target);
-            }
-        }, { root: scroller, rootMargin: OlCarousel._lazyRootMargin });
-
-        this._observeLazyTargets();
-    }
-
-    _observeLazyTargets() {
-        if (!this._lazyObserver) return;
-        for (const item of this._items) {
-            if (item.querySelector?.('img[data-lazy]')) {
-                this._lazyObserver.observe(item);
-            }
-        }
-    }
-
     // ── Layout ──
 
     /** Set layout CSS custom properties on the host element.
@@ -602,7 +568,6 @@ export class OlCarousel extends LitElement {
     _onSlotChange() {
         this._countItems();
         this._refreshGeometry();
-        this._observeLazyTargets();
     }
 
     // ── Keyboard ──

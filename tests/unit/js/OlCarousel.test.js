@@ -12,7 +12,6 @@ const GAP = 8;
 const COLUMNS = 8;
 
 let resizeObservers;
-let intersectionObservers;
 
 beforeAll(() => {
     global.ResizeObserver = class {
@@ -28,27 +27,10 @@ beforeAll(() => {
             this.callback([{ contentRect: { width } }]);
         }
     };
-
-    global.IntersectionObserver = class {
-        constructor(callback, options) {
-            this.callback = callback;
-            this.options = options;
-            this.observed = new Set();
-            intersectionObservers.push(this);
-        }
-        observe(el) { this.observed.add(el); }
-        unobserve(el) { this.observed.delete(el); }
-        disconnect() { this.observed.clear(); }
-        /** Report the given elements as having entered the root. */
-        trigger(elements) {
-            this.callback(elements.map((target) => ({ target, isIntersecting: true })));
-        }
-    };
 });
 
 beforeEach(() => {
     resizeObservers = [];
-    intersectionObservers = [];
 });
 
 afterEach(() => {
@@ -62,7 +44,7 @@ function trackWidth(count) {
 }
 
 /** Mount a carousel with `count` children, stub its geometry reads, measure. */
-async function mountCarousel(count, { showIndicators = false, lazy = false } = {}) {
+async function mountCarousel(count, { showIndicators = false } = {}) {
     const el = document.createElement('ol-carousel');
     el.gap = GAP;
     if (showIndicators) el.showIndicators = true;
@@ -70,11 +52,6 @@ async function mountCarousel(count, { showIndicators = false, lazy = false } = {
     for (let i = 0; i < count; i++) {
         const item = document.createElement('div');
         item.textContent = `Item ${i}`;
-        if (lazy) {
-            const img = document.createElement('img');
-            img.dataset.lazy = `/cover-${i}.jpg`;
-            item.appendChild(img);
-        }
         el.appendChild(item);
     }
 
@@ -461,41 +438,24 @@ describe('translatable labels', () => {
     });
 });
 
-describe('lazy covers', () => {
-    it('observes items against the scroller with a one-viewport lookahead', async() => {
-        const { scroller } = await mountCarousel(18, { lazy: true });
-        const io = intersectionObservers[0];
-        expect(io.options.root).toBe(scroller);
-        expect(io.options.rootMargin).toBe('0px 100%');
-        expect(io.observed.size).toBe(18);
-    });
+describe('covers', () => {
+    it('never touches slotted images — deferring them is the browser\'s job', async() => {
+        const { el } = await mountCarousel(18);
+        const img = document.createElement('img');
+        img.setAttribute('src', '/cover-3.jpg');
+        img.setAttribute('loading', 'lazy');
+        el.children[3].appendChild(img);
+        await el.updateComplete;
 
-    it('swaps data-lazy into src as items approach the scrollport', async() => {
-        const { el } = await mountCarousel(18, { lazy: true });
-        const io = intersectionObservers[0];
-        const item = el.children[3];
-
-        io.trigger([item]);
-
-        const img = item.querySelector('img');
         expect(img.getAttribute('src')).toBe('/cover-3.jpg');
-        expect(img.hasAttribute('data-lazy')).toBe(false);
-        expect(io.observed.has(item)).toBe(false);
-    });
-
-    it('leaves items without data-lazy alone', async() => {
-        await mountCarousel(18);
-        const io = intersectionObservers[0];
-        expect(io.observed.size).toBe(0);
+        expect(img.getAttribute('loading')).toBe('lazy');
     });
 });
 
 describe('teardown', () => {
-    it('disconnects observers and timers when removed', async() => {
-        const { el } = await mountCarousel(18, { lazy: true });
-        const io = intersectionObservers[0];
+    it('disconnects the resize observer when removed', async() => {
+        const { el } = await mountCarousel(18);
         el.remove();
-        expect(io.observed.size).toBe(0);
         expect(resizeObservers[0].elements).toHaveLength(0);
     });
 });
