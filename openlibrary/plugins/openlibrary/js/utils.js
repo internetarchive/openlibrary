@@ -136,6 +136,36 @@ export async function whenVisible(elem, options = {}) {
     });
 }
 
+/**
+ * Once `elem` is visible, fetches `component`'s real markup (keyed off
+ * `elem.dataset.key`) and replaces `elem` with it.
+ *
+ * @param {HTMLElement} elem Root element of an async-loaded partial component
+ * @param {string} component Partial component name (e.g. 'SubjectRelated')
+ * @returns {Promise<HTMLElement | null>} The element that replaced `elem`, or null on failure
+ */
+export async function fetchAndSwap(elem, component) {
+    if (elem.dataset.asyncLoad !== 'true') {
+        return null;
+    }
+    const key = JSON.parse(elem.dataset.key);
+    await whenVisible(elem);
+
+    try {
+        const resp = await fetch(buildPartialsUrl(component, {key}));
+        if (!resp.ok) {
+            throw new Error(`Failed to fetch ${component} partial. Status code: ${resp.status}`);
+        }
+        const data = await resp.json();
+        const newElem = createElementFromMarkup(data.partials);
+        elem.replaceWith(newElem);
+        return newElem;
+    } catch {
+        // XXX : Handle case where `/partials` response is not `2XX` here
+        return null;
+    }
+}
+
 export function queueAction(actionName, itemName, targetUrl, itemType) {
     const data = {
         name: itemName,

@@ -30,7 +30,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
-FacetSpec = str | dict[str, Any]
+FacetSpec = str | dict[str, int | str]
 """A bare Solr facet field name, or a {"name": ..., "sort"/"limit": ...} spec."""
 
 # Facets requested when details=True and no facet_fields override is given.
