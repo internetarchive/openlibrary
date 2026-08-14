@@ -20,10 +20,12 @@ $def renderSubjects(subjects):
         <div class="contentQuarter link-box link-box--with-header">
           <h3 class="black collapse uppercase">$label</h3>
           $if async_load:
-              <span class="small">$_("Loading...")</span>
+              <span class="small loadingIndicator">$_("Loading...")</span>
           $else:
               $:renderSubjects(page[category][:limit])
         </div>
+    $if async_load:
+        <span class="small async-partial-retry hidden">$_("Something went wrong.") <a href="#" class="retry-btn">$_("Retry")</a></span>
     $# .contentQuarter floats on desktop widths (layout/index.css); clear it
     $# inside this wrapper so the wrapper's own box isn't collapsed to nothing.
     <div class="clearfix"></div>

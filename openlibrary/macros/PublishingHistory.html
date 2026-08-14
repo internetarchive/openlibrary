@@ -13,7 +13,8 @@ $def with (publishing_history=None, async_load=False, key=None)
 
     $if async_load:
         <div class="chart">
-            <span class="small">$_("Loading...")</span>
+            <span class="loadingIndicator"></span>
+            <span class="small async-partial-retry hidden">$_("Something went wrong.") <a href="#" class="retry-btn">$_("Retry")</a></span>
         </div>
     $else:
         <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(publishing_history)</script>

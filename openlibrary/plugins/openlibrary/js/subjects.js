@@ -15,10 +15,10 @@ import { fetchAndSwap } from './utils';
  * @param {HTMLElement} elem Root element of the publishing-history component
  */
 export async function initPublishingHistory(elem) {
-    if (await fetchAndSwap(elem, 'SubjectPublishingHistory')) {
+    await fetchAndSwap(elem, 'SubjectPublishingHistory', async() => {
         const graphs = await import(/* webpackChunkName: "graphs" */ './graphs');
         graphs.initPublishersGraph();
-    }
+    });
 }
 
 /**
