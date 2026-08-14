@@ -6,17 +6,6 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
   $ myBooksLinks = [
   $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
   $ ]
-  $ browseLinks = [
-  $     { "href": "/subjects", "text": _("Subjects"), "track": "Subjects" },
-  $     { "href": "/trending", "text": _("Trending"), "track": "Trending" },
-  $     { "href": "/explore", "text": _("Library Explorer"), "track": "Explore" },
-  $     { "href": "/lists", "text": _("Lists"), "track": "Lists" },
-  $     { "href": "/collections", "text": _("Collections"), "track": "Collections" },
-  $     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library" },
-  $     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks" },
-  $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
-  $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
-  $ ]
 
   $ ol_env = get_deployment_name()
   <div class="logo-component">
@@ -138,16 +127,14 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       </li>
 
     $# ── Browse ──
+    $# Destinations come from openlibrary/plugins/openlibrary/nav.py, shared with
+    $# the Browse popover so the two can't drift. The drawer lists all of them
+    $# flat; the popover features the first few.
     <li class="drawer-menu__subsection">$_("Browse")</li>
-    <li class="drawer-menu__item"><a href="/subjects" data-ol-link-track="Hamburger|Subjects">$_("Subjects")</a></li>
-    <li class="drawer-menu__item"><a href="/trending" data-ol-link-track="Hamburger|Trending">$_("Trending")</a></li>
-    <li class="drawer-menu__item"><a href="/explore" data-ol-link-track="Hamburger|Explore">$_("Library Explorer")</a></li>
-    <li class="drawer-menu__item"><a href="/lists" data-ol-link-track="Hamburger|Lists">$_("Lists")</a></li>
-    <li class="drawer-menu__item"><a href="/collections" data-ol-link-track="Hamburger|Collections">$_("Collections")</a></li>
-    <li class="drawer-menu__item"><a href="/k-12" data-ol-link-track="Hamburger|K12Library">$_("K-12 Student Library")</a></li>
-    <li class="drawer-menu__item"><a href="/booktalks" data-ol-link-track="Hamburger|BookTalks">$_("Book Talks")</a></li>
-    <li class="drawer-menu__item"><a href="/random" data-ol-link-track="Hamburger|RandomBook">$_("Random Book")</a></li>
-    <li class="drawer-menu__item"><a href="/advancedsearch" data-ol-link-track="Hamburger|AdvancedSearch">$_("Advanced Search")</a></li>
+    $# Two-part track values, matching the drawer's other rows — the popover's
+    $# positional rank is its own thing and mixing formats muddies the data.
+    $for link in browse_links():
+      <li class="drawer-menu__item"><a href="$(link.href)" data-ol-link-track="Hamburger|$(link.track)">$(link.text)</a></li>
 
     $# ── Contribute ──
     <li class="drawer-menu__subsection">$_("Contribute")</li>
