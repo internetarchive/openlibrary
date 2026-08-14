@@ -18,7 +18,6 @@
     "build-assets:lit-components": "make lit-components",
     "build-assets:lit-manifest": "npx cem analyze",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
-    "check:icons": "node scripts/build_icon_sprite.mjs && git diff --exit-code static/icons/sprite.svg static/icons/manifest.json openlibrary/components/lit/icons.generated.js",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint .",
     "lint:css": "stylelint \"static/**/*.css\" \"openlibrary/**/*.css\"",
@@ -27,6 +26,7 @@
     "lint-fix:css": "stylelint --fix \"static/**/*.css\" \"openlibrary/**/*.css\"",
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
+    "pretest:js": "node scripts/build_icon_sprite.mjs",
     "test:js": "jest",
     "test:a11y": "jest openlibrary/components/__tests__/",
     "test:e2e": "playwright test"

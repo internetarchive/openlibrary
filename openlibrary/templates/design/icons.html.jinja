@@ -28,9 +28,9 @@
     <section class="ds-section" id="icon-techniques">
         <h2 class="ds-section__title ds-section__title--eyebrow">Which technique</h2>
         <p class="ds-section__blurb">
-            Three ways to render a glyph, all drawing from the same source
-            (<code>static/icons/src/</code>), so an icon looks identical whichever you use.
-            Pick by <em>where</em> the icon lives.
+            Two ways to render a glyph, both drawing from the same source
+            (<code>static/icons/src/</code>), so an icon looks identical either way.
+            Pick by <em>who renders the markup</em>.
         </p>
         <div class="ds-table-wrap">
             <table class="ds-table ds-table--guide">
@@ -52,19 +52,16 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>A web component's own shadow DOM.</td>
                         <td>
-                            <b>A fragment import from <code>icons.generated.js</code>.</b> Shadow icons stay
-                            fetch-independent: import the glyph and inline it in your own
-                            <code>&lt;svg&gt;</code>. Paints with the component.
+                            Anywhere the client renders the markup — a Lit template, a web component's own
+                            shadow DOM, or plain HTML handed to an outside consumer.
                         </td>
-                    </tr>
-                    <tr>
-                        <td>Markup inserted from client JS, or a consumer who only has HTML and the element.</td>
                         <td>
-                            <b>The <code>&lt;ol-icon&gt;</code> element.</b> Self-contained, and the box is reserved
-                            so nothing shifts — but the glyph appears only once the JS upgrades it, so prefer the
-                            macro whenever the markup is server-rendered.
+                            <b>The <code>&lt;ol-icon&gt;</code> element.</b> One element everywhere: it inlines
+                            the glyph into its own shadow root, so it needs neither the sprite nor the global
+                            stylesheet and works just as well nested inside another component. The box is
+                            reserved so nothing shifts, but the glyph appears only once the JS upgrades it —
+                            prefer the macro whenever the markup is server-rendered.
                         </td>
                     </tr>
                 </tbody>
@@ -101,14 +98,24 @@
         <div class="ds-group">
             <h3 class="ds-group__title">In a Lit component</h3>
             <p class="ds-group__blurb">
-                Import the fragment and wrap it in your own <code>&lt;svg&gt;</code>, which controls size and
-                stroke width through the component's own CSS.
+                Import the element once, then use it like any other tag — including inside your own shadow
+                root. Size it from your component's CSS; stroke width follows the size unless you set
+                <code>--ol-icon-stroke-width</code>. The import is only for modules inside the Lit bundle;
+                code bundled by webpack already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
+                <em>not</em> import it, or the second <code>customElements.define()</code> throws and takes the
+                rest of the Lit bundle down with it.
             </p>
-            {{ ex.code_snippet('import { search } from \'./icons.generated.js\';\nhtml`<svg class="icon" viewBox="0 0 24 24">${search}</svg>`', 'js') }}
+            {{ ex.code_snippet('import \'./OlIcon.js\';\n\nhtml`<ol-icon name="search"></ol-icon>`', 'js') }}
         </div>
         <div class="ds-group">
             <h3 class="ds-group__title">As a custom element</h3>
-            {% call ex.example("", "For client-inserted icons and outside consumers.") %}
+            <p class="ds-group__blurb">
+                Hand-written markup, or markup a script builds at runtime. Nothing to import — the main
+                bundle registers <code>&lt;ol-icon&gt;</code> site-wide. Prefer the macro when the markup is
+                server-rendered: the box is reserved up front, but the glyph only appears once the JS
+                upgrades the element.
+            </p>
+            {% call ex.example("", "The same element, in plain markup.") %}
                 <ol-icon name="search">
                 </ol-icon>
                 <ol-icon name="globe" size="lg" label="Language">
@@ -276,14 +283,14 @@
                 <code>static/icons/ATTRIBUTION.md</code>.
             </li>
             <li>
-                <b>Run <code>make icons</code> and commit.</b> One step regenerates all three outputs:
-                <code>static/icons/sprite.svg</code>, <code>static/icons/manifest.json</code>,
-                and <code>openlibrary/components/lit/icons.generated.js</code>. All three are
-                committed, so commit the source SVG together with them.
+                <b>Run <code>make icons</code>.</b> One step rebuilds both outputs:
+                <code>static/icons/sprite.svg</code> and the Lit glyph module the
+                <code>&lt;ol-icon&gt;</code> bundle imports. Neither is committed, so the source
+                SVG is the only file in the commit.
             </li>
         </ol>
         <p class="ds-section__blurb">
-            That's it — the icon now renders through all three techniques and appears in the
+            That's it — the icon now renders through both techniques and appears in the
             <a href="#icon-gallery">gallery</a> above.
         </p>
     </section>
@@ -298,7 +305,7 @@
         </p>
         {% if not icons %}
             <p class="ds__empty">
-                Could not read <code>static/icons/manifest.json</code>. Run <code>make icons</code>.
+                No icon sources found in <code>static/icons/src/</code>.
             </p>
         {% endif %}
         {% if icons %}
@@ -340,7 +347,7 @@
             <span class="ds-icon-popover__preview" data-ds-icon-popover-preview></span>
             <code data-ds-icon-popover-name></code>
         </h3>
-        {% for key, label in [("templetor", "Templetor"), ("jinja", "Jinja"), ("lit", "Lit"), ("html", "HTML")] %}
+        {% for key, label in [("templetor", "Templetor"), ("jinja", "Jinja"), ("html", "HTML / Lit")] %}
             {# The whole well is the copy button — code text and glyph included.
                data-ds-code makes it a copy target for the shared handler. #}
             <div class="ds-icon-popover__row">

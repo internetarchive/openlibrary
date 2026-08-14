@@ -46,7 +46,7 @@ components: node_modules
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
-lit-components: node_modules
+lit-components: node_modules icons
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new
@@ -56,8 +56,8 @@ lit-components: node_modules
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
 
 icons:
-	# Regenerate the committed icon outputs (sprite, manifest, Lit glyph module).
-	# Only needed after editing static/icons/src/ — a plain checkout already has them.
+	# Build the icon sprite and the Lit glyph module from static/icons/src/.
+	# Neither is committed. No node_modules prerequisite — the script is pure Node.
 	node scripts/build_icon_sprite.mjs
 
 i18n:

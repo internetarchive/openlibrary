@@ -225,13 +225,20 @@ def icon_sprite_url() -> str:
     """Return the content-hashed URL of the icon sprite asset.
 
     Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
-    ``<meta name="ol-icon-sprite">`` tag in site/head instead. The sprite is
-    committed, so it is present in any checkout; ``static_url`` hashes once per
-    process, so regenerating it needs a web restart to change the URL.
+    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    hashes once per process, so a rebuild needs a web restart.
+
+    The sprite is generated, so a checkout that never ran ``make icons`` has no
+    file to hash. Fall back to the unhashed path: every icon draws blank, which
+    is obvious and cheap to fix, rather than 500ing every page that has one.
     """
     from openlibrary.plugins.upstream.code import static_url
 
-    return static_url("icons/sprite.svg")
+    try:
+        return static_url("icons/sprite.svg")
+    except OSError:
+        logger.warning("Icon sprite not found at static/icons/sprite.svg; run `make icons`")
+        return "/static/icons/sprite.svg"
 
 
 def render_macro(name, args, **kwargs):
