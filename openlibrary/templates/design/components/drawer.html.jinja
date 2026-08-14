@@ -22,17 +22,32 @@
                 document.getElementById('demo-drawer-end-trigger').addEventListener('click', () => { drawer.open = true; });
             })();
         </script>
-    {% endcall %}
-    {% call ex.example("Start placement", "placement=\"start\" slides from the left (right in RTL). Swipe-to-dismiss follows the placement, so the gesture always moves the panel off its own edge.",
+{% endcall %}
+{% call ex.example("Start placement", "placement=\"start\" slides from the left (right in RTL). Swipe-to-dismiss follows the placement, so the gesture always moves the panel off its own edge.",
         code='<ol-drawer label="Filters" placement="start">…</ol-drawer>') %}
         <ol-button id="demo-drawer-start-trigger" variant="secondary">
             Open filters…
         </ol-button>
         <ol-drawer id="demo-drawer-start" label="Filters" placement="start">
             <ul class="ds-demo-menu">
-                <li><label><input type="checkbox"> Available to borrow</label></li>
-                <li><label><input type="checkbox"> Has ebook</label></li>
-                <li><label><input type="checkbox"> English only</label></li>
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        Available to borrow
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        Has ebook
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <input type="checkbox">
+                        English only
+                    </label>
+                </li>
             </ul>
         </ol-drawer>
         <script>
