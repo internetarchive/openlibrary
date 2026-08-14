@@ -25,6 +25,7 @@ function fire(el, value) {
 describe('ListBooks', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
+        document.cookie = 'LBL=; path=/; max-age=0';
         mockTrackEvent.mockClear();
         // Give each test a realistic URL with params worth preserving.
         window.history.replaceState(null, '', '/search?q=dune&sort=old');
