@@ -1,5 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { chevronLeft, chevronRight } from './icons.generated.js';
+import './OlIcon.js';
 
 /**
  * A Netflix-style carousel component with page-based navigation.
@@ -263,17 +263,17 @@ export class OlCarousel extends LitElement {
             transform: scale(0.92);
         }
 
-        .arrow svg {
+        .arrow ol-icon {
             width: 28px;
             height: 28px;
+            /* Heavier stroke than the system default, to hold up against cover art. */
+            --ol-icon-stroke-width: 2.5;
         }
     `;
 
-    /** Left chevron SVG. Heavier stroke than the system default to hold up against cover art. */
-    static _leftArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronLeft}</svg>`;
+    static _leftArrow = html`<ol-icon name="chevron-left"></ol-icon>`;
 
-    /** Right chevron SVG */
-    static _rightArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronRight}</svg>`;
+    static _rightArrow = html`<ol-icon name="chevron-right"></ol-icon>`;
 
     /** Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
     static _breakpoints = [

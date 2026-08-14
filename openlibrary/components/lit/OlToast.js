@@ -1,5 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { x } from './icons.generated.js';
+import './OlIcon.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
 /**
@@ -270,8 +270,7 @@ export class OlToast extends LitElement {
             cursor: pointer;
         }
 
-        .toast__close svg {
-            display: block;
+        .toast__close ol-icon {
             width: 20px;
             height: 20px;
         }
@@ -305,8 +304,6 @@ export class OlToast extends LitElement {
     /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
     static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
 
-    /** Close (X) icon — the canonical glyph shared with ol-dialog / ol-banner */
-    static _closeIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x}</svg>`;
 
     constructor() {
         super();
@@ -470,7 +467,7 @@ export class OlToast extends LitElement {
                     class="toast__close"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                >${OlToast._closeIcon}</button>
+                ><ol-icon name="x"></ol-icon></button>
                 ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;

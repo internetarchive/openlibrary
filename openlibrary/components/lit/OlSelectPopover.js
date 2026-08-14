@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { search } from './icons.generated.js';
+import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
 import './OLButton.js';
@@ -303,7 +303,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     `;
 
     /** Search icon for the filter input */
-    static _searchIcon = html`<svg class="filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${search}</svg>`;
+    static _searchIcon = html`<ol-icon class="filter-icon" name="search"></ol-icon>`;
 
     constructor() {
         super();

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import * as icons from './icons.generated.js';
+import './OlIcon.js';
 
 /**
  * A WYSIWYG markdown editor built on Tiptap.
@@ -30,29 +30,29 @@ import * as icons from './icons.generated.js';
  */
 
 // Toolbar glyphs from the shared icon set, keyed by the editor's local names.
-// The <svg> shell keeps .toolbar-btn svg governing size and stroke-width.
-const glyph = (g) => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${g}</svg>`;
+// .toolbar-btn ol-icon governs size and stroke width.
+const glyph = (name) => html`<ol-icon name="${name}"></ol-icon>`;
 
 const ICONS = {
-    undo: glyph(icons.undo),
-    redo: glyph(icons.redo),
-    h1: glyph(icons.heading1),
-    h2: glyph(icons.heading2),
-    bold: glyph(icons.bold),
-    italic: glyph(icons.italic),
-    link: glyph(icons.link),
-    save: glyph(icons.check),
-    remove: glyph(icons.trash),
-    quote: glyph(icons.quote),
-    hr: glyph(icons.minus),
-    ul: glyph(icons.list),
-    ol: glyph(icons.listOrdered),
-    image: glyph(icons.image),
-    code: glyph(icons.code),
-    codeInline: glyph(icons.braces),
-    codeBlock: glyph(icons.squareCode),
-    more: glyph(icons.ellipsis),
-    source: glyph(icons.fileCode),
+    undo: glyph('undo'),
+    redo: glyph('redo'),
+    h1: glyph('heading-1'),
+    h2: glyph('heading-2'),
+    bold: glyph('bold'),
+    italic: glyph('italic'),
+    link: glyph('link'),
+    save: glyph('check'),
+    remove: glyph('trash'),
+    quote: glyph('quote'),
+    hr: glyph('minus'),
+    ul: glyph('list'),
+    ol: glyph('list-ordered'),
+    image: glyph('image'),
+    code: glyph('code'),
+    codeInline: glyph('braces'),
+    codeBlock: glyph('square-code'),
+    more: glyph('ellipsis'),
+    source: glyph('file-code'),
 };
 
 export class OLMarkdownEditor extends LitElement {
@@ -254,7 +254,7 @@ export class OLMarkdownEditor extends LitElement {
       justify-content: center;
     }
 
-    .toolbar-btn svg { width: var(--spacing-xl); height: var(--spacing-xl); stroke-width: 2.2; }
+    .toolbar-btn ol-icon { width: var(--spacing-xl); height: var(--spacing-xl); --ol-icon-stroke-width: 2.2; }
 
     @media (hover: hover) and (pointer: fine) {
       .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }

@@ -1,11 +1,14 @@
 /**
- * ol-icon.css — shared styles for the icon system, used by both delivery paths:
- * the $:macros.icon() macro and the <ol-icon> component's light DOM emit the
- * same <svg class="ol-icon ol-icon--md">.
+ * ol-icon.css — styles for the $:macros.icon() macro's <svg class="ol-icon">,
+ * plus the pre-upgrade box for the <ol-icon> element.
  *
  * Color comes from currentColor, baked into each sprite <symbol>. Stroke weight
  * is not baked in — the build drops it so it can be set here and inherit through
  * <use> (see tokens/icon-sizes.css).
+ *
+ * <ol-icon> styles its own glyph inside its shadow root; only the host rules
+ * below are its business, and they must stay in sync with the :host rules in
+ * OlIcon.js.
  */
 
 /* The <ol-icon> host, sized from the `size` attribute so the box is reserved
@@ -29,8 +32,7 @@ ol-icon[size="lg"] {
   height: var(--icon-size-lg);
 }
 
-/* The rendered glyph. The .ol-icon--* sizes drive the macro's bare <svg>; inside
-   an <ol-icon> host it just fills the reserved box. */
+/* The macro's rendered glyph. */
 .ol-icon {
   display: inline-block;
   flex-shrink: 0;
@@ -56,9 +58,4 @@ ol-icon[size="lg"] {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
   stroke-width: var(--icon-stroke-lg);
-}
-
-ol-icon > .ol-icon {
-  width: 100%;
-  height: 100%;
 }

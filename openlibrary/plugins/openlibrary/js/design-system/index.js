@@ -177,16 +177,10 @@ function initScrollSpy(root) {
     targets.forEach((target) => observer.observe(target));
 }
 
-/** Kebab-case icon name → its camelCase export in icons.generated.js. */
-function camelCase(name) {
-    return name.replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
-}
-
 function iconSnippets(name) {
     return {
         templetor: `$:macros.icon("${name}")`,
         jinja: `{{ icon("${name}") }}`,
-        lit: `import { ${camelCase(name)} } from './icons.generated.js';`,
         html: `<ol-icon name="${name}"></ol-icon>`,
     };
 }

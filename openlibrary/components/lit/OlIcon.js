@@ -1,37 +1,29 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, css, nothing } from 'lit';
 
-const SIZE_CLASSES = new Map([
-    ['sm', 'ol-icon--sm'],
-    ['md', 'ol-icon--md'],
-    ['lg', 'ol-icon--lg'],
-]);
-
-// The hashed sprite URL rides on the <meta name="ol-icon-sprite"> tag. Resolved
-// lazily so the module still loads where the tag is absent (tests, fragments).
-let spriteUrl = null;
-function getSpriteUrl() {
-    spriteUrl ??= document.querySelector('meta[name="ol-icon-sprite"]')?.content || '/static/icons/sprite.svg';
-    return spriteUrl;
-}
+import { glyphs } from './icons.generated.js';
 
 /**
- * A single icon from the Open Library icon sprite, referenced via
- * `<use href="…sprite.svg#icon-name">`.
+ * A single icon from the Open Library set.
  *
- * Renders into the light DOM so the global ol-icon.css applies and the glyph's
- * `currentColor` strokes inherit from context. The client-side counterpart of
- * the `$:macros.icon()` macro — same sprite, same CSS; prefer the macro in
- * server-rendered templates. Inside another component's shadow root, inline the
- * glyph from icons.generated.js instead: <use> is unreliable there.
+ * Self-contained: the glyph is inlined from icons.generated.js and styled inside
+ * this element's shadow root, so one element works everywhere client-side —
+ * plain markup, a Lit template, or another component's shadow DOM (where the
+ * sprite's `<use href>` and the global ol-icon.css can't reach). The
+ * `$:macros.icon()` macro is the server-rendered counterpart; prefer it in
+ * templates, where it paints without waiting on JS.
+ *
+ * Color follows `currentColor`. Size comes from the `size` attribute, or set
+ * width/height on the element to override it; stroke weight follows the size
+ * unless `--ol-icon-stroke-width` says otherwise.
  *
  * @element ol-icon
  *
- * @prop {String} name  - Icon name (e.g. "search"); the sprite symbol is "icon-<name>".
- * @prop {String} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px). For a
- *                        one-off, set width/height on the host in CSS instead —
- *                        the inner <svg> fills it and the box is right pre-upgrade.
+ * @prop {String} name  - Icon name, e.g. "search". See /developers/design#icons.
+ * @prop {String} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px).
  * @prop {String} label - Accessible name; exposes the icon as role="img". Without
  *                        it the icon is aria-hidden.
+ *
+ * @cssprop [--ol-icon-stroke-width] - Stroke weight, overriding the size default.
  *
  * @example
  * <ol-icon name="search"></ol-icon>
@@ -44,10 +36,49 @@ export class OlIcon extends LitElement {
         label: { type: String },
     };
 
-    // Light DOM — see class comment.
-    createRenderRoot() {
-        return this;
-    }
+    // The host box is sized here and again in ol-icon.css. The duplication is
+    // load-bearing: :host only applies once the element upgrades, so the global
+    // rules are what reserve the box beforehand — but they don't cross a shadow
+    // boundary, so :host is what sizes the element inside another component.
+    // Outer-tree rules beat :host, so a parent can still size it however it likes.
+    static styles = css`
+        :host {
+            display: inline-flex;
+            flex-shrink: 0;
+            width: var(--icon-size-md);
+            height: var(--icon-size-md);
+            vertical-align: middle;
+        }
+
+        :host([size='sm']) {
+            width: var(--icon-size-sm);
+            height: var(--icon-size-sm);
+        }
+
+        :host([size='lg']) {
+            width: var(--icon-size-lg);
+            height: var(--icon-size-lg);
+        }
+
+        :host([hidden]) {
+            display: none;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            stroke-width: var(--ol-icon-stroke-width, var(--icon-stroke-md));
+        }
+
+        :host([size='sm']) svg {
+            stroke-width: var(--ol-icon-stroke-width, var(--icon-stroke-sm));
+        }
+
+        :host([size='lg']) svg {
+            stroke-width: var(--ol-icon-stroke-width, var(--icon-stroke-lg));
+        }
+    `;
 
     constructor() {
         super();
@@ -56,19 +87,33 @@ export class OlIcon extends LitElement {
         this.label = '';
     }
 
+    // Decorative by default; named only when the caller supplies a label. On the
+    // host rather than the <svg> so assistive tech doesn't have to pierce the
+    // shadow root, and so aria-hidden covers the whole element.
+    willUpdate() {
+        if (this.label && this.label.trim()) {
+            this.setAttribute('role', 'img');
+            this.setAttribute('aria-label', this.label);
+            this.removeAttribute('aria-hidden');
+        } else {
+            this.setAttribute('aria-hidden', 'true');
+            this.removeAttribute('role');
+            this.removeAttribute('aria-label');
+        }
+    }
+
     render() {
         if (!this.name) return nothing;
 
-        const sizeClass = SIZE_CLASSES.get(this.size) ?? SIZE_CLASSES.get('md');
-        const labeled = Boolean(this.label && this.label.trim());
-
-        return html`<svg
-            class="ol-icon ${sizeClass}"
-            role=${labeled ? 'img' : nothing}
-            aria-label=${labeled ? this.label : nothing}
-            aria-hidden=${labeled ? nothing : 'true'}
-            focusable="false"
-        ><use href="${getSpriteUrl()}#icon-${this.name}"></use></svg>`;
+        const glyph = glyphs[this.name];
+        if (!glyph) {
+            // Silent blanks are the failure mode people waste time on; a typo'd
+            // or renamed icon should say so.
+            // eslint-disable-next-line no-console
+            console.warn(`<ol-icon>: no icon named "${this.name}". See /developers/design/icons for the gallery.`);
+            return nothing;
+        }
+        return glyph;
     }
 }
 

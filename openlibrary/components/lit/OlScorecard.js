@@ -1,5 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
-import { chevronDown, clock } from './icons.generated.js';
+import './OlIcon.js';
 
 let _idCounter = 0;
 
@@ -162,12 +162,6 @@ export class OlScorecard extends LitElement {
         _activeSection: { type: Number, state: true },
     };
 
-    /** Chevron icon; rotated by callers to indicate open/closed state. */
-    static _chevronIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevronDown}</svg>`;
-
-    /** Clock icon; shown in the outdated-data warning banner. */
-    static _clockIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${clock}</svg>`;
-
     static styles = css`
         :host {
             display: inline-block;
@@ -210,6 +204,7 @@ export class OlScorecard extends LitElement {
             width: 1em;
             height: 1em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .header {
@@ -236,6 +231,7 @@ export class OlScorecard extends LitElement {
             height: 1.1em;
             flex-shrink: 0;
             transform: rotate(180deg);
+            --ol-icon-stroke-width: 2.5;
         }
 
         .tabs {
@@ -376,6 +372,7 @@ export class OlScorecard extends LitElement {
             width: 1em;
             height: 1em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .check[open] .check-chevron {
@@ -404,6 +401,7 @@ export class OlScorecard extends LitElement {
             width: 1.2em;
             height: 1.2em;
             flex-shrink: 0;
+            --ol-icon-stroke-width: 2.5;
         }
     `;
 
@@ -483,7 +481,7 @@ export class OlScorecard extends LitElement {
             >
                 <ol-score-gauge percentage=${percentage} size="small"></ol-score-gauge>
                 <span class="collapsed-label" aria-hidden="true">${name}</span>
-                <span class="collapsed-chevron" aria-hidden="true">${OlScorecard._chevronIcon}</span>
+                <ol-icon class="collapsed-chevron" name="chevron-down"></ol-icon>
             </button>
         `;
     }
@@ -501,7 +499,7 @@ export class OlScorecard extends LitElement {
                 @click=${() => { this.expanded = false; }}
             >
                 <span style="flex: 1">${name}</span>
-                <span class="header-chevron" aria-label=${this.labelCollapse}>${OlScorecard._chevronIcon}</span>
+                <ol-icon class="header-chevron" name="chevron-down" label=${this.labelCollapse}></ol-icon>
             </button>
 
             ${this._renderOutdatedBanner()}
@@ -550,7 +548,7 @@ export class OlScorecard extends LitElement {
 
         return html`
             <div class="outdated-banner">
-                <span class="outdated-banner-icon">${OlScorecard._clockIcon}</span>
+                <ol-icon class="outdated-banner-icon" name="clock"></ol-icon>
                 <span>${this.labelOutdated}</span>
             </div>
         `;
@@ -601,7 +599,7 @@ export class OlScorecard extends LitElement {
                 <summary>
                     <span style="flex: 1">${emoji} ${check.description}</span>
                     <span class="check-points">${this._interpolateLabel(this.labelPoints, { score: check.score })}</span>
-                    <span class="check-chevron" aria-hidden="true">${OlScorecard._chevronIcon}</span>
+                    <ol-icon class="check-chevron" name="chevron-down"></ol-icon>
                 </summary>
                 <div class="check-details">${check.details}</div>
             </details>

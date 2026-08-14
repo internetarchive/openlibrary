@@ -1,5 +1,5 @@
 import { LitElement, html } from 'lit';
-import { x } from './icons.generated.js';
+import './OlIcon.js';
 
 /**
  * A callout-style announcement banner.
@@ -97,8 +97,6 @@ export class OlBanner extends LitElement {
         danger: OlBanner._dangerIcon,
     };
 
-    /** Close (X) icon — the canonical glyph shared with ol-dialog / ol-toast */
-    static _closeIcon = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x}</svg>`;
 
     constructor() {
         super();
@@ -170,7 +168,7 @@ export class OlBanner extends LitElement {
                     class="ol-banner__close"
                     aria-label=${this.labelClose}
                     @click=${() => this.dismiss()}
-                >${OlBanner._closeIcon}</button>
+                ><ol-icon name="x"></ol-icon></button>
             ` : ''}
         `;
     }
