@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { findFocusableIndex, getDeepActiveElement, getFocusableFromSlot } from './utils/focus-utils.js';
+import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 
 /**
@@ -343,12 +343,12 @@ export class OlDrawer extends LitElement {
     // ── Focus trap ──────────────────────────────────────────────
 
     /**
-     * Focusable elements slotted into the drawer, in DOM order. Filtered to
-     * currently-rendered elements by {@link getFocusableFromSlot}.
+     * Tab stops slotted into the drawer, in DOM order. Filtered to
+     * currently-rendered elements by {@link getTabbableFromSlot}.
      * @returns {HTMLElement[]}
      */
     _getFocusableElements() {
-        return getFocusableFromSlot(this.shadowRoot?.querySelector('.drawer slot:not([name])'));
+        return getTabbableFromSlot(this.shadowRoot?.querySelector('.drawer slot:not([name])'));
     }
 
     /**
