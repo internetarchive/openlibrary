@@ -96,8 +96,17 @@ export class OlDrawer extends LitElement {
             padding: 0;
             border: none;
             background: transparent;
-            /* Clips the panel while it sits off-screen. */
+            /* Clips the panel while it sits off-screen. Must be clip, not
+               hidden: hidden still creates a scroll container, and a panel
+               parked at translateX(100%) sits in its scrollable overflow. Any
+               focus inside that panel then scrolls the dialog by the panel's
+               width to reveal it, and that offset fights the slide — the drawer
+               appears already open, overshoots, then snaps back. Only end
+               placement showed it; overflow to the left of the origin isn't
+               scrollable, so start was always smooth. clip clips without ever
+               becoming scrollable. */
             overflow: hidden;
+            overflow: clip;
         }
 
         dialog:focus {
@@ -303,6 +312,12 @@ export class OlDrawer extends LitElement {
         this._scrim.classList.add('is-open');
 
         this._setInitialFocus();
+
+        // Fallback for engines without `overflow: clip` (Safari < 16), where the
+        // dialog is still a scroll container and focusing into the off-screen
+        // panel scrolls it. Same synchronous block as the focus calls above, so
+        // nothing paints in between. A no-op wherever `clip` applies.
+        dialog.scrollLeft = 0;
 
         this._afterTransition(panel, () => {
             if (cycle !== this._cycle) return;
