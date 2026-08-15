@@ -29,8 +29,32 @@ $if author_names:
 $else:
   $ byline = ''
 
-<div class="book carousel__item">
-  <div class="book-cover">
+<div class="book carousel__item" style="text-align: center;">
+
+
+  $ loan = book.get('loan')
+  <div class="book-cover" style="position: relative; display: inline-block; margin: 0 auto; border-radius: 4px; max-width: 100%;">
+    $if loan:
+      $ wlsize = book.get_waitinglist_size() if hasattr(book, 'get_waitinglist_size') else 0
+      $ has_expiry = loan.get('expiry')
+      $ is_bookreader = loan.get('resource_type') == 'bookreader'
+      $if has_expiry or wlsize or not is_bookreader:
+        <div class="loan-overlay-badge">
+          $if has_expiry:
+            $:macros.FormatExpiry(loan.get('expiry'))
+          $if wlsize:
+            <div class="loan-overlay-badge__waitlist">
+              $ungettext("1 person waiting", "%(count)d people waiting", wlsize, count=wlsize)
+            </div>
+          $if not is_bookreader:
+            <div class="loan-overlay-badge__not-bookreader">
+              $if loan.get('expiry') is None:
+                <span class="loan-overlay-badge__not-downloaded">$_("Not yet downloaded.")</span><br/>
+                <a href="$loan.get('loan_link')" class="loan-overlay-badge__download-link">$_("Download Now")</a>
+              $else:
+                <span style="opacity: 0.9;">$_("Return via ADE")</span>
+            </div>
+        </div>
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
       $if cover_url:
         <img class="bookcover" loading="lazy"
@@ -49,5 +73,20 @@ $else:
         </div>
     </a>
   </div>
-  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
+
+  <div class="ol-action-row">
+    <div class="ol-macro-wrapper">
+      $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=(secondary_action and not loan), analytics_override="BookCarousel|CTAClick|%s" % key)
+    </div>
+    $if loan and loan.get('resource_type') == 'bookreader':
+      <div class="ol-return-wrapper">
+        <form action="/borrow/ia/$(loan.get('ocaid'))" method="post" class="return-form" data-i18n="$json_encode({'confirm_return': _('Really return this book?')})">
+          <input type="hidden" name="action" value="return" />
+          <input type="hidden" name="redirect" value="$request.fullpath" />
+          <button type="submit" class="cta-btn cta-btn--ia cta-btn--available" title="$_('Return book')" aria-label="$_('Return book')">
+            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M288-192v-72h288q50 0 85-35t35-85q0-50-35-85t-85-35H330l93 93-51 51-180-180 180-180 51 51-93 93h246q80 0 136 56t56 136q0 80-56 136t-136 56H288Z"/></svg>
+          </button>
+        </form>
+      </div>
+  </div>
 </div>
