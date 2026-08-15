@@ -39,12 +39,13 @@ th.status {
   margin-top: 1em;
 }
 
-.details-content>header{
+.details-content header{
     padding-left: 0px;
 }
 
 </style>
 
+<section class="active-loans-section">
 <header>
     <h1 class="details-title">
         $ungettext("Active Loan (%(count)d)", "Active Loans (%(count)d)", len(loans), count=len(loans))
@@ -108,7 +109,9 @@ th.status {
     </table>
   </div>
 </div>
+</section>
 
+<section class="waiting-list-section">
 <header>
     <h1 class="details-title">$_("Books You're Waiting For")</h1>
 </header>
@@ -191,7 +194,9 @@ th.status {
           </table>
         </div>
 </div>
+</section>
 
+<section class="loan-history-section">
 <header>
     <h1 class="details-title">$_("Loan History")</h1>
 </header>
@@ -209,10 +214,11 @@ th.status {
     $:macros.OlPaginationArrows(current_page, show_next)
   $else:
     <ul class="list-books">
-        <p>$_("No loans found in your borrow history.")</p>
-        <p>$:_('<a href="/search">Search for a book</a> to borrow.')</p>
+        <li>$_("No loans found in your borrow history.")</li>
+        <li>$:_('<a href="/search">Search for a book</a> to borrow.')</li>
     </ul>
 </div>
+</section>
 
 <br/>
 <hr/>
