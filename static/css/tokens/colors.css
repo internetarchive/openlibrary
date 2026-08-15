@@ -11,14 +11,15 @@
  * -------------
  */
 :root {
-  /* Warm neutral ramp — "paper to ink" (hue 41–48), replacing the legacy grey
-     and beige families. Saturation falls as the ramp darkens, so text ink
-     reads neutral while the tints stay paper. */
+  /* Greys — every neutral in the UI.
+     Low numbers are backgrounds and borders, high numbers are text. They're all
+     slightly yellow instead of pure grey, and that warmth is what makes the
+     page read as paper rather than as a white screen. */
   --neutral-50: hsl(48, 38%, 97%);
   --neutral-100: hsl(48, 32%, 94%);
   --neutral-200: hsl(47, 27%, 86%);
   --neutral-300: hsl(45, 22%, 77%);
-  --neutral-400: hsl(43, 13%, 62%); /* non-text only */
+  --neutral-400: hsl(43, 13%, 62%); /* icons, placeholders — too light for text */
   --neutral-500: hsl(42, 11%, 42%); /* muted text — 4.9:1 on white */
   --neutral-600: hsl(41, 12%, 36%); /* secondary text — 6.3:1 on white */
   --neutral-700: hsl(41, 13%, 29%);
@@ -26,19 +27,23 @@
   --neutral-900: hsl(41, 16%, 12%);
   --white: hsl(0, 0%, 100%);
 
-  /* Overlay ink. --neutral-900 is too low-chroma to survive dilution — at 11%
-     it reads as the cool grey the ramp replaced. Overlays only; as a fill this
-     is far too saturated. */
+  /* Overlay ink — for anything see-through.
+     Hover shading, drop shadows. On its own it looks too brown to use as a
+     fill, which is deliberate: transparency washes most of the color out.
+     --neutral-900 is the obvious pick instead, but once faded it comes out
+     looking like the cold grey we're trying to avoid. */
   --ink-overlay: hsl(44, 65%, 26%);
 
-  /* Page canvas — off the ramp on purpose. The ramp reads as warm grey, too
-     cool full-bleed; this sits most of the way back to the beige on
-     openlibrary.org. --color-background is the only consumer. */
+  /* The page background, behind every card and panel.
+     Deliberately not one of the greys above: spread across a whole page those
+     look a little cold, so this is slightly warmer. --color-background is the
+     only thing that should use it. */
   --paper: hsl(48, 31%, 84%);
 
-  /* Blue ramp — the single brand accent, rotated a few degrees warmer than the
-     legacy hue 206–216 so it stops reading icy against the neutrals. Small
-     enough that the brand still reads as the same blue. */
+  /* Blue — our one accent color.
+     Links, primary buttons, focus rings, anything that should look clickable.
+     It leans slightly purple rather than sky blue, which keeps it from looking
+     cold next to the warm greys. */
   --blue-50: hsl(218, 65%, 95%);
   --blue-100: hsl(217, 63%, 91%);
   --blue-200: hsl(216, 55%, 83%);
@@ -49,11 +54,13 @@
   --blue-700: hsl(211, 82%, 24%);
   --blue-800: hsl(214, 79%, 19%); /* visited links */
 
-  /* Status ramps — hue pulled toward the neutrals' warm band, chroma cut to
-     match. 600/700 are the text-safe foregrounds (AA on white and on their own
-     50/100 tints); 500 is the object color. */
+  /* Red, green, and amber — error, success, and warning. Each runs light to
+     dark: 50 for a message background, 200 for its border, 600 or 700 for its
+     text. Only those last two are dark enough to read on white. 500 is for
+     solid objects — a filled icon, a destructive button. */
 
-  /* Red — brick rather than signal red. */
+  /* Red — a brick red rather than a bright fire-engine red, so errors read as
+     serious rather than alarming. */
   --red-50: hsl(14, 50%, 95%);
   --red-100: hsl(14, 48%, 91%);
   --red-200: hsl(14, 45%, 84%);
@@ -61,8 +68,8 @@
   --red-600: hsl(11, 58%, 35%);
   --red-700: hsl(9, 60%, 28%);
 
-  /* Green — moss rather than spearmint; ~100 is the warm side of green, near
-     the hue-4x neutrals. */
+  /* Green — an olive green rather than a minty one, so success states sit with
+     the warm greys instead of standing apart from them. */
   --green-50: hsl(98, 30%, 93%);
   --green-100: hsl(98, 28%, 87%);
   --green-200: hsl(99, 26%, 79%);
@@ -71,7 +78,7 @@
   --green-600: hsl(105, 36%, 26%);
   --green-700: hsl(107, 38%, 20%);
 
-  /* Amber — already inside the neutrals' hue band; only saturation is trimmed. */
+  /* Amber — warning states, plus the gold on star ratings. */
   --amber-50: hsl(46, 80%, 95%);
   --amber-100: hsl(46, 78%, 88%);
   --amber-200: hsl(47, 72%, 78%);
@@ -84,8 +91,9 @@
 /**
  * 2. Semantic tokens
  * ------------------
- * What components consume. Each references a primitive only — the dark-mode
- * seam a future `[data-theme="dark"]` block re-points.
+ * The tokens your CSS should actually use. Each is named for a job rather than
+ * a color, and points at one primitive above. Keeping that mapping in a single
+ * place is what would let us ship dark mode without touching components.
  */
 :root {
   color-scheme: light;
@@ -93,7 +101,7 @@
   /* Text */
   --color-text: var(--neutral-800);
   --color-text-secondary: var(--neutral-600);
-  --color-text-muted: var(--neutral-500); /* AA only on white / neutral-50 */
+  --color-text-muted: var(--neutral-500); /* only readable on white or --neutral-50 */
   --color-text-inverse: var(--white);
 
   /* Surfaces */
@@ -124,25 +132,25 @@
   --color-disabled-bg: var(--neutral-300);
   --color-disabled-fg: var(--neutral-500);
 
-  /* Hover for flat rows (popover items, menu items, list rows). An overlay,
-     not a fill, so a row on any surface darkens instead of matching its own
-     background. */
+  /* Hover shading for flat rows — menu items, list rows, popover items. It's
+     see-through rather than a solid color, so it darkens whatever surface the
+     row happens to sit on instead of forcing every row to the same grey. */
   --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
 
-  /* Hover fill for raised controls. Opaque on purpose — see
-     --color-control-selected-surface below. */
+  /* Hover color for raised controls (buttons and friends). Solid, not
+     see-through — see the note on --color-control-selected-surface below. */
   --color-control-hover: var(--neutral-100);
 
-  /* Selected state for neutral controls. Shared by ol-button[selected] and
-     ol-toggle[variant="button"][checked] so they can't drift apart. */
+  /* The selected look for neutral controls. Shared by ol-button[selected] and
+     ol-toggle[variant="button"][checked] so the two can't drift apart. */
   --color-control-selected-bg: color-mix(in srgb, var(--blue-500) 8%, transparent);
   --color-control-selected-bg-hover: color-mix(in srgb, var(--blue-500) 12%, transparent);
   --color-control-selected-border: color-mix(in srgb, var(--blue-500) 35%, transparent);
   --color-control-selected-border-hover: color-mix(in srgb, var(--blue-500) 50%, transparent);
 
-  /* Opaque equivalents of the two tints above. Feed these to
-     --control-surface, never the tints: their alpha carries into the specular
-     highlight and inverts it into a faint dark line. */
+  /* Solid versions of the two see-through tints above. Always hand
+     --control-surface one of these, never the tints: the transparency leaks
+     into the control's top highlight and turns it into a faint dark line. */
   --color-control-selected-surface: color-mix(in srgb, var(--blue-500) 8%, var(--white));
   --color-control-selected-surface-hover: color-mix(in srgb, var(--blue-500) 12%, var(--white));
 
@@ -154,7 +162,8 @@
   --color-border-subtle: var(--neutral-200);
   --color-focus-ring: var(--blue-500);
 
-  /* Status. Info reuses the blue ramp rather than taking a hue of its own. */
+  /* Colors for messages and notices. Info borrows the blue ramp rather than
+     taking a color of its own. */
   --color-info-fg: var(--blue-600);
   --color-info-bg: var(--blue-50);
   --color-info-border: var(--blue-200);
@@ -189,9 +198,9 @@
  * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
  * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
  *
- * That indirection is the dark-mode seam: re-pointing the semantic layer
- * carries every compliant consumer. Styles written against primitives or
- * literals won't follow.
+ * The reason for the indirection: if every component asks for `--color-text`,
+ * a future theme changes one line here and the whole site follows. Components
+ * that hardcode `--neutral-800` or an `hsl()` get left behind.
  */
 
 /**
@@ -201,9 +210,9 @@
  * under it, down to the next tier header — off the Foundations page.
  */
 :root {
-  /* Chip variants — 50 fill, 200 border, text-safe 600/700 fg, keyed to the
-     kind of thing the chip names. Consumed via ol-chip's `variant`. Author and
-     place have no ramp of their own, so they carry muted literals. */
+  /* One color set per kind of thing a chip can name — a language, a subject,
+     an author. Pick one with ol-chip's `variant` attribute. Author and place
+     have no ramp of their own, so they use fixed values in the same range. */
   --color-chip-language-bg: var(--blue-50);
   --color-chip-language-bg-hover: var(--blue-100);
   --color-chip-language-fg: var(--blue-700);
@@ -358,7 +367,7 @@
   --purple: hsl(288, 35%, 45%);
   --magenta: hsl(310, 45%, 45%);
   --blue: hsl(230, 45%, 45%);
-  --boxshadow-black: hsla(44, 60%, 18%, 0.15); /* ink-tinted, no longer black */
+  --boxshadow-black: hsla(44, 60%, 18%, 0.15); /* ink-tinted despite the name */
   --icon-link-grey: hsla(0, 0%, 0%, 0.1);
   --background-grey: hsla(0, 0%, 78%, 0.23);
   --account-icon-background: hsla(37, 24%, 79%, 0.761);

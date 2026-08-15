@@ -27,9 +27,8 @@
   --border-width-divider: 1px;
   --focus-width: 2px;
 
-  /* Complete Border Styles. The hairline is --neutral-200: these hardcoded
-     hsl(0, 0%, 87%) — a cool grey line drawn on every card and table — which
-     matched the ramp's lightness but not its temperature. */
+  /* Complete Border Styles. Every hairline is --neutral-200, so cards, tables,
+     and inputs share one warm line. */
   --border-card: 1px solid var(--color-border-subtle);
   --border-divider: 1px solid var(--color-border-subtle);
   --border-table: 1px solid var(--color-border-subtle);
