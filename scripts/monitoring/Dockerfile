@@ -3,8 +3,7 @@ FROM openlibrary/olbase:latest
 ARG APT_MIRROR
 ARG DOCKER_KEY_URL=https://download.docker.com/linux/debian/gpg
 ARG DOCKER_REPOSITORY_URL=https://download.docker.com/linux/debian
-ARG PIP_INDEX_URL
-ARG UV_DEFAULT_INDEX=$PIP_INDEX_URL
+ARG UV_DEFAULT_INDEX
 
 USER root
 
@@ -46,6 +45,8 @@ RUN if [ -n "$APT_MIRROR" ]; \
   fi && \
     apt-get install -y netcat-traditional
 
-# Install requirements.txt
-COPY --chown=openlibrary:openlibrary scripts/monitoring/requirements.txt scripts/monitoring/requirements.txt
-RUN uv pip install -r scripts/monitoring/requirements.txt
+# Install monitoring dependencies via uv (managed in pyproject.toml under [project.optional-dependencies] monitoring group)
+COPY --chown=openlibrary:openlibrary pyproject.toml uv.lock ./
+USER openlibrary
+# .venv already exists from olbase; just install the extra monitoring dependencies
+RUN uv sync --frozen --no-install-project --extra monitoring

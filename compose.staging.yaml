@@ -17,6 +17,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - UV_OFFLINE=1
       - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
@@ -27,7 +28,8 @@ services:
       - ol-vendor:/openlibrary/vendor
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
-      # Persistent volume mount for node_modules
+      # Persistent volume mount for deps
+      - ol-venv:/openlibrary/.venv
       - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
@@ -44,6 +46,7 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - UV_OFFLINE=1
       - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
       - ./.env.local
@@ -51,6 +54,8 @@ services:
       - ../olsystem:/olsystem
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
+      # Persistent volume mount for deps
+      - ol-venv:/openlibrary/.venv
       - .:/openlibrary
 
 
@@ -60,4 +65,5 @@ services:
 volumes:
   ol-vendor:
   ol-build:
+  ol-venv:
   ol-nodemodules:
