@@ -43,20 +43,23 @@
      only consumer. */
   --paper: hsl(48, 31%, 84%);
 
-  /* Blue ramp — "ink blue", the single brand accent. Built the way the neutral
-     ramp is: the rotation to the paper's complement (~220) runs to completion,
-     and saturation drops to a 34–54% band so the accent sits in the page's
-     temperature instead of floating above it. Lightness per step is preserved,
-     so every existing contrast relationship holds or improves. */
-  --blue-50: hsl(222, 45%, 95%);
-  --blue-100: hsl(222, 42%, 90%);
-  --blue-200: hsl(221, 38%, 81%);
-  --blue-300: hsl(221, 34%, 68%);
-  --blue-400: hsl(220, 34%, 55%);
-  --blue-500: hsl(220, 46%, 42%); /* brand blue — 6.7:1 on white */
-  --blue-600: hsl(221, 50%, 34%); /* link blue — 9.0:1 on white */
-  --blue-700: hsl(222, 52%, 27%);
-  --blue-800: hsl(223, 54%, 20%); /* visited links */
+  /* Blue ramp — the single brand accent, warmed a few degrees off legacy.
+     The legacy ramp sat at hue 206–216, which is cyan-leaning and reads icy
+     against the warm neutrals; rotating it all the way to the paper's
+     complement (~220) and cutting saturation to 34–54% fixed the temperature
+     but cost the brand its blue. This stays close to legacy — hue 210–218,
+     saturation 47–84% — a rotation small enough that it still reads as the
+     same blue, warm enough not to sit on top of the page. Lightness per step
+     is preserved, so every existing contrast relationship holds or improves. */
+  --blue-50: hsl(218, 65%, 95%);
+  --blue-100: hsl(217, 63%, 91%);
+  --blue-200: hsl(216, 55%, 83%);
+  --blue-300: hsl(214, 47%, 70%);
+  --blue-400: hsl(211, 60%, 54%);
+  --blue-500: hsl(210, 82%, 40%); /* brand blue — 5.8:1 on white */
+  --blue-600: hsl(210, 84%, 31%); /* link blue — 8.2:1 on white */
+  --blue-700: hsl(211, 82%, 24%);
+  --blue-800: hsl(214, 79%, 19%); /* visited links */
 
   /* Muted status ramps, rebased on the same logic as the blue: hue pulled
      toward the neutrals' warm band, chroma cut to match. The 600/700 steps are
@@ -170,7 +173,11 @@
   --color-border-subtle: var(--neutral-200);
   --color-focus-ring: var(--blue-500);
 
-  /* Status */
+  /* Status. Info completes the quartet — it reuses the blue ramp rather than
+     a hue of its own, so notices read as informational, not as an accent. */
+  --color-info-fg: var(--blue-600);
+  --color-info-bg: var(--blue-50);
+  --color-info-border: var(--blue-200);
   --color-success-fg: var(--green-600);
   --color-success-bg: var(--green-50);
   --color-success-border: var(--green-200);
@@ -210,7 +217,7 @@
  * | A default border | `--color-border`; hairline dividers → `--color-border-subtle` |
  * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
  * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
- * | Success / error / warning notices | `--color-{success,error,warning}-{fg,bg,border}` |
+ * | Info / success / error / warning notices | `--color-{info,success,error,warning}-{fg,bg,border}` |
  *
  * Why the indirection matters: every semantic token references a primitive,
  * and that mapping is the dark-mode seam — a future `[data-theme="dark"]`
@@ -229,36 +236,41 @@
   /* Chip / tag variants — soft-tint palette (pale background, saturated text
      & border) used to color a chip by the *kind* of thing it represents.
      Consumed via the `variant` attribute on <ol-chip>; see OLChip.js. Each
-     variant defines bg / fg / border and a slightly darker bg for hover. */
-  --color-chip-language-bg: var(--green-50);
-  --color-chip-language-bg-hover: var(--green-100);
-  --color-chip-language-fg: var(--green-600);
-  --color-chip-language-border: var(--green-200);
+     variant defines bg / fg / border and a slightly darker bg for hover.
 
-  --color-chip-subject-bg: var(--blue-50);
-  --color-chip-subject-bg-hover: var(--blue-100);
-  --color-chip-subject-fg: var(--blue-600);
-  --color-chip-subject-border: var(--blue-200);
+     Every variant follows the ramps' recipe: 50 tint fill, 200 border, a
+     text-safe 600/700 foreground. Author and place have no ramp of their own,
+     so they carry muted plum and teal literals built to the same register —
+     the only place in the chip palette where a literal is correct. */
+  --color-chip-language-bg: var(--blue-50);
+  --color-chip-language-bg-hover: var(--blue-100);
+  --color-chip-language-fg: var(--blue-700);
+  --color-chip-language-border: var(--blue-200);
 
-  --color-chip-genre-bg: hsl(283, 55%, 96%);
-  --color-chip-genre-bg-hover: hsl(283, 55%, 93%);
-  --color-chip-genre-fg: hsl(283, 60%, 40%);
-  --color-chip-genre-border: hsl(283, 45%, 86%);
+  --color-chip-subject-bg: var(--green-50);
+  --color-chip-subject-bg-hover: var(--green-100);
+  --color-chip-subject-fg: var(--green-600);
+  --color-chip-subject-border: var(--green-200);
 
-  --color-chip-author-bg: hsl(32, 90%, 94%);
-  --color-chip-author-bg-hover: hsl(32, 90%, 90%);
-  --color-chip-author-fg: hsl(23, 80%, 38%);
-  --color-chip-author-border: hsl(32, 80%, 82%);
+  --color-chip-genre-bg: var(--red-50);
+  --color-chip-genre-bg-hover: var(--red-100);
+  --color-chip-genre-fg: var(--red-700);
+  --color-chip-genre-border: var(--red-200);
 
-  --color-chip-place-bg: hsl(184, 55%, 93%);
-  --color-chip-place-bg-hover: hsl(184, 55%, 89%);
-  --color-chip-place-fg: hsl(184, 100%, 22%);
-  --color-chip-place-border: hsl(184, 45%, 77%);
+  --color-chip-author-bg: hsl(288, 25%, 93%);
+  --color-chip-author-bg-hover: hsl(288, 22%, 88%);
+  --color-chip-author-fg: hsl(290, 30%, 30%);
+  --color-chip-author-border: hsl(288, 20%, 82%);
+
+  --color-chip-place-bg: hsl(184, 30%, 92%);
+  --color-chip-place-bg-hover: hsl(184, 27%, 87%);
+  --color-chip-place-fg: hsl(186, 45%, 22%);
+  --color-chip-place-border: hsl(184, 25%, 78%);
 
   /* Neutral facet chip (e.g. availability) — no category color. */
   --color-chip-neutral-bg: var(--neutral-100);
   --color-chip-neutral-bg-hover: var(--neutral-200);
-  --color-chip-neutral-fg: var(--neutral-800);
+  --color-chip-neutral-fg: var(--neutral-700);
   --color-chip-neutral-border: var(--neutral-300);
 
   /* Book cover carousel shelf */
@@ -380,12 +392,15 @@
   --closed-red: var(--red-500);
 
   /* Kept literals @deprecated — niche hues with no ramp home (admin, merge
-     UI, charts) and alpha tokens (var() indirection can't carry the alpha). */
-  --teal: hsl(184, 100%, 21%);
-  --purple: hsl(283, 97%, 61%);
-  --magenta: hsl(300, 100%, 50%);
-  --blue: hsl(240, 100%, 50%);
-  --boxshadow-black: hsla(0, 0%, 0%, 0.15);
+     UI, charts) and alpha tokens (var() indirection can't carry the alpha).
+     The four chart hues were near-100% saturation screen colors; they keep
+     enough separation to stay legible in charts and merge UI, in the muted
+     register the ramps set. */
+  --teal: hsl(184, 45%, 26%);
+  --purple: hsl(288, 35%, 45%);
+  --magenta: hsl(310, 45%, 45%);
+  --blue: hsl(230, 45%, 45%);
+  --boxshadow-black: hsla(44, 60%, 18%, 0.15); /* ink-tinted, no longer black */
   --icon-link-grey: hsla(0, 0%, 0%, 0.1);
   --background-grey: hsla(0, 0%, 78%, 0.23);
   --account-icon-background: hsla(37, 24%, 79%, 0.761);

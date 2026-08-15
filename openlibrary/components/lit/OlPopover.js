@@ -112,7 +112,7 @@ export class OlPopover extends LitElement {
             z-index: var(--z-index-dropdown);
             background: var(--white);
             border-radius: var(--border-radius-overlay);
-            box-shadow: 0 8px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;

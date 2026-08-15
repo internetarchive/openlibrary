@@ -72,7 +72,7 @@ Raw values with no semantic meaning — the base palette. `colors.css` defines f
 
 ```css
 --neutral-800: hsl(41, 14%, 21%);
---blue-500: hsl(220, 46%, 42%);
+--blue-500: hsl(210, 82%, 40%);
 --spacing-lg: 1rem;
 --border-radius-lg: 9px;
 ```
@@ -90,7 +90,7 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 --border-radius-card: var(--border-radius-lg);
 ```
 
-The main semantic groups in `colors.css`: text (`--color-text`, `-secondary`, `-muted`, `-inverse`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{success,error,warning}-{fg,bg,border}`).
+The main semantic groups in `colors.css`: text (`--color-text`, `-secondary`, `-muted`, `-inverse`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`).
 
 Hover has two tokens, split by mechanism rather than by surface. `--color-hover-overlay` is a translucent overlay for flat interactive rows (popover items, menu items, list rows) — it composes over whatever surface it lands on, so a row on `--color-surface-sunken` or `-header` still darkens instead of matching its own background. `--color-control-hover` is an opaque fill for raised controls, and must stay opaque: alpha fed to `--control-surface` inverts the specular highlight.
 

@@ -27,12 +27,14 @@
   --border-width-divider: 1px;
   --focus-width: 2px;
 
-  /* Complete Border Styles */
-  --border-card: 1px solid hsl(0, 0%, 87%);
-  --border-divider: 1px solid hsl(0, 0%, 87%);
-  --border-table: 1px solid hsl(0, 0%, 87%);
+  /* Complete Border Styles. The hairline is --neutral-200: these hardcoded
+     hsl(0, 0%, 87%) — a cool grey line drawn on every card and table — which
+     matched the ramp's lightness but not its temperature. */
+  --border-card: 1px solid var(--color-border-subtle);
+  --border-divider: 1px solid var(--color-border-subtle);
+  --border-table: 1px solid var(--color-border-subtle);
 
-  --border-input: 1px solid hsl(0, 0%, 87%);
+  --border-input: 1px solid var(--color-border-subtle);
   --border-input-hovered: 1px solid var(--color-border-focused);
   --border-input-focused: 1px solid var(--color-border-focused);
 
@@ -61,6 +63,13 @@
          inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
 
      color-mix is unsupported on very old Safari/Android in our browserslist;
-     there the highlight is dropped and the control keeps just this drop shadow. */
-  --box-shadow-raised: 0 1px 1px hsla(0, 0%, 0%, 0.05);
+     there the highlight is dropped and the control keeps just this drop shadow.
+
+     The alpha is built on the --ink-overlay hue rather than pure black, so
+     depth reads as the same temperature as the page casting it. Alpha tokens
+     stay literal — var() indirection can't carry the alpha. */
+  --box-shadow-raised: 0 1px 1px hsla(44, 60%, 18%, 0.07);
+
+  /* Floating surfaces — popovers, dialogs, menus. Same ink, more spread. */
+  --box-shadow-overlay: 0 8px 24px hsla(44, 60%, 18%, 0.16);
 }
