@@ -72,7 +72,7 @@ Raw values with no semantic meaning — the base palette. `colors.css` defines f
 
 ```css
 --neutral-800: hsl(41, 14%, 21%);
---blue-500: hsl(206, 95%, 39%);
+--blue-500: hsl(220, 46%, 42%);
 --spacing-lg: 1rem;
 --border-radius-lg: 9px;
 ```
