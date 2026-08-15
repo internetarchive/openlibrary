@@ -6,12 +6,16 @@ $ url = book.get('key') or book.url
 $ title = book.get("title", "")
 
 $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
-$if book.get('cover_url'):
+$if hasattr(book, 'get_cover_url') and book.get_cover_url('M'):
+  $ cover_url = book.get_cover_url('M')
+$elif book.get('cover_url'):
   $ cover_url = book.get('cover_url')
 $elif cover_id and cover_id != -1:
   $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
 $elif book.get('ia'):
   $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+$elif book.get('ocaid'):
+  $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ocaid'), fallback_cover)
 $elif book.get('cover_edition_key'):
   $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
 $else:
