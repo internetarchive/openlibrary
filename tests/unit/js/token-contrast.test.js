@@ -92,10 +92,8 @@ const MATRIX = [
     ['--color-warning-fg', '--color-surface', 4.5],
     ['--color-warning-fg', '--color-warning-bg', 4.5],
     // Non-text UI (3:1): default input border, focus ring, disabled text.
-    // --color-border-muted and --color-icon-muted are absent on purpose: they
-    // are the decorative tier (1.6:1 and 2.5:1 on white) and carry that caveat
-    // in colors.css. Asserting 3:1 on them would be asserting a promise the
-    // system doesn't make.
+    // --color-border-muted and --color-icon-muted are absent on purpose — the
+    // decorative tier (1.6:1 and 2.5:1 on white) makes no 3:1 promise.
     ['--color-border', '--color-surface', 3],
     ['--color-focus-ring', '--color-surface', 3],
     ['--color-focus-ring', '--color-background', 3],

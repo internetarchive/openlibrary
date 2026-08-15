@@ -27,8 +27,8 @@
   --border-width-divider: 1px;
   --focus-width: 2px;
 
-  /* Complete Border Styles. Every hairline is --neutral-200, so cards, tables,
-     and inputs share one warm line. */
+  /* Complete border styles. Every hairline is --color-border-subtle, so cards,
+     tables, and inputs share one warm line. */
   --border-card: 1px solid var(--color-border-subtle);
   --border-divider: 1px solid var(--color-border-subtle);
   --border-table: 1px solid var(--color-border-subtle);
@@ -40,33 +40,17 @@
   /* Focus Ring — accessible focus indicator */
   --box-shadow-focus: 0 0 0 2px var(--color-focus-ring);
 
-  /* Surface a raised control sits on. Components override this next to
-     their own background-color so the specular highlight tones to the fill
-     instead of always being pure white. Defaults to the page surface for
-     white/light controls. */
+  /* Surface a raised control sits on. Components override it alongside their own
+     background-color so the specular highlight tones to that fill, not white. */
   --control-surface: var(--white);
 
-  /* Raised-control drop shadow — the surface-independent half of the lift,
-     shared by buttons, the segmented control, and future chips.
-
-     The matching inset specular highlight deliberately is NOT in this token.
-     A :root custom property substitutes its var()s against :root, so
-     var(--control-surface) here would bake to the :root default (white) and
-     inherit that down — an element-level --control-surface override (e.g. the
-     primary button's blue) would never reach it. Components therefore apply
-     the highlight inline, where color-mix resolves --control-surface against
-     the element itself:
-
-       box-shadow:
-         var(--box-shadow-raised),
-         inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
-
-     color-mix is unsupported on very old Safari/Android in our browserslist;
-     there the highlight is dropped and the control keeps just this drop shadow.
-
-     The alpha is built on the --ink-overlay hue rather than pure black, so
-     depth reads as the same temperature as the page casting it. Alpha tokens
-     stay literal — var() indirection can't carry the alpha. */
+  /* Raised-control drop shadow — the surface-independent half of the lift. The
+     matching inset highlight is deliberately not in this token: a :root custom
+     property resolves its var()s against :root, so --control-surface would bake
+     to white and element-level overrides could never reach it. Components apply
+     it inline instead, as
+     `inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface))`.
+     Alpha is on the --ink-overlay hue, and stays literal — var() can't carry it. */
   --box-shadow-raised: 0 1px 1px hsla(44, 60%, 18%, 0.07);
 
   /* Floating surfaces — popovers, dialogs, menus. Same ink, more spread. */

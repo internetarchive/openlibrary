@@ -11,10 +11,9 @@
  * -------------
  */
 :root {
-  /* Greys — every neutral in the UI.
-     Low numbers are backgrounds and borders, high numbers are text. They're all
-     slightly yellow instead of pure grey, and that warmth is what makes the
-     page read as paper rather than as a white screen. */
+  /* Greys. Low numbers are backgrounds and borders, high numbers are text.
+     All of them lean slightly yellow rather than pure grey — that warmth is
+     what makes the page read as paper instead of as a white screen. */
   --neutral-50: hsl(48, 38%, 97%);
   --neutral-100: hsl(48, 32%, 94%);
   --neutral-200: hsl(47, 27%, 86%);
@@ -27,23 +26,17 @@
   --neutral-900: hsl(41, 16%, 12%);
   --white: hsl(0, 0%, 100%);
 
-  /* Overlay ink — for anything see-through.
-     Hover shading, drop shadows. On its own it looks too brown to use as a
-     fill, which is deliberate: transparency washes most of the color out.
-     --neutral-900 is the obvious pick instead, but once faded it comes out
-     looking like the cold grey we're trying to avoid. */
+  /* Ink for anything see-through — hover shading, drop shadows. Looks too
+     brown to use as a solid fill, deliberately: transparency washes most of the
+     color out, and --neutral-900 faded comes back the cold grey we're avoiding. */
   --ink-overlay: hsl(44, 65%, 26%);
 
-  /* The page background, behind every card and panel.
-     Deliberately not one of the greys above: spread across a whole page those
-     look a little cold, so this is slightly warmer. --color-background is the
-     only thing that should use it. */
+  /* Page canvas. Warmer than any grey above, which spread across a whole page
+     read a little cold. Only --color-background should use it. */
   --paper: hsl(48, 31%, 84%);
 
-  /* Blue — our one accent color.
-     Links, primary buttons, focus rings, anything that should look clickable.
-     It leans slightly purple rather than sky blue, which keeps it from looking
-     cold next to the warm greys. */
+  /* Blue — the one accent: links, primary buttons, focus rings. Leans slightly
+     purple rather than sky, so it doesn't go cold next to the warm greys. */
   --blue-50: hsl(218, 65%, 95%);
   --blue-100: hsl(217, 63%, 91%);
   --blue-200: hsl(216, 55%, 83%);
@@ -54,13 +47,11 @@
   --blue-700: hsl(211, 82%, 24%);
   --blue-800: hsl(214, 79%, 19%); /* visited links */
 
-  /* Red, green, and amber — error, success, and warning. Each runs light to
-     dark: 50 for a message background, 200 for its border, 600 or 700 for its
-     text. Only those last two are dark enough to read on white. 500 is for
-     solid objects — a filled icon, a destructive button. */
+  /* Red, green, amber — error, success, warning. 50 is a message background,
+     200 its border, 500 a solid object (filled icon, destructive button), and
+     600/700 the text; only those last two are dark enough to read on white. */
 
-  /* Red — a brick red rather than a bright fire-engine red, so errors read as
-     serious rather than alarming. */
+  /* Brick red rather than fire-engine, so errors read serious, not alarming. */
   --red-50: hsl(14, 50%, 95%);
   --red-100: hsl(14, 48%, 91%);
   --red-200: hsl(14, 45%, 84%);
@@ -68,8 +59,7 @@
   --red-600: hsl(11, 58%, 35%);
   --red-700: hsl(9, 60%, 28%);
 
-  /* Green — an olive green rather than a minty one, so success states sit with
-     the warm greys instead of standing apart from them. */
+  /* Olive rather than mint, so success states sit with the warm greys. */
   --green-50: hsl(98, 30%, 93%);
   --green-100: hsl(98, 28%, 87%);
   --green-200: hsl(99, 26%, 79%);
@@ -91,9 +81,8 @@
 /**
  * 2. Semantic tokens
  * ------------------
- * The tokens your CSS should actually use. Each is named for a job rather than
- * a color, and points at one primitive above. Keeping that mapping in a single
- * place is what would let us ship dark mode without touching components.
+ * What component CSS should actually use: named for a job, each pointing at one
+ * primitive above. That single mapping is what a future dark mode would reroute.
  */
 :root {
   color-scheme: light;
@@ -105,10 +94,9 @@
   --color-text-muted: var(--neutral-500); /* only readable on white or --neutral-50 */
   --color-text-inverse: var(--white);
 
-  /* Icons. Decorative tier only — 2.5:1 on white, so it can't carry an icon
-     that conveys meaning on its own (WCAG 1.4.11 wants 3:1). Use it for inert
-     chrome: chevrons beside a visible label, inactive glyphs, placeholder
-     marks. A meaningful standalone icon takes --color-text-muted or darker. */
+  /* Decorative tier: 2.5:1 on white, under WCAG 1.4.11's 3:1. Inert chrome only
+     — a chevron beside a label, a placeholder glyph. An icon that carries
+     meaning on its own needs --color-text-muted or darker. */
   --color-icon-muted: var(--neutral-400);
 
   /* Surfaces */
@@ -139,25 +127,22 @@
   --color-disabled-bg: var(--neutral-300);
   --color-disabled-fg: var(--neutral-500);
 
-  /* Hover shading for flat rows — menu items, list rows, popover items. It's
-     see-through rather than a solid color, so it darkens whatever surface the
-     row happens to sit on instead of forcing every row to the same grey. */
+  /* Hover for flat rows — menu items, list rows, popover items. See-through, so
+     it darkens whatever surface the row sits on rather than forcing one grey. */
   --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
 
-  /* Hover color for raised controls (buttons and friends). Solid, not
-     see-through — see the note on --color-control-selected-surface below. */
+  /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);
 
-  /* The selected look for neutral controls. Shared by ol-button[selected] and
+  /* Selected look for neutral controls. Shared by ol-button[selected] and
      ol-toggle[variant="button"][checked] so the two can't drift apart. */
   --color-control-selected-bg: color-mix(in srgb, var(--blue-500) 8%, transparent);
   --color-control-selected-bg-hover: color-mix(in srgb, var(--blue-500) 12%, transparent);
   --color-control-selected-border: color-mix(in srgb, var(--blue-500) 35%, transparent);
   --color-control-selected-border-hover: color-mix(in srgb, var(--blue-500) 50%, transparent);
 
-  /* Solid versions of the two see-through tints above. Always hand
-     --control-surface one of these, never the tints: the transparency leaks
-     into the control's top highlight and turns it into a faint dark line. */
+  /* Solid versions of the tints above. Always hand --control-surface one of
+     these — alpha leaks into the top highlight and turns it into a dark line. */
   --color-control-selected-surface: color-mix(in srgb, var(--blue-500) 8%, var(--white));
   --color-control-selected-surface-hover: color-mix(in srgb, var(--blue-500) 12%, var(--white));
 
@@ -170,8 +155,7 @@
   --color-border-subtle: var(--neutral-200);
   --color-focus-ring: var(--blue-500);
 
-  /* Colors for messages and notices. Info borrows the blue ramp rather than
-     taking a color of its own. */
+  /* Messages and notices. Info borrows the blue ramp rather than its own hue. */
   --color-info-fg: var(--blue-600);
   --color-info-bg: var(--blue-50);
   --color-info-border: var(--blue-200);
@@ -189,12 +173,12 @@
 /**
  * 3. Which token do I use?
  * ------------------------
- * Pick by purpose, not by shade.
+ * Pick by purpose, not by shade — full guidance in docs/ai/design.md.
  *
- *   1. New code uses semantic tokens — never a primitive (`--neutral-500`) or
- *      a raw `hsl()`. If none fits, add one here and name the purpose.
- *   2. When you touch a file using a legacy name, migrate it. Once an alias's
- *      consumer count hits zero, we delete it.
+ *   1. New code uses a semantic token, never a primitive (`--neutral-500`) or a
+ *      raw `hsl()`. If none fits, add one here and name it for its job.
+ *   2. Touching a file on a legacy name? Migrate it. At zero consumers the
+ *      alias gets deleted.
  *
  * Most names say what they're for. The ones that don't:
  *
@@ -206,22 +190,17 @@
  * | An inert icon (chevron beside a label, placeholder glyph) | `--color-icon-muted` — decorative only, see its note above |
  * | Hovering a flat row (popover/menu/list item) | `--color-hover-overlay` — an overlay, so it works on any surface |
  * | Hovering a raised control | `--color-control-hover` — opaque, safe to feed `--control-surface` |
- *
- * The reason for the indirection: if every component asks for `--color-text`,
- * a future theme changes one line here and the whole site follows. Components
- * that hardcode `--neutral-800` or an `hsl()` get left behind.
  */
 
 /**
  * Component-specific semantic tokens @internal
  * --------------------------------------------
- * Owned by one component each. The marker keeps this tier — and every group
- * under it, down to the next tier header — off the Foundations page.
+ * Owned by one component each. The @internal marker keeps this tier — and every
+ * group under it, down to the next tier header — off the Foundations page.
  */
 :root {
-  /* One color set per kind of thing a chip can name — a language, a subject,
-     an author. Pick one with ol-chip's `variant` attribute. Author and place
-     have no ramp of their own, so they use fixed values in the same range. */
+  /* One set per kind of thing a chip can name, picked with ol-chip's `variant`.
+     Author and place have no ramp, so they use fixed values in the same range. */
   --color-chip-language-bg: var(--blue-50);
   --color-chip-language-bg-hover: var(--blue-100);
   --color-chip-language-fg: var(--blue-700);
@@ -270,9 +249,8 @@
 /**
  * 4. Deprecated aliases
  * ---------------------
- * Legacy names re-pointed at the ramps so existing var() consumers pick up the
- * palette with no edits. Never in new code; migrate opportunistically, then
- * delete the alias.
+ * Legacy names re-pointed at the ramps so existing consumers pick up the new
+ * palette unedited. Never in new code; migrate opportunistically, then delete.
  */
 :root {
   /* Blues → blue ramp @deprecated */
@@ -355,8 +333,8 @@
   --open-green: var(--green-500);
   --closed-red: var(--red-500);
 
-  /* Kept literals @deprecated — niche hues with no ramp home (admin, merge UI,
-     charts) and alpha tokens, which var() indirection can't carry. */
+  /* Kept literals @deprecated — niche hues with no ramp home, plus alpha
+     tokens, which var() indirection can't carry. */
   --teal: hsl(184, 45%, 26%);
   --magenta: hsl(310, 45%, 45%);
   --blue: hsl(230, 45%, 45%);
