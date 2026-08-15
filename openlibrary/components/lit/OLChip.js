@@ -65,6 +65,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                nudges each domain tint's border down by a proportional amount. */
             --_chip-border-hover: color-mix(in srgb, var(--_chip-border) 92%, black);
             --_chip-count-fg: #777;
+            /* Strength of the specular top edge, same scale as ol-button: full
+               on the light tints, dialed down on the solid blue fill below. */
+            --control-highlight-strength: 35%;
 
             display: inline-block;
         }
@@ -87,6 +90,23 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             line-height: var(--line-height-chip);
             background: var(--_chip-bg);
             color: var(--_chip-fg);
+            /* Raised look, matching ol-button: the shared drop shadow plus an
+               inset specular top edge toned to the chip's own fill. Both the
+               surface and the shadow are declared on this element (not :host),
+               so the :hover rule below can retone the highlight by overriding
+               --control-surface, and so the value never leaks to slotted
+               content. Held in a var so :focus-visible can layer the focus ring
+               on top without duplicating the resting shadow. */
+            --control-surface: var(--_chip-bg);
+            --_chip-raised-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+            box-shadow: var(--_chip-raised-shadow);
             cursor: pointer;
             user-select: none;
             text-decoration: none;
@@ -96,6 +116,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
             .chip:hover {
                 background: var(--_chip-bg-hover);
                 border-color: var(--_chip-border-hover);
+                /* Keep --control-surface == background, or the highlight stays
+                   toned to the resting fill. */
+                --control-surface: var(--_chip-bg-hover);
             }
         }
 
@@ -105,7 +128,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
         .chip:focus-visible {
             outline: none;
-            box-shadow: var(--box-shadow-focus);
+            box-shadow: var(--box-shadow-focus), var(--_chip-raised-shadow);
         }
 
         /* Default selected (no domain variant): solid primary-blue fill. */
@@ -119,6 +142,9 @@ export class OLChip extends FocusableHostMixin(LitElement) {
                filter carries the whole pill, edge included. */
             --_chip-border-hover: var(--_chip-border);
             --_chip-count-fg: #c6e1f0;
+            /* Soften the specular edge on the dark fill — a white line reads
+               much louder there than on a tint (same 18% as primary buttons). */
+            --control-highlight-strength: 18%;
         }
 
         @media (hover: hover) and (pointer: fine) {
