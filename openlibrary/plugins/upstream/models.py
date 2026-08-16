@@ -755,10 +755,10 @@ class Work(models.Work):
         # 2022-03 Once we know the availability-type of editions (e.g. open)
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
-        ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability("identifier", ocaids)
-        for ed in editions:
-            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+        # ocaids = [ed.ocaid for ed in editions if ed.ocaid]
+        # availability = lending.get_availability("identifier", ocaids)
+        # for ed in editions:
+        #     ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
         return editions
 
