@@ -759,6 +759,17 @@ class Work(models.Work):
         # availability = lending.get_availability("identifier", ocaids)
         # for ed in editions:
         #     ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+        if self._solr_data:
+            from openlibrary.book_providers import EbookAccess
+
+            ebook_access = EbookAccess.from_solr_str(
+                self._solr_data.get("ebook_access", "no_ebook")
+            )
+            for ed in editions:
+                if ed.ocaid:
+                    ed.availability = lending.get_ebook_access_availability(
+                        ed.ocaid, ebook_access
+                    )
 
         return editions
 
