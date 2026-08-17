@@ -234,10 +234,17 @@ async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None
         # To get the top matching edition, need to do a proper query
         resp = await run_solr_query_async(
             WorkSearchScheme(solr_editions=editions),
-            {"q": "key:(%s)" % " OR ".join(work_keys)},
+            {"q": "*:*"},
             rows=len(work_keys),
             fields=list(fields),
             facet=False,
+            extra_params=[
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key
+                # counts. It's put in an fq (rather than q) to bypass user-query
+                # processing, which would mangle the local-params syntax.
+                ("fq", "{!terms f=key}" + ",".join(work_keys)),
+            ],
         )
         return {
             # storify isn't typed properly, but basically recursively call web.storage
