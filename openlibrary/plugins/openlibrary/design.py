@@ -223,6 +223,23 @@ COMPONENTS = (
         tag="ol-carousel",
     ),
     Component(
+        "books-display",
+        "Books Display",
+        "A titled set of books for a query, switchable between a covers carousel and a list.",
+        "design/components/books-display.html.jinja",
+        group="Content",
+        tag="ol-books-display",
+        css_files=("ol-books-display",),
+    ),
+    Component(
+        "book-actions",
+        "Book Actions",
+        "Per-book shelf, rating and add-to-list actions in a popover.",
+        "design/components/book-actions.html.jinja",
+        group="Content",
+        tag="ol-book-actions",
+    ),
+    Component(
         "read-more",
         "Read More",
         "Truncating long prose to a fixed height or line count, expandable in place.",
