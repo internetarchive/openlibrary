@@ -388,7 +388,6 @@ class SubjectPublishingHistoryPartial:
             details=True,
             limit=0,
             facet_fields=[{"name": "publish_year", "limit": -1}],
-            filters={"public_scan_b": "false", "lending_edition_s": "*"},
             request_label="SUBJECT_PUBLISHING_HISTORY",
         )
         macro = render_macro(
@@ -411,7 +410,6 @@ class SubjectRelatedPartial:
             details=True,
             limit=0,
             facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
-            filters={"public_scan_b": "false", "lending_edition_s": "*"},
             request_label="SUBJECT_RELATED",
         )
         macro = render_macro(

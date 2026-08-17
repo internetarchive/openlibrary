@@ -77,7 +77,6 @@ class subjects(delegate.page):
         subj = get_subject(
             key,
             limit=0,
-            filters={"public_scan_b": "false", "lending_edition_s": "*"},
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -339,7 +338,7 @@ async def get_subject_async(
 
     Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
 
-    Optional arguments has_fulltext and published_in can be passed to filter the results.
+    Optional arguments has_fulltext and publish_year can be passed to filter the results.
 
     By default, details=True requests every facet in DEFAULT_FACET_FIELDS. Pass
     facet_fields to request a specific subset instead.
