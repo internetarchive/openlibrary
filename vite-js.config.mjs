@@ -59,7 +59,7 @@ export default defineConfig(({ mode }) => ({
                 postFooter: AGPL_LICENSE_FOOTER,
                 entryFileNames: '[name].js',
                 chunkFileNames: (info) => `${chunkName(info)}.[hash].js`,
-                assetFileNames: '[name][extname]',
+                assetFileNames: '[name].[hash][extname]',
             },
         },
     },
