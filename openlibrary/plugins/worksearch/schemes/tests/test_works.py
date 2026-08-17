@@ -146,3 +146,19 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     params_d = dict(params)
     assert params_d["userWorkQuery"] == query
     assert params_d["userEdQuery"] == edQuery
+
+
+def test_cover_dimensions_fetched_for_works_and_editions():
+    """Cover dimensions must reach both the work `fl` and the editions subquery,
+    since the search result macro reads them off the selected edition."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+    assert {"cover_width", "cover_height"} <= s.default_fetched_fields
+
+    solr_fields = (s.default_fetched_fields | {"editions:[subquery]"}) - {"editions"}
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params("harry potter", solr_fields, [])
+    editions_fl = dict(params)["editions.fl"].split(",")
+    assert "cover_width" in editions_fl
+    assert "cover_height" in editions_fl

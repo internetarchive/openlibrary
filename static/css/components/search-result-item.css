@@ -150,11 +150,15 @@
   text-align: center;
 }
 
+/* height stays auto so the img's width/height attributes reserve space pre-load.
+   Never declare aspect-ratio here — it overrides the real ratio and squashes covers. */
 .searchResultItem .bookcover img {
   border-radius: var(--border-radius-thumbnail);
   max-width: 100%;
   max-height: 300px;
   width: 175px;
+  height: auto;
+  object-fit: contain;
 }
 
 .searchResultItem .imageLg {
