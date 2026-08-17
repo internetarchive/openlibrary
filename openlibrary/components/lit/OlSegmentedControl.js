@@ -206,6 +206,8 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            /* Icon-to-label gap, same as ol-button. */
+            gap: var(--spacing-inline-md);
             box-sizing: border-box;
             height: 100%;
             padding: 0 var(--spacing-md);
