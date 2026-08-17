@@ -932,11 +932,6 @@ html:has(.ds) {
   justify-content: flex-end;
 }
 
-.ds-demo-btn-icon {
-  margin-inline-end: var(--spacing-2xs);
-  vertical-align: -2px;
-}
-
 .ds-demo-output {
   width: 100%;
   max-height: 120px;

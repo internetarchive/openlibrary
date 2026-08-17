@@ -48,7 +48,7 @@ describe('OLButton', () => {
         expect(btn.getAttribute('part')).toBe('control');
         const label = el.shadowRoot.querySelector('.label');
         expect(label.getAttribute('part')).toBe('label');
-        const slot = label.querySelector('slot');
+        const slot = label.querySelector('slot:not([name])');
         expect(slot.assignedNodes()[0].textContent).toBe('Label');
     });
 
@@ -60,9 +60,25 @@ describe('OLButton', () => {
         document.body.appendChild(el);
         await el.updateComplete;
         span.textContent = 'Two';
-        const slot = el.shadowRoot.querySelector('slot');
+        const slot = el.shadowRoot.querySelector('slot:not([name])');
         expect(slot.assignedElements()[0]).toBe(span);
         expect(el.textContent).toBe('Two');
+    });
+
+    test('projects icon-start / icon-end into named slots inside the label', async() => {
+        const el = document.createElement('ol-button');
+        const start = document.createElement('svg');
+        start.setAttribute('slot', 'icon-start');
+        const end = document.createElement('svg');
+        end.setAttribute('slot', 'icon-end');
+        el.append(start, 'Label', end);
+        document.body.appendChild(el);
+        await el.updateComplete;
+        const label = el.shadowRoot.querySelector('.label');
+        const slots = [...label.querySelectorAll('slot')].map((sl) => sl.name);
+        expect(slots).toEqual(['icon-start', '', 'icon-end']);
+        expect(label.querySelector('slot[name="icon-start"]').assignedElements()[0]).toBe(start);
+        expect(label.querySelector('slot[name="icon-end"]').assignedElements()[0]).toBe(end);
     });
 
     test('renders an <a> when href is set, passing link attributes through', async() => {

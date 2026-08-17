@@ -128,39 +128,48 @@
             Large
         </ol-button>
     {% endcall %}
-    {% call ex.example("With icon", "The default slot takes any markup, so an inline SVG before the label renders as a leading icon. Give it a fixed size and a small inline-end margin.",
-        code='<ol-button size="small">\n  <svg width="14" height="14" ...></svg>Preview\n</ol-button>') %}
+    {% call ex.example("With icon", "Put an inline SVG in the icon-start or icon-end slot. The button sizes it to match (14/16/18px by size) and adds the gap, so the SVG needs no width, height, or margin of its own.",
+        code='<ol-button size="small">\n  <svg slot="icon-start" ...></svg>\n  Preview\n</ol-button>\n\n<ol-button>\n  Next\n  <svg slot="icon-end" ...></svg>\n</ol-button>') %}
         <ol-button size="small">
-            <svg width="14"
-                 height="14"
+            <svg slot="icon-start"
                  viewBox="0 0 24 24"
                  fill="none"
                  stroke="currentColor"
                  stroke-width="2"
                  stroke-linecap="round"
                  stroke-linejoin="round"
-                 aria-hidden="true"
-                 class="ds-demo-btn-icon">
+                 aria-hidden="true">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
                 <circle cx="12" cy="12" r="3" />
             </svg>
             Preview
         </ol-button>
         <ol-button size="small">
-            <svg width="14"
-                 height="14"
+            <svg slot="icon-start"
                  viewBox="0 0 24 24"
                  fill="none"
                  stroke="currentColor"
                  stroke-width="2"
                  stroke-linecap="round"
                  stroke-linejoin="round"
-                 aria-hidden="true"
-                 class="ds-demo-btn-icon">
+                 aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <path d="m21 21-4.3-4.3" />
             </svg>
             Search Inside
+        </ol-button>
+        <ol-button>
+            Next
+            <svg slot="icon-end"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="m9 18 6-6-6-6" />
+            </svg>
         </ol-button>
     {% endcall %}
     {% call ex.example("Disabled") %}
@@ -228,30 +237,19 @@
             })();
         </script>
     {% endcall %}
-    {% call ex.example("Styling from outside", "Two parts are exposed: control (the inner button or link) and label (the span around the slotted content). Use them for layout tweaks a consumer legitimately owns — never to restyle the button itself.",
-        code='.book-preview-buttons ol-button::part(label) {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}', language="css") %}
+    {% call ex.example("Styling from outside", "Two parts are exposed: control (the inner button or link) and label (the span around the slotted content). Use them for layout tweaks a consumer legitimately owns — like clamping a long label — never to restyle the button itself.",
+        code='.filter-trigger ol-button::part(label) {\n  max-width: 12ch;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}', language="css") %}
         <style>
-            .ds-demo-part-gap ol-button::part(label) {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
+            .ds-demo-part-clamp ol-button::part(label) {
+                display: block;
+                max-width: 12ch;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         </style>
-        <span class="ds-demo-part-gap">
+        <span class="ds-demo-part-clamp">
             <ol-button size="small">
-                <svg width="14"
-                     height="14"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round"
-                     aria-hidden="true">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
-                    <circle cx="12" cy="12" r="3" />
-                </svg>
-                Preview
+                A very long label that gets clamped
             </ol-button>
         </span>
     {% endcall %}

@@ -233,6 +233,7 @@ A shadow-DOM component that is server-rendered can still look right before upgra
 - Light-DOM components: tag-scoped rules in `static/css/components/<tag>.css`, registered in `ol-components.css`.
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
 - Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
+- **Buttons inside a shadow root: compose `<ol-button>`, don't hand-copy its CSS.** `ol-button` renders in shadow DOM, so it works inside any other component's template (`ol-dialog` and `ol-toast` use it for their close controls). Add `import './OLButton.js';` at the top of the component so the element is registered whenever the component is — this is safe *within the Lit bundle* (ES modules evaluate once; the "never side-effect import from page JS" rule in [Registration](#registration) is about a second webpack bundle). Use `variant` / `size` / `shape` and the `icon-start` / `icon-end` slots for a leading or trailing SVG; only the glyph size (`.close-button svg { width … }`) belongs in the host component's styles. If the control genuinely isn't a button shape (pagination items, carousel arrows), keep a raw `<button>` and take the focus-ring / press-feedback rules from `ol-button` as the reference.
 
 ## Overlays and the top layer
 

@@ -65,7 +65,11 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *   Set by ol-select-popover on its disclosure trigger when the user has
  *   picked something; purely visual, no behavior attached.
  *
- * @slot - Default slot carries the button label (text, or an icon + text).
+ * @slot - Default slot carries the button label.
+ * @slot icon-start - Leading icon (an inline SVG). Sized to the button's size
+ *   (14/16/18px) and separated from the label by a 4px gap only when filled.
+ * @slot icon-end - Trailing icon, same treatment. Not for the disclosure
+ *   chevron, which is automatic on popover triggers.
  *
  * @csspart control - The inner <button> or <a>.
  * @csspart label - The span wrapping the slotted label.
@@ -328,22 +332,39 @@ export class OLButton extends FocusableHostMixin(LitElement) {
             cursor: not-allowed;
         }
 
-        /* Label: visible by default; shrinks, blurs, and fades out on loading. */
+        /* Label: visible by default; shrinks, blurs, and fades out on loading.
+           Flex so the icon slots sit on the box center rather than the text
+           baseline. Empty named slots generate no box, so the gap only shows
+           up when an icon is slotted. */
         .label {
-            display: inline-block;
+            --_icon-size: 16px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2xs);
             transition:
                 opacity 0.24s ease,
                 transform 0.24s ease,
                 filter 0.24s ease;
         }
 
-        /* An inline SVG sits on the text baseline, leaving descender space under it
-           that pushes the glyph off-center. Flex the label so the icon centers on
-           the box, not the baseline. */
-        :host([shape]) .label {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        /* Slotted icons take the size's icon dimension regardless of the SVG's own
+           width/height attributes, so mixed-source icons line up. */
+        ::slotted([slot="icon-start"]),
+        ::slotted([slot="icon-end"]) {
+            display: block;
+            flex-shrink: 0;
+            width: var(--_icon-size);
+            height: var(--_icon-size);
+        }
+
+        :host([size="small"]) .label {
+            --_icon-size: 14px;
+        }
+
+        :host([size="large"]) .label {
+            --_icon-size: 18px;
         }
 
         :host([loading]) .label {
@@ -530,7 +551,7 @@ export class OLButton extends FocusableHostMixin(LitElement) {
         // a disclosure trigger (ol-popover / ol-select-popover set aria-haspopup
         // on it). That keeps the trigger affordance automatic — no consumer markup.
         const inert = this.loading || this.disabled;
-        const content = html`<span class="label" part="label"><slot></slot></span><span class="spinner" aria-hidden="true"></span><span class="chevron" aria-hidden="true"></span>`;
+        const content = html`<span class="label" part="label"><slot name="icon-start"></slot><slot></slot><slot name="icon-end"></slot></span><span class="spinner" aria-hidden="true"></span><span class="chevron" aria-hidden="true"></span>`;
 
         if (this.href !== undefined && this.href !== null) {
             // A link can't be disabled natively: drop the href (no navigation,

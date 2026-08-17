@@ -210,6 +210,7 @@ change; only the `:active` press-scale animates.
 | Scenario | Solution |
 | --- | --- |
 | Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
+| Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
 | Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
 | Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |

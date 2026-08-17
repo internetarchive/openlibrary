@@ -300,12 +300,6 @@ form.return-form .cta-btn {
   gap: 6px;
 }
 
-.book-preview-buttons ol-button::part(label) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
 /**
  * Search Inside Form
  */
