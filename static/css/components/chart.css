@@ -23,6 +23,12 @@
   background-position: 340px 60px;
   box-sizing: border-box;
 }
+/* Only show the spinner background while its loading indicator is visible --
+   otherwise it bleeds through the async-partial-retry prompt, which lives
+   alongside it rather than replacing .chart outright. */
+.chart:has(.loadingIndicator.hidden) {
+  background-image: none;
+}
 .chartYaxis {
   position: absolute;
   left: -65px;

@@ -55,4 +55,9 @@
 
   /* Floating surfaces — popovers, dialogs, menus. Same ink, more spread. */
   --box-shadow-overlay: 0 8px 24px hsla(44, 60%, 18%, 0.16);
+
+  /* Floating-control drop shadow — a control that sits over content (a save
+     button on cover art) rather than on the page. Pair with the same inline
+     specular highlight as above; see ol-button[elevation="floating"]. */
+  --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
 }
