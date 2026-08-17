@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { icon } from './utils/book-icons.js';
 import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
@@ -36,7 +37,6 @@ export const DEFAULT_LABELS = {
     alreadyRead: 'Already Read',
     stoppedReading: 'Stopped Reading',
     rateThisBook: 'Rate this book',
-    yourRating: 'Your rating: %(rating)s of 5',
     rateStar: 'Rate %(rating)s of 5',
     clearRating: 'Clear rating',
     addToList: 'Add to list',
@@ -49,6 +49,7 @@ export const DEFAULT_LABELS = {
     noMatchingLists: 'No lists match.',
     loadingLists: 'Loading lists…',
     itemsInList: '%(count)s items',
+    inLists: 'In %(count)s of your lists',
     errorGeneric: 'Something went wrong. Please try again.',
 };
 
@@ -80,6 +81,8 @@ export class OlBookActions extends LitElement {
         labels: { type: Object },
         placement: { type: String },
         _pane: { state: true },
+        _snap: { state: true },
+        _trackHeight: { state: true },
         _lists: { state: true },
         _listsLoading: { state: true },
         _listFilter: { state: true },
@@ -124,15 +127,25 @@ export class OlBookActions extends LitElement {
         }
 
         /* Two panes side by side in a track twice the panel width; the track
-           slides to reveal the second one. */
+           slides to reveal the second one. Its height is set inline to the
+           active pane's height (measured), so the panel doesn't stretch to
+           the taller pane. */
         .track {
             display: flex;
+            align-items: flex-start;
             width: 200%;
-            transition: transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition:
+                transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
+                height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         .track.pane-lists {
             transform: translateX(-50%);
+        }
+
+        /* Reset to the main pane on close without a visible slide. */
+        .track.snap {
+            transition: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -227,7 +240,7 @@ export class OlBookActions extends LitElement {
         .stars {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-sm);
+            gap: var(--spacing-inline-md);
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
         }
 
@@ -257,6 +270,25 @@ export class OlBookActions extends LitElement {
         .stars .caption {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
+        }
+
+        .stars .clear {
+            padding: 0;
+            border: 0;
+            background: none;
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .stars .clear:hover {
+            color: var(--color-text-primary);
+        }
+
+        .stars .clear:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            border-radius: var(--border-radius-sm);
         }
 
         /* Lists pane */
@@ -329,6 +361,7 @@ export class OlBookActions extends LitElement {
             display: flex;
             gap: var(--spacing-inline-sm);
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            margin-bottom: var(--spacing-stack-xs);
         }
 
         .input {
@@ -358,7 +391,7 @@ export class OlBookActions extends LitElement {
         .list-row {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-sm);
+            gap: var(--spacing-inline-md);
             padding: var(--spacing-inset-xs) var(--spacing-inset-md);
             cursor: pointer;
         }
@@ -431,6 +464,8 @@ export class OlBookActions extends LitElement {
         this.labels = {};
         this.placement = 'bottom-end';
         this._pane = 'main';
+        this._snap = false;
+        this._trackHeight = 0;
         this._lists = null;
         this._listsLoading = false;
         this._listFilter = '';
@@ -463,7 +498,10 @@ export class OlBookActions extends LitElement {
             >
                 <slot name="trigger" slot="trigger"></slot>
                 <div class="panel">
-                    <div class="track ${classMap({ 'pane-lists': this._pane === 'lists' })}">
+                    <div
+                        class="track ${classMap({ 'pane-lists': this._pane === 'lists', snap: this._snap })}"
+                        style=${styleMap({ height: this._trackHeight ? `${this._trackHeight}px` : null })}
+                    >
                         <div class="pane" ?inert=${this._pane !== 'main'}>${this._renderMain()}</div>
                         <div class="pane" ?inert=${this._pane !== 'lists'}>${this._renderLists()}</div>
                     </div>
@@ -502,6 +540,7 @@ export class OlBookActions extends LitElement {
                 <button type="button" class="row" @click=${this._openLists}>
                     ${icon('list-plus')}
                     <span class="label">${this.t('addToList')}</span>
+                    ${this._listCount ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
                     ${icon('chevron-right', { cls: 'obd-icon trail' })}
                 </button>
             </div>
@@ -510,9 +549,10 @@ export class OlBookActions extends LitElement {
 
     _renderStars() {
         const shown = this._hoverRating || this.rating || 0;
+        // Once rated, the caption becomes an actionable "Clear rating" link.
         const caption = this.rating
-            ? this.t('yourRating', { rating: this.rating })
-            : this.t('rateThisBook');
+            ? html`<button type="button" class="caption clear" ?disabled=${this._busy} @click=${() => this._onRate(this.rating)}>${this.t('clearRating')}</button>`
+            : html`<span class="caption">${this.t('rateThisBook')}</span>`;
         return html`
             <div class="stars">
                 <span class="star-buttons" role="radiogroup" aria-label=${this.t('rateThisBook')} @mouseleave=${() => { this._hoverRating = 0; }}>
@@ -531,7 +571,7 @@ export class OlBookActions extends LitElement {
                         >${icon('star', { fill: n <= shown ? 'currentColor' : 'none', strokeWidth: 1.5 })}</button>
                     `)}
                 </span>
-                <span class="caption">${caption}</span>
+                ${caption}
             </div>
         `;
     }
@@ -600,12 +640,40 @@ export class OlBookActions extends LitElement {
         });
     }
 
+    updated(changed) {
+        // Panes only exist once `book` is set, so observe them lazily.
+        if (!this._resizeObserver) {
+            const panes = this.shadowRoot.querySelectorAll('.pane');
+            if (panes.length) {
+                this._resizeObserver = new ResizeObserver(() => this._syncTrackHeight());
+                panes.forEach(pane => this._resizeObserver.observe(pane));
+            }
+        }
+        if (changed.has('_pane')) this._syncTrackHeight();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._resizeObserver?.disconnect();
+    }
+
+    /** Size the track to the active pane so the panel doesn't stretch to the taller one. */
+    _syncTrackHeight() {
+        const pane = this.shadowRoot.querySelector(`.pane:nth-child(${this._pane === 'lists' ? 2 : 1})`);
+        // 0 means the popover is hidden; keep the last real height.
+        if (pane?.offsetHeight) this._trackHeight = pane.offsetHeight;
+    }
+
     // ── Popover lifecycle ────────────────────────────────────
 
     _onOpen() {
         this._pane = 'main';
+        this._snap = false;
         this._creating = false;
         this._listFilter = '';
+        // If another popover already fetched the user's lists, reuse them so
+        // the "in N lists" count shows without opening the lists pane.
+        if (this._lists === null && _listsPromise) this._loadLists();
     }
 
     _onCloseRequest(e) {
@@ -613,7 +681,13 @@ export class OlBookActions extends LitElement {
         if (e.detail?.reason === 'escape' && this._pane === 'lists') {
             e.preventDefault();
             this._closeLists();
+            return;
         }
+        // Reset to the main pane now, so the next open doesn't slide back from
+        // the lists pane. `snap` skips the slide while the popover fades out.
+        this._snap = true;
+        this._pane = 'main';
+        this._creating = false;
     }
 
     _emitState() {
@@ -686,6 +760,12 @@ export class OlBookActions extends LitElement {
         this._creating = false;
         await this.updateComplete;
         this.shadowRoot.querySelector('.pane:nth-child(1) .group:last-child .row')?.focus({ preventScroll: true });
+    }
+
+    /** How many of the user's (loaded) lists contain this book. */
+    get _listCount() {
+        if (!this._lists) return 0;
+        return Object.values(this._lists).filter(l => l.members.includes(this._seedKey)).length;
     }
 
     async _loadLists() {

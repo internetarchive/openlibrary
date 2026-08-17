@@ -266,7 +266,7 @@ export class OlBooksDisplay extends LitElement {
                     accessible-label=${this.t('viewAs')}
                     @ol-segmented-control-change=${this._onViewChange}
                 >
-                    <ol-segment value="covers" label="">${icon('layout-grid')} <span>${this.t('covers')}</span></ol-segment>
+                    <ol-segment value="covers" label="">${icon('covers-row')} <span>${this.t('covers')}</span></ol-segment>
                     <ol-segment value="list" label="">${icon('list')} <span>${this.t('list')}</span></ol-segment>
                 </ol-segmented-control>
             </div>
@@ -394,9 +394,7 @@ export class OlBooksDisplay extends LitElement {
         const authors = doc.authors || [];
         if (!authors.length) return nothing;
         const names = authors.map((a, i) => html`${i ? ', ' : ''}${a.key ? html`<a class="obd-link" href=${a.key}>${a.name}</a>` : a.name}`);
-        // Split "by %(name)s" around its placeholder so the names stay links.
-        const [before, after = ''] = this.t('by').split('%(name)s');
-        return html`<div class=${cls}>${before}${names}${after}</div>`;
+        return html`<div class=${cls}>${names}</div>`;
     }
 
     _renderRating(doc) {

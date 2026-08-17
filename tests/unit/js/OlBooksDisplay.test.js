@@ -202,7 +202,7 @@ describe('ol-books-display views', () => {
         const el = await mount({ view: 'list' });
         const row = el.querySelector('.obd-row');
         expect(row.querySelector('.obd-row__author a').getAttribute('href')).toBe('/authors/OL0A');
-        expect(row.querySelector('.obd-row__author').textContent.replace(/\s+/g, ' ').trim()).toBe('by Author 0');
+        expect(row.querySelector('.obd-row__author').textContent.replace(/\s+/g, ' ').trim()).toBe('Author 0');
         expect(row.querySelector('.obd-row__rating-text').textContent).toContain('4.2');
         expect(row.querySelector('.obd-row__meta').textContent).toBe('First published 2000');
     });

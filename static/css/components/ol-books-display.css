@@ -50,13 +50,6 @@ ol-books-display:not(:defined) {
   text-decoration: underline;
 }
 
-.obd__toggle .obd-icon {
-  width: 14px;
-  height: 14px;
-  vertical-align: -2px;
-  margin-right: 4px;
-}
-
 .obd__status {
   display: flex;
   align-items: center;
@@ -100,7 +93,6 @@ ol-books-display:not(:defined) {
   border-radius: var(--border-radius-thumbnail);
   overflow: hidden;
   background: var(--color-surface-sunken);
-  box-shadow: 0 1px 3px var(--book-cover-shadow-color);
 }
 
 .obd-cover__link {
@@ -164,7 +156,10 @@ ol-books-display:not(:defined) {
   pointer-events: none;
 }
 
+/* Mirrors ol-button (see ol-button.css): raised shadow + inset specular
+   edge, primary lightens on hover, secondary darkens. */
 .obd .obd-cta {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -176,13 +171,22 @@ ol-books-display:not(:defined) {
   border-radius: var(--border-radius-button);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
-  font-weight: 600;
   line-height: var(--line-height-control);
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
+  user-select: none;
   background-color: var(--white);
-  color: var(--color-link);
+  color: var(--dark-grey);
+  --control-highlight-strength: 35%;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
   transition: transform 0.08s;
 }
 
@@ -194,15 +198,20 @@ ol-books-display:not(:defined) {
   background-color: var(--primary-blue);
   border-color: var(--primary-blue);
   color: var(--white);
+  --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
 }
 
-.obd .obd-cta--primary:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
+@media (hover: hover) and (pointer: fine) {
+  .obd .obd-cta--primary:hover {
+    filter: brightness(1.1);
+  }
 
-.obd .obd-cta--secondary:hover {
-  background-color: var(--color-hover-overlay);
+  .obd .obd-cta--secondary:hover {
+    background-color: var(--color-control-hover);
+    border-color: var(--light-grey);
+    --control-surface: var(--color-control-hover);
+  }
 }
 
 .obd .obd-cta--static {
@@ -212,7 +221,7 @@ ol-books-display:not(:defined) {
 
 .obd .obd-cta:focus-visible {
   outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
+  outline-offset: var(--spacing-3xs);
 }
 
 .obd-cta__ext {
@@ -245,8 +254,8 @@ ol-books-display:not(:defined) {
 
 .obd .obd-card__title {
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-title-medium);
-  font-weight: 700;
+  font-size: var(--font-size-title-small);
+  font-weight: 600;
   line-height: var(--line-height-tight);
   color: var(--color-text);
   text-decoration: none;
@@ -261,7 +270,7 @@ ol-books-display:not(:defined) {
 }
 
 .obd-card__author {
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -292,39 +301,69 @@ ol-books-display:not(:defined) {
   height: 32px;
   padding: 0;
   border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  --control-highlight-strength: 35%;
+}
+
+/* The visible circle is smaller than the 32px hit target. Same inset
+   specular edge as ol-button; the drop shadow is heavier since it floats
+   over cover art. */
+.obd-save::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
   border-radius: var(--border-radius-circle);
   background: var(--white);
-  color: var(--color-text);
-  box-shadow: 0 1px 4px var(--boxshadow-black);
-  cursor: pointer;
+  box-shadow:
+    0 1px 4px var(--boxshadow-black),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
   transition: transform 0.08s;
 }
 
 .obd-save .obd-icon {
-  width: 18px;
-  height: 18px;
+  position: relative;
+  width: 14px;
+  height: 14px;
 }
 
-.obd-save:hover {
-  transform: scale(1.06);
+.obd-save:hover::before {
+  transform: scale(1.08);
 }
 
-.obd-save:active {
+.obd-save:active::before {
   transform: scale(0.95);
 }
 
 .obd-save:focus-visible {
+  outline: none;
+}
+
+.obd-save:focus-visible::before {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
 .obd-save--on {
-  background: var(--primary-blue);
   color: var(--white);
+  --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
+}
+
+.obd-save--on::before {
+  background: var(--primary-blue);
 }
 
 .obd-cover > ol-book-actions .obd-save {
-  position: static;
+  position: relative;
+  top: auto;
+  right: auto;
 }
 
 /* ── List view (rows) ─────────────────────────────────────── */
@@ -367,8 +406,8 @@ ol-books-display:not(:defined) {
 
 .obd .obd-row__title {
   font-family: var(--font-family-heading);
-  font-size: var(--font-size-title-large);
-  font-weight: 700;
+  font-size: var(--font-size-title-medium);
+  font-weight: 600;
   line-height: var(--line-height-tight);
   color: var(--color-text);
   text-decoration: none;
@@ -380,7 +419,7 @@ ol-books-display:not(:defined) {
 
 .obd-row__author,
 .obd-row__meta {
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
 }
 
@@ -526,6 +565,6 @@ ol-books-display:not(:defined) {
   }
 
   .obd-row__title {
-    font-size: var(--font-size-title-medium);
+    font-size: var(--font-size-title-small);
   }
 }
