@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from types import MappingProxyType
-from typing import Any, Final, Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast
 
 import web
 
@@ -18,8 +18,6 @@ from openlibrary.utils.request_context import site
 from . import db
 
 logger = logging.getLogger(__name__)
-
-FILTER_BOOK_LIMIT: Final = 30_000
 
 
 class WorkReadingLogSummary(TypedDict):
@@ -412,7 +410,6 @@ class Bookshelves(db.CommonExtras):
         async def get_filtered_reading_log_books(
             q: str,
             query_params: dict[str, str | int | None],
-            filter_book_limit: int,
             fq: list[str] | None = None,
         ) -> LoggedBooksData:
             """
@@ -424,16 +421,12 @@ class Bookshelves(db.CommonExtras):
             Solr for more complete book information, and then put the logged info into
             the Solr response.
             """
-            # Filtering by query needs a larger limit as we need (ideally) all of a
-            # user's added works from the reading log DB. The logged work IDs are used
-            # to query Solr, which searches for matches related to those work IDs.
-            query_params["limit"] = filter_book_limit
-
-            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username LIMIT $limit"
+            # Filtering by query needs all of a user's added works from the reading
+            # log DB, not just a page of them. The logged work IDs are used to query
+            # Solr, which searches for matches related to those work IDs.
+            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username"
 
             reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
-
-            assert len(reading_log_books) <= filter_book_limit
 
             work_to_edition_keys = {"/works/OL%sW" % i["work_id"]: "/books/OL%sM" % i["edition_id"] for i in reading_log_books}
 
@@ -547,7 +540,6 @@ class Bookshelves(db.CommonExtras):
             return await get_filtered_reading_log_books(
                 q=q,
                 query_params=query_params,
-                filter_book_limit=FILTER_BOOK_LIMIT,
                 fq=fq,
             )
         else:
