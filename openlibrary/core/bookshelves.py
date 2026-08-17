@@ -282,9 +282,12 @@ class Bookshelves(db.CommonExtras):
                 solr_docs.append(web.storage({"key": key, "title": ""}))
 
         edition_keys_to_query = [work_to_edition_keys[key].split("/")[2] for key in missing_keys]
-        fq = f"edition_key:({' OR '.join(edition_keys_to_query)})"
         if not edition_keys_to_query:
             return
+
+        # {!terms f=edition_key} uses Solr's TermsQuery, which avoids the
+        # maxBooleanClauses limit an OR-joined query hits at large key counts.
+        fq = "{!terms f=edition_key}" + ",".join(edition_keys_to_query)
 
         solr_resp = await run_solr_query_async(
             scheme=WorkSearchScheme(),
