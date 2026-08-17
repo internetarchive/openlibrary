@@ -300,13 +300,11 @@ form.return-form .cta-btn {
   gap: 6px;
 }
 
-/* stylelint-disable selector-max-specificity */
-.book-preview-buttons ol-button > button > .ol-btn-label {
+.book-preview-buttons ol-button::part(label) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-/* stylelint-enable selector-max-specificity */
 
 /**
  * Search Inside Form

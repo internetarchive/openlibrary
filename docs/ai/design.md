@@ -190,14 +190,14 @@ one declaration, so there's nothing to keep in sync.
 
 ```css
 /* Light fill: darken fill + border on hover */
-ol-button[variant="secondary"] > button:hover {
-  background-color: var(--lightest-grey);
+:host([variant="secondary"]) .control:hover {
+  background-color: var(--color-control-hover);
   border-color: var(--light-grey);
 }
 
 /* Saturated fill: lighten the whole thing at once */
-ol-button[variant="primary"] > button:hover,
-ol-button[variant="destructive"] > button:hover {
+:host([variant="primary"]) .control:hover,
+:host([variant="destructive"]) .control:hover {
   filter: brightness(1.1);
 }
 ```

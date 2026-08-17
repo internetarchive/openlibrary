@@ -204,7 +204,7 @@
             Continue
         </ol-button>
     {% endcall %}
-    {% call ex.example("Form submission", "The component renders a real <button type=\"submit\">, so native validation, the form's submit event, and Enter-to-submit all work with no extra wiring.") %}
+    {% call ex.example("Form submission", "The element is form-associated: type=\"submit\" calls the enclosing form's requestSubmit(), so native validation and the form's submit event run; type=\"reset\" resets it. Because it isn't a native submit button, submit events have no event.submitter and the button adds no name/value to FormData.") %}
         <form id="demo-button-form" class="ds-demo-row">
             <label for="demo-button-form-input">Your name:</label>
             <input id="demo-button-form-input" name="name" required>
@@ -228,12 +228,39 @@
             })();
         </script>
     {% endcall %}
+    {% call ex.example("Styling from outside", "Two parts are exposed: control (the inner button or link) and label (the span around the slotted content). Use them for layout tweaks a consumer legitimately owns — never to restyle the button itself.",
+        code='.book-preview-buttons ol-button::part(label) {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}', language="css") %}
+        <style>
+            .ds-demo-part-gap ol-button::part(label) {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+        </style>
+        <span class="ds-demo-part-gap">
+            <ol-button size="small">
+                <svg width="14"
+                     height="14"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
+                Preview
+            </ol-button>
+        </span>
+    {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Events.</b> None custom — use the native <code>click</code>, which bubbles from the inner <code>&lt;button&gt;</code>.
         </p>
         <p>
-            <b>Rendering.</b> Light DOM, no shadow root. Styles live in <code>components/ol-button.css</code>, loaded render-blocking by every page entry point that uses the button. Before upgrade the host is styled by attribute selectors so it's visible immediately; after upgrade the component inserts a real <code>&lt;button&gt;</code> child and the host collapses to a transparent wrapper.
+            <b>Rendering.</b> Shadow DOM. The component renders and paints a real <code>&lt;button&gt;</code> (or <code>&lt;a&gt;</code>) in its shadow root, so it works inside any other component's shadow root too. Before upgrade the host tag is styled by <code>components/ol-button.css</code> (<code>ol-button:not(:defined)</code>, loaded render-blocking site-wide) so server-rendered buttons look right on first paint. Style from outside via <code>::part(control)</code> and <code>::part(label)</code>, never by reaching for the inner element.
         </p>
     </div>
 {% endmacro %}

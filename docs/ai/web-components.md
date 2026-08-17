@@ -10,7 +10,7 @@ The browser flattens the shadow tree for exactly two things — sequential Tab o
 |---|---|---|
 | **Sequential focus / Tab order** | `querySelectorAll`/`TreeWalker`/`activeElement` stop at the boundary; a focus trap can't see in or tell what's really focused | Shadow-piercing helpers + `FocusableHostMixin` — see [Focus and Shadow DOM](#focus-and-shadow-dom) |
 | **CSS cascade** | Page CSS can't reach in; component CSS can't leak out (mostly the point) | Shadow by default + design tokens (they inherit through) + `::part`; light DOM only by the rule in [Shadow DOM vs Light DOM](#shadow-dom-vs-light-dom) |
-| **Form participation** | A control rendered in shadow DOM submits **nothing** with the enclosing `<form>` | `FormAssociatedMixin` — see [Form participation](#form-participation-formassociatedmixin) |
+| **Form participation** | A control rendered in shadow DOM submits **nothing** with the enclosing `<form>` | `FormAssociatedMixin` for value-carrying controls; `formAssociated` + `internals.form.requestSubmit()` for submit buttons (`ol-button`) — see [Form participation](#form-participation-formassociatedmixin) |
 | **Cross-root ARIA (IDREFs)** | `aria-labelledby`/`-describedby`/`-controls`/`-activedescendant` and `<label for>` can't resolve an id in another root | Keep the relationship in one root; never claim `aria-modal` without a real trap — see [ARIA across roots](#aria-across-roots) |
 
 If you remember one thing: **focus and reading order are free; styling, forms, and id-based ARIA are not.**
@@ -221,10 +221,11 @@ button:focus-visible {
 
 One facet of [the shadow-boundary contract](#the-shadow-boundary-contract). **Default to shadow DOM** (Lit's default). Reach for **light DOM** (`createRenderRoot() { return this }`) deliberately, per component, only when one of these holds:
 
-- **Progressive enhancement / first-paint fidelity** — server-rendered page chrome that must look right before hydration (`ol-button`, `ol-banner`). Style the tag itself for the pre-hydration phase and flip to component-rendered structure via a `hydrated` attribute. Its CSS lives in `static/css/components/<tag>.css`, imported by `static/css/ol-components.css` (render-blocking, site-wide) — see `ol-button.css` / `OLButton.js` for the reference pattern.
-- **Must live inside global page CSS** — a leaf that has to be styled by the surrounding stylesheet (e.g. a default trigger that reuses `ol-button.css`, as `ol-select-popover` injects).
+- **Progressive enhancement / first-paint fidelity where layout is at stake** — server-rendered page chrome whose *size* must be right before hydration (`ol-banner`, currently the only one). Style the tag itself for the pre-hydration phase and flip to component-rendered structure via a `hydrated` attribute. Its CSS lives in `static/css/components/<tag>.css`, imported by `static/css/ol-components.css` (render-blocking, site-wide) — see `ol-banner.css` / `OlBanner.js` for the reference pattern.
 
 Otherwise stay in shadow DOM: you keep style encapsulation, real `<slot>` composition, and private internals, and you can't FOUC. Theme through tokens + `::part`, never by expecting outside CSS to reach in.
+
+A shadow-DOM component that is server-rendered can still look right before upgrade: put resting-state rules for the host tag in `static/css/components/<tag>.css`, keyed on `<tag>:not(:defined)`, and flush the first render synchronously in `connectedCallback` (`this.performUpdate()`) so there is no frame between the two. `ol-button` is the reference for this — it is composable inside other shadow roots *and* correct on first paint.
 
 ## Styling
 
@@ -345,11 +346,11 @@ Two hard problems sit under everything here:
 
 | Component shape | Pattern | Host `tabindex` | `delegatesFocus` |
 |---|---|---|---|
-| Wraps **one** native focusable in its **own shadow** (`ol-toggle`, `ol-chip`) | `FocusableHostMixin` | No | Yes |
+| Wraps **one** native focusable in its **own shadow** (`ol-button`, `ol-toggle`, `ol-chip`) | `FocusableHostMixin` | No | Yes |
 | Focusable is a **slotted / light-DOM** child (`ol-select-popover`) | plain `LitElement`; the trigger *is* the focusable | No | No |
 | **Composite** that owns its selection (`ol-segmented-control`) | roving tabindex (one `tabindex=0`, rest `-1`, arrows move) | per-item | No |
 | **Navigation** list of links (`ol-pagination`) | every item is its own tab stop; arrows just move focus | natural | No |
-| Renders its control into **light DOM** (`ol-button`) | nothing special — naturally discoverable | n/a | n/a |
+| Renders into **light DOM** (`ol-banner`) | nothing special — naturally discoverable | n/a | n/a |
 
 Rule of thumb: **delegate only when there is exactly one place focus can go.** If the component routes focus, or its focusable lives outside its own shadow, don't use `FocusableHostMixin`.
 

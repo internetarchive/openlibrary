@@ -71,10 +71,10 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
 
         /* The default trigger is a light-DOM <ol-button> (see
-           _createDefaultTrigger), painted by the global ol-button.css — there
-           are no trigger styles here. That keeps this trigger on the shared
-           control-height tokens and gives it ol-button's automatic disclosure
-           chevron, so it lines up with <ol-select-popover> beside it. */
+           _createDefaultTrigger), which paints itself — there are no trigger
+           styles here. That keeps this trigger on the shared control-height
+           tokens and gives it ol-button's automatic disclosure chevron, so it
+           lines up with <ol-select-popover> beside it. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -276,8 +276,8 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     }
 
     /**
-     * Build the default trigger in *light* DOM, so the global ol-button.css can
-     * paint it — that sheet can't cross a shadow boundary. Mirrors
+     * Build the default trigger as a real light-DOM child, structurally
+     * identical to a consumer-supplied trigger. Mirrors
      * <ol-select-popover>._createDefaultTrigger.
      *
      * @returns {void}
