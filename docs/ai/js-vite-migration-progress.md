@@ -83,6 +83,12 @@ non-render-blocking, exact `style-loader` semantics with zero plugins.
 `publicDir: '.'` + `copyPublicDir: false` keeps root-absolute `url(/static/...)`
 unprocessed — zero data URIs, zero emitted image assets.
 
+Extracted CSS is emitted as `[name].[hash].css` (e.g. `carousel.Xk3f9a2b.css`):
+`/static/build` is served with `expires max` and these files aren't routed
+through `static_url()`'s `?v=` cache-buster, so an unhashed name would be cached
+by browsers forever across deploys. Vite rewrites the injected `<link>` URLs to
+match, so nothing else needs to know the hash.
+
 ### NEW: real-app bugs the browser caught
 Earlier verification served the build at the site *root*, which masked three
 issues that only show up at the real path `/static/build/js/`:
