@@ -135,27 +135,5 @@ class patron_check_ins(delegate.page):
         )
 
 
-@deprecated("migrated to fastapi")
-class patron_check_in(delegate.page):
-    path = r"/check-ins/(\d+)"
-
-    def DELETE(self, check_in_id):
-        user = get_current_user()
-        if not user:
-            raise web.unauthorized(message="Requires login")
-
-        events = BookshelvesEvents.select_by_id(check_in_id)
-        if not events:
-            raise web.notfound(message="Event does not exist")
-
-        event = events[0]
-        username = user["key"].split("/")[-1]
-        if username != event["username"]:
-            raise web.forbidden()
-
-        BookshelvesEvents.delete_by_id(check_in_id)
-        return web.ok()
-
-
 def setup():
     pass

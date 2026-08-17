@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
+#: RelatedSubjects.html account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -818,14 +818,6 @@ msgstr ""
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
-
-#: subjects.html
-msgid "Related subjects"
-msgstr ""
-
-#: SearchResultsWork.html subjects.html
-msgid "Show more"
 msgstr ""
 
 #: trending.html
@@ -4699,50 +4691,6 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
-#: lib/message_addbook.html
-msgid "Super!"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid " Your new record is in the library. Thank you!"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Upload a cover image"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Snap a quick photo of the cover to share?"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Add an ISBN"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Add some subjects"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "They're just like tags."
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Describe what the book's about"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Just a sentence or two is good."
-msgstr ""
-
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
@@ -7458,6 +7406,14 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Something went wrong."
+msgstr ""
+
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Retry"
+msgstr ""
+
 #: RawQueryCarousel.html
 msgid "Loading carousel"
 msgstr ""
@@ -7541,6 +7497,10 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html

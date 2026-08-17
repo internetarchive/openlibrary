@@ -557,31 +557,12 @@ class create_qrcode(delegate.page):
             return delegate.RawText(buf.getvalue())
 
 
-@deprecated("migrated to fastapi")
-class bestbook_award(delegate.page):
-    path = r"/works/OL(\d+)W/awards"
-    encoding = "json"
+class bestbook_award:
+    """Legacy helper for the FastAPI bestbook award endpoints.
 
-    @jsonapi
-    def POST(self, work_id):
-        """Store Bestbook award
-
-        Args:
-            work_id (int): unique id for each book
-        """
-        i = web.input(op="add", edition_key=None, topic=None, comment="")
-        user = accounts.get_current_user()
-        username = user.key.split("/")[2] if user else None
-
-        result = self.process_bestbook_award(
-            work_id=work_id,
-            op=i.op,
-            edition_key=i.edition_key,
-            topic=i.topic,
-            comment=i.comment,
-            username=username,
-        )
-        return json.dumps(result)
+    The POST /works/OL{work_id}W/awards.json endpoint is served by FastAPI
+    (openlibrary/fastapi/internal/api.py) and reuses this helper.
+    """
 
     @staticmethod
     def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
@@ -619,20 +600,6 @@ class bestbook_award(delegate.page):
         else:
             errors.append("Authentication failed")
         return {"errors": ", ".join(errors)}
-
-
-@deprecated("migrated to fastapi")
-class bestbook_count(delegate.page):
-    """API for award count"""
-
-    path = "/awards/count"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self):
-        filt = web.input(work_id=None, username=None, topic=None)
-        result = Bestbook.get_count(work_id=filt.work_id, username=filt.username, topic=filt.topic)
-        return json.dumps({"count": result})
 
 
 def get_opds_data_provider():

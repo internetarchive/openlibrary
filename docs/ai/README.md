@@ -195,7 +195,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.

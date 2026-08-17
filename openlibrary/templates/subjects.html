@@ -92,46 +92,10 @@ $ q = query_param('q')
     $else:
       $# Only show default carousel if subject doesn't have an associated Tag
       $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
-    $:macros.PublishingHistory(page.publishing_history)
+    $:macros.PublishingHistory(async_load=True, key=page.key)
 
     <div class="clearfix"></div>
-
-    $# Phase 3: curated, ranked related-tag lists with a "show more"
-    $# toggle instead of dumping every facet Solr returns.
-    $#
-    $# People / Places / Times are temporarily left out of the render on
-    $# purpose -- they're still computed and cached server-side
-    $# (page.people_top / page.places_top / page.times_top all exist),
-    $# just not shown yet. Add these tuples back in when that section
-    $# gets its own design pass:
-    $#   (_("People"), page.get('people_top'), page.get('people_more')),
-    $#   (_("Places"), page.get('places_top'), page.get('places_more')),
-    $#   (_("Times"), page.get('times_top'), page.get('times_more')),
-    $# Uses the same <ol-chip>/<ol-chip-group> components as the upstream
-    $# RelatedSubjects macro (see openlibrary/macros/RelatedSubjects.html)
-    $# instead of a bespoke list, so this matches every other chip on the
-    $# site. The curation on top of it -- capped + ranked with a "show
-    $# more" toggle instead of dumping the whole facet -- is the Phase 3 work.
-    $ keep_exploring_sections = [(_("Related subjects"), page.get('subjects_top'), page.get('subjects_more'))]
-    <div class="keep-exploring">
-        $for label, top, more in keep_exploring_sections:
-            $if top:
-                <div class="related-tags">
-                    <h3>$label</h3>
-                    <ol-chip-group gap="small">
-                        $for tag in top:
-                            <ol-chip size="small" href="$tag.key">$tag.name</ol-chip>
-                    </ol-chip-group>
-                    $if more:
-                        <details class="related-tags__more">
-                            <summary>$_("Show more")</summary>
-                            <ol-chip-group gap="small">
-                                $for tag in more:
-                                    <ol-chip size="small" href="$tag.key">$tag.name</ol-chip>
-                            </ol-chip-group>
-                        </details>
-                </div>
-    </div>
+    $:macros.RelatedSubjects(async_load=True, key=page.key)
 
     <div class="clearfix"></div>
     $:macros.SubjectAuthors(page.get('notable_authors', []))

@@ -1,7 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 
-@charset "utf-8";
-
 /**
  * This file exists for historic reasons and will be deleted
  * at the first available opportunity.
@@ -46,6 +44,59 @@
 @import "components/mybooks-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
+
+/* SITE DEFAULTS */
+@import "base/common.css";
+@import "components/buttonCta.css";
+@import "components/buttonsAndLinks.css";
+@import "components/buttonLink.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "base/dl.css";
+@import "base/helpers-common.css";
+@import "base/helpers-misc.css";
+@import "markdown.css";
+@import "components/widget-box.css";
+@import "base/headings.css";
+/* LAYOUT */
+@import "layout/index.css";
+@import "components/page-heading-search-box.css";
+@import "components/form.olform.css";
+@import "components/edit-toolbar.css";
+/* FOOTER */
+@import "components/footer.css";
+/* LANGUAGE DROPDOWN */
+@import "components/language.css";
+@import "components/link-box.css";
+/* HOME PAGE */
+/* NEW HOME PAGE */
+/* HOME PAGE CAROUSEL SKIN */
+@import "components/home.css";
+@import "components/search-result-item.css";
+@import "components/fulltext-snippet.css";
+@import "components/search-results-container.css";
+/* Work sub-imports */
+@import "components/compact-title.css";
+@import "components/nav-bar.css";
+@import "components/librarian-dashboard.css";
+@import "components/cover.css";
+@import "components/readerStats.css";
+@import "components/check-in.css";
+@import "components/reading-goal.css";
+@import "components/work-title-and-author.css";
+@import "components/work.css";
+@import "components/navEdition.css";
+@import "components/illustration.css";
+@import "components/page-history.css";
+/* TABS */
+/* Skin */
+@import "components/chart-stats.css";
+/* CHARTING */
+@import "components/chart.css";
+@import "components/merge-form.css";
+@import "components/listLists.css";
+@import "components/rating-form.css";
+@import "components/searchResultItemCta.css";
 
 table {
   border-collapse: collapse;
@@ -216,19 +267,6 @@ em {
   font-style: italic;
 }
 
-/* SITE DEFAULTS */
-
-@import "base/common.css";
-@import "components/buttonCta.css";
-@import "components/buttonsAndLinks.css";
-@import "components/buttonLink.css";
-@import "components/buttonGhost.css";
-@import "components/buttonBtn.css";
-@import "base/dl.css";
-@import "base/helpers-common.css";
-@import "base/helpers-misc.css";
-@import "markdown.css";
-
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */
 /* openlibrary/templates/showmarc.html */
@@ -245,8 +283,6 @@ em {
 
 /* TYPOGRAPHY */
 
-@import "components/widget-box.css";
-
 div.unordered {
   margin-top: var(--spacing-stack-sm);
   line-height: var(--line-height-list);
@@ -258,8 +294,6 @@ div.superNav {
   color: var(--grey);
   margin-bottom: var(--spacing-stack-xs);
 }
-
-@import "base/headings.css";
 
 span.link {
   font-size: var(--font-size-label-medium);
@@ -437,9 +471,6 @@ input.highlight {
   margin-top: var(--spacing-stack-sm);
 }
 
-/* LAYOUT */
-@import "layout/index.css";
-
 /* openlibrary/data/sitemap.py */
 div#placement {
   width: 960px;
@@ -607,8 +638,6 @@ fieldset.home legend {
 }
 
 /* ACCOUNT FORMS */
-@import "components/page-heading-search-box.css";
-@import "components/form.olform.css";
 
 /* openlibrary/templates/account/notifications.html */
 form#notifications input[type="radio"] {
@@ -718,7 +747,6 @@ div.cclicense {
 }
 
 /* TOOLS ACCORDION */
-@import "components/edit-toolbar.css";
 
 /* openlibrary/macros/databarDiff.html */
 /* openlibrary/macros/databarEdit.html */
@@ -788,14 +816,6 @@ div.verify span {
   font-weight: 600;
 }
 
-/* FOOTER */
-@import "components/footer.css";
-
-/* LANGUAGE DROPDOWN */
-@import "components/language.css";
-
-@import "components/link-box.css";
-
 /* Various templates */
 .contentQuarter {
   min-height: 100px;
@@ -838,13 +858,6 @@ div.verify span {
   margin: 15px 0 0 !important;
 }
 /* stylelint-enable selector-max-specificity */
-
-/* HOME PAGE */
-
-/* NEW HOME PAGE */
-
-/* HOME PAGE CAROUSEL SKIN */
-@import "components/home.css";
 
 /* SEARCH RESULTS */
 
@@ -1005,10 +1018,6 @@ div#searchResults .SRPCoverBlank a {
 
 /* SEARCH FACETS */
 
-@import "components/search-result-item.css";
-@import "components/fulltext-snippet.css";
-@import "components/search-results-container.css";
-
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
   width: var(--search-facets-width);
@@ -1050,7 +1059,6 @@ div.facetMoreLess a {
 
 /* RESULTS */
 
-/* openlibrary/templates/lib/message_addbook.html */
 /* openlibrary/templates/lists/widget.html */
 div.list {
   float: left;
@@ -1100,17 +1108,6 @@ div.list .owner {
 }
 
 /* BOOKS */
-/* Work sub-imports */
-@import "components/compact-title.css";
-@import "components/nav-bar.css";
-@import "components/librarian-dashboard.css";
-@import "components/cover.css";
-@import "components/readerStats.css";
-@import "components/check-in.css";
-@import "components/reading-goal.css";
-@import "components/work-title-and-author.css";
-@import "components/work.css";
-@import "components/navEdition.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 /* openlibrary/templates/type/work/view.html */
@@ -1149,8 +1146,6 @@ div.workHelp {
 .workCover .illustration .SRPCoverBlank {
   margin: 0 auto;
 }
-
-@import "components/illustration.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 div.books {
@@ -1328,8 +1323,6 @@ ul.clean li span.resultTitle {
   margin-bottom: 1em;
   margin-top: 0;
 }
-
-@import "components/page-history.css";
 
 /* openlibrary/macros/CoverImage.html */
 /* openlibrary/templates/covers/book_cover.html */
@@ -1590,11 +1583,6 @@ div.popAlert {
   font-size: 0.75em;
 }
 
-/* TABS */
-
-/* Skin */
-@import "components/chart-stats.css";
-
 /* PAGE HISTORY */
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media screen and (max-width: 960px) {
@@ -1626,9 +1614,6 @@ div.popAlert {
   }
 }
 
-/* CHARTING */
-@import "components/chart.css";
-
 /* MERGING */
 /* Merge button */
 /* openlibrary/templates/search/authors.html */
@@ -1638,8 +1623,6 @@ div.mergeThis {
   margin-left: 15px;
   background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
-
-@import "components/merge-form.css";
 
 /* openlibrary/templates/recentchanges/default/view.html */
 /* openlibrary/templates/recentchanges/merge-authors/view.html */
@@ -1696,8 +1679,6 @@ div.postSubmit {
 #listTools li span.alert {
   background-position: -56px 0;
 }
-
-@import "components/listLists.css";
 
 /* openlibrary/templates/lists/widget.html */
 .heart-adjust {
@@ -1800,9 +1781,6 @@ div#subjectLists p {
 .account-settings-menu {
   display: flex;
 }
-
-@import "components/rating-form.css";
-@import "components/searchResultItemCta.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @media only screen and (min-width: 768px) {
