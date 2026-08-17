@@ -160,6 +160,20 @@ describe('ol-books-display data flow', () => {
         expect(fetchCalls.filter(c => c.url.includes('/books-display.json'))).toHaveLength(1);
     });
 
+    test('falls back to the wider query when the first is empty', async() => {
+        stubFetch({ total: 45 });
+        const original = global.fetch;
+        global.fetch = jest.fn(async(url, init) => {
+            if (url.includes('q=narrow')) return { ok: true, status: 200, json: async() => ({ docs: [], num_found: 0, offset: 0, limit: 20 }) };
+            return original(url, init);
+        });
+        const el = await mount({ query: 'narrow', fallbackQuery: 'subject:fiction' });
+        await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+        expect(el.query).toBe('subject:fiction');
+        expect(el.docs).toHaveLength(20);
+    });
+
     test('shows the error state with a retry on failure', async() => {
         global.fetch = jest.fn(async() => ({ ok: false, status: 500, json: async() => ({}) }));
         const el = await mount();
