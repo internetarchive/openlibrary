@@ -107,7 +107,8 @@ def _target_edition(work: dict) -> dict:
 
 def _cover_url(work: dict, edition: dict) -> str | None:
     host = get_coverstore_public_url()
-    cover_id = edition.get("cover_i") or work.get("cover_i")
+    # Prefer the work's cover: which child edition Solr returns varies per query.
+    cover_id = work.get("cover_i") or edition.get("cover_i")
     if cover_id and cover_id != -1:
         return f"{host}/b/id/{cover_id}-M.jpg"
     if ia := edition.get("ia") or work.get("ia"):

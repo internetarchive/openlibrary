@@ -38,7 +38,7 @@ class TestToBookCard:
         assert card["key"] == "/works/OL1W"
         assert card["title"] == "Project Hail Mary"
         assert card["authors"] == [{"key": "/authors/OL7W1A", "name": "Andy Weir"}]
-        assert card["cover_url"] == "https://covers.test/b/id/456-M.jpg"  # edition cover wins
+        assert card["cover_url"] == "https://covers.test/b/id/123-M.jpg"  # work cover wins
         assert card["edition_key"] == "OL9M"
         assert card["first_publish_year"] == 2021
         assert card["ratings_average"] == 4.3
