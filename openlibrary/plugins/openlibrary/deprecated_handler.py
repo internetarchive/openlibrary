@@ -94,6 +94,8 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"(/subjects/[^/]+)", "json"),
     (r"(/publishers/[^/]+)", "json"),
     (r"(/partials/[^/]+)", "json"),
+    (r"/books-display", "json"),
+    (r"/books-display/user-state", "json"),
     (r"/api/books", "json"),
     (r"/api/books", None),
     # Simplified regex
