@@ -13,12 +13,14 @@ $# * limit (int) -- page size
 $# * has_fulltext_only (bool) -- only readable books
 $# * url (str) -- "See all" link (defaults to the search page for `query`)
 $# * view (str) -- initial view: 'covers' or 'list'
-$# * user_lang_only (bool) -- restrict to the user's language
+$# * user_lang_only (bool) -- restrict to the user's language, falling back to all languages when that finds nothing
 $# * safe_mode (bool) -- hide covers of books with a content_warning tag
 
+$ fallback_query = ''
 $if user_lang_only:
   $ user_lang = convert_iso_to_marc(get_lang() or 'en')
   $if user_lang and user_lang in get_populated_languages():
+    $ fallback_query = query
     $ query = query + ' language:' + user_lang
 
 $if url is None:
@@ -84,6 +86,7 @@ $code:
 
 <ol-books-display
   query="$query"
+  fallback-query="$fallback_query"
   sort="$sort"
   limit="$limit"
   title="$title"

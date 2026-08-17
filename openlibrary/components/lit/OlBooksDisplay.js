@@ -26,6 +26,8 @@ import './OlBookActions.js';
  * @element ol-books-display
  *
  * @prop {String} query   - Solr work query
+ * @prop {String} fallbackQuery - Query to retry with when `query` returns nothing
+ *     (e.g. the same query without the user-language filter)
  * @prop {String} sort    - Solr sort (default "new")
  * @prop {Number} limit   - Page size (default 20)
  * @prop {String} title   - Section heading
@@ -95,6 +97,7 @@ const VIEWS = ['covers', 'list'];
 export class OlBooksDisplay extends LitElement {
     static properties = {
         query: { type: String },
+        fallbackQuery: { type: String, attribute: 'fallback-query' },
         sort: { type: String },
         limit: { type: Number },
         title: { type: String },
@@ -122,6 +125,7 @@ export class OlBooksDisplay extends LitElement {
     constructor() {
         super();
         this.query = '';
+        this.fallbackQuery = '';
         this.sort = 'new';
         this.limit = 20;
         this.title = '';
@@ -201,6 +205,14 @@ export class OlBooksDisplay extends LitElement {
             this._docs = [...this._docs, ...page.docs];
             this._numFound = page.num_found;
             this._loadUserState(page.docs.map(d => d.key));
+            if (!this._docs.length && this.fallbackQuery && this.fallbackQuery !== this.query) {
+                // Nothing under the narrow query (typically the user-language
+                // filter): widen once and refetch.
+                this.query = this.fallbackQuery;
+                this._numFound = null;
+                this._loading = false;
+                return this.loadMore();
+            }
         } catch (error) {
             this._error = true;
         } finally {
