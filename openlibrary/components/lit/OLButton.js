@@ -7,6 +7,10 @@ import { LitElement, html, nothing } from 'lit';
  * it both before and after hydration. Handles variants, sizes, loading,
  * disabled, and form submission for type="submit" / type="reset".
  *
+ * Links: set `href` and it renders an <a> instead, styled identically, so a
+ * button-shaped navigation CTA ("Read", "Borrow") needs no separate recipe.
+ * `disabled` / `loading` on a link drop the href and set aria-disabled.
+ *
  * Contains no application-specific logic, copy, or translations. The
  * consuming page owns what the button *does* — this component only owns
  * how it looks and basic interaction semantics.
@@ -23,9 +27,18 @@ import { LitElement, html, nothing } from 'lit';
  *
  * @element ol-button
  *
- * @prop {"primary" | "secondary" | "destructive"} variant - Default: "secondary"
+ * @prop {"primary" | "secondary" | "destructive" | "ghost"} variant - Default: "secondary".
+ *   Ghost is transparent with no border or lift; it fills on hover.
  * @prop {"small" | "medium" | "large"}            size    - Default: "medium"
+ * @prop {"icon" | "circle"} shape - Icon-only: width equals the size's height,
+ *   no horizontal padding. "circle" additionally rounds it. Give it an aria-label.
+ * @prop {"floating"} elevation - Heavier drop shadow for a control that sits
+ *   over content (e.g. a save button on cover art) rather than on the page.
  * @prop {"button" | "submit" | "reset"}           type    - Default: "button"
+ * @prop {String} href      - Renders an <a> instead of a <button>.
+ * @prop {String} target    - Link target (only with href).
+ * @prop {String} rel       - Link rel (only with href).
+ * @prop {String} download  - Link download attribute (only with href).
  * @prop {Boolean} loading    - Shows a spinner and disables interaction.
  * @prop {Boolean} disabled   - Disables interaction.
  * @prop {Boolean} fullWidth  - Button expands to fill its container.
@@ -41,12 +54,20 @@ import { LitElement, html, nothing } from 'lit';
  * @example
  *   <ol-button variant="destructive" size="medium">Delete</ol-button>
  *   <ol-button type="submit" loading>Saving…</ol-button>
+ *   <ol-button variant="primary" href="/borrow/OL1M">Borrow</ol-button>
+ *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
  */
 export class OLButton extends LitElement {
     static properties = {
         variant: { type: String, reflect: true },
         size: { type: String, reflect: true },
+        shape: { type: String, reflect: true },
+        elevation: { type: String, reflect: true },
         type: { type: String, reflect: true },
+        href: { type: String, reflect: true },
+        target: { type: String },
+        rel: { type: String },
+        download: { type: String },
         loading: { type: Boolean, reflect: true },
         disabled: { type: Boolean, reflect: true },
         fullWidth: { type: Boolean, reflect: true, attribute: 'full-width' },
@@ -109,15 +130,37 @@ export class OLButton extends LitElement {
         // The chevron is always rendered but hidden by CSS unless the button is
         // a disclosure trigger (ol-popover / ol-select-popover set aria-haspopup
         // on it). That keeps the trigger affordance automatic — no consumer markup.
+        const inert = this.loading || this.disabled;
+        const content = html`${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span><span class="ol-btn-chevron" aria-hidden="true"></span>`;
+
+        if (this.href !== undefined && this.href !== null) {
+            // A link can't be disabled natively: drop the href (no navigation,
+            // no tab stop) and say so via aria-disabled. The host's
+            // pointer-events: none handles clicks.
+            return html`
+                <a
+                    href=${inert ? nothing : this.href}
+                    target=${this.target ?? nothing}
+                    rel=${this.rel ?? nothing}
+                    download=${this.download ?? nothing}
+                    aria-disabled=${inert ? 'true' : nothing}
+                    aria-busy=${this.loading ? 'true' : 'false'}
+                    aria-label=${this.a11yLabel ?? nothing}
+                    aria-haspopup=${this.a11yHasPopup ?? nothing}
+                    aria-expanded=${this.a11yExpanded ?? nothing}
+                >${content}</a>
+            `;
+        }
+
         return html`
             <button
                 type=${this.type}
-                ?disabled=${this.loading || this.disabled}
+                ?disabled=${inert}
                 aria-busy=${this.loading ? 'true' : 'false'}
                 aria-label=${this.a11yLabel ?? nothing}
                 aria-haspopup=${this.a11yHasPopup ?? nothing}
                 aria-expanded=${this.a11yExpanded ?? nothing}
-            >${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span><span class="ol-btn-chevron" aria-hidden="true"></span></button>
+            >${content}</button>
         `;
     }
 }
