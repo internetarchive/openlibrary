@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
+#: RelatedSubjects.html account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -7392,6 +7392,14 @@ msgstr ""
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
+msgstr ""
+
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Something went wrong."
+msgstr ""
+
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Retry"
 msgstr ""
 
 #: RawQueryCarousel.html

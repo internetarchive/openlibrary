@@ -2,7 +2,7 @@
  * Functionalities for templates/work_search and related templates.
  */
 
-import { buildPartialsUrl } from './utils';
+import { buildPartialsUrl, createElementFromMarkup, whenVisible } from './utils';
 
 /**
  * Displays more facets by removing the ui-helper-hidden class.
@@ -141,53 +141,4 @@ function fetchPartials(param) {
             }
             return resp.json();
         });
-}
-
-/**
- * Returns an `HTMLElement` that was created using the given `markup`.
- *
- * `markup` is expected to be well-formed, and only have a single root
- * element.
- *
- * @param {string} markup HTML markup for a single element
- * @returns {HTMLElement}
- */
-function createElementFromMarkup(markup) {
-    const template = document.createElement('template');
-    template.innerHTML = markup;
-    return template.content.children[0];
-}
-
-
-/**
- * Waits until the given element is visible in the viewport, then resolves.
- *
- * @param {HTMLElement} elem
- * @param {IntersectionObserverInit} options
- * @returns {Promise<void>}
- */
-async function whenVisible(elem, options = {}) {
-    return new Promise((resolve) => {
-        const intersectionObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
-
-                    // Stop observing once the element is visible
-                    observer.unobserve(entry.target);
-                    observer.disconnect();
-                    resolve();
-                });
-            },
-            Object.assign({
-                root: null,
-                rootMargin: '200px',
-                threshold: 0
-            }, options)
-        );
-
-        intersectionObserver.observe(elem);
-    });
 }
