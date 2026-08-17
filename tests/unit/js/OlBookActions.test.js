@@ -128,7 +128,7 @@ describe('ol-book-actions rating', () => {
         await tick(el);
         const post = calls.find(c => c.url === '/works/OL1W/ratings.json');
         expect(post.init.body.get('rating')).toBe('4');
-        expect(q(el, '.stars .caption').textContent).toBe('Your rating: 4 of 5');
+        expect(q(el, '.stars .caption').textContent).toBe('Clear rating');
     });
 
     test('clicking the current star clears the rating', async() => {

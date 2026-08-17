@@ -7335,11 +7335,6 @@ msgstr ""
 
 #: BooksDisplay.html
 #, python-format
-msgid "Your rating: %(rating)s of 5"
-msgstr ""
-
-#: BooksDisplay.html
-#, python-format
 msgid "Rate %(rating)s of 5"
 msgstr ""
 
@@ -7378,6 +7373,11 @@ msgstr ""
 #: BooksDisplay.html
 #, python-format
 msgid "%(count)s items"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "In %(count)s of your lists"
 msgstr ""
 
 #: BooksDisplay.html
