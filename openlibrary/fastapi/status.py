@@ -7,6 +7,7 @@ via JSON without a browser.
 
 from __future__ import annotations
 
+import asyncio
 import os
 
 from fastapi import APIRouter, HTTPException, status
@@ -76,11 +77,16 @@ class TestingStatusResponse(BaseModel):
     description="Returns the current status of the testing environment (PRs pinned for testing deploys).",
 )
 async def testing_status(_: MaintainerDep) -> TestingStatusResponse:
-    """Return the testing environment status backing the /status deploy table."""
-    if (result := await load_testing_status_async()) is None:
+    """Return the testing environment status backing the /status deploy table.
+
+    The GitHub drift fetch and the Jenkins fetch run concurrently; on a cold
+    cache the two round-trips overlap instead of stacking.
+    """
+    result, jenkins = await asyncio.gather(load_testing_status_async(), jenkins_deploy_status())
+    if result is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
     response = TestingStatusResponse.model_validate(result)
-    if jenkins := await jenkins_deploy_status():
+    if jenkins:
         # The latest Jenkins run is ground truth; the state file only knows the
         # trigger, so its time-window guess stands in only when Jenkins is down.
         response.deploying = jenkins["status"] == "IN_PROGRESS"

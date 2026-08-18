@@ -631,10 +631,45 @@ async def test_jenkins_deploy_status_returns_none_on_error():
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=None)):
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=None)),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
+    ):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 404
+
+
+def test_testing_status_fetches_github_and_jenkins_concurrently(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """The GitHub drift fetch and the Jenkins fetch start together, not in sequence."""
+    mock_maintainer_user(is_maintainer=True)
+    result = status_module.build_testing_status(_make_state(), {})
+    active = 0
+    peak = 0
+
+    async def fake_load():
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        await asyncio.sleep(0.05)  # yield so the other fetch can start
+        active -= 1
+        return result
+
+    async def fake_jenkins():
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        await asyncio.sleep(0.05)
+        active -= 1
+
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status_async", side_effect=fake_load),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", side_effect=fake_jenkins),
+    ):
+        response = fastapi_client.get("/status/testing.json")
+
+    assert response.status_code == 200
+    assert peak == 2  # sequential awaits would peak at 1
 
 
 def test_testing_status_endpoint_requires_auth(fastapi_client):
