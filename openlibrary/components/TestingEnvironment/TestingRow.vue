@@ -1,13 +1,13 @@
 <template>
   <tr class="testing-env__row">
     <td
-      v-if="maintainer && inSet"
+      v-if="maintainer"
       class="testing-env__col-toggle"
     >
       <button
+        v-if="inSet"
         type="button"
         class="testing-env__switch"
-        :disabled="busy"
         :aria-pressed="isActive ? 'true' : 'false'"
         :aria-label="text('prOnTesting', pr.pr)"
         @click="$emit('toggle', pr)"
@@ -70,7 +70,6 @@
             v-if="maintainer && canUpdatePr"
             type="button"
             class="testing-env__row-action"
-            :disabled="busy"
             :title="strings.update"
             :aria-label="strings.update"
             @click="$emit('update', pr)"
@@ -111,13 +110,13 @@
       </div>
     </td>
     <td
-      v-if="maintainer && inSet"
+      v-if="maintainer"
       class="testing-env__col-actions"
     >
       <button
+        v-if="inSet"
         type="button"
         class="testing-env__row-action testing-env__row-action--danger"
-        :disabled="busy"
         :title="strings.remove"
         :aria-label="strings.remove"
         @click="$emit('remove', pr)"
@@ -160,7 +159,7 @@ import {
     REPO_URL,
     canUpdate,
     driftPill,
-    isPending,
+    effectiveActive,
     sprintf
 } from './utils.js';
 
@@ -178,10 +177,6 @@ export default {
             type: Boolean,
             default: false
         },
-        busy: {
-            type: Boolean,
-            default: false
-        },
         strings: {
             type: Object,
             required: true
@@ -195,14 +190,16 @@ export default {
         liveNow() {
             return this.pr.live_now === true;
         },
-        // The switch shows what is true right now. A staged toggle lives in
-        // the ⏳ + plan, so the switch must not flip early and read as
-        // "already on" while the deploy is still pending.
+        // The switch shows what the next deploy leaves the row as: the staged
+        // toggle when one is pending (the server emits pending_active then),
+        // otherwise the live state. Clicking flips the row either way.
         isActive() {
-            return this.pr.active !== false;
+            return effectiveActive(this.pr);
         },
+        // The server classifies what the next deploy does with this row in
+        // `action`; any non-empty value means a change is staged for it.
         pending() {
-            return isPending(this.pr);
+            return Boolean(this.pr.action);
         },
         canUpdatePr() {
             return canUpdate(this.pr);

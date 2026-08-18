@@ -7,7 +7,6 @@ import {
     effectiveActive,
     formatTime,
     getTestingStatus,
-    isPending,
     postAction,
     safeHttpUrl,
     sprintf,
@@ -92,18 +91,13 @@ describe('Testing Environment utils', () => {
     });
 
     test('resolves the effective toggle state', () => {
+        // pending_active is only present when a toggle is staged (server emits
+        // it just for that), so its value is the direction to stage.
         expect(effectiveActive({ active: true })).toBe(true);
         expect(effectiveActive({ active: false })).toBe(false);
         expect(effectiveActive({ active: true, pending_active: false })).toBe(false);
         expect(effectiveActive({ active: false, pending_active: true })).toBe(true);
         expect(effectiveActive({ active: true, pending_active: null })).toBe(true);
-    });
-
-    test('detects staged changes for the next deploy', () => {
-        expect(isPending(pr)).toBe(false);
-        expect(isPending({ ...pr, pull_latest_sha: 'abc1234' })).toBe(true);
-        expect(isPending({ ...pr, pending_active: false })).toBe(true);
-        expect(isPending({ ...pr, pending_active: null })).toBe(false);
     });
 
     test('offers pull-latest only when a newer commit is available', () => {

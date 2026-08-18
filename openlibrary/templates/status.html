@@ -21,8 +21,8 @@ $var title: $_("Open Library server status")
     display: table-row;
   }
 
-  /* Testing Environment styles live in static/css/components/testing-env.css,
-     imported by the default page-user bundle this page falls back to. */
+  /* Testing Environment styles live in the TestingEnvironment.vue component's
+     shadow DOM, so the panel needs no page-level stylesheet. */
 
   /* Maintainer-only notice shown in place of the testing panel. */
   .testing-env-notice {

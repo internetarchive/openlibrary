@@ -156,23 +156,16 @@ export function safeHttpUrl(value, origin = window.location.origin) {
 }
 
 /**
- * The target state a click on the toggle moves toward: a staged pending_active
- * wins until the next deploy applies it. The toggle's *display* shows the
- * current state (pr.active); this only decides the direction to stage, so
- * clicking again after staging undoes the change.
+ * The state the next deploy leaves the row in — what the switch displays and
+ * what a click moves away from. The server emits `pending_active` only when a
+ * toggle is staged (and differs from `active`), so its presence is the staged
+ * direction; when nothing is staged the current `active` state stands.
+ * Clicking again after staging undoes the change.
  */
 export function effectiveActive(pr) {
     return pr.pending_active === undefined || pr.pending_active === null
         ? pr.active !== false
         : pr.pending_active;
-}
-
-/**
- * Whether a change is staged for the next deploy.
- */
-export function isPending(pr) {
-    return Boolean(pr.pull_latest_sha)
-        || (pr.pending_active !== undefined && pr.pending_active !== null);
 }
 
 /**

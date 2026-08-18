@@ -7,7 +7,7 @@
       <button
         type="button"
         class="testing-env__btn testing-env__btn--primary"
-        :disabled="busy || !changeCount"
+        :disabled="!changeCount"
         @click="$emit('deploy')"
       >
         <svg
@@ -32,7 +32,6 @@
       <button
         type="button"
         class="testing-env__btn"
-        :disabled="busy"
         @click="$emit('refresh')"
       >
         <svg
@@ -149,10 +148,6 @@ export default {
             required: true
         },
         maintainer: {
-            type: Boolean,
-            default: false
-        },
-        busy: {
             type: Boolean,
             default: false
         },

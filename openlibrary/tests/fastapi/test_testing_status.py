@@ -191,7 +191,7 @@ def test_payload_action_mirrors_the_plan_kinds():
     payload = status_module.get_testing_status(state, {})
     actions = {p["pr"]: p["action"] for p in payload["prs"]}
 
-    assert actions == {13269: "add", 13238: "update", 13240: "disable"}
+    assert actions == {13269: "add", 13238: "pin", 13240: "disable"}
 
 
 def test_payload_includes_dropped_prs_as_readonly_rows():

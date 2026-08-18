@@ -278,16 +278,16 @@ def _row_action(p: TestingPR, merged: bool, last_deploy: str) -> str:
     """The one chip a row shows: what the next deploy does with this PR.
 
     Mirrors ``_pending_changes`` so the table and the plan can't drift apart:
-    merged rows are removals, unlanded rows are adds, a staged pull is an
-    update, and a staged toggle is an enable/disable. Empty means the deploy
-    leaves the row untouched.
+    merged rows are removals, unlanded rows are adds, a staged pull is a pin,
+    and a staged toggle is an enable/disable. Empty means the deploy leaves
+    the row untouched.
     """
     if merged:
         return "remove"
     if not last_deploy or p.added_at > last_deploy:
         return "add"
     if p.pull_latest_sha:
-        return "update"
+        return "pin"
     if p.pending_toggle is not None:
         return "enable" if p.pending_toggle else "disable"
     return ""

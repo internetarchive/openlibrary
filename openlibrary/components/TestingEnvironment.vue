@@ -25,7 +25,6 @@
           <button
             type="button"
             class="testing-env__btn testing-env__btn--small"
-            :disabled="busy"
             @click="retry"
           >
             {{ strings.retry }}
@@ -63,7 +62,6 @@
             <button
               type="submit"
               class="testing-env__btn testing-env__btn--primary"
-              :disabled="busy"
             >
               {{ strings.add }}
             </button>
@@ -110,7 +108,6 @@
                 :key="pr.pr"
                 :pr="pr"
                 :maintainer="isMaintainer"
-                :busy="busy"
                 :strings="strings"
                 @toggle="togglePr"
                 @update="updatePr"
@@ -130,7 +127,6 @@
       <DeploySection
         :payload="payload"
         :maintainer="isMaintainer"
-        :busy="busy"
         :strings="strings"
         :jenkins_url="jenkinsUrl"
         @deploy="deploy"
@@ -238,6 +234,8 @@ export default {
             this.toast = message;
         },
         async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
+            // busy is a re-entrancy guard and aria-busy signal only — it never
+            // disables buttons, so fetches never gray the panel out.
             if (manageBusy) this.busy = true;
             if (showLoading) this.view = 'loading';
             try {
@@ -318,10 +316,9 @@ export default {
             const now = Date.now();
             if (now - this.lastFocusRefresh < 2000) return;
             this.lastFocusRefresh = now;
-            // manageBusy=false: a background fetch must not disable every
-            // button in the panel for its duration — that dim is the flash
-            // you see returning to the tab. It also keeps a failed silent
-            // refresh from leaving the UI locked.
+            // manageBusy=false: a background fetch must not set the guard — a
+            // focus refresh can't drop a concurrent action, and a failed
+            // silent refresh must not leave the panel looking busy.
             this.loadStatus(false, false, false);
         }
     }
@@ -595,12 +592,14 @@ export default {
   width: 100%;
 }
 
-/* Fixed rail so titles line up down the column regardless of PR number width. */
+/* Fixed rail so titles line up down the column regardless of PR number width.
+   The number + live dot center against the title, so a title that wraps to
+   two or three lines keeps the rail centered beside it. */
 .testing-env__pr-line {
   display: grid;
   grid-template-columns: 4.25em minmax(0, 1fr);
   gap: var(--spacing-sm);
-  align-items: baseline;
+  align-items: center;
 }
 
 /* The number and its live dot share the fixed rail; the dot is sized to sit
