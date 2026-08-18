@@ -756,7 +756,10 @@ class Work(models.Work):
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
         ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability("identifier", ocaids)
+        # Batch availability requests to avoid overloading the lending API
+        availability = {}
+        for i in range(0, len(ocaids), 50):
+            availability.update(lending.get_availability("identifier", ocaids[i : i + 50]))
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 
