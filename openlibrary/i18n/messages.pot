@@ -1230,7 +1230,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: RecentChangesAdmin.html TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
+#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr ""
 
