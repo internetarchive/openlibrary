@@ -9,7 +9,7 @@ import httpx
 import pytest
 import web
 
-import openlibrary.fastapi.status as fastapi_status
+import openlibrary.plugins.openlibrary.jenkins as jenkins_module
 import openlibrary.plugins.openlibrary.status as status_module
 
 
@@ -52,7 +52,7 @@ def test_build_testing_status_merges_drift_and_derived_fields():
     assert result.last_deploy_at == "2026-08-05T18:00:00+00:00"
     assert result.has_pending is True  # added after last deploy
     assert result.deploying is False  # never triggered a build
-    assert result.pending_changes == [{"pr": 13269, "title": "Test PR", "kind": "add", "detail": "1d23364", "reason": ""}]
+    assert result.pending_changes == [status_module.PendingChange(pr=13269, title="Test PR", kind="add", detail="1d23364", reason="")]
     pr = result.prs[0]
     assert (pr.head_sha, pr.drift, pr.merged, pr.is_new) == ("abc1234", 2, False, True)
     assert (pr.title, pr.added_by) == ("Test PR", "openlibrary")
@@ -230,14 +230,14 @@ def test_pending_changes_itemizes_every_staged_edit():
 
     changes = status_module._pending_changes(state, {})
 
-    assert [(c["kind"], c["pr"]) for c in changes] == [
+    assert [(c.kind, c.pr) for c in changes] == [
         ("add", 13269),
         ("pin", 13238),
         ("disable", 13240),
     ]
-    assert changes[0]["detail"] == "1d23364"
-    assert changes[1]["detail"] == "9f8e7d6"
-    assert changes[0]["title"] == "Test PR"
+    assert changes[0].detail == "1d23364"
+    assert changes[1].detail == "9f8e7d6"
+    assert changes[0].title == "Test PR"
 
 
 def test_pending_changes_ignores_a_toggle_back_to_the_live_state():
@@ -248,8 +248,9 @@ def test_pending_changes_ignores_a_toggle_back_to_the_live_state():
 
     assert status_module._pending_changes(state, {}) == []
     assert status_module.build_testing_status(state, {}).has_pending is False
-    # And the row the template reads carries no pending toggle either.
-    assert "pending_active" not in pr.to_dict()
+    # And the row the template reads carries no pending toggle either: the
+    # serialized form normalizes a no-op toggle back to None.
+    assert pr.model_dump()["pending_active"] is None
 
 
 def test_pending_changes_merged_pr_yields_only_a_removal():
@@ -260,7 +261,7 @@ def test_pending_changes_merged_pr_yields_only_a_removal():
 
     changes = status_module._pending_changes(state, {13238: {"merged": True}})
 
-    assert [c["kind"] for c in changes] == ["remove"]
+    assert [c.kind for c in changes] == ["remove"]
 
 
 def test_pending_changes_folds_a_pin_into_an_unlanded_add():
@@ -271,8 +272,8 @@ def test_pending_changes_folds_a_pin_into_an_unlanded_add():
 
     changes = status_module._pending_changes(state, {})
 
-    assert [c["kind"] for c in changes] == ["add"]
-    assert changes[0]["detail"] == "9f8e7d6"  # the SHA that actually goes live
+    assert [c.kind for c in changes] == ["add"]
+    assert changes[0].detail == "9f8e7d6"  # the SHA that actually goes live
 
 
 def test_pending_changes_empty_when_deployed_set_matches():
@@ -287,7 +288,7 @@ def test_pending_changes_counts_everything_before_first_deploy():
 
     changes = status_module._pending_changes(state, {})
 
-    assert [c["kind"] for c in changes] == ["add"]
+    assert [c.kind for c in changes] == ["add"]
 
 
 def test_payload_marks_live_now_from_the_deployed_set():
@@ -370,6 +371,21 @@ def test_is_deploying_is_a_window_not_a_result(age_seconds, expected):
 def test_is_deploying_false_without_a_triggered_build():
     """No Jenkins token means no build was accepted, so nothing is in flight."""
     assert status_module._is_deploying(_make_state()) is False
+
+
+def test_load_testing_state_accepts_legacy_bare_array(tmp_path, monkeypatch):
+    """State files predating the object format (a bare array) still load."""
+    state_file = tmp_path / "_testing-prs.json"
+    state_file.write_text(json.dumps([{"pr": 13269, "commit": "1d23364b8c652d6107e2dc685f918551fda5d327", "active": True, "title": "Test PR"}]))
+    monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
+
+    state = status_module._load_testing_state()
+
+    assert state is not None
+    assert state.last_deploy_at == ""
+    assert state.prs[0].pr == 13269
+    assert state.prs[0].added_at == ""  # field that postdates the legacy format
+    assert state.prs[0].pull_latest_sha == ""
 
 
 def test_ensure_testing_state_file_creates_empty_state(tmp_path, monkeypatch):
@@ -535,7 +551,7 @@ def test_deploy_failure_never_persists_staged_changes():
                 False,
             ),
         ) as mock_drift,
-        patch("openlibrary.plugins.openlibrary.status._trigger_rebuild", return_value="failed"),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         pytest.raises(web.SeeOther),
     ):
@@ -563,7 +579,7 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
                 False,
             ),
         ),
-        patch("openlibrary.plugins.openlibrary.status._trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         pytest.raises(web.SeeOther),
@@ -642,7 +658,7 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 200
-    assert fastapi_status.TestingStatusResponse(**response.json()).model_dump() == response.json()
+    assert status_module.TestingStatus(**response.json()).model_dump() == response.json()
 
 
 def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_authenticated_user, mock_maintainer_user):
@@ -710,13 +726,8 @@ async def test_jenkins_deploy_status_parses_latest_run():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_response)
 
-    mc = MagicMock()
-    mc.get.return_value = None
-    with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
-    ):
-        result = await status_module.jenkins_deploy_status()
+    with patch("openlibrary.plugins.openlibrary.jenkins.httpx.AsyncClient", return_value=mock_client):
+        result = await jenkins_module.jenkins_deploy_status()
 
     assert result["status"] == "SUCCESS"
     assert result["start_time"].startswith("2026-08-18T")
@@ -747,13 +758,8 @@ async def test_jenkins_deploy_status_reports_current_stage():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_response)
 
-    mc = MagicMock()
-    mc.get.return_value = None
-    with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
-    ):
-        result = await status_module.jenkins_deploy_status()
+    with patch("openlibrary.plugins.openlibrary.jenkins.httpx.AsyncClient", return_value=mock_client):
+        result = await jenkins_module.jenkins_deploy_status()
 
     assert result["status"] == "IN_PROGRESS"
     assert result["current_stage"] == "components"
@@ -767,13 +773,8 @@ async def test_jenkins_deploy_status_returns_none_on_error():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(side_effect=httpx.RequestError("down"))
 
-    mc = MagicMock()
-    mc.get.return_value = None
-    with (
-        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
-    ):
-        assert await status_module.jenkins_deploy_status() is None
+    with patch("openlibrary.plugins.openlibrary.jenkins.httpx.AsyncClient", return_value=mock_client):
+        assert await jenkins_module.jenkins_deploy_status() is None
 
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):

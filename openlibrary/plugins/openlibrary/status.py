@@ -2,19 +2,18 @@ import asyncio
 import contextlib
 import datetime
 import functools
-import http.client
 import json
 import re
 import socket
 import sys
-import urllib.request
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
 import httpx
 import web
+from pydantic import BaseModel, Field, field_serializer
 
 from infogami import config
 from infogami.utils import delegate
@@ -22,6 +21,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
+from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
 from openlibrary.utils import get_software_version
 from openlibrary.utils.async_utils import async_bridge
 
@@ -29,18 +29,8 @@ status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
 _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
-_JENKINS_URL = "https://jenkins.openlibrary.org/job/testing-deploy/buildWithParameters"
-_JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 60  # 1 minute
-# The deploy pipeline's own run list (newest first). The panel only learns
-# that a build was triggered, so this is the ground truth for whether it is
-# still running and how it ended. fullStages=true brings the per-stage status
-# so the panel can name the stage a running build is on. Cached very briefly
-# so a panel poll or tab-focus reads near-live state instead of a stale run.
-_JENKINS_RUNS_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/wfapi/runs?fullStages=true"
-_JENKINS_STATUS_CACHE_KEY = "status.jenkins_deploy_status"
-_JENKINS_STATUS_CACHE_TTL = 1  # second
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
 # running. After this long we stop claiming it is, without claiming it worked.
 _DEPLOY_WINDOW = 10 * 60  # 10 minutes
@@ -64,7 +54,7 @@ class status(delegate.page):
             is_maintainer=is_maintainer_user,
             has_testing_state=has_testing_state,
             show_testing=show_testing,
-            jenkins_job_url=_JENKINS_JOB_URL,
+            jenkins_job_url=JENKINS_JOB_URL,
         )
 
 
@@ -213,12 +203,12 @@ class status_deploy(delegate.page):
                 p.pending_active = None
         # Nothing above is persisted until Jenkins accepts the build, so a failed
         # trigger leaves every staged change intact and retryable.
-        outcome = _trigger_rebuild(state)
+        outcome = trigger_rebuild(state.prs)
         if outcome == "failed":
             raise web.seeother("/status?deploy_failed=1")
         state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
         # What this build puts on the box: active PRs only, the same filter
-        # _trigger_rebuild sends. Recorded so a later removal has a set to be
+        # trigger_rebuild sends. Recorded so a later removal has a set to be
         # missing from — nothing else survives one.
         state.deployed = {p.pr: p.title for p in state.prs if p.active}
         if outcome == "triggered":
@@ -254,7 +244,7 @@ def _is_deploying(state: TestingState) -> bool:
     return False
 
 
-def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
+def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChange]:
     """The plan: what deploying would change, one entry per staged change.
 
     Every row action writes staged intent that only status_deploy applies, so
@@ -267,20 +257,19 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     built — against what is left.
     """
     last_deploy = state.last_deploy_at
-    changes: list[dict[str, Any]] = []
+    changes: list[PendingChange] = []
     for p in state.prs:
-        entry = {"pr": p.pr, "title": p.title, "reason": ""}
         if drift_info.get(p.pr, {}).get("merged", False):
-            changes.append({**entry, "kind": "remove", "reason": "merged", "detail": ""})
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="merged", detail=""))
             continue
         if not last_deploy or p.added_at > last_deploy:
             # A pin staged on a PR that isn't live yet isn't a separate change:
             # it's just the SHA the PR lands at, so report the effective one.
-            changes.append({**entry, "kind": "add", "detail": p.short_pull_latest or p.short_commit})
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="add", detail=p.short_pull_latest or p.short_commit))
         elif p.pull_latest_sha:
-            changes.append({**entry, "kind": "pin", "detail": p.short_pull_latest})
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="pin", detail=p.short_pull_latest))
         if (toggle := p.pending_toggle) is not None:
-            changes.append({**entry, "kind": "enable" if toggle else "disable", "detail": ""})
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="enable" if toggle else "disable", detail=""))
     # Deployed but no longer in the set: removed, and still on the box until the
     # next deploy drops it. State files written before `deployed` existed start
     # empty here, so their first deploy is what makes removals visible.
@@ -289,8 +278,8 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     remaining = {p.pr for p in state.prs}
     for pr, title in state.deployed.items():
         if pr not in remaining:
-            changes.append({"pr": pr, "title": title, "kind": "remove", "reason": "dropped", "detail": ""})
-    changes.sort(key=lambda c: (_CHANGE_ORDER[c["kind"]], c["pr"]))
+            changes.append(PendingChange(pr=pr, title=title, kind="remove", reason="dropped", detail=""))
+    changes.sort(key=lambda c: (_CHANGE_ORDER[c.kind], c.pr))
     return changes
 
 
@@ -363,20 +352,28 @@ class PRStatus:
         return PRStatus(pull_line=lines[0], status=lines[-1], body="\n".join(lines[1:]))
 
 
-@dataclass
-class TestingPR:
+class TestingPR(BaseModel):
     pr: int
     commit: str  # pinned commit SHA (full)
-    active: bool
-    title: str
-    added_at: str  # ISO timestamp
-    added_by: str  # OL username
+    # The defaults mirror the legacy from_dict, so state files written before
+    # these fields existed still load.
+    active: bool = True
+    title: str = ""
+    added_at: str = ""  # ISO timestamp
+    added_by: str = ""  # OL username
     pull_latest_sha: str = ""  # pending SHA from "Fetch Latest"; applied on deploy
     pending_active: bool | None = None  # pending enable/disable; applied on deploy
     author: str = ""  # GitHub login of PR author
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned
     assignee_avatar: str = ""  # GitHub avatar URL for assignee
+
+    @field_serializer("pending_active")
+    def _serialize_pending_active(self, value: bool | None) -> bool | None:
+        # The state file and the API both normalize: a toggle staged back to
+        # the live state changes nothing on deploy, so it isn't persisted or
+        # served. ``pending_toggle`` is the effective staged direction.
+        return self.pending_toggle
 
     @property
     def short_commit(self) -> str:
@@ -400,75 +397,16 @@ class TestingPR:
     def added_date(self) -> str:
         return self.added_at[:10] if self.added_at else ""
 
-    def to_dict(self) -> dict:
-        d = {
-            "pr": self.pr,
-            "commit": self.commit,
-            "active": self.active,
-            "title": self.title,
-            "added_at": self.added_at,
-            "added_by": self.added_by,
-        }
-        if self.pull_latest_sha:
-            d["pull_latest_sha"] = self.pull_latest_sha
-        if self.pending_toggle is not None:
-            d["pending_active"] = self.pending_toggle
-        if self.author:
-            d["author"] = self.author
-        if self.author_avatar:
-            d["author_avatar"] = self.author_avatar
-        if self.assignee:
-            d["assignee"] = self.assignee
-        if self.assignee_avatar:
-            d["assignee_avatar"] = self.assignee_avatar
-        return d
 
-    @classmethod
-    def from_dict(cls, d: dict) -> TestingPR:
-        return cls(
-            pr=d["pr"],
-            commit=d["commit"],
-            active=d.get("active", True),
-            title=d.get("title", f"PR #{d['pr']}"),
-            added_at=d.get("added_at", ""),
-            added_by=d.get("added_by", ""),
-            pull_latest_sha=d.get("pull_latest_sha", ""),
-            pending_active=d.get("pending_active"),
-            author=d.get("author", ""),
-            author_avatar=d.get("author_avatar", ""),
-            assignee=d.get("assignee", ""),
-            assignee_avatar=d.get("assignee_avatar", ""),
-        )
-
-
-@dataclass
-class TestingState:
+class TestingState(BaseModel):
     last_deploy_at: str  # ISO timestamp, empty if never deployed
-    prs: list[TestingPR] = field(default_factory=list)
+    prs: list[TestingPR] = Field(default_factory=list)
     # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
     deploy_started_at: str = ""
     # {pr number: title} of what the last deploy actually built. Removing a PR
     # deletes it from `prs` outright, so this is the only record that the box is
     # still running it — without it a removal is invisible and undeployable.
-    deployed: dict[int, str] = field(default_factory=dict)
-
-    def to_dict(self) -> dict:
-        return {
-            "last_deploy_at": self.last_deploy_at,
-            "deploy_started_at": self.deploy_started_at,
-            "prs": [p.to_dict() for p in self.prs],
-            # JSON object keys are strings; from_dict puts them back to int.
-            "deployed": {str(pr): title for pr, title in self.deployed.items()},
-        }
-
-    @classmethod
-    def from_dict(cls, d: dict) -> TestingState:
-        return cls(
-            last_deploy_at=d.get("last_deploy_at", ""),
-            prs=[TestingPR.from_dict(p) for p in d.get("prs", [])],
-            deploy_started_at=d.get("deploy_started_at", ""),
-            deployed={int(pr): title for pr, title in d.get("deployed", {}).items()},
-        )
+    deployed: dict[int, str] = Field(default_factory=dict)
 
 
 def _load_testing_state() -> TestingState | None:
@@ -479,13 +417,12 @@ def _load_testing_state() -> TestingState | None:
             # Backward compat: old format was a bare array
             return TestingState(
                 last_deploy_at="",
-                prs=[TestingPR.from_dict(d) for d in data],
+                prs=[TestingPR.model_validate(d) for d in data],
             )
-        return TestingState.from_dict(data)
+        return TestingState.model_validate(data)
     return None
 
 
-@dataclass
 class TestingPRStatus(TestingPR):
     """A TestingPR merged with live GitHub drift info and derived flags."""
 
@@ -499,16 +436,32 @@ class TestingPRStatus(TestingPR):
     in_set: bool = True  # False for rows dropped from the set but still on the box
 
 
-@dataclass
-class TestingStatus:
-    """Status of the testing environment: what backs the /status deploy table and the JSON API."""
+class PendingChange(BaseModel):
+    """One staged change that the next deploy would apply."""
+
+    pr: int
+    title: str
+    kind: str  # add, pin, enable, disable, remove
+    detail: str = ""  # short SHA for add/pin changes; empty otherwise
+    reason: str = ""  # why a removal is staged: merged or dropped; empty otherwise
+
+
+class TestingStatus(BaseModel):
+    """Status of the testing environment: what backs the /status deploy table and the JSON API.
+
+    The deploy_* fields are filled from the latest Jenkins run by the FastAPI
+    endpoint; they default empty so the compose path never needs them.
+    """
 
     last_deploy_at: str  # ISO timestamp, empty if never deployed
     deploy_started_at: str  # ISO timestamp of the last deploy Jenkins accepted; empty if never
     deploying: bool  # whether a build is presumed still running (a time window, not a result)
     has_pending: bool  # whether there are pending changes ready to deploy
-    pending_changes: list[dict]  # what the next deploy would apply, one entry per staged change
-    prs: list[TestingPRStatus]
+    prs: list[TestingPRStatus]  # the table rows, in-set and dropped alike
+    pending_changes: list[PendingChange] = Field(default_factory=list)  # what the next deploy would apply, one entry per staged change
+    deploy_result: str = ""  # latest ol-dev1-deploy run status; empty when Jenkins is unreachable
+    deploy_finished_at: str = ""  # ISO end time of the latest Jenkins run; empty if running or unreachable
+    deploy_stage: str = ""  # stage a running deploy is on; empty when not running or Jenkins is unreachable
 
 
 def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts: frozenset[int] = frozenset()) -> TestingStatus:
@@ -532,7 +485,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     # same precedence the deleted _row_action applied — one source of truth.
     actions: dict[int, str] = {}
     for change in pending_changes:
-        actions.setdefault(change["pr"], change["kind"])
+        actions.setdefault(change.pr, change.kind)
     remaining = {p.pr for p in state.prs}
     # The `deployed` record postdates most state files, so an empty one means
     # "pre-record" rather than "nothing was ever deployed": infer what the last
@@ -542,7 +495,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     deployed_record = bool(state.deployed)
     prs = [
         TestingPRStatus(
-            **asdict(p),
+            **p.model_dump(),
             head_sha=drift_info.get(p.pr, {}).get("head_sha", ""),
             drift=drift_info.get(p.pr, {}).get("drift", -1),
             merged=drift_info.get(p.pr, {}).get("merged", False),
@@ -640,7 +593,7 @@ def _save_testing_state(state: TestingState) -> None:
     # Atomic replace: the FastAPI GET and the web.py POST handlers both write
     # this file, and a torn write would corrupt the state.
     tmp = TESTING_STATE_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(state.to_dict(), indent=2))
+    tmp.write_text(json.dumps(state.model_dump(), indent=2))
     tmp.replace(TESTING_STATE_FILE)
     get_dev_merged_status.cache_clear()
 
@@ -815,84 +768,6 @@ def _parse_pr_number(value: str) -> int:
     if m := re.search(r"/pull/(\d+)", value):
         return int(m.group(1))
     return int(value.lstrip("#"))
-
-
-async def jenkins_deploy_status() -> dict | None:
-    """Return the latest ol-dev1-deploy run: {status, start_time, end_time, current_stage}.
-
-    ``status`` is Jenkins' own verdict — IN_PROGRESS, SUCCESS, FAILURE,
-    ABORTED, … — so the panel can say a deploy finished instead of guessing
-    from a time window. ``current_stage`` names the stage a running build is
-    on (empty when not running). None when Jenkins is unreachable or reports
-    nothing.
-
-    Async: this runs inside the FastAPI event loop (see fastapi/status.py), so
-    it uses httpx rather than blocking urllib — a cold cache never stalls the
-    server. The memcache read/write is a fast local hop and stays sync.
-    """
-    mc = cache.get_memcache()
-    if (cached := mc.get(_JENKINS_STATUS_CACHE_KEY)) is not None:
-        return cached
-    result = None
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(_JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
-            runs = resp.json()
-        if isinstance(runs, list) and runs and isinstance(runs[0], dict):
-            run = runs[0]
-            result = {
-                "status": run.get("status", ""),
-                "start_time": _epoch_ms_to_iso(run.get("startTimeMillis")),
-                "end_time": _epoch_ms_to_iso(run.get("endTimeMillis")),
-                "current_stage": _current_stage(run),
-            }
-    except httpx.HTTPError, ValueError:
-        # HTTPError covers network failures and non-2xx; ValueError covers a
-        # non-JSON body (json.JSONDecodeError is a ValueError subclass).
-        result = None
-    mc.set(_JENKINS_STATUS_CACHE_KEY, result, expires=_JENKINS_STATUS_CACHE_TTL)
-    return result
-
-
-def _epoch_ms_to_iso(epoch_ms) -> str:
-    """Jenkins timestamps are epoch milliseconds; the panel reads ISO strings."""
-    if not epoch_ms:
-        return ""
-    return datetime.datetime.fromtimestamp(epoch_ms / 1000, tz=datetime.UTC).isoformat()
-
-
-def _current_stage(run: dict) -> str:
-    """Name of the stage a running build is on; empty when not running.
-
-    wfapi stage entries carry their own status, so the in-progress stage is
-    the one Jenkins is executing right now.
-    """
-    if run.get("status") != "IN_PROGRESS":
-        return ""
-    for stage in run.get("stages") or []:
-        if stage.get("status") == "IN_PROGRESS":
-            return stage.get("name", "")
-    return ""
-
-
-def _trigger_rebuild(state: TestingState) -> str:
-    """Call Jenkins to rebuild from ``state``.
-
-    Returns ``"triggered"``, ``"failed"`` (Jenkins unreachable or refused), or
-    ``"unconfigured"`` when there is no jenkins_token, as in local dev.
-    """
-    token = getattr(config, "jenkins_token", None)
-    if not token:
-        return "unconfigured"
-    lines = "\n".join(f"origin pull/{p.pr}/head  # {p.title}" for p in state.prs if p.active)
-    url = f"{_JENKINS_URL}?{urlencode({'token': token, 'GH_REPO_AND_BRANCH': lines})}"
-    try:
-        urllib.request.urlopen(url, timeout=10)
-        return "triggered"
-    except OSError, http.client.HTTPException, ValueError:
-        # OSError covers URLError/HTTPError plus the read-timeout and dropped-
-        # connection errors that escape urlopen unwrapped.
-        return "failed"
 
 
 @public
