@@ -75,12 +75,12 @@ class TestingStatusResponse(BaseModel):
     response_model=TestingStatusResponse,
     description="Returns the current status of the testing environment (PRs pinned for testing deploys).",
 )
-def testing_status(_: MaintainerDep) -> TestingStatusResponse:
+async def testing_status(_: MaintainerDep) -> TestingStatusResponse:
     """Return the testing environment status backing the /status deploy table."""
     if (result := load_testing_status()) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
     response = TestingStatusResponse.model_validate(result)
-    if jenkins := jenkins_deploy_status():
+    if jenkins := await jenkins_deploy_status():
         # The latest Jenkins run is ground truth; the state file only knows the
         # trigger, so its time-window guess stands in only when Jenkins is down.
         response.deploying = jenkins["status"] == "IN_PROGRESS"

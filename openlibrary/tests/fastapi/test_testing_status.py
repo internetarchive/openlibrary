@@ -3,8 +3,9 @@
 import datetime
 import json
 import urllib.error
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 import web
 
@@ -470,7 +471,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
     with (
         patch("openlibrary.fastapi.status.load_testing_status", return_value=result) as mock,
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=None),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -515,7 +516,7 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
     result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
     with (
         patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=None),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -534,7 +535,7 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
     }
     with (
         patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
-        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=jenkins),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
 
@@ -545,47 +546,48 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
     assert body["deploy_finished_at"] == jenkins["end_time"]
 
 
-def test_jenkins_deploy_status_parses_latest_run():
+@pytest.mark.asyncio
+async def test_jenkins_deploy_status_parses_latest_run():
     """wfapi/runs is newest-first: status and timestamps come from the first run."""
-    runs_json = json.dumps(
-        [
-            {"status": "SUCCESS", "startTimeMillis": 1787085957516, "endTimeMillis": 1787086027498},
-            {"status": "IN_PROGRESS", "startTimeMillis": 1787085000000, "endTimeMillis": None},
-        ]
-    ).encode()
-
-    class FakeResp:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *args):
-            return False
-
-        def read(self):
-            return runs_json
+    runs = [
+        {"status": "SUCCESS", "startTimeMillis": 1787085957516, "endTimeMillis": 1787086027498},
+        {"status": "IN_PROGRESS", "startTimeMillis": 1787085000000, "endTimeMillis": None},
+    ]
+    mock_response = MagicMock(spec=httpx.Response)
+    mock_response.json.return_value = runs
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.get = AsyncMock(return_value=mock_response)
 
     mc = MagicMock()
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("urllib.request.urlopen", return_value=FakeResp()),
+        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
     ):
-        result = status_module.jenkins_deploy_status()
+        result = await status_module.jenkins_deploy_status()
 
     assert result["status"] == "SUCCESS"
     assert result["start_time"].startswith("2026-08-18T")
     assert result["end_time"].startswith("2026-08-18T")
 
 
-def test_jenkins_deploy_status_returns_none_on_error():
+@pytest.mark.asyncio
+async def test_jenkins_deploy_status_returns_none_on_error():
     """Jenkins being down falls back to the state file's time-window guess."""
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.get = AsyncMock(side_effect=httpx.RequestError("down"))
+
     mc = MagicMock()
     mc.get.return_value = None
     with (
         patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
-        patch("urllib.request.urlopen", side_effect=urllib.error.URLError("down")),
+        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
     ):
-        assert status_module.jenkins_deploy_status() is None
+        assert await status_module.jenkins_deploy_status() is None
 
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):

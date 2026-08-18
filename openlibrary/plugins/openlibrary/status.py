@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
+import httpx
 import web
 
 from infogami import config
@@ -758,21 +759,25 @@ def _parse_pr_number(value: str) -> int:
     return int(value.lstrip("#"))
 
 
-def jenkins_deploy_status() -> dict | None:
+async def jenkins_deploy_status() -> dict | None:
     """Return the latest ol-dev1-deploy run: {status, start_time, end_time}.
 
     ``status`` is Jenkins' own verdict — IN_PROGRESS, SUCCESS, FAILURE,
     ABORTED, … — so the panel can say a deploy finished instead of guessing
     from a time window. None when Jenkins is unreachable or reports nothing.
+
+    Async: this runs inside the FastAPI event loop (see fastapi/status.py), so
+    it uses httpx rather than blocking urllib — a cold cache never stalls the
+    server. The memcache read/write is a fast local hop and stays sync.
     """
     mc = cache.get_memcache()
     if (cached := mc.get(_JENKINS_STATUS_CACHE_KEY)) is not None:
         return cached
     result = None
     try:
-        req = urllib.request.Request(_JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            runs = json.loads(resp.read())
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(_JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
+            runs = resp.json()
         if isinstance(runs, list) and runs and isinstance(runs[0], dict):
             run = runs[0]
             result = {
@@ -780,7 +785,9 @@ def jenkins_deploy_status() -> dict | None:
                 "start_time": _epoch_ms_to_iso(run.get("startTimeMillis")),
                 "end_time": _epoch_ms_to_iso(run.get("endTimeMillis")),
             }
-    except OSError, http.client.HTTPException, ValueError, json.JSONDecodeError:
+    except httpx.HTTPError, ValueError:
+        # HTTPError covers network failures and non-2xx; ValueError covers a
+        # non-JSON body (json.JSONDecodeError is a ValueError subclass).
         result = None
     mc.set(_JENKINS_STATUS_CACHE_KEY, result, expires=_JENKINS_STATUS_CACHE_TTL)
     return result
