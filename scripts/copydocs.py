@@ -172,8 +172,8 @@ def copy(
     comment: str,
     recursive: bool = False,
     editions: bool = False,
-    saved: set[str] | None = None,
     cache: dict | None = None,
+    seen: set[str] | None = None,
 ) -> None:
     """
     :param src: where we'll be copying form
@@ -181,12 +181,14 @@ def copy(
     :param comment: comment to writing when saving the documents
     :param recursive: Whether to recursively fetch an referenced docs
     :param editions: Whether to fetch editions of works as well
-    :param saved: keys saved so far
+    :param seen: keys already claimed for fetching/recursion; breaks reference
+        cycles (e.g. a user, its /usergroup, and its /permission all point
+        back to each other) that would otherwise recurse forever
     """
-    if saved is None:
-        saved = set()
     if cache is None:
         cache = {}
+    if seen is None:
+        seen = set()
 
     def get_many(keys):
         docs = marshal(src.get_many(keys).values())
@@ -233,8 +235,9 @@ def copy(
         k
         for k in keys
         # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
-        if k not in saved and not k.startswith("/scan")
+        if k not in seen and not k.startswith("/scan")
     ]
+    seen.update(keys)
     docs = fetch(keys)
 
     if editions:
@@ -248,7 +251,7 @@ def copy(
                 limit=len(work_keys),
                 fields=["edition_key"],
             )
-            edition_keys = [f"/books/{olid}" for doc in resp["docs"] for olid in doc["edition_key"]]
+            edition_keys = [f"/books/{olid}" for doc in resp["docs"] for olid in doc["edition_key"] if f"/books/{olid}" not in seen]
             if edition_keys:
                 print("copying edition keys")
                 copy(
@@ -257,18 +260,16 @@ def copy(
                     edition_keys,
                     comment,
                     recursive=recursive,
-                    saved=saved,
                     cache=cache,
+                    seen=seen,
                 )
 
     if recursive:
         refs = get_references(docs)
-        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/"))]
+        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/")) and r not in seen]
         if refs:
             print("found references", refs)
-            copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
-
-    docs = [doc for doc in docs if doc["key"] not in saved]
+            copy(src, dest, refs, comment, recursive=True, cache=cache, seen=seen)
 
     keys = [doc["key"] for doc in docs]
     print("saving", keys)
@@ -279,7 +280,6 @@ def copy(
             print(dest.save_many(group, comment=comment))
         except BaseException as e:
             print(f"Something went wrong saving this batch! {e}")
-    saved.update(keys)
 
 
 def main(
