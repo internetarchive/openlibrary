@@ -180,6 +180,12 @@ class status_deploy(delegate.page):
         state = _load_testing_state()
         if not state:
             raise web.seeother("/status")
+        # Decide merged-removals on the *un-mutated* state — `merged` is
+        # independent of staged pins/toggles — and with persist=False, so the
+        # drift metadata refresh can never write staged changes to disk before
+        # Jenkins accepts the build.
+        drift_info, _ = _get_drift_info(state, persist=False)
+        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False)]
         # Apply all pending changes before deploying
         for p in state.prs:
             if p.pull_latest_sha:
@@ -188,9 +194,6 @@ class status_deploy(delegate.page):
             if p.pending_active is not None:
                 p.active = p.pending_active
                 p.pending_active = None
-        # Remove PRs that have already been merged into master
-        drift_info, _ = _get_drift_info(state)
-        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False)]
         # Nothing above is persisted until Jenkins accepts the build, so a failed
         # trigger leaves every staged change intact and retryable.
         outcome = _trigger_rebuild(state)
@@ -598,14 +601,16 @@ def _github_get(path: str) -> dict:
         return json.loads(resp.read())
 
 
-def _get_drift_info(state: TestingState) -> tuple[dict, bool]:
+def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
     """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
 
     Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
     re-cast on read.
 
     On a cache miss, also refreshes title/author/assignee on each TestingPR in-place
-    and saves the state file if anything changed.
+    and, unless ``persist=False``, saves the state file if anything changed. The
+    deploy path passes ``persist=False`` so its metadata refresh can never write
+    staged-but-untriggered changes to disk.
     """
     mc = cache.get_memcache()
     if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
@@ -620,7 +625,7 @@ def _get_drift_info(state: TestingState) -> tuple[dict, bool]:
             if new_val and getattr(p, attr) != new_val:
                 setattr(p, attr, new_val)
                 state_changed = True
-    if state_changed:
+    if state_changed and persist:
         _save_testing_state(state)
     mc.set(_DRIFT_CACHE_KEY, drift, expires=_DRIFT_CACHE_TTL)
     return drift, False

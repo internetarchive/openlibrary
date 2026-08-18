@@ -5,6 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+import web
 
 import openlibrary.fastapi.status as fastapi_status
 import openlibrary.plugins.openlibrary.status as status_module
@@ -351,3 +352,89 @@ def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mo
     assert response.status_code == 403
     assert response.json()["detail"] == "Insufficient permissions"
     mock.assert_not_called()
+
+
+def _make_deploy_state():
+    """A state with one staged pin and one staged disable, both before the last deploy."""
+    pinned = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pinned.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    toggled = _make_pr(pr_number=13240, added_at="2026-08-01T10:00:00+00:00")
+    toggled.pending_active = False
+    return _make_state(prs=[pinned, toggled])
+
+
+def _seed_web_ctx():
+    """Minimal web.py request context so web.seeother() can build its redirect."""
+    web.ctx.path = "/status/deploy"
+    web.ctx.home = "http://localhost:8080"
+    web.ctx.headers = []
+
+
+def test_deploy_failure_never_persists_staged_changes():
+    """A failed Jenkins trigger must not write staged changes to disk.
+
+    Regression: status_deploy used to call _get_drift_info(state) after staging
+    changes, and that helper's metadata refresh saved the file — persisting
+    pins/toggles before Jenkins accepted the build. The drift read is now
+    persist=False, and the only save happens after a successful trigger.
+    """
+    _seed_web_ctx()
+    state = _make_deploy_state()
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch(
+            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            return_value=(
+                {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
+                False,
+            ),
+        ) as mock_drift,
+        patch("openlibrary.plugins.openlibrary.status._trigger_rebuild", return_value="failed"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        pytest.raises(web.SeeOther),
+    ):
+        status_module.status_deploy().POST()
+
+    assert ("Location", "http://localhost:8080/status?deploy_failed=1") in web.ctx.headers
+    # The drift read is a read, not a commit: it must not persist.
+    mock_drift.assert_called_once_with(state, persist=False)
+    mock_save.assert_not_called()
+
+
+def test_deploy_success_applies_staged_changes_then_saves_once():
+    """A successful trigger lands the staged pins/toggles and saves exactly once."""
+    _seed_web_ctx()
+    state = _make_deploy_state()
+    pinned, toggled = state.prs
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch(
+            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            return_value=(
+                {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
+                False,
+            ),
+        ),
+        patch("openlibrary.plugins.openlibrary.status._trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        pytest.raises(web.SeeOther),
+    ):
+        status_module.status_deploy().POST()
+
+    assert ("Location", "http://localhost:8080/status?deploy_triggered=1") in web.ctx.headers
+    # Pin applied and consumed.
+    assert pinned.commit == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    assert pinned.pull_latest_sha == ""
+    # Toggle applied and consumed.
+    assert toggled.active is False
+    assert toggled.pending_active is None
+    # The deploy record is what the build put on the box: active PRs only, so
+    # the disabled one is not on it.
+    assert state.deployed == {13238: pinned.title}
+    assert state.last_deploy_at
+    mock_save.assert_called_once_with(state)
