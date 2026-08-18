@@ -133,7 +133,6 @@
       <DeploySection
         :payload="payload"
         :now="now"
-        :deploying-optimistic="deployingOptimistic"
         :maintainer="isMaintainer"
         :strings="strings"
         :jenkins_url="jenkinsUrl"
@@ -198,10 +197,6 @@ export default {
             refreshing: false,
             adding: false,
             deploying: false,
-            // Local "just triggered" hint: Jenkins can lag before it surfaces
-            // the run as IN_PROGRESS, so the chip shows deploying immediately
-            // and the next poll's real verdict replaces it.
-            deployingOptimistic: false,
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             toast: '',
@@ -236,14 +231,14 @@ export default {
     },
     mounted() {
         this.loadStatus();
-        // Silent background refresh: once a minute and whenever the tab regains
+        // Silent background refresh: every 5s and whenever the tab regains
         // focus, re-fetch so drift/deploy state stays fresh. No spinner — the
         // explicit Refresh button is the only thing that spins, and an action in
         // flight is left alone so this can't race the POST-triggered reload.
         this._refreshTimer = setInterval(() => {
             this.now = Date.now();
             this.silentRefresh();
-        }, 60000);
+        }, 5000);
         document.addEventListener('visibilitychange', this.onVisibilityChange);
     },
     beforeUnmount() {
@@ -280,11 +275,6 @@ export default {
             if (showLoading) this.view = 'loading';
             try {
                 const payload = await getTestingStatus();
-                // Once the server reports a real Jenkins verdict (running or a
-                // result), the optimistic hint is no longer needed.
-                if (payload.deploying || payload.deploy_result) {
-                    this.deployingOptimistic = false;
-                }
                 // Skip the assignment when nothing changed — a fresh object
                 // identity would repaint the panel (the flash on tab return).
                 if (!this.payload || JSON.stringify(payload) !== JSON.stringify(this.payload)) {
@@ -333,12 +323,7 @@ export default {
             if (this.busy) return;
             this.deploying = true;
             try {
-                const response = await this.runAction('/status/deploy', {});
-                // Show "Deploying" locally right away; the next server update
-                // (IN_PROGRESS or a result) blows the optimistic state away.
-                if (response && response.url.includes('deploy_triggered')) {
-                    this.deployingOptimistic = true;
-                }
+                await this.runAction('/status/deploy', {});
             } finally {
                 this.deploying = false;
             }
