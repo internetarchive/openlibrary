@@ -100,11 +100,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             font-family: var(--font-family-body);
         }
 
-        /* The default trigger is an <ol-button> injected into light DOM (see
-           _createDefaultTrigger), so it is styled by the global ol-button.css —
-           including the automatic disclosure chevron. No trigger styles live
-           here. A consumer-supplied trigger is likewise their own light-DOM
-           element. */
+        /* The default trigger is an <ol-button> injected as a light-DOM child
+           (see _createDefaultTrigger); it paints itself, including the automatic
+           disclosure chevron. No trigger styles live here. A consumer-supplied
+           trigger is likewise their own light-DOM element. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -418,22 +417,22 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     }
 
     /**
-     * Build the default trigger in *light* DOM, so the global ol-button.css can
-     * paint it — that sheet can't cross a shadow boundary. Injected on connect,
+     * Build the default trigger as a real light-DOM child. Injected on connect,
      * before the first render, so it's structurally identical to a
-     * consumer-supplied trigger. The chevron comes from ol-button.
+     * consumer-supplied trigger (slotted, focusable from the page). The chevron
+     * comes from ol-button.
      *
      * @returns {void}
      */
     _createDefaultTrigger() {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
-        // ol-button moves this span into its own label wrapper on upgrade, but
-        // the node identity survives, so label updates can mutate it in place.
+        // The span stays a light-DOM child (slotted into ol-button), so label
+        // updates can mutate it in place.
         const text = document.createElement('span');
         // ol-button is nowrap with no max-width, so clamp long labels here (MARC
-        // language names run long). Inline so it applies inside SearchModal's
-        // shadow root too, which the global sheet can't reach.
+        // language names run long). Inline: this element has no stylesheet of
+        // its own to reach a slotted node with.
         text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;
