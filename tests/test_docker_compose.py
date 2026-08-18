@@ -13,7 +13,12 @@ class _PortPrefixLoader(yaml.SafeLoader):
     which plain yaml.safe_load doesn't know how to construct."""
 
 
-_PortPrefixLoader.add_constructor("!override", lambda loader, node: loader.construct_sequence(node))
+def _construct_override(loader: yaml.SafeLoader, node: yaml.Node) -> list:
+    assert isinstance(node, yaml.SequenceNode)
+    return loader.construct_sequence(node)
+
+
+_PortPrefixLoader.add_constructor("!override", _construct_override)
 
 
 class TestDockerCompose:
