@@ -174,11 +174,8 @@ export default {
             type: String,
             default: ''
         },
-        /**
-         * URI encoded JSON string of translated panel strings.
-         *
-         * @see render_component() in openlibrary/plugins/upstream/utils.py
-         */
+        /** URI-encoded JSON of translated panel strings.
+         * @see render_component() in openlibrary/plugins/upstream/utils.py */
         i18n: {
             type: String,
             default: ''
@@ -200,8 +197,7 @@ export default {
             return this.maintainer === 'true';
         },
         prs() {
-            // Merged PRs land in the next deploy regardless of this panel, so
-            // the row is noise — the deploy plan still lists them as removals.
+            // Merged PRs land in the next deploy regardless; the row is noise.
             return ((this.payload && this.payload.prs) || []).filter((pr) => pr.merged !== true);
         },
         jenkinsUrl() {
@@ -234,17 +230,13 @@ export default {
             this.toast = message;
         },
         async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
-            // busy is a re-entrancy guard and aria-busy signal only — it never
-            // disables buttons, so fetches never gray the panel out.
+            // busy is a re-entrancy guard and aria-busy signal only.
             if (manageBusy) this.busy = true;
             if (showLoading) this.view = 'loading';
             try {
                 const payload = await getTestingStatus();
-                // A refresh that returned the same state must not re-render:
-                // swapping in a fresh object identity repaints the whole panel
-                // even when nothing changed — that repaint is the flash you see
-                // returning to the tab. Skip the assignment so Vue has nothing
-                // to patch.
+                // Skip the assignment when nothing changed — a fresh object
+                // identity would repaint the panel (the flash on tab return).
                 if (!this.payload || JSON.stringify(payload) !== JSON.stringify(this.payload)) {
                     this.payload = payload;
                 }
@@ -298,10 +290,8 @@ export default {
             this.loadStatus(true);
         },
         /**
-         * Re-fetch when the tab regains focus, so state that changed while the
-         * user was elsewhere (a deploy finishing, a PR being merged) shows up
-         * without an interval timer. A short dedupe window absorbs browsers
-         * that fire both `visibilitychange` and `focus` for one return.
+         * Re-fetch when the tab regains focus; a 2s dedupe window absorbs
+         * browsers firing both `visibilitychange` and `focus` for one return.
          */
         bindFocusRefresh() {
             this.onVisibility = () => {
@@ -316,33 +306,26 @@ export default {
             const now = Date.now();
             if (now - this.lastFocusRefresh < 2000) return;
             this.lastFocusRefresh = now;
-            // manageBusy=false: a background fetch must not set the guard — a
-            // focus refresh can't drop a concurrent action, and a failed
-            // silent refresh must not leave the panel looking busy.
+            // manageBusy=false: a background fetch must not set the guard.
             this.loadStatus(false, false, false);
         }
     }
 };
 </script>
 
-<!-- The component renders inside its own shadow root, so these rules style
-     the whole panel (including subcomponent content) without touching the
-     page around it. Inherited design tokens (--color-*, --spacing-*) cross
-     the shadow boundary from the page. -->
+<!-- Shadow-DOM styles: rules here style the whole panel; inherited design
+     tokens (--color-*, --spacing-*) cross the shadow boundary. -->
 <style>
 :host {
   display: block;
 }
 
-/* One card in two bands: the set you are staging, then the apply step that
-   flushes it. The root is just their container — it carries no surface of its
-   own, and the toast sits below the card entirely. */
+/* One card in two bands: the staged set on top, the apply step below. */
 .testing-env {
   margin-bottom: var(--spacing-xl);
 }
 
-/* Top band: square along the bottom, where the deploy section joins it.
-   overflow so the table's square corners are clipped by the card's. */
+/* Top band: square bottom corners, where the deploy section joins. */
 .testing-env__main {
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-bottom: 0;
@@ -359,8 +342,7 @@ export default {
   gap: var(--spacing-md);
   align-items: center;
   justify-content: space-between;
-  /* Horizontal padding matches the table cells' so the title lines up with
-     the first column. */
+  /* Padding matches the table cells', so the title lines up with column one. */
   padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
@@ -429,8 +411,7 @@ export default {
   background: var(--color-control-hover);
 }
 
-/* flex:none so the icon keeps its box when the label wraps or the button is
-   squeezed — an SVG in a flex row is otherwise fair game for shrinking. */
+/* flex:none so the icon isn't shrunk in its flex row. */
 .testing-env__btn-icon {
   flex: none;
 }
@@ -454,17 +435,15 @@ export default {
 
 /* ── Row on/off switch ──────────────────────────────────────── */
 
-/* A button painted as a switch. aria-pressed is the state it shows; clicking
-   it flips the row either way. */
+/* A button painted as a switch; aria-pressed is the state it shows. */
 .testing-env__switch {
   position: relative;
   display: inline-block;
   width: 34px;
   height: 20px;
   padding: 0;
-  /* Edge, not outline: the off fill sits near the row surface so it needs a
-     border the on state doesn't — mixed toward the fill so it reads as the
-     shape's own edge instead of a dark ring around it. */
+  /* Edge, not outline: the off fill sits on the row surface, so the border is
+     mixed toward the fill. */
   border: var(--border-width-control) solid
     color-mix(in srgb, var(--color-border) 45%, var(--color-neutral-object));
   border-radius: var(--border-radius-pill);
@@ -506,8 +485,7 @@ export default {
 
 /* ── Add-PR form ────────────────────────────────────────────── */
 
-/* Rides on the right of the header bar; grows into the space the title
-   leaves, capped so it stops short of the full width on a wide viewport. */
+/* Right of the header bar; grows into the space the title leaves. */
 .testing-env__add {
   display: flex;
   flex: 1 1 20rem;
@@ -564,8 +542,7 @@ export default {
   vertical-align: middle;
 }
 
-/* Every column but the PR title is sized to its content, so the title keeps
-   all the slack. */
+/* Every column but the PR title is content-sized; the title takes the slack. */
 .testing-env__col-toggle,
 .testing-env__col-actions,
 .testing-env__drift-cell {
@@ -573,8 +550,7 @@ export default {
   white-space: nowrap;
 }
 
-/* The toggle column is wider than the switch (its header is the longest
-   content), so the cell centres it like the person columns centre avatars. */
+/* The toggle header is the widest content, so the cell centres the switch. */
 .testing-env__col-toggle {
   text-align: center;
 }
@@ -586,15 +562,13 @@ export default {
 
 /* ── Cell contents ──────────────────────────────────────────── */
 
-/* The one elastic column: every other cell is nowrap content sized to fit, so
-   giving this one the leftover width keeps titles on a single line. */
+/* The one elastic column: leftover width keeps titles on a single line. */
 .testing-env__pr-cell {
   width: 100%;
 }
 
-/* Fixed rail so titles line up down the column regardless of PR number width.
-   The number + live dot center against the title, so a title that wraps to
-   two or three lines keeps the rail centered beside it. */
+/* Fixed rail so titles line up regardless of PR-number width; the number and
+   dot centre against a title that wraps. */
 .testing-env__pr-line {
   display: grid;
   grid-template-columns: 4.25em minmax(0, 1fr);
@@ -602,8 +576,7 @@ export default {
   align-items: center;
 }
 
-/* The number and its live dot share the fixed rail; the dot is sized to sit
-   inside the rail without widening it or shifting the title. */
+/* Number and live dot share the fixed rail, so the dot never shifts the title. */
 .testing-env__pr-ref {
   display: inline-flex;
   gap: var(--spacing-2xs);
@@ -621,9 +594,7 @@ export default {
   text-decoration: none;
 }
 
-/* Clamped at three lines — enough for any real PR title to wrap in full while
-   still bounding row height. The full title rides in the link's title
-   attribute for the rare one that clips. */
+/* Clamped at three lines to bound row height; the full title is in the link. */
 .testing-env__pr-title,
 .testing-env__pr-title:link,
 .testing-env__pr-title:visited {
@@ -643,10 +614,8 @@ export default {
   text-decoration: underline;
 }
 
-/* A dot marks a PR's place in the last deploy: green when it is on the box
-   now, gray when it is in the set but has never been deployed. Both always
-   render so the column stays a steady rail. Sits ahead of the number inside
-   the fixed rail so it never shifts the title. */
+/* Dot marks the PR's place in the last deploy: green when live now, gray when
+   never deployed. Both render so the rail stays steady. */
 .testing-env__live-dot {
   width: 8px;
   height: 8px;
@@ -670,8 +639,7 @@ export default {
   border-radius: var(--border-radius-avatar);
 }
 
-/* Letter tile for a person the API has no picture for — same slot as the
-   photo, username on hover like the real avatars. */
+/* Letter tile when the API has no picture — same slot as the photo. */
 .testing-env__avatar--fallback {
   display: inline-flex;
   align-items: center;
@@ -685,14 +653,12 @@ export default {
   line-height: 1;
 }
 
-/* The header text is wider than a 24px tile, so left alignment would leave
-   the pictures hugging the PR-title column — centre them in their column. */
+/* The header is wider than the 24px tile, so centre the pictures in the column. */
 .testing-env__col-person {
   text-align: center;
 }
 
-/* The person cells centre their content, so the dash sits with the pictures
-   automatically. */
+/* Person cells are centred, so the dash sits with the pictures. */
 .testing-env__empty {
   display: inline-block;
   color: var(--color-text-muted);
@@ -700,12 +666,9 @@ export default {
 
 /* ── Cell stacks ────────────────────────────────────────────── */
 
-/* The drift cell reads [pill] [update] [hourglass], each in its own fixed
-   track, so the arrow and the hourglass line up down the table even when a
-   row shows only one of them — a flex stack would leave the second one
-   hugging the pill at a different x than its neighbours. Never set
-   display:grid on a <td> — it overrides display:table-cell and drops the cell
-   out of the table layout. Grid the wrapper inside instead. */
+/* The drift cell reads [pill] [update] [hourglass], each in a fixed track so
+   they line up down the table. Never set display:grid on a <td> — it drops
+   the cell out of the table layout; grid the wrapper inside instead. */
 .testing-env__cell-stack {
   display: grid;
   grid-template-columns: 3.25em 28px 1.1em;
@@ -722,9 +685,7 @@ export default {
   justify-self: center;
 }
 
-/* The drift verdict is plain text — no chip, no colour coding. min-width so a
-   one-glyph "?" lines up with "-12", and the grid track keeps the update
-   arrow and hourglass on their rails regardless. */
+/* Plain-text verdict — no chip. min-width keeps "?" aligned with "-12". */
 .testing-env__pill {
   display: inline-block;
   min-width: 3.25em;
@@ -733,9 +694,7 @@ export default {
   white-space: nowrap;
 }
 
-/* The two that navigate (behind → the compare view, unknown → the pinned
-   commit) are links; the rest are spans. Both read as plain text — only
-   hover/focus reveals the link. */
+/* The behind/unknown pills link out; the rest are spans. Read as plain text. */
 a.testing-env__pill:link,
 a.testing-env__pill:visited {
   color: var(--color-text);
@@ -747,8 +706,7 @@ a.testing-env__pill:focus-visible {
   text-decoration: underline;
 }
 
-/* The hourglass marks a change the next deploy will apply; the wording rides
-   in the title/aria-label. Sized as a small icon rather than inline text. */
+/* The hourglass marks a staged change; wording is in the title/aria-label. */
 .testing-env__pending {
   color: var(--color-warning-fg);
   font-size: 0.85rem;
@@ -756,10 +714,8 @@ a.testing-env__pill:focus-visible {
   white-space: nowrap;
 }
 
-/* Icon-only row actions (update to latest, remove from the set) — small
-   bordered buttons that read as controls, not decorations: blue for update,
-   red for remove on hover. The username/tooltip rides in the title
-   attribute. */
+/* Icon-only row actions (update / remove): bordered buttons, blue for update,
+   red for remove on hover; tooltips ride in the title attribute. */
 .testing-env__row-action {
   display: inline-flex;
   align-items: center;
@@ -826,9 +782,8 @@ a.testing-env__pill:focus-visible {
 
 /* ── Deploy section ─────────────────────────────────────────── */
 
-/* Bottom band of the card, closing it off. Its border-top is the only seam
-   between staging and applying — the two are one object, read top to bottom:
-   the button, what it will do, then when it last ran. */
+/* Bottom band of the card, closing it off: the button, what it will do, then
+   when it last ran. */
 .testing-env__deploy {
   display: flex;
   flex-direction: column;
@@ -841,8 +796,7 @@ a.testing-env__pill:focus-visible {
   background: var(--color-surface);
 }
 
-/* Card footer, ruled off from the plan above it. Full width so the rule spans
-   the card rather than just the text — the column is flex-start aligned. */
+/* Card footer, ruled off from the plan; full width so the rule spans the card. */
 .testing-env__deploy-state {
   display: flex;
   flex-wrap: wrap;
@@ -853,8 +807,7 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* Holds the Deploy and Refresh buttons side by side — flex so the pair reads
-   as one action row with a breathing gap. */
+/* Deploy and Refresh side by side, as one action row. */
 .testing-env__deploy-action {
   display: flex;
   gap: var(--spacing-sm);
@@ -905,11 +858,9 @@ a.testing-env__pill:focus-visible {
   font-size: 0.85rem;
 }
 
-/* No gap — the rows are separated by rules instead, which need to meet. */
-/* Column tracks live on the list, not the row, so every change lines up on the
-   same four rails however long its verb is — "UPDATE PIN" is twice the width of
-   "ADD", and translations stretch further still. The rows opt into these tracks
-   via subgrid below. */
+/* No gap — rows are separated by rules, which need to meet. Column tracks live
+   on the list so every change lines up whatever its verb's width; the rows
+   opt into those tracks via subgrid below. */
 .testing-env__plan-list {
   display: grid;
   grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
@@ -928,9 +879,8 @@ a.testing-env__pill:focus-visible {
   font-size: 0.8rem;
 }
 
-/* The row stays a real box — it carries the divider and the padding — while its
-   cells align to the list's tracks. display:contents would align them too, but
-   at the cost of the <li>'s box and its semantics in the a11y tree. */
+/* The row stays a real box — the divider and padding — while its cells align
+   to the list's tracks. display:contents would drop the <li>'s a11y semantics. */
 @supports (grid-template-columns: subgrid) {
   .testing-env__change {
     display: grid;
@@ -939,14 +889,12 @@ a.testing-env__pill:focus-visible {
   }
 }
 
-/* Between rows only: the head above and the card footer below bring their own
-   spacing, so a rule on the first or last would double up. */
+/* Between rows only — the head and footer bring their own spacing. */
 .testing-env__change + .testing-env__change {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* min-width only matters to the flex fallback; under subgrid the track is
-   already as wide as the longest verb. */
+/* min-width only matters to the flex fallback; subgrid tracks fit the verb. */
 .testing-env__change-kind {
   flex: none;
   min-width: 6em;
@@ -999,8 +947,7 @@ a.testing-env__pill:focus-visible {
   font-size: 0.72rem;
 }
 
-/* The plan is the only place a pinned SHA is spelled out — the table reduced
-   it to a tooltip on the drift pill. */
+/* The plan is the only place a pinned SHA is spelled out. */
 .testing-env__change-detail--sha {
   font-family: var(--font-family-code);
   font-size: 0.75rem;

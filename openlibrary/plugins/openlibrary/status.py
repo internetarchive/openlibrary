@@ -277,25 +277,6 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     return changes
 
 
-def _row_action(p: TestingPR, merged: bool, last_deploy: str) -> str:
-    """The one chip a row shows: what the next deploy does with this PR.
-
-    Mirrors ``_pending_changes`` so the table and the plan can't drift apart:
-    merged rows are removals, unlanded rows are adds, a staged pull is a pin,
-    and a staged toggle is an enable/disable. Empty means the deploy leaves
-    the row untouched.
-    """
-    if merged:
-        return "remove"
-    if not last_deploy or p.added_at > last_deploy:
-        return "add"
-    if p.pull_latest_sha:
-        return "pin"
-    if p.pending_toggle is not None:
-        return "enable" if p.pending_toggle else "disable"
-    return ""
-
-
 @functools.cache
 def get_dev_merged_status():
     return DevMergedStatus.from_file()
@@ -524,6 +505,12 @@ def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus
     """
     last_deploy = state.last_deploy_at
     pending_changes = _pending_changes(state, drift_info)
+    # The row chip is the first change the plan schedules for that PR. The plan
+    # emits each PR's changes in _CHANGE_ORDER, so the first entry carries the
+    # same precedence the deleted _row_action applied — one source of truth.
+    actions: dict[int, str] = {}
+    for change in pending_changes:
+        actions.setdefault(change["pr"], change["kind"])
     remaining = {p.pr for p in state.prs}
     # The `deployed` record postdates most state files, so an empty one means
     # "pre-record" rather than "nothing was ever deployed": infer what the last
@@ -539,7 +526,7 @@ def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus
             merged=drift_info.get(p.pr, {}).get("merged", False),
             is_new=bool(last_deploy and p.added_at > last_deploy),
             live_now=p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
-            action=_row_action(p, drift_info.get(p.pr, {}).get("merged", False), last_deploy),
+            action=actions.get(p.pr, ""),
             in_set=True,
         )
         for p in state.prs
@@ -591,7 +578,11 @@ def load_testing_status() -> TestingStatus | None:
 
 
 def _save_testing_state(state: TestingState) -> None:
-    TESTING_STATE_FILE.write_text(json.dumps(state.to_dict(), indent=2))
+    # Atomic replace: the FastAPI GET and the web.py POST handlers both write
+    # this file, and a torn write would corrupt the state.
+    tmp = TESTING_STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state.to_dict(), indent=2))
+    tmp.replace(TESTING_STATE_FILE)
     get_dev_merged_status.cache_clear()
 
 
