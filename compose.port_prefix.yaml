@@ -1,32 +1,28 @@
-# Overlay for running multiple OpenLibrary dev instances on the same machine without
-# port collisions. Each host port becomes ${PORT_PREFIX} prepended to a fixed 4-digit
-# port, so eg PORT_PREFIX=2 turns the main web port 8080 into 28080 (localhost:28080).
-# Pick a different PORT_PREFIX per checkout (2, 3, 4, ...) to run several instances at once.
-#
-# Usage (compose.override.yaml must be listed explicitly once -f is used at all):
-#   PORT_PREFIX=2 docker compose -f compose.yaml -f compose.override.yaml -f compose.port_prefix.yaml up
-#
-# fast_web's normal default port (18080) doesn't fit the "prefix + 4 digits" scheme, so
-# it's remapped here to 8081 instead, alongside web's 8080.
+##
+## Helper docker compose file for running multiple Open Library dev instances on the
+## same machine without host port collisions. Each host port becomes ${PORT_PREFIX}
+## prepended to the service's normal port, eg with PORT_PREFIX=2 web's port 8080
+## becomes 28080 (visit http://localhost:28080). Pick a different PORT_PREFIX per
+## checkout (2, 3, 4, ...) to run several instances at once. You probably want to run
+## something like:
+## PORT_PREFIX=2 docker compose -f compose.yaml -f compose.override.yaml -f compose.port_prefix.yaml up -d
+##
+
 services:
   web:
     ports: !override
       - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8080:8080"
       - "127.0.0.1:${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}3000:3000"
-
   fast_web:
     ports: !override
       - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8081:8080"
       - "127.0.0.1:${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}3001:3000"
-
   solr:
     ports: !override
       - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8983:8983"
-
   covers:
     ports: !override
       - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}7075:7075"
-
   mockservices:
     ports: !override
       - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8025:8025"

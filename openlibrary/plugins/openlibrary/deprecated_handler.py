@@ -1,6 +1,6 @@
 """Handler for deprecated web.py endpoints.
 
-Redirects deprecated endpoints to port 18080 in dev environment,
+Redirects deprecated endpoints to the FastAPI container in dev environment,
 or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
