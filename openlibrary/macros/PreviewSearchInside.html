@@ -10,7 +10,7 @@ $if ocaid:
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
       data-ol-link-track="BookOptions|Preview">
-      $:macros.icon("eye", size="sm")
+      $:macros.icon("eye", size="sm", slot="icon-start")
       $_('Preview')
     </ol-button>
 
@@ -19,7 +19,7 @@ $if ocaid:
       data-search-trigger
       aria-expanded="false"
       data-ol-link-track="BookOptions|SearchInside">
-      $:macros.icon("search-inside", size="sm")
+      $:macros.icon("search-inside", size="sm", slot="icon-start")
       $_('Search')
     </ol-button>
 

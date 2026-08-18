@@ -61,8 +61,6 @@ http_request_timeout: 10
 
 features:
     debug: enabled
-    stats: enabled
-    stats-header: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream

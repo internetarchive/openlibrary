@@ -3,7 +3,7 @@ services:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
-      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180}
       - OL_COVERSTORE_PUBLIC_URL=${OL_COVERSTORE_PUBLIC_URL:-}
     command: docker/ol-web-start.sh
     ports:
@@ -41,10 +41,9 @@ services:
       # - autoCommit.maxTime: Hard commit less frequently to avoid performance impact, but avoid
       #   having very large transaction log
       #   https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
-      # - max.booleanClauses: Enlarge the max boolean clauses so that we can large intersections
-      #   between books in reading logs and solr.
-      #   Should be in sync with the value in openlibrary/core/bookshelves.py ,
-      #   eg key:(/works/OL1W OR /works/OL2W OR ...)
+      # - max.booleanClauses: Enlarge the max boolean clauses; some queries build a
+      #   large OR clause per seed/key (e.g. list seed facet fetching in
+      #   openlibrary/solr/updater/list.py), which can exceed Solr's default of 1024.
       # - environment: Setting to dev/test/prod/stage adds a tag to the admin interface.
       #   Useful to distinguish between different solr instances.
       #

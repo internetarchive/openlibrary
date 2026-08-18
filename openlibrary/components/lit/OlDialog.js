@@ -1,4 +1,6 @@
 import { LitElement, html, css } from 'lit';
+// Registers <ol-button> for the header close control.
+import './OLButton.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
 import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
@@ -265,38 +267,8 @@ export class OlDialog extends LitElement {
             font-weight: 600;
         }
 
-        .close-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            background: transparent;
-            border: none;
-            border-radius: var(--border-radius-button);
-            color: inherit;
-            cursor: pointer;
-            transition: background-color 150ms ease;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .close-button:hover {
-                background-color: var(--color-hover-overlay);
-            }
-        }
-
-        .close-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .close-button {
-                transition: none;
-            }
-        }
-
+        /* The close control is an <ol-button shape="icon" variant="ghost">, which
+           paints itself; only the glyph size lives here. */
         .close-button ol-icon {
             width: 20px;
             height: 20px;
@@ -750,14 +722,15 @@ export class OlDialog extends LitElement {
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
                     <h2 class="title" id=${this._titleId}>${this.label}</h2>
-                    <button
+                    <ol-button
                         class="close-button"
-                        type="button"
+                        shape="icon"
+                        variant="ghost"
                         aria-label="Close dialog"
                         @click=${this._handleCloseClick}
                     >
                         <ol-icon name="x"></ol-icon>
-                    </button>
+                    </ol-button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>
                 <div class="body">

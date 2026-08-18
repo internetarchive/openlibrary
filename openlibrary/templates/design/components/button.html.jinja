@@ -10,6 +10,112 @@
         <ol-button variant="destructive">
             Destructive
         </ol-button>
+        <ol-button variant="ghost">
+            Ghost
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Links", "Set href and the component renders an <a> with the same styling — for button-shaped navigation like Read, Borrow, or Find in a library. disabled and loading drop the href and set aria-disabled.") %}
+        <ol-button variant="primary" href="/search?q=hobbit">
+            Read
+        </ol-button>
+        <ol-button href="/search?q=hobbit">
+            Borrow
+        </ol-button>
+        <ol-button href="/search?q=hobbit" target="_blank" rel="noopener">
+            Find in a library
+        </ol-button>
+        <ol-button href="/search?q=hobbit" disabled>
+            Unavailable
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Icon-only shapes", "shape=\"icon\" makes a square whose side matches the size's control height; shape=\"circle\" rounds it. Always give these an aria-label.",
+        code='<ol-button shape="icon" aria-label="Search">\n  <svg ...></svg>\n</ol-button>\n<ol-button shape="circle" size="small" aria-label="Save">\n  <svg ...></svg>\n</ol-button>') %}
+        <ol-button shape="icon" size="small" aria-label="Search">
+            <svg width="14"
+                 height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+        </ol-button>
+        <ol-button shape="icon" aria-label="Search">
+            <svg width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+        </ol-button>
+        <ol-button shape="icon" size="large" aria-label="Search">
+            <svg width="18"
+                 height="18"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+        </ol-button>
+        <ol-button shape="circle" aria-label="Save">
+            <svg width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+        </ol-button>
+        <ol-button shape="circle" variant="ghost" aria-label="Close">
+            <svg width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+        </ol-button>
+    {% endcall %}
+    {% call ex.example("Floating", "elevation=\"floating\" swaps in a heavier drop shadow for a control that sits over content — a save button on cover art, a scroll-to-top button — instead of on the page surface.") %}
+        <ol-button shape="circle" elevation="floating" aria-label="Save">
+            <svg width="16"
+                 height="16"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+        </ol-button>
+        <ol-button elevation="floating">
+            Back to top
+        </ol-button>
     {% endcall %}
     {% call ex.example("Sizes", "Heights come from the shared --control-height-* tokens, so each size lines up with the same-size segmented control and input.") %}
         <ol-button size="small">
@@ -22,39 +128,48 @@
             Large
         </ol-button>
     {% endcall %}
-    {% call ex.example("With icon", "The default slot takes any markup, so an inline SVG before the label renders as a leading icon. Give it a fixed size and a small inline-end margin.",
-        code='<ol-button size="small">\n  <svg width="14" height="14" ...></svg>Preview\n</ol-button>') %}
+    {% call ex.example("With icon", "Put an inline SVG in the icon-start or icon-end slot. The button sizes it to match (14/16/18px by size) and adds the gap, so the SVG needs no width, height, or margin of its own.",
+        code='<ol-button size="small">\n  <svg slot="icon-start" ...></svg>\n  Preview\n</ol-button>\n\n<ol-button>\n  Next\n  <svg slot="icon-end" ...></svg>\n</ol-button>') %}
         <ol-button size="small">
-            <svg width="14"
-                 height="14"
+            <svg slot="icon-start"
                  viewBox="0 0 24 24"
                  fill="none"
                  stroke="currentColor"
                  stroke-width="2"
                  stroke-linecap="round"
                  stroke-linejoin="round"
-                 aria-hidden="true"
-                 class="ds-demo-btn-icon">
+                 aria-hidden="true">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
                 <circle cx="12" cy="12" r="3" />
             </svg>
             Preview
         </ol-button>
         <ol-button size="small">
-            <svg width="14"
-                 height="14"
+            <svg slot="icon-start"
                  viewBox="0 0 24 24"
                  fill="none"
                  stroke="currentColor"
                  stroke-width="2"
                  stroke-linecap="round"
                  stroke-linejoin="round"
-                 aria-hidden="true"
-                 class="ds-demo-btn-icon">
+                 aria-hidden="true">
                 <circle cx="11" cy="11" r="7" />
                 <path d="m21 21-4.3-4.3" />
             </svg>
             Search Inside
+        </ol-button>
+        <ol-button>
+            Next
+            <svg slot="icon-end"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="m9 18 6-6-6-6" />
+            </svg>
         </ol-button>
     {% endcall %}
     {% call ex.example("Disabled") %}
@@ -98,36 +213,71 @@
             Continue
         </ol-button>
     {% endcall %}
-    {% call ex.example("Form submission", "The component renders a real <button type=\"submit\">, so native validation, the form's submit event, and Enter-to-submit all work with no extra wiring.") %}
-        <form id="demo-button-form" class="ds-demo-row">
-            <label for="demo-button-form-input">Your name:</label>
-            <input id="demo-button-form-input" name="name" required>
-            <ol-button type="submit">
-                Submit
-            </ol-button>
-            <ol-button type="reset" variant="secondary">
-                Reset
-            </ol-button>
+    {% call ex.example("Form submission", "The element is form-associated and keeps a hidden native submit button in its light DOM, so it behaves like a native button: type=\"submit\" submits the enclosing form (native validation runs, Enter in a text field submits, event.submitter is set, name/value are submitted, formaction and friends work), type=\"reset\" resets it, and preventDefault() on a click cancels either. A disabled fieldset disables it too.") %}
+        <form id="demo-button-form">
+            <fieldset id="demo-button-form-fieldset" class="ds-demo-row">
+                <label for="demo-button-form-input">Your name:</label>
+                <input id="demo-button-form-input" name="name" required>
+                <label for="demo-button-form-input-2">Nickname:</label>
+                <input id="demo-button-form-input-2" name="nickname">
+                <ol-button type="submit" name="action" value="save">
+                    Submit
+                </ol-button>
+                <ol-button type="reset" variant="secondary">
+                    Reset
+                </ol-button>
+            </fieldset>
         </form>
-        <p>Last submitted: <strong id="demo-button-form-output">—</strong></p>
+        <p>
+            <ol-toggle id="demo-button-form-disable" variant="button">
+                Disable fieldset
+            </ol-toggle>
+        </p>
+        <p>Last submitted: <strong id="demo-button-form-output">—</strong> (submits: <span id="demo-button-form-count">0</span>)</p>
         <script>
             (function () {
                 const form = document.getElementById('demo-button-form');
                 const out = document.getElementById('demo-button-form-output');
+                const count = document.getElementById('demo-button-form-count');
+                const fieldset = document.getElementById('demo-button-form-fieldset');
+                let submits = 0;
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    out.textContent = new FormData(form).get('name') || '—';
+                    count.textContent = ++submits;
+                    // Pass the submitter so its name/value are included, as they would be on a real submission.
+                    const data = new FormData(form, e.submitter);
+                    const via = e.submitter ? e.submitter.closest('ol-button').textContent.trim() : 'no submitter';
+                    out.textContent = (data.get('name') || '—') + ' [' + data.get('action') + ', via ' + via + ']';
                 });
                 form.addEventListener('reset', function () { out.textContent = '—'; });
+                document.getElementById('demo-button-form-disable').addEventListener('ol-toggle-change', function (e) {
+                    fieldset.disabled = e.detail.checked;
+                });
             })();
         </script>
+    {% endcall %}
+    {% call ex.example("Styling from outside", "Two parts are exposed: control (the inner button or link) and label (the span around the slotted content). Use them for layout tweaks a consumer legitimately owns — like clamping a long label — never to restyle the button itself.",
+        code='.filter-trigger ol-button::part(label) {\n  max-width: 12ch;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}', language="css") %}
+        <style>
+            .ds-demo-part-clamp ol-button::part(label) {
+                display: block;
+                max-width: 12ch;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
+        <span class="ds-demo-part-clamp">
+            <ol-button size="small">
+                A very long label that gets clamped
+            </ol-button>
+        </span>
     {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Events.</b> None custom — use the native <code>click</code>, which bubbles from the inner <code>&lt;button&gt;</code>.
         </p>
         <p>
-            <b>Rendering.</b> Light DOM, no shadow root. Styles live in <code>components/ol-button.css</code>, loaded render-blocking by every page entry point that uses the button. Before upgrade the host is styled by attribute selectors so it's visible immediately; after upgrade the component inserts a real <code>&lt;button&gt;</code> child and the host collapses to a transparent wrapper.
+            <b>Rendering.</b> Shadow DOM. The component renders and paints a real <code>&lt;button&gt;</code> (or <code>&lt;a&gt;</code>) in its shadow root, so it works inside any other component's shadow root too. Before upgrade the host tag is styled by <code>components/ol-button.css</code> (<code>ol-button:not(:defined)</code>, loaded render-blocking site-wide) so server-rendered buttons look right on first paint. Style from outside via <code>::part(control)</code> and <code>::part(label)</code>, never by reaching for the inner element.
         </p>
     </div>
 {% endmacro %}

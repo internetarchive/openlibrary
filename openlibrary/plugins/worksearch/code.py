@@ -42,7 +42,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import get_request_lang, req_context
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -207,17 +207,8 @@ def _get_readable_count(param: dict, search_response) -> int | None:
     return resp.num_found
 
 
-@public
-def get_request_lang() -> str:
-    """The request's UI language, safe to call from templates rendered on
-    either the legacy web.py server or the FastAPI server. The Templetor
-    global `get_lang()` reads `web.ctx.lang` directly, which isn't populated
-    by FastAPI — partials rendered there would AttributeError. Reading from
-    the unified `req_context` works on both. Falls back to 'en'."""
-    try:
-        return req_context.get().lang or "en"
-    except LookupError:
-        return "en"
+# Make public
+public(get_request_lang)
 
 
 async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None = None, editions=False) -> dict[str, web.storage]:
@@ -234,10 +225,17 @@ async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None
         # To get the top matching edition, need to do a proper query
         resp = await run_solr_query_async(
             WorkSearchScheme(solr_editions=editions),
-            {"q": "key:(%s)" % " OR ".join(work_keys)},
+            {"q": "*:*"},
             rows=len(work_keys),
             fields=list(fields),
             facet=False,
+            extra_params=[
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key
+                # counts. It's put in an fq (rather than q) to bypass user-query
+                # processing, which would mangle the local-params syntax.
+                ("fq", "{!terms f=key}" + ",".join(work_keys)),
+            ],
         )
         return {
             # storify isn't typed properly, but basically recursively call web.storage
@@ -347,7 +345,9 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
@@ -493,7 +493,9 @@ async def run_solr_query_async(
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    # Iterable items are either a bare field name or a
+    # {"name": ..., "sort"/"limit": ...} spec -- see the isinstance checks below.
+    facet: bool | Iterable[str | dict[str, Any]] = True,
     highlight: bool = False,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
