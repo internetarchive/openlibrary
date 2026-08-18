@@ -7667,6 +7667,10 @@ msgid "Live now"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Not yet deployed"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 

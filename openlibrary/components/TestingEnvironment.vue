@@ -567,19 +567,6 @@ export default {
   vertical-align: middle;
 }
 
-/* Plain surface is the resting state for a row — a tint means something is
-   true of this row beyond "it's on the box". */
-.testing-env__row td {
-  background: var(--color-surface);
-}
-
-/* Blue for staged-but-not-deployed. A new row is always pending, so both
-   classes land on the same tint. */
-.testing-env__row.is-new td,
-.testing-env__row.is-pending td {
-  background: var(--color-primary-subtle);
-}
-
 /* Every column but the PR title is sized to its content, so the title keeps
    all the slack. */
 .testing-env__col-toggle,
@@ -657,16 +644,20 @@ export default {
   text-decoration: underline;
 }
 
-/* A filled dot marks a PR the last deploy put on the box — it is running now.
-   Sits ahead of the number inside the fixed rail so it never shifts the
-   title. A muted ring keeps it visible on the pending tint. */
+/* A dot marks a PR's place in the last deploy: green when it is on the box
+   now, gray when it is in the set but has never been deployed. Both always
+   render so the column stays a steady rail. Sits ahead of the number inside
+   the fixed rail so it never shifts the title. */
 .testing-env__live-dot {
   width: 8px;
   height: 8px;
   border-radius: var(--border-radius-circle);
   background: var(--color-success-object);
-  box-shadow: 0 0 0 2px var(--color-primary-subtle);
   flex: none;
+}
+
+.testing-env__live-dot--not-live {
+  background: var(--color-text-muted);
 }
 
 .testing-env__person {
@@ -826,70 +817,9 @@ a.testing-env__pill:focus-visible {
   outline-offset: 1px;
 }
 
-/* ── Paused rows ────────────────────────────────────────────── */
-
-/* A paused PR isn't on the box, so its row drains of color — grey fill, grey
-   text, grey avatars, unfilled pills. Text is mixed toward the row fill rather
-   than set to a flat grey, so everything sits a shade lighter than muted.
-   Deliberately not row-wide opacity: the toggle you resume it with has to stay
-   crisp. Late in the file so this outranks the pending tint. */
-.testing-env__row.is-inactive {
-  --paused-text: color-mix(
-    in srgb,
-    var(--color-text-muted) 65%,
-    var(--color-surface-sunken)
-  );
-  --paused-text-strong: color-mix(
-    in srgb,
-    var(--color-text-secondary) 70%,
-    var(--color-surface-sunken)
-  );
-}
-
-.testing-env__row.is-inactive td {
-  background: var(--color-surface-sunken);
-  color: var(--paused-text);
-}
-
-.testing-env__row.is-inactive .testing-env__pr-title {
-  color: var(--paused-text-strong);
-  font-weight: 400;
-}
-
-.testing-env__row.is-inactive .testing-env__avatar {
-  filter: grayscale(1);
-  opacity: 0.6;
-}
-
-.testing-env__row.is-inactive .testing-env__pill {
-  background: none;
-  color: var(--paused-text);
-  font-weight: 400;
-}
-
-/* Still clickable, just not competing with the live rows for attention. */
-.testing-env__row.is-inactive .testing-env__row-action {
-  color: var(--paused-text-strong);
-}
-
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);
-}
-
-/* ── Dropped rows ───────────────────────────────────────────── */
-
-/* A PR removed from the set but still on the box: read-only, queued for the
-   deploy to drop. It keeps the live dot (it is running) but loses the toggle,
-   drift, and actions — the REMOVE chip and a strikethrough carry the verdict. */
-.testing-env__row.is-dropped .testing-env__pr-title {
-  color: var(--color-text-muted);
-  text-decoration: line-through;
-  text-decoration-color: var(--color-text-muted);
-}
-
-.testing-env__row.is-dropped .testing-env__pr-cell {
-  background: var(--color-surface-sunken);
 }
 
 /* ── Empty state ────────────────────────────────────────────── */

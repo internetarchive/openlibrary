@@ -33,6 +33,7 @@ export const DEFAULT_STRINGS = {
     drift: 'Drift',
     next: 'Next deploy',
     liveNow: 'Live now',
+    notLive: 'Not yet deployed',
     actions: 'Actions',
     ok: 'OK',
     prOnTesting: 'PR #%s on testing',

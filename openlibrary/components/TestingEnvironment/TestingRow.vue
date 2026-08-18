@@ -1,5 +1,5 @@
 <template>
-  <tr :class="rowClasses">
+  <tr class="testing-env__row">
     <td
       v-if="maintainer && inSet"
       class="testing-env__col-toggle"
@@ -22,11 +22,11 @@
       <div class="testing-env__pr-line">
         <span class="testing-env__pr-ref">
           <span
-            v-if="liveNow"
             class="testing-env__live-dot"
+            :class="{ 'testing-env__live-dot--not-live': !liveNow }"
             role="img"
-            :title="strings.liveNow"
-            :aria-label="strings.liveNow"
+            :title="liveNow ? strings.liveNow : strings.notLive"
+            :aria-label="liveNow ? strings.liveNow : strings.notLive"
           />
           <a
             class="testing-env__pr-num"
@@ -215,19 +215,6 @@ export default {
         },
         prUrl() {
             return `${REPO_URL}/pull/${encodeURIComponent(this.pr.pr)}`;
-        },
-        rowClasses() {
-            const classes = ['testing-env__row'];
-            if (!this.inSet) {
-                // A removed PR that is still on the box: read-only row, flagged
-                // for the deploy to drop — not a paused member of the set.
-                classes.push('is-dropped');
-            } else {
-                if (this.pr.active === false) classes.push('is-inactive');
-                if (this.pr.is_new) classes.push('is-new');
-                if (this.pending) classes.push('is-pending');
-            }
-            return classes;
         }
     },
     methods: {
