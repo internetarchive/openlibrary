@@ -294,40 +294,16 @@ def person_root_key(key: str) -> str | None:
     '/people/foo'
     >>> person_root_key("/works/OL1W")
     """
-    parts = key.split("?")[0].split("/")
+    parts = key.split("?", maxsplit=1)[0].split("/")
     if len(parts) >= 3 and parts[1] == "people" and parts[2]:
         return f"/people/{parts[2]}"
     return None
 
 
-def ensure_person_stub(dest: OpenLibrary, infobase: str, root_key: str, comment: str) -> None:
-    """
-    Ensures `root_key` (a /people/<username> account) exists on `dest`,
-    creating an empty stub if it doesn't. A real account's /type/user,
-    /permission, and /usergroup docs reference each other, so infobase's
-    save-time reference validation can't accept them one at a time via the
-    regular copy() — registering an account creates all three together.
-    """
-    try:
-        dest.get(root_key)
-        return
-    except OLError:
-        pass
-
-    username = root_key.rsplit("/", 1)[-1]
-    print(f"creating empty stub account for {root_key}")
-    for op, data in (
-        ("register", {"username": username, "displayname": username, "email": f"{username}@example.com", "password": "password"}),
-        ("activate", {"username": username}),
-    ):
-        resp = requests.post(f"{infobase}/openlibrary.org/account/{op}", data=data)
-        resp.raise_for_status()
-
-
 def main(
     keys: list[str],
     src: str = "http://openlibrary.org/",
-    dest: str = "http://localhost:8080",
+    dest: str = "http://web:8080",
     comment: str = "",
     recursive: bool = True,
     editions: bool = True,
@@ -366,13 +342,6 @@ def main(
     src_ol: Disk | OpenLibrary = OpenLibrary(src) if src.startswith("http://") else Disk(src)
     dest_ol: Disk | OpenLibrary = OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
 
-    if isinstance(dest_ol, OpenLibrary):
-        section = "[%s]" % dest.removeprefix("http://").strip("/")
-        if section in read_lines(os.path.expanduser("~/.olrc")):
-            dest_ol.autologin()
-        else:
-            dest_ol.login("openlibrary@example.com", "admin123")
-
     if search:
         assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
         keys += [doc["key"] for doc in src_ol.search(search, limit=search_limit, fields=["key"])["docs"]]
@@ -380,11 +349,26 @@ def main(
     keys = list(expand(src_ol, ("/" + k.lstrip("/") for k in keys)))
 
     if isinstance(dest_ol, OpenLibrary):
+        section = "[%s]" % dest.removeprefix("http://").strip("/")
+        if section in read_lines(os.path.expanduser("~/.olrc")):
+            dest_ol.autologin()
+        else:
+            dest_ol.login("openlibrary@example.com", "admin123")
+
         remaining_keys = []
         for key in keys:
             root = person_root_key(key)
             if root:
-                ensure_person_stub(dest_ol, infobase, root, comment)
+                try:
+                    dest_ol.get(root)
+                except OLError:
+                    username = root.rsplit("/", 1)[-1]
+                    print(f"creating empty stub account for {root}")
+                    for op, data in (
+                        ("register", {"username": username, "displayname": username, "email": f"{username}@example.com", "password": "password"}),
+                        ("activate", {"username": username}),
+                    ):
+                        requests.post(f"{infobase}/openlibrary.org/account/{op}", data=data).raise_for_status()
                 if root == key:
                     # The stub account *is* the copy; there's nothing real to fetch.
                     continue
