@@ -130,7 +130,7 @@
         />{{ text('deployFailed', timeAgo(deployFinishedAt, now)) }}
       </span>
       <span
-        v-else-if="payload.deploying"
+        v-else-if="payload.deploying || deployingOptimistic"
         class="testing-env__status testing-env__status--deploying"
         :title="formatTime(payload.deploy_started_at)"
       >
@@ -187,6 +187,12 @@ export default {
         now: {
             type: Number,
             default: () => Date.now()
+        },
+        // Local "just triggered" hint: shows deploying before Jenkins surfaces
+        // the run, until the next server update carries the real verdict.
+        deployingOptimistic: {
+            type: Boolean,
+            default: false
         },
         maintainer: {
             type: Boolean,

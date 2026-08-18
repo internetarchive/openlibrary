@@ -133,6 +133,7 @@
       <DeploySection
         :payload="payload"
         :now="now"
+        :deploying-optimistic="deployingOptimistic"
         :maintainer="isMaintainer"
         :strings="strings"
         :jenkins_url="jenkinsUrl"
@@ -197,6 +198,10 @@ export default {
             refreshing: false,
             adding: false,
             deploying: false,
+            // Local "just triggered" hint: Jenkins can lag before it surfaces
+            // the run as IN_PROGRESS, so the chip shows deploying immediately
+            // and the next poll's real verdict replaces it.
+            deployingOptimistic: false,
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             toast: '',
@@ -275,6 +280,11 @@ export default {
             if (showLoading) this.view = 'loading';
             try {
                 const payload = await getTestingStatus();
+                // Once the server reports a real Jenkins verdict (running or a
+                // result), the optimistic hint is no longer needed.
+                if (payload.deploying || payload.deploy_result) {
+                    this.deployingOptimistic = false;
+                }
                 // Skip the assignment when nothing changed — a fresh object
                 // identity would repaint the panel (the flash on tab return).
                 if (!this.payload || JSON.stringify(payload) !== JSON.stringify(this.payload)) {
@@ -323,7 +333,12 @@ export default {
             if (this.busy) return;
             this.deploying = true;
             try {
-                await this.runAction('/status/deploy', {});
+                const response = await this.runAction('/status/deploy', {});
+                // Show "Deploying" locally right away; the next server update
+                // (IN_PROGRESS or a result) blows the optimistic state away.
+                if (response && response.url.includes('deploy_triggered')) {
+                    this.deployingOptimistic = true;
+                }
             } finally {
                 this.deploying = false;
             }
