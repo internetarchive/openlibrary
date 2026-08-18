@@ -19,7 +19,6 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
-from openlibrary.core.features import features as pydantic_features
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -540,27 +539,17 @@ def get_features_enabled():
     return config.features
 
 
-def get_features_table() -> list[dict[str, Any]]:
-    """Build a list of feature flags comparing infogami vs pydantic-settings."""
+def get_features_table() -> list[dict[str, str]]:
+    """Build a list of enabled feature flags."""
     infogami_dict = config.features  # type: ignore[attr-defined]
-    infogami_keys = set(infogami_dict.keys())
-    pydantic_fields = set(pydantic_features.model_fields.keys())
-    all_features = sorted(infogami_keys | pydantic_fields)
     features_table = []
-    for feature in all_features:
+    for feature in sorted(infogami_dict.keys()):
         infogami_value = infogami_dict.get(feature)
-        pydantic_value = getattr(pydantic_features, feature, None)
         if isinstance(infogami_value, dict):
             infogami_str = f"usergroup: {infogami_value.get('usergroup', '?')}"
         else:
             infogami_str = str(infogami_value) if infogami_value is not None else ""
-        features_table.append(
-            {
-                "feature": feature,
-                "infogami": infogami_str,
-                "pydantic": str(pydantic_value) if pydantic_value is not None else "",
-            }
-        )
+        features_table.append({"feature": feature, "infogami": infogami_str})
     return features_table
 
 
