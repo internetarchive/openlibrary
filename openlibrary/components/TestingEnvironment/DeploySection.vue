@@ -7,10 +7,16 @@
       <button
         type="button"
         class="testing-env__btn testing-env__btn--primary"
-        :disabled="!changeCount"
+        :disabled="deploying || !changeCount"
         @click="$emit('deploy')"
       >
+        <span
+          v-if="deploying"
+          class="testing-env__btn-icon testing-env__spinner"
+          aria-hidden="true"
+        />
         <svg
+          v-else
           class="testing-env__btn-icon"
           width="16"
           height="16"
@@ -167,6 +173,10 @@ export default {
             default: ''
         },
         refreshing: {
+            type: Boolean,
+            default: false
+        },
+        deploying: {
             type: Boolean,
             default: false
         }

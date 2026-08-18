@@ -136,6 +136,7 @@
         :strings="strings"
         :jenkins_url="jenkinsUrl"
         :refreshing="refreshing"
+        :deploying="deploying"
         @deploy="deploy"
         @refresh="refresh"
       />
@@ -194,6 +195,7 @@ export default {
             busy: false,
             refreshing: false,
             adding: false,
+            deploying: false,
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             toast: '',
@@ -289,8 +291,14 @@ export default {
         removePr(pr) {
             this.runAction('/status/remove', { prs: [pr.pr] });
         },
-        deploy() {
-            this.runAction('/status/deploy', {});
+        async deploy() {
+            if (this.busy) return;
+            this.deploying = true;
+            try {
+                await this.runAction('/status/deploy', {});
+            } finally {
+                this.deploying = false;
+            }
         },
         async refresh() {
             if (this.busy) return;
