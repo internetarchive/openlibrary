@@ -13,9 +13,7 @@ class _PortPrefixLoader(yaml.SafeLoader):
     which plain yaml.safe_load doesn't know how to construct."""
 
 
-_PortPrefixLoader.add_constructor(
-    "!override", lambda loader, node: loader.construct_sequence(node)
-)
+_PortPrefixLoader.add_constructor("!override", lambda loader, node: loader.construct_sequence(node))
 
 
 class TestDockerCompose:
@@ -58,12 +56,7 @@ class TestDockerCompose:
         with open(p("..", "compose.port-prefix.yaml")) as f:
             port_prefix_dc: dict = yaml.load(f, Loader=_PortPrefixLoader)
 
-        ported_services = {
-            serv
-            for dc in (root_dc, override_dc)
-            for serv, opts in dc["services"].items()
-            if opts.get("ports")
-        }
+        ported_services = {serv for dc in (root_dc, override_dc) for serv, opts in dc["services"].items() if opts.get("ports")}
         port_prefix_services = set(port_prefix_dc["services"])
         missing = ported_services - port_prefix_services
         assert missing == set(), "compose.port-prefix.yaml missing services with ports"
