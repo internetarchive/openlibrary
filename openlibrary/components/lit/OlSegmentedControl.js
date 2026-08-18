@@ -79,7 +79,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             width: 100%;
         }
 
-        :host([disabled]) {
+        :host(:disabled) {
             opacity: 0.55;
             cursor: not-allowed;
         }
@@ -521,7 +521,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 aria-checked=${checked ? 'true' : 'false'}
                 aria-label=${labelAttr}
                 tabindex=${i === activeIndex ? '0' : '-1'}
-                ?disabled=${this.disabled || option.disabled}
+                ?disabled=${this.isDisabled || option.disabled}
                 @click=${() => this._select(option.value)}
             >${option.isMarkup ? unsafeHTML(option.content) : option.content}</button>
         `;

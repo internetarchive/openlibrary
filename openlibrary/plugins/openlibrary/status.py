@@ -8,7 +8,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -252,7 +252,7 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     last_deploy = state.last_deploy_at
     changes: list[dict[str, Any]] = []
     for p in state.prs:
-        entry = {"pr": p.pr, "title": p.title}
+        entry = {"pr": p.pr, "title": p.title, "reason": ""}
         if drift_info.get(p.pr, {}).get("merged", False):
             changes.append({**entry, "kind": "remove", "reason": "merged", "detail": ""})
             continue
@@ -294,86 +294,6 @@ def _row_action(p: TestingPR, merged: bool, last_deploy: str) -> str:
     if p.pending_toggle is not None:
         return "enable" if p.pending_toggle else "disable"
     return ""
-
-
-def get_testing_status(
-    testing_state: TestingState | None = None,
-    drift_info: dict | None = None,
-) -> dict | None:
-    """Compose the testing-environment status payload.
-
-    Returns a dict with ``last_deploy_at``, ``has_pending``, the itemized
-    ``pending_changes`` plan, whether a deploy is presumed in flight, and a
-    list of PRs (state fields merged with live drift info, plus ``live_now``
-    and the per-row ``action`` the next deploy applies), or None if there is
-    no testing state file. Rows include PRs that were removed from the set but
-    are still running on the box (``in_set=False``) so the table shows the
-    full before/after picture. Shared by the /status page and the FastAPI
-    testing-status API so they can't drift apart.
-    """
-    state = testing_state if testing_state is not None else _load_testing_state()
-    if not state:
-        return None
-    if drift_info is None:
-        drift_info, _ = _get_drift_info(state)
-    last_deploy = state.last_deploy_at
-    pending_changes = _pending_changes(state, drift_info)
-    remaining = {p.pr for p in state.prs}
-    # The `deployed` record postdates most state files, so an empty one means
-    # "pre-record" rather than "nothing was ever deployed": infer what the last
-    # deploy built the same way _pending_changes does — anything added before it
-    # was part of it. A populated record is authoritative (it also catches PRs
-    # deployed then removed, which no longer exist in prs).
-    deployed_record = bool(state.deployed)
-    prs = [
-        {
-            **p.to_dict(),
-            "head_sha": drift_info.get(p.pr, {}).get("head_sha", ""),
-            "drift": drift_info.get(p.pr, {}).get("drift", -1),
-            "merged": drift_info.get(p.pr, {}).get("merged", False),
-            "is_new": bool(last_deploy and p.added_at > last_deploy),
-            "live_now": p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
-            "action": _row_action(p, drift_info.get(p.pr, {}).get("merged", False), last_deploy),
-            "in_set": True,
-        }
-        for p in state.prs
-    ]
-    # Deployed but no longer in the set: the deploy drops them from the box, so
-    # they get a read-only row flagged for removal rather than vanishing.
-    for pr, title in state.deployed.items():
-        if pr not in remaining:
-            prs.append(
-                {
-                    "pr": pr,
-                    "title": title,
-                    "commit": "",
-                    "active": False,
-                    "added_at": "",
-                    "added_by": "",
-                    "pull_latest_sha": "",
-                    "pending_active": None,
-                    "author": "",
-                    "author_avatar": "",
-                    "assignee": "",
-                    "assignee_avatar": "",
-                    "head_sha": "",
-                    "drift": -1,
-                    "merged": False,
-                    "is_new": False,
-                    "live_now": True,
-                    "action": "remove",
-                    "in_set": False,
-                }
-            )
-    prs.sort(key=lambda row: row["pr"])
-    return {
-        "last_deploy_at": last_deploy,
-        "deploy_started_at": state.deploy_started_at,
-        "deploying": _is_deploying(state),
-        "pending_changes": pending_changes,
-        "has_pending": bool(pending_changes),
-        "prs": prs,
-    }
 
 
 @functools.cache
@@ -565,6 +485,109 @@ def _load_testing_state() -> TestingState | None:
             )
         return TestingState.from_dict(data)
     return None
+
+
+@dataclass
+class TestingPRStatus(TestingPR):
+    """A TestingPR merged with live GitHub drift info and derived flags."""
+
+    head_sha: str = ""  # current branch HEAD (short SHA); empty if GitHub unavailable
+    drift: int = -1  # commits the pinned commit is behind HEAD; -1 if unknown
+    merged: bool = False  # PR has been merged into master
+    is_new: bool = False  # added since the last deploy
+    live_now: bool = False  # the last deploy put this PR on the box
+    action: str = ""  # what the next deploy does with this row: add, pin, enable, disable, remove, or empty
+    in_set: bool = True  # False for rows dropped from the set but still on the box
+
+
+@dataclass
+class TestingStatus:
+    """Status of the testing environment: what backs the /status deploy table and the JSON API."""
+
+    last_deploy_at: str  # ISO timestamp, empty if never deployed
+    deploy_started_at: str  # ISO timestamp of the last deploy Jenkins accepted; empty if never
+    deploying: bool  # whether a build is presumed still running (a time window, not a result)
+    has_pending: bool  # whether there are pending changes ready to deploy
+    pending_changes: list[dict]  # what the next deploy would apply, one entry per staged change
+    prs: list[TestingPRStatus]
+
+
+def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus:
+    """Compose the testing-environment status from persisted state and live drift info. Pure.
+
+    Rows carry the live drift flags plus the derived per-row ``action`` and
+    ``live_now`` the panel renders; rows dropped from the set but still on the
+    box (``in_set=False``) are included so the table shows the full
+    before/after picture. The plan (``pending_changes``) and deploy state are
+    derived the same way the deploy handler applies them, so the table, the
+    plan, and the JSON API can't drift apart.
+    """
+    last_deploy = state.last_deploy_at
+    pending_changes = _pending_changes(state, drift_info)
+    remaining = {p.pr for p in state.prs}
+    # The `deployed` record postdates most state files, so an empty one means
+    # "pre-record" rather than "nothing was ever deployed": infer what the last
+    # deploy built the same way _pending_changes does — anything added before it
+    # was part of it. A populated record is authoritative (it also catches PRs
+    # deployed then removed, which no longer exist in prs).
+    deployed_record = bool(state.deployed)
+    prs = [
+        TestingPRStatus(
+            **asdict(p),
+            head_sha=drift_info.get(p.pr, {}).get("head_sha", ""),
+            drift=drift_info.get(p.pr, {}).get("drift", -1),
+            merged=drift_info.get(p.pr, {}).get("merged", False),
+            is_new=bool(last_deploy and p.added_at > last_deploy),
+            live_now=p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
+            action=_row_action(p, drift_info.get(p.pr, {}).get("merged", False), last_deploy),
+            in_set=True,
+        )
+        for p in state.prs
+    ]
+    # Deployed but no longer in the set: the deploy drops them from the box, so
+    # they get a read-only row flagged for removal rather than vanishing.
+    for pr, title in state.deployed.items():
+        if pr not in remaining:
+            prs.append(
+                TestingPRStatus(
+                    pr=pr,
+                    title=title,
+                    commit="",
+                    active=False,
+                    added_at="",
+                    added_by="",
+                    pull_latest_sha="",
+                    pending_active=None,
+                    author="",
+                    author_avatar="",
+                    assignee="",
+                    assignee_avatar="",
+                    head_sha="",
+                    drift=-1,
+                    merged=False,
+                    is_new=False,
+                    live_now=True,
+                    action="remove",
+                    in_set=False,
+                )
+            )
+    prs.sort(key=lambda row: row.pr)
+    return TestingStatus(
+        last_deploy_at=last_deploy,
+        deploy_started_at=state.deploy_started_at,
+        deploying=_is_deploying(state),
+        pending_changes=pending_changes,
+        has_pending=bool(pending_changes),
+        prs=prs,
+    )
+
+
+def load_testing_status() -> TestingStatus | None:
+    """Load the state file and live drift info; None if there is no state file."""
+    if (state := _load_testing_state()) is None:
+        return None
+    drift_info, _ = _get_drift_info(state)
+    return build_testing_status(state, drift_info)
 
 
 def _save_testing_state(state: TestingState) -> None:
