@@ -576,7 +576,7 @@ class SearchResponse:
                 docs=[],
                 num_found=None,
                 solr_select=solr_select,
-                error=(solr_result.get("error") if solr_result else None),
+                error=(solr_result.get("error") if solr_result else "solr_request_failed"),
                 time=time,
             )
         else:
@@ -1167,6 +1167,9 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
     """
+    if response.error:
+        return {"error": response.error, "docs": [], "num_found": 0}
+
     processed_response = response.raw_resp["response"]
 
     if response.highlighting is not None:
