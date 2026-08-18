@@ -32,9 +32,16 @@
       <button
         type="button"
         class="testing-env__btn"
+        :disabled="refreshing"
         @click="$emit('refresh')"
       >
+        <span
+          v-if="refreshing"
+          class="testing-env__btn-icon testing-env__spinner"
+          aria-hidden="true"
+        />
         <svg
+          v-else
           class="testing-env__btn-icon"
           width="16"
           height="16"
@@ -158,6 +165,10 @@ export default {
         jenkins_url: {
             type: String,
             default: ''
+        },
+        refreshing: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['deploy', 'refresh'],

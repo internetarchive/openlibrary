@@ -129,6 +129,7 @@
         :maintainer="isMaintainer"
         :strings="strings"
         :jenkins_url="jenkinsUrl"
+        :refreshing="refreshing"
         @deploy="deploy"
         @refresh="refresh"
       />
@@ -176,9 +177,9 @@ export default {
             view: 'loading', // 'loading' | 'error' | 'ready'
             payload: null,
             busy: false,
+            refreshing: false,
             addInput: '',
-            strings: { ...DEFAULT_STRINGS },
-            lastFocusRefresh: 0
+            strings: { ...DEFAULT_STRINGS }
         };
     },
     computed: {
@@ -204,12 +205,7 @@ export default {
         }
     },
     mounted() {
-        this.bindFocusRefresh();
         this.loadStatus();
-    },
-    beforeUnmount() {
-        document.removeEventListener('visibilitychange', this.onVisibility);
-        window.removeEventListener('focus', this.onFocusRefresh);
     },
     methods: {
         text(key, ...args) {
@@ -258,8 +254,14 @@ export default {
         deploy() {
             this.runAction('/status/deploy', {});
         },
-        refresh() {
-            this.runAction('/status/refresh', {});
+        async refresh() {
+            if (this.busy) return;
+            this.refreshing = true;
+            try {
+                await this.runAction('/status/refresh', {});
+            } finally {
+                this.refreshing = false;
+            }
         },
         addPrs() {
             const value = this.addInput.trim();
@@ -269,26 +271,6 @@ export default {
         },
         retry() {
             this.loadStatus(true);
-        },
-        /**
-         * Re-fetch when the tab regains focus; a 2s dedupe window absorbs
-         * browsers firing both `visibilitychange` and `focus` for one return.
-         */
-        bindFocusRefresh() {
-            this.onVisibility = () => {
-                if (document.visibilityState === 'visible') this.refreshIfVisible();
-            };
-            this.onFocusRefresh = () => this.refreshIfVisible();
-            document.addEventListener('visibilitychange', this.onVisibility);
-            window.addEventListener('focus', this.onFocusRefresh);
-        },
-        refreshIfVisible() {
-            if (!this.$el.isConnected || this.busy || document.hidden) return;
-            const now = Date.now();
-            if (now - this.lastFocusRefresh < 2000) return;
-            this.lastFocusRefresh = now;
-            // manageBusy=false: a background fetch must not set the guard.
-            this.loadStatus(false, false, false);
         }
     }
 };
@@ -395,6 +377,23 @@ export default {
 /* flex:none so the icon isn't shrunk in its flex row. */
 .testing-env__btn-icon {
   flex: none;
+}
+
+/* A simple border ring, spun — no icon needed. Only the explicit click sets
+   `refreshing`, so nothing spins on focus. */
+.testing-env__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: testing-env-spin 0.8s linear infinite;
+}
+
+@keyframes testing-env-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .testing-env__btn--small {
@@ -795,7 +794,8 @@ a.testing-env__pill:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .testing-env__status--deploying .testing-env__dot {
+  .testing-env__status--deploying .testing-env__dot,
+  .testing-env__spinner {
     animation: none;
   }
 }
