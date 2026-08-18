@@ -282,47 +282,6 @@ def copy(
     saved.update(keys)
 
 
-def copy_list(src, dest, list_key, comment):
-    keys = set()
-
-    def jsonget(url):
-        url = url.encode("utf-8")
-        text = src._request(url).read()
-        return json.loads(text)
-
-    def get(key):
-        print("get", key)
-        return marshal(src.get(list_key))
-
-    def query(**q):
-        print("query", q)
-        return [x["key"] for x in marshal(src.query(q))]
-
-    def get_list_seeds(list_key):
-        d = jsonget(list_key + "/seeds.json")
-        return d["entries"]  # [x['url'] for x in d['entries']]
-
-    def add_seed(seed):
-        if seed["type"] in ("edition", "work"):
-            keys.add(seed["url"])
-        elif seed["type"] == "subject":
-            doc = jsonget(seed["url"] + ".json")
-            keys.update(w["key"] for w in doc["works"])
-
-    seeds = get_list_seeds(list_key)
-    for seed in seeds:
-        add_seed(seed)
-
-    edition_keys = {k for k in keys if k.startswith("/books/")}
-    work_keys = {k for k in keys if k.startswith("/works/")}
-
-    for w in work_keys:
-        edition_keys.update(query(type="/type/edition", works=w, limit=500))
-
-    keys = list(edition_keys) + list(work_keys)
-    copy(src, dest, keys, comment=comment, recursive=True)
-
-
 def main(
     keys: list[str],
     src: str = "http://openlibrary.org/",
@@ -330,7 +289,6 @@ def main(
     comment: str = "",
     recursive: bool = True,
     editions: bool = True,
-    lists: list[str] | None = None,
     search: str | None = None,
     search_limit: int = 10,
 ) -> None:
@@ -344,6 +302,8 @@ def main(
         ./scripts/copydocs.py --src http://openlibrary.org /templates/*
         # Copy specific records
         ./scripts/copydocs.py /authors/OL113592A /works/OL1098727W?v=2
+        # Copy a list (its own key also copies its referenced seeds/authors/series)
+        ./scripts/copydocs.py /people/foo/lists/OL1L
         # Copy search results
         ./scripts/copydocs.py --search "publisher:librivox" --search-limit 10
 
@@ -352,7 +312,6 @@ def main(
     :param dest: URL of the destination open library server
     :param recursive: Recursively fetch all the referred docs
     :param editions: Also fetch all the editions of works
-    :param lists: Copy docs from list(s)
     :param search: Run a search on open library and copy docs from the results
     """
 
@@ -367,9 +326,6 @@ def main(
             dest_ol.autologin()
         else:
             dest_ol.login("openlibrary@example.com", "admin123")
-
-    for list_key in lists or []:
-        copy_list(src_ol, dest_ol, list_key, comment=comment)
 
     if search:
         assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
