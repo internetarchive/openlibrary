@@ -97,6 +97,13 @@ describe('Testing Environment utils', () => {
         expect(timeAgo('not-a-date')).toBe('');
     });
 
+    test('timeAgo accepts an injectable now so labels tick without new data', () => {
+        const started = new Date(Date.now() - 60 * 1000).toISOString();
+        expect(timeAgo(started, Date.now())).toMatch(/1 minute/);
+        // Two minutes later, same timestamp → the label advances.
+        expect(timeAgo(started, Date.now() + 2 * 60 * 1000)).toMatch(/3 minutes/);
+    });
+
     test('resolves the effective toggle state', () => {
         // pending_active is only present when a toggle is staged (server emits
         // it just for that), so its value is the direction to stage.

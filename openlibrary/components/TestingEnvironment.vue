@@ -132,6 +132,7 @@
 
       <DeploySection
         :payload="payload"
+        :now="now"
         :maintainer="isMaintainer"
         :strings="strings"
         :jenkins_url="jenkinsUrl"
@@ -199,7 +200,11 @@ export default {
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             toast: '',
-            toastTimer: null
+            toastTimer: null,
+            // Wall-clock tick for the relative "X ago" deploy labels. Bumped by
+            // the same poll that refreshes data, so the labels advance even when
+            // the payload is unchanged (loadStatus skips identical JSON).
+            now: Date.now()
         };
     },
     computed: {
@@ -230,7 +235,10 @@ export default {
         // focus, re-fetch so drift/deploy state stays fresh. No spinner — the
         // explicit Refresh button is the only thing that spins, and an action in
         // flight is left alone so this can't race the POST-triggered reload.
-        this._refreshTimer = setInterval(() => this.silentRefresh(), 60000);
+        this._refreshTimer = setInterval(() => {
+            this.now = Date.now();
+            this.silentRefresh();
+        }, 60000);
         document.addEventListener('visibilitychange', this.onVisibilityChange);
     },
     beforeUnmount() {
@@ -250,7 +258,10 @@ export default {
             }, 6000);
         },
         onVisibilityChange() {
-            if (document.visibilityState === 'visible') this.silentRefresh();
+            if (document.visibilityState === 'visible') {
+                this.now = Date.now();
+                this.silentRefresh();
+            }
         },
         // Re-fetch quietly: no loading view, no error takeover, no busy flag —
         // loadStatus(false, false, false). Skipped while an action is in flight.

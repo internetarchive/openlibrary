@@ -117,7 +117,7 @@
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deploySucceeded', timeAgo(deployFinishedAt)) }}
+        />{{ text('deploySucceeded', timeAgo(deployFinishedAt, now)) }}
       </span>
       <span
         v-else-if="deployResult === 'FAILURE' || deployResult === 'ABORTED'"
@@ -127,7 +127,7 @@
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deployFailed', timeAgo(deployFinishedAt)) }}
+        />{{ text('deployFailed', timeAgo(deployFinishedAt, now)) }}
       </span>
       <span
         v-else-if="payload.deploying"
@@ -137,7 +137,7 @@
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deployingStarted', timeAgo(payload.deploy_started_at)) }}
+        />{{ text('deployingStarted', timeAgo(payload.deploy_started_at, now)) }}
       </span>
       <span
         v-else-if="payload.last_deploy_at"
@@ -147,7 +147,7 @@
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('lastDeploy', timeAgo(payload.last_deploy_at)) }}
+        />{{ text('lastDeploy', timeAgo(payload.last_deploy_at, now)) }}
       </span>
       <span
         v-else
@@ -181,6 +181,12 @@ export default {
         payload: {
             type: Object,
             required: true
+        },
+        // Wall-clock tick for the relative "X ago" labels; bumped by the parent
+        // poll so they advance even when the payload is unchanged.
+        now: {
+            type: Number,
+            default: () => Date.now()
         },
         maintainer: {
             type: Boolean,

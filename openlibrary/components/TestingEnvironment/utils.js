@@ -135,13 +135,14 @@ export function formatTime(value) {
 
 /**
  * Relative "X ago" label for an ISO timestamp, in the browser's locale.
- * Empty for invalid/empty input. Rendered once at reload, so it can go stale
- * between panel refreshes — the exact time rides in the title attribute.
+ * Empty for invalid/empty input. ``now`` is injectable so a caller can tick
+ * the label forward without changing the underlying payload (Date.now() by
+ * default); the exact time rides in the title attribute.
  */
-export function timeAgo(value) {
+export function timeAgo(value, now = Date.now()) {
     const date = new Date(value);
     if (!value || Number.isNaN(date.getTime())) return '';
-    const seconds = Math.round((date.getTime() - Date.now()) / 1000);
+    const seconds = Math.round((date.getTime() - now) / 1000);
     const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
     const abs = Math.abs(seconds);
     if (abs < 60) return rtf.format(seconds, 'second');
