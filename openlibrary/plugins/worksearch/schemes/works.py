@@ -497,6 +497,9 @@ class WorkSearchScheme(SearchScheme):
             for param_name, param_value in cur_solr_params:
                 if param_name != "fq" or param_value.startswith("type:"):
                     continue
+                if param_value.startswith("{!"):
+                    # Local-params syntax (e.g. {!terms f=key}...) isn't a plain field:value pair.
+                    continue
                 field_name, field_val = param_value.split(":", 1)
                 # facet_rewrites can produce negated fq values like
                 # '-ebook_access:public' (from public_scan=false). The leading
