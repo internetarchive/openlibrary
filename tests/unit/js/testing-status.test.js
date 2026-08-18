@@ -101,7 +101,6 @@ describe('Testing Environment utils', () => {
 
     test('detects staged changes for the next deploy', () => {
         expect(isPending(pr)).toBe(false);
-        expect(isPending({ ...pr, merged: true })).toBe(true);
         expect(isPending({ ...pr, pull_latest_sha: 'abc1234' })).toBe(true);
         expect(isPending({ ...pr, pending_active: false })).toBe(true);
         expect(isPending({ ...pr, pending_active: null })).toBe(false);
@@ -115,11 +114,6 @@ describe('Testing Environment utils', () => {
     });
 
     test('decides the drift pill per state', () => {
-        const merged = driftPill({ ...pr, merged: true }, DEFAULT_STRINGS);
-        expect(merged.kind).toBe('merged');
-        expect(merged.label).toBe('merged');
-        expect(merged.href).toBe('');
-
         const ok = driftPill(pr, DEFAULT_STRINGS);
         expect(ok.kind).toBe('ok');
         expect(ok.label).toBe('OK');

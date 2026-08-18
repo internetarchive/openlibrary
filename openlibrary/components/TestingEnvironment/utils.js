@@ -33,7 +33,6 @@ export const DEFAULT_STRINGS = {
     assignee: 'Assignee',
     drift: 'Drift',
     actions: 'Actions',
-    merged: 'merged',
     ok: 'OK',
     prOnTesting: 'PR #%s on testing',
     changeOnDeploy: 'changes on deploy',
@@ -165,12 +164,10 @@ export function effectiveActive(pr) {
 }
 
 /**
- * Whether a change is staged for the next deploy (merged to master counts —
- * the deploy drops those rows).
+ * Whether a change is staged for the next deploy.
  */
-export function isPending(pr, merged = pr.merged === true) {
-    return merged
-        || Boolean(pr.pull_latest_sha)
+export function isPending(pr) {
+    return Boolean(pr.pull_latest_sha)
         || (pr.pending_active !== undefined && pr.pending_active !== null);
 }
 
@@ -183,19 +180,16 @@ export function canUpdate(pr) {
 }
 
 /**
- * Decide the drift pill: kind ('merged' | 'ok' | 'unknown' | 'behind'),
- * label, optional href, and the hover title. `strings` are the translated
- * panel strings, with %s placeholders filled by sprintf.
+ * Decide the drift pill: kind ('ok' | 'unknown' | 'behind'), label, optional
+ * href, and the hover title. `strings` are the translated panel strings, with
+ * %s placeholders filled by sprintf. Merged PRs are filtered out before a row
+ * is rendered, so they never reach this.
  */
 export function driftPill(pr, strings) {
     const pinned = String(pr.commit || '').slice(0, 7);
-    const merged = pr.merged === true;
     const drift = Number(pr.drift);
     const t = (key, ...args) => sprintf(strings[key] || key, ...args);
 
-    if (merged) {
-        return { kind: 'merged', label: strings.merged, href: '', title: t('mergedToMaster') };
-    }
     if (drift === 0) {
         return { kind: 'ok', label: strings.ok, href: '', title: t('currentCommit', pinned) };
     }

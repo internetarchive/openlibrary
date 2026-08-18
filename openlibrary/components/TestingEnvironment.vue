@@ -204,7 +204,9 @@ export default {
             return this.maintainer === 'true';
         },
         prs() {
-            return (this.payload && this.payload.prs) || [];
+            // Merged PRs land in the next deploy regardless of this panel, so
+            // the row is noise — the deploy plan still lists them as removals.
+            return ((this.payload && this.payload.prs) || []).filter((pr) => pr.merged !== true);
         },
         jenkinsUrl() {
             return safeHttpUrl(this.jenkins_url);
@@ -239,7 +241,15 @@ export default {
             if (manageBusy) this.busy = true;
             if (showLoading) this.view = 'loading';
             try {
-                this.payload = await getTestingStatus();
+                const payload = await getTestingStatus();
+                // A refresh that returned the same state must not re-render:
+                // swapping in a fresh object identity repaints the whole panel
+                // even when nothing changed — that repaint is the flash you see
+                // returning to the tab. Skip the assignment so Vue has nothing
+                // to patch.
+                if (!this.payload || JSON.stringify(payload) !== JSON.stringify(this.payload)) {
+                    this.payload = payload;
+                }
                 this.view = 'ready';
                 return true;
             } catch {
@@ -308,7 +318,11 @@ export default {
             const now = Date.now();
             if (now - this.lastFocusRefresh < 2000) return;
             this.lastFocusRefresh = now;
-            this.loadStatus(false, false);
+            // manageBusy=false: a background fetch must not disable every
+            // button in the panel for its duration — that dim is the flash
+            // you see returning to the tab. It also keeps a failed silent
+            // refresh from leaving the UI locked.
+            this.loadStatus(false, false, false);
         }
     }
 };
@@ -628,10 +642,6 @@ export default {
   text-decoration: underline;
 }
 
-.testing-env__row.is-merged .testing-env__pr-title {
-  color: var(--color-text-muted);
-}
-
 .testing-env__person {
   display: inline-flex;
   gap: var(--spacing-2xs);
@@ -673,19 +683,26 @@ export default {
 
 /* ── Cell stacks ────────────────────────────────────────────── */
 
-/* Never set display:flex on a <td> — it overrides display:table-cell and drops
-   the cell out of the table layout. Flex the wrapper inside instead. */
+/* The drift cell reads [pill] [update] [hourglass], each in its own fixed
+   track, so the arrow and the hourglass line up down the table even when a
+   row shows only one of them — a flex stack would leave the second one
+   hugging the pill at a different x than its neighbours. Never set
+   display:grid on a <td> — it overrides display:table-cell and drops the cell
+   out of the table layout. Grid the wrapper inside instead. */
 .testing-env__cell-stack {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 3.25em 28px 1.1em;
   gap: var(--spacing-xs);
   align-items: center;
 }
 
-/* Pill first, its "…on deploy" note beside it on the same line: the cell is
-   nowrap-sized, so stacking would only make row heights uneven. */
-.testing-env__drift-cell .testing-env__cell-stack {
-  flex-wrap: nowrap;
+.testing-env__drift-cell .testing-env__row-action {
+  grid-column: 2;
+}
+
+.testing-env__drift-cell .testing-env__pending {
+  grid-column: 3;
+  justify-self: center;
 }
 
 /* min-width so a one-glyph verdict ("?") reads as the same chip as "-12". */
@@ -713,13 +730,6 @@ export default {
   --pill-fg: var(--color-warning-fg);
 
   background: var(--color-warning-bg);
-  color: var(--pill-fg);
-}
-
-.testing-env__pill--merged {
-  --pill-fg: var(--color-primary-active);
-
-  background: var(--color-primary-subtle);
   color: var(--pill-fg);
 }
 

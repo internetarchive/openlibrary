@@ -177,14 +177,11 @@ export default {
     },
     emits: ['toggle', 'update', 'remove'],
     computed: {
-        merged() {
-            return this.pr.merged === true;
-        },
         effectiveActive() {
             return effectiveActive(this.pr);
         },
         pending() {
-            return isPending(this.pr, this.merged);
+            return isPending(this.pr);
         },
         canUpdatePr() {
             return canUpdate(this.pr);
@@ -200,7 +197,6 @@ export default {
         },
         rowClasses() {
             const classes = ['testing-env__row'];
-            if (this.merged) classes.push('is-merged');
             if (this.pr.active === false) classes.push('is-inactive');
             if (this.pr.is_new) classes.push('is-new');
             if (this.pending) classes.push('is-pending');

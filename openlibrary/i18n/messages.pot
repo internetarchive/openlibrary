@@ -7659,10 +7659,6 @@ msgid "Drift"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "merged"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 
