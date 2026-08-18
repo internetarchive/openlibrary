@@ -128,6 +128,7 @@ class TestingStatusPanel {
         this.strings = stringsFromElement(root);
         this.busy = true;
         this.bind();
+        this.bindFocusRefresh();
         this.setBusy(true);
         this.loadStatus();
     }
@@ -528,6 +529,29 @@ class TestingStatusPanel {
                 this.refreshSelection();
             }
         });
+    }
+
+    /**
+     * Re-fetch the panel when the tab regains focus, so state that changed
+     * while the user was elsewhere (a deploy finishing, a PR being merged)
+     * shows up without an interval timer. The fetch is cheap and the re-render
+     * already restores focus, so unlike the old 20s poll this needs no
+     * cell-patching machinery. A short dedupe window absorbs browsers that
+     * fire both `visibilitychange` and `focus` for the same return to the tab.
+     */
+    bindFocusRefresh() {
+        let lastRefresh = 0;
+        const refreshIfVisible = () => {
+            if (!this.root.isConnected || this.busy || document.hidden) return;
+            const now = Date.now();
+            if (now - lastRefresh < 2000) return;
+            lastRefresh = now;
+            this.loadStatus(false, false);
+        };
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refreshIfVisible();
+        });
+        window.addEventListener('focus', refreshIfVisible);
     }
 }
 

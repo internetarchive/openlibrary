@@ -135,4 +135,70 @@ describe('Testing Environment JSON panel', () => {
             '/status/remove'
         ]);
     });
+
+    test('re-fetches status when the tab regains focus', async() => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue(payload)
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+
+        document.dispatchEvent(new Event('visibilitychange'));
+        await flushPromises();
+        await flushPromises();
+
+        // One fetch for the initial load, one for the focus refresh.
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+        expect(root.querySelector('[data-testing-loading]')).toBeNull();
+    });
+
+    test('dedupes rapid focus and visibility events into one refresh', async() => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue(payload)
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+
+        // Some browsers fire both events when returning to the tab.
+        document.dispatchEvent(new Event('visibilitychange'));
+        window.dispatchEvent(new Event('focus'));
+        document.dispatchEvent(new Event('visibilitychange'));
+        await flushPromises();
+        await flushPromises();
+
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    test('skips the focus refresh while a load or action is in flight', async() => {
+        let resolveInitial;
+        global.fetch = jest.fn().mockImplementation(() => new Promise((resolve) => {
+            resolveInitial = resolve;
+        }));
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+
+        // The initial load is still pending, so the panel is busy and the
+        // focus refresh must not fire another request.
+        document.dispatchEvent(new Event('visibilitychange'));
+        await flushPromises();
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        resolveInitial({ ok: true, json: jest.fn().mockResolvedValue(payload) });
+        await flushPromises();
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
 });
