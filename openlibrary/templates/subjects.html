@@ -105,7 +105,7 @@ $ has_tag = 'tag' in page
               $cond(ebooks_only, 'checked')
             ></ol-toggle>
           </div>
-          $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True, has_fulltext_only=ebooks_only)
+          $:macros.BooksDisplay(query=page.solr_query, title=_("Trending Books"), sort='trending,trending_score_hourly_sum', key='SubjectTrending', user_lang_only=True, has_fulltext_only=ebooks_only)
         $:macros.PublishingHistory(async_load=True, key=page.key)
         <div class="clearfix"></div>
       </div>

@@ -1,0 +1,570 @@
+/**
+ * ol-books-display — light-DOM styles for the books-display component and
+ * its cover cards / list rows. Lives here (not in the component's JS) because
+ * the component renders into the light DOM so <ol-carousel> can slot the
+ * cards. Class prefix: obd-.
+ */
+
+ol-books-display {
+  display: block;
+  /* Hold to the container even inside flex/grid parents: the carousel's
+     track is wide, and must never set this element's width. */
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family-body);
+  color: var(--color-text);
+}
+
+/* Reserve a little height pre-upgrade so the page doesn't jump. */
+ol-books-display:not(:defined) {
+  min-height: 320px;
+}
+
+.obd__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+.obd__title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-large);
+  line-height: var(--line-height-heading);
+}
+
+/* Links. Two classes so these beat the page-level `a:link` rules. */
+.obd .obd-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.obd .obd-row__author .obd-link {
+  color: var(--color-link);
+}
+
+.obd .obd-link:hover {
+  text-decoration: underline;
+}
+
+.obd__status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-lg);
+  color: var(--color-text-secondary);
+}
+
+.obd .obd__link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.obd .obd__link-btn:hover {
+  text-decoration: underline;
+}
+
+.obd .obd__link-btn:disabled {
+  color: var(--color-text-muted);
+  cursor: default;
+  text-decoration: none;
+}
+
+.obd .obd__link-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* ── Shared: covers, badges, CTAs ─────────────────────────── */
+
+.obd-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--border-radius-thumbnail);
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+}
+
+.obd-cover__link {
+  display: block;
+  height: 100%;
+}
+
+.obd-cover__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.obd-cover__blank {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-inset-md);
+  background: linear-gradient(160deg, var(--neutral-600), var(--neutral-800));
+  color: var(--color-text-inverse);
+  text-align: center;
+}
+
+.obd-cover__blank-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: 700;
+  line-height: var(--line-height-tight);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.obd-cover__blank-author {
+  font-size: var(--font-size-label-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.obd-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 6px;
+  border-radius: var(--border-radius-badge);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-label-small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px var(--book-cover-shadow-color);
+  pointer-events: none;
+}
+
+/* Mirrors ol-button (see ol-button.css): raised shadow + inset specular
+   edge, primary lightens on hover, secondary darkens. */
+.obd .obd-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-inline-xs);
+  box-sizing: border-box;
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  line-height: var(--line-height-control);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  background-color: var(--white);
+  color: var(--dark-grey);
+  --control-highlight-strength: 35%;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
+  transition: transform 0.08s;
+}
+
+.obd .obd-cta:active {
+  transform: scale(0.97);
+}
+
+.obd .obd-cta--primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+  --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .obd .obd-cta--primary:hover {
+    filter: brightness(1.1);
+  }
+
+  .obd .obd-cta--secondary:hover {
+    background-color: var(--color-control-hover);
+    border-color: var(--light-grey);
+    --control-surface: var(--color-control-hover);
+  }
+}
+
+.obd .obd-cta--static {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.obd .obd-cta:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: var(--spacing-3xs);
+}
+
+.obd-cta__ext {
+  width: 14px;
+  height: 14px;
+}
+
+.obd-cta-form {
+  margin: 0;
+}
+
+/* ── Covers view (carousel cards) ─────────────────────────── */
+
+.obd__carousel {
+  --ol-carousel-viewport-padding: 6px;
+
+  min-width: 0;
+}
+
+.obd-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+.obd-card .obd-cover {
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.obd .obd-card__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-small);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  text-decoration: none;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.obd .obd-card__title:hover {
+  text-decoration: underline;
+}
+
+.obd-card__author {
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.obd-card__cta {
+  width: 100%;
+  margin-top: auto;
+}
+
+/* Corner save button: "+" until the book is on a shelf, then a filled check.
+   Signed in, the button is slotted into <ol-book-actions>, whose popover host
+   is position: relative — so the wrapper takes the corner and the button
+   goes static inside it. */
+.obd-save,
+.obd-cover > ol-book-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.obd-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  --control-highlight-strength: 35%;
+}
+
+/* The visible circle is smaller than the 32px hit target. Same inset
+   specular edge as ol-button; the drop shadow is heavier since it floats
+   over cover art. */
+.obd-save::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: var(--border-radius-circle);
+  background: var(--white);
+  box-shadow:
+    0 1px 4px var(--boxshadow-black),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
+  transition: transform 0.08s;
+}
+
+.obd-save .obd-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+
+.obd-save:hover::before {
+  transform: scale(1.08);
+}
+
+.obd-save:active::before {
+  transform: scale(0.95);
+}
+
+.obd-save:focus-visible {
+  outline: none;
+}
+
+.obd-save:focus-visible::before {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.obd-save--on {
+  color: var(--white);
+  --control-surface: var(--primary-blue);
+  --control-highlight-strength: 18%;
+}
+
+.obd-save--on::before {
+  background: var(--primary-blue);
+}
+
+.obd-cover > ol-book-actions .obd-save {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+/* ── List view (rows) ─────────────────────────────────────── */
+
+.obd__list-wrap {
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+}
+
+.obd__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.obd-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: var(--spacing-inline-lg);
+  align-items: start;
+  padding: var(--spacing-inset-md);
+  border-bottom: var(--border-divider);
+}
+
+.obd-row:last-child {
+  border-bottom: 0;
+}
+
+.obd-row__cover {
+  width: 72px;
+}
+
+.obd-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.obd .obd-row__title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-title-medium);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.obd .obd-row__title:hover {
+  text-decoration: underline;
+}
+
+.obd-row__author,
+.obd-row__meta {
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-secondary);
+}
+
+.obd-row__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-xs);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-secondary);
+}
+
+.obd-stars {
+  display: inline-flex;
+  color: var(--gold);
+}
+
+.obd-stars .obd-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.obd-row__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-stack-xs);
+  width: 200px;
+}
+
+.obd-row__cta {
+  width: 100%;
+}
+
+/* Split shelf button: main toggles the shown shelf, chevron opens the menu. */
+.obd-shelf {
+  display: flex;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
+  overflow: hidden;
+  background: var(--white);
+}
+
+.obd-shelf--on {
+  border-color: var(--color-control-selected-border);
+  background: var(--color-control-selected-bg);
+}
+
+.obd-shelf__main,
+.obd-shelf__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: calc(var(--control-height-medium) - 2px);
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.obd-shelf__main {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--spacing-sm);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.obd-shelf__main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.obd-shelf__main--on {
+  color: var(--color-link);
+}
+
+.obd-shelf > ol-book-actions {
+  display: flex;
+}
+
+.obd-shelf__more {
+  width: 40px;
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.obd-shelf--on .obd-shelf__more {
+  border-left-color: var(--color-control-selected-border);
+  color: var(--color-link);
+}
+
+.obd-shelf__main:hover,
+.obd-shelf__more:hover {
+  background: var(--color-hover-overlay);
+}
+
+.obd-shelf__main:focus-visible,
+.obd-shelf__more:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.obd-shelf .obd-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.obd__list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-md);
+  border-top: var(--border-divider);
+  font-size: var(--font-size-body-medium);
+}
+
+.obd__dot {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 600px) {
+  .obd-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .obd-row__cover {
+    width: 56px;
+  }
+
+  .obd-row__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    width: auto;
+  }
+
+  .obd-row__actions > * {
+    flex: 1;
+  }
+
+  .obd-row__title {
+    font-size: var(--font-size-title-small);
+  }
+}

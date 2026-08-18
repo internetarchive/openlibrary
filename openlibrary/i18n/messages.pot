@@ -296,7 +296,7 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html PreviewSearchInside.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
+#: BookPreview.html BooksDisplay.html PreviewSearchInside.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -804,10 +804,6 @@ msgid "works"
 msgstr ""
 
 #: subjects.html
-msgid "See all readable works"
-msgstr ""
-
-#: subjects.html
 msgid "readable now"
 msgstr ""
 
@@ -816,15 +812,24 @@ msgid "years in print"
 msgstr ""
 
 #: subjects.html
+#, python-format
+msgid "Search for books with subject %(name)s."
+msgstr ""
+
+#: subjects.html
 msgid "Disambiguations"
 msgstr ""
 
-#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html subjects.html type/author/view.html work_search.html
-msgid "Readable Only"
+#: home/index.html openlibrary/plugins/openlibrary/api.py subjects.html trending.html
+msgid "Trending Books"
 msgstr ""
 
-#: account/reading_log.html subjects.html type/author/view.html work_search.html
-msgid "Filter by availability"
+#: subjects.html
+msgid "Related subjects"
+msgstr ""
+
+#: SearchResultsWork.html subjects.html
+msgid "Show more"
 msgstr ""
 
 #: trending.html
@@ -851,10 +856,6 @@ msgstr ""
 msgid "All Time"
 msgstr ""
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
-msgid "Trending Books"
-msgstr ""
-
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
 msgstr ""
@@ -864,24 +865,24 @@ msgid "Earliest trending data is from October 2017"
 msgstr ""
 
 #. Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
-#: account/mybooks.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: BooksDisplay.html account/mybooks.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: BooksDisplay.html account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
+#: BooksDisplay.html LoanReadForm.html ReadButton.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
 #. Label for the reading log shelf for books the user stopped reading (bookshelf ID 4). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: BooksDisplay.html account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -935,7 +936,7 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
+#: BooksDisplay.html ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
 msgstr ""
 
@@ -944,7 +945,7 @@ msgstr ""
 msgid "Join waitlist for \"%(title)s\""
 msgstr ""
 
-#: LoanStatus.html widget.html
+#: BooksDisplay.html LoanStatus.html widget.html
 msgid "Join Waitlist"
 msgstr ""
 
@@ -976,6 +977,14 @@ msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
+msgstr ""
+
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
+msgid "Readable Only"
+msgstr ""
+
+#: account/reading_log.html type/author/view.html work_search.html
+msgid "Filter by availability"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
@@ -1406,7 +1415,7 @@ msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: BooksDisplay.html account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1790,7 +1799,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html type/list/edit.html type/series/edit.html
+#: BooksDisplay.html account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -3009,7 +3018,7 @@ msgstr ""
 msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/read_button.html
+#: BooksDisplay.html book_providers/read_button.html
 msgid "Audiobook"
 msgstr ""
 
@@ -3323,7 +3332,7 @@ msgstr ""
 msgid " by %(name)s"
 msgstr ""
 
-#: books/daisy.html
+#: BooksDisplay.html books/daisy.html
 msgid "Back"
 msgstr ""
 
@@ -4690,6 +4699,50 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
+#: lib/message_addbook.html
+msgid "Super!"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid " Your new record is in the library. Thank you!"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Upload a cover image"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Snap a quick photo of the cover to share?"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Add an ISBN"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Help the library connect with other systems, like Amazon."
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Add some subjects"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "They're just like tags."
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Describe what the book's about"
+msgstr ""
+
+#: lib/message_addbook.html
+msgid "Just a sentence or two is good."
+msgstr ""
+
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
@@ -4939,7 +4992,7 @@ msgstr ""
 msgid "Quality Criteria"
 msgstr ""
 
-#: lists/carousel.html lists/home.html lists/showcase.html
+#: BooksDisplay.html lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -5920,11 +5973,11 @@ msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/layout_options.html
+#: BooksDisplay.html search/layout_options.html
 msgid "View as"
 msgstr ""
 
-#: search/layout_options.html
+#: BooksDisplay.html search/layout_options.html
 msgid "List"
 msgstr ""
 
@@ -6783,7 +6836,7 @@ msgstr ""
 msgid "Protected DAISY"
 msgstr ""
 
-#: BookByline.html type/list/embed.html
+#: BookByline.html BooksDisplay.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
 msgstr ""
@@ -7207,6 +7260,150 @@ msgstr ""
 msgid "See more about this book on Archive.org"
 msgstr ""
 
+#: BooksDisplay.html
+msgid "Covers"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "Save %(title)s to your reading log"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "%(title)s is on your reading log"
+msgstr ""
+
+#: BooksDisplay.html ReadButton.html
+msgid "Special Access"
+msgstr ""
+
+#: BooksDisplay.html LoanStatus.html
+msgid "Checked Out"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Find in a library"
+msgstr ""
+
+#: BooksDisplay.html NotInLibrary.html
+msgid "Not in Library"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Not online"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "%(count)s rating"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "%(count)s ratings"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "Rated %(average)s out of 5"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "First published %(year)s"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "More options for %(title)s"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "Show %(count)s more"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Collapse"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Loading…"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Couldn’t load these books."
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Retry"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "No books found."
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "Actions for %(title)s"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Rate this book"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "Rate %(rating)s of 5"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Clear rating"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Add to list"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "List name"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Create"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Filter lists…"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "You have no lists yet."
+msgstr ""
+
+#: BooksDisplay.html
+msgid "No lists match."
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Loading lists…"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "%(count)s items"
+msgstr ""
+
+#: BooksDisplay.html
+#, python-format
+msgid "In %(count)s of your lists"
+msgstr ""
+
+#: BooksDisplay.html
+msgid "Something went wrong. Please try again."
+msgstr ""
+
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
 msgstr ""
@@ -7324,10 +7521,6 @@ msgstr ""
 msgid "This book is currently checked out, please check back later."
 msgstr ""
 
-#: LoanStatus.html
-msgid "Checked Out"
-msgstr ""
-
 #: LocateButton.html
 msgid "Locate"
 msgstr ""
@@ -7345,10 +7538,6 @@ msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
 msgstr[0] ""
 msgstr[1] ""
-
-#: NotInLibrary.html
-msgid "Not in Library"
-msgstr ""
 
 #: NotesModal.html
 msgid "My Book Notes"
@@ -7405,14 +7594,6 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: PublishingHistory.html RelatedSubjects.html
-msgid "Something went wrong."
-msgstr ""
-
-#: PublishingHistory.html RelatedSubjects.html
-msgid "Retry"
-msgstr ""
-
 #: RawQueryCarousel.html
 msgid "Loading carousel"
 msgstr ""
@@ -7435,10 +7616,6 @@ msgstr ""
 
 #: RawQueryCarousel.html
 msgid "Search collection"
-msgstr ""
-
-#: ReadButton.html
-msgid "Special Access"
 msgstr ""
 
 #: ReadButton.html
@@ -7496,10 +7673,6 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show more"
 msgstr ""
 
 #: SearchResultsWork.html
