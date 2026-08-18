@@ -1030,7 +1030,7 @@ def internalerror():
     if sentry.enabled:
         sentry_event_id = sentry.capture_exception_webpy()
 
-    if features.is_enabled("debug"):
+    if get_ol_env().LOCAL_DEV or features.is_enabled("debug"):
         raise web.debugerror()
     else:
         msg = render.site(
