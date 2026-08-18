@@ -4,12 +4,15 @@ Files in the root of this directory are compiled and added to `/static/build/com
 $:render_component('HelloWorld', attrs=dict(name="Jimmy"))
 ```
 
-The building of these files happens on `make components`.
+The building of these files happens on `make components`. Every top-level `.vue`
+file is built at once into its own `ol-{ComponentName}.js` bundle.
 
-To enable automatic updates for a component on localhost during modification, execute the following command and replace the component name as necessary:
+To rebuild all components automatically on change during local development, run:
 ```shell script
-docker compose run --rm home sh -c "COMPONENT=LibraryExplorer npx vite build -c openlibrary/components/vite.config.mjs --watch"
+npm run watch:components
 ```
+
+Inside Docker this becomes `docker compose run --rm home npm run watch:components`.
 
 ## Live-reloading dev server
 
