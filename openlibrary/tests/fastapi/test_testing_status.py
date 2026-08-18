@@ -601,6 +601,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
         "deploying": False,
         "deploy_result": "",
         "deploy_finished_at": "",
+        "deploy_stage": "",
         "has_pending": True,
         "pending_changes": [{"pr": 13269, "title": "Test PR", "kind": "add", "detail": "1d23364", "reason": ""}],
         "prs": [
@@ -652,6 +653,7 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
         "status": "SUCCESS",
         "start_time": "2026-08-18T20:25:57.516000+00:00",
         "end_time": "2026-08-18T20:27:07.498000+00:00",
+        "current_stage": "",
     }
     with (
         patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
@@ -664,14 +666,42 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
     assert body["deploying"] is False
     assert body["deploy_result"] == "SUCCESS"
     assert body["deploy_finished_at"] == jenkins["end_time"]
+    assert body["deploy_stage"] == ""
+
+
+def test_testing_status_endpoint_reports_deploy_stage(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """A running deploy names the stage it is on."""
+    mock_maintainer_user(is_maintainer=True)
+    result = status_module.build_testing_status(_make_state(), {})
+    jenkins = {
+        "status": "IN_PROGRESS",
+        "start_time": "2026-08-18T20:25:57.516000+00:00",
+        "end_time": "",
+        "current_stage": "components",
+    }
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
+    ):
+        response = fastapi_client.get("/status/testing.json")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["deploying"] is True
+    assert body["deploy_stage"] == "components"
 
 
 @pytest.mark.asyncio
 async def test_jenkins_deploy_status_parses_latest_run():
     """wfapi/runs is newest-first: status and timestamps come from the first run."""
     runs = [
-        {"status": "SUCCESS", "startTimeMillis": 1787085957516, "endTimeMillis": 1787086027498},
-        {"status": "IN_PROGRESS", "startTimeMillis": 1787085000000, "endTimeMillis": None},
+        {
+            "status": "SUCCESS",
+            "startTimeMillis": 1787085957516,
+            "endTimeMillis": 1787086027498,
+            "stages": [{"name": "js", "status": "SUCCESS"}, {"name": "components", "status": "SUCCESS"}],
+        },
+        {"status": "IN_PROGRESS", "startTimeMillis": 1787085000000, "endTimeMillis": None, "stages": []},
     ]
     mock_response = MagicMock(spec=httpx.Response)
     mock_response.json.return_value = runs
@@ -691,6 +721,42 @@ async def test_jenkins_deploy_status_parses_latest_run():
     assert result["status"] == "SUCCESS"
     assert result["start_time"].startswith("2026-08-18T")
     assert result["end_time"].startswith("2026-08-18T")
+    assert result["current_stage"] == ""  # a finished run has no current stage
+
+
+@pytest.mark.asyncio
+async def test_jenkins_deploy_status_reports_current_stage():
+    """A running build names the stage Jenkins is executing."""
+    runs = [
+        {
+            "status": "IN_PROGRESS",
+            "startTimeMillis": 1787085957516,
+            "endTimeMillis": None,
+            "stages": [
+                {"name": "Checkout", "status": "SUCCESS"},
+                {"name": "js", "status": "SUCCESS"},
+                {"name": "components", "status": "IN_PROGRESS"},
+                {"name": "deploy", "status": "NOT_EXECUTED"},
+            ],
+        }
+    ]
+    mock_response = MagicMock(spec=httpx.Response)
+    mock_response.json.return_value = runs
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.get = AsyncMock(return_value=mock_response)
+
+    mc = MagicMock()
+    mc.get.return_value = None
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("openlibrary.plugins.openlibrary.status.httpx.AsyncClient", return_value=mock_client),
+    ):
+        result = await status_module.jenkins_deploy_status()
+
+    assert result["status"] == "IN_PROGRESS"
+    assert result["current_stage"] == "components"
 
 
 @pytest.mark.asyncio

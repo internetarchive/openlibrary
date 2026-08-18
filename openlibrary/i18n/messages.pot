@@ -7538,6 +7538,11 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Deploying, started %(time)s — %(stage)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Deploy succeeded %(time)s"
 msgstr ""
 

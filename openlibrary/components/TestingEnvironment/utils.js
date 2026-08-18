@@ -51,6 +51,7 @@ export const DEFAULT_STRINGS = {
     behindMany: '%s commits behind %s',
     neverDeployed: 'Never deployed',
     deployingStarted: 'Deploying, started %s',
+    deployingStage: 'Deploying, started %s — %s',
     deploySucceeded: 'Deploy succeeded %s',
     deployFailed: 'Deploy failed %s',
     lastDeploy: 'Last deploy %s',

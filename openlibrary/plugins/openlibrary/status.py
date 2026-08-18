@@ -35,11 +35,12 @@ _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 60  # 1 minute
 # The deploy pipeline's own run list (newest first). The panel only learns
 # that a build was triggered, so this is the ground truth for whether it is
-# still running and how it ended. Cached briefly — every /status/testing.json
-# GET would otherwise hit Jenkins.
-_JENKINS_RUNS_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/wfapi/runs"
+# still running and how it ended. fullStages=true brings the per-stage status
+# so the panel can name the stage a running build is on. Cached very briefly
+# so a panel poll or tab-focus reads near-live state instead of a stale run.
+_JENKINS_RUNS_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/wfapi/runs?fullStages=true"
 _JENKINS_STATUS_CACHE_KEY = "status.jenkins_deploy_status"
-_JENKINS_STATUS_CACHE_TTL = 30  # seconds
+_JENKINS_STATUS_CACHE_TTL = 1  # second
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
 # running. After this long we stop claiming it is, without claiming it worked.
 _DEPLOY_WINDOW = 10 * 60  # 10 minutes
@@ -817,11 +818,13 @@ def _parse_pr_number(value: str) -> int:
 
 
 async def jenkins_deploy_status() -> dict | None:
-    """Return the latest ol-dev1-deploy run: {status, start_time, end_time}.
+    """Return the latest ol-dev1-deploy run: {status, start_time, end_time, current_stage}.
 
     ``status`` is Jenkins' own verdict — IN_PROGRESS, SUCCESS, FAILURE,
     ABORTED, … — so the panel can say a deploy finished instead of guessing
-    from a time window. None when Jenkins is unreachable or reports nothing.
+    from a time window. ``current_stage`` names the stage a running build is
+    on (empty when not running). None when Jenkins is unreachable or reports
+    nothing.
 
     Async: this runs inside the FastAPI event loop (see fastapi/status.py), so
     it uses httpx rather than blocking urllib — a cold cache never stalls the
@@ -841,6 +844,7 @@ async def jenkins_deploy_status() -> dict | None:
                 "status": run.get("status", ""),
                 "start_time": _epoch_ms_to_iso(run.get("startTimeMillis")),
                 "end_time": _epoch_ms_to_iso(run.get("endTimeMillis")),
+                "current_stage": _current_stage(run),
             }
     except httpx.HTTPError, ValueError:
         # HTTPError covers network failures and non-2xx; ValueError covers a
@@ -855,6 +859,20 @@ def _epoch_ms_to_iso(epoch_ms) -> str:
     if not epoch_ms:
         return ""
     return datetime.datetime.fromtimestamp(epoch_ms / 1000, tz=datetime.UTC).isoformat()
+
+
+def _current_stage(run: dict) -> str:
+    """Name of the stage a running build is on; empty when not running.
+
+    wfapi stage entries carry their own status, so the in-progress stage is
+    the one Jenkins is executing right now.
+    """
+    if run.get("status") != "IN_PROGRESS":
+        return ""
+    for stage in run.get("stages") or []:
+        if stage.get("status") == "IN_PROGRESS":
+            return stage.get("name", "")
+    return ""
 
 
 def _trigger_rebuild(state: TestingState) -> str:

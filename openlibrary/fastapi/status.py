@@ -67,6 +67,7 @@ class TestingStatusResponse(BaseModel):
     deploying: bool = Field(..., description="Whether a build is still running: the latest Jenkins run when reachable, else a time-window guess")
     deploy_result: str = Field("", description="Latest ol-dev1-deploy run status; empty when Jenkins is unreachable")
     deploy_finished_at: str = Field("", description="ISO end time of the latest Jenkins run; empty if running or unreachable")
+    deploy_stage: str = Field("", description="Stage a running deploy is on (js, css, components, …); empty when not running or Jenkins is unreachable")
     has_pending: bool = Field(..., description="Whether there are pending changes ready to deploy")
     pending_changes: list[PendingChangeResponse] = Field(default_factory=list, description="What the next deploy would apply")
     prs: list[TestingPRResponse] = Field(..., description="PRs in the testing set")
@@ -93,4 +94,5 @@ async def testing_status(_: MaintainerDep) -> TestingStatusResponse:
         response.deploying = jenkins["status"] == "IN_PROGRESS"
         response.deploy_result = jenkins["status"]
         response.deploy_finished_at = jenkins["end_time"]
+        response.deploy_stage = jenkins.get("current_stage", "")
     return response

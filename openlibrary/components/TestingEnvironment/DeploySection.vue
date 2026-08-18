@@ -137,7 +137,9 @@
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deployingStarted', timeAgo(payload.deploy_started_at, now)) }}
+        />{{ deployStage
+          ? text('deployingStage', timeAgo(payload.deploy_started_at, now), deployStage)
+          : text('deployingStarted', timeAgo(payload.deploy_started_at, now)) }}
       </span>
       <span
         v-else-if="payload.last_deploy_at"
@@ -235,6 +237,9 @@ export default {
         },
         deployFinishedAt() {
             return (this.payload && this.payload.deploy_finished_at) || '';
+        },
+        deployStage() {
+            return (this.payload && this.payload.deploy_stage) || '';
         }
     },
     methods: {
