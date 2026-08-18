@@ -15,6 +15,11 @@ cd /openlibrary
 
 make reindex-solr
 
+echo "Waiting for web container..."
+until curl -sf -o /dev/null http://web:8080/; do
+    sleep 1
+done
+
 echo "Seeding /languages/* records from openlibrary.org..."
 python scripts/copydocs.py "/languages/*" --dest http://web:8080 \
     || echo "Warning: failed to seed /languages/* from openlibrary.org (offline?) - continuing."
