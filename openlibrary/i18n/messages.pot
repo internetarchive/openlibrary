@@ -820,16 +820,16 @@ msgstr ""
 msgid "Disambiguations"
 msgstr ""
 
+#: home/index.html openlibrary/plugins/openlibrary/api.py subjects.html trending.html
+msgid "Trending Books"
+msgstr ""
+
 #: subjects.html
 msgid "Related subjects"
 msgstr ""
 
 #: SearchResultsWork.html subjects.html
 msgid "Show more"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py subjects.html trending.html
-msgid "Trending Books"
 msgstr ""
 
 #: trending.html
