@@ -14,3 +14,7 @@ fi
 cd /openlibrary
 
 make reindex-solr
+
+echo "Seeding /languages/* records from openlibrary.org..."
+python scripts/copydocs.py "/languages/*" --dest http://web:8080 \
+    || echo "Warning: failed to seed /languages/* from openlibrary.org (offline?) - continuing."
