@@ -111,7 +111,7 @@
     <div class="testing-env__deploy-state">
       <span
         v-if="deployResult === 'SUCCESS'"
-        class="testing-env__status testing-env__status--success"
+        class="testing-env__status"
         :title="formatTime(deployFinishedAt)"
       >
         <span

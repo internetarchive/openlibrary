@@ -61,21 +61,27 @@
 
 /* ── Buttons ────────────────────────────────────────────────── */
 
-.testing-env__btn {
+/* Bordered buttons: the header/action buttons and the icon-only row actions
+   share this base; each sizes and colors itself. */
+.testing-env__btn,
+.testing-env__row-action {
   display: inline-flex;
-  gap: var(--spacing-inline-md);
   align-items: center;
   justify-content: center;
-  height: var(--control-height-medium);
-  padding: 0 var(--spacing-md);
   border: var(--border-width-control) solid var(--color-border-subtle);
   border-radius: var(--border-radius-button);
   background: var(--color-surface);
+  cursor: pointer;
+}
+
+.testing-env__btn {
+  gap: var(--spacing-inline-md);
+  height: var(--control-height-medium);
+  padding: 0 var(--spacing-md);
   color: var(--color-text);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
   white-space: nowrap;
-  cursor: pointer;
 }
 
 .testing-env__btn:focus-visible {
@@ -174,12 +180,6 @@
 
 .testing-env__switch[aria-pressed="true"] .testing-env__switch-knob {
   left: 16px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .testing-env__switch-knob {
-    transition: none;
-  }
 }
 
 /* ── Add-PR form ────────────────────────────────────────────── */
@@ -283,9 +283,9 @@
   min-width: 0;
 }
 
-.testing-env__pr-num,
-.testing-env__pr-num:link,
-.testing-env__pr-num:visited {
+/* The plain class covers :link and :visited — author rules outrank the UA's,
+   so the pseudo-state re-listing below is unnecessary. */
+.testing-env__pr-num {
   color: var(--color-text-muted);
   font-family: var(--font-family-code);
   font-size: 0.78rem;
@@ -294,9 +294,7 @@
 }
 
 /* Clamped at three lines to bound row height; the full title is in the link. */
-.testing-env__pr-title,
-.testing-env__pr-title:link,
-.testing-env__pr-title:visited {
+.testing-env__pr-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -389,8 +387,7 @@
 }
 
 /* The behind/unknown pills link out; the rest are spans. Read as plain text. */
-a.testing-env__pill:link,
-a.testing-env__pill:visited {
+a.testing-env__pill {
   color: var(--color-text);
   text-decoration: none;
 }
@@ -416,17 +413,10 @@ a.testing-env__pill:focus-visible {
 /* Icon-only row actions (update / remove): bordered buttons, blue for update,
    red for remove on hover; tooltips ride in the title attribute. */
 .testing-env__row-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 28px;
   height: 28px;
   padding: 0;
-  border: var(--border-width-control) solid var(--color-border-subtle);
-  border-radius: var(--border-radius-button);
-  background: var(--color-surface);
   color: var(--color-text-secondary);
-  cursor: pointer;
 }
 
 .testing-env__drift-cell .testing-env__row-action {
@@ -444,7 +434,6 @@ a.testing-env__pill:focus-visible {
 
 .testing-env__row-action:hover:not(:disabled) {
   border-color: var(--color-link);
-  background: var(--color-control-hover);
   color: var(--color-link);
 }
 
@@ -523,11 +512,6 @@ a.testing-env__pill:focus-visible {
   color: var(--color-warning-fg);
 }
 
-.testing-env__status--success {
-  background: var(--color-success-bg);
-  color: var(--color-success-fg);
-}
-
 .testing-env__status--failed {
   background: var(--color-error-bg);
   color: var(--color-error-fg);
@@ -544,6 +528,10 @@ a.testing-env__pill:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .testing-env__switch-knob {
+    transition: none;
+  }
+
   .testing-env__status--deploying .testing-env__dot,
   .testing-env__spinner {
     animation: none;
@@ -631,9 +619,7 @@ a.testing-env__pill:focus-visible {
   color: var(--color-primary-active);
 }
 
-.testing-env__change-pr,
-.testing-env__change-pr:link,
-.testing-env__change-pr:visited {
+.testing-env__change-pr {
   flex: none;
   color: var(--color-text);
   font-family: var(--font-family-code);
