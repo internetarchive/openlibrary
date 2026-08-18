@@ -104,7 +104,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             box-shadow: var(--box-shadow-focus);
         }
 
-        :host([disabled]) .toggle {
+        :host(:disabled) .toggle {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -224,7 +224,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
            states also light up the inset specular top edge — toned to the hover
            fill, the same color-mix ol-button uses for its highlight. */
         @media (hover: hover) and (pointer: fine) {
-            :host([variant="button"]:not([disabled])) .toggle:hover {
+            :host([variant="button"]:not(:disabled)) .toggle:hover {
                 --_toggle-bg: var(--lightest-grey);
                 /* Nudge the border a touch darker in step with the fill (both
                    drop ~7% in lightness), matching ol-button[variant="secondary"]
@@ -236,11 +236,11 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             /* The off-state track sits only 6% below the hover fill, so it
                washes out into the button. Drop it to --light-grey to restore
                roughly the same separation it has against the resting white. */
-            :host([variant="button"]:not([checked]):not([disabled])) .toggle:hover {
+            :host([variant="button"]:not([checked]):not(:disabled)) .toggle:hover {
                 --_toggle-track: var(--light-grey);
             }
 
-            :host([variant="button"][checked]:not([disabled])) .toggle:hover {
+            :host([variant="button"][checked]:not(:disabled)) .toggle:hover {
                 --_toggle-bg: var(--color-control-selected-bg-hover);
                 --_toggle-border: var(--color-control-selected-border-hover);
                 --_toggle-inset-highlight: color-mix(in srgb, var(--white) 35%, var(--color-control-selected-surface-hover));
@@ -298,7 +298,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
     }
 
     _handleClick() {
-        if (this.disabled) return;
+        if (this.isDisabled) return;
         this.checked = !this.checked;
         this.dispatchEvent(new CustomEvent('ol-toggle-change', {
             bubbles: true,
@@ -315,7 +315,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 role="switch"
                 aria-checked=${this.checked ? 'true' : 'false'}
                 aria-label=${this.accessibleLabel || nothing}
-                ?disabled=${this.disabled}
+                ?disabled=${this.isDisabled}
                 @click=${this._handleClick}
             >
                 <span class="toggle__switch" aria-hidden="true">
