@@ -9,7 +9,8 @@ import {
     postAction,
     safeHttpUrl,
     sprintf,
-    testingStatusUrl
+    testingStatusUrl,
+    timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
 const pr = {
@@ -87,6 +88,13 @@ describe('Testing Environment utils', () => {
     test('formats ISO timestamps for display', () => {
         expect(formatTime('2026-08-06T15:00:00+00:00')).toBe('2026-08-06 15:00');
         expect(formatTime('')).toBe('');
+    });
+
+    test('renders relative "X ago" labels and skips invalid input', () => {
+        expect(timeAgo(new Date(Date.now() - 5 * 60 * 1000).toISOString())).toMatch(/minute/);
+        expect(timeAgo(new Date(Date.now() - 2 * 3600 * 1000).toISOString())).toMatch(/hour/);
+        expect(timeAgo('')).toBe('');
+        expect(timeAgo('not-a-date')).toBe('');
     });
 
     test('resolves the effective toggle state', () => {

@@ -468,7 +468,10 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     mock_maintainer_user(is_maintainer=True)
     state = _make_state()
     result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
-    with patch("openlibrary.fastapi.status.load_testing_status", return_value=result) as mock:
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status", return_value=result) as mock,
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=None),
+    ):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 200
@@ -476,6 +479,8 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
         "last_deploy_at": "2026-08-05T18:00:00+00:00",
         "deploy_started_at": "",
         "deploying": False,
+        "deploy_result": "",
+        "deploy_finished_at": "",
         "has_pending": True,
         "pending_changes": [{"pr": 13269, "title": "Test PR", "kind": "add", "detail": "1d23364", "reason": ""}],
         "prs": [
@@ -508,11 +513,79 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
 def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
-    with patch("openlibrary.fastapi.status.load_testing_status", return_value=result):
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=None),
+    ):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 200
     assert fastapi_status.TestingStatusResponse(**response.json()).model_dump() == response.json()
+
+
+def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    """The latest Jenkins run replaces the time-window guess with real status."""
+    mock_maintainer_user(is_maintainer=True)
+    result = status_module.build_testing_status(_make_state(), {})
+    jenkins = {
+        "status": "SUCCESS",
+        "start_time": "2026-08-18T20:25:57.516000+00:00",
+        "end_time": "2026-08-18T20:27:07.498000+00:00",
+    }
+    with (
+        patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
+        patch("openlibrary.fastapi.status.jenkins_deploy_status", return_value=jenkins),
+    ):
+        response = fastapi_client.get("/status/testing.json")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["deploying"] is False
+    assert body["deploy_result"] == "SUCCESS"
+    assert body["deploy_finished_at"] == jenkins["end_time"]
+
+
+def test_jenkins_deploy_status_parses_latest_run():
+    """wfapi/runs is newest-first: status and timestamps come from the first run."""
+    runs_json = json.dumps(
+        [
+            {"status": "SUCCESS", "startTimeMillis": 1787085957516, "endTimeMillis": 1787086027498},
+            {"status": "IN_PROGRESS", "startTimeMillis": 1787085000000, "endTimeMillis": None},
+        ]
+    ).encode()
+
+    class FakeResp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return runs_json
+
+    mc = MagicMock()
+    mc.get.return_value = None
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("urllib.request.urlopen", return_value=FakeResp()),
+    ):
+        result = status_module.jenkins_deploy_status()
+
+    assert result["status"] == "SUCCESS"
+    assert result["start_time"].startswith("2026-08-18T")
+    assert result["end_time"].startswith("2026-08-18T")
+
+
+def test_jenkins_deploy_status_returns_none_on_error():
+    """Jenkins being down falls back to the state file's time-window guess."""
+    mc = MagicMock()
+    mc.get.return_value = None
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("urllib.request.urlopen", side_effect=urllib.error.URLError("down")),
+    ):
+        assert status_module.jenkins_deploy_status() is None
 
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):

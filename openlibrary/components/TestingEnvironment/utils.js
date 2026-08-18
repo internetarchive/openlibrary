@@ -50,6 +50,8 @@ export const DEFAULT_STRINGS = {
     behindMany: '%s commits behind %s',
     neverDeployed: 'Never deployed',
     deployingStarted: 'Deploying, started %s',
+    deploySucceeded: 'Deploy succeeded %s',
+    deployFailed: 'Deploy failed %s',
     lastDeploy: 'Last deploy %s',
     viewJenkins: 'View Jenkins',
     noPrs: 'No PRs in testing set.'
@@ -128,6 +130,23 @@ export async function postAction(action, fields = {}) {
  */
 export function formatTime(value) {
     return String(value || '').slice(0, 16).replace('T', ' ');
+}
+
+/**
+ * Relative "X ago" label for an ISO timestamp, in the browser's locale.
+ * Empty for invalid/empty input. Rendered once at reload, so it can go stale
+ * between panel refreshes — the exact time rides in the title attribute.
+ */
+export function timeAgo(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return '';
+    const seconds = Math.round((date.getTime() - Date.now()) / 1000);
+    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const abs = Math.abs(seconds);
+    if (abs < 60) return rtf.format(seconds, 'second');
+    if (abs < 3600) return rtf.format(Math.round(seconds / 60), 'minute');
+    if (abs < 86400) return rtf.format(Math.round(seconds / 3600), 'hour');
+    return rtf.format(Math.round(seconds / 86400), 'day');
 }
 
 /**

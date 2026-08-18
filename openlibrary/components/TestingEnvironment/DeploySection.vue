@@ -110,22 +110,44 @@
 
     <div class="testing-env__deploy-state">
       <span
-        v-if="payload.deploying"
-        class="testing-env__status testing-env__status--deploying"
+        v-if="deployResult === 'SUCCESS'"
+        class="testing-env__status testing-env__status--success"
+        :title="formatTime(deployFinishedAt)"
       >
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deployingStarted', formatTime(payload.deploy_started_at)) }}
+        />{{ text('deploySucceeded', timeAgo(deployFinishedAt)) }}
+      </span>
+      <span
+        v-else-if="deployResult === 'FAILURE' || deployResult === 'ABORTED'"
+        class="testing-env__status testing-env__status--failed"
+        :title="formatTime(deployFinishedAt)"
+      >
+        <span
+          class="testing-env__dot"
+          aria-hidden="true"
+        />{{ text('deployFailed', timeAgo(deployFinishedAt)) }}
+      </span>
+      <span
+        v-else-if="payload.deploying"
+        class="testing-env__status testing-env__status--deploying"
+        :title="formatTime(payload.deploy_started_at)"
+      >
+        <span
+          class="testing-env__dot"
+          aria-hidden="true"
+        />{{ text('deployingStarted', timeAgo(payload.deploy_started_at)) }}
       </span>
       <span
         v-else-if="payload.last_deploy_at"
         class="testing-env__status"
+        :title="formatTime(payload.last_deploy_at)"
       >
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('lastDeploy', formatTime(payload.last_deploy_at)) }}
+        />{{ text('lastDeploy', timeAgo(payload.last_deploy_at)) }}
       </span>
       <span
         v-else
@@ -143,7 +165,7 @@
 </template>
 
 <script>
-import { REPO_URL, formatTime, safeHttpUrl, sprintf } from './utils.js';
+import { REPO_URL, formatTime, safeHttpUrl, sprintf, timeAgo } from './utils.js';
 
 const CHANGE_LABELS = {
     add: 'addChange',
@@ -195,6 +217,12 @@ export default {
         },
         jenkinsUrl() {
             return safeHttpUrl(this.jenkins_url);
+        },
+        deployResult() {
+            return (this.payload && this.payload.deploy_result) || '';
+        },
+        deployFinishedAt() {
+            return (this.payload && this.payload.deploy_finished_at) || '';
         }
     },
     methods: {
@@ -202,6 +230,7 @@ export default {
             return sprintf(this.strings[key] || key, ...args);
         },
         formatTime,
+        timeAgo,
         changeLabel(kind) {
             const key = CHANGE_LABELS[kind];
             return key ? this.strings[key] : kind;

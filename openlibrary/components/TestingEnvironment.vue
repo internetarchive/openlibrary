@@ -855,6 +855,16 @@ a.testing-env__pill:focus-visible {
   color: var(--color-warning-fg);
 }
 
+.testing-env__status--success {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.testing-env__status--failed {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
 .testing-env__status--deploying .testing-env__dot {
   animation: testing-env-pulse 1.6s ease-in-out infinite;
 }

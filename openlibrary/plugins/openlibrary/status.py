@@ -31,6 +31,13 @@ _JENKINS_URL = "https://jenkins.openlibrary.org/job/testing-deploy/buildWithPara
 _JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
+# The deploy pipeline's own run list (newest first). The panel only learns
+# that a build was triggered, so this is the ground truth for whether it is
+# still running and how it ended. Cached briefly — every /status/testing.json
+# GET would otherwise hit Jenkins.
+_JENKINS_RUNS_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/wfapi/runs"
+_JENKINS_STATUS_CACHE_KEY = "status.jenkins_deploy_status"
+_JENKINS_STATUS_CACHE_TTL = 30  # seconds
 # Jenkins never calls back, so a triggered deploy is only ever presumed to be
 # running. After this long we stop claiming it is, without claiming it worked.
 _DEPLOY_WINDOW = 10 * 60  # 10 minutes
@@ -749,6 +756,41 @@ def _parse_pr_number(value: str) -> int:
     if m := re.search(r"/pull/(\d+)", value):
         return int(m.group(1))
     return int(value.lstrip("#"))
+
+
+def jenkins_deploy_status() -> dict | None:
+    """Return the latest ol-dev1-deploy run: {status, start_time, end_time}.
+
+    ``status`` is Jenkins' own verdict — IN_PROGRESS, SUCCESS, FAILURE,
+    ABORTED, … — so the panel can say a deploy finished instead of guessing
+    from a time window. None when Jenkins is unreachable or reports nothing.
+    """
+    mc = cache.get_memcache()
+    if (cached := mc.get(_JENKINS_STATUS_CACHE_KEY)) is not None:
+        return cached
+    result = None
+    try:
+        req = urllib.request.Request(_JENKINS_RUNS_URL, headers={"User-Agent": "openlibrary-status"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            runs = json.loads(resp.read())
+        if isinstance(runs, list) and runs and isinstance(runs[0], dict):
+            run = runs[0]
+            result = {
+                "status": run.get("status", ""),
+                "start_time": _epoch_ms_to_iso(run.get("startTimeMillis")),
+                "end_time": _epoch_ms_to_iso(run.get("endTimeMillis")),
+            }
+    except OSError, http.client.HTTPException, ValueError, json.JSONDecodeError:
+        result = None
+    mc.set(_JENKINS_STATUS_CACHE_KEY, result, expires=_JENKINS_STATUS_CACHE_TTL)
+    return result
+
+
+def _epoch_ms_to_iso(epoch_ms) -> str:
+    """Jenkins timestamps are epoch milliseconds; the panel reads ISO strings."""
+    if not epoch_ms:
+        return ""
+    return datetime.datetime.fromtimestamp(epoch_ms / 1000, tz=datetime.UTC).isoformat()
 
 
 def _trigger_rebuild(state: TestingState) -> str:

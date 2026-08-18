@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
-from openlibrary.plugins.openlibrary.status import load_testing_status
+from openlibrary.plugins.openlibrary.status import jenkins_deploy_status, load_testing_status
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
@@ -62,7 +62,9 @@ class TestingStatusResponse(BaseModel):
 
     last_deploy_at: str = Field(..., description="ISO timestamp of the last deploy; empty if never deployed")
     deploy_started_at: str = Field(..., description="ISO timestamp of the last deploy Jenkins accepted; empty if never")
-    deploying: bool = Field(..., description="Whether a build is presumed still running; a time window, not an observed result")
+    deploying: bool = Field(..., description="Whether a build is still running: the latest Jenkins run when reachable, else a time-window guess")
+    deploy_result: str = Field("", description="Latest ol-dev1-deploy run status; empty when Jenkins is unreachable")
+    deploy_finished_at: str = Field("", description="ISO end time of the latest Jenkins run; empty if running or unreachable")
     has_pending: bool = Field(..., description="Whether there are pending changes ready to deploy")
     pending_changes: list[PendingChangeResponse] = Field(default_factory=list, description="What the next deploy would apply")
     prs: list[TestingPRResponse] = Field(..., description="PRs in the testing set")
@@ -77,4 +79,11 @@ def testing_status(_: MaintainerDep) -> TestingStatusResponse:
     """Return the testing environment status backing the /status deploy table."""
     if (result := load_testing_status()) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
-    return TestingStatusResponse.model_validate(result)
+    response = TestingStatusResponse.model_validate(result)
+    if jenkins := jenkins_deploy_status():
+        # The latest Jenkins run is ground truth; the state file only knows the
+        # trigger, so its time-window guess stands in only when Jenkins is down.
+        response.deploying = jenkins["status"] == "IN_PROGRESS"
+        response.deploy_result = jenkins["status"]
+        response.deploy_finished_at = jenkins["end_time"]
+    return response
