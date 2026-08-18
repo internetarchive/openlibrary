@@ -431,7 +431,7 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/notifications.html account/password/reset.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -541,7 +541,7 @@ msgstr ""
 msgid "%(path)s is not found"
 msgstr ""
 
-#: languages/notfound.html notfound.html
+#: notfound.html
 msgid "404 - Page Not Found"
 msgstr ""
 
@@ -1166,14 +1166,6 @@ msgstr ""
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr ""
 
-#: account/delete.html
-msgid "Delete Account"
-msgstr ""
-
-#: account/delete.html
-msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
-
 #: account/follows.html
 msgid "There is nothing to see here yet."
 msgstr ""
@@ -1443,31 +1435,6 @@ msgstr ""
 msgid "Import & Export Options"
 msgstr ""
 
-#: account/not_verified.html account/verify/failed.html
-msgid "Oops!"
-msgstr ""
-
-#: account/not_verified.html
-msgid "The email address you signed up with needs to be verified."
-msgstr ""
-
-#: account/not_verified.html
-#, python-format
-msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
-
-#: account/not_verified.html
-msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
-
-#: account/not_verified.html account/verify/failed.html
-msgid "Resend the verification email"
-msgstr ""
-
-#: account/not_verified.html account/verify/failed.html
-msgid "Thanks!"
-msgstr ""
-
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
@@ -1687,7 +1654,7 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html home/loans.html lib/nav_head.html
+#: account/readinglog_stats.html lib/nav_head.html
 msgid "My Books"
 msgstr ""
 
@@ -1807,7 +1774,7 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account/password/reset_success.html account/verify.html account/verify/activated.html account/verify/success.html
+#: account/verify.html
 #, python-format
 msgid "Hi, %(user)s"
 msgstr ""
@@ -1845,15 +1812,6 @@ msgstr ""
 msgid "Your book reviews will be shared anonymously with other patrons."
 msgstr ""
 
-#: account/yrg_banner.html
-#, python-format
-msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr ""
-
-#: account/yrg_banner.html
-msgid "Set my goal"
-msgstr ""
-
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
 msgstr ""
@@ -1878,49 +1836,8 @@ msgstr ""
 msgid "Retrieve Archive.org Email"
 msgstr ""
 
-#: account/email/forgot-ia.html account/password/forgot.html
+#: account/email/forgot-ia.html
 msgid "Forgot your Archive.org Password?"
-msgstr ""
-
-#: account/password/forgot.html account/password/sent.html
-msgid "Username/Password Reminder"
-msgstr ""
-
-#: account/password/forgot.html
-msgid "Click here."
-msgstr ""
-
-#: account/password/forgot.html
-msgid "Send It"
-msgstr ""
-
-#: account/password/reset.html admin/people/view.html
-msgid "Reset Password"
-msgstr ""
-
-#: account/password/reset.html
-msgid "Please enter a new password for your Open Library account."
-msgstr ""
-
-#: account/password/reset.html
-msgid "Reset"
-msgstr ""
-
-#: account/password/reset_success.html
-msgid "Password Reset Successful"
-msgstr ""
-
-#: account/password/reset_success.html
-msgid "Your password has been updated. Please <a href='/account/login?redirect=/'>log in to continue</a>."
-msgstr ""
-
-#: account/password/sent.html
-msgid "Done."
-msgstr ""
-
-#: account/password/sent.html
-#, python-format
-msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
 msgstr ""
 
 #: account/security/check_email.html
@@ -1957,44 +1874,6 @@ msgstr ""
 
 #: account/security/check_email.html
 msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr ""
-
-#: account/verify/activated.html
-msgid "Account already activated"
-msgstr ""
-
-#: account/verify/activated.html
-#, python-format
-msgid "Your account has been activated already. Please <a href=\"%s\">log in to continue</a>."
-msgstr ""
-
-#: account/verify/failed.html
-msgid "Email Verification Failed"
-msgstr ""
-
-#: account/verify/failed.html
-msgid "Your email address couldn't be verified. Your verification link seems invalid or expired."
-msgstr ""
-
-#: account/verify/failed.html
-msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
-
-#: account/verify/failed.html
-msgid "Enter your email address here"
-msgstr ""
-
-#: account/verify/failed.html
-msgid "No user registered with this email address."
-msgstr ""
-
-#: account/verify/success.html
-msgid "Email Verification Successful"
-msgstr ""
-
-#: account/verify/success.html
-#, python-format
-msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
 msgstr ""
 
 #: admin/attach_debugger.html
@@ -2793,6 +2672,10 @@ msgid "Change"
 msgstr ""
 
 #: admin/people/view.html
+msgid "Reset Password"
+msgstr ""
+
+#: admin/people/view.html
 msgid "Admin"
 msgstr ""
 
@@ -3478,7 +3361,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -4281,18 +4164,6 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: email/case_created.html
-msgid "Sent!"
-msgstr ""
-
-#: email/case_created.html
-msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
-
-#: email/case_created.html
-msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
-
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
@@ -4378,17 +4249,6 @@ msgstr ""
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
-
-#: home/loans.html
-#, python-format
-msgid "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one more book until you've hit the limit!"
-msgid_plural "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> %(count)d more books until you've hit the limit!"
-msgstr[0] ""
-msgstr[1] ""
-
-#: home/loans.html
-msgid "You have reached the borrowing limit. Please return a book to checkout something new."
 msgstr ""
 
 #: home/stats.html
@@ -4540,16 +4400,6 @@ msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
-
-#: languages/notfound.html
-#, python-format
-msgid "%s is not found"
-msgstr ""
-
-#: languages/notfound.html
-#, python-format
-msgid "%s does not exist."
-msgstr ""
 
 #: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
@@ -5078,24 +4928,6 @@ msgstr ""
 msgid "Community List"
 msgstr ""
 
-#: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
-msgid "See this list"
-msgstr ""
-
-#: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
-msgid "Remove from your list?"
-msgstr ""
-
-#: lists/list_overview.html
-#, python-format
-msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
-
-#: lists/list_overview.html
-#, python-format
-msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
-
 #: lists/lists.html
 #, python-format
 msgid "%(owner)s / Lists"
@@ -5154,6 +4986,14 @@ msgstr ""
 
 #: lists/showcase.html
 msgid "You have no lists."
+msgstr ""
+
+#: lists/widget.html my_books/dropdown_content.html
+msgid "See this list"
+msgstr ""
+
+#: lists/widget.html my_books/dropdown_content.html
+msgid "Remove from your list?"
 msgstr ""
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
@@ -5887,7 +5727,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html search/snippets.html
+#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -6021,11 +5861,6 @@ msgstr ""
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
-msgstr ""
-
-#: search/snippets.html
-#, python-format
-msgid "On leaf number %(page_num)d:"
 msgstr ""
 
 #: search/sort_options.html
