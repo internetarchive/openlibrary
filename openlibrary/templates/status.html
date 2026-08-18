@@ -69,7 +69,7 @@ $var title: $_("Open Library server status")
         </thead>
         <tbody>
           $for pr_status in dev_merged_status.pr_statuses:
-            <tr class="$cond(pr_status.status.startswith('Automatic merge failed'), 'red')">
+            <tr class="$cond(pr_status.status.startswith('Automatic merge failed') or pr_status.status.startswith('Merge conflict for PR #'), 'red')">
               <td>
                 $if pr_status.link:
                   <a href="$pr_status.link">#$pr_status.pull_id: $pr_status.name</a>

@@ -133,25 +133,49 @@ def test_build_testing_status_marks_merge_conflicts():
 
 
 def test_merge_conflicted_prs_reads_deploy_status_file():
-    """Only PRs whose status is git's merge-failed message are conflicted."""
+    """Both the deploy script's summary and git's message mark a PR conflicted."""
     dms = status_module.DevMergedStatus(
         git_status="x",
         pr_statuses=[
             status_module.PRStatus(pull_line="origin pull/13208/head  # A", status="Already up to date.", body=""),
+            # The real deploy-script summary (scripts/make-integration-branch.sh).
             status_module.PRStatus(
-                pull_line="origin pull/12914/head  # B",
+                pull_line="origin pull/13370/head  # B",
+                status="Merge conflict for PR #13370 (pinned 0e710e2b7cd80fa8dcb05d1ccb941ab9d83e23a5) — skipping",
+                body="",
+            ),
+            # git's own merge output, when the transcript captures it.
+            status_module.PRStatus(
+                pull_line="origin pull/12914/head  # C",
                 status="Automatic merge failed; fix conflicts and then commit the result.",
                 body="",
             ),
-            status_module.PRStatus(pull_line="origin pull/13220/head  # C", status="Merge made by the 'ort' strategy.", body=""),
+            status_module.PRStatus(pull_line="origin pull/13220/head  # D", status="Merge made by the 'ort' strategy.", body=""),
         ],
         footer="",
     )
     with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms):
-        assert status_module._merge_conflicted_prs() == frozenset({12914})
+        assert status_module._merge_conflicted_prs() == frozenset({13370, 12914})
 
     with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=None):
         assert status_module._merge_conflicted_prs() == frozenset()
+
+
+def test_merge_conflicted_prs_falls_back_to_pr_number_in_message():
+    """A summary line with no parseable pull_line still names its PR."""
+    dms = status_module.DevMergedStatus(
+        git_status="x",
+        pr_statuses=[
+            status_module.PRStatus(
+                pull_line="Some branch title",
+                status="Merge conflict for PR #13370 (pinned 0e710e2b) — skipping",
+                body="",
+            )
+        ],
+        footer="",
+    )
+    with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms):
+        assert status_module._merge_conflicted_prs() == frozenset({13370})
 
 
 def test_load_testing_status_async_wires_merge_conflicts():

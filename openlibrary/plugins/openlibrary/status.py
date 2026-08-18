@@ -604,17 +604,35 @@ async def load_testing_status_async() -> TestingStatus | None:
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
+# A failed merge is recorded two ways, depending on which machinery wrote the
+# file: git's own message when the transcript captures merge output, or the
+# deploy script's summary (see scripts/make-integration-branch.sh):
+# "Merge conflict for PR #13370 (pinned <sha>) — skipping". Match both so a
+# real conflict always lights the row.
+_MERGE_CONFLICT_PREFIXES = ("Automatic merge failed", "Merge conflict for PR #")
+
+
 def _merge_conflicted_prs() -> frozenset[int]:
     """PRs whose merge failed on the last deploy, per the deploy status file.
 
     Reads the same ``_dev-merged_status.txt`` that powers the legacy "Last
-    Build Result" table: a PR row whose status is git's "Automatic merge
-    failed…" means the deploy skipped it, so it never landed on the box.
+    Build Result" table: a PR row whose status says the merge failed means the
+    deploy skipped it, so it never landed on the box.
     """
     dms = get_dev_merged_status()
     if not dms:
         return frozenset()
-    return frozenset(pr.pull_id for pr in dms.pr_statuses if pr.pull_id and pr.status.startswith("Automatic merge failed"))
+    conflicted: set[int] = set()
+    for pr in dms.pr_statuses:
+        if not pr.status.startswith(_MERGE_CONFLICT_PREFIXES):
+            continue
+        if pr.pull_id:
+            conflicted.add(pr.pull_id)
+        # Fallback: the summary message names the PR when the pull_line carries
+        # no "origin pull/N/head" line to parse a number from.
+        elif m := re.search(r"Merge conflict for PR #(\d+)", pr.status):
+            conflicted.add(int(m.group(1)))
+    return frozenset(conflicted)
 
 
 def _save_testing_state(state: TestingState) -> None:
