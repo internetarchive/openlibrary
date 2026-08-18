@@ -3,9 +3,9 @@
 This is the pytest wrapper around ``openlibrary/utils/template_usage.py``,
 which inventories every Templetor template (``openlibrary/templates/**/*.html``),
 Templetor macro (``openlibrary/macros/*.html``), Jinja template
-(``*.html.jinja``), and Jinja ``{% macro %}`` definition, then searches the
-whole code base for references.  Templates only reachable through runtime
-name construction (``templates/type/``, ``recentchanges/``,
+(``*.html.jinja``), and Jinja ``{% macro %}`` definition, then searches every
+git-tracked source file for references.  Templates only reachable through
+runtime name construction (``templates/type/``, ``recentchanges/``,
 ``book_providers/``, ``design/``) are documented in the analyzer's
 ``DYNAMIC_DISPATCH_RULES`` and never flagged.
 
@@ -18,7 +18,15 @@ from collections import Counter
 
 import pytest
 
-from openlibrary.utils.template_usage import Analysis, analyze
+from openlibrary.utils.template_usage import (
+    DYNAMIC_DISPATCH_RULES,
+    KIND_JINJA_MACRO,
+    KIND_JINJA_TEMPLATE,
+    KIND_TEMPLETOR_MACRO,
+    KIND_TEMPLETOR_TEMPLATE,
+    Analysis,
+    analyze,
+)
 
 # Templates/macros that are used only from *database* content: wiki-stored
 # templates (/upstream/templates/*), wiki-stored macros (/upstream/macros/*),
@@ -44,7 +52,7 @@ from openlibrary.utils.template_usage import Analysis, analyze
 # but not visible in the code base.  Otherwise do NOT add it -- leaving it
 # out just keeps the test failing, which is the safe failure mode.  Stale
 # entries (renamed/deleted templates, or ones that later become referenced in
-# code) fail test_exclusion_list_is_not_stale.
+# code) fail test_exclusion_lists_are_not_stale.
 DB_USED_EXCLUSIONS: dict[str, str] = {
     "ListCarousel": (
         'invoked via {{ListCarousel("/people/digital_s/lists/OL238301L", ...)}} '
@@ -70,22 +78,36 @@ MANUAL_EXCLUSIONS: dict[str, str] = {
         "code, db, or design-registry reference found -- added per "
         "maintainer's call, drop this entry if that turns out to be wrong"
     ),
+    "code_block": ("the {% macro %} inside CodeBlock.html.jinja; excluded together with its file -- see that entry"),
 }
+
+ALL_EXCLUSIONS = {**DB_USED_EXCLUSIONS, **MANUAL_EXCLUSIONS}
 
 
 @pytest.fixture(scope="module")
 def analysis() -> Analysis:
-    return analyze({**DB_USED_EXCLUSIONS, **MANUAL_EXCLUSIONS})
+    return analyze(ALL_EXCLUSIONS)
+
+
+def test_inventory_is_not_vacuous(analysis: Analysis):
+    """Guard against silently broken discovery (moved roots, renamed globs)
+    that would make test_no_unused_templates_and_macros vacuously pass.
+
+    Every kind the analyzer can inventory must be present, and every
+    dynamic-dispatch rule must still match real files on disk.  Unlike count
+    floors, this survives any amount of legitimate template deletion.
+    """
+    kinds = {t.kind for t in analysis.templates}
+    assert kinds == {KIND_TEMPLETOR_TEMPLATE, KIND_TEMPLETOR_MACRO, KIND_JINJA_TEMPLATE, KIND_JINJA_MACRO}, kinds
+    for rule_dir in DYNAMIC_DISPATCH_RULES:
+        assert any(t.rel_to_root.startswith(rule_dir) for t in analysis.templates), (
+            f"dynamic-dispatch rule {rule_dir!r} matches no template on disk (stale rule -- update or remove it)"
+        )
 
 
 def test_no_unused_templates_and_macros(analysis: Analysis):
-    # Guard against a silently broken inventory (moved directories, renamed
-    # roots) that would make this test vacuously pass with an empty list.
     counts = Counter(t.kind for t in analysis.templates)
-    assert counts["templetor template"] > 280, counts
-    assert counts["templetor macro"] > 75, counts
-    assert counts["jinja template"] >= 25, counts
-    assert counts["jinja macro"] >= 40, counts
+    assert sum(counts.values()) > 0, counts
 
     if not analysis.unused:
         return
@@ -99,10 +121,12 @@ def test_no_unused_templates_and_macros(analysis: Analysis):
     )
 
 
-def test_exclusion_list_is_not_stale(analysis: Analysis):
-    assert not analysis.missing_exclusions, f"DB_USED_EXCLUSIONS entries matching no template/macro on disk (remove them): {sorted(analysis.missing_exclusions)}"
+def test_exclusion_lists_are_not_stale(analysis: Analysis):
+    assert not analysis.missing_exclusions, (
+        f"exclusion entries (DB_USED_EXCLUSIONS/MANUAL_EXCLUSIONS) matching no template/macro on disk (remove them): {sorted(analysis.missing_exclusions)}"
+    )
     assert not analysis.used_exclusions, (
-        "DB_USED_EXCLUSIONS entries that are actually referenced in code "
+        "exclusion entries (DB_USED_EXCLUSIONS/MANUAL_EXCLUSIONS) that are actually referenced in code "
         "(remove them -- the exclusion hides real usage):\n"
         + "\n".join(f"  {name}: referenced in {evidence}" for name, evidence in sorted(analysis.used_exclusions.items()))
     )

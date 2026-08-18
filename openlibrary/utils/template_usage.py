@@ -11,14 +11,14 @@ Open Library renders pages with two template systems side by side:
   ``openlibrary/templates``), e.g. ``"design/layout.html.jinja"``.
 
 This module inventories every template/macro file plus every Jinja
-``{% macro %}`` definition, then searches the code base (Python, Templetor,
-Jinja, JS/TS/Vue, config files) for references.  Anything with no reference is
-reported as unused.
+``{% macro %}`` definition, then searches every git-tracked source file
+(Python, Templetor, Jinja, JS/TS/Vue, config) for references.  Anything with
+no reference is reported as unused.
 
 The analysis is deliberately conservative: it prefers to miss an unused
 template over flagging one that is actually used, because a false positive
-fails the build and invites deleting a template that is still live.  References that cannot be seen statically are
-handled in two ways:
+fails the build and invites deleting a template that is still live.
+References that cannot be seen statically are handled in two ways:
 
 * ``DYNAMIC_DISPATCH_RULES`` documents directories whose templates are
   resolved at runtime by name construction (DB type keys, changeset kinds,
@@ -34,9 +34,8 @@ handled in two ways:
 
 from __future__ import annotations
 
-import os
 import re
-import sys
+import subprocess
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,30 +57,15 @@ KIND_JINJA_MACRO = "jinja macro"
 # included on purpose -- a template rendered only from a test is still alive.
 CORPUS_SUFFIXES = frozenset({".py", ".js", ".ts", ".tsx", ".vue", ".html", ".jinja", ".yml", ".yaml", ".json"})
 
-# Directories never scanned for references (third-party code, build output, VCS).
-CORPUS_SKIP_DIRS = frozenset(
-    {
-        "vendor",
-        "node_modules",
-        ".git",
-        "__pycache__",
-        ".venv",
-        "venv",
-        ".tox",
-        "dist",
-        "build",
-        ".mypy_cache",
-        ".pytest_cache",
-        ".ruff_cache",
-    }
-)
-
-# This module and its test must not count their own contents as references
-# (the exclusion list and rule tables mention template names verbatim).
+# Files never scanned for references.  This module and its test mention
+# template names verbatim (exclusion lists, rule tables), and package-lock.json
+# is generated noise whose dependency names could rescue a template by
+# coincidence.
 CORPUS_SKIP_FILES = frozenset(
     {
         "openlibrary/utils/template_usage.py",
         "openlibrary/tests/test_unused_templates.py",
+        "package-lock.json",
     }
 )
 
@@ -124,6 +108,14 @@ class Template:
     @property
     def relpath(self) -> str:
         return self.path.relative_to(REPO_ROOT).as_posix()
+
+    @property
+    def rel_to_root(self) -> str:
+        """Path relative to its template root (macros/ or templates/)."""
+        for root in TEMPLATE_ROOTS:
+            if self.path.is_relative_to(root):
+                return self.path.relative_to(root).as_posix()
+        return self.relpath
 
 
 @dataclass
@@ -168,21 +160,36 @@ def build_inventory() -> list[Template]:
 
 
 def build_corpus() -> dict[str, str]:
-    """Read every source file that may contain template references."""
+    """Read every git-tracked source file that may contain references.
+
+    Only tracked files are scanned, so the result is hermetic: untracked
+    scratch files, local config overrides, and nested checkouts cannot make
+    the verdict differ between machines or CI.  ``--recurse-submodules`` is
+    load-bearing -- references like ``render.viewpage`` live in the
+    ``vendor/infogami`` submodule (initialize it with ``make git``).
+    """
+    files = (
+        subprocess.run(
+            ["git", "ls-files", "--recurse-submodules", "-z"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            check=True,
+        )
+        .stdout.decode()
+        .split("\0")
+    )
+    if not any(rel.startswith("vendor/infogami/") for rel in files):
+        raise RuntimeError(
+            "git ls-files returned no vendor/infogami files -- the submodule "
+            "is not initialized. Run `make git` (git submodule update --init) "
+            "so the scan can see infogami's template references."
+        )
     corpus: dict[str, str] = {}
-    # followlinks: the top-level infogami/ directory is a symlink to
-    # vendor/infogami/infogami, and references like render.viewpage live in
-    # there.  vendor/ itself is pruned, so it is only read via the symlink.
-    for dirpath, dirnames, filenames in os.walk(REPO_ROOT, followlinks=True):
-        dirnames[:] = sorted(d for d in dirnames if d not in CORPUS_SKIP_DIRS)
-        for filename in filenames:
-            path = Path(dirpath) / filename
-            if path.suffix not in CORPUS_SUFFIXES:
-                continue
-            rel = path.relative_to(REPO_ROOT).as_posix()
-            if rel in CORPUS_SKIP_FILES:
-                continue
-            corpus[rel] = path.read_text(encoding="utf-8", errors="replace")
+    for rel in files:
+        path = REPO_ROOT / rel
+        if not path.is_file() or Path(rel).suffix not in CORPUS_SUFFIXES or rel in CORPUS_SKIP_FILES:
+            continue
+        corpus[rel] = path.read_text(encoding="utf-8", errors="replace")
     return corpus
 
 
@@ -206,8 +213,8 @@ class FileIndex:
     # render_template()/get_template() strip extensions at resolve time, so
     # "site/head.tmpl" and "lists/feed_updates.xml" both reference .html files.
     quoted: frozenset[str]
-    # All word tokens, interned.  Templetor macros are referenced by bare
-    # name wherever they appear: $:macros.Name(...), render_macro("Name"),
+    # All word tokens.  Templetor macros are referenced by bare name wherever
+    # they appear: $:macros.Name(...), render_macro("Name"),
     # CacheableMacro("Name") indirection, JS component names.  Names are
     # usually CamelCase but not always (i18n, iframe).
     words: frozenset[str]
@@ -255,7 +262,7 @@ def _index_file(text: str, suffix: str) -> FileIndex:
         import_words = frozenset(word for line in text.splitlines() if re.search(r"\bimport\b", line) for word in WORD_RE.findall(line))
     return FileIndex(
         quoted=frozenset(quoted),
-        words=frozenset(map(sys.intern, WORD_RE.findall(text))),
+        words=frozenset(WORD_RE.findall(text)),
         render_attrs=frozenset(RENDER_ATTR_RE.findall(text)),
         called_words=called_words,
         import_words=import_words,
@@ -286,10 +293,7 @@ def dynamic_dispatch_note(template: Template) -> str | None:
     sites: the runtime builds their names from DB type keys, changeset kinds,
     provider registries, or design-system section ids.
     """
-    rel_to_root = next(
-        (template.path.relative_to(root).as_posix() for root in TEMPLATE_ROOTS if template.path.is_relative_to(root)),
-        template.relpath,
-    )
+    rel_to_root = template.rel_to_root
     if template.kind == KIND_JINJA_MACRO:
         if rel_to_root.startswith(tuple(DYNAMIC_DISPATCH_RULES)):
             # Macros inside dynamically-imported files are called through
@@ -302,47 +306,43 @@ def dynamic_dispatch_note(template: Template) -> str | None:
     return None
 
 
+def _reference_sets(template: Template, file_index: FileIndex) -> tuple[frozenset[str], ...]:
+    """The token sets of ``file_index`` a reference to ``template`` lives in."""
+    if template.kind == KIND_TEMPLETOR_TEMPLATE:
+        # Named in string literals (render_template("account/login")); a
+        # root-level template is also reachable as render.name(...) attribute
+        # access on infogami's Render DictPile.
+        if "/" not in template.name:
+            return file_index.quoted, file_index.render_attrs
+        return (file_index.quoted,)
+    if template.kind == KIND_TEMPLETOR_MACRO:
+        return (file_index.words,)
+    if template.kind == KIND_JINJA_TEMPLATE:
+        return (file_index.quoted,)
+    # Jinja macros are called as name(...) or named by {%- import %} lines;
+    # aliased imports are covered because the name is its own word in
+    # alias.name(...).
+    return file_index.called_words, file_index.import_words
+
+
 def find_usage(template: Template, index: SearchIndex) -> str | None:
     """Return evidence (a corpus path or dispatch note) that this is used."""
     if note := dynamic_dispatch_note(template):
         return note
 
     self_rel = template.relpath
-    if template.kind == KIND_TEMPLETOR_TEMPLATE:
-        # Root-level templates are also reachable as render.name(...)
-        # attribute access on infogami's Render DictPile.
-        check_render_attr = "/" not in template.name
-        for rel, file_index in index.entries:
-            if rel == self_rel:
-                continue
-            if template.name in file_index.quoted:
-                return rel
-            if check_render_attr and template.name in file_index.render_attrs:
-                return rel
-        return None
-    elif template.kind == KIND_TEMPLETOR_MACRO:
-        for rel, file_index in index.entries:
-            if rel != self_rel and template.name in file_index.words:
-                return rel
-        return None
-    elif template.kind == KIND_JINJA_TEMPLATE:
-        for rel, file_index in index.entries:
-            if rel != self_rel and template.name in file_index.quoted:
-                return rel
-        return None
-    elif template.kind == KIND_JINJA_MACRO:
-        # Calls always use parentheses; from-imports list names without
-        # them.  Aliased imports are covered because the name is its own
-        # word in alias.name(...).
-        for rel, file_index in index.entries:
-            if template.name in file_index.called_words or template.name in file_index.import_words:
-                return rel
-        if _macro_used_in_own_file(
-            template.path.read_text(encoding="utf-8", errors="replace"),
-            template.name,
-        ):
-            return f"{self_rel} (self-referencing macro)"
-        return None
+    for rel, file_index in index.entries:
+        # A file's own contents never count as a reference from elsewhere;
+        # self-referencing Jinja macros are handled separately below.
+        if rel == self_rel:
+            continue
+        if any(template.name in tokens for tokens in _reference_sets(template, file_index)):
+            return rel
+    if template.kind == KIND_JINJA_MACRO and _macro_used_in_own_file(
+        template.path.read_text(encoding="utf-8", errors="replace"),
+        template.name,
+    ):
+        return f"{self_rel} (self-referencing macro)"
     return None
 
 
@@ -356,28 +356,17 @@ def analyze(exclusions: Iterable[str] = ()) -> Analysis:
     corpus = build_corpus()
     inventory = build_inventory()
     index = build_search_index(corpus)
-    # Cheap pre-filter: every usage pattern embeds the name literally, so a
-    # name absent from the corpus text cannot possibly be referenced.
-    haystack = "\n".join(corpus.values())
 
-    unused = [
-        t
-        for t in inventory
-        if t.name not in exclusions
-        # The pre-filter below is only sound for pattern matching: dynamically
-        # dispatched templates are used without their names appearing anywhere.
-        and dynamic_dispatch_note(t) is None
-        and (t.name not in haystack or find_usage(t, index) is None)
-    ]
+    unused = [t for t in inventory if t.name not in exclusions and find_usage(t, index) is None]
 
     used_exclusions: dict[str, str] = {}
     missing_exclusions: set[str] = set()
-    names = {t.name for t in inventory}
     for name in exclusions:
-        if name not in names:
+        matches = [t for t in inventory if t.name == name]
+        if not matches:
             missing_exclusions.add(name)
             continue
-        for t in (candidate for candidate in inventory if candidate.name == name):
+        for t in matches:
             if evidence := find_usage(t, index):
                 used_exclusions[name] = evidence
 
