@@ -10,17 +10,19 @@ from __future__ import annotations
 import os
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
-from openlibrary.plugins.openlibrary.status import get_testing_status
+from openlibrary.plugins.openlibrary.status import load_testing_status
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 
 
 class TestingPRResponse(BaseModel):
-    """A single PR in the testing environment, with live drift info merged in."""
+    """A single PR in the testing environment, with live drift info merged in. Mirrors TestingPRStatus."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     pr: int = Field(..., description="GitHub pull request number")
     title: str = Field(..., description="PR title")
@@ -28,20 +30,22 @@ class TestingPRResponse(BaseModel):
     active: bool = Field(..., description="Whether the PR is active in the testing set")
     added_at: str = Field(..., description="ISO timestamp when the PR was added")
     added_by: str = Field(..., description="OL username that added the PR")
-    pull_latest_sha: str = Field("", description="Pending SHA from 'Fetch Latest'; applied on deploy")
-    pending_active: bool | None = Field(None, description="Pending enable/disable; applied on deploy")
-    author: str = Field("", description="GitHub login of the PR author")
-    author_avatar: str = Field("", description="GitHub avatar URL of the PR author")
-    assignee: str = Field("", description="GitHub login of the assignee, empty if unassigned")
-    assignee_avatar: str = Field("", description="GitHub avatar URL of the assignee")
-    head_sha: str = Field("", description="Current branch HEAD (short SHA); empty if GitHub unavailable")
-    drift: int = Field(-1, description="Commits the pinned commit is behind HEAD; -1 if unknown")
-    merged: bool = Field(False, description="Whether the PR has been merged into master")
-    is_new: bool = Field(False, description="Whether the PR was added since the last deploy")
+    pull_latest_sha: str = Field(..., description="Pending SHA from 'Fetch Latest'; applied on deploy. Empty if none")
+    pending_active: bool | None = Field(..., description="Pending enable/disable; applied on deploy. Null if none")
+    author: str = Field(..., description="GitHub login of the PR author")
+    author_avatar: str = Field(..., description="GitHub avatar URL of the PR author")
+    assignee: str = Field(..., description="GitHub login of the assignee, empty if unassigned")
+    assignee_avatar: str = Field(..., description="GitHub avatar URL of the assignee")
+    head_sha: str = Field(..., description="Current branch HEAD (short SHA); empty if GitHub unavailable")
+    drift: int = Field(..., description="Commits the pinned commit is behind HEAD; -1 if unknown")
+    merged: bool = Field(..., description="Whether the PR has been merged into master")
+    is_new: bool = Field(..., description="Whether the PR was added since the last deploy")
 
 
 class TestingStatusResponse(BaseModel):
-    """Status of the testing environment (the /status deploy table)."""
+    """Status of the testing environment (the /status deploy table). Mirrors TestingStatus."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     last_deploy_at: str = Field(..., description="ISO timestamp of the last deploy; empty if never deployed")
     has_pending: bool = Field(..., description="Whether there are pending changes ready to deploy")
@@ -55,7 +59,6 @@ class TestingStatusResponse(BaseModel):
 )
 def testing_status(_: MaintainerDep) -> TestingStatusResponse:
     """Return the testing environment status backing the /status deploy table."""
-    payload = get_testing_status()
-    if payload is None:
+    if (result := load_testing_status()) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
-    return TestingStatusResponse(**payload)
+    return TestingStatusResponse.model_validate(result)
