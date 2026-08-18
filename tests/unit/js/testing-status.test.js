@@ -115,18 +115,15 @@ describe('Testing Environment utils', () => {
 
     test('decides the drift pill per state', () => {
         const ok = driftPill(pr, DEFAULT_STRINGS);
-        expect(ok.kind).toBe('ok');
         expect(ok.label).toBe('OK');
         expect(ok.title).toBe('Up-to-date, pinned at 1d23364');
         expect(ok.href).toBe('');
 
         const unknown = driftPill({ ...pr, drift: -1 }, DEFAULT_STRINGS);
-        expect(unknown.kind).toBe('unknown');
         expect(unknown.label).toBe('?');
         expect(unknown.href).toContain('/commit/1d23364');
 
         const behind = driftPill({ ...pr, drift: 3 }, DEFAULT_STRINGS);
-        expect(behind.kind).toBe('behind');
         expect(behind.label).toBe('-3');
         expect(behind.title).toBe('3 commits behind 1d23364');
         expect(behind.href).toContain('/compare/1d23364b8c652d6107e2dc685f918551fda5d327...1d23364');

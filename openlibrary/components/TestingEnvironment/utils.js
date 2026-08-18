@@ -156,8 +156,10 @@ export function safeHttpUrl(value, origin = window.location.origin) {
 }
 
 /**
- * The state the row's toggle shows: a staged pending_active wins until the
- * next deploy applies it.
+ * The target state a click on the toggle moves toward: a staged pending_active
+ * wins until the next deploy applies it. The toggle's *display* shows the
+ * current state (pr.active); this only decides the direction to stage, so
+ * clicking again after staging undoes the change.
  */
 export function effectiveActive(pr) {
     return pr.pending_active === undefined || pr.pending_active === null
@@ -182,10 +184,10 @@ export function canUpdate(pr) {
 }
 
 /**
- * Decide the drift pill: kind ('ok' | 'unknown' | 'behind'), label, optional
- * href, and the hover title. `strings` are the translated panel strings, with
- * %s placeholders filled by sprintf. Merged PRs are filtered out before a row
- * is rendered, so they never reach this.
+ * Decide the drift verdict: label, optional href, and the hover title. `strings`
+ * are the translated panel strings, with %s placeholders filled by sprintf.
+ * Merged PRs are filtered out before a row is rendered, so they never reach
+ * this.
  */
 export function driftPill(pr, strings) {
     const pinned = String(pr.commit || '').slice(0, 7);
@@ -193,18 +195,16 @@ export function driftPill(pr, strings) {
     const t = (key, ...args) => sprintf(strings[key] || key, ...args);
 
     if (drift === 0) {
-        return { kind: 'ok', label: strings.ok, href: '', title: t('currentCommit', pinned) };
+        return { label: strings.ok, href: '', title: t('currentCommit', pinned) };
     }
     if (drift < 0 || Number.isNaN(drift)) {
         return {
-            kind: 'unknown',
             label: '?',
             href: `${REPO_URL}/commit/${encodeURIComponent(pr.commit || '')}`,
             title: t('unknown', pinned)
         };
     }
     return {
-        kind: 'behind',
         label: `-${drift}`,
         href: pr.head_sha
             ? `${REPO_URL}/compare/${encodeURIComponent(pr.commit || '')}...${encodeURIComponent(pr.head_sha)}`

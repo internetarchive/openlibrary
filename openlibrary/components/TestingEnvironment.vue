@@ -723,47 +723,23 @@ export default {
   justify-self: center;
 }
 
-/* min-width so a one-glyph verdict ("?") reads as the same chip as "-12". */
+/* The drift verdict is plain text — no chip, no colour coding. min-width so a
+   one-glyph "?" lines up with "-12", and the grid track keeps the update
+   arrow and hourglass on their rails regardless. */
 .testing-env__pill {
   display: inline-block;
   min-width: 3.25em;
-  padding: var(--spacing-3xs) var(--spacing-sm);
-  border-radius: var(--border-radius-chip);
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.78rem;
   text-align: center;
   white-space: nowrap;
 }
 
-/* Each modifier publishes its foreground as --pill-fg so the linked-pill rule
-   below can keep a pill's own colour without restating it per modifier. */
-.testing-env__pill--ok {
-  --pill-fg: var(--color-success-fg);
-
-  background: var(--color-success-bg);
-  color: var(--pill-fg);
-}
-
-.testing-env__pill--behind {
-  --pill-fg: var(--color-warning-fg);
-
-  background: var(--color-warning-bg);
-  color: var(--pill-fg);
-}
-
-.testing-env__pill--unknown {
-  --pill-fg: var(--color-text-muted);
-
-  background: var(--color-surface-sunken);
-  color: var(--pill-fg);
-}
-
-/* A linked pill keeps its own colour instead of the global link blue, so the
-   two that navigate (behind → the compare view, unknown → the pinned commit)
-   still read as chips. */
+/* The two that navigate (behind → the compare view, unknown → the pinned
+   commit) are links; the rest are spans. Both read as plain text — only
+   hover/focus reveals the link. */
 a.testing-env__pill:link,
 a.testing-env__pill:visited {
-  color: var(--pill-fg);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -781,9 +757,10 @@ a.testing-env__pill:focus-visible {
   white-space: nowrap;
 }
 
-/* Icon-only row actions (update to latest, remove from the set) — quiet
-   buttons that surface their meaning on hover: blue for update, red for
-   remove. The username/tooltip rides in the title attribute. */
+/* Icon-only row actions (update to latest, remove from the set) — small
+   bordered buttons that read as controls, not decorations: blue for update,
+   red for remove on hover. The username/tooltip rides in the title
+   attribute. */
 .testing-env__row-action {
   display: inline-flex;
   align-items: center;
@@ -791,19 +768,21 @@ a.testing-env__pill:focus-visible {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 0;
+  border: var(--border-width-control) solid var(--color-border-subtle);
   border-radius: var(--border-radius-button);
-  background: none;
+  background: var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
 }
 
 .testing-env__row-action:hover:not(:disabled) {
+  border-color: var(--color-link);
   background: var(--color-control-hover);
   color: var(--color-link);
 }
 
 .testing-env__row-action--danger:hover:not(:disabled) {
+  border-color: var(--color-error-fg);
   background: var(--color-error-bg);
   color: var(--color-error-fg);
 }

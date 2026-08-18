@@ -8,7 +8,7 @@
         type="button"
         class="testing-env__switch"
         :disabled="busy"
-        :aria-pressed="effectiveActive ? 'true' : 'false'"
+        :aria-pressed="isActive ? 'true' : 'false'"
         :aria-label="text('prOnTesting', pr.pr)"
         @click="$emit('toggle', pr)"
       >
@@ -58,14 +58,12 @@
           <a
             v-if="pill.href"
             class="testing-env__pill"
-            :class="pillClass"
             :href="pill.href"
             :title="pill.title"
           >{{ pill.label }}</a>
           <span
             v-else
             class="testing-env__pill"
-            :class="pillClass"
             :title="pill.title"
           >{{ pill.label }}</span>
           <button
@@ -162,7 +160,6 @@ import {
     REPO_URL,
     canUpdate,
     driftPill,
-    effectiveActive,
     isPending,
     sprintf
 } from './utils.js';
@@ -198,8 +195,11 @@ export default {
         liveNow() {
             return this.pr.live_now === true;
         },
-        effectiveActive() {
-            return effectiveActive(this.pr);
+        // The switch shows what is true right now. A staged toggle lives in
+        // the ⏳ + plan, so the switch must not flip early and read as
+        // "already on" while the deploy is still pending.
+        isActive() {
+            return this.pr.active !== false;
         },
         pending() {
             return isPending(this.pr);
@@ -209,9 +209,6 @@ export default {
         },
         pill() {
             return driftPill(this.pr, this.strings);
-        },
-        pillClass() {
-            return `testing-env__pill--${this.pill.kind}`;
         },
         prUrl() {
             return `${REPO_URL}/pull/${encodeURIComponent(this.pr.pr)}`;
