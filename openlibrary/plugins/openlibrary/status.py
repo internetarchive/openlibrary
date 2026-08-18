@@ -32,7 +32,7 @@ _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
 _JENKINS_URL = "https://jenkins.openlibrary.org/job/testing-deploy/buildWithParameters"
 _JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
-_DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
+_DRIFT_CACHE_TTL = 60  # 1 minute
 # The deploy pipeline's own run list (newest first). The panel only learns
 # that a build was triggered, so this is the ground truth for whether it is
 # still running and how it ended. Cached briefly — every /status/testing.json
