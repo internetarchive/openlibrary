@@ -1,6 +1,7 @@
 """Upstream customizations."""
 
 import datetime
+import functools
 import hashlib
 import json
 import os.path
@@ -139,26 +140,14 @@ class merge_work(delegate.page):
         return render_template("merge/works", mrid=i.mrid, primary=i.primary, **optional_kwargs)
 
 
-# Latest (mtime_ns, digest) per static path. Keying on mtime means a rebuilt
-# asset (e.g. `npm run build` writing a new bundle) immediately changes the
-# ?v= hash the pages emit. functools.cache would pin the hash for the whole
-# process lifetime, leaving browsers reusing stale cached assets.
-_STATIC_URL_DIGESTS: dict[str, tuple[int, str]] = {}
-
-
+@functools.cache
 @public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    stat = os.stat(fullpath)
-    entry = _STATIC_URL_DIGESTS.get(path)
-    if entry and entry[0] == stat.st_mtime_ns:
-        digest = entry[1]
-    else:
-        with open(fullpath, "rb") as in_file:
-            digest = hashlib.md5(in_file.read()).hexdigest()
-        _STATIC_URL_DIGESTS[path] = (stat.st_mtime_ns, digest)
+    with open(fullpath, "rb") as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return f"/static/{path}?v={digest}"
 
 
