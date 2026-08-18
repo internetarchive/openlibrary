@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import urllib.error
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -313,6 +314,84 @@ def _seed_web_ctx():
     web.ctx.path = "/status/deploy"
     web.ctx.home = "http://localhost:8080"
     web.ctx.headers = []
+
+
+def test_add_appends_pr_when_github_succeeds():
+    """A successful GitHub fetch adds the PR and redirects cleanly."""
+    _seed_web_ctx()
+    state = status_module.TestingState(last_deploy_at="", prs=[])
+    gh_info = {
+        "title": "Test PR",
+        "head_sha": "abc1234def5678901234567890123456789012345",
+        "author": "author",
+        "author_avatar": "",
+        "assignee": "assignee",
+        "assignee_avatar": "",
+        "error": "",
+    }
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
+        patch("web.input", return_value=web.storage(pr="12914")),
+        pytest.raises(web.SeeOther),
+    ):
+        status_module.status_add().POST()
+
+    assert ("Location", "http://localhost:8080/status") in web.ctx.headers
+    assert [p.pr for p in state.prs] == [12914]
+
+
+def test_add_skips_pr_and_marks_failure_when_github_errors():
+    """A GitHub failure (rate limit, outage, invalid PR) must not pretend the add landed."""
+    _seed_web_ctx()
+    state = status_module.TestingState(last_deploy_at="", prs=[])
+    gh_info = {
+        "title": "PR #12914",
+        "head_sha": "",
+        "author": "",
+        "author_avatar": "",
+        "assignee": "",
+        "assignee_avatar": "",
+        "error": "unavailable",
+    }
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
+        patch("web.input", return_value=web.storage(pr="12914")),
+        pytest.raises(web.SeeOther),
+    ):
+        status_module.status_add().POST()
+
+    # The redirect marker is what lets the panel keep the add input.
+    assert ("Location", "http://localhost:8080/status?add_failed=1") in web.ctx.headers
+    assert state.prs == []
+
+
+def test_get_pr_info_distinguishes_not_found_from_unavailable():
+    """404 → not_found; rate limit → unavailable; both leave head_sha empty."""
+    with patch(
+        "openlibrary.plugins.openlibrary.status._github_get",
+        side_effect=urllib.error.HTTPError("https://api.github.com/pulls/12914", 404, "Not Found", {}, None),
+    ):
+        info = status_module._get_pr_info(12914)
+    assert info["error"] == "not_found"
+    assert info["head_sha"] == ""
+
+    with patch(
+        "openlibrary.plugins.openlibrary.status._github_get",
+        side_effect=urllib.error.HTTPError("https://api.github.com/pulls/12914", 403, "rate limit exceeded", {}, None),
+    ):
+        info = status_module._get_pr_info(12914)
+    assert info["error"] == "unavailable"
+    assert info["head_sha"] == ""
 
 
 def test_deploy_failure_never_persists_staged_changes():

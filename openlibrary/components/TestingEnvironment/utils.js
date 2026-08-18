@@ -16,6 +16,7 @@ export const DEFAULT_STRINGS = {
     loading: 'Loading testing environment…',
     loadError: 'Could not load the testing environment.',
     retry: 'Try again',
+    actionFailed: 'Could not complete that action.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
     addPlaceholder: 'PR numbers or URLs, space or comma separated',

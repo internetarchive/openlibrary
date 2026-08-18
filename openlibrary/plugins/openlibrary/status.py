@@ -76,11 +76,16 @@ class status_add(delegate.page):
         state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
         existing = {p.pr for p in state.prs}
         user = get_current_user()
+        failed = []
         for pr_number in pr_numbers:
             if pr_number not in existing:
                 info = _get_pr_info(pr_number)
-                if not info["head_sha"]:
-                    continue  # GitHub API unavailable or invalid PR
+                if info.get("error"):
+                    # GitHub unreachable, rate-limited, or an invalid PR — never
+                    # pretend the add landed. The redirect marker lets the panel
+                    # keep the input so the failure is visible.
+                    failed.append(pr_number)
+                    continue
                 state.prs.append(
                     TestingPR(
                         pr=pr_number,
@@ -98,6 +103,8 @@ class status_add(delegate.page):
                 existing.add(pr_number)
         _save_testing_state(state)
         _evict_drift_cache()
+        if failed:
+            raise web.seeother("/status?add_failed=1")
         raise web.seeother("/status")
 
 
@@ -650,7 +657,12 @@ def _evict_drift_cache() -> None:
 
 
 def _get_pr_info(pr_number: int) -> dict:
-    """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub."""
+    """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
+
+    On failure ``error`` says why — ``not_found`` for a 404, ``unavailable`` for
+    rate limits/network/parse errors — so callers can tell a bad PR number from
+    a GitHub outage instead of treating both as "no such PR".
+    """
     try:
         pr = _github_get(f"pulls/{pr_number}")
         user = pr.get("user") or {}
@@ -662,6 +674,17 @@ def _get_pr_info(pr_number: int) -> dict:
             "author_avatar": user.get("avatar_url", ""),
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
+            "error": "",
+        }
+    except urllib.error.HTTPError as e:
+        return {
+            "title": f"PR #{pr_number}",
+            "head_sha": "",
+            "author": "",
+            "author_avatar": "",
+            "assignee": "",
+            "assignee_avatar": "",
+            "error": "not_found" if e.code == 404 else "unavailable",
         }
     except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
         return {
@@ -671,6 +694,7 @@ def _get_pr_info(pr_number: int) -> dict:
             "author_avatar": "",
             "assignee": "",
             "assignee_avatar": "",
+            "error": "unavailable",
         }
 
 

@@ -62,7 +62,13 @@
             <button
               type="submit"
               class="testing-env__btn testing-env__btn--primary"
+              :disabled="adding"
             >
+              <span
+                v-if="adding"
+                class="testing-env__btn-icon testing-env__spinner"
+                aria-hidden="true"
+              />
               {{ strings.add }}
             </button>
           </form>
@@ -134,6 +140,15 @@
         @refresh="refresh"
       />
     </template>
+
+    <div
+      v-if="toast"
+      class="testing-env__toast"
+      role="status"
+      aria-live="polite"
+    >
+      {{ toast }}
+    </div>
   </section>
 </template>
 
@@ -178,8 +193,11 @@ export default {
             payload: null,
             busy: false,
             refreshing: false,
+            adding: false,
             addInput: '',
-            strings: { ...DEFAULT_STRINGS }
+            strings: { ...DEFAULT_STRINGS },
+            toast: '',
+            toastTimer: null
         };
     },
     computed: {
@@ -207,9 +225,19 @@ export default {
     mounted() {
         this.loadStatus();
     },
+    beforeUnmount() {
+        clearTimeout(this.toastTimer);
+    },
     methods: {
         text(key, ...args) {
             return sprintf(this.strings[key] || DEFAULT_STRINGS[key] || key, ...args);
+        },
+        setToast(message) {
+            this.toast = message;
+            clearTimeout(this.toastTimer);
+            this.toastTimer = setTimeout(() => {
+                this.toast = '';
+            }, 6000);
         },
         async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
             // busy is a re-entrancy guard and aria-busy signal only.
@@ -232,11 +260,21 @@ export default {
             }
         },
         async runAction(action, fields) {
-            if (this.busy) return;
+            if (this.busy) return false;
             this.busy = true;
             try {
-                await postAction(action, fields);
+                const response = await postAction(action, fields);
                 await this.loadStatus(false, false, false);
+                // The add handler redirects with add_failed=1 when it couldn't
+                // reach GitHub; say so instead of pretending success.
+                if (response && response.url.includes('add_failed')) {
+                    this.setToast(this.text('actionFailed'));
+                    return false;
+                }
+                return response;
+            } catch {
+                this.setToast(this.text('actionFailed'));
+                return false;
             } finally {
                 this.busy = false;
             }
@@ -263,11 +301,20 @@ export default {
                 this.refreshing = false;
             }
         },
-        addPrs() {
+        async addPrs() {
+            if (this.adding || this.busy) return;
             const value = this.addInput.trim();
             if (!value) return;
-            this.addInput = '';
-            this.runAction('/status/add', { pr: value });
+            this.adding = true;
+            try {
+                const response = await this.runAction('/status/add', { pr: value });
+                // A failed add keeps the input so it's obvious the PR didn't land.
+                if (response && !response.url.includes('add_failed')) {
+                    this.addInput = '';
+                }
+            } finally {
+                this.adding = false;
+            }
         },
         retry() {
             this.loadStatus(true);
@@ -741,6 +788,23 @@ a.testing-env__pill:focus-visible {
 .testing-env__blank {
   padding: var(--spacing-lg) var(--spacing-md);
   color: var(--color-text-muted);
+}
+
+/* ── Error toast ────────────────────────────────────────────── */
+
+/* Transient failure notice below the card; auto-dismisses. */
+.testing-env__toast {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: var(--spacing-md) 0 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-notification);
+  background: var(--color-error-fg);
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-code);
+  font-size: 0.75rem;
+  width: fit-content;
 }
 
 /* ── Deploy section ─────────────────────────────────────────── */

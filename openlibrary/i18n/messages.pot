@@ -7416,6 +7416,10 @@ msgid "Try again"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Could not complete that action."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "Testing Environment"
 msgstr ""
 
