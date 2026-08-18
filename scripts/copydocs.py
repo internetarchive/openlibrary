@@ -16,6 +16,7 @@ import sys
 from collections import namedtuple
 from collections.abc import Iterator
 
+import requests
 import web
 
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -23,7 +24,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
 import scripts._init_path
 import scripts.tests.test_copydocs
-from openlibrary.api import OpenLibrary, marshal
+from openlibrary.api import OLError, OpenLibrary, marshal
 
 __version__ = "0.2"
 
@@ -282,6 +283,47 @@ def copy(
             print(f"Something went wrong saving this batch! {e}")
 
 
+def person_root_key(key: str) -> str | None:
+    """
+    :return: the owning /people/<username> key if `key` is a person's root
+        account or one of its sub-resources (e.g. a list); None otherwise.
+
+    >>> person_root_key("/people/foo")
+    '/people/foo'
+    >>> person_root_key("/people/foo/lists/OL1L")
+    '/people/foo'
+    >>> person_root_key("/works/OL1W")
+    """
+    parts = key.split("?")[0].split("/")
+    if len(parts) >= 3 and parts[1] == "people" and parts[2]:
+        return f"/people/{parts[2]}"
+    return None
+
+
+def ensure_person_stub(dest: OpenLibrary, infobase: str, root_key: str, comment: str) -> None:
+    """
+    Ensures `root_key` (a /people/<username> account) exists on `dest`,
+    creating an empty stub if it doesn't. A real account's /type/user,
+    /permission, and /usergroup docs reference each other, so infobase's
+    save-time reference validation can't accept them one at a time via the
+    regular copy() — registering an account creates all three together.
+    """
+    try:
+        dest.get(root_key)
+        return
+    except OLError:
+        pass
+
+    username = root_key.rsplit("/", 1)[-1]
+    print(f"creating empty stub account for {root_key}")
+    for op, data in (
+        ("register", {"username": username, "displayname": username, "email": f"{username}@example.com", "password": "password"}),
+        ("activate", {"username": username}),
+    ):
+        resp = requests.post(f"{infobase}/openlibrary.org/account/{op}", data=data)
+        resp.raise_for_status()
+
+
 def main(
     keys: list[str],
     src: str = "http://openlibrary.org/",
@@ -289,6 +331,7 @@ def main(
     comment: str = "",
     recursive: bool = True,
     editions: bool = True,
+    infobase: str = "http://infobase:7000",
     search: str | None = None,
     search_limit: int = 10,
 ) -> None:
@@ -302,7 +345,8 @@ def main(
         ./scripts/copydocs.py --src http://openlibrary.org /templates/*
         # Copy specific records
         ./scripts/copydocs.py /authors/OL113592A /works/OL1098727W?v=2
-        # Copy a list (its own key also copies its referenced seeds/authors/series)
+        # Copy a list (also copies its referenced seeds/authors/series, and
+        # stubs the owning account rather than copying it)
         ./scripts/copydocs.py /people/foo/lists/OL1L
         # Copy search results
         ./scripts/copydocs.py --search "publisher:librivox" --search-limit 10
@@ -312,6 +356,8 @@ def main(
     :param dest: URL of the destination open library server
     :param recursive: Recursively fetch all the referred docs
     :param editions: Also fetch all the editions of works
+    :param infobase: URL of the destination's infobase server, used only to
+        create stub accounts for /people/<username> keys
     :param search: Run a search on open library and copy docs from the results
     """
 
@@ -332,6 +378,18 @@ def main(
         keys += [doc["key"] for doc in src_ol.search(search, limit=search_limit, fields=["key"])["docs"]]
 
     keys = list(expand(src_ol, ("/" + k.lstrip("/") for k in keys)))
+
+    if isinstance(dest_ol, OpenLibrary):
+        remaining_keys = []
+        for key in keys:
+            root = person_root_key(key)
+            if root:
+                ensure_person_stub(dest_ol, infobase, root, comment)
+                if root == key:
+                    # The stub account *is* the copy; there's nothing real to fetch.
+                    continue
+            remaining_keys.append(key)
+        keys = remaining_keys
 
     copy(src_ol, dest_ol, keys, comment=comment, recursive=recursive, editions=editions)
 
