@@ -226,9 +226,17 @@ export default {
     },
     mounted() {
         this.loadStatus();
+        // Silent background refresh: once a minute and whenever the tab regains
+        // focus, re-fetch so drift/deploy state stays fresh. No spinner — the
+        // explicit Refresh button is the only thing that spins, and an action in
+        // flight is left alone so this can't race the POST-triggered reload.
+        this._refreshTimer = setInterval(() => this.silentRefresh(), 60000);
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
     },
     beforeUnmount() {
         clearTimeout(this.toastTimer);
+        clearInterval(this._refreshTimer);
+        document.removeEventListener('visibilitychange', this.onVisibilityChange);
     },
     methods: {
         text(key, ...args) {
@@ -240,6 +248,15 @@ export default {
             this.toastTimer = setTimeout(() => {
                 this.toast = '';
             }, 6000);
+        },
+        onVisibilityChange() {
+            if (document.visibilityState === 'visible') this.silentRefresh();
+        },
+        // Re-fetch quietly: no loading view, no error takeover, no busy flag —
+        // loadStatus(false, false, false). Skipped while an action is in flight.
+        silentRefresh() {
+            if (this.busy) return;
+            this.loadStatus(false, false, false);
         },
         async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
             // busy is a re-entrancy guard and aria-busy signal only.
