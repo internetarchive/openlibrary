@@ -16,6 +16,20 @@ repos:
     hooks:
       - id: check-toml
       - id: check-yaml
+        exclude: ^compose\.port-prefix\.yaml$
+      - id: check-yaml
+        name: check-yaml (compose.port-prefix.yaml)
+        # compose.port-prefix.yaml uses Compose's `!override` merge tag, which
+        # plain safe_load has no constructor for. --unsafe switches this file's
+        # check from full load (safe_load) to parse-only (syntax check via
+        # yaml.parse), so it still catches malformed YAML but no longer verifies
+        # that every tag is one of the safe, portable, constructible set -- e.g.
+        # it would not flag an errant `!!python/object/apply:...` tag the way
+        # the unscoped check-yaml above does for every other YAML file in the
+        # repo. check-yaml has no allow-list-one-tag option, only this
+        # all-or-nothing switch, so we scope it to just this file.
+        args: [--unsafe]
+        files: ^compose\.port-prefix\.yaml$
       - id: detect-private-key
       - id: end-of-file-fixer
         exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
