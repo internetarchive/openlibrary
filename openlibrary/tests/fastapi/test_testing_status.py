@@ -39,38 +39,59 @@ def _make_state(prs=None, last_deploy_at="2026-08-05T18:00:00+00:00"):
     return status_module.TestingState(last_deploy_at=last_deploy_at, prs=prs or [_make_pr()])
 
 
-def test_get_testing_status_merges_drift_and_derived_fields():
+def test_build_testing_status_merges_drift_and_derived_fields():
+    state = _make_state()
+    drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
+
+    result = status_module.build_testing_status(state, drift_info)
+
+    assert result.last_deploy_at == "2026-08-05T18:00:00+00:00"
+    assert result.has_pending is True  # added after last deploy
+    pr = result.prs[0]
+    assert (pr.head_sha, pr.drift, pr.merged, pr.is_new) == ("abc1234", 2, False, True)
+    assert (pr.title, pr.added_by) == ("Test PR", "openlibrary")
+
+
+def test_build_testing_status_missing_drift_uses_unknown_defaults():
+    state = _make_state(prs=[_make_pr(pr_number=13238, added_at="2026-08-01T00:00:00+00:00")])
+
+    result = status_module.build_testing_status(state, {})
+
+    pr = result.prs[0]
+    assert (pr.head_sha, pr.drift, pr.merged, pr.is_new) == ("", -1, False, False)
+    assert result.has_pending is False
+
+
+@pytest.mark.parametrize(
+    ("pr_kwargs", "drift", "last_deploy_at", "expected"),
+    [
+        ({}, {}, "2026-08-05T18:00:00+00:00", True),  # added since last deploy
+        ({"added_at": "2026-08-01T00:00:00+00:00"}, {}, "2026-08-05T18:00:00+00:00", False),
+        ({"added_at": "2026-08-01T00:00:00+00:00"}, {}, "", True),  # never deployed
+        ({"added_at": "2026-08-01T00:00:00+00:00"}, {"merged": True}, "2026-08-05T18:00:00+00:00", True),
+    ],
+)
+def test_build_testing_status_has_pending(pr_kwargs, drift, last_deploy_at, expected):
+    pr = _make_pr(**pr_kwargs)
+    result = status_module.build_testing_status(_make_state(prs=[pr], last_deploy_at=last_deploy_at), {pr.pr: drift})
+    assert result.has_pending is expected
+
+
+def test_load_testing_status_returns_none_without_state():
+    with patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=None):
+        assert status_module.load_testing_status() is None
+
+
+def test_load_testing_status_composes_state_and_drift():
     state = _make_state()
     drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=(drift_info, False)),
     ):
-        payload = status_module.get_testing_status()
+        result = status_module.load_testing_status()
 
-    assert payload["last_deploy_at"] == "2026-08-05T18:00:00+00:00"
-    assert payload["has_pending"] is True  # added after last deploy
-    pr = payload["prs"][0]
-    assert pr["head_sha"] == "abc1234"
-    assert pr["drift"] == 2
-    assert pr["merged"] is False
-    assert pr["is_new"] is True
-    assert pr["title"] == "Test PR"
-    assert pr["added_by"] == "openlibrary"
-
-
-def test_get_testing_status_accepts_precomputed_state_and_drift():
-    state = _make_state(prs=[_make_pr(pr_number=13238)])
-    drift_info = {13238: {"head_sha": "", "drift": -1, "merged": True}}
-    payload = status_module.get_testing_status(state, drift_info)
-
-    assert payload["prs"][0]["drift"] == -1
-    assert payload["prs"][0]["merged"] is True
-
-
-def test_get_testing_status_returns_none_without_state():
-    with patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=None):
-        assert status_module.get_testing_status() is None
+    assert result.prs[0].drift == 2
 
 
 def test_ensure_testing_state_file_creates_empty_state(tmp_path, monkeypatch):
@@ -122,7 +143,13 @@ def test_setup_skips_state_file_creation_outside_local_dev(monkeypatch):
 
 def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    payload = {
+    state = _make_state()
+    result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
+    with patch("openlibrary.fastapi.status.load_testing_status", return_value=result) as mock:
+        response = fastapi_client.get("/status/testing.json")
+
+    assert response.status_code == 200
+    assert response.json() == {
         "last_deploy_at": "2026-08-05T18:00:00+00:00",
         "has_pending": True,
         "prs": [
@@ -146,22 +173,13 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
             }
         ],
     }
-    with patch("openlibrary.fastapi.status.get_testing_status", return_value=payload) as mock:
-        response = fastapi_client.get("/status/testing.json")
-
-    assert response.status_code == 200
-    assert response.json() == payload
     mock.assert_called_once_with()
 
 
 def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    payload = {
-        "last_deploy_at": "",
-        "has_pending": False,
-        "prs": [_make_pr().to_dict()],
-    }
-    with patch("openlibrary.fastapi.status.get_testing_status", return_value=payload):
+    result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
+    with patch("openlibrary.fastapi.status.load_testing_status", return_value=result):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 200
@@ -170,7 +188,7 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.get_testing_status", return_value=None):
+    with patch("openlibrary.fastapi.status.load_testing_status", return_value=None):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 404
@@ -184,8 +202,7 @@ def test_testing_status_endpoint_requires_auth(fastapi_client):
 
 def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=False)
-    payload = {"last_deploy_at": "", "has_pending": False, "prs": []}
-    with patch("openlibrary.fastapi.status.get_testing_status", return_value=payload) as mock:
+    with patch("openlibrary.fastapi.status.load_testing_status") as mock:
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 403

@@ -7,7 +7,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -34,28 +34,20 @@ _DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
 
 class status(delegate.page):
     def GET(self):
-        testing_state = _load_testing_state()
+        testing_status = load_testing_status()
         is_maintainer_user = _is_maintainer()
-        drift_info = {}
-        if testing_state:
-            drift_info, _ = _get_drift_info(testing_state)
-        show_testing = testing_state is not None and is_maintainer_user
-        payload = get_testing_status(testing_state, drift_info) or {}
-        has_pending = payload.get("has_pending", False)
         i = web.input(deploy_triggered=None, drift_refreshed=None)
         return render_template(
             "status",
             status_info,
             features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
-            testing_state=testing_state,
-            drift_info=drift_info,
+            testing_status=testing_status,
             is_maintainer=is_maintainer_user,
-            show_testing=show_testing,
+            show_testing=testing_status is not None and is_maintainer_user,
             deploy_triggered=bool(i.deploy_triggered),
             drift_refreshed=bool(i.drift_refreshed),
             jenkins_job_url=_JENKINS_JOB_URL,
-            has_pending=has_pending,
         )
 
 
@@ -207,43 +199,6 @@ class status_refresh(delegate.page):
             raise web.unauthorized()
         _evict_drift_cache()
         raise web.seeother("/status?drift_refreshed=1")
-
-
-def get_testing_status(
-    testing_state: TestingState | None = None,
-    drift_info: dict | None = None,
-) -> dict | None:
-    """Compose the testing-environment status payload.
-
-    Returns a dict with ``last_deploy_at``, ``has_pending``, and a list of
-    PRs (state fields merged with live drift info), or None if there is no
-    testing state file. Shared by the /status page and the FastAPI
-    testing-status API so they can't drift apart.
-    """
-    state = testing_state if testing_state is not None else _load_testing_state()
-    if not state:
-        return None
-    if drift_info is None:
-        drift_info, _ = _get_drift_info(state)
-    last_deploy = state.last_deploy_at
-    has_pending = any(
-        p.pull_latest_sha or p.pending_active is not None or drift_info.get(p.pr, {}).get("merged", False) or not last_deploy or p.added_at > last_deploy
-        for p in state.prs
-    )
-    return {
-        "last_deploy_at": last_deploy,
-        "has_pending": has_pending,
-        "prs": [
-            {
-                **p.to_dict(),
-                "head_sha": drift_info.get(p.pr, {}).get("head_sha", ""),
-                "drift": drift_info.get(p.pr, {}).get("drift", -1),
-                "merged": drift_info.get(p.pr, {}).get("merged", False),
-                "is_new": bool(last_deploy and p.added_at > last_deploy),
-            }
-            for p in state.prs
-        ],
-    }
 
 
 @functools.cache
@@ -414,6 +369,50 @@ def _load_testing_state() -> TestingState | None:
             )
         return TestingState.from_dict(data)
     return None
+
+
+@dataclass
+class TestingPRStatus(TestingPR):
+    """A TestingPR merged with live GitHub drift info and derived flags."""
+
+    head_sha: str = ""  # current branch HEAD (short SHA); empty if GitHub unavailable
+    drift: int = -1  # commits the pinned commit is behind HEAD; -1 if unknown
+    merged: bool = False  # PR has been merged into master
+    is_new: bool = False  # added since the last deploy
+
+
+@dataclass
+class TestingStatus:
+    """Status of the testing environment: what backs the /status deploy table and the JSON API."""
+
+    last_deploy_at: str  # ISO timestamp, empty if never deployed
+    prs: list[TestingPRStatus]
+    has_pending: bool  # any change that a deploy would apply
+
+
+def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus:
+    """Compose the testing-environment status from persisted state and live drift info. Pure."""
+    last_deploy = state.last_deploy_at
+    prs = [
+        TestingPRStatus(
+            **asdict(p),
+            head_sha=drift_info.get(p.pr, {}).get("head_sha", ""),
+            drift=drift_info.get(p.pr, {}).get("drift", -1),
+            merged=drift_info.get(p.pr, {}).get("merged", False),
+            is_new=bool(last_deploy and p.added_at > last_deploy),
+        )
+        for p in state.prs
+    ]
+    has_pending = any(p.pull_latest_sha or p.pending_active is not None or p.merged or not last_deploy or p.is_new for p in prs)
+    return TestingStatus(last_deploy_at=last_deploy, prs=prs, has_pending=has_pending)
+
+
+def load_testing_status() -> TestingStatus | None:
+    """Load the state file and live drift info; None if there is no state file."""
+    if (state := _load_testing_state()) is None:
+        return None
+    drift_info, _ = _get_drift_info(state)
+    return build_testing_status(state, drift_info)
 
 
 def _save_testing_state(state: TestingState) -> None:
