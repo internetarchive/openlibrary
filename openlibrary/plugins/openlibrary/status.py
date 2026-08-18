@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import datetime
 import functools
@@ -647,14 +648,17 @@ async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tu
     and, unless ``persist=False``, saves the state file if anything changed. The
     deploy path passes ``persist=False`` so its metadata refresh can never write
     staged-but-untriggered changes to disk.
+
+    Per-PR fetches run concurrently (asyncio.gather) — with a handful of PRs,
+    sequential awaits would stack each GitHub round-trip.
     """
     mc = cache.get_memcache()
     if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
         return {int(k): v for k, v in cached.items()}, True
     drift = {}
     state_changed = False
-    for p in state.prs:
-        info = await _get_pr_drift_async(p)
+    infos = await asyncio.gather(*(_get_pr_drift_async(p) for p in state.prs))
+    for p, info in zip(state.prs, infos):
         drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged")}
         for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar"):
             new_val = info.get(attr, "")

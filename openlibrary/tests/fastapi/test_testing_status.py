@@ -1,5 +1,6 @@
 """Tests for the testing-environment status API and its underlying helper."""
 
+import asyncio
 import datetime
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -81,6 +82,44 @@ def test_build_testing_status_has_pending(pr_kwargs, drift, last_deploy_at, expe
     pr = _make_pr(**pr_kwargs)
     result = status_module.build_testing_status(_make_state(prs=[pr], last_deploy_at=last_deploy_at), {pr.pr: drift})
     assert result.has_pending is expected
+
+
+@pytest.mark.asyncio
+async def test_get_drift_info_fetches_prs_concurrently():
+    """Per-PR GitHub fetches overlap (gather), not one-after-another."""
+    state = _make_state(prs=[_make_pr(pr_number=n) for n in (13269, 13238, 13240)])
+    info = {
+        "head_sha": "abc1234",
+        "drift": 0,
+        "merged": False,
+        "title": "Test PR",
+        "author": "author",
+        "author_avatar": "",
+        "assignee": "assignee",
+        "assignee_avatar": "",
+    }
+    active = 0
+    peak = 0
+
+    async def fake_drift(_pr):
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        await asyncio.sleep(0.01)  # yield so siblings can start
+        active -= 1
+        return info
+
+    mc = MagicMock()
+    mc.get.return_value = None
+    with (
+        patch("openlibrary.plugins.openlibrary.status.cache.get_memcache", return_value=mc),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_drift_async", side_effect=fake_drift),
+    ):
+        drift, from_cache = await status_module._get_drift_info_async(state, persist=False)
+
+    assert from_cache is False
+    assert peak > 1  # sequential awaits would never see overlap
+    assert drift == {p.pr: {"head_sha": "abc1234", "drift": 0, "merged": False} for p in state.prs}
 
 
 def test_load_testing_status_returns_none_without_state():
