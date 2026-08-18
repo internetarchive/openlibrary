@@ -64,6 +64,8 @@ class TestXauthn:
         assert body["success"] is True
         assert body["values"]["token"]
         assert body["values"]["email"] == "test@example.com"
+        # Every dev login resolves to the seeded admin account.
+        assert body["values"]["screenname"] == "openlibrary"
 
     def test_authenticate_fails_without_password(self):
         resp = _post(
