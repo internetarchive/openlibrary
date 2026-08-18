@@ -7416,30 +7416,6 @@ msgid "Try again"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Action completed."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Could not complete that action."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Deploy triggered!"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "No Jenkins token is configured, so no build was started. Pending changes were cleared locally."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "GitHub status refreshed."
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "Testing Environment"
 msgstr ""
 
@@ -7486,34 +7462,6 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "changes on deploy"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Removing #%(num)s…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Updating #%(num)s…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Enabling #%(num)s…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Disabling #%(num)s…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Deploying to testing…"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "Adding PRs…"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

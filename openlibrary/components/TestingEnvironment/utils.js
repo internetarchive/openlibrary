@@ -16,12 +16,6 @@ export const DEFAULT_STRINGS = {
     loading: 'Loading testing environment…',
     loadError: 'Could not load the testing environment.',
     retry: 'Try again',
-    actionComplete: 'Action completed.',
-    actionFailed: 'Could not complete that action.',
-    deployTriggered: 'Deploy triggered!',
-    deployFailed: 'Could not reach Jenkins — nothing was deployed. Your pending changes are still staged; try again.',
-    deployUnconfigured: 'No Jenkins token is configured, so no build was started. Pending changes were cleared locally.',
-    githubRefreshed: 'GitHub status refreshed.',
     title: 'Testing Environment',
     addPrs: 'Add PRs',
     addPlaceholder: 'PR numbers or URLs, space or comma separated',
@@ -38,12 +32,6 @@ export const DEFAULT_STRINGS = {
     ok: 'OK',
     prOnTesting: 'PR #%s on testing',
     changeOnDeploy: 'changes on deploy',
-    removing: 'Removing #%s…',
-    updating: 'Updating #%s…',
-    enabling: 'Enabling #%s…',
-    disabling: 'Disabling #%s…',
-    deploying: 'Deploying to testing…',
-    adding: 'Adding PRs…',
     update: 'Update',
     updatePin: 'Update pin',
     enable: 'Enable',
@@ -204,23 +192,4 @@ export function driftPill(pr, strings) {
             : '',
         title: drift === 1 ? t('behindOne', drift, pinned) : t('behindMany', drift, pinned)
     };
-}
-
-/**
- * The toast wording after an action, read off the redirect URL the handler
- * returned. Falls back to the generic confirmation for anything unexpected.
- */
-export function actionResultMessage(action, responseUrl, strings) {
-    try {
-        const url = new URL(responseUrl, window.location.href);
-        if (action.endsWith('/deploy')) {
-            if (url.searchParams.has('deploy_failed')) return strings.deployFailed;
-            if (url.searchParams.has('deploy_unconfigured')) return strings.deployUnconfigured;
-            if (url.searchParams.has('deploy_triggered')) return strings.deployTriggered;
-        }
-        if (action.endsWith('/refresh')) return strings.githubRefreshed;
-    } catch {
-        // A malformed redirect URL falls back to the generic confirmation.
-    }
-    return strings.actionComplete;
 }

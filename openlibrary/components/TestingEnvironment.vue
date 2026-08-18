@@ -133,15 +133,6 @@
         @refresh="refresh"
       />
     </template>
-
-    <div
-      v-if="toast"
-      class="testing-env__toast"
-      role="status"
-      aria-live="polite"
-    >
-      {{ toast }}
-    </div>
   </section>
 </template>
 
@@ -150,7 +141,6 @@ import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import {
     DEFAULT_STRINGS,
-    actionResultMessage,
     decodeAndParseJSON,
     effectiveActive,
     getTestingStatus,
@@ -186,7 +176,6 @@ export default {
             view: 'loading', // 'loading' | 'error' | 'ready'
             payload: null,
             busy: false,
-            toast: '',
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             lastFocusRefresh: 0
@@ -226,9 +215,6 @@ export default {
         text(key, ...args) {
             return sprintf(this.strings[key] || DEFAULT_STRINGS[key] || key, ...args);
         },
-        setToast(message) {
-            this.toast = message;
-        },
         async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
             // busy is a re-entrancy guard and aria-busy signal only.
             if (manageBusy) this.busy = true;
@@ -249,42 +235,37 @@ export default {
                 if (manageBusy) this.busy = false;
             }
         },
-        async runAction(action, fields, message) {
+        async runAction(action, fields) {
             if (this.busy) return;
             this.busy = true;
-            this.setToast(message);
             try {
-                const response = await postAction(action, fields);
-                const loaded = await this.loadStatus(false, false, false);
-                this.setToast(loaded ? actionResultMessage(action, response.url, this.strings) : this.strings.loadError);
-            } catch {
-                this.setToast(this.strings.actionFailed);
+                await postAction(action, fields);
+                await this.loadStatus(false, false, false);
             } finally {
                 this.busy = false;
             }
         },
         togglePr(pr) {
             const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
-            const verb = action.endsWith('disable') ? this.strings.disabling : this.strings.enabling;
-            this.runAction(action, { prs: [pr.pr] }, sprintf(verb, pr.pr));
+            this.runAction(action, { prs: [pr.pr] });
         },
         updatePr(pr) {
-            this.runAction('/status/pull-latest', { prs: [pr.pr] }, sprintf(this.strings.updating, pr.pr));
+            this.runAction('/status/pull-latest', { prs: [pr.pr] });
         },
         removePr(pr) {
-            this.runAction('/status/remove', { prs: [pr.pr] }, sprintf(this.strings.removing, pr.pr));
+            this.runAction('/status/remove', { prs: [pr.pr] });
         },
         deploy() {
-            this.runAction('/status/deploy', {}, this.strings.deploying);
+            this.runAction('/status/deploy', {});
         },
         refresh() {
-            this.runAction('/status/refresh', {}, `${this.strings.refresh}…`);
+            this.runAction('/status/refresh', {});
         },
         addPrs() {
             const value = this.addInput.trim();
             if (!value) return;
             this.addInput = '';
-            this.runAction('/status/add', { pr: value }, this.strings.adding);
+            this.runAction('/status/add', { pr: value });
         },
         retry() {
             this.loadStatus(true);
@@ -761,23 +742,6 @@ a.testing-env__pill:focus-visible {
 .testing-env__blank {
   padding: var(--spacing-lg) var(--spacing-md);
   color: var(--color-text-muted);
-}
-
-/* ── Activity toast ─────────────────────────────────────────── */
-
-/* Below the card, flush with its left edge. */
-.testing-env__toast {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  margin: var(--spacing-md) 0 0;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-notification);
-  background: var(--color-text);
-  color: var(--color-text-inverse);
-  font-family: var(--font-family-code);
-  font-size: 0.75rem;
-  width: fit-content;
 }
 
 /* ── Deploy section ─────────────────────────────────────────── */

@@ -1,6 +1,5 @@
 import {
     DEFAULT_STRINGS,
-    actionResultMessage,
     canUpdate,
     decodeAndParseJSON,
     driftPill,
@@ -127,18 +126,6 @@ describe('Testing Environment utils', () => {
         expect(behindWithoutSha.title).toBe('1 commit behind 1d23364');
     });
 
-    test('reads deploy and refresh outcomes off the redirect URL', () => {
-        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_triggered=1', DEFAULT_STRINGS))
-            .toBe(DEFAULT_STRINGS.deployTriggered);
-        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_failed=1', DEFAULT_STRINGS))
-            .toBe(DEFAULT_STRINGS.deployFailed);
-        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_unconfigured=1', DEFAULT_STRINGS))
-            .toBe(DEFAULT_STRINGS.deployUnconfigured);
-        expect(actionResultMessage('/status/refresh', 'http://localhost:8080/status?drift_refreshed=1', DEFAULT_STRINGS))
-            .toBe(DEFAULT_STRINGS.githubRefreshed);
-        expect(actionResultMessage('/status/remove', 'http://localhost:8080/status', DEFAULT_STRINGS))
-            .toBe(DEFAULT_STRINGS.actionComplete);
-    });
 
     test('only allows safe avatar and Jenkins URLs', () => {
         expect(safeHttpUrl('https://avatars.githubusercontent.com/u/1?v=4', 'https://openlibrary.org'))
