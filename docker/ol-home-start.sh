@@ -15,7 +15,7 @@ cd /openlibrary
 
 # Latest last_modified among /type/language docs on the given OL instance, or empty if unknown.
 latest_language_timestamp() {
-    curl -sf "$1/query.json?type=/type/language&sort=-last_modified&limit=1" \
+    curl -sf "$1/query.json?type=/type/language&sort=-last_modified&limit=1&last_modified=" \
         | python -c "import json, sys; d = json.load(sys.stdin); print(d[0]['last_modified']['value'] if d else '')" 2>/dev/null
 }
 
