@@ -102,6 +102,6 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/prices", "json"),
     (r"/works/OL(\d+)W/awards", "json"),
     (r"/awards/count", "json"),
-    (r"/cdn/archive.org/(donate\.js|athena\.js)", None),
+    (r"/cdn/archive.org/(.+)", None),
     (r"/check-ins/(\d+)", None),
 ]
