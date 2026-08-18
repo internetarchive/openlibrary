@@ -1,5 +1,9 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+
+/** Host attributes copied verbatim onto the form proxy (see the class doc). */
+const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovalidate', 'formtarget'];
 
 /**
  * OLButton - A pure-presentation button primitive.
@@ -19,11 +23,22 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  * button-shaped navigation CTA ("Read", "Borrow") needs no separate recipe.
  * `disabled` / `loading` on a link drop the href and set aria-disabled.
  *
- * Forms: the element is form-associated, so `type="submit"` submits the
- * enclosing <form> (via `requestSubmit()`, so native validation runs) and
- * `type="reset"` resets it. Because the button itself is not a native submit
- * button: `submit` events have no `event.submitter`, the button contributes no
- * name/value to `FormData`, and `formaction` / `formmethod` are not supported.
+ * Forms: `type="submit"` / `type="reset"` behave like a native button. The
+ * shadow-rendered control can't be a form's submit button (it has no form
+ * owner), so the element keeps a hidden native <button> *proxy* in its light
+ * DOM — unslotted, so it never renders — carrying the same type, name/value,
+ * disabled state, and form* attributes. Because the proxy is a real submit
+ * button in the form's tree: pressing Enter in a text field submits (implicit
+ * submission), `submit` events have `event.submitter` (the proxy — use
+ * `submitter.closest('ol-button')`), the button's name/value are submitted, and
+ * `formaction` / `formmethod` / `formnovalidate` / `formtarget` are honored.
+ * A click on the visible control is forwarded to `form.requestSubmit(proxy)`
+ * after the click has finished propagating, so `preventDefault()` on the host
+ * or an ancestor cancels it, exactly as it does for a native button. When the
+ * button sits inside another component's shadow root and the form is outside,
+ * the proxy has no form owner and it falls back to `internals.form` (a plain
+ * `requestSubmit()`, no submitter). Replacing the host's children wholesale
+ * (`innerHTML =`) removes the proxy; it is re-created on the next update.
  *
  * Contains no application-specific logic, copy, or translations. The
  * consuming page owns what the button *does* — this component only owns
@@ -51,6 +66,8 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  * @prop {"floating"} elevation - Heavier drop shadow for a control that sits
  *   over content (e.g. a save button on cover art) rather than on the page.
  * @prop {"button" | "submit" | "reset"}           type    - Default: "button"
+ * @prop {String} name      - Submitted with `value` when this button submits the form.
+ * @prop {String} value     - See `name`.
  * @prop {String} href      - Renders an <a> instead of a <button>.
  * @prop {String} target    - Link target (only with href).
  * @prop {String} rel       - Link rel (only with href).
@@ -80,17 +97,20 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  *   <ol-button variant="primary" href="/borrow/OL1M">Borrow</ol-button>
  *   <ol-button shape="circle" elevation="floating" aria-label="Save">+</ol-button>
  */
-export class OLButton extends FocusableHostMixin(LitElement) {
-    // Lets `type="submit"` / `type="reset"` reach the enclosing <form> from
-    // inside the shadow root, and makes <fieldset disabled> propagate.
-    static formAssociated = true;
-
+export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)) {
     static properties = {
         variant: { type: String, reflect: true },
         size: { type: String, reflect: true },
         shape: { type: String, reflect: true },
         elevation: { type: String, reflect: true },
         type: { type: String, reflect: true },
+        value: { type: String, reflect: true },
+        // Pass-throughs to the form proxy; same names as on a native <button>.
+        formAction: { type: String, attribute: 'formaction' },
+        formEnctype: { type: String, attribute: 'formenctype' },
+        formMethod: { type: String, attribute: 'formmethod' },
+        formNoValidate: { type: Boolean, attribute: 'formnovalidate' },
+        formTarget: { type: String, attribute: 'formtarget' },
         href: { type: String, reflect: true },
         target: { type: String },
         rel: { type: String },
@@ -122,8 +142,9 @@ export class OLButton extends FocusableHostMixin(LitElement) {
         }
 
         /* Disable pointer events on the host when disabled/loading so :hover
-           rules on the inner control don't fire. */
-        :host([disabled]),
+           rules on the inner control don't fire. :disabled (not [disabled]) so
+           an ancestor <fieldset disabled> counts too. */
+        :host(:disabled),
         :host([loading]) {
             pointer-events: none;
         }
@@ -488,8 +509,9 @@ export class OLButton extends FocusableHostMixin(LitElement) {
         this.loading = false;
         this.disabled = false;
         this.fullWidth = false;
-        // Optional-chained for non-browser contexts where the method is absent.
-        this._internals = this.attachInternals?.() ?? null;
+        this.formNoValidate = false;
+        /** @type {HTMLButtonElement|null} Light-DOM native button standing in for the form. */
+        this._proxy = null;
     }
 
     connectedCallback() {
@@ -500,43 +522,94 @@ export class OLButton extends FocusableHostMixin(LitElement) {
         this.performUpdate();
     }
 
-    /** @returns {HTMLFormElement|null} The form this button submits or resets. */
-    get form() {
-        return this._internals?.form ?? null;
+    /** @returns {boolean} Whether this button acts on a form (submit/reset, not a link). */
+    get _isFormButton() {
+        return (this.type === 'submit' || this.type === 'reset') && (this.href === undefined || this.href === null);
     }
 
     /**
-     * Browser callback: an ancestor <fieldset disabled> (or the host's own
-     * `disabled` attribute) toggled the element's form-disabled state.
+     * Keep the light-DOM proxy in step with the host, creating or removing it
+     * as `type` / `href` change. Runs after every render.
      *
-     * @param {boolean} disabled
+     * @param {Map<string, unknown>} changed
      * @returns {void}
      */
-    formDisabledCallback(disabled) {
-        this.disabled = disabled;
+    updated(changed) {
+        super.updated?.(changed);
+        this._syncProxy();
+    }
+
+    /** @returns {void} */
+    _syncProxy() {
+        if (!this._isFormButton) {
+            this._proxy?.remove();
+            this._proxy = null;
+            return;
+        }
+        let proxy = this._proxy;
+        if (!proxy) {
+            proxy = this._proxy = document.createElement('button');
+            // Unslotted (no such slot) so it never renders and never reaches
+            // AT; `hidden` is belt-and-braces for before the shadow root exists.
+            proxy.setAttribute('slot', '__ol-button-form-proxy');
+            proxy.hidden = true;
+            proxy.tabIndex = -1;
+            proxy.setAttribute('aria-hidden', 'true');
+        }
+        // Re-append if a consumer replaced the host's children.
+        if (proxy.parentNode !== this) this.appendChild(proxy);
+        proxy.type = this.type;
+        proxy.disabled = this.loading || this.isDisabled;
+        for (const attr of ['name', 'value', ...PROXY_FORM_ATTRS]) {
+            const v = this.getAttribute(attr);
+            if (v === null) proxy.removeAttribute(attr);
+            else proxy.setAttribute(attr, v);
+        }
     }
 
     /**
-     * The inner <button> has no form owner (it lives in the shadow root), so
-     * submit / reset are forwarded to the host's form via ElementInternals.
-     * `requestSubmit()` (not `submit()`) so native validation and the form's
-     * `submit` event both run.
+     * Forwards a click on the visible control to the form. Deferred with
+     * setTimeout so it runs after the click has finished propagating and can
+     * honor `preventDefault()` from the host or any ancestor, as a native
+     * button's activation behavior does. (A microtask isn't late enough: for
+     * user-initiated events the browser drains microtasks between listeners.)
+     * Implicit submission (Enter in a text field) never comes through here —
+     * the browser clicks the proxy directly.
      *
      * @param {MouseEvent} e
      * @returns {void}
      */
     _onControlClick(e) {
-        if (this.loading || this.disabled) {
+        if (this.loading || this.isDisabled) {
             e.preventDefault();
             return;
         }
-        if (this.href !== undefined && this.href !== null) return;
-        const form = this.form;
+        if (!this._isFormButton) return;
+        setTimeout(() => {
+            if (e.defaultPrevented) return;
+            this._submitOrReset();
+        }, 0);
+    }
+
+    /**
+     * Submits or resets via the proxy when it shares the form's tree, so the
+     * submission carries a real submitter; otherwise via ElementInternals.
+     * `requestSubmit()` (not `submit()`) so native validation and the form's
+     * `submit` event both run.
+     *
+     * @returns {void}
+     */
+    _submitOrReset() {
+        this._syncProxy();
+        const proxy = this._proxy;
+        const form = proxy?.form ?? this.form;
         if (!form) return;
-        if (this.type === 'submit') {
-            form.requestSubmit ? form.requestSubmit() : form.submit();
-        } else if (this.type === 'reset') {
+        if (this.type === 'reset') {
             form.reset();
+        } else if (proxy && proxy.form === form) {
+            form.requestSubmit(proxy);
+        } else {
+            form.requestSubmit();
         }
     }
 
@@ -550,7 +623,7 @@ export class OLButton extends FocusableHostMixin(LitElement) {
         // The chevron is always rendered but hidden by CSS unless the button is
         // a disclosure trigger (ol-popover / ol-select-popover set aria-haspopup
         // on it). That keeps the trigger affordance automatic — no consumer markup.
-        const inert = this.loading || this.disabled;
+        const inert = this.loading || this.isDisabled;
         const content = html`<span class="label" part="label"><slot name="icon-start"></slot><slot></slot><slot name="icon-end"></slot></span><span class="spinner" aria-hidden="true"></span><span class="chevron" aria-hidden="true"></span>`;
 
         if (this.href !== undefined && this.href !== null) {
@@ -576,7 +649,7 @@ export class OLButton extends FocusableHostMixin(LitElement) {
 
         // Always type="button": the inner element has no form owner, so a
         // native submit type would be inert anyway; _onControlClick forwards
-        // submit/reset to the host's form.
+        // submit/reset to the form through the light-DOM proxy.
         return html`
             <button
                 class="control"

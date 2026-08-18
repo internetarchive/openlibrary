@@ -922,6 +922,14 @@ html:has(.ds) {
   width: 100%;
 }
 
+/* A fieldset used as a demo row is a grouping device, not a visible box. */
+fieldset.ds-demo-row {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .ds-demo-dialog-body {
   margin: 0;
 }

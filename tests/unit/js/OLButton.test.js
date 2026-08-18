@@ -1,9 +1,12 @@
 /**
  * <ol-button> rendering contract: it paints a real <button> / <a> in its own
  * shadow root, projects the author's label through a slot, mirrors host ARIA
- * onto the inner control, and forwards submit/reset to the enclosing form via
- * ElementInternals. jsdom has no layout, so appearance (variants, shapes,
- * elevation) is CSS-only and verified in the browser / design page.
+ * onto the inner control, and acts on the enclosing form through a hidden
+ * light-DOM proxy <button>. jsdom has no layout, so appearance (variants,
+ * shapes, elevation) is CSS-only and verified in the browser / design page.
+ * jsdom also has no <fieldset disabled> → formDisabledCallback plumbing and no
+ * implicit submission (Enter in a text field); those live in
+ * tests/e2e/ol-button-form.spec.ts.
  */
 import '../../../openlibrary/components/lit/OLButton.js';
 
@@ -31,6 +34,21 @@ async function mount(attrs = {}, label = 'Label', parent = document.body) {
 }
 
 const control = (el) => el.shadowRoot.querySelector('.control');
+const proxy = (el) => el.querySelector(':scope > button');
+// Click forwarding is deferred past event dispatch (setTimeout 0).
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+async function mountInForm(attrs, label = 'Go') {
+    const form = document.createElement('form');
+    document.body.appendChild(form);
+    const submits = [];
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submits.push(e);
+    });
+    const el = await mount(attrs, label, form);
+    return { form, el, submits };
+}
 
 afterEach(() => {
     document.body.innerHTML = '';
@@ -131,35 +149,161 @@ describe('OLButton', () => {
         expect(Ctor.shadowRootOptions.delegatesFocus).toBe(true);
     });
 
-    test('type="submit" calls the form\'s requestSubmit(); type="reset" resets it', async() => {
-        const form = document.createElement('form');
-        document.body.appendChild(form);
-        const submit = await mount({ type: 'submit' }, 'Go', form);
-        // Point the fake internals at the form, as the browser would.
-        submit._internals.form = { requestSubmit: jest.fn(), reset: jest.fn() };
-        control(submit).click();
-        expect(submit._internals.form.requestSubmit).toHaveBeenCalledTimes(1);
+    describe('form proxy', () => {
+        test('type="submit" keeps one hidden, unslotted native submit button in light DOM', async() => {
+            const el = await mount({ type: 'submit', name: 'action', value: 'save' });
+            const p = proxy(el);
+            expect(p).not.toBeNull();
+            expect(el.querySelectorAll('button')).toHaveLength(1);
+            expect(p.type).toBe('submit');
+            expect(p.hidden).toBe(true);
+            expect(p.assignedSlot).toBeNull();
+            expect(p.getAttribute('aria-hidden')).toBe('true');
+            expect(p.tabIndex).toBe(-1);
+            expect(p.name).toBe('action');
+            expect(p.value).toBe('save');
+            // The visible label is untouched.
+            expect(el.textContent).toBe('Label');
+        });
 
-        const reset = await mount({ type: 'reset' }, 'Clear', form);
-        reset._internals.form = { requestSubmit: jest.fn(), reset: jest.fn() };
-        control(reset).click();
-        expect(reset._internals.form.reset).toHaveBeenCalledTimes(1);
-        expect(reset._internals.form.requestSubmit).not.toHaveBeenCalled();
+        test('mirrors form* attributes and disabled/loading onto the proxy', async() => {
+            const el = await mount({ type: 'submit', formaction: '/save', formmethod: 'post', formnovalidate: '', formtarget: '_blank' });
+            const p = proxy(el);
+            expect(p.getAttribute('formaction')).toBe('/save');
+            expect(p.getAttribute('formmethod')).toBe('post');
+            expect(p.hasAttribute('formnovalidate')).toBe(true);
+            expect(p.getAttribute('formtarget')).toBe('_blank');
+            expect(p.disabled).toBe(false);
+            el.disabled = true;
+            await el.updateComplete;
+            expect(p.disabled).toBe(true);
+            el.disabled = false;
+            el.loading = true;
+            await el.updateComplete;
+            expect(p.disabled).toBe(true);
+            el.loading = false;
+            el.removeAttribute('formaction');
+            await el.updateComplete;
+            expect(p.disabled).toBe(false);
+            expect(p.hasAttribute('formaction')).toBe(false);
+        });
+
+        test('type="button" and links have no proxy; it follows type/href changes', async() => {
+            const el = await mount();
+            expect(proxy(el)).toBeNull();
+            el.type = 'submit';
+            await el.updateComplete;
+            expect(proxy(el)).not.toBeNull();
+            el.href = '/x';
+            await el.updateComplete;
+            expect(proxy(el)).toBeNull();
+            el.href = undefined;
+            el.type = 'reset';
+            await el.updateComplete;
+            expect(proxy(el).type).toBe('reset');
+            el.type = 'button';
+            await el.updateComplete;
+            expect(proxy(el)).toBeNull();
+        });
+
+        test('re-creates the proxy if a consumer replaces the light DOM', async() => {
+            const el = await mount({ type: 'submit' });
+            el.textContent = 'New label';
+            expect(proxy(el)).toBeNull();
+            el.requestUpdate();
+            await el.updateComplete;
+            expect(proxy(el)).not.toBeNull();
+            expect(el.textContent).toBe('New label');
+        });
     });
 
-    test('type="button" does not touch the form', async() => {
-        const el = await mount({}, 'Noop');
-        el._internals.form = { requestSubmit: jest.fn(), reset: jest.fn() };
-        control(el).click();
-        expect(el._internals.form.requestSubmit).not.toHaveBeenCalled();
-        expect(el._internals.form.reset).not.toHaveBeenCalled();
+    describe('form submission', () => {
+        test('type="submit" submits with the proxy as submitter, carrying name/value', async() => {
+            const { form, el, submits } = await mountInForm({ type: 'submit', name: 'action', value: 'save' });
+            control(el).click();
+            expect(submits).toHaveLength(0); // deferred past dispatch
+            await flush();
+            expect(submits).toHaveLength(1);
+            expect(submits[0].submitter).toBe(proxy(el));
+            expect(submits[0].submitter.closest('ol-button')).toBe(el);
+            expect(new FormData(form, submits[0].submitter).get('action')).toBe('save');
+        });
+
+        test('type="reset" resets the form', async() => {
+            const { form, el } = await mountInForm({ type: 'reset' }, 'Clear');
+            const input = document.createElement('input');
+            input.name = 'q';
+            form.prepend(input);
+            input.value = 'typed';
+            control(el).click();
+            await flush();
+            expect(input.value).toBe('');
+        });
+
+        test('type="button" does not touch the form', async() => {
+            const { el, submits } = await mountInForm({}, 'Noop');
+            control(el).click();
+            await flush();
+            expect(submits).toHaveLength(0);
+        });
+
+        test('preventDefault() on the host or an ancestor cancels the submit, like a native button', async() => {
+            const { form, el, submits } = await mountInForm({ type: 'submit' });
+            const cancel = (e) => e.preventDefault();
+            form.addEventListener('click', cancel);
+            control(el).click();
+            await flush();
+            expect(submits).toHaveLength(0);
+            form.removeEventListener('click', cancel);
+
+            el.addEventListener('click', cancel);
+            control(el).click();
+            await flush();
+            expect(submits).toHaveLength(0);
+            el.removeEventListener('click', cancel);
+
+            control(el).click();
+            await flush();
+            expect(submits).toHaveLength(1);
+        });
+
+        test('does not submit while disabled or loading', async() => {
+            const { el, submits } = await mountInForm({ type: 'submit', disabled: '' });
+            control(el).click();
+            await flush();
+            el.disabled = false;
+            el.loading = true;
+            await el.updateComplete;
+            control(el).click();
+            await flush();
+            expect(submits).toHaveLength(0);
+        });
+
+        test('falls back to internals.form.requestSubmit() when the proxy has no form owner', async() => {
+            // e.g. the button is inside another component's shadow root and the
+            // form is outside — the proxy can't associate, ElementInternals can.
+            const el = await mount({ type: 'submit' });
+            const fakeForm = { requestSubmit: jest.fn(), reset: jest.fn() };
+            el._internals.form = fakeForm;
+            control(el).click();
+            await flush();
+            expect(fakeForm.requestSubmit).toHaveBeenCalledTimes(1);
+            expect(fakeForm.requestSubmit).toHaveBeenCalledWith();
+        });
     });
 
-    test('formDisabledCallback mirrors to the disabled property', async() => {
-        const el = await mount();
+    test('formDisabledCallback disables the control without reflecting a disabled attribute', async() => {
+        const el = await mount({ type: 'submit' });
         el.formDisabledCallback(true);
         await el.updateComplete;
-        expect(el.disabled).toBe(true);
+        expect(el.disabled).toBe(false);
+        expect(el.hasAttribute('disabled')).toBe(false);
+        expect(el.isDisabled).toBe(true);
         expect(control(el).disabled).toBe(true);
+        expect(proxy(el).disabled).toBe(true);
+        el.formDisabledCallback(false);
+        await el.updateComplete;
+        expect(control(el).disabled).toBe(false);
+        expect(proxy(el).disabled).toBe(false);
     });
 });

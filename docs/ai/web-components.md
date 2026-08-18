@@ -10,7 +10,7 @@ The browser flattens the shadow tree for exactly two things — sequential Tab o
 |---|---|---|
 | **Sequential focus / Tab order** | `querySelectorAll`/`TreeWalker`/`activeElement` stop at the boundary; a focus trap can't see in or tell what's really focused | Shadow-piercing helpers + `FocusableHostMixin` — see [Focus and Shadow DOM](#focus-and-shadow-dom) |
 | **CSS cascade** | Page CSS can't reach in; component CSS can't leak out (mostly the point) | Shadow by default + design tokens (they inherit through) + `::part`; light DOM only by the rule in [Shadow DOM vs Light DOM](#shadow-dom-vs-light-dom) |
-| **Form participation** | A control rendered in shadow DOM submits **nothing** with the enclosing `<form>` | `FormAssociatedMixin` for value-carrying controls; `formAssociated` + `internals.form.requestSubmit()` for submit buttons (`ol-button`) — see [Form participation](#form-participation-formassociatedmixin) |
+| **Form participation** | A control rendered in shadow DOM submits **nothing** with the enclosing `<form>` | `FormAssociatedMixin` for value-carrying controls; the mixin plus a hidden light-DOM proxy `<button>` for submit buttons (`ol-button`) — see [Form participation](#form-participation-formassociatedmixin) |
 | **Cross-root ARIA (IDREFs)** | `aria-labelledby`/`-describedby`/`-controls`/`-activedescendant` and `<label for>` can't resolve an id in another root | Keep the relationship in one root; never claim `aria-modal` without a real trap — see [ARIA across roots](#aria-across-roots) |
 
 If you remember one thing: **focus and reading order are free; styling, forms, and id-based ARIA are not.**
@@ -459,6 +459,36 @@ Reference implementations: `ol-toggle` (checkbox-shaped), `ol-segmented-control`
 `FocusableHostMixin` when both apply. See
 [the shadow-boundary contract](#the-shadow-boundary-contract) for why this is one
 of the four systems that breaks at a shadow boundary.
+
+### Disabled: `isDisabled`, never mirror the callback
+
+An ancestor `<fieldset disabled>` reaches the control through
+`formDisabledCallback`. The mixin records it in `_formDisabled` and exposes
+`isDisabled` (`disabled || _formDisabled`). **Gate interaction and render
+`?disabled` from `isDisabled`, and style with `:host(:disabled)`** — the browser
+keeps that pseudo-class in sync with both sources. Never write the callback's
+value back into `disabled`: that reflects a `disabled` attribute onto the host,
+and an attribute-disabled FACE stays disabled after the fieldset is re-enabled
+(the browser sees no state change, so the callback never fires again). Verified
+in `tests/e2e/ol-button-form.spec.ts`; jsdom has no fieldset plumbing.
+
+### Submit buttons: a light-DOM proxy
+
+`ElementInternals` gives a FACE a form owner but **not** submit-button
+semantics: it can't be the form's default button (so Enter in a text field does
+nothing once the form has two text fields), can't be `SubmitEvent.submitter`,
+and contributes no `name`/`value`. `ol-button` closes that gap by keeping a
+hidden native `<button type="submit|reset">` in its **light DOM** — given a slot
+name that doesn't exist, so it never renders — mirroring `type`, `name`,
+`value`, `disabled`/`loading`, and the `form*` attributes. Being a real submit
+button in the form's tree, it is the default button, and a click on the visible
+control is forwarded as `form.requestSubmit(proxy)`, **deferred with
+`setTimeout(0)`** so `preventDefault()` on the host or an ancestor cancels the
+submission the way it does for a native button (a microtask is too early — for
+user input the browser drains microtasks between listeners). When the button is
+inside another component's shadow root and the form outside, the proxy has no
+form owner and it falls back to `internals.form.requestSubmit()`. Same shape as
+Lion's `lion-button` and FAST's button proxy.
 
 ## ARIA across roots
 

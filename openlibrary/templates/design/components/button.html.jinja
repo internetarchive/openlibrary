@@ -213,27 +213,46 @@
             Continue
         </ol-button>
     {% endcall %}
-    {% call ex.example("Form submission", "The element is form-associated: type=\"submit\" calls the enclosing form's requestSubmit(), so native validation and the form's submit event run; type=\"reset\" resets it. Because it isn't a native submit button, submit events have no event.submitter and the button adds no name/value to FormData.") %}
-        <form id="demo-button-form" class="ds-demo-row">
-            <label for="demo-button-form-input">Your name:</label>
-            <input id="demo-button-form-input" name="name" required>
-            <ol-button type="submit">
-                Submit
-            </ol-button>
-            <ol-button type="reset" variant="secondary">
-                Reset
-            </ol-button>
+    {% call ex.example("Form submission", "The element is form-associated and keeps a hidden native submit button in its light DOM, so it behaves like a native button: type=\"submit\" submits the enclosing form (native validation runs, Enter in a text field submits, event.submitter is set, name/value are submitted, formaction and friends work), type=\"reset\" resets it, and preventDefault() on a click cancels either. A disabled fieldset disables it too.") %}
+        <form id="demo-button-form">
+            <fieldset id="demo-button-form-fieldset" class="ds-demo-row">
+                <label for="demo-button-form-input">Your name:</label>
+                <input id="demo-button-form-input" name="name" required>
+                <label for="demo-button-form-input-2">Nickname:</label>
+                <input id="demo-button-form-input-2" name="nickname">
+                <ol-button type="submit" name="action" value="save">
+                    Submit
+                </ol-button>
+                <ol-button type="reset" variant="secondary">
+                    Reset
+                </ol-button>
+            </fieldset>
         </form>
-        <p>Last submitted: <strong id="demo-button-form-output">—</strong></p>
+        <p>
+            <ol-toggle id="demo-button-form-disable" variant="button">
+                Disable fieldset
+            </ol-toggle>
+        </p>
+        <p>Last submitted: <strong id="demo-button-form-output">—</strong> (submits: <span id="demo-button-form-count">0</span>)</p>
         <script>
             (function () {
                 const form = document.getElementById('demo-button-form');
                 const out = document.getElementById('demo-button-form-output');
+                const count = document.getElementById('demo-button-form-count');
+                const fieldset = document.getElementById('demo-button-form-fieldset');
+                let submits = 0;
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    out.textContent = new FormData(form).get('name') || '—';
+                    count.textContent = ++submits;
+                    // Pass the submitter so its name/value are included, as they would be on a real submission.
+                    const data = new FormData(form, e.submitter);
+                    const via = e.submitter ? e.submitter.closest('ol-button').textContent.trim() : 'no submitter';
+                    out.textContent = (data.get('name') || '—') + ' [' + data.get('action') + ', via ' + via + ']';
                 });
                 form.addEventListener('reset', function () { out.textContent = '—'; });
+                document.getElementById('demo-button-form-disable').addEventListener('ol-toggle-change', function (e) {
+                    fieldset.disabled = e.detail.checked;
+                });
             })();
         </script>
     {% endcall %}
