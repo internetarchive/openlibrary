@@ -1,37 +1,38 @@
-import { getTestingStatus, testingStatusUrl } from '../../../openlibrary/plugins/openlibrary/js/testing-status/TestingStatusService';
-import { init } from '../../../openlibrary/plugins/openlibrary/js/testing-status';
+import {
+    DEFAULT_STRINGS,
+    actionResultMessage,
+    canUpdate,
+    decodeAndParseJSON,
+    driftPill,
+    effectiveActive,
+    formatTime,
+    getTestingStatus,
+    isPending,
+    postAction,
+    safeHttpUrl,
+    sprintf,
+    testingStatusUrl
+} from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
-const payload = {
-    last_deploy_at: '',
-    deploy_started_at: '',
-    deploying: false,
-    has_pending: false,
-    pending_changes: [],
-    prs: [{
-        pr: 13269,
-        title: 'A client-rendered testing panel',
-        commit: '1d23364b8c652d6107e2dc685f918551fda5d327',
-        active: true,
-        added_at: '2026-08-06T15:00:00+00:00',
-        added_by: 'openlibrary',
-        author: 'author',
-        assignee: 'assignee',
-        head_sha: '1d23364',
-        drift: 0,
-        merged: false,
-        is_new: false
-    }]
+const pr = {
+    pr: 13269,
+    title: 'A client-rendered testing panel',
+    commit: '1d23364b8c652d6107e2dc685f918551fda5d327',
+    active: true,
+    added_at: '2026-08-06T15:00:00+00:00',
+    added_by: 'openlibrary',
+    author: 'author',
+    assignee: 'assignee',
+    head_sha: '1d23364',
+    drift: 0,
+    merged: false,
+    is_new: false
 };
 
-function flushPromises() {
-    return new Promise((resolve) => setTimeout(resolve, 0));
-}
-
-describe('Testing Environment JSON panel', () => {
+describe('Testing Environment utils', () => {
     afterEach(() => {
         jest.restoreAllMocks();
         delete global.fetch;
-        document.body.replaceChildren();
     });
 
     test('uses the FastAPI proxy only on the testing host', () => {
@@ -41,312 +42,126 @@ describe('Testing Environment JSON panel', () => {
     });
 
     test('fetches JSON with same-origin credentials', async() => {
+        const payload = { prs: [pr] };
         const response = { ok: true, json: jest.fn().mockResolvedValue(payload) };
         global.fetch = jest.fn().mockResolvedValue(response);
 
-        await expect(getTestingStatus()).resolves.toBe(payload);
+        await expect(getTestingStatus({ hostname: 'localhost' })).resolves.toBe(payload);
         expect(global.fetch).toHaveBeenCalledWith('/status/testing.json', {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin'
         });
     });
 
-    test('refreshes JSON after a mutation and shows deploy feedback', async() => {
-        const deployPayload = {
-            ...payload,
-            pending_changes: [{ pr: 13269, title: 'Test PR', kind: 'add', detail: '1d23364' }]
-        };
-        global.fetch = jest.fn().mockImplementation((url, options) => {
-            if (options?.method === 'POST') {
-                return Promise.resolve({ ok: true, url: 'http://localhost:8080/status?deploy_triggered=1' });
-            }
-            return Promise.resolve({ ok: true, json: jest.fn().mockResolvedValue(deployPayload) });
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
+    test('posts actions form-encoded, repeating array fields', async() => {
+        global.fetch = jest.fn().mockResolvedValue({ ok: true });
 
-        init(root);
-        await flushPromises();
-        await flushPromises();
-        root.querySelector('[data-deploy]').click();
-        await flushPromises();
-        await flushPromises();
-        await flushPromises();
+        await postAction('/status/remove', { prs: [13269, 13270] });
 
-        expect(global.fetch).toHaveBeenCalledTimes(3);
-        expect(root.querySelector('[data-toast]').textContent).toBe('Deploy triggered!');
-    });
-
-    test('renders the panel from the JSON response', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(payload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-        await flushPromises();
-
-        expect(root.querySelector('.testing-env__title').textContent).toContain('Testing Environment');
-        expect(root.querySelector('.testing-env__pr-num').textContent).toBe('#13269');
-        expect(root.querySelector('.testing-env__pill--ok').textContent).toBe('OK');
-        expect(root.querySelectorAll('[data-row-toggle]')).toHaveLength(1);
-        // Drift 0 and not merged, so only the delete action shows.
-        expect(root.querySelectorAll('[data-row-action]')).toHaveLength(1);
-        expect(root.querySelectorAll('[data-bulk]')).toHaveLength(0);
-        expect(root.querySelector('input[type="checkbox"]')).toBeNull();
-        expect(root.querySelector('[data-deploy]')).not.toBeNull();
-        expect(root.querySelector('[data-add-form]')).not.toBeNull();
-        expect(root.querySelector('[data-testing-loading]')).toBeNull();
-
-        // Refresh is a deploy-band action now, not a checkbox-gated bulk one.
-        const refreshButton = root.querySelector('[data-refresh]');
-        expect(refreshButton).not.toBeNull();
-        expect(refreshButton.closest('.testing-env__deploy')).not.toBeNull();
-        expect(refreshButton.classList.contains('testing-env__btn--small')).toBe(false);
-    });
-
-    test('refresh button posts to /status/refresh and shows the sync toast', async() => {
-        global.fetch = jest.fn().mockImplementation((url, options) => {
-            if (options?.method === 'POST') {
-                return Promise.resolve({ ok: true, url: 'http://localhost:8080/status?github_refreshed=1' });
-            }
-            return Promise.resolve({ ok: true, json: jest.fn().mockResolvedValue(payload) });
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-
-        root.querySelector('[data-refresh]').click();
-        await flushPromises();
-        await flushPromises();
-        await flushPromises();
-
-        expect(global.fetch).toHaveBeenCalledWith('/status/refresh', expect.objectContaining({ method: 'POST' }));
-        expect(root.querySelector('[data-toast]').textContent).toBe('GitHub status refreshed.');
-    });
-
-    test('person cells show an avatar only, with the username on hover', async() => {
-        const personPayload = {
-            ...payload,
-            prs: [{
-                ...payload.prs[0],
-                author: 'octocat',
-                author_avatar: 'https://avatars.githubusercontent.com/u/1?v=4',
-                assignee: 'hubot',
-                assignee_avatar: ''
-            }]
-        };
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(personPayload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-        await flushPromises();
-
-        const personCells = root.querySelectorAll('.testing-env__person');
-        expect(personCells).toHaveLength(2);
-
-        // The person column centres its content under the header.
-        for (const cell of personCells) {
-            expect(cell.closest('td').classList.contains('testing-env__col-person')).toBe(true);
-        }
-
-        // Real avatar: picture only, username carried in title/alt, no name text.
-        const authorAvatar = personCells[0].querySelector('.testing-env__avatar');
-        expect(authorAvatar.tagName).toBe('IMG');
-        expect(authorAvatar.title).toBe('octocat');
-        expect(authorAvatar.alt).toBe('octocat');
-        expect(personCells[0].textContent.trim()).toBe('');
-
-        // Missing avatar URL: letter tile with the username still on hover.
-        const assigneeAvatar = personCells[1].querySelector('.testing-env__avatar--fallback');
-        expect(assigneeAvatar).not.toBeNull();
-        expect(assigneeAvatar.title).toBe('hubot');
-        expect(assigneeAvatar.getAttribute('aria-label')).toBe('hubot');
-        expect(assigneeAvatar.textContent).toBe('H');
-    });
-
-    test('shows update only when a newer commit is available, delete on every row', async() => {
-        const actionPayload = {
-            ...payload,
-            prs: [
-                { ...payload.prs[0], pr: 13270, drift: 2 },
-                { ...payload.prs[0], pr: 13271, merged: true },
-                { ...payload.prs[0], pr: 13272 }
-            ]
-        };
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(actionPayload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-        await flushPromises();
-
-        const rowActions = [...root.querySelectorAll('[data-row-action]')];
-        expect(rowActions).toHaveLength(4);
-        expect(rowActions.map((button) => button.getAttribute('formaction'))).toEqual([
-            '/status/pull-latest',
+        expect(global.fetch).toHaveBeenCalledWith(
             '/status/remove',
-            '/status/remove',
-            '/status/remove'
-        ]);
-        expect(rowActions[0].classList.contains('testing-env__row-action--danger')).toBe(false);
-        expect(rowActions[1].classList.contains('testing-env__row-action--danger')).toBe(true);
-
-        // The update arrow sits in the drift cell right after the pill; the
-        // actions column holds only the delete buttons.
-        const updateButton = root.querySelector('[data-row-action][formaction="/status/pull-latest"]');
-        expect(updateButton.closest('.testing-env__drift-cell')).not.toBeNull();
-        const stackChildren = [...updateButton.closest('.testing-env__cell-stack').children];
-        expect(stackChildren.indexOf(updateButton)).toBeGreaterThan(
-            stackChildren.findIndex((child) => child.classList.contains('testing-env__pill'))
+            expect.objectContaining({
+                method: 'POST',
+                credentials: 'same-origin',
+                body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
+            })
         );
-        expect(root.querySelectorAll('.testing-env__col-actions [data-row-action]')).toHaveLength(3);
-        expect(root.querySelectorAll('.testing-env__col-actions [data-row-action][formaction="/status/pull-latest"]')).toHaveLength(0);
     });
 
-    test('marks a pending change with an hourglass whose hover note names it', async() => {
-        const pendingPayload = {
-            ...payload,
-            prs: [{ ...payload.prs[0], pending_active: true }]
-        };
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(pendingPayload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
+    test('rejects failed fetches and posts', async() => {
+        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
 
-        init(root);
-        await flushPromises();
-        await flushPromises();
-
-        const pending = root.querySelector('.testing-env__pending');
-        expect(pending).not.toBeNull();
-        expect(pending.textContent).toBe('⏳');
-        expect(pending.title).toBe('changes on deploy');
-        expect(pending.getAttribute('aria-label')).toBe('changes on deploy');
+        await expect(getTestingStatus({ hostname: 'localhost' })).rejects.toThrow('500');
+        await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
     });
 
-    test('row delete button removes the PR from the set', async() => {
-        global.fetch = jest.fn().mockImplementation((url, options) => {
-            if (options?.method === 'POST') {
-                return Promise.resolve({ ok: true, url: 'http://localhost:8080/status' });
-            }
-            return Promise.resolve({ ok: true, json: jest.fn().mockResolvedValue(payload) });
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        root.dataset.maintainer = 'true';
-        root.dataset.jenkinsUrl = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-
-        root.querySelector('[data-row-action][formaction="/status/remove"]').click();
-        await flushPromises();
-        await flushPromises();
-        await flushPromises();
-
-        expect(global.fetch).toHaveBeenCalledWith('/status/remove', expect.objectContaining({ method: 'POST' }));
-        expect(root.querySelector('[data-toast]').textContent).toBe('Action completed.');
+    test('fills %s placeholders in order', () => {
+        expect(sprintf('%s change will be applied', 3)).toBe('3 change will be applied');
+        expect(sprintf('%s commits behind %s', 4, 'abc1234')).toBe('4 commits behind abc1234');
+        expect(sprintf('%s selected', 2)).toBe('2 selected');
     });
 
-    test('re-fetches status when the tab regains focus', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(payload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-
-        document.dispatchEvent(new Event('visibilitychange'));
-        await flushPromises();
-        await flushPromises();
-
-        // One fetch for the initial load, one for the focus refresh.
-        expect(global.fetch).toHaveBeenCalledTimes(2);
-        expect(root.querySelector('[data-testing-loading]')).toBeNull();
+    test('decodes render_component JSON attributes', () => {
+        const encoded = encodeURIComponent(JSON.stringify({ title: 'Testing Environment' }));
+        expect(decodeAndParseJSON(encoded)).toEqual({ title: 'Testing Environment' });
     });
 
-    test('dedupes rapid focus and visibility events into one refresh', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            json: jest.fn().mockResolvedValue(payload)
-        });
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        document.body.append(root);
-
-        init(root);
-        await flushPromises();
-
-        // Some browsers fire both events when returning to the tab.
-        document.dispatchEvent(new Event('visibilitychange'));
-        window.dispatchEvent(new Event('focus'));
-        document.dispatchEvent(new Event('visibilitychange'));
-        await flushPromises();
-        await flushPromises();
-
-        expect(global.fetch).toHaveBeenCalledTimes(2);
+    test('formats ISO timestamps for display', () => {
+        expect(formatTime('2026-08-06T15:00:00+00:00')).toBe('2026-08-06 15:00');
+        expect(formatTime('')).toBe('');
     });
 
-    test('skips the focus refresh while a load or action is in flight', async() => {
-        let resolveInitial;
-        global.fetch = jest.fn().mockImplementation(() => new Promise((resolve) => {
-            resolveInitial = resolve;
-        }));
-        const root = document.createElement('section');
-        root.dataset.testingEnv = '';
-        document.body.append(root);
+    test('resolves the effective toggle state', () => {
+        expect(effectiveActive({ active: true })).toBe(true);
+        expect(effectiveActive({ active: false })).toBe(false);
+        expect(effectiveActive({ active: true, pending_active: false })).toBe(false);
+        expect(effectiveActive({ active: false, pending_active: true })).toBe(true);
+        expect(effectiveActive({ active: true, pending_active: null })).toBe(true);
+    });
 
-        init(root);
-        await flushPromises();
+    test('detects staged changes for the next deploy', () => {
+        expect(isPending(pr)).toBe(false);
+        expect(isPending({ ...pr, merged: true })).toBe(true);
+        expect(isPending({ ...pr, pull_latest_sha: 'abc1234' })).toBe(true);
+        expect(isPending({ ...pr, pending_active: false })).toBe(true);
+        expect(isPending({ ...pr, pending_active: null })).toBe(false);
+    });
 
-        // The initial load is still pending, so the panel is busy and the
-        // focus refresh must not fire another request.
-        document.dispatchEvent(new Event('visibilitychange'));
-        await flushPromises();
-        expect(global.fetch).toHaveBeenCalledTimes(1);
+    test('offers pull-latest only when a newer commit is available', () => {
+        expect(canUpdate({ ...pr, drift: 2 })).toBe(true);
+        expect(canUpdate({ ...pr, drift: 0 })).toBe(false);
+        expect(canUpdate({ ...pr, drift: 2, pull_latest_sha: 'abc1234' })).toBe(false);
+        expect(canUpdate({ ...pr, drift: -1 })).toBe(false);
+    });
 
-        resolveInitial({ ok: true, json: jest.fn().mockResolvedValue(payload) });
-        await flushPromises();
-        expect(global.fetch).toHaveBeenCalledTimes(1);
+    test('decides the drift pill per state', () => {
+        const merged = driftPill({ ...pr, merged: true }, DEFAULT_STRINGS);
+        expect(merged.kind).toBe('merged');
+        expect(merged.label).toBe('merged');
+        expect(merged.href).toBe('');
+
+        const ok = driftPill(pr, DEFAULT_STRINGS);
+        expect(ok.kind).toBe('ok');
+        expect(ok.label).toBe('OK');
+        expect(ok.title).toBe('Up-to-date, pinned at 1d23364');
+        expect(ok.href).toBe('');
+
+        const unknown = driftPill({ ...pr, drift: -1 }, DEFAULT_STRINGS);
+        expect(unknown.kind).toBe('unknown');
+        expect(unknown.label).toBe('?');
+        expect(unknown.href).toContain('/commit/1d23364');
+
+        const behind = driftPill({ ...pr, drift: 3 }, DEFAULT_STRINGS);
+        expect(behind.kind).toBe('behind');
+        expect(behind.label).toBe('-3');
+        expect(behind.title).toBe('3 commits behind 1d23364');
+        expect(behind.href).toContain('/compare/1d23364b8c652d6107e2dc685f918551fda5d327...1d23364');
+
+        const behindWithoutSha = driftPill({ ...pr, drift: 1, head_sha: '' }, DEFAULT_STRINGS);
+        expect(behindWithoutSha.href).toBe('');
+        expect(behindWithoutSha.title).toBe('1 commit behind 1d23364');
+    });
+
+    test('reads deploy and refresh outcomes off the redirect URL', () => {
+        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_triggered=1', DEFAULT_STRINGS))
+            .toBe(DEFAULT_STRINGS.deployTriggered);
+        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_failed=1', DEFAULT_STRINGS))
+            .toBe(DEFAULT_STRINGS.deployFailed);
+        expect(actionResultMessage('/status/deploy', 'http://localhost:8080/status?deploy_unconfigured=1', DEFAULT_STRINGS))
+            .toBe(DEFAULT_STRINGS.deployUnconfigured);
+        expect(actionResultMessage('/status/refresh', 'http://localhost:8080/status?drift_refreshed=1', DEFAULT_STRINGS))
+            .toBe(DEFAULT_STRINGS.githubRefreshed);
+        expect(actionResultMessage('/status/remove', 'http://localhost:8080/status', DEFAULT_STRINGS))
+            .toBe(DEFAULT_STRINGS.actionComplete);
+    });
+
+    test('only allows safe avatar and Jenkins URLs', () => {
+        expect(safeHttpUrl('https://avatars.githubusercontent.com/u/1?v=4', 'https://openlibrary.org'))
+            .toBe('https://avatars.githubusercontent.com/u/1?v=4');
+        expect(safeHttpUrl('//evil.example/x', 'https://openlibrary.org')).toBe('');
+        expect(safeHttpUrl('http://evil.example/x', 'https://openlibrary.org')).toBe('');
+        expect(safeHttpUrl('http://openlibrary.org/x', 'http://openlibrary.org'))
+            .toBe('http://openlibrary.org/x');
+        expect(safeHttpUrl('', 'https://openlibrary.org')).toBe('');
     });
 });

@@ -1,10 +1,9 @@
 {#
-   Client-rendering shell for the /status Testing Environment panel.
-
-   The JavaScript controller fetches /status/testing.json and renders the panel
-   from that response. The server still supplies maintainer visibility, the
+   Testing Environment panel for /status, rendered by the Vue web component
+   ol-testing-environment. The server supplies maintainer visibility, the
    Jenkins link, and translated strings because those are page configuration,
-   not testing-environment state.
+   not testing-environment state — the component fetches /status/testing.json
+   and renders from that.
    #}
 {% set i18n_strings = {
     "loading": _("Loading testing environment…"),
@@ -58,15 +57,8 @@
     "viewJenkins": _("View Jenkins"),
     "noPrs": _("No PRs in testing set.")
 } %}
-<section class="testing-env"
-         data-testing-env
-         data-maintainer="{{ 'true' if is_maintainer else 'false' }}"
-         data-jenkins-url="{{ jenkins_job_url }}"
-         data-i18n='{{ i18n_strings | tojson }}'>
-    <div class="testing-env__main">
-        <p class="testing-env__blank"
-           data-testing-loading
-           role="status"
-           aria-live="polite">{{ i18n_strings["loading"] }}</p>
-    </div>
-</section>
+{{ render_component('TestingEnvironment', attrs={
+    'maintainer': 'true' if is_maintainer else 'false',
+    'jenkins_url': jenkins_job_url,
+    'i18n': i18n_strings,
+}) | safe }}

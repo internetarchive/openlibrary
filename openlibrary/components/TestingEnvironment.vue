@@ -1,7 +1,327 @@
-/**
- * Testing Environment deploy table on /status.
- * Markup: openlibrary/macros/TestingEnvironment.html.jinja
- */
+<template>
+  <section
+    class="testing-env"
+    :aria-busy="busy ? 'true' : 'false'"
+  >
+    <template v-if="view === 'loading'">
+      <div class="testing-env__main">
+        <p
+          class="testing-env__blank"
+          role="status"
+          aria-live="polite"
+        >
+          {{ strings.loading }}
+        </p>
+      </div>
+    </template>
+
+    <template v-else-if="view === 'error'">
+      <div class="testing-env__main">
+        <div
+          class="testing-env__blank"
+          role="alert"
+        >
+          <p>{{ strings.loadError }}</p>
+          <button
+            type="button"
+            class="testing-env__btn testing-env__btn--small"
+            :disabled="busy"
+            @click="retry"
+          >
+            {{ strings.retry }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="testing-env__main">
+        <header class="testing-env__bar">
+          <h2 class="testing-env__title">
+            {{ strings.title }}
+          </h2>
+          <form
+            v-if="isMaintainer"
+            method="post"
+            class="testing-env__add"
+            data-add-form
+            @submit.prevent="addPrs"
+          >
+            <label
+              class="shift"
+              for="testing-env-add"
+            >{{ strings.addPrs }}</label>
+            <input
+              id="testing-env-add"
+              v-model="addInput"
+              type="text"
+              name="pr"
+              class="testing-env__input"
+              autocomplete="off"
+              :placeholder="strings.addPlaceholder"
+            >
+            <button
+              type="submit"
+              class="testing-env__btn testing-env__btn--primary"
+              :disabled="busy"
+            >
+              {{ strings.add }}
+            </button>
+          </form>
+        </header>
+
+        <div
+          v-if="prs.length"
+          class="testing-env__table-wrap"
+        >
+          <table class="testing-env__table">
+            <thead>
+              <tr>
+                <th
+                  v-if="isMaintainer"
+                  scope="col"
+                >
+                  {{ strings.on }}
+                </th>
+                <th scope="col">
+                  {{ strings.pr }}
+                </th>
+                <th scope="col">
+                  {{ strings.author }}
+                </th>
+                <th scope="col">
+                  {{ strings.assignee }}
+                </th>
+                <th scope="col">
+                  {{ strings.drift }}
+                </th>
+                <th
+                  v-if="isMaintainer"
+                  scope="col"
+                  class="testing-env__col-actions"
+                >
+                  <span class="shift">{{ strings.actions }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <TestingRow
+                v-for="pr in prs"
+                :key="pr.pr"
+                :pr="pr"
+                :maintainer="isMaintainer"
+                :busy="busy"
+                :strings="strings"
+                @toggle="togglePr"
+                @update="updatePr"
+                @remove="removePr"
+              />
+            </tbody>
+          </table>
+        </div>
+        <p
+          v-else
+          class="testing-env__blank"
+        >
+          {{ strings.noPrs }}
+        </p>
+      </div>
+
+      <DeploySection
+        :payload="payload"
+        :maintainer="isMaintainer"
+        :busy="busy"
+        :strings="strings"
+        :jenkins_url="jenkinsUrl"
+        @deploy="deploy"
+        @refresh="refresh"
+      />
+    </template>
+
+    <div
+      v-if="toast"
+      class="testing-env__toast"
+      role="status"
+      aria-live="polite"
+    >
+      {{ toast }}
+    </div>
+  </section>
+</template>
+
+<script>
+import TestingRow from './TestingEnvironment/TestingRow.vue';
+import DeploySection from './TestingEnvironment/DeploySection.vue';
+import {
+    DEFAULT_STRINGS,
+    actionResultMessage,
+    decodeAndParseJSON,
+    effectiveActive,
+    getTestingStatus,
+    postAction,
+    safeHttpUrl,
+    sprintf
+} from './TestingEnvironment/utils.js';
+
+export default {
+    name: 'TestingEnvironment',
+    components: {
+        TestingRow,
+        DeploySection
+    },
+    props: {
+        maintainer: {
+            type: String,
+            default: 'false'
+        },
+        jenkins_url: {
+            type: String,
+            default: ''
+        },
+        /**
+         * URI encoded JSON string of translated panel strings.
+         *
+         * @see render_component() in openlibrary/plugins/upstream/utils.py
+         */
+        i18n: {
+            type: String,
+            default: ''
+        }
+    },
+    data() {
+        return {
+            view: 'loading', // 'loading' | 'error' | 'ready'
+            payload: null,
+            busy: false,
+            toast: '',
+            addInput: '',
+            strings: { ...DEFAULT_STRINGS },
+            lastFocusRefresh: 0
+        };
+    },
+    computed: {
+        isMaintainer() {
+            return this.maintainer === 'true';
+        },
+        prs() {
+            return (this.payload && this.payload.prs) || [];
+        },
+        jenkinsUrl() {
+            return safeHttpUrl(this.jenkins_url);
+        }
+    },
+    created() {
+        try {
+            const parsed = decodeAndParseJSON(this.i18n);
+            if (parsed && typeof parsed === 'object') {
+                this.strings = { ...DEFAULT_STRINGS, ...parsed };
+            }
+        } catch {
+            // A malformed translation payload falls back to English.
+        }
+    },
+    mounted() {
+        this.bindFocusRefresh();
+        this.loadStatus();
+    },
+    beforeUnmount() {
+        document.removeEventListener('visibilitychange', this.onVisibility);
+        window.removeEventListener('focus', this.onFocusRefresh);
+    },
+    methods: {
+        text(key, ...args) {
+            return sprintf(this.strings[key] || DEFAULT_STRINGS[key] || key, ...args);
+        },
+        setToast(message) {
+            this.toast = message;
+        },
+        async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
+            if (manageBusy) this.busy = true;
+            if (showLoading) this.view = 'loading';
+            try {
+                this.payload = await getTestingStatus();
+                this.view = 'ready';
+                return true;
+            } catch {
+                if (renderError) this.view = 'error';
+                return false;
+            } finally {
+                if (manageBusy) this.busy = false;
+            }
+        },
+        async runAction(action, fields, message) {
+            if (this.busy) return;
+            this.busy = true;
+            this.setToast(message);
+            try {
+                const response = await postAction(action, fields);
+                const loaded = await this.loadStatus(false, false, false);
+                this.setToast(loaded ? actionResultMessage(action, response.url, this.strings) : this.strings.loadError);
+            } catch {
+                this.setToast(this.strings.actionFailed);
+            } finally {
+                this.busy = false;
+            }
+        },
+        togglePr(pr) {
+            const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
+            const verb = action.endsWith('disable') ? this.strings.disabling : this.strings.enabling;
+            this.runAction(action, { prs: [pr.pr] }, sprintf(verb, pr.pr));
+        },
+        updatePr(pr) {
+            this.runAction('/status/pull-latest', { prs: [pr.pr] }, sprintf(this.strings.updating, pr.pr));
+        },
+        removePr(pr) {
+            this.runAction('/status/remove', { prs: [pr.pr] }, sprintf(this.strings.removing, pr.pr));
+        },
+        deploy() {
+            this.runAction('/status/deploy', {}, this.strings.deploying);
+        },
+        refresh() {
+            this.runAction('/status/refresh', {}, `${this.strings.refresh}…`);
+        },
+        addPrs() {
+            const value = this.addInput.trim();
+            if (!value) return;
+            this.addInput = '';
+            this.runAction('/status/add', { pr: value }, this.strings.adding);
+        },
+        retry() {
+            this.loadStatus(true);
+        },
+        /**
+         * Re-fetch when the tab regains focus, so state that changed while the
+         * user was elsewhere (a deploy finishing, a PR being merged) shows up
+         * without an interval timer. A short dedupe window absorbs browsers
+         * that fire both `visibilitychange` and `focus` for one return.
+         */
+        bindFocusRefresh() {
+            this.onVisibility = () => {
+                if (document.visibilityState === 'visible') this.refreshIfVisible();
+            };
+            this.onFocusRefresh = () => this.refreshIfVisible();
+            document.addEventListener('visibilitychange', this.onVisibility);
+            window.addEventListener('focus', this.onFocusRefresh);
+        },
+        refreshIfVisible() {
+            if (!this.$el.isConnected || this.busy || document.hidden) return;
+            const now = Date.now();
+            if (now - this.lastFocusRefresh < 2000) return;
+            this.lastFocusRefresh = now;
+            this.loadStatus(false, false);
+        }
+    }
+};
+</script>
+
+<!-- The component renders inside its own shadow root, so these rules style
+     the whole panel (including subcomponent content) without touching the
+     page around it. Inherited design tokens (--color-*, --spacing-*) cross
+     the shadow boundary from the page. -->
+<style>
+:host {
+  display: block;
+}
 
 /* One card in two bands: the set you are staging, then the apply step that
    flushes it. The root is just their container — it carries no surface of its
@@ -66,8 +386,6 @@
 
 /* ── Buttons ────────────────────────────────────────────────── */
 
-/* Hand-rolled rather than <ol-button>: every control here has to be a real
-   submit button in the served markup so the panel works with JS off. */
 .testing-env__btn {
   display: inline-flex;
   gap: var(--spacing-inline-md);
@@ -90,8 +408,7 @@
   outline-offset: 1px;
 }
 
-/* The bulk buttons sit disabled until something is checked, and Deploy until
-   there is a change to apply — both are steady states, not error feedback. */
+/* Busy and empty states are steady states, not error feedback. */
 .testing-env__btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -126,8 +443,8 @@
 
 /* ── Row on/off switch ──────────────────────────────────────── */
 
-/* A submit button painted as a switch. aria-pressed is the state it shows;
-   its formaction posts the opposite one, so a click flips the row either way. */
+/* A button painted as a switch. aria-pressed is the state it shows; clicking
+   it flips the row either way. */
 .testing-env__switch {
   position: relative;
   display: block;
@@ -187,12 +504,10 @@
   align-items: center;
   justify-content: flex-end;
   max-width: 32rem;
+  margin: 0;
 }
 
-/* Qualified by the element to outweigh the global `input[type="text"]` rule,
-   whose right and bottom margin would double the flex gap and push the input
-   off the bar's centre line. */
-input.testing-env__input {
+.testing-env__input {
   flex: 1;
   min-width: 0;
   height: var(--control-height-medium);
@@ -212,12 +527,6 @@ input.testing-env__input {
 }
 
 /* ── Table ──────────────────────────────────────────────────── */
-
-/* Field-set holders the controls join by id — they hold no markup of their
-   own, so they must not take up space between the add row and the table. */
-.testing-env__anchor-form {
-  margin: 0;
-}
 
 .testing-env__table {
   width: 100%;
@@ -245,8 +554,7 @@ input.testing-env__input {
 }
 
 /* Plain surface is the resting state for a row — a tint means something is
-   true of this row beyond "it's on the box". Drift deliberately isn't one of
-   them: the "N behind" pill already says it, in its own colour. */
+   true of this row beyond "it's on the box". */
 .testing-env__row td {
   background: var(--color-surface);
 }
@@ -288,7 +596,6 @@ input.testing-env__input {
   align-items: baseline;
 }
 
-/* :link/:visited to outrank the global a:link underline. */
 .testing-env__pr-num,
 .testing-env__pr-num:link,
 .testing-env__pr-num:visited {
@@ -336,12 +643,6 @@ input.testing-env__input {
   border-radius: var(--border-radius-avatar);
 }
 
-/* The header text is wider than a 24px tile, so left alignment would leave
-   the pictures hugging the PR-title column — centre them in their column. */
-.testing-env__col-person {
-  text-align: center;
-}
-
 /* Letter tile for a person the API has no picture for — same slot as the
    photo, username on hover like the real avatars. */
 .testing-env__avatar--fallback {
@@ -355,6 +656,12 @@ input.testing-env__input {
   font-size: 0.7rem;
   font-weight: 600;
   line-height: 1;
+}
+
+/* The header text is wider than a 24px tile, so left alignment would leave
+   the pictures hugging the PR-title column — centre them in their column. */
+.testing-env__col-person {
+  text-align: center;
 }
 
 /* The person cells centre their content, so the dash sits with the pictures
@@ -463,12 +770,12 @@ a.testing-env__pill:focus-visible {
   cursor: pointer;
 }
 
-.testing-env__row-action:hover {
+.testing-env__row-action:hover:not(:disabled) {
   background: var(--color-control-hover);
   color: var(--color-link);
 }
 
-.testing-env__row-action--danger:hover {
+.testing-env__row-action--danger:hover:not(:disabled) {
   background: var(--color-error-bg);
   color: var(--color-error-fg);
 }
@@ -487,8 +794,8 @@ a.testing-env__pill:focus-visible {
 /* A paused PR isn't on the box, so its row drains of color — grey fill, grey
    text, grey avatars, unfilled pills. Text is mixed toward the row fill rather
    than set to a flat grey, so everything sits a shade lighter than muted.
-   Deliberately not row-wide opacity: the checkbox and the toggle you resume it
-   with have to stay crisp. Late in the file so this outranks the pending tint. */
+   Deliberately not row-wide opacity: the toggle you resume it with has to stay
+   crisp. Late in the file so this outranks the pending tint. */
 .testing-env__row.is-inactive {
   --paused-text: color-mix(
     in srgb,
@@ -507,7 +814,6 @@ a.testing-env__pill:focus-visible {
   color: var(--paused-text);
 }
 
-/* Three classes, so this outranks the global a:link colour without a pseudo. */
 .testing-env__row.is-inactive .testing-env__pr-title {
   color: var(--paused-text-strong);
   font-weight: 400;
@@ -556,10 +862,6 @@ a.testing-env__pill:focus-visible {
   font-family: var(--font-family-code);
   font-size: 0.75rem;
   width: fit-content;
-}
-
-.testing-env__toast[hidden] {
-  display: none;
 }
 
 /* ── Deploy section ─────────────────────────────────────────── */
@@ -755,3 +1057,4 @@ a.testing-env__pill:focus-visible {
     min-width: 960px;
   }
 }
+</style>

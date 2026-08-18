@@ -32,7 +32,7 @@ $var title: $_("Open Library server status")
 <div id="contentBody">
 
   $if show_testing:
-    $:render_jinja_template("TestingEnvironment.html.jinja", is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url)
+    $:render_jinja_template("TestingEnvironment.html.jinja", is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url, render_component=render_component)
 
   $if dev_merged_status:
       <h2> $_("Last Build Result") </h2>
