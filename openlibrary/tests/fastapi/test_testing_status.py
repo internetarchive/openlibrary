@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import urllib.error
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -94,7 +93,7 @@ def test_load_testing_status_composes_state_and_drift():
     drift_info = {state.prs[0].pr: {"head_sha": "abc1234", "drift": 2, "merged": False}}
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=(drift_info, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=(drift_info, False)),
     ):
         result = status_module.load_testing_status()
 
@@ -378,17 +377,18 @@ def test_add_skips_pr_and_marks_failure_when_github_errors():
 
 def test_get_pr_info_distinguishes_not_found_from_unavailable():
     """404 → not_found; rate limit → unavailable; both leave head_sha empty."""
+    request = httpx.Request("GET", "https://api.github.com/repos/internetarchive/openlibrary/pulls/12914")
     with patch(
-        "openlibrary.plugins.openlibrary.status._github_get",
-        side_effect=urllib.error.HTTPError("https://api.github.com/pulls/12914", 404, "Not Found", {}, None),
+        "openlibrary.plugins.openlibrary.status._github_get_async",
+        side_effect=httpx.HTTPStatusError("Not Found", request=request, response=httpx.Response(404, request=request)),
     ):
         info = status_module._get_pr_info(12914)
     assert info["error"] == "not_found"
     assert info["head_sha"] == ""
 
     with patch(
-        "openlibrary.plugins.openlibrary.status._github_get",
-        side_effect=urllib.error.HTTPError("https://api.github.com/pulls/12914", 403, "rate limit exceeded", {}, None),
+        "openlibrary.plugins.openlibrary.status._github_get_async",
+        side_effect=httpx.HTTPStatusError("rate limit exceeded", request=request, response=httpx.Response(403, request=request)),
     ):
         info = status_module._get_pr_info(12914)
     assert info["error"] == "unavailable"
@@ -470,7 +470,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     state = _make_state()
     result = status_module.build_testing_status(state, {13269: {"head_sha": "abc1234", "drift": 2, "merged": False}})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", return_value=result) as mock,
+        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)) as mock,
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -515,7 +515,7 @@ def test_testing_status_endpoint_matches_response_model(fastapi_client, mock_aut
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(last_deploy_at=""), {})
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
+        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=None)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -534,7 +534,7 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
         "end_time": "2026-08-18T20:27:07.498000+00:00",
     }
     with (
-        patch("openlibrary.fastapi.status.load_testing_status", return_value=result),
+        patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=result)),
         patch("openlibrary.fastapi.status.jenkins_deploy_status", AsyncMock(return_value=jenkins)),
     ):
         response = fastapi_client.get("/status/testing.json")
@@ -592,7 +592,7 @@ async def test_jenkins_deploy_status_returns_none_on_error():
 
 def test_testing_status_endpoint_404_when_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
-    with patch("openlibrary.fastapi.status.load_testing_status", return_value=None):
+    with patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock(return_value=None)):
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 404
@@ -606,7 +606,7 @@ def test_testing_status_endpoint_requires_auth(fastapi_client):
 
 def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=False)
-    with patch("openlibrary.fastapi.status.load_testing_status") as mock:
+    with patch("openlibrary.fastapi.status.load_testing_status_async", AsyncMock()) as mock:
         response = fastapi_client.get("/status/testing.json")
 
     assert response.status_code == 403

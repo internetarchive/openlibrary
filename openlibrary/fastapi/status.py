@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
-from openlibrary.plugins.openlibrary.status import jenkins_deploy_status, load_testing_status
+from openlibrary.plugins.openlibrary.status import jenkins_deploy_status, load_testing_status_async
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
@@ -77,7 +77,7 @@ class TestingStatusResponse(BaseModel):
 )
 async def testing_status(_: MaintainerDep) -> TestingStatusResponse:
     """Return the testing environment status backing the /status deploy table."""
-    if (result := load_testing_status()) is None:
+    if (result := await load_testing_status_async()) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
     response = TestingStatusResponse.model_validate(result)
     if jenkins := await jenkins_deploy_status():

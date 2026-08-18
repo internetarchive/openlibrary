@@ -6,7 +6,6 @@ import json
 import re
 import socket
 import sys
-import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -23,6 +22,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.utils import get_software_version
+from openlibrary.utils.async_utils import async_bridge
 
 status_info: dict[str, Any] = {}
 
@@ -584,11 +584,16 @@ def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus
     )
 
 
-def load_testing_status() -> TestingStatus | None:
-    """Load the state file and live drift info; None if there is no state file."""
+async def load_testing_status_async() -> TestingStatus | None:
+    """Load the state file and live drift info; None if there is no state file.
+
+    Async so the FastAPI endpoint can await it: the GitHub drift fetch below
+    runs on the event loop instead of blocking it. Sync callers use the
+    ``load_testing_status`` bridge wrapper instead.
+    """
     if (state := _load_testing_state()) is None:
         return None
-    drift_info, _ = _get_drift_info(state)
+    drift_info, _ = await _get_drift_info_async(state)
     return build_testing_status(state, drift_info)
 
 
@@ -617,7 +622,8 @@ def _is_maintainer() -> bool:
     return bool(user and user.is_maintainer())
 
 
-def _github_get(path: str) -> dict:
+async def _github_get_async(path: str) -> dict:
+    """GET a GitHub API path; raises httpx.HTTPError (network or non-2xx) on failure."""
     url = f"{_GITHUB_API_BASE}/{path}"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -625,12 +631,13 @@ def _github_get(path: str) -> dict:
     }
     if token := getattr(config, "github_api_token", None):
         headers["Authorization"] = f"Bearer {token}"
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        return json.loads(resp.read())
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        resp = await client.get(url, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
 
 
-def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
+async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tuple[dict, bool]:
     """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
 
     Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
@@ -647,7 +654,7 @@ def _get_drift_info(state: TestingState, persist: bool = True) -> tuple[dict, bo
     drift = {}
     state_changed = False
     for p in state.prs:
-        info = _get_pr_drift(p)
+        info = await _get_pr_drift_async(p)
         drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged")}
         for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar"):
             new_val = info.get(attr, "")
@@ -664,7 +671,7 @@ def _evict_drift_cache() -> None:
     cache.get_memcache().delete(_DRIFT_CACHE_KEY)
 
 
-def _get_pr_info(pr_number: int) -> dict:
+async def _get_pr_info_async(pr_number: int) -> dict:
     """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub.
 
     On failure ``error`` says why — ``not_found`` for a 404, ``unavailable`` for
@@ -672,7 +679,7 @@ def _get_pr_info(pr_number: int) -> dict:
     a GitHub outage instead of treating both as "no such PR".
     """
     try:
-        pr = _github_get(f"pulls/{pr_number}")
+        pr = await _github_get_async(f"pulls/{pr_number}")
         user = pr.get("user") or {}
         assignee = pr.get("assignee") or {}
         return {
@@ -684,7 +691,7 @@ def _get_pr_info(pr_number: int) -> dict:
             "assignee_avatar": assignee.get("avatar_url", ""),
             "error": "",
         }
-    except urllib.error.HTTPError as e:
+    except httpx.HTTPStatusError as e:
         return {
             "title": f"PR #{pr_number}",
             "head_sha": "",
@@ -692,9 +699,9 @@ def _get_pr_info(pr_number: int) -> dict:
             "author_avatar": "",
             "assignee": "",
             "assignee_avatar": "",
-            "error": "not_found" if e.code == 404 else "unavailable",
+            "error": "not_found" if e.response.status_code == 404 else "unavailable",
         }
-    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
+    except httpx.HTTPError, KeyError, ValueError:
         return {
             "title": f"PR #{pr_number}",
             "head_sha": "",
@@ -706,14 +713,14 @@ def _get_pr_info(pr_number: int) -> dict:
         }
 
 
-def _get_pr_drift(pr: TestingPR) -> dict:
+async def _get_pr_drift_async(pr: TestingPR) -> dict:
     """Fetch live drift info + metadata for a PR from GitHub.
 
     Returns head_sha, drift, merged plus title/author/assignee so callers can
     refresh state without a second API call.
     """
     try:
-        gh = _github_get(f"pulls/{pr.pr}")
+        gh = await _github_get_async(f"pulls/{pr.pr}")
         head_sha = gh["head"]["sha"]
         merged = bool(gh.get("merged") or gh.get("merged_at"))
         stored = pr.commit.strip()
@@ -721,9 +728,9 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             drift = 0
         else:
             try:
-                cmp = _github_get(f"compare/{stored}...{head_sha}")
+                cmp = await _github_get_async(f"compare/{stored}...{head_sha}")
                 drift = cmp.get("ahead_by", -1)
-            except urllib.error.URLError, ValueError, json.JSONDecodeError:
+            except httpx.HTTPError, ValueError:
                 drift = -1
         user = gh.get("user") or {}
         assignee = gh.get("assignee") or {}
@@ -737,7 +744,7 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
         }
-    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
+    except httpx.HTTPError, KeyError, ValueError:
         return {
             "head_sha": "",
             "drift": -1,
@@ -748,6 +755,15 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             "assignee": "",
             "assignee_avatar": "",
         }
+
+
+# Sync bridge wrappers: the web.py action handlers (status_add, status_deploy)
+# are sync, so they reach the async implementations above through AsyncBridge's
+# background event loop instead of duplicating them. FastAPI should call the
+# ``*_async`` versions directly and await them (see openlibrary/utils/async_utils.py).
+_get_pr_info = async_bridge.wrap(_get_pr_info_async)
+_get_drift_info = async_bridge.wrap(_get_drift_info_async)
+load_testing_status = async_bridge.wrap(load_testing_status_async)
 
 
 def _parse_pr_number(value: str) -> int:
