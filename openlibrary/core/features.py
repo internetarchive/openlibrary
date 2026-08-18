@@ -6,12 +6,7 @@ using explicit pydantic-settings fields.
 
 A single process-wide ``features`` instance is loaded at import time from
 the path given by the ``OL_CONFIG`` environment variable
-(falling back to ``conf/openlibrary.yml``). Access flags via dot notation::
-
-    from openlibrary.core.features import features
-
-    if features.stats:
-        ...
+(falling back to ``conf/openlibrary.yml``).
 """
 
 from __future__ import annotations
@@ -27,15 +22,13 @@ class Features(BaseSettings):
     model_config = {"extra": "ignore"}
 
     # debug: bool # disabled because we should probably get rid of it but we still have a `features.is_enabled("debug")` to deal with we didn't see in #12884
-    stats: bool
-    stats_header: bool
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> Features:
         """Load feature flags from the ``features:`` section of a YAML file.
 
-        YAML keys are expected to match field names (kebab-case keys like
-        ``stats-header`` are normalized to snake_case). String values
+        YAML keys are expected to match field names (kebab-case keys are
+        normalized to snake_case). String values
         ``enabled``/``disabled`` are mapped to booleans; unknown keys
         and unrecognized string values raise ``ValueError``.
         """
