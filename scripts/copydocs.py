@@ -270,7 +270,7 @@ def copy(
         refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/")) and r not in seen]
         if refs:
             print("found references", refs)
-            copy(src, dest, refs, comment, recursive=True, cache=cache, seen=seen)
+            copy(src, dest, refs, comment, recursive=True, editions=editions, cache=cache, seen=seen)
 
     keys = [doc["key"] for doc in docs]
     print("saving", keys)
