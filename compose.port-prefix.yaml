@@ -2,7 +2,7 @@
 ## Helper docker compose file for running multiple OL dev instances on one machine
 ## without port collisions: prefixes every host port with ${PORT_PREFIX}, eg
 ## PORT_PREFIX=2 turns web's 8080 into 28080. You probably want to run something like:
-## PORT_PREFIX=2 docker compose -f compose.yaml -f compose.override.yaml -f compose.port_prefix.yaml up -d
+## PORT_PREFIX=2 docker compose -f compose.yaml -f compose.override.yaml -f compose.port-prefix.yaml up -d
 ##
 
 services:
