@@ -260,7 +260,6 @@ input.testing-env__input {
 
 /* Every column but the PR title is sized to its content, so the title keeps
    all the slack. */
-.testing-env__col-check,
 .testing-env__col-toggle,
 .testing-env__col-actions,
 .testing-env__drift-cell {
@@ -281,11 +280,10 @@ input.testing-env__input {
   width: 100%;
 }
 
-/* Fixed rail so titles line up down the column regardless of PR number width;
-   an auto slot at the right edge so tags land in the same place on every row. */
+/* Fixed rail so titles line up down the column regardless of PR number width. */
 .testing-env__pr-line {
   display: grid;
-  grid-template-columns: 4.25em minmax(0, 1fr) auto;
+  grid-template-columns: 4.25em minmax(0, 1fr);
   gap: var(--spacing-sm);
   align-items: baseline;
 }
@@ -327,18 +325,6 @@ input.testing-env__input {
   color: var(--color-text-muted);
 }
 
-.testing-env__tag {
-  display: inline-block;
-  padding: 1px var(--spacing-xs);
-  border-radius: var(--border-radius-badge);
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
 .testing-env__person {
   display: inline-flex;
   gap: var(--spacing-2xs);
@@ -350,12 +336,31 @@ input.testing-env__input {
   border-radius: var(--border-radius-avatar);
 }
 
-/* Indented past the 20px avatar slot so the dash lines up with the names in
-   the rows around it instead of butting against a long name in the previous
-   column. */
+/* The header text is wider than a 24px tile, so left alignment would leave
+   the pictures hugging the PR-title column — centre them in their column. */
+.testing-env__col-person {
+  text-align: center;
+}
+
+/* Letter tile for a person the API has no picture for — same slot as the
+   photo, username on hover like the real avatars. */
+.testing-env__avatar--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* The person cells centre their content, so the dash sits with the pictures
+   automatically. */
 .testing-env__empty {
   display: inline-block;
-  padding-left: calc(20px + var(--spacing-2xs));
   color: var(--color-text-muted);
 }
 
@@ -432,33 +437,49 @@ a.testing-env__pill:focus-visible {
   text-decoration: underline;
 }
 
-/* Warning-colored: the note names a change the next deploy will apply. */
+/* The hourglass marks a change the next deploy will apply; the wording rides
+   in the title/aria-label. Sized as a small icon rather than inline text. */
 .testing-env__pending {
   color: var(--color-warning-fg);
-  font-size: 0.7rem;
-  font-style: italic;
+  font-size: 0.85rem;
+  line-height: 1;
   white-space: nowrap;
 }
 
-/* A link, not a button: the drift chip is the subject, this is the follow-up. */
+/* Icon-only row actions (update to latest, remove from the set) — quiet
+   buttons that surface their meaning on hover: blue for update, red for
+   remove. The username/tooltip rides in the title attribute. */
 .testing-env__row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 0;
+  border-radius: var(--border-radius-button);
   background: none;
-  color: var(--color-link);
-  font-family: inherit;
-  font-size: 0.75rem;
-  text-decoration: underline;
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 
 .testing-env__row-action:hover {
-  color: var(--color-link-hover);
+  background: var(--color-control-hover);
+  color: var(--color-link);
+}
+
+.testing-env__row-action--danger:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error-fg);
+}
+
+.testing-env__row-action + .testing-env__row-action {
+  margin-left: var(--spacing-sm);
 }
 
 .testing-env__row-action:focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 
 /* ── Paused rows ────────────────────────────────────────────── */
@@ -503,12 +524,6 @@ a.testing-env__pill:focus-visible {
   font-weight: 400;
 }
 
-/* Sunken is the row's own background here, so the tag needs the lighter fill. */
-.testing-env__row.is-inactive .testing-env__tag {
-  background: var(--color-surface);
-  color: var(--paused-text);
-}
-
 /* Still clickable, just not competing with the live rows for attention. */
 .testing-env__row.is-inactive .testing-env__row-action {
   color: var(--paused-text-strong);
@@ -519,32 +534,7 @@ a.testing-env__pill:focus-visible {
   background: var(--color-control-hover);
 }
 
-/* ── Footer actions ─────────────────────────────────────────── */
-
-/* Same horizontal padding as the bar, the cells and the deploy band: one
-   content edge runs the height of the card. */
-.testing-env__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
-}
-
-.testing-env__bulk {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  align-items: center;
-}
-
-.testing-env__selected {
-  margin-right: var(--spacing-2xs);
-  color: var(--color-text-secondary);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
+/* ── Empty state ────────────────────────────────────────────── */
 
 .testing-env__blank {
   padding: var(--spacing-lg) var(--spacing-md);
@@ -601,7 +591,12 @@ a.testing-env__pill:focus-visible {
   border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
+/* Holds the Deploy and Refresh buttons side by side — flex so the pair reads
+   as one action row with a breathing gap. */
 .testing-env__deploy-action {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
   margin: 0;
 }
 

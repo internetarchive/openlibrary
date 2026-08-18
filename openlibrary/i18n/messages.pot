@@ -7643,10 +7643,6 @@ msgid "PR numbers or URLs, space or comma separated"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Select all PRs"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "On"
 msgstr ""
 
@@ -7663,29 +7659,11 @@ msgid "Drift"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Disabled"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "merged"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "OK"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-msgid "None selected"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "%(count)s selected"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
-#, python-format
-msgid "Select PR %(num)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

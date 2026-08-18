@@ -99,19 +99,101 @@ describe('Testing Environment JSON panel', () => {
         expect(root.querySelector('.testing-env__pr-num').textContent).toBe('#13269');
         expect(root.querySelector('.testing-env__pill--ok').textContent).toBe('OK');
         expect(root.querySelectorAll('[data-row-toggle]')).toHaveLength(1);
-        expect(root.querySelectorAll('[data-bulk]')).toHaveLength(5);
-        expect(root.querySelector('[data-select-all]')).not.toBeNull();
+        // Drift 0 and not merged, so only the delete action shows.
+        expect(root.querySelectorAll('[data-row-action]')).toHaveLength(1);
+        expect(root.querySelectorAll('[data-bulk]')).toHaveLength(0);
+        expect(root.querySelector('input[type="checkbox"]')).toBeNull();
         expect(root.querySelector('[data-deploy]')).not.toBeNull();
         expect(root.querySelector('[data-add-form]')).not.toBeNull();
         expect(root.querySelector('[data-testing-loading]')).toBeNull();
+
+        // Refresh is a deploy-band action now, not a checkbox-gated bulk one.
+        const refreshButton = root.querySelector('[data-refresh]');
+        expect(refreshButton).not.toBeNull();
+        expect(refreshButton.closest('.testing-env__deploy')).not.toBeNull();
+        expect(refreshButton.classList.contains('testing-env__btn--small')).toBe(false);
     });
 
-    test('keeps update and remove row actions for qualifying PRs', async() => {
+    test('refresh button posts to /status/refresh and shows the sync toast', async() => {
+        global.fetch = jest.fn().mockImplementation((url, options) => {
+            if (options?.method === 'POST') {
+                return Promise.resolve({ ok: true, url: 'http://localhost:8080/status?github_refreshed=1' });
+            }
+            return Promise.resolve({ ok: true, json: jest.fn().mockResolvedValue(payload) });
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        root.dataset.maintainer = 'true';
+        root.dataset.jenkinsUrl = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+
+        root.querySelector('[data-refresh]').click();
+        await flushPromises();
+        await flushPromises();
+        await flushPromises();
+
+        expect(global.fetch).toHaveBeenCalledWith('/status/refresh', expect.objectContaining({ method: 'POST' }));
+        expect(root.querySelector('[data-toast]').textContent).toBe('GitHub status refreshed.');
+    });
+
+    test('person cells show an avatar only, with the username on hover', async() => {
+        const personPayload = {
+            ...payload,
+            prs: [{
+                ...payload.prs[0],
+                author: 'octocat',
+                author_avatar: 'https://avatars.githubusercontent.com/u/1?v=4',
+                assignee: 'hubot',
+                assignee_avatar: ''
+            }]
+        };
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue(personPayload)
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        root.dataset.maintainer = 'true';
+        root.dataset.jenkinsUrl = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+        await flushPromises();
+
+        const personCells = root.querySelectorAll('.testing-env__person');
+        expect(personCells).toHaveLength(2);
+
+        // The person column centres its content under the header.
+        for (const cell of personCells) {
+            expect(cell.closest('td').classList.contains('testing-env__col-person')).toBe(true);
+        }
+
+        // Real avatar: picture only, username carried in title/alt, no name text.
+        const authorAvatar = personCells[0].querySelector('.testing-env__avatar');
+        expect(authorAvatar.tagName).toBe('IMG');
+        expect(authorAvatar.title).toBe('octocat');
+        expect(authorAvatar.alt).toBe('octocat');
+        expect(personCells[0].textContent.trim()).toBe('');
+
+        // Missing avatar URL: letter tile with the username still on hover.
+        const assigneeAvatar = personCells[1].querySelector('.testing-env__avatar--fallback');
+        expect(assigneeAvatar).not.toBeNull();
+        expect(assigneeAvatar.title).toBe('hubot');
+        expect(assigneeAvatar.getAttribute('aria-label')).toBe('hubot');
+        expect(assigneeAvatar.textContent).toBe('H');
+    });
+
+    test('shows update only when a newer commit is available, delete on every row', async() => {
         const actionPayload = {
             ...payload,
             prs: [
                 { ...payload.prs[0], pr: 13270, drift: 2 },
-                { ...payload.prs[0], pr: 13271, merged: true }
+                { ...payload.prs[0], pr: 13271, merged: true },
+                { ...payload.prs[0], pr: 13272 }
             ]
         };
         global.fetch = jest.fn().mockResolvedValue({
@@ -129,11 +211,77 @@ describe('Testing Environment JSON panel', () => {
         await flushPromises();
 
         const rowActions = [...root.querySelectorAll('[data-row-action]')];
-        expect(rowActions).toHaveLength(2);
+        expect(rowActions).toHaveLength(4);
         expect(rowActions.map((button) => button.getAttribute('formaction'))).toEqual([
             '/status/pull-latest',
+            '/status/remove',
+            '/status/remove',
             '/status/remove'
         ]);
+        expect(rowActions[0].classList.contains('testing-env__row-action--danger')).toBe(false);
+        expect(rowActions[1].classList.contains('testing-env__row-action--danger')).toBe(true);
+
+        // The update arrow sits in the drift cell right after the pill; the
+        // actions column holds only the delete buttons.
+        const updateButton = root.querySelector('[data-row-action][formaction="/status/pull-latest"]');
+        expect(updateButton.closest('.testing-env__drift-cell')).not.toBeNull();
+        const stackChildren = [...updateButton.closest('.testing-env__cell-stack').children];
+        expect(stackChildren.indexOf(updateButton)).toBeGreaterThan(
+            stackChildren.findIndex((child) => child.classList.contains('testing-env__pill'))
+        );
+        expect(root.querySelectorAll('.testing-env__col-actions [data-row-action]')).toHaveLength(3);
+        expect(root.querySelectorAll('.testing-env__col-actions [data-row-action][formaction="/status/pull-latest"]')).toHaveLength(0);
+    });
+
+    test('marks a pending change with an hourglass whose hover note names it', async() => {
+        const pendingPayload = {
+            ...payload,
+            prs: [{ ...payload.prs[0], pending_active: true }]
+        };
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue(pendingPayload)
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        root.dataset.maintainer = 'true';
+        root.dataset.jenkinsUrl = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+        await flushPromises();
+
+        const pending = root.querySelector('.testing-env__pending');
+        expect(pending).not.toBeNull();
+        expect(pending.textContent).toBe('⏳');
+        expect(pending.title).toBe('changes on deploy');
+        expect(pending.getAttribute('aria-label')).toBe('changes on deploy');
+    });
+
+    test('row delete button removes the PR from the set', async() => {
+        global.fetch = jest.fn().mockImplementation((url, options) => {
+            if (options?.method === 'POST') {
+                return Promise.resolve({ ok: true, url: 'http://localhost:8080/status' });
+            }
+            return Promise.resolve({ ok: true, json: jest.fn().mockResolvedValue(payload) });
+        });
+        const root = document.createElement('section');
+        root.dataset.testingEnv = '';
+        root.dataset.maintainer = 'true';
+        root.dataset.jenkinsUrl = '';
+        document.body.append(root);
+
+        init(root);
+        await flushPromises();
+
+        root.querySelector('[data-row-action][formaction="/status/remove"]').click();
+        await flushPromises();
+        await flushPromises();
+        await flushPromises();
+
+        expect(global.fetch).toHaveBeenCalledWith('/status/remove', expect.objectContaining({ method: 'POST' }));
+        expect(root.querySelector('[data-toast]').textContent).toBe('Action completed.');
     });
 
     test('re-fetches status when the tab regains focus', async() => {

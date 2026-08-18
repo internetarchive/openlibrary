@@ -22,19 +22,14 @@ export const DEFAULT_STRINGS = {
     addPlaceholder: 'PR numbers or URLs, space or comma separated',
     add: 'Add PRs',
     addChange: 'Add',
-    selectAll: 'Select all PRs',
     on: 'On',
     pr: 'PR',
     author: 'Author',
     assignee: 'Assignee',
     drift: 'Drift',
     actions: 'Actions',
-    disabled: 'Disabled',
     merged: 'merged',
     ok: 'OK',
-    noneSelected: 'None selected',
-    selected: '%s selected',
-    selectPr: 'Select PR #%s',
     prOnTesting: 'PR #%s on testing',
     changeOnDeploy: 'changes on deploy',
     removing: 'Removing #%s…',
@@ -65,7 +60,7 @@ export const DEFAULT_STRINGS = {
     noPrs: 'No PRs in testing set.'
 };
 
-const FOCUS_ATTRS = ['data-row-toggle', 'data-row-action', 'data-bulk', 'data-deploy'];
+const FOCUS_ATTRS = ['data-row-toggle', 'data-row-action', 'data-deploy', 'data-refresh'];
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -104,10 +99,14 @@ function safeHttpUrl(value) {
 function person(name, avatar) {
     if (!name) return '<span class="testing-env__empty">—</span>';
     const avatarUrl = safeHttpUrl(avatar);
+    const label = escapeHtml(name);
+    // The cell is the picture alone — the username rides in title (hover) and
+    // alt/aria-label (screen readers). A letter tile stands in when the API
+    // has no avatar URL so the column stays pictures-only.
     const image = avatarUrl
-        ? `<img class="testing-env__avatar" src="${escapeHtml(avatarUrl)}&amp;s=40" width="20" height="20" alt="" loading="lazy">`
-        : '';
-    return `<span class="testing-env__person">${image}${escapeHtml(name)}</span>`;
+        ? `<img class="testing-env__avatar" src="${escapeHtml(avatarUrl)}&amp;s=40" width="24" height="24" alt="${label}" title="${label}" loading="lazy">`
+        : `<span class="testing-env__avatar testing-env__avatar--fallback" role="img" aria-label="${label}" title="${label}">${escapeHtml(name.charAt(0).toUpperCase())}</span>`;
+    return `<span class="testing-env__person">${image}</span>`;
 }
 
 function focusedSelector(root) {
@@ -156,27 +155,6 @@ class TestingStatusPanel {
                 delete button.dataset.statusDisabled;
             }
         });
-        if (!busy) this.refreshSelection();
-    }
-
-    refreshSelection() {
-        const checked = this.root.querySelectorAll('input[name="prs"]:checked');
-        const label = this.root.querySelector('[data-selected-count]');
-        if (label) {
-            label.textContent = checked.length
-                ? this.text('selected', checked.length)
-                : this.strings.noneSelected;
-        }
-        this.root.querySelectorAll('[data-bulk]').forEach((button) => {
-            if (!button.hasAttribute('data-no-selection')) {
-                button.disabled = checked.length === 0;
-            }
-        });
-    }
-
-    selectedPrs() {
-        return Array.from(this.root.querySelectorAll('input[name="prs"]:checked'))
-            .map((checkbox) => checkbox.value);
     }
 
     renderLoading() {
@@ -199,10 +177,10 @@ class TestingStatusPanel {
     }
 
     renderPersonColumn(value, avatar) {
-        return `<td>${person(value, avatar)}</td>`;
+        return `<td class="testing-env__col-person">${person(value, avatar)}</td>`;
     }
 
-    renderDrift(pr) {
+    renderDrift(pr, isMaintainer) {
         const pinned = String(pr.commit || '').slice(0, 7);
         const merged = pr.merged === true;
         const drift = Number(pr.drift);
@@ -227,14 +205,30 @@ class TestingStatusPanel {
                 : `<span class="testing-env__pill testing-env__pill--behind" title="${escapeHtml(behindText)}">${pillContent}</span>`;
         }
 
+        // Pull-latest lives here, beside the drift it resolves: an arrow when
+        // there's a newer commit to bring in, the hourglass when one is already
+        // pending — the two never crowd each other.
+        const prNumber = escapeHtml(pr.pr);
+        const updateButton = isMaintainer && Number(pr.drift) > 0 && !pr.pull_latest_sha
+            ? `<button type="submit" class="testing-env__row-action" form="testing-row-form"
+                       formaction="/status/pull-latest" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}"
+                       title="${escapeHtml(this.strings.update)}" aria-label="${escapeHtml(this.strings.update)}">
+                    <svg class="testing-env__btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="12" y1="19" x2="12" y2="5" />
+                        <polyline points="5 12 12 5 19 12" />
+                    </svg>
+                </button>`
+            : '';
         const pendingActive = pr.pending_active;
         const hasPendingToggle = pendingActive !== undefined && pendingActive !== null;
         const pending = merged || Boolean(pr.pull_latest_sha) || hasPendingToggle;
         const pendingNote = pending
-            ? `<span class="testing-env__pending">${escapeHtml(this.text('changeOnDeploy'))}</span>`
+            ? `<span class="testing-env__pending" role="img"
+                   title="${escapeHtml(this.text('changeOnDeploy'))}" aria-label="${escapeHtml(this.text('changeOnDeploy'))}">⏳</span>`
             : '';
         return `<td class="testing-env__drift-cell">
-            <div class="testing-env__cell-stack">${pill}${pendingNote}</div>
+            <div class="testing-env__cell-stack">${pill}${updateButton}${pendingNote}</div>
         </td>`;
     }
 
@@ -256,15 +250,8 @@ class TestingStatusPanel {
         const prNumber = escapeHtml(pr.pr);
         const prUrl = `${REPO_URL}/pull/${encodeURIComponent(pr.pr)}`;
         const title = escapeHtml(pr.title);
-        const tag = !active
-            ? `<span class="testing-env__tag">${escapeHtml(this.strings.disabled)}</span>`
-            : '';
         const controls = isMaintainer
-            ? `<td class="testing-env__col-check">
-                    <input type="checkbox" form="testing-bulk-form" name="prs" value="${prNumber}"
-                           aria-label="${escapeHtml(this.text('selectPr', pr.pr))}">
-               </td>
-               <td class="testing-env__col-toggle">
+            ? `<td class="testing-env__col-toggle">
                     <button type="submit" class="testing-env__switch" form="testing-row-form"
                             formaction="/status/${effectiveActive ? 'disable' : 'enable'}" name="prs" value="${prNumber}"
                             data-row-toggle data-pr="${prNumber}" aria-pressed="${effectiveActive ? 'true' : 'false'}"
@@ -274,14 +261,18 @@ class TestingStatusPanel {
                </td>`
             : '';
         let action = '';
-        if (isMaintainer && merged) {
-            action = `<button type="submit" class="testing-env__row-action" form="testing-row-form"
-                       formaction="/status/remove" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}">
-                       ${escapeHtml(this.strings.remove)}</button>`;
-        } else if (isMaintainer && Number(pr.drift) > 0 && !pr.pull_latest_sha) {
-            action = `<button type="submit" class="testing-env__row-action" form="testing-row-form"
-                       formaction="/status/pull-latest" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}">
-                       ${escapeHtml(this.strings.update)}</button>`;
+        if (isMaintainer) {
+            action += `<button type="submit" class="testing-env__row-action testing-env__row-action--danger" form="testing-row-form"
+                        formaction="/status/remove" name="prs" value="${prNumber}" data-row-action data-pr="${prNumber}"
+                        title="${escapeHtml(this.strings.remove)}" aria-label="${escapeHtml(this.strings.remove)}">
+                        <svg class="testing-env__btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                    </button>`;
         }
 
         return `<tr data-pr="${prNumber}" class="${classes}">
@@ -290,12 +281,11 @@ class TestingStatusPanel {
                 <div class="testing-env__pr-line">
                     <a class="testing-env__pr-num" href="${prUrl}">#${prNumber}</a>
                     <a class="testing-env__pr-title" href="${prUrl}" title="${title}">${title}</a>
-                    ${tag}
                 </div>
             </td>
             ${this.renderPersonColumn(pr.author, pr.author_avatar)}
             ${this.renderPersonColumn(pr.assignee, pr.assignee_avatar)}
-            ${this.renderDrift(pr)}
+            ${this.renderDrift(pr, isMaintainer)}
             ${isMaintainer ? `<td class="testing-env__col-actions">${action}</td>` : ''}
         </tr>`;
     }
@@ -344,6 +334,15 @@ class TestingStatusPanel {
                        </svg>
                        ${escapeHtml(this.strings.deploy)}
                    </button>
+                   <button type="submit" class="testing-env__btn" formaction="/status/refresh" data-refresh>
+                       <svg class="testing-env__btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                           <polyline points="23 4 23 10 17 10" />
+                           <polyline points="1 20 1 14 7 14" />
+                           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                       </svg>
+                       ${escapeHtml(this.strings.refresh)}
+                   </button>
                </form>`
             : '';
         let status;
@@ -380,9 +379,9 @@ class TestingStatusPanel {
         const table = prs.length
             ? `<div class="testing-env__table-wrap">
                    <table class="testing-env__table">
-                       <thead><tr>
-                           ${isMaintainer ? `<th scope="col" class="testing-env__col-check"><input type="checkbox" data-select-all aria-label="${escapeHtml(this.strings.selectAll)}"></th><th scope="col">${escapeHtml(this.strings.on)}</th>` : ''}
-                           <th scope="col">${escapeHtml(this.strings.pr)}</th>
+                   <thead><tr>
+                       ${isMaintainer ? `<th scope="col">${escapeHtml(this.strings.on)}</th>` : ''}
+                       <th scope="col">${escapeHtml(this.strings.pr)}</th>
                            <th scope="col">${escapeHtml(this.strings.author)}</th>
                            <th scope="col">${escapeHtml(this.strings.assignee)}</th>
                            <th scope="col">${escapeHtml(this.strings.drift)}</th>
@@ -393,22 +392,11 @@ class TestingStatusPanel {
                </div>`
             : `<p class="testing-env__blank">${escapeHtml(this.strings.noPrs)}</p>`;
         const forms = isMaintainer
-            ? `<form method="post" id="testing-bulk-form" class="testing-env__anchor-form"></form>
-               <form method="post" id="testing-row-form" class="testing-env__anchor-form"></form>`
-            : '';
-        const actions = isMaintainer
-            ? `<footer class="testing-env__actions"><div class="testing-env__bulk">
-                   <span class="testing-env__selected" data-selected-count>${escapeHtml(this.strings.noneSelected)}</span>
-                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/pull-latest" data-bulk>${escapeHtml(this.strings.update)}</button>
-                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/enable" data-bulk>${escapeHtml(this.strings.enable)}</button>
-                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/disable" data-bulk>${escapeHtml(this.strings.disable)}</button>
-                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/remove" data-bulk>${escapeHtml(this.strings.remove)}</button>
-                   <button type="submit" class="testing-env__btn testing-env__btn--small" form="testing-bulk-form" formaction="/status/refresh" data-bulk data-no-selection>${escapeHtml(this.strings.refresh)}</button>
-               </div></footer>`
+            ? '<form method="post" id="testing-row-form" class="testing-env__anchor-form"></form>'
             : '';
         return `<div class="testing-env__main">
             <header class="testing-env__bar"><h2 class="testing-env__title">${escapeHtml(this.strings.title)}</h2>${addForm}</header>
-            ${forms}${table}${actions}
+            ${forms}${table}
         </div>
         ${this.renderDeploy(payload, isMaintainer)}
         <div class="testing-env__toast" data-toast hidden aria-live="polite"></div>`;
@@ -417,7 +405,6 @@ class TestingStatusPanel {
     applyPayload(payload) {
         const focused = focusedSelector(this.root);
         this.root.innerHTML = this.renderPayload(payload);
-        this.refreshSelection();
         if (focused) {
             const successor = this.root.querySelector(focused);
             if (successor) successor.focus();
@@ -480,13 +467,11 @@ class TestingStatusPanel {
             const verb = action.endsWith('remove') ? this.strings.removing : this.strings.updating;
             return { fields: { prs: [pr] }, message: sprintf(verb, pr) };
         }
-        if (button.hasAttribute('data-bulk')) {
-            const prs = this.selectedPrs();
-            if (!prs.length && !button.hasAttribute('data-no-selection')) return null;
-            return { fields: { prs }, message: `${button.textContent.trim()}…` };
-        }
         if (button.hasAttribute('data-deploy')) {
             return { fields: {}, message: this.strings.deploying };
+        }
+        if (button.hasAttribute('data-refresh')) {
+            return { fields: {}, message: `${button.textContent.trim()}…` };
         }
         return null;
     }
@@ -518,17 +503,6 @@ class TestingStatusPanel {
             this.runAction(form.action, { pr: value }, this.strings.adding);
         });
 
-        this.root.addEventListener('change', (event) => {
-            const selectAll = event.target.closest('[data-select-all]');
-            if (selectAll) {
-                this.root.querySelectorAll('input[name="prs"]').forEach((checkbox) => {
-                    checkbox.checked = selectAll.checked;
-                });
-            }
-            if (selectAll || event.target.matches('input[name="prs"]')) {
-                this.refreshSelection();
-            }
-        });
     }
 
     /**
