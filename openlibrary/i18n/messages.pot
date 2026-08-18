@@ -804,6 +804,10 @@ msgid "works"
 msgstr ""
 
 #: subjects.html
+msgid "See all readable works"
+msgstr ""
+
+#: subjects.html
 msgid "readable now"
 msgstr ""
 
@@ -812,12 +816,15 @@ msgid "years in print"
 msgstr ""
 
 #: subjects.html
-#, python-format
-msgid "Search for books with subject %(name)s."
+msgid "Disambiguations"
 msgstr ""
 
-#: subjects.html
-msgid "Disambiguations"
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html subjects.html type/author/view.html work_search.html
+msgid "Readable Only"
+msgstr ""
+
+#: account/reading_log.html subjects.html type/author/view.html work_search.html
+msgid "Filter by availability"
 msgstr ""
 
 #: trending.html
@@ -969,14 +976,6 @@ msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
-msgstr ""
-
-#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
-msgid "Readable Only"
-msgstr ""
-
-#: account/reading_log.html type/author/view.html work_search.html
-msgid "Filter by availability"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html

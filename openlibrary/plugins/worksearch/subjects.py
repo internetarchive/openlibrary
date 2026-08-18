@@ -75,13 +75,15 @@ class subjects(delegate.page):
         # Related/people/places/times facets are fetched by the RelatedSubjects
         # partial (see SubjectRelatedPartial). The main request only pulls what
         # the masthead needs: a handful of works for the cover stack, plus the
-        # has_fulltext / publish_year facets behind "readable now" and
-        # "years in print".
+        # ebook_access / publish_year facets behind "readable now" and
+        # "years in print". (ebook_access, not the has_fulltext facet: that one
+        # includes printdisabled-only scans, so it over-counts vs the /search
+        # "Readable Only" filter it links to.)
         subj = get_subject(
             key,
             details=True,
             limit=MASTHEAD_FEATURED_WORKS,
-            facet_fields=["has_fulltext", {"name": "publish_year", "limit": -1}],
+            facet_fields=["ebook_access", {"name": "publish_year", "limit": -1}],
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -416,14 +418,6 @@ def _filtered_publishing_year_range(publishing_history: list[list[int]], trim_pc
     return start_year, end_year
 
 
-def _curated_related_tags(tags: list, limit: int = 8) -> tuple[list, list]:
-    """Rank by count, split into a top set + the rest, so the
-    template can show a curated list plus a 'show more' toggle instead
-    of every facet Solr hands back."""
-    ranked = sorted(tags or [], key=lambda t: t.get("count", 0), reverse=True)
-    return ranked[:limit], ranked[limit:]
-
-
 def _get_featured_works(works: list, limit: int = MASTHEAD_FEATURED_WORKS) -> list:
     """
     Editable pick with a signal-driven fallback. Currently
@@ -536,7 +530,18 @@ class SubjectEngine:
 
             # A facet_fields caller may omit any of these; default rather
             # than assume every key is present.
-            if has_fulltext_counts := result.facet_counts.get("has_fulltext"):
+            if ebook_access_counts := result.facet_counts.get("ebook_access"):
+                # Same threshold as the /search has_fulltext=true filter.
+                # Local import: book_providers imports upstream.models, which
+                # circles back here at plugin load time.
+                from openlibrary.book_providers import EbookAccess
+                from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
+
+                min_access = EbookAccess.from_solr_str(get_fulltext_min())
+                subject.ebook_count = sum(
+                    count for key, count in cast(list[tuple[str, int]], ebook_access_counts) if EbookAccess.from_solr_str(key) >= min_access
+                )
+            elif has_fulltext_counts := result.facet_counts.get("has_fulltext"):
                 subject.ebook_count = next(
                     (
                         count
@@ -552,13 +557,6 @@ class SubjectEngine:
             subject.places = result.facet_counts.get("place_facet", [])
             subject.people = result.facet_counts.get("person_facet", [])
             subject.times = result.facet_counts.get("time_facet", [])
-
-            # Curated + ranked, so "Keep exploring" isn't a
-            # dump of every facet Solr returns
-            subject.subjects_top, subject.subjects_more = _curated_related_tags(subject.subjects)
-            subject.places_top, subject.places_more = _curated_related_tags(subject.places)
-            subject.people_top, subject.people_more = _curated_related_tags(subject.people)
-            subject.times_top, subject.times_more = _curated_related_tags(subject.times)
 
             subject.authors = result.facet_counts.get("author_key", [])
             subject.publishers = result.facet_counts.get("publisher_facet", [])
@@ -661,7 +659,7 @@ class SubjectEngine:
                 name=value,
                 count=count,
             )
-        elif facet == "has_fulltext":
+        elif facet in ("has_fulltext", "ebook_access"):
             return [value, count]
         else:
             return web.storage(name=value, count=count)

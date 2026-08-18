@@ -1,0 +1,30 @@
+/* Titled carousels on subject pages (Tag-body QueryCarousels): a bold serif
+   heading with an optional pill badge beside it and a muted caption below. */
+.subject-page__main .carousel-section-header {
+  margin: var(--spacing-stack-xl) 0 var(--spacing-stack-sm);
+}
+
+.subject-page__main .home-h2 {
+  margin: 0;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-headline-small);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+/* :where() keeps specificity at 0,2,1: above the global a:link rules, under the lint cap. */
+.subject-page__main :where(.home-h2) a:link,
+.subject-page__main :where(.home-h2) a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.subject-page__main :where(.home-h2) a:hover {
+  text-decoration: underline;
+}
+
+.subject-page__main .carousel-section-caption {
+  margin-top: var(--spacing-stack-xs);
+  font-size: var(--font-size-body-large);
+}

@@ -470,6 +470,8 @@ class LazyCarouselParams(BaseModel):
 
     query: str = ""
     title: str | None = None
+    caption: str | None = None
+    badge: str | None = None
     sort: str = "new"
     key: str = ""
     limit: int = 20
@@ -500,6 +502,8 @@ class LazyCarouselPartial:
             ),
             lazy=False,
             title=params.title,
+            caption=params.caption,
+            badge=params.badge,
             sort=params.sort,
             key=params.key,
             limit=params.limit,

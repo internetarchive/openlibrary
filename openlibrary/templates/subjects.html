@@ -4,17 +4,16 @@ $var title: $page.name
 
 $ can_add_tag = ctx.user and (ctx.user.is_admin() or ctx.user.is_curator())
 $ has_tag = 'tag' in page
-$ q = query_param('q')
 
 <div id="scrollHere"></div>
-<div class="page-heading-search-box">
+<div class="subject-page__header">
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ link_url = "%s/-/edit?redir=%s" % (page.tag.key, ctx.path) if has_tag else "/tag/add?name=%s&redir=%s&tag_type=%s" % (page.name, ctx.path, page.subject_type)
         $ link_cta = _("Edit")
         $ elem_title = _("Edit tag for this subject") if has_tag else _("Create tag for this subject")
         $ link_track = "CTAClick|SubjectPageTagEdit"
-        <a class="editTagButton" href="$link_url" title="$elem_title" data-ol-link-track="$link_track" accesskey="e" rel="nofollow">$link_cta</a>
+        <ol-button variant="secondary" size="small" href="$link_url" title="$elem_title" data-ol-link-track="$link_track" accesskey="e" rel="nofollow">$link_cta</ol-button>
       </div>
 
     <div class="subject-masthead">
@@ -25,7 +24,7 @@ $ q = query_param('q')
         $# falling back to the tag body. Hidden entirely if neither is set.
         $ blurb = page.get('blurb')
         $if blurb:
-          <p class="subject-masthead__blurb" itemprop="description">$:format(sanitize(blurb))</p>
+          <div class="subject-masthead__blurb" itemprop="description">$:format(sanitize(blurb))</div>
 
         $# Phase 2: stat row -- works, readable-now, years-in-print
         <div class="subject-masthead__stats">
@@ -37,7 +36,9 @@ $ q = query_param('q')
             </div>
             $if page.get('ebook_count'):
                 <div class="subject-masthead__stat">
-                    <span class="subject-masthead__stat-value">$page.ebook_count</span>
+                    <a class="subject-masthead__stat-link" href="/search?$urlencode(dict(q=page.solr_query, has_fulltext='true'))" title="$_('See all readable works')">
+                        <span class="subject-masthead__stat-value">$page.ebook_count</span>
+                    </a>
                     <span class="subject-masthead__stat-label">$_("readable now")</span>
                 </div>
             $if page.get('years_in_print'):
@@ -69,13 +70,7 @@ $ q = query_param('q')
           </div>
     </div>
 
-    <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
-
-    <form action="/search" class="olform pagesearchbox">
-      $:render_template("search/searchbox", q=q)
-      <input type="hidden" name="${page.subject_type}_facet" value="$page.name"/>
-    </form>
-    $if 'disambiguations' in page:
+    $if page.get('disambiguations'):
         <div class="disambiguations">
             <h3>$_("Disambiguations")</h3>
             <ul>
@@ -87,18 +82,41 @@ $ q = query_param('q')
         </div>
 </div>
 <div class="contentBody">
-    $if has_tag:
-      $:format(sanitize(page.tag.body))
-    $else:
-      $# Only show default carousel if subject doesn't have an associated Tag
-      $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
-    $:macros.PublishingHistory(async_load=True, key=page.key)
+    $# Two-column band: carousels + publishing history on the left, notable
+    $# authors in a sidebar on the right. Related subjects sit below, full width.
+    <div class="subject-page__columns">
+      <div class="subject-page__main">
+        $if has_tag:
+          $:format(sanitize(page.tag.body))
+        $else:
+          $# Only show default carousel if subject doesn't have an associated Tag.
+          $# Same page-scoped filter as the author page: results-filter-toggle.js
+          $# rewrites `mode` in the URL and remembers nothing.
+          $ ebooks_only = input(mode="everything").mode == "ebooks"
+          <div class="subject-page__filters">
+            <ol-toggle
+              class="results-filter-toggle"
+              variant="button"
+              label="$_('Readable Only')"
+              sublabel="$commify(page.get('ebook_count') or 0)"
+              accessible-label="$_('Filter by availability')"
+              data-filter-param="mode"
+              data-filter-value="ebooks"
+              $cond(ebooks_only, 'checked')
+            ></ol-toggle>
+          </div>
+          $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True, has_fulltext_only=ebooks_only)
+        $:macros.PublishingHistory(async_load=True, key=page.key)
+        <div class="clearfix"></div>
+      </div>
+
+      <aside class="subject-page__sidebar">
+        $:macros.SubjectAuthors(page.get('notable_authors', []))
+      </aside>
+    </div>
 
     <div class="clearfix"></div>
     $:macros.RelatedSubjects(async_load=True, key=page.key)
-
-    <div class="clearfix"></div>
-    $:macros.SubjectAuthors(page.get('notable_authors', []))
 
     <div class="section clearfix"></div>
 </div>

@@ -4,6 +4,11 @@
  * representative work.
  */
 
+/* Sidebar sits flush with the main column; the global div.head top margin isn't wanted here. */
+.subject-page__sidebar .head {
+  margin-top: 0;
+}
+
 /* Top margin comes from .widget-box ul. */
 .subjectAuthors {
   display: flex;

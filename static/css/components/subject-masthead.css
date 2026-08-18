@@ -1,18 +1,6 @@
-/**
- * Verified against the real layout instead of guessed:
- *   - .page-heading-search-box has a single 20px padding (see
- *     components/page-heading-search-box.css) -- that's the *entire* gap
- *     between this element and the real page edge. #test-body-mobile
- *     (layout/index.css) has no padding of its own and is exactly
- *     max-width:1060px; margin:0 auto -- so cancelling that one 20px
- *     value is enough to go flush. No viewport-bleed trick needed, and
- *     one shouldn't be used here -- it overshoots past a boundary that
- *     was never actually in the way.
- *   - .subjectTagEdit is `float:right` upstream, not positioned -- it's
- *     repointed to sit inside the flush band below.
- */
-
-.page-heading-search-box {
+/* Page-level wrapper for the masthead + edit button. Positioned so the
+   edit button can pin to its top-right corner. */
+.subject-page__header {
   position: relative;
 }
 
@@ -24,13 +12,14 @@
   gap: var(--spacing-3xl);
   background: var(--color-surface-header);
   padding: var(--spacing-inset-xl);
-  /* Cancels .page-heading-search-box's own 20px padding on the left,
-       right and top so this sits flush with the real container edge.
-       The bottom margin becomes the gap before the search box below. */
-  margin: -20px -20px var(--spacing-3xl);
-  /* Square, edge-to-edge -- matches how the equivalent band already
-       renders elsewhere on production subject/publisher pages. */
-  border-radius: 0;
+  /* Top corners follow the page container (#test-body-mobile: 5px radius
+       inside a 1px border, so 4px concentric). Bottom stays square. */
+  border-radius: 4px 4px 0 0;
+}
+
+/* Keeps the old inset the header wrapper used to provide. */
+.subject-page__header .disambiguations {
+  padding: var(--spacing-inset-xl);
 }
 
 .subject-masthead__body {
@@ -45,8 +34,10 @@
   font-size: var(--font-size-display-small);
   font-weight: 700;
   line-height: 1.15;
-  margin: 0 0 var(--spacing-stack-sm);
+  margin: 0 0 var(--spacing-stack-xs);
   color: var(--color-text);
+  /* Subject names arrive lowercased from Solr ("england"); title-case for display only. */
+  text-transform: capitalize;
 }
 
 .subject-masthead__blurb {
@@ -55,7 +46,12 @@
   line-height: 1.55;
   color: var(--color-text-secondary);
   max-width: 58ch;
-  margin: 0 0 var(--spacing-stack-lg);
+  margin: 0 0 var(--spacing-stack-sm);
+}
+
+/* format() wraps the blurb in its own <p>; drop its default margins so the block gap above stays intact. */
+.subject-masthead__blurb p {
+  margin: 0;
 }
 
 .subject-masthead__stats {
@@ -70,9 +66,14 @@
 }
 
 .subject-masthead__stat-value {
-  font-size: var(--font-size-headline-small);
-  font-weight: 800;
+  font-size: var(--font-size-title-large);
+  font-weight: 700;
   color: var(--color-text);
+}
+
+/* :is() lifts specificity past the global a:link underline. */
+.subject-masthead__stat-link:is(:link, :visited, :hover) {
+  text-decoration: none;
 }
 
 .subject-masthead__stat-value a,
@@ -81,14 +82,13 @@
   text-decoration: none;
 }
 
-.subject-masthead__stat-value:hover,
 .subject-masthead__stat-link:hover .subject-masthead__stat-value {
-  text-decoration: underline;
+  color: var(--color-link-hover);
 }
 
 .subject-masthead__stat-label {
   font-size: var(--font-size-label-small);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -96,27 +96,21 @@
 }
 
 /* --- Edit button ------------------------------------------------------
-   Upstream ships this as `float: right` inside .page-heading-search-box.
-   That worked when the masthead had no background of its own to sit on;
-   now that it does, the button needs to be pinned to it directly rather
-   than floating independently. !important is deliberate here: it's
-   overriding a rule from a different, earlier-loaded component file
-   (components/page-heading-search-box.css) whose load order relative to
-   this file isn't guaranteed. */
-.subjectTagEdit {
-  position: absolute !important;
-  float: none !important;
+   Pinned to the masthead's top-right corner (upstream ships .subjectTagEdit
+   as a float; the scoped selector outranks it regardless of load order). */
+.subject-page__header .subjectTagEdit {
+  position: absolute;
+  float: none;
   top: var(--spacing-2xl);
   right: var(--spacing-2xl);
-  padding: 0 !important;
+  padding: 0;
   z-index: var(--z-index-raised);
 }
 
 /* --- Cover fan -----------------------------------------------
-   z-index-base / z-index-raised are used exactly as documented in
-   tokens/z-index.css ("cover fan ordinals" / "middle cover in fan"):
-   every cover sits on the same base band and relies on DOM order for
-   its position in the stack, then jumps to `raised` on hover. */
+   Covers stack in DOM order (later = on top). Hover never reorders
+   z-index -- that jump can't animate and reads as a flash. Instead the
+   later siblings slide right to uncover the hovered cover. */
 
 .subject-masthead__covers {
   position: relative;
@@ -128,52 +122,147 @@
 }
 
 .subject-masthead__cover {
+  /* Deliberately unhurried: a gentle ease-out-cubic on enter and an even
+     softer ease-out-quad on exit, long enough that the ease is felt. The
+     exit timing lives here on the base rule; hover rules override to enter. */
+  --fan-ease-enter: cubic-bezier(0.33, 1, 0.68, 1);
+  --fan-ease-exit: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --fan-duration-enter: 400ms;
+  --fan-duration-exit: 340ms;
   position: relative;
   z-index: var(--z-index-base);
   display: block;
   width: 92px;
   height: 138px;
   margin-left: -38px;
+  transform: rotate(var(--fan-rotate)) translateY(var(--fan-y));
   border-radius: var(--border-radius-thumbnail);
-  overflow: hidden;
   background: var(--color-surface-sunken);
   box-shadow: 0 6px 14px
     color-mix(in srgb, var(--book-cover-shadow-color) 70%, transparent);
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+  will-change: transform;
+  transition: transform var(--fan-duration-exit) var(--fan-ease-exit);
 }
 
 .subject-masthead__cover:first-child {
   margin-left: 0;
 }
 
-/* Small alternating rotation + lift per position is what reads as a
-   fanned stack instead of a straight row of overlapping rectangles. */
-.subject-masthead__cover:nth-child(1) {
-  transform: rotate(-9deg) translateY(10px);
-}
-.subject-masthead__cover:nth-child(2) {
-  transform: rotate(-5deg) translateY(4px);
-}
-.subject-masthead__cover:nth-child(3) {
-  transform: rotate(-1deg);
-}
-.subject-masthead__cover:nth-child(4) {
-  transform: rotate(3deg) translateY(3px);
-}
-.subject-masthead__cover:nth-child(5) {
-  transform: rotate(7deg) translateY(8px);
-}
-.subject-masthead__cover:nth-child(6) {
-  transform: rotate(11deg) translateY(14px);
+/* Deeper "lifted" shadow lives on a pseudo-element and cross-fades in,
+   so hover animates only transform + opacity (no box-shadow repaints). */
+.subject-masthead__cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-index-behind);
+  border-radius: inherit;
+  box-shadow: 0 10px 22px
+    color-mix(in srgb, var(--book-cover-shadow-color) 80%, transparent);
+  opacity: 0;
+  transition: opacity var(--fan-duration-exit) var(--fan-ease-exit);
 }
 
-.subject-masthead__cover:hover {
-  transform: translateY(-10px) scale(1.05) !important;
-  box-shadow: 0 16px 28px
-    color-mix(in srgb, var(--book-cover-shadow-color) 85%, transparent);
-  z-index: var(--z-index-raised);
+/* Small alternating rotation + lift per position is what reads as a
+   fanned stack instead of a straight row of overlapping rectangles.
+   Rotation and lift are separate vars so hover can straighten the cover
+   partway without overriding the whole transform. */
+.subject-masthead__cover:nth-child(1) {
+  --fan-rotate: -9deg;
+  --fan-y: 10px;
+}
+.subject-masthead__cover:nth-child(2) {
+  --fan-rotate: -5deg;
+  --fan-y: 4px;
+}
+.subject-masthead__cover:nth-child(3) {
+  --fan-rotate: -1deg;
+  --fan-y: 0px; /* stylelint-disable-line length-zero-no-unit -- used inside calc() */
+}
+.subject-masthead__cover:nth-child(4) {
+  --fan-rotate: 3deg;
+  --fan-y: 3px;
+}
+.subject-masthead__cover:nth-child(5) {
+  --fan-rotate: 7deg;
+  --fan-y: 8px;
+}
+.subject-masthead__cover:nth-child(6) {
+  --fan-rotate: 11deg;
+  --fan-y: 14px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Picked up: lifts and straightens halfway, like pulling a book
+     out of a fan. */
+  .subject-masthead__cover:hover {
+    transform: rotate(calc(var(--fan-rotate) / 2))
+      translateY(calc(var(--fan-y) - 8px));
+    transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
+  }
+
+  .subject-masthead__cover:hover::after {
+    opacity: 1;
+    transition: opacity var(--fan-duration-enter) var(--fan-ease-enter);
+  }
+
+  /* Part the stack: only later siblings overlap a cover, so sliding them
+     right past the 38px overlap reveals it fully without any z-index
+     change. The shift falls off with distance from the hovered cover --
+     nearest neighbour moves most, far ones barely stir -- so the far
+     covers bunch up rather than the whole row shoving over. Earlier
+     siblings ease back a little so it reads as parting. */
+  .subject-masthead__cover:hover ~ .subject-masthead__cover,
+  .subject-masthead__cover:has(~ .subject-masthead__cover:hover) {
+    transform: rotate(var(--fan-rotate)) translateY(var(--fan-y))
+      translateX(var(--fan-x));
+    transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
+  }
+
+  .subject-masthead__cover:hover + .subject-masthead__cover {
+    --fan-x: 48px;
+  }
+  .subject-masthead__cover:hover + * + .subject-masthead__cover {
+    --fan-x: 36px;
+  }
+  .subject-masthead__cover:hover + * + * + .subject-masthead__cover {
+    --fan-x: 26px;
+  }
+  .subject-masthead__cover:hover + * + * + * + .subject-masthead__cover {
+    --fan-x: 18px;
+  }
+  .subject-masthead__cover:hover + * + * + * + * + .subject-masthead__cover {
+    --fan-x: 12px;
+  }
+
+  .subject-masthead__cover:has(+ .subject-masthead__cover:hover) {
+    --fan-x: -10px;
+  }
+  .subject-masthead__cover:has(+ * + .subject-masthead__cover:hover) {
+    --fan-x: -6px;
+  }
+  .subject-masthead__cover:has(+ * + * + .subject-masthead__cover:hover) {
+    --fan-x: -3px;
+  }
+  .subject-masthead__cover:has(+ * + * + * + .subject-masthead__cover:hover) {
+    --fan-x: -2px;
+  }
+  .subject-masthead__cover:has(
+    + * + * + * + * + .subject-masthead__cover:hover
+  ) {
+    --fan-x: -1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subject-masthead__cover,
+  .subject-masthead__cover::after {
+    transition: none;
+  }
+}
+
+.subject-masthead__cover img,
+.subject-masthead__cover-placeholder {
+  border-radius: inherit;
 }
 
 .subject-masthead__cover img {
@@ -224,5 +313,58 @@
     width: 72px;
     height: 108px;
     margin-left: -30px;
+  }
+}
+
+/* --- Below-masthead columns --------------------------------------------
+   Main content (carousels, publishing history) on the left, notable authors
+   in a sidebar on the right. Related subjects sit below this band and span
+   the full width, so it isn't part of the grid. */
+.subject-page__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 282px;
+  gap: var(--spacing-3xl);
+  align-items: start;
+}
+
+.subject-page__main {
+  min-width: 0;
+}
+
+/* Availability toggle above the carousel; mirrors .search-filter-row. */
+.subject-page__filters {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  padding-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+.subject-page__sidebar {
+  padding-top: var(--spacing-lg);
+}
+
+/* Carousels ship with a tinted "decorated" band (carousel.css); on this
+   page they sit on the plain surface, so drop it (and the matching
+   lazy-load placeholder tint). */
+.subject-page__main .carousel-container-decorated,
+.subject-page__main .lazy-carousel {
+  background: transparent;
+  border-top: 0;
+  border-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* .widget-box floats at 282px on tablet+ (widget-box.css); inside the
+   sidebar the grid track already sets the width, so undo the float. */
+.subject-page__sidebar .widget-box {
+  float: none;
+  width: auto;
+}
+
+@media (max-width: 767px) {
+  .subject-page__columns {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
