@@ -5,18 +5,44 @@ $for k, v in data.items():
   $if v:
     $ data_str += "data-%s=%s " % (k, v)
 
+$ label = dropdown_label or _('More options')
+
+$# The disclosure is an <ol-popover>: it owns aria-haspopup/aria-expanded/
+$# aria-controls on the trigger, Escape and outside-click dismissal, focus
+$# restore, and a bottom tray on mobile. Only the caret is slotted as the
+$# trigger — slotting the whole action row would make the primary button
+$# toggle the panel as well as submit.
 <div class="generic-dropper-wrapper $(classes)"  $data_str>
   <div class="generic-dropper">
     <div class="generic-dropper__actions">
       <div class="generic-dropper__primary">
         $:primary_button
       </div>
-      <a class="generic-dropper__dropclick" href="javascript:;" aria-label="$(dropdown_label or _('More options'))">
-        <div class="arrow"></div>
-      </a>
-    </div>
-    <div class="generic-dropper__dropdown">
-      $:dropdown_content
+      <ol-popover class="generic-dropper__popover" placement="bottom-end" aria-label="$label">
+        <button type="button" slot="trigger" class="generic-dropper__dropclick" aria-label="$label">
+          $# Three glyphs, one visible at a time, because which one is right is a
+          $# question of how much room the container has — and that is only known
+          $# to CSS. Wide enough for the primary button and its label, and this is
+          $# a caret beside them; too narrow, and the primary button is hidden and
+          $# this becomes the only save control, so it has to say "save" (plus) or
+          $# "saved" (check) on its own. The button's accessible name is the
+          $# aria-label above and does not change with the glyph.
+          <span class="arrow" aria-hidden="true"></span>
+          <span class="generic-dropper__glyph generic-dropper__glyph--add" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </span>
+          <span class="generic-dropper__glyph generic-dropper__glyph--saved" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </span>
+        </button>
+        <div class="generic-dropper__dropdown">
+          $:dropdown_content
+        </div>
+      </ol-popover>
     </div>
   </div>
 </div>

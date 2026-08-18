@@ -97,6 +97,7 @@
 @import "components/listLists.css";
 @import "components/rating-form.css";
 @import "components/searchResultItemCta.css";
+@import "components/book-actions.css";
 
 table {
   border-collapse: collapse;

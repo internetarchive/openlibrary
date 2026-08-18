@@ -1,14 +1,25 @@
-$def with(edition_key, icon=False)
+$def with(edition_key, icon=False, fallback_query=None)
 
-$ locateUrl = "/books/XXX/-/borrow?action=locate".replace('XXX', edition_key or '')
+$# Prefers the edition route, which resolves the edition's OCLC number or ISBN
+$# and redirects to that exact record. Search results only carry an edition key
+$# for some works, so `fallback_query` (title and author) gives the rest a
+$# WorldCat search rather than no way to find the book at all.
 
-$if icon:
-  <a class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-    data-ol-link-track="CTAClick|Locate">
-
-    <span class="btn-icon map"></span>
-    <span class="btn-label">$_("Locate")</span>
-  </a>
+$if edition_key:
+  $ locateUrl = "/books/%s/-/borrow?action=locate" % edition_key
+$elif fallback_query:
+  $ locateUrl = "https://search.worldcat.org/search?q=%s" % urlquote(fallback_query)
 $else:
-  <a class="cta-btn cta-btn--available cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-    data-ol-link-track="CTAClick|Locate">$_('Locate')</a>
+  $ locateUrl = None
+
+$if locateUrl:
+  $if icon:
+    <a class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
+      data-ol-link-track="CTAClick|Locate">
+
+      <span class="btn-icon map"></span>
+      <span class="btn-label">$_("Find in a library")</span>
+    </a>
+  $else:
+    <a class="cta-btn cta-btn--available cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
+      data-ol-link-track="CTAClick|Locate">$_('Find in a library')</a>

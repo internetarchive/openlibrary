@@ -35,7 +35,15 @@ $if test or (books and len(books) >= min_books):
         $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
         <div class="carousel $grid $compact $loadjs"
           data-config="$json_encode(config)">
-          $for index, book in enumerate(books or []):
+          $# The shelf control on each card needs to know whether the patron has
+          $# already shelved that book. Ask once for the whole carousel rather
+          $# than once per card — the same bulk call search results use.
+          $ works = [storage(book) for book in (books or [])]
+          $ username = ctx.user and ctx.user.key.split('/')[-1]
+          $ shelvable = [work for work in works if (work.get('key') or '').startswith('/works/')]
+          $if username and shelvable:
+              $ add_read_statuses(username, shelvable)
+          $for index, book in enumerate(works):
               $ lazy_load = index > 5
               $ editions = book.get('editions', {})
               $code:
@@ -49,7 +57,8 @@ $if test or (books and len(books) >= min_books):
                               target_data = docs[0]
               $ book2 = storage(target_data)
               $ book2['authors'] = book.get('authors', [])
-              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
+              $# `book2` may be an edition of `book`; the shelf hangs off the work.
+              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action, work=book)
         </div>
       </div>
     </div>

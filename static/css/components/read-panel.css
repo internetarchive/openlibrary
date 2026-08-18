@@ -4,11 +4,6 @@
  */
 
 /* .Tools .btn-notice is a legacy selector. Remove at earliest opportunity. */
-.waitinglist-message {
-  white-space: nowrap;
-  margin: 0 0 10px;
-  font-size: var(--font-size-label-medium);
-}
 
 .mobile-vendor {
   display: none;
@@ -76,9 +71,9 @@
 }
 /* stylelint-enable selector-max-specificity */
 
-.read-options .waitinglist-message,
-.btn-notice .waitinglist-message {
-  margin: 0 0 10px;
+.read-options .cta-state,
+.btn-notice .cta-state {
+  margin: var(--spacing-stack-xs) 0 10px;
   font-size: var(--font-size-label-medium);
   text-wrap: auto;
 }

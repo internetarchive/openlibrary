@@ -1,9 +1,10 @@
 import sinon from 'sinon';
-import { initDroppers, initGenericDroppers } from '../../../openlibrary/plugins/openlibrary/js/dropper';
+import { initDroppers } from '../../../openlibrary/plugins/openlibrary/js/dropper';
 import { Dropper } from '../../../openlibrary/plugins/openlibrary/js/dropper/Dropper';
-import { legacyBookDropperMarkup, openDropperMarkup, closedDropperMarkup, disabledDropperMarkup } from './sample-html/dropper-test-data';
+import { legacyBookDropperMarkup, openDropperMarkup, closedDropperMarkup, disabledDropperMarkup, defineStubPopover } from './sample-html/dropper-test-data';
 import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 
+defineStubPopover();
 
 describe('initDroppers', () => {
     test('dropdown changes arrow direction on click', () => {
@@ -28,80 +29,45 @@ describe('initDroppers', () => {
 });
 
 describe('Generic Droppers', () => {
-    test('Clicking dropclick element toggles the dropper', () => {
-        // Setup
+    test('Clicking the dropclick element toggles the popover', () => {
         document.body.innerHTML = closedDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
         const dropper = new Dropper(wrapper);
         dropper.initialize();
 
-        const dropClick = document.querySelector('.generic-dropper__dropclick');
-        const arrow = dropClick.querySelector('.arrow');
+        const dropClick = wrapper.querySelector('.generic-dropper__dropclick');
+        const popover = wrapper.querySelector('ol-popover');
 
-        // Dropper should be closed at the start
-        expect(arrow.classList.contains('up')).toBe(false);
-        expect(wrapper.classList.contains('dropper-wrapper--active')).toBe(false);
+        expect(popover.open).toBe(false);
+        expect(dropper.isDropperOpen).toBe(false);
 
-        // Open dropper
         dropClick.click();
-        expect(arrow.classList.contains('up')).toBe(true);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(true);
+        expect(popover.open).toBe(true);
+        expect(dropper.isDropperOpen).toBe(true);
 
-        // Close dropper
         dropClick.click();
-        expect(arrow.classList.contains('up')).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
+        expect(popover.open).toBe(false);
+        expect(dropper.isDropperOpen).toBe(false);
     });
 
-    test('Opened droppers close if they are not the target of a click', () => {
-        // Setup
-        document.body.innerHTML = openDropperMarkup.concat(openDropperMarkup, openDropperMarkup);
-        const wrappers = document.querySelectorAll('.generic-dropper-wrapper');
-        initGenericDroppers(wrappers);
-
-
-        // Ensure that all three droppers are open
-        expect(wrappers.length).toBe(3);
-        for (const wrapper of wrappers) {
-            const arrow = wrapper.querySelector('.arrow');
-            expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(true);
-            expect(arrow.classList.contains('up')).toBe(true);
-        }
-
-        // After clicking the dropdown content of the first dropper:
-        const dropdownContent = wrappers[0].querySelector('.generic-dropper__dropdown');
-        dropdownContent.click();
-
-        // First dropper should be open
-        expect(wrappers[0].classList.contains('generic-dropper-wrapper--active')).toBe(true);
-        expect(wrappers[0].querySelector('.arrow').classList.contains('up')).toBe(true);
-
-        // ...while other droppers should be closed
-        for (let i = 1; i < wrappers.length; ++i) {
-            const arrow = wrappers[i].querySelector('.arrow');
-            expect(wrappers[i].classList.contains('generic-dropper-wrapper--active')).toBe(false);
-            expect(arrow.classList.contains('up')).toBe(false);
-        }
-    });
-
-    test('Disabled droppers cannot be opened nor closed', () => {
+    test('Disabled droppers cannot be opened by clicking the dropclick', () => {
         document.body.innerHTML = disabledDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
         const dropper = new Dropper(wrapper);
         dropper.initialize();
-        const dropclick = wrapper.querySelector('.generic-dropper__dropclick');
-        const arrow = wrapper.querySelector('.arrow');
+
+        const dropClick = wrapper.querySelector('.generic-dropper__dropclick');
+        const popover = wrapper.querySelector('ol-popover');
 
         // Sanity checks
         expect(wrapper.classList.contains('generic-dropper--disabled')).toBe(true);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
+        expect(popover.open).toBe(false);
 
-        // Click on the dropclick:
-        dropclick.click();
+        // The dropper swallows the click before the popover can act on it.
+        dropClick.click();
 
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
+        expect(popover.open).toBe(false);
+        expect(dropper.isDropperOpen).toBe(false);
     });
 });
 
@@ -118,6 +84,10 @@ describe('Dropper.js class', () => {
         const dropClick = wrapper.querySelector('.generic-dropper__dropclick');
         expect(dropper.dropClick === dropClick).toBe(true);
 
+        // Popover reference stored
+        const popover = wrapper.querySelector('ol-popover');
+        expect(dropper.popover === popover).toBe(true);
+
         // Dropper is closed
         expect(dropper.isDropperOpen).toBe(false);
 
@@ -125,31 +95,36 @@ describe('Dropper.js class', () => {
         expect(dropper.isDropperDisabled).toBe(false);
     });
 
-    it('is not functional until initialize() is called', () => {
+    it('reads its initial open state from the popover', () => {
+        document.body.innerHTML = openDropperMarkup;
+        const wrapper = document.querySelector('.generic-dropper-wrapper');
+        const dropper = new Dropper(wrapper);
+
+        expect(dropper.isDropperOpen).toBe(true);
+    });
+
+    it('does not track popover state until initialize() is called', () => {
         document.body.innerHTML = closedDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
         const dropClick = wrapper.querySelector('.generic-dropper__dropclick');
-        const arrow = wrapper.querySelector('.arrow');
+        const popover = wrapper.querySelector('ol-popover');
 
         const dropper = new Dropper(wrapper);
-        const spy = jest.spyOn(dropper, 'toggleDropper');
+        const onOpenFn = jest.spyOn(dropper, 'onOpen');
 
-        // Dropper should be closed initially:
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
-
-        // Clicking should not do anything yet:
+        // The popover self-manages, so the panel still opens — but the dropper
+        // is not listening yet, so none of its hooks run.
         dropClick.click();
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
-        expect(spy).not.toHaveBeenCalled();
+        expect(popover.open).toBe(true);
+        expect(dropper.isDropperOpen).toBe(false);
+        expect(onOpenFn).not.toHaveBeenCalled();
 
         // Test again after initialization:
+        popover.open = false;
         dropper.initialize();
         dropClick.click();
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(true);
-        expect(arrow.classList.contains('up')).toBe(true);
-        expect(spy).toHaveBeenCalled();
+        expect(dropper.isDropperOpen).toBe(true);
+        expect(onOpenFn).toHaveBeenCalled();
 
         jest.restoreAllMocks();
     });
@@ -157,7 +132,7 @@ describe('Dropper.js class', () => {
     it('can be closed if not disabled', () => {
         document.body.innerHTML = openDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
-        const arrow = wrapper.querySelector('.arrow');
+        const popover = wrapper.querySelector('ol-popover');
 
         const dropper = new Dropper(wrapper);
         dropper.initialize();
@@ -165,20 +140,18 @@ describe('Dropper.js class', () => {
         // Check initial state:
         expect(dropper.isDropperDisabled).toBe(false);
         expect(dropper.isDropperOpen).toBe(true);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(true);
-        expect(arrow.classList.contains('up')).toBe(true);
+        expect(popover.open).toBe(true);
 
         // Check again after closing:
         dropper.closeDropper();
         expect(dropper.isDropperOpen).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
+        expect(popover.open).toBe(false);
     });
 
     it('can be toggled if not disabled', () => {
         document.body.innerHTML = closedDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
-        const arrow = wrapper.querySelector('.arrow');
+        const popover = wrapper.querySelector('ol-popover');
 
         const dropper = new Dropper(wrapper);
         dropper.initialize();
@@ -186,38 +159,34 @@ describe('Dropper.js class', () => {
         // Check initial state:
         expect(dropper.isDropperDisabled).toBe(false);
         expect(dropper.isDropperOpen).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
+        expect(popover.open).toBe(false);
 
         // Check after toggling open:
         dropper.toggleDropper();
         expect(dropper.isDropperOpen).toBe(true);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(true);
-        expect(arrow.classList.contains('up')).toBe(true);
+        expect(popover.open).toBe(true);
 
         // Check after toggling once more:
         dropper.toggleDropper();
         expect(dropper.isDropperOpen).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
-        expect(arrow.classList.contains('up')).toBe(false);
+        expect(popover.open).toBe(false);
     });
 
     it('cannot be opened while disabled', () => {
         document.body.innerHTML = disabledDropperMarkup;
         const wrapper = document.querySelector('.generic-dropper-wrapper');
+        const popover = wrapper.querySelector('ol-popover');
         const dropper = new Dropper(wrapper);
         dropper.initialize();
-        const arrow = wrapper.querySelector('.arrow');
 
         // Check initial state:
         expect(dropper.isDropperDisabled).toBe(true);
-        expect(arrow.classList.contains('up')).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
+        expect(popover.open).toBe(false);
 
         // Check state after toggling:
         dropper.toggleDropper();
-        expect(arrow.classList.contains('up')).toBe(false);
-        expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false);
+        expect(popover.open).toBe(false);
+        expect(dropper.isDropperOpen).toBe(false);
     });
 
     describe('Dropper event methods', () => {
@@ -248,6 +217,19 @@ describe('Dropper.js class', () => {
             expect(onDisabledClickFn).toHaveBeenCalledTimes(2);
         });
 
+        it('calls `onDisabledClick()` when the dropclick of a disabled dropper is clicked', () => {
+            document.body.innerHTML = disabledDropperMarkup;
+            const wrapper = document.querySelector('.generic-dropper-wrapper');
+            const dropper = new Dropper(wrapper);
+            dropper.initialize();
+
+            const onDisabledClickFn = jest.spyOn(dropper, 'onDisabledClick');
+
+            wrapper.querySelector('.generic-dropper__dropclick').click();
+
+            expect(onDisabledClickFn).toHaveBeenCalledTimes(1);
+        });
+
         it('calls `onClose()` when active dropper is closed', () => {
             document.body.innerHTML = openDropperMarkup;
             const wrapper = document.querySelector('.generic-dropper-wrapper');
@@ -268,7 +250,7 @@ describe('Dropper.js class', () => {
             // Check state after toggling open then closed:
             dropper.toggleDropper();
             expect(dropper.isDropperOpen).toBe(true);
-            expect(onCloseFn).toHaveBeenCalledTimes(1); // Should not be called when dropper is closed
+            expect(onCloseFn).toHaveBeenCalledTimes(1); // Should not be called when dropper is opened
 
             dropper.toggleDropper();
             expect(dropper.isDropperOpen).toBe(false);
@@ -300,6 +282,22 @@ describe('Dropper.js class', () => {
             expect(dropper.isDropperOpen).toBe(false);
             expect(onCloseFn).toHaveBeenCalledTimes(1);
             expect(onOpenFn).toHaveBeenCalledTimes(1);
+        });
+
+        it('runs the close hooks when the popover dismisses itself', () => {
+            document.body.innerHTML = openDropperMarkup;
+            const wrapper = document.querySelector('.generic-dropper-wrapper');
+            const popover = wrapper.querySelector('ol-popover');
+            const dropper = new Dropper(wrapper);
+            dropper.initialize();
+
+            const onCloseFn = jest.spyOn(dropper, 'onClose');
+
+            // Escape / outside click / swipe all land here.
+            popover.open = false;
+
+            expect(dropper.isDropperOpen).toBe(false);
+            expect(onCloseFn).toHaveBeenCalledTimes(1);
         });
     });
 });

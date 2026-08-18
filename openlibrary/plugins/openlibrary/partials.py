@@ -22,6 +22,7 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
+from openlibrary.plugins.upstream.mybooks import add_read_statuses
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
@@ -118,9 +119,17 @@ class CarouselCardPartial:
         # Do search
         search_results = await cls._make_book_query(params)
 
+        # Cards rendered here carry a shelf control, so they need the patron's
+        # shelf status. One query for the whole batch, matching what
+        # books/custom_carousel.html does for the cards it renders inline.
+        works = [web.storage(work) for work in search_results]
+        user = get_current_user()
+        if user and (shelvable := [w for w in works if (w.get("key") or "").startswith("/works/")]):
+            add_read_statuses(user.key.split("/")[-1], shelvable)
+
         # Render cards
         cards = []
-        for index, work in enumerate(search_results):
+        for index, work in enumerate(works):
             lazy = index > cls.MAX_VISIBLE_CARDS
             editions = work.get("editions", {})
             if not editions:
@@ -138,6 +147,7 @@ class CarouselCardPartial:
                     lazy,
                     params.layout,
                     key=params.key,
+                    work=work,
                 )
             )
 

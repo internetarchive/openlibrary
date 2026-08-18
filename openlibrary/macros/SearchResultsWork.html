@@ -73,8 +73,6 @@ $code:
           title="$_('Cover of: %(title)s', title=full_title)"
           $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
 	  /></a>
-      $if ocaid:
-        $:macros.BookPreview(ocaid)
     </span>
 
     <div class="details">
@@ -249,26 +247,22 @@ $code:
             $:decorations
           </div>
 
-        <div class="searchResultItemCTA-lending">
-          $if cta:
-            $:macros.LoanStatus(selected_ed, work_key=doc.key)
-        </div>
+        $ edition_key = None
+        $if doc_type == 'solr_edition':
+          $ edition_key = selected_ed['key']
+        $elif doc_type == 'infogami_edition':
+          $ edition_key = doc.key
+        $elif doc_type == 'solr_work':
+          $if doc.get('logged_edition'):
+            $# Prefer logged_edition set when user added book
+            $ edition_key = doc.get('logged_edition')
+          $else:
+            $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
+            $if edition_key:
+              $ edition_key = '/books/%s' % edition_key
 
-        $if include_dropper:
-          $ edition_key = None
-          $if doc_type == 'solr_edition':
-            $ edition_key = selected_ed['key']
-          $elif doc_type == 'infogami_edition':
-            $ edition_key = doc.key
-          $elif doc_type == 'solr_work':
-            $if doc.get('logged_edition'):
-              $# Prefer logged_edition set when user added book
-              $ edition_key = doc.get('logged_edition')
-            $else:
-              $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
-              $if edition_key:
-                $ edition_key = '/books/%s' % edition_key
-          $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
+        $if cta or include_dropper:
+          $:macros.BookActions(selected_ed, work=doc, edition_key=edition_key, show_access=cta, show_save=include_dropper)
 
         $if rating:
           $:rating

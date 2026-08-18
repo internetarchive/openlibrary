@@ -1,6 +1,8 @@
-$def with (ocaid, show_only=False)
+$def with (ocaid)
 $# :param str ocaid:
-$# :param bool show_only: If True, label reads "Preview Only" instead of "Preview"
+$#
+$# The label is always the verb. "Preview only" is a fact about the book, and
+$# LoanStatus states it beside the button rather than inside it.
 
 $if ocaid:
   <div class="cta-button-group">
@@ -9,7 +11,7 @@ $if ocaid:
       data-book-preview
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
-      data-ol-link-track="CTAClick|Preview">$(_('Preview Only') if show_only else _('Preview'))</a>
+      data-ol-link-track="CTAClick|Preview">$_('Preview')</a>
   </div>
 
 $:macros.BookPreviewFloater()

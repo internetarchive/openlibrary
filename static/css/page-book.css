@@ -34,8 +34,7 @@
 @import "components/cover.css";
 @import "components/illustration.css";
 @import "components/rating-form.css";
-@import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
+@import "components/book-actions.css";
 @import "components/listLists.css";
 @import "components/readerStats.css";
 @import "components/link-box.css";

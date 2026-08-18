@@ -11,6 +11,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="remove"/>
       <input type="hidden" name="bookshelf_id" value="-1"/>
+      <input type="hidden" name="redir" value="true"/>
       <input type="hidden" name="default-key" value="$(seed_key)" />
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
@@ -21,6 +22,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="1"/>
+      <input type="hidden" name="redir" value="true"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       $code: pass  # NOTE: Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
@@ -30,6 +32,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="2"/>
+      <input type="hidden" name="redir" value="true"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       $code: pass  # NOTE: Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
@@ -39,6 +42,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="3"/>
+      <input type="hidden" name="redir" value="true"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       $code: pass  # NOTE: Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
@@ -48,6 +52,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="4"/>
+      <input type="hidden" name="redir" value="true"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       $code: pass  # NOTE: Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.

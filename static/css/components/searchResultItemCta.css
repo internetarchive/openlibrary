@@ -2,9 +2,8 @@
   width: 100%;
   line-height: 1em;
 }
-.searchResultItemCTA-lending {
+.searchResultItemCTA .book-actions__access {
   width: 100%;
-  color: var(--white);
   cursor: pointer;
   text-align: center;
   font-family: var(--font-family-body);
@@ -15,6 +14,9 @@
 .searchResultItemCTA .generic-dropper-wrapper {
   margin-top: 5px;
 }
+
+/* The action column's own layout lives in components/book-actions.css. */
+
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {
   .searchResultItem .searchResultItemCTA {

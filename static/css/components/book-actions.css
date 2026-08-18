@@ -1,0 +1,291 @@
+/* The action column always renders the shelf dropper, so it carries the
+   dropper's styles with it. Before this, carousels showed an access button and
+   nothing else, and the pages built around them — home, subject — never needed
+   these. Importing them here means a page bundle that renders a book only has
+   to ask for the action column. Duplicate imports are deduped by the bundler. */
+@import "generic-dropper.css";
+@import "mybooks-dropper.css";
+@import "mybooks-menu.css";
+@import "read-statuses.css";
+
+/**
+ * The action column for one book: Access above, Save below.
+ *
+ * How much of it fits is a question about the column, not about the page. A
+ * search result gets 200px, a carousel card gets about 110px, and the same
+ * search result on a phone gets the full width of the row — so the surface
+ * cannot answer it, and neither can a media query. `container-type` lets one
+ * piece of markup ask the only party that knows.
+ *
+ * The roomy shape is the default and the narrow shape is the override, so a
+ * browser without container queries (Safari < 16) keeps today's layout rather
+ * than getting the compact one everywhere.
+ *
+ * `container-type` applies layout containment, which is the same containment a
+ * transform applies — so it is worth knowing that it does NOT trap the dropper's
+ * `position: fixed` panel the way a transformed carousel track does. Verified in
+ * Chrome with a probe: a fixed child of this element still resolves against the
+ * viewport. Re-check if the panel ever starts landing in the wrong place.
+ */
+.book-actions {
+  container: book-actions / inline-size;
+}
+
+/**
+ * A surface that always wants the one-row shape, whatever width it ends up with
+ * — carousels, where the card straddles the threshold below: grid columns are
+ * `auto-fill, minmax(140px, 1fr)` and the legacy carousel drops to one book per
+ * row on a phone.
+ *
+ * Capping the query container at the threshold is what makes the narrow branch
+ * match, so the shape is asked for in one line rather than restated as a second
+ * copy of every rule in it. The cap is on the action column alone; the card and
+ * its cover are unaffected.
+ */
+.book-actions--compact {
+  max-width: 150px;
+}
+
+.book-actions__layout {
+  display: flex;
+  flex-direction: column;
+  /* Access and Save are different kinds of thing — a transaction with the
+     Internet Archive versus private account state — so they get a gap between
+     them rather than sitting flush like a pair of equal choices. */
+  gap: var(--spacing-stack-sm);
+}
+
+/* Both are hidden until a narrow container asks for one of them. */
+.generic-dropper__glyph {
+  display: none;
+}
+
+.generic-dropper__glyph svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+/**
+ * Narrow: a carousel card, or any column too tight for two labelled controls.
+ *
+ * Access keeps its label, because a reader scanning covers is deciding whether
+ * the book is readable at all. Save gives its up: the shelf name is dropped and
+ * the disclosure trigger, which at full width is only a caret beside the shelf
+ * button, becomes the whole control — a plus, or a check once the book is on a
+ * shelf. Its accessible name is unchanged and still names the book.
+ */
+@container book-actions (max-width: 150px) {
+  /* A grid rather than a flex row, so the caption can span the controls instead
+     of being boxed into the width left over beside the shelf button. */
+  .book-actions__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    /* Access and Save are different kinds of thing and should not read as a
+       split button; two pixels was not enough daylight. Row gap is zero — the
+       caption carries its own top margin. */
+    gap: 0 var(--spacing-inline-md);
+    /* The access button's own top margin is what used to separate the controls
+       from the cover, and aligning the two tops meant giving it up. The gap
+       belongs to the row either way. */
+    margin-top: var(--spacing-stack-sm);
+  }
+
+  /* The caption is emitted inside the access slot, so the slot gives up its box
+     and its children become grid items directly. Nothing here paints, so there
+     is no box to lose. */
+  .book-actions__access {
+    display: contents;
+  }
+
+  .book-actions__access > * {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  /* "On Project Gutenberg" is the widest thing in the column and the one line
+     that should not wrap, so it gets the full width — including the strip under
+     the shelf button, which is only one control tall. */
+  .book-actions__access > .cta-state {
+    grid-column: 1 / -1;
+  }
+
+  /* Both controls are one control size — `ol-button[size="small"]` — so a card
+     reads as a pair rather than as two things that happen to sit together. The
+     geometry is copied, not the palette: the access button keeps its filled CTA
+     colours, and only the metrics, corner and press feel come from the button
+     system. `min-height` rather than `height` because long verbs wrap here. */
+  .book-actions__access .cta-btn,
+  .book-actions__save .generic-dropper__actions {
+    min-height: var(--control-height-small);
+    border-radius: var(--border-radius-button);
+    box-shadow: var(--box-shadow-raised);
+    transition: transform 0.08s;
+  }
+
+  /* Long verbs — "Find in a library" — wrap onto a second line rather than
+     being clipped, which is the one thing a reader cannot recover from. The
+     flex centring is what keeps a one-line label centred at a fixed height. */
+  .book-actions__access .cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-inline-sm);
+    margin-top: 0;
+    padding: var(--spacing-3xs) var(--spacing-sm);
+    font-size: var(--font-size-label-medium);
+    line-height: var(--line-height-control);
+    white-space: normal;
+  }
+
+  /* The "leaves the site" arrow is a background image pinned 8px from the right
+     edge, which works on a 200px button and collides with the centred label on a
+     card. Partner buttons — Listen on LibriVox, Read on Gutenberg — are the ones
+     that carry it, and they are also the ones with the longest labels. The link
+     still opens in a new tab and still says where it goes in its title.
+     `.carousel-section .cta-btn.cta-btn--external` reserves 24px on the right
+     for that arrow, and `.cta-btn--w-icon` sets its own padding; both outrank a
+     two-class selector, so the padding is restated here rather than left to the
+     shared rule above — otherwise the label sits off-centre in dead space. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__access .cta-btn.cta-btn--external,
+  .book-actions__access .cta-btn.cta-btn--w-icon {
+    padding: var(--spacing-3xs) var(--spacing-sm);
+    background-image: none;
+  }
+
+  /* The label pads itself as well as the button, which on a 26px control is
+     8px of padding inside a 26px box. The button owns the padding here. */
+  .book-actions__access .cta-btn .btn-label {
+    padding: 0;
+  }
+
+  /* 22px was drawn for the full-size button and leaves a 26px control almost
+     all glyph — the headphones on a LibriVox card being the one you meet most.
+     16px is what the shelf glyph already takes at this size. */
+  .book-actions__access .cta-btn .btn-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* The bordered row is what a reader sees as the save button — the trigger
+     inside it just fills it — so the control's edge belongs here. Height is set
+     rather than left to `min-height`: this row is a flex container built for a
+     labelled button beside a caret, and it keeps reserving room for the label
+     even with the label hidden. Nothing here wraps, so pinning it is safe. */
+  .book-actions__save .generic-dropper__actions {
+    height: var(--control-height-small);
+    border-color: var(--color-border-subtle);
+  }
+
+  /* Tactile press, the same one ol-button uses. */
+  .book-actions__access .cta-btn:active,
+  .book-actions__save .generic-dropper__actions:active {
+    transform: scale(0.97);
+  }
+
+  /* One disclosure per book. The access button carries its own overflow — a
+     second caret for Listen, download options, Locate — and two carets will not
+     fit here even if the rule allowed it. The save menu wins the slot: a reader
+     scanning a carousel is browsing, and the ways-to-read list is one click away
+     on the book itself. */
+  .book-actions__access .cta-dropper__popover {
+    display: none;
+  }
+
+  /* Without the overflow beside it, the access button is no longer part of a
+     group and gets its corners back. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__access .cta-dropper.cta-button-group > .cta-btn:first-child {
+    border-radius: var(--border-radius-button);
+  }
+
+  .book-actions__access .cta-state {
+    font-size: var(--font-size-label-small);
+  }
+
+  /* A caption that only repeats the button's verb is not worth a line here. */
+  .book-actions__access .cta-state--restates-button {
+    display: none;
+  }
+
+  /* Square, at the same control height as the access button beside it. Sized
+     here rather than left to the content: the trigger is slotted into
+     <ol-popover>'s shadow tree, so its width does not reach back out to size
+     this column, and the column would collapse to the border. */
+  .book-actions__save {
+    grid-row: 1;
+    grid-column: 2;
+    width: var(--control-height-small);
+  }
+
+  /* The wrapper reserves height for a check-in prompt and lifts the dropper out
+     of flow so that prompt keeps its spacing. Neither applies to a card. */
+  .book-actions__save .generic-dropper-wrapper {
+    min-height: 0;
+  }
+
+  .book-actions__save .generic-dropper {
+    position: static;
+  }
+
+  .book-actions__save .generic-dropper__popover {
+    flex: 1;
+  }
+
+  .book-actions__save .generic-dropper__primary {
+    display: none;
+  }
+
+  /* The grey fill reads as one half of a split button, which is what it is at
+     full width. Alone beside a filled CTA it should read as a secondary button,
+     so it takes ol-button's surface. */
+  .book-actions__save .generic-dropper__actions .generic-dropper__dropclick {
+    width: 100%;
+    height: var(--control-height-small);
+    border-left: 0;
+    background-color: var(--white);
+  }
+
+  /* Sized against a 26px control rather than the 32px one it was drawn for. */
+  .book-actions__save .generic-dropper__glyph svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Matches the specificity generic-dropper.css uses for the caret, which is
+     the rule being overridden. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__save
+    .generic-dropper__actions
+    .generic-dropper__dropclick
+    .arrow {
+    display: none;
+  }
+
+  /* The menu hides whichever shelf the primary button is already offering, so
+     the same choice is not presented twice — `hidden` on a shelf button means
+     exactly that, and ReadingLogForms.js moves it as the shelf changes. Here
+     the primary button is not on screen, so that shelf has to come back, or an
+     unshelved book offers every shelf except "Want to Read".
+     `!important` because it is countering the `.hidden` helper, which is itself
+     `!important`; the alternative is a second class for JS to keep in sync. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  .book-actions__save .read-statuses .nostyle-btn.hidden {
+    display: block !important;
+  }
+
+  .book-actions__save .generic-dropper__glyph--add {
+    display: block;
+  }
+
+  /* Set by my_books/dropper.html when the book is on a shelf. */
+  .book-actions__save [data-shelf] .generic-dropper__glyph--add {
+    display: none;
+  }
+
+  .book-actions__save [data-shelf] .generic-dropper__glyph--saved {
+    display: block;
+  }
+}
