@@ -206,14 +206,30 @@ describe('OLButton', () => {
             expect(proxy(el)).toBeNull();
         });
 
-        test('re-creates the proxy if a consumer replaces the light DOM', async() => {
+        test('restores the proxy if a consumer replaces the light DOM', async() => {
             const el = await mount({ type: 'submit' });
             el.textContent = 'New label';
             expect(proxy(el)).toBeNull();
-            el.requestUpdate();
-            await el.updateComplete;
+            await Promise.resolve(); // MutationObserver callbacks are microtasks
             expect(proxy(el)).not.toBeNull();
             expect(el.textContent).toBe('New label');
+        });
+
+        test('form* properties reach the proxy, not just attributes', async() => {
+            const el = await mount({ type: 'submit' });
+            el.formAction = '/save';
+            el.formMethod = 'post';
+            el.formNoValidate = true;
+            el.formTarget = '_blank';
+            await el.updateComplete;
+            const p = proxy(el);
+            expect(p.getAttribute('formaction')).toBe('/save');
+            expect(p.getAttribute('formmethod')).toBe('post');
+            expect(p.hasAttribute('formnovalidate')).toBe(true);
+            expect(p.getAttribute('formtarget')).toBe('_blank');
+            el.formNoValidate = false;
+            await el.updateComplete;
+            expect(p.hasAttribute('formnovalidate')).toBe(false);
         });
     });
 

@@ -38,7 +38,7 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  * button sits inside another component's shadow root and the form is outside,
  * the proxy has no form owner and it falls back to `internals.form` (a plain
  * `requestSubmit()`, no submitter). Replacing the host's children wholesale
- * (`innerHTML =`) removes the proxy; it is re-created on the next update.
+ * (`textContent =`) removes the proxy; a MutationObserver puts it back.
  *
  * Contains no application-specific logic, copy, or translations. The
  * consuming page owns what the button *does* — this component only owns
@@ -106,11 +106,11 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         type: { type: String, reflect: true },
         value: { type: String, reflect: true },
         // Pass-throughs to the form proxy; same names as on a native <button>.
-        formAction: { type: String, attribute: 'formaction' },
-        formEnctype: { type: String, attribute: 'formenctype' },
-        formMethod: { type: String, attribute: 'formmethod' },
-        formNoValidate: { type: Boolean, attribute: 'formnovalidate' },
-        formTarget: { type: String, attribute: 'formtarget' },
+        formAction: { type: String, attribute: 'formaction', reflect: true },
+        formEnctype: { type: String, attribute: 'formenctype', reflect: true },
+        formMethod: { type: String, attribute: 'formmethod', reflect: true },
+        formNoValidate: { type: Boolean, attribute: 'formnovalidate', reflect: true },
+        formTarget: { type: String, attribute: 'formtarget', reflect: true },
         href: { type: String, reflect: true },
         target: { type: String },
         rel: { type: String },
@@ -512,14 +512,25 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         this.formNoValidate = false;
         /** @type {HTMLButtonElement|null} Light-DOM native button standing in for the form. */
         this._proxy = null;
+        // Restores the proxy if a consumer replaces the host's children
+        // (`textContent =`), which would otherwise break Enter-to-submit.
+        this._childObserver = new MutationObserver(() => {
+            if (this._proxy && this._proxy.parentNode !== this) this._syncProxy();
+        });
     }
 
     connectedCallback() {
         super.connectedCallback();
+        this._childObserver.observe(this, { childList: true });
         // Flush the first render synchronously within the upgrade task, so the
         // pre-upgrade host styling (ol-button.css, `:not(:defined)`) hands off
         // to the shadow-rendered control with no frame in between.
         this.performUpdate();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._childObserver.disconnect();
     }
 
     /** @returns {boolean} Whether this button acts on a form (submit/reset, not a link). */
@@ -600,7 +611,6 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
      * @returns {void}
      */
     _submitOrReset() {
-        this._syncProxy();
         const proxy = this._proxy;
         const form = proxy?.form ?? this.form;
         if (!form) return;
