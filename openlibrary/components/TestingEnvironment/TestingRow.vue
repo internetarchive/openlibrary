@@ -1,7 +1,7 @@
 <template>
   <tr :class="rowClasses">
     <td
-      v-if="maintainer"
+      v-if="maintainer && inSet"
       class="testing-env__col-toggle"
     >
       <button
@@ -20,10 +20,19 @@
     </td>
     <td class="testing-env__pr-cell">
       <div class="testing-env__pr-line">
-        <a
-          class="testing-env__pr-num"
-          :href="prUrl"
-        >#{{ pr.pr }}</a>
+        <span class="testing-env__pr-ref">
+          <span
+            v-if="liveNow"
+            class="testing-env__live-dot"
+            role="img"
+            :title="strings.liveNow"
+            :aria-label="strings.liveNow"
+          />
+          <a
+            class="testing-env__pr-num"
+            :href="prUrl"
+          >#{{ pr.pr }}</a>
+        </span>
         <a
           class="testing-env__pr-title"
           :href="prUrl"
@@ -45,60 +54,66 @@
     </td>
     <td class="testing-env__drift-cell">
       <div class="testing-env__cell-stack">
-        <a
-          v-if="pill.href"
-          class="testing-env__pill"
-          :class="pillClass"
-          :href="pill.href"
-          :title="pill.title"
-        >{{ pill.label }}</a>
+        <template v-if="inSet">
+          <a
+            v-if="pill.href"
+            class="testing-env__pill"
+            :class="pillClass"
+            :href="pill.href"
+            :title="pill.title"
+          >{{ pill.label }}</a>
+          <span
+            v-else
+            class="testing-env__pill"
+            :class="pillClass"
+            :title="pill.title"
+          >{{ pill.label }}</span>
+          <button
+            v-if="maintainer && canUpdatePr"
+            type="button"
+            class="testing-env__row-action"
+            :disabled="busy"
+            :title="strings.update"
+            :aria-label="strings.update"
+            @click="$emit('update', pr)"
+          >
+            <svg
+              class="testing-env__btn-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line
+                x1="12"
+                y1="19"
+                x2="12"
+                y2="5"
+              />
+              <polyline points="5 12 12 5 19 12" />
+            </svg>
+          </button>
+          <span
+            v-if="pending"
+            class="testing-env__pending"
+            role="img"
+            :title="strings.changeOnDeploy"
+            :aria-label="strings.changeOnDeploy"
+          >⏳</span>
+        </template>
         <span
           v-else
-          class="testing-env__pill"
-          :class="pillClass"
-          :title="pill.title"
-        >{{ pill.label }}</span>
-        <button
-          v-if="maintainer && canUpdatePr"
-          type="button"
-          class="testing-env__row-action"
-          :disabled="busy"
-          :title="strings.update"
-          :aria-label="strings.update"
-          @click="$emit('update', pr)"
-        >
-          <svg
-            class="testing-env__btn-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <line
-              x1="12"
-              y1="19"
-              x2="12"
-              y2="5"
-            />
-            <polyline points="5 12 12 5 19 12" />
-          </svg>
-        </button>
-        <span
-          v-if="pending"
-          class="testing-env__pending"
-          role="img"
-          :title="strings.changeOnDeploy"
-          :aria-label="strings.changeOnDeploy"
-        >⏳</span>
+          class="testing-env__empty"
+        >—</span>
       </div>
     </td>
     <td
-      v-if="maintainer"
+      v-if="maintainer && inSet"
       class="testing-env__col-actions"
     >
       <button
@@ -177,6 +192,12 @@ export default {
     },
     emits: ['toggle', 'update', 'remove'],
     computed: {
+        inSet() {
+            return this.pr.in_set !== false;
+        },
+        liveNow() {
+            return this.pr.live_now === true;
+        },
         effectiveActive() {
             return effectiveActive(this.pr);
         },
@@ -197,9 +218,15 @@ export default {
         },
         rowClasses() {
             const classes = ['testing-env__row'];
-            if (this.pr.active === false) classes.push('is-inactive');
-            if (this.pr.is_new) classes.push('is-new');
-            if (this.pending) classes.push('is-pending');
+            if (!this.inSet) {
+                // A removed PR that is still on the box: read-only row, flagged
+                // for the deploy to drop — not a paused member of the set.
+                classes.push('is-dropped');
+            } else {
+                if (this.pr.active === false) classes.push('is-inactive');
+                if (this.pr.is_new) classes.push('is-new');
+                if (this.pending) classes.push('is-pending');
+            }
             return classes;
         }
     },

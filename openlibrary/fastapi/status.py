@@ -38,6 +38,9 @@ class TestingPRResponse(BaseModel):
     drift: int = Field(-1, description="Commits the pinned commit is behind HEAD; -1 if unknown")
     merged: bool = Field(False, description="Whether the PR has been merged into master")
     is_new: bool = Field(False, description="Whether the PR was added since the last deploy")
+    live_now: bool = Field(False, description="Whether the last deploy put this PR on the box (it is running now)")
+    action: str = Field("", description="What the next deploy does with this PR: add, update, enable, disable, remove, or empty when unchanged")
+    in_set: bool = Field(True, description="Whether the PR is still in the testing set; False for rows dropped from the set but still on the box")
 
 
 class PendingChangeResponse(BaseModel):

@@ -659,6 +659,10 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
+msgid "The testing environment panel is only visible to maintainers."
+msgstr ""
+
+#: status.html
 msgid "Last Build Result"
 msgstr ""
 
@@ -7643,10 +7647,6 @@ msgid "PR numbers or URLs, space or comma separated"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "On"
-msgstr ""
-
-#: TestingEnvironment.html.jinja
 msgid "PR"
 msgstr ""
 
@@ -7656,6 +7656,14 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Drift"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Next deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Live now"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

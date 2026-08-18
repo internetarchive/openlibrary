@@ -145,6 +145,71 @@ def test_pending_changes_counts_everything_before_first_deploy():
     assert [c["kind"] for c in changes] == ["add"]
 
 
+def test_payload_marks_live_now_from_the_deployed_set():
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+    state.deployed = {pr.pr: pr.title}
+
+    payload = status_module.get_testing_status(state, {})
+
+    assert payload["prs"][0]["live_now"] is True
+    assert payload["prs"][0]["action"] == ""  # live and unchanged
+    assert payload["prs"][0]["in_set"] is True
+
+
+def test_payload_infers_live_now_without_a_deployed_record():
+    """Pre-record state files have an empty `deployed`; a PR added before the
+    last deploy was part of it, mirroring how _pending_changes treats it."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")  # before last deploy
+    state = _make_state(prs=[pr])  # deployed={} by default
+
+    payload = status_module.get_testing_status(state, {})
+
+    assert payload["prs"][0]["live_now"] is True
+
+
+def test_payload_never_deployed_means_nothing_live():
+    pr = _make_pr()
+    state = _make_state(prs=[pr], last_deploy_at="")
+
+    payload = status_module.get_testing_status(state, {})
+
+    assert payload["prs"][0]["live_now"] is False
+    assert payload["prs"][0]["action"] == "add"
+
+
+def test_payload_action_mirrors_the_plan_kinds():
+    """The row chip names the same change the plan itemizes."""
+    new_pr = _make_pr(pr_number=13269)  # added after last deploy
+    pinned = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pinned.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    disabled = _make_pr(pr_number=13240, active=True, added_at="2026-08-01T10:00:00+00:00")
+    disabled.pending_active = False
+    state = _make_state(prs=[new_pr, pinned, disabled])
+    state.deployed = {13238: pinned.title, 13240: disabled.title}
+
+    payload = status_module.get_testing_status(state, {})
+    actions = {p["pr"]: p["action"] for p in payload["prs"]}
+
+    assert actions == {13269: "add", 13238: "update", 13240: "disable"}
+
+
+def test_payload_includes_dropped_prs_as_readonly_rows():
+    """Removed from the set but still on the box: a REMOVE row, not a ghost."""
+    pr = _make_pr(pr_number=13269, added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+    state.deployed = {13269: pr.title, 13238: "Old PR"}
+
+    payload = status_module.get_testing_status(state, {})
+    dropped = next(p for p in payload["prs"] if p["pr"] == 13238)
+
+    assert dropped["in_set"] is False
+    assert dropped["live_now"] is True
+    assert dropped["action"] == "remove"
+    assert dropped["title"] == "Old PR"
+    assert dropped["drift"] == -1
+
+
 @pytest.mark.parametrize(
     ("age_seconds", "expected"),
     [(60, True), (status_module._DEPLOY_WINDOW + 60, False)],
@@ -235,6 +300,9 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "drift": 2,
                 "merged": False,
                 "is_new": True,
+                "live_now": False,
+                "action": "",
+                "in_set": True,
             }
         ],
     }

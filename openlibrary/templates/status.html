@@ -1,4 +1,4 @@
-$def with (status = {}, features_table = [], dev_merged_status=None, is_maintainer=False, show_testing=False, jenkins_job_url='')
+$def with (status = {}, features_table = [], dev_merged_status=None, is_maintainer=False, has_testing_state=False, show_testing=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -23,6 +23,14 @@ $var title: $_("Open Library server status")
 
   /* Testing Environment styles live in static/css/components/testing-env.css,
      imported by the default page-user bundle this page falls back to. */
+
+  /* Maintainer-only notice shown in place of the testing panel. */
+  .testing-env-notice {
+    padding: 8px 12px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    background: #fff8e1;
+  }
 </style>
 
 <div id="contentHead">
@@ -33,6 +41,10 @@ $var title: $_("Open Library server status")
 
   $if show_testing:
     $:render_jinja_template("TestingEnvironment.html.jinja", is_maintainer=is_maintainer, jenkins_job_url=jenkins_job_url, render_component=render_component)
+  $elif has_testing_state:
+    <div class="notice testing-env-notice">
+      $_("The testing environment panel is only visible to maintainers.")
+    </div>
 
   $if dev_merged_status:
       <h2> $_("Last Build Result") </h2>

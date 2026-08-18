@@ -81,7 +81,7 @@
                   v-if="isMaintainer"
                   scope="col"
                 >
-                  {{ strings.on }}
+                  {{ strings.next }}
                 </th>
                 <th scope="col">
                   {{ strings.pr }}
@@ -461,7 +461,7 @@ export default {
    it flips the row either way. */
 .testing-env__switch {
   position: relative;
-  display: block;
+  display: inline-block;
   width: 34px;
   height: 20px;
   padding: 0;
@@ -589,6 +589,12 @@ export default {
   white-space: nowrap;
 }
 
+/* The toggle column is wider than the switch (its header is the longest
+   content), so the cell centres it like the person columns centre avatars. */
+.testing-env__col-toggle {
+  text-align: center;
+}
+
 /* Trailing verb column: ragged-right. */
 .testing-env__col-actions {
   text-align: right;
@@ -608,6 +614,15 @@ export default {
   grid-template-columns: 4.25em minmax(0, 1fr);
   gap: var(--spacing-sm);
   align-items: baseline;
+}
+
+/* The number and its live dot share the fixed rail; the dot is sized to sit
+   inside the rail without widening it or shifting the title. */
+.testing-env__pr-ref {
+  display: inline-flex;
+  gap: var(--spacing-2xs);
+  align-items: center;
+  min-width: 0;
 }
 
 .testing-env__pr-num,
@@ -640,6 +655,18 @@ export default {
 .testing-env__pr-title:hover,
 .testing-env__pr-title:focus-visible {
   text-decoration: underline;
+}
+
+/* A filled dot marks a PR the last deploy put on the box — it is running now.
+   Sits ahead of the number inside the fixed rail so it never shifts the
+   title. A muted ring keeps it visible on the pending tint. */
+.testing-env__live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--border-radius-circle);
+  background: var(--color-success-object);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+  flex: none;
 }
 
 .testing-env__person {
@@ -848,6 +875,21 @@ a.testing-env__pill:focus-visible {
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);
+}
+
+/* ── Dropped rows ───────────────────────────────────────────── */
+
+/* A PR removed from the set but still on the box: read-only, queued for the
+   deploy to drop. It keeps the live dot (it is running) but loses the toggle,
+   drift, and actions — the REMOVE chip and a strikethrough carry the verdict. */
+.testing-env__row.is-dropped .testing-env__pr-title {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-muted);
+}
+
+.testing-env__row.is-dropped .testing-env__pr-cell {
+  background: var(--color-surface-sunken);
 }
 
 /* ── Empty state ────────────────────────────────────────────── */

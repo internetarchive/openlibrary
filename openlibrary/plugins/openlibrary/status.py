@@ -41,16 +41,18 @@ _CHANGE_ORDER = {"add": 0, "pin": 1, "enable": 2, "disable": 3, "remove": 4}
 class status(delegate.page):
     def GET(self):
         is_maintainer_user = _is_maintainer()
+        has_testing_state = _load_testing_state() is not None
         # The panel reads its state from FastAPI in the browser. Keep only this
         # lightweight existence/permission check so non-maintainers do not get
         # a shell that would immediately produce a 403 from the JSON endpoint.
-        show_testing = _load_testing_state() is not None and is_maintainer_user
+        show_testing = has_testing_state and is_maintainer_user
         return render_template(
             "status",
             status_info,
             features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
             is_maintainer=is_maintainer_user,
+            has_testing_state=has_testing_state,
             show_testing=show_testing,
             jenkins_job_url=_JENKINS_JOB_URL,
         )
@@ -272,6 +274,25 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[dict]:
     return changes
 
 
+def _row_action(p: TestingPR, merged: bool, last_deploy: str) -> str:
+    """The one chip a row shows: what the next deploy does with this PR.
+
+    Mirrors ``_pending_changes`` so the table and the plan can't drift apart:
+    merged rows are removals, unlanded rows are adds, a staged pull is an
+    update, and a staged toggle is an enable/disable. Empty means the deploy
+    leaves the row untouched.
+    """
+    if merged:
+        return "remove"
+    if not last_deploy or p.added_at > last_deploy:
+        return "add"
+    if p.pull_latest_sha:
+        return "update"
+    if p.pending_toggle is not None:
+        return "enable" if p.pending_toggle else "disable"
+    return ""
+
+
 def get_testing_status(
     testing_state: TestingState | None = None,
     drift_info: dict | None = None,
@@ -280,8 +301,11 @@ def get_testing_status(
 
     Returns a dict with ``last_deploy_at``, ``has_pending``, the itemized
     ``pending_changes`` plan, whether a deploy is presumed in flight, and a
-    list of PRs (state fields merged with live drift info), or None if there
-    is no testing state file. Shared by the /status page and the FastAPI
+    list of PRs (state fields merged with live drift info, plus ``live_now``
+    and the per-row ``action`` the next deploy applies), or None if there is
+    no testing state file. Rows include PRs that were removed from the set but
+    are still running on the box (``in_set=False``) so the table shows the
+    full before/after picture. Shared by the /status page and the FastAPI
     testing-status API so they can't drift apart.
     """
     state = testing_state if testing_state is not None else _load_testing_state()
@@ -291,22 +315,61 @@ def get_testing_status(
         drift_info, _ = _get_drift_info(state)
     last_deploy = state.last_deploy_at
     pending_changes = _pending_changes(state, drift_info)
+    remaining = {p.pr for p in state.prs}
+    # The `deployed` record postdates most state files, so an empty one means
+    # "pre-record" rather than "nothing was ever deployed": infer what the last
+    # deploy built the same way _pending_changes does — anything added before it
+    # was part of it. A populated record is authoritative (it also catches PRs
+    # deployed then removed, which no longer exist in prs).
+    deployed_record = bool(state.deployed)
+    prs = [
+        {
+            **p.to_dict(),
+            "head_sha": drift_info.get(p.pr, {}).get("head_sha", ""),
+            "drift": drift_info.get(p.pr, {}).get("drift", -1),
+            "merged": drift_info.get(p.pr, {}).get("merged", False),
+            "is_new": bool(last_deploy and p.added_at > last_deploy),
+            "live_now": p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
+            "action": _row_action(p, drift_info.get(p.pr, {}).get("merged", False), last_deploy),
+            "in_set": True,
+        }
+        for p in state.prs
+    ]
+    # Deployed but no longer in the set: the deploy drops them from the box, so
+    # they get a read-only row flagged for removal rather than vanishing.
+    for pr, title in state.deployed.items():
+        if pr not in remaining:
+            prs.append(
+                {
+                    "pr": pr,
+                    "title": title,
+                    "commit": "",
+                    "active": False,
+                    "added_at": "",
+                    "added_by": "",
+                    "pull_latest_sha": "",
+                    "pending_active": None,
+                    "author": "",
+                    "author_avatar": "",
+                    "assignee": "",
+                    "assignee_avatar": "",
+                    "head_sha": "",
+                    "drift": -1,
+                    "merged": False,
+                    "is_new": False,
+                    "live_now": True,
+                    "action": "remove",
+                    "in_set": False,
+                }
+            )
+    prs.sort(key=lambda row: row["pr"])
     return {
         "last_deploy_at": last_deploy,
         "deploy_started_at": state.deploy_started_at,
         "deploying": _is_deploying(state),
         "pending_changes": pending_changes,
         "has_pending": bool(pending_changes),
-        "prs": [
-            {
-                **p.to_dict(),
-                "head_sha": drift_info.get(p.pr, {}).get("head_sha", ""),
-                "drift": drift_info.get(p.pr, {}).get("drift", -1),
-                "merged": drift_info.get(p.pr, {}).get("merged", False),
-                "is_new": bool(last_deploy and p.added_at > last_deploy),
-            }
-            for p in state.prs
-        ],
+        "prs": prs,
     }
 
 
