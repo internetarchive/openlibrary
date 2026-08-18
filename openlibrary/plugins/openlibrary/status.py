@@ -493,6 +493,7 @@ class TestingPRStatus(TestingPR):
     merged: bool = False  # PR has been merged into master
     is_new: bool = False  # added since the last deploy
     live_now: bool = False  # the last deploy put this PR on the box
+    merge_conflict: bool = False  # the last deploy's merge of this PR conflicted, so it did not land
     action: str = ""  # what the next deploy does with this row: add, pin, enable, disable, remove, or empty
     in_set: bool = True  # False for rows dropped from the set but still on the box
 
@@ -509,7 +510,7 @@ class TestingStatus:
     prs: list[TestingPRStatus]
 
 
-def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus:
+def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts: frozenset[int] = frozenset()) -> TestingStatus:
     """Compose the testing-environment status from persisted state and live drift info. Pure.
 
     Rows carry the live drift flags plus the derived per-row ``action`` and
@@ -518,6 +519,10 @@ def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus
     before/after picture. The plan (``pending_changes``) and deploy state are
     derived the same way the deploy handler applies them, so the table, the
     plan, and the JSON API can't drift apart.
+
+    ``merge_conflicts`` is the set of PRs whose merge failed on the last deploy
+    (read from the deploy status file); their rows carry ``merge_conflict`` so
+    the panel can show they did not land.
     """
     last_deploy = state.last_deploy_at
     pending_changes = _pending_changes(state, drift_info)
@@ -542,6 +547,7 @@ def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus
             merged=drift_info.get(p.pr, {}).get("merged", False),
             is_new=bool(last_deploy and p.added_at > last_deploy),
             live_now=p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
+            merge_conflict=p.pr in merge_conflicts,
             action=actions.get(p.pr, ""),
             in_set=True,
         )
@@ -595,7 +601,20 @@ async def load_testing_status_async() -> TestingStatus | None:
     if (state := _load_testing_state()) is None:
         return None
     drift_info, _ = await _get_drift_info_async(state)
-    return build_testing_status(state, drift_info)
+    return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
+
+
+def _merge_conflicted_prs() -> frozenset[int]:
+    """PRs whose merge failed on the last deploy, per the deploy status file.
+
+    Reads the same ``_dev-merged_status.txt`` that powers the legacy "Last
+    Build Result" table: a PR row whose status is git's "Automatic merge
+    failed…" means the deploy skipped it, so it never landed on the box.
+    """
+    dms = get_dev_merged_status()
+    if not dms:
+        return frozenset()
+    return frozenset(pr.pull_id for pr in dms.pr_statuses if pr.pull_id and pr.status.startswith("Automatic merge failed"))
 
 
 def _save_testing_state(state: TestingState) -> None:

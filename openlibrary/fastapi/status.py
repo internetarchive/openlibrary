@@ -42,6 +42,7 @@ class TestingPRResponse(BaseModel):
     merged: bool = Field(..., description="Whether the PR has been merged into master")
     is_new: bool = Field(..., description="Whether the PR was added since the last deploy")
     live_now: bool = Field(..., description="Whether the last deploy put this PR on the box (it is running now)")
+    merge_conflict: bool = Field(..., description="Whether the last deploy's merge of this PR conflicted, so it did not land")
     action: str = Field(..., description="What the next deploy does with this PR: add, pin, enable, disable, remove, or empty when unchanged")
     in_set: bool = Field(..., description="Whether the PR is still in the testing set; False for rows dropped from the set but still on the box")
 

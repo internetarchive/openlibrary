@@ -29,6 +29,7 @@ export const DEFAULT_STRINGS = {
     next: 'Next deploy',
     liveNow: 'Live now',
     notLive: 'Not yet deployed',
+    mergeConflict: 'Deploy failed (merge conflict)',
     actions: 'Actions',
     ok: 'OK',
     prOnTesting: 'PR #%s on testing',

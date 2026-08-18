@@ -179,6 +179,7 @@
      tuned for AA text and read muddy as a block of color. The neutral one is the
      same shape switched off: dark enough that a white knob still reads on it. */
   --color-success-object: var(--green-400);
+  --color-error-object: var(--red-500);
   --color-neutral-object: var(--neutral-300);
 }
 

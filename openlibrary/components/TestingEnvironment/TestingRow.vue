@@ -23,10 +23,13 @@
         <span class="testing-env__pr-ref">
           <span
             class="testing-env__live-dot"
-            :class="{ 'testing-env__live-dot--not-live': !liveNow }"
+            :class="{
+              'testing-env__live-dot--not-live': !liveNow && !mergeConflict,
+              'testing-env__live-dot--conflict': mergeConflict
+            }"
             role="img"
-            :title="liveNow ? strings.liveNow : strings.notLive"
-            :aria-label="liveNow ? strings.liveNow : strings.notLive"
+            :title="dotLabel"
+            :aria-label="dotLabel"
           />
           <a
             class="testing-env__pr-num"
@@ -189,6 +192,15 @@ export default {
         },
         liveNow() {
             return this.pr.live_now === true;
+        },
+        mergeConflict() {
+            return this.pr.merge_conflict === true;
+        },
+        // Red beats live-now: a conflicted PR never landed, so the dot says so
+        // even if a stale live flag would still claim it.
+        dotLabel() {
+            if (this.mergeConflict) return this.strings.mergeConflict;
+            return this.liveNow ? this.strings.liveNow : this.strings.notLive;
         },
         // The switch shows what the next deploy leaves the row as: the staged
         // toggle when one is pending (the server emits pending_active then),

@@ -650,7 +650,7 @@ export default {
 }
 
 /* Dot marks the PR's place in the last deploy: green when live now, gray when
-   never deployed. Both render so the rail stays steady. */
+   never deployed, red when the merge conflicted so it never landed. */
 .testing-env__live-dot {
   width: 8px;
   height: 8px;
@@ -661,6 +661,10 @@ export default {
 
 .testing-env__live-dot--not-live {
   background: var(--color-text-muted);
+}
+
+.testing-env__live-dot--conflict {
+  background: var(--color-error-object);
 }
 
 .testing-env__person {
