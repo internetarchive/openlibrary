@@ -340,8 +340,10 @@ def render_combined(
 ) -> str:
     """Render one combined regex combining .json and non-.json branches.
 
-    Falls back to a single-group regex if one of the two partitions
-    is empty.
+    The result is fully anchored (``^/...$``) so nginx ``location ~``
+    (which searches rather than anchors) won't over-match unrelated
+    URLs. Falls back to a single-group regex if one of the two
+    partitions is empty.
     """
     json_inner = _extract_inner(json_pattern)
     nonjson_inner = _extract_inner(nonjson_pattern)
@@ -351,7 +353,10 @@ def render_combined(
         # Strip suffix from each JSON branch (since \.json is now outside the group).
         json_branches = [b.removesuffix(esc) for b in json_inner.split("|")]
         json_combined = "|".join(json_branches)
-        return f"^/(?:{json_combined}){esc}|(?:{nonjson_inner})$"
+        # Anchor the alternation as a whole. Splitting the anchors across the
+        # two alternatives would let nginx (search semantics) over-match:
+        # "^/a\.json|b$" matches "/a.json/anything" and "/x/b".
+        return f"^/(?:(?:{json_combined}){esc}|(?:{nonjson_inner}))$"
     if json_inner:
         return json_pattern
     if nonjson_inner:
@@ -450,7 +455,8 @@ def main() -> int:
     nonjson_coll = result["nonjson_collapses"]
 
     # Emit the combined regex to stdout (the useful output).
-    print(render_combined(json_pattern, nonjson_pattern))
+    combined = render_combined(json_pattern, nonjson_pattern)
+    print(combined)
 
     # Side-channel diagnostics on stderr.
     json_branch_count = json_pattern.count("|") + 1 if json_pattern else 0
@@ -509,6 +515,21 @@ def main() -> int:
     verify_partition(json_per, json_coll, json_pattern, ".json")
     verify_partition(nonjson_per, nonjson_coll, nonjson_pattern, "non-.json")
 
+    # Verify the actual stdout output (the combined regex) with nginx-style
+    # search semantics, plus negative checks that catch anchor over-matching
+    # (e.g. "/search.json/" or "/x/qrcode" must NOT be routed to FastAPI).
+    if combined:
+        rx = re.compile(combined)
+        for tpl in paths:
+            url = materialize(tpl, enum_map.get(tpl))
+            if not rx.search(url):
+                misses.append(f"[combined] no match: {tpl} -> {url}")
+            for bad in (url + "/", url + "/extra", "/prefix" + url):
+                if rx.search(bad):
+                    misses.append(f"[combined] over-match: {tpl} -> {bad}")
+            if tpl.endswith(JSON_SUFFIX) and rx.search(url + "x"):
+                misses.append(f"[combined] over-match: {tpl} -> {url}x")
+
     if misses:
         print(f"# VERIFY FAILED for {len(misses)} path(s):", file=sys.stderr)
         for m in misses:
@@ -516,7 +537,7 @@ def main() -> int:
         return 1
 
     print(
-        f"# Verified: both regexes match all {len(paths)} included path(s).",
+        f"# Verified: combined regex and block regexes match all {len(paths)} included path(s) with no anchor over-matches.",
         file=sys.stderr,
     )
     return 0
