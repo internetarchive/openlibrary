@@ -1,3 +1,85 @@
+<script setup>
+import { computed } from 'vue';
+import { REPO_URL, formatTime, sprintf, timeAgo } from './utils.js';
+
+defineOptions({ name: 'DeploySection' });
+
+const props = defineProps({
+    payload: {
+        type: Object,
+        required: true
+    },
+    // Wall-clock tick for the relative "X ago" labels; bumped by the parent
+    // poll so they advance even when the payload is unchanged.
+    now: {
+        type: Number,
+        default: () => Date.now()
+    },
+    maintainer: {
+        type: Boolean,
+        default: false
+    },
+    strings: {
+        type: Object,
+        required: true
+    },
+    jenkinsUrl: {
+        type: String,
+        default: ''
+    },
+    refreshing: {
+        type: Boolean,
+        default: false
+    },
+    deploying: {
+        type: Boolean,
+        default: false
+    }
+});
+
+const emit = defineEmits(['deploy', 'refresh']);
+
+const CHANGE_LABELS = {
+    add: 'addChange',
+    pin: 'updatePin',
+    enable: 'enable',
+    disable: 'disable',
+    remove: 'remove'
+};
+
+const changes = computed(() => (props.payload && props.payload.pending_changes) || []);
+
+const changeCount = computed(() => changes.value.length);
+
+const changeHeading = computed(() => {
+    const template = changeCount.value === 1 ? props.strings.changeOne : props.strings.changeMany;
+    return sprintf(template, changeCount.value);
+});
+
+const deployResult = computed(() => (props.payload && props.payload.deploy_result) || '');
+
+const deployFinishedAt = computed(() => (props.payload && props.payload.deploy_finished_at) || '');
+
+const deployStage = computed(() => (props.payload && props.payload.deploy_stage) || '');
+
+function text(key, ...args) {
+    return sprintf(props.strings[key] || key, ...args);
+}
+
+function changeLabel(kind) {
+    const key = CHANGE_LABELS[kind];
+    return key ? props.strings[key] : kind;
+}
+
+function changeKey(change) {
+    return `${change.kind}-${change.pr}`;
+}
+
+function prUrl(pr) {
+    return `${REPO_URL}/pull/${encodeURIComponent(pr)}`;
+}
+</script>
+
 <template>
   <section class="testing-env__deploy">
     <div
@@ -165,85 +247,3 @@
     </div>
   </section>
 </template>
-
-<script setup>
-import { computed } from 'vue';
-import { REPO_URL, formatTime, sprintf, timeAgo } from './utils.js';
-
-defineOptions({ name: 'DeploySection' });
-
-const props = defineProps({
-    payload: {
-        type: Object,
-        required: true
-    },
-    // Wall-clock tick for the relative "X ago" labels; bumped by the parent
-    // poll so they advance even when the payload is unchanged.
-    now: {
-        type: Number,
-        default: () => Date.now()
-    },
-    maintainer: {
-        type: Boolean,
-        default: false
-    },
-    strings: {
-        type: Object,
-        required: true
-    },
-    jenkinsUrl: {
-        type: String,
-        default: ''
-    },
-    refreshing: {
-        type: Boolean,
-        default: false
-    },
-    deploying: {
-        type: Boolean,
-        default: false
-    }
-});
-
-const emit = defineEmits(['deploy', 'refresh']);
-
-const CHANGE_LABELS = {
-    add: 'addChange',
-    pin: 'updatePin',
-    enable: 'enable',
-    disable: 'disable',
-    remove: 'remove'
-};
-
-const changes = computed(() => (props.payload && props.payload.pending_changes) || []);
-
-const changeCount = computed(() => changes.value.length);
-
-const changeHeading = computed(() => {
-    const template = changeCount.value === 1 ? props.strings.changeOne : props.strings.changeMany;
-    return sprintf(template, changeCount.value);
-});
-
-const deployResult = computed(() => (props.payload && props.payload.deploy_result) || '');
-
-const deployFinishedAt = computed(() => (props.payload && props.payload.deploy_finished_at) || '');
-
-const deployStage = computed(() => (props.payload && props.payload.deploy_stage) || '');
-
-function text(key, ...args) {
-    return sprintf(props.strings[key] || key, ...args);
-}
-
-function changeLabel(kind) {
-    const key = CHANGE_LABELS[kind];
-    return key ? props.strings[key] : kind;
-}
-
-function changeKey(change) {
-    return `${change.kind}-${change.pr}`;
-}
-
-function prUrl(pr) {
-    return `${REPO_URL}/pull/${encodeURIComponent(pr)}`;
-}
-</script>

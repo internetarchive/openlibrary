@@ -1,3 +1,22 @@
+<script setup>
+import { computed } from 'vue';
+
+defineOptions({ name: 'PersonCell' });
+
+const props = defineProps({
+    name: {
+        type: String,
+        default: ''
+    },
+    avatar: {
+        type: String,
+        default: ''
+    }
+});
+
+const initial = computed(() => props.name.charAt(0).toUpperCase());
+</script>
+
 <template>
   <span
     v-if="!name"
@@ -23,25 +42,8 @@
       role="img"
       :aria-label="name"
       :title="name"
-    >{{ initial }}</span>
+    >
+      {{ initial }}
+    </span>
   </span>
 </template>
-
-<script setup>
-import { computed } from 'vue';
-
-defineOptions({ name: 'PersonCell' });
-
-const props = defineProps({
-    name: {
-        type: String,
-        default: ''
-    },
-    avatar: {
-        type: String,
-        default: ''
-    }
-});
-
-const initial = computed(() => props.name.charAt(0).toUpperCase());
-</script>

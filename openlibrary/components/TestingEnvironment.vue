@@ -1,161 +1,5 @@
-<template>
-  <section
-    class="testing-env"
-    :aria-busy="busy ? 'true' : 'false'"
-  >
-    <template v-if="view === 'loading'">
-      <div class="testing-env__main">
-        <p
-          class="testing-env__blank"
-          role="status"
-          aria-live="polite"
-        >
-          {{ strings.loading }}
-        </p>
-      </div>
-    </template>
-
-    <template v-else-if="view === 'error'">
-      <div class="testing-env__main">
-        <div
-          class="testing-env__blank"
-          role="alert"
-        >
-          <p>{{ strings.loadError }}</p>
-          <button
-            type="button"
-            class="testing-env__btn testing-env__btn--small"
-            @click="retry"
-          >
-            {{ strings.retry }}
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <template v-else>
-      <div class="testing-env__main">
-        <header class="testing-env__bar">
-          <h2 class="testing-env__title">
-            {{ strings.title }}
-          </h2>
-          <form
-            v-if="isMaintainer"
-            method="post"
-            class="testing-env__add"
-            data-add-form
-            @submit.prevent="addPrs"
-          >
-            <label
-              class="shift"
-              for="testing-env-add"
-            >{{ strings.addPrs }}</label>
-            <input
-              id="testing-env-add"
-              v-model="addInput"
-              type="text"
-              name="pr"
-              class="testing-env__input"
-              autocomplete="off"
-              :placeholder="strings.addPlaceholder"
-            >
-            <button
-              type="submit"
-              class="testing-env__btn testing-env__btn--primary"
-              :disabled="adding"
-            >
-              <span
-                v-if="adding"
-                class="testing-env__btn-icon testing-env__spinner"
-                aria-hidden="true"
-              />
-              {{ strings.add }}
-            </button>
-          </form>
-        </header>
-
-        <div
-          v-if="prs.length"
-          class="testing-env__table-wrap"
-        >
-          <table class="testing-env__table">
-            <thead>
-              <tr>
-                <th
-                  v-if="isMaintainer"
-                  scope="col"
-                >
-                  {{ strings.next }}
-                </th>
-                <th scope="col">
-                  {{ strings.pr }}
-                </th>
-                <th scope="col">
-                  {{ strings.author }}
-                </th>
-                <th scope="col">
-                  {{ strings.assignee }}
-                </th>
-                <th scope="col">
-                  {{ strings.drift }}
-                </th>
-                <th
-                  v-if="isMaintainer"
-                  scope="col"
-                  class="testing-env__col-actions"
-                >
-                  <span class="shift">{{ strings.actions }}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <TestingRow
-                v-for="pr in prs"
-                :key="pr.pr"
-                :pr="pr"
-                :maintainer="isMaintainer"
-                :strings="strings"
-                @toggle="togglePr"
-                @update="updatePr"
-                @remove="removePr"
-              />
-            </tbody>
-          </table>
-        </div>
-        <p
-          v-else
-          class="testing-env__blank"
-        >
-          {{ strings.noPrs }}
-        </p>
-      </div>
-
-      <DeploySection
-        :payload="payload"
-        :now="now"
-        :maintainer="isMaintainer"
-        :strings="strings"
-        :jenkins-url="jenkinsUrl"
-        :refreshing="refreshing"
-        :deploying="deploying"
-        @deploy="deploy"
-        @refresh="refresh"
-      />
-    </template>
-
-    <div
-      v-if="toast"
-      class="testing-env__toast"
-      role="status"
-      aria-live="polite"
-    >
-      {{ toast }}
-    </div>
-  </section>
-</template>
-
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { shallowRef, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import {
@@ -197,19 +41,19 @@ const props = defineProps({
 });
 
 // ── Reactive state ──────────────────────────────────────────────────
-const view = ref('loading'); // 'loading' | 'error' | 'ready'
-const payload = ref(null);
-const busy = ref(false);
-const refreshing = ref(false);
-const adding = ref(false);
-const deploying = ref(false);
-const addInput = ref('');
-const strings = ref({ ...DEFAULT_STRINGS });
-const toast = ref('');
+const view = shallowRef('loading'); // 'loading' | 'error' | 'ready'
+const payload = shallowRef(null);
+const busy = shallowRef(false);
+const refreshing = shallowRef(false);
+const adding = shallowRef(false);
+const deploying = shallowRef(false);
+const addInput = shallowRef('');
+const strings = shallowRef({ ...DEFAULT_STRINGS });
+const toast = shallowRef('');
 // Wall-clock tick for the relative "X ago" deploy labels. Bumped by
 // the same poll that refreshes data, so the labels advance even when
 // the payload is unchanged (loadStatus skips identical JSON).
-const now = ref(Date.now());
+const now = shallowRef(Date.now());
 
 // ── Non-reactive instance state (plain let, not refs) ──────────────
 let timer = null;
@@ -229,7 +73,8 @@ const prs = computed(() => {
 // build is presumed running, the normal one when it finishes.
 watch(
     () => payload.value?.deploying,
-    (deploying) => syncDeployFavicon(deploying)
+    (deploying) => syncDeployFavicon(deploying),
+    { immediate: true }
 );
 
 // ── Methods ─────────────────────────────────────────────────────────
@@ -407,6 +252,162 @@ onBeforeUnmount(() => {
     syncDeployFavicon(false);
 });
 </script>
+
+<template>
+  <section
+    class="testing-env"
+    :aria-busy="busy ? 'true' : 'false'"
+  >
+    <template v-if="view === 'loading'">
+      <div class="testing-env__main">
+        <p
+          class="testing-env__blank"
+          role="status"
+          aria-live="polite"
+        >
+          {{ strings.loading }}
+        </p>
+      </div>
+    </template>
+
+    <template v-else-if="view === 'error'">
+      <div class="testing-env__main">
+        <div
+          class="testing-env__blank"
+          role="alert"
+        >
+          <p>{{ strings.loadError }}</p>
+          <button
+            type="button"
+            class="testing-env__btn testing-env__btn--small"
+            @click="retry"
+          >
+            {{ strings.retry }}
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="testing-env__main">
+        <header class="testing-env__bar">
+          <h2 class="testing-env__title">
+            {{ strings.title }}
+          </h2>
+          <form
+            v-if="isMaintainer"
+            method="post"
+            class="testing-env__add"
+            data-add-form
+            @submit.prevent="addPrs"
+          >
+            <label
+              class="shift"
+              for="testing-env-add"
+            >{{ strings.addPrs }}</label>
+            <input
+              id="testing-env-add"
+              v-model="addInput"
+              type="text"
+              name="pr"
+              class="testing-env__input"
+              autocomplete="off"
+              :placeholder="strings.addPlaceholder"
+            >
+            <button
+              type="submit"
+              class="testing-env__btn testing-env__btn--primary"
+              :disabled="adding"
+            >
+              <span
+                v-if="adding"
+                class="testing-env__btn-icon testing-env__spinner"
+                aria-hidden="true"
+              />
+              {{ strings.add }}
+            </button>
+          </form>
+        </header>
+
+        <div
+          v-if="prs.length"
+          class="testing-env__table-wrap"
+        >
+          <table class="testing-env__table">
+            <thead>
+              <tr>
+                <th
+                  v-if="isMaintainer"
+                  scope="col"
+                >
+                  {{ strings.next }}
+                </th>
+                <th scope="col">
+                  {{ strings.pr }}
+                </th>
+                <th scope="col">
+                  {{ strings.author }}
+                </th>
+                <th scope="col">
+                  {{ strings.assignee }}
+                </th>
+                <th scope="col">
+                  {{ strings.drift }}
+                </th>
+                <th
+                  v-if="isMaintainer"
+                  scope="col"
+                  class="testing-env__col-actions"
+                >
+                  <span class="shift">{{ strings.actions }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <TestingRow
+                v-for="pr in prs"
+                :key="pr.pr"
+                :pr="pr"
+                :maintainer="isMaintainer"
+                :strings="strings"
+                @toggle="togglePr"
+                @update="updatePr"
+                @remove="removePr"
+              />
+            </tbody>
+          </table>
+        </div>
+        <p
+          v-else
+          class="testing-env__blank"
+        >
+          {{ strings.noPrs }}
+        </p>
+      </div>
+
+      <DeploySection
+        :payload="payload"
+        :now="now"
+        :maintainer="isMaintainer"
+        :strings="strings"
+        :jenkins-url="jenkinsUrl"
+        :refreshing="refreshing"
+        :deploying="deploying"
+        @deploy="deploy"
+        @refresh="refresh"
+      />
+    </template>
+
+    <div
+      v-if="toast"
+      class="testing-env__toast"
+      role="status"
+      aria-live="polite"
+    >
+      {{ toast }}
+    </div>
+  </section>
+</template>
 
 <!-- Shadow-DOM styles: rules here style the whole panel; inherited design
      tokens (--color-*, --spacing-*) cross the shadow boundary. The rules live
