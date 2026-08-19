@@ -159,14 +159,14 @@ import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import {
     DEFAULT_STRINGS,
+    applyDeployBadge,
     decodeAndParseJSON,
     effectiveActive,
     faviconEnv,
     getTestingStatus,
     postAction,
     safeHttpUrl,
-    sprintf,
-    startFaviconSpinner
+    sprintf
 } from './TestingEnvironment/utils.js';
 
 // The action endpoints answer {"ok": false, "error": "<code>"} for business
@@ -257,9 +257,9 @@ export default {
             this.silentRefresh();
         }, 5000);
         document.addEventListener('visibilitychange', this.onVisibilityChange);
-        // Active spinner (see syncDeployFavicon); null while idle. Non-reactive:
-        // nothing renders from it.
-        this._faviconSpinner = null;
+        // Active deploy badge (see syncDeployFavicon); null while idle.
+        // Non-reactive: nothing renders from it.
+        this._deployBadge = null;
     },
     beforeUnmount() {
         clearTimeout(this.toastTimer);
@@ -278,22 +278,22 @@ export default {
                 this.toast = '';
             }, 6000);
         },
-        // Animate the page favicon while a deploy runs: the real favicon is
-        // drawn with a spinning ring on a canvas and PNG frames are swapped
-        // into the rel="icon" links (SMIL/CSS animation doesn't run inside a
-        // favicon, but frame-swapping does). Only openlibrary favicons are
-        // touched; the spinner stops and hrefs are restored when the deploy
-        // ends or the panel unmounts.
+        // Mark the page favicon while a deploy runs: the real favicon is drawn
+        // once with a static badge wedge and swapped into the rel="icon" links
+        // (a static mark is one render at start and one swap at the end — no
+        // animation loop for a throttled tab to stall). Only openlibrary
+        // favicons are touched; the badge is removed when the deploy ends or
+        // the panel unmounts.
         syncDeployFavicon(deploying) {
             if (deploying) {
-                if (this._faviconSpinner) return;
+                if (this._deployBadge) return;
                 const links = Array.from(document.querySelectorAll('link[rel="icon"]'))
                     .filter((link) => faviconEnv(link.getAttribute('href')));
                 if (!links.length) return;
-                this._faviconSpinner = startFaviconSpinner(links);
-            } else if (this._faviconSpinner) {
-                this._faviconSpinner();
-                this._faviconSpinner = null;
+                this._deployBadge = applyDeployBadge(links);
+            } else if (this._deployBadge) {
+                this._deployBadge();
+                this._deployBadge = null;
             }
         },
         onVisibilityChange() {

@@ -134,14 +134,11 @@ export async function postAction(action, fields = {}) {
     return response.json();
 }
 
-// Ring color drawn over the env favicon while a deploy runs (see
-// templates/site/head.html): blue reads on the production paper tile, white
-// on the solid green/orange development and testing tiles.
-const FAVICON_RING = {
-    production: '#518abe',
-    development: '#ffffff',
-    testing: '#ffffff'
-};
+// The deploy badge: a vivid orange wedge covering the top-right half of the
+// favicon, so it is unmistakable at tab-strip size. Bright enough to read on
+// the paper and green tiles, and brighter than the testing tile itself so it
+// still stands out there.
+const FAVICON_BADGE_COLOR = 'hsl(24, 100%, 50%)';
 
 /**
  * Which environment a favicon href belongs to: 'production', 'development',
@@ -156,66 +153,58 @@ export function faviconEnv(href) {
     return 'production';
 }
 
-/**
- * The spinner ring color for a favicon (null when it isn't one of ours).
- */
-export function faviconRingColor(href) {
-    const env = faviconEnv(href);
-    return env ? FAVICON_RING[env] : null;
-}
+// A deploy is a few minutes at most. If the tab is frozen or heavily
+// throttled in the background, the poll that would remove the badge can't
+// run — but browsers fire an overdue timer the instant the tab unfreezes, so
+// this removes the badge immediately on return instead of waiting for the
+// next poll (which re-applies it if the deploy is genuinely still running).
+const FAVICON_MAX_DURATION_MS = 20 * 60 * 1000;
 
 /**
- * Animate the page favicon while a deploy runs: each frame draws the real
- * favicon PNG onto a canvas with a 270° spinner arc rotated by the clock and
- * swaps the link's href to the PNG data URL. Browsers won't run SMIL/CSS
- * animation inside a favicon, but they will happily re-render a new static
- * frame, so frame-swapping is the portable way to spin. Only the given
- * rel="icon" links are touched; their hrefs are restored on stop. The arc
- * geometry scales from the 192px design (center 96,96, radius 82, width 13).
+ * Mark the page favicon while a deploy runs: draw the real favicon PNG with
+ * a static badge wedge once and swap the link hrefs to the result; restore the
+ * original hrefs on stop. A static mark — instead of an animated spinner —
+ * costs one canvas render at start and one href swap at the end: no
+ * animation loop, so there is nothing to lag on a busy main thread and no
+ * per-frame favicon repaint for the browser to throttle. Only the given
+ * rel="icon" links are touched; a failsafe removes the badge even when the
+ * poll that normally ends it can't run in a hidden tab.
  */
-export function startFaviconSpinner(links) {
+export function applyDeployBadge(links) {
     const frames = links.map((link) => ({
         link,
         original: link.getAttribute('href'),
         image: new Image(),
         canvas: document.createElement('canvas')
     }));
-    let rafId = null;
     let loaded = 0;
-    let last = 0;
     let stopped = false;
+    let failsafe = null;
 
     function stop() {
         if (stopped) return;
         stopped = true;
-        if (rafId !== null) cancelAnimationFrame(rafId);
+        clearTimeout(failsafe);
         frames.forEach(({ link, original }) => link.setAttribute('href', original));
     }
 
-    function draw(time) {
-        // ~20fps is plenty for a 1.2s revolution and keeps the per-frame PNG
-        // encodes cheap.
-        if (time - last < 50) {
-            rafId = requestAnimationFrame(draw);
-            return;
-        }
-        last = time;
-        const start = -Math.PI / 2 + ((time % 1200) / 1200) * 2 * Math.PI;
+    function drawBadge() {
         for (const { link, image, canvas } of frames) {
             const ctx = canvas.getContext('2d');
             if (!ctx) continue;
-            const scale = canvas.width / 192;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            // Badge wedge: the top-right half of the tile, split along the
+            // main diagonal (top-left to bottom-right).
             ctx.beginPath();
-            ctx.lineWidth = 13 * scale;
-            ctx.strokeStyle = faviconRingColor(link.getAttribute('href'));
-            ctx.lineCap = 'round';
-            ctx.arc(canvas.width / 2, canvas.height / 2, 82 * scale, start, start + Math.PI * 1.5);
-            ctx.stroke();
+            ctx.fillStyle = FAVICON_BADGE_COLOR;
+            ctx.moveTo(0, 0);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            ctx.fill();
             link.setAttribute('href', canvas.toDataURL('image/png'));
         }
-        rafId = requestAnimationFrame(draw);
     }
 
     frames.forEach(({ link, image, canvas }) => {
@@ -224,9 +213,9 @@ export function startFaviconSpinner(links) {
             canvas.width = image.naturalWidth;
             canvas.height = image.naturalHeight;
             loaded += 1;
-            // Wait for every favicon so the spinner appears on all of them at once.
+            // Wait for every favicon so the badge appears on all of them at once.
             if (loaded === frames.length) {
-                rafId = requestAnimationFrame(draw);
+                drawBadge();
             }
         };
         image.onerror = () => {
@@ -236,6 +225,7 @@ export function startFaviconSpinner(links) {
         image.src = link.getAttribute('href');
     });
 
+    failsafe = setTimeout(stop, FAVICON_MAX_DURATION_MS);
     return stop;
 }
 

@@ -5,7 +5,6 @@ import {
     driftPill,
     effectiveActive,
     faviconEnv,
-    faviconRingColor,
     formatTime,
     getTestingStatus,
     postAction,
@@ -94,21 +93,16 @@ describe('Testing Environment utils', () => {
         expect(sprintf('%s selected', 2)).toBe('2 selected');
     });
 
-    test('detects the favicon environment and its contrasting ring color', () => {
+    test('detects the favicon environment', () => {
         expect(faviconEnv('/static/images/openlibrary-testing-192x192.png')).toBe('testing');
         expect(faviconEnv('/static/images/openlibrary-development-128x128.png')).toBe('development');
         expect(faviconEnv('/static/images/openlibrary-192x192.png')).toBe('production');
-        // White ring on the solid green/orange tiles, blue on the paper tile.
-        expect(faviconRingColor('/static/images/openlibrary-testing-192x192.png')).toBe('#ffffff');
-        expect(faviconRingColor('/static/images/openlibrary-development-128x128.png')).toBe('#ffffff');
-        expect(faviconRingColor('/static/images/openlibrary-192x192.png')).toBe('#518abe');
     });
 
     test('leaves non-openlibrary favicons alone', () => {
         expect(faviconEnv('')).toBeNull();
         expect(faviconEnv('/favicon.ico')).toBeNull();
         expect(faviconEnv('https://example.com/custom.png')).toBeNull();
-        expect(faviconRingColor('/favicon.ico')).toBeNull();
     });
 
     test('decodes render_component JSON attributes', () => {
