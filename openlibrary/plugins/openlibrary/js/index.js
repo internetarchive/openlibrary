@@ -40,6 +40,8 @@ initSentry();
 // Init the service worker first since it does caching
 initServiceWorker();
 
+initPWAInstallPrompt();
+
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
 initAnalytics();
