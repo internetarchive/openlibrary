@@ -160,8 +160,15 @@ def create_app() -> FastAPI | None:
             raise
 
     app = FastAPI(
-        title="OpenLibrary ASGI",
-        version="0.0.1",
+        title="Open Library API",
+        description=(
+            "The Open Library API provides comprehensive access to library catalog data including "
+            "books, authors, works, lists, and user data. Supports both public and authenticated "
+            "endpoints with full data validation and type safety."
+        ),
+        version="1.0.0",
+        contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "support@openlibrary.org"},
+        license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
         strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
