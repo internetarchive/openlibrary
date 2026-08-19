@@ -79,7 +79,7 @@ def _create_validation_env() -> jinja2.Environment:
     # Stubbed: this env only validates template structure, and the real macro
     # needs infogami's template globals.
     env.globals["icon"] = lambda *a, **kw: ""
-    
+
     # The TestingEnvironment macro renders a Vue component via
     # render_component(); this env has no component build output, so stub it
     # the same way render_templetor_template is stubbed above.
