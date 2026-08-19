@@ -12,7 +12,7 @@
 .home-h2 {
   font-size: var(--font-size-title-medium);
   font-weight: normal;
-  color: var(--link-blue);
+  color: var(--color-link);
   margin-bottom: 0.5em;
   margin-top: 1.75em;
 }
@@ -101,13 +101,13 @@
 .carousel .book .book-title {
   font-size: 0.8em;
   margin: var(--spacing-stack-xs) 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 .carousel .book .book-title a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: none;
 }
 
@@ -170,7 +170,7 @@
 
 .carousel__item__blankcover--authors {
   position: relative;
-  color: var(--dark-grey-two);
+  color: var(--color-text-secondary);
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
   font-style: oblique;

@@ -47,6 +47,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context, site
 
@@ -288,7 +289,7 @@ class author_works(delegate.page):
 
     def GET(self, key):
         i = web.input(limit=50, offset=0)
-        data = self.get_works_data(
+        data = get_works_data(
             key,
             url=URL(web.ctx.fullpath),
             limit=h.safeint(i.limit, 50),
@@ -298,36 +299,40 @@ class author_works(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
         return delegate.RawText(json.dumps(data), content_type="application/json")
 
-    @staticmethod
-    def get_works_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
-        current_site = site.get()
-        author = current_site.get(key)
-        if not author or author.type.key != "/type/author":
-            return None
 
-        limit = min(limit, 1000)
-        keys = current_site.things(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": author.key}},
-                "limit": limit,
-                "offset": offset,
-            }
-        )
-        works = current_site.get_many(keys, raw=True)
-        size = author.get_work_count()
+async def get_works_data_async(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+    """Get paginated works for an author, shared by the legacy and FastAPI works.json endpoints."""
+    current_site = site.get()
+    author = current_site.get(key)
+    if not author or author.type.key != "/type/author":
+        return None
 
-        url = url.replace(scheme="", netloc="")
-        links = {
-            "self": str(url),
-            "author": author.key,
+    limit = min(limit, 1000)
+    keys = current_site.things(
+        {
+            "type": "/type/work",
+            "authors": {"author": {"key": author.key}},
+            "limit": limit,
+            "offset": offset,
         }
-        if offset > 0:
-            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
-        if offset + len(works) < size:
-            links["next"] = str(url.include_query_params(offset=offset + limit))
+    )
+    works = current_site.get_many(keys, raw=True)
+    size = await author.get_work_count()
 
-        return {"links": links, "size": size, "entries": works}
+    url = url.replace(scheme="", netloc="")
+    links = {
+        "self": str(url),
+        "author": author.key,
+    }
+    if offset > 0:
+        links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
+    if offset + len(works) < size:
+        links["next"] = str(url.include_query_params(offset=offset + limit))
+
+    return {"links": links, "size": size, "entries": works}
+
+
+get_works_data = async_bridge.wrap(get_works_data_async)
 
 
 async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:

@@ -25,7 +25,7 @@
   margin: 0 !important;
   border: 0;
   background: transparent;
-  color: var(--grey) !important;
+  color: var(--color-text-secondary) !important;
   flex-grow: 1;
   font-size: 1em !important;
   min-width: 0;

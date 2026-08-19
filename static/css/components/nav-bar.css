@@ -19,7 +19,7 @@
   justify-content: center;
   height: 30px;
   text-decoration: none;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0 12px;
   line-height: var(--line-height-control);
   border-bottom: 2px solid transparent;
@@ -27,7 +27,7 @@
 
 /* stylelint-disable selector-max-specificity */
 .nav-bar:not(.work-menu) li.selected a {
-  color: var(--link-blue);
+  color: var(--color-link);
   border-bottom: 2px solid var(--link-blue);
 }
 
@@ -125,8 +125,8 @@
   /* stylelint-disable max-nesting-depth */
   .nav-bar-wrapper .nav-bar.work-menu li:hover {
     background-color: var(
-      --header-nav-hover-color
-    ); /* hsl(206, 95%, 30%) — passes 4.5:1 with white */
+      --color-primary-hover
+    ); /* hsl(210, 84%, 31%) — passes 4.5:1 with white */
   }
 
   .nav-bar-wrapper .nav-bar.work-menu li:hover a {
@@ -136,8 +136,8 @@
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected {
   background-color: var(
-    --primary-blue
-  ); /* hsl(206, 95%, 39%) — passes 4.5:1 with white */
+    --color-primary
+  ); /* hsl(210, 82%, 40%) — passes 4.5:1 with white */
 }
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected a {

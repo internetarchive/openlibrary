@@ -209,10 +209,10 @@
 }
 
 .pending-action-container .page-banner--dismissable {
-  background: var(--lightest-blue);
+  background: var(--color-primary-subtle);
   border: var(--border-input-focused);
   border-radius: var(--border-radius-notification);
-  color: var(--dark-grey);
+  color: var(--color-text);
   box-shadow:
     0 4px 12px var(--icon-link-grey),
     0 1px 3px var(--icon-link-grey);
