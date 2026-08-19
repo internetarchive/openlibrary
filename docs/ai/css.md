@@ -1,6 +1,6 @@
 # CSS
 
-Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via webpack to `static/build/css/`.
+Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via Vite (`vite-css.config.mjs`) to `static/build/css/`. See [CSS Build: Webpack → Vite Migration](css-vite-migration.md) for the build details.
 
 ## Naming: BEM
 
@@ -94,4 +94,4 @@ Your changes exceeded the CSS payload limit. Options:
 
 See [Browser Support in the AI guide](README.md#browser-support) for the canonical policy (MediaWiki Grade A; `browserslist` in `package.json` is the source of truth).
 
-The CSS-specific gotcha: **CSS is not transpiled** — there is no PostCSS in the build, so anything you write ships verbatim. Before using a newer CSS feature, check [caniuse](https://caniuse.com) against the Safari floor in `browserslist`. JS gets transpiled to the floor automatically; CSS does not.
+The CSS-specific gotcha: **CSS is not transpiled** — the Vite build runs PostCSS only for `@import` resolution and the `url()` passthrough, not for feature transpilation (no autoprefixer), so anything you write ships verbatim. Before using a newer CSS feature, check [caniuse](https://caniuse.com) against the Safari floor in `browserslist`. JS gets transpiled to the floor automatically; CSS does not.

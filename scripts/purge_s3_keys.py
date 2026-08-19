@@ -40,7 +40,9 @@ def get_affected_keys(limit: int | None = 100_000):
         )
     """
     oldb = db.get_db()
-    rs = oldb.query(query, vars={"limit": limit})
+    with oldb.transaction():
+        oldb.query("SET LOCAL statement_timeout = '450s'")  # 7.5 minutes
+        rs = oldb.query(query, vars={"limit": limit})
     return iter(rs)
 
 
@@ -87,6 +89,7 @@ def main():
 
     setup()
 
+    updated_count = 0
     if args.dry_run:
         it = get_affected_keys(limit=None)
         for record in it:
@@ -100,9 +103,15 @@ def main():
                 success = update_record(key)
                 if not success:
                     print(f"Failed to update {key}")
+                    continue
+                updated_count += 1
                 if was_shutdown_requested():
+                    print(f"Records updated this session: {updated_count}")
                     return 130
+            # After each batch:
+            print(f"{updated_count:>11} records updated", flush=True)
 
+    print(f"Records updated this session: {updated_count}")
     return 0
 
 

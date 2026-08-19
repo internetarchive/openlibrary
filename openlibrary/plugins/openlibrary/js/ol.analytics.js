@@ -65,6 +65,7 @@ export default function initAnalytics() {
             var category_action = $(this).attr('data-ol-link-track').split('|');
             // for testing,
             // console.log(category_action[0], category_action[1]);
+            trackEvent(category_action[0], category_action[1], category_action[2]);
             window.archive_analytics.ol_send_event_ping({
                 category: category_action[0],
                 action: category_action[1],

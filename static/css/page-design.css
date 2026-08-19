@@ -3,6 +3,30 @@
  * `ds-*` the shared content blocks. Render-blocking, so keep it lean.
  */
 
+/* Site chrome: the masthead, header, and footer that site.html renders around
+   this page. Named individually rather than via legacy.css — the design system
+   docs shouldn't pull in the legacy kitchen sink to style a header. */
+@import "base/common.css";
+@import "base/headings.css";
+@import "base/helpers-common.css";
+@import "layout/index.css";
+@import "components/header-bar.css";
+@import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+@import "components/header-bar--desktop.css" all and (min-width: 960px);
+
+/* Stylesheets for the CSS components documented on this page. Documenting a
+   CSS component without loading its stylesheet renders unstyled markup, which
+   is worse than not documenting it at all. */
+@import "components/ol-message.css";
+
 .ds {
   --ds-gutter: var(--spacing-inset-md);
   --ds-sidebar-width: 208px;
@@ -898,6 +922,14 @@ html:has(.ds) {
   width: 100%;
 }
 
+/* A fieldset used as a demo row is a grouping device, not a visible box. */
+fieldset.ds-demo-row {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .ds-demo-dialog-body {
   margin: 0;
 }
@@ -906,11 +938,6 @@ html:has(.ds) {
   display: flex;
   gap: var(--spacing-inline-md);
   justify-content: flex-end;
-}
-
-.ds-demo-btn-icon {
-  margin-inline-end: var(--spacing-2xs);
-  vertical-align: -2px;
 }
 
 .ds-demo-output {
@@ -1159,27 +1186,3 @@ html:has(.ds) {
     grid-template-columns: repeat(3, minmax(0, 220px));
   }
 }
-
-/* Site chrome: the masthead, header, and footer that site.html renders around
-   this page. Named individually rather than via legacy.css — the design system
-   docs shouldn't pull in the legacy kitchen sink to style a header. */
-@import "base/common.css";
-@import "base/headings.css";
-@import "base/helpers-common.css";
-@import "layout/index.css";
-@import "components/header-bar.css";
-@import "components/iaBar.css";
-@import "components/buttonGhost.css";
-@import "components/buttonBtn.css";
-@import "components/page-banner.css";
-@import "components/header.css";
-@import "components/footer.css";
-@import "components/language.css";
-@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
-@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
-@import "components/header-bar--desktop.css" all and (min-width: 960px);
-
-/* Stylesheets for the CSS components documented on this page. Documenting a
-   CSS component without loading its stylesheet renders unstyled markup, which
-   is worse than not documenting it at all. */
-@import "components/ol-message.css";

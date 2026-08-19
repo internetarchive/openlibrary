@@ -2,8 +2,16 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
+import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
 let _idCounter = 0;
+
+/**
+ * How long to wait for the exit `transitionend` before finishing the close
+ * ourselves. Comfortably past the longest exit transition (150ms panel, 200ms
+ * tray) so it never truncates a real animation.
+ */
+const CLOSE_FALLBACK_MS = 400;
 
 /**
  * Open popovers, topmost (most recently shown) last. Escape is a document-level
@@ -24,8 +32,12 @@ function _removeFromOverlayStack(el) {
  * A reusable popover component that anchors to a trigger element.
  *
  * Renders a trigger slot and a popover panel that opens/closes with animation.
- * The popover uses `position: fixed` to escape overflow clipping and animates
- * from the trigger's location using `transform-origin`.
+ * The panel is promoted to the top layer via the Popover API so it escapes
+ * overflow clipping, ancestor transforms and z-index stacking, falling back to
+ * plain `position: fixed` on browsers without it. It animates from the trigger's
+ * location using `transform-origin`. The `popover` type is `manual`, not `auto`:
+ * this component owns its Escape, outside-click and nesting behaviour, and
+ * `auto` would force-close sibling popovers outside the ancestor chain.
  *
  * Self-manages open state by default — clicking the slotted trigger toggles
  * the popover, Escape and outside-click close it. Consumers can drive `open`
@@ -107,6 +119,21 @@ export class OlPopover extends LitElement {
             pointer-events: none;
         }
 
+        /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
+           border, padding, overflow, system colors) so the top-layer panel is
+           laid out purely by the inline top/left we compute. Must precede
+           .panel.tray, which restates its own inset and margin. */
+        .panel[popover] {
+            inset: auto;
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+            overflow: visible;
+            color: inherit;
+        }
+
         .panel[data-state="preparing"],
         .panel[data-state="entering"] {
             will-change: transform, opacity;
@@ -145,6 +172,14 @@ export class OlPopover extends LitElement {
             position: fixed;
             inset: 0;
             z-index: var(--z-index-dropdown);
+            /* Undo the UA [popover] defaults. width/height matter most: the UA's
+               fit-content beats inset: 0, collapsing the backdrop to 0x0 and
+               taking the dimming layer and its tap-to-dismiss target with it. */
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
             background: var(--overlay-backdrop-color);
             opacity: 0;
             backdrop-filter: blur(var(--overlay-backdrop-blur));
@@ -271,6 +306,7 @@ export class OlPopover extends LitElement {
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
+        this._closeFallbackId = null;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -296,6 +332,7 @@ export class OlPopover extends LitElement {
                 ${this._mobile ? html`
                     <div
                         class="backdrop"
+                        popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
                     ></div>
@@ -315,6 +352,7 @@ export class OlPopover extends LitElement {
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
+                    popover="${ifDefined(topLayerAttr())}"
                     data-state="${this._animState}"
                     role="dialog"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
@@ -363,6 +401,9 @@ export class OlPopover extends LitElement {
     // ── Show / Hide ─────────────────────────────────────────────
 
     _show() {
+        // Reopening mid-exit cancels the pending close rather than letting its
+        // timer fire into the reopened popover.
+        this._clearCloseFallback();
         this._prevFocus = getDeepActiveElement();
 
         document.addEventListener('click', this._onOutsideClick, true);
@@ -378,7 +419,10 @@ export class OlPopover extends LitElement {
         this._mobile = window.matchMedia('(max-width: 767px)').matches;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        if (this._mobile) {
+        // Guard on _scrollLocked: reopening during the exit transition would take
+        // a second refcount that the single _releaseScrollLock() never gives
+        // back, pinning <body> for good.
+        if (this._mobile && !this._scrollLocked) {
             lockBodyScroll();
             this._scrollLocked = true;
         }
@@ -393,6 +437,12 @@ export class OlPopover extends LitElement {
         this.updateComplete.then(() => {
             const panel = this.shadowRoot.querySelector('.panel');
             if (!panel) return;
+
+            // Promote to the top layer before measuring — a [popover] element is
+            // `display: none` until shown, so offsetWidth/Height would read 0.
+            // Backdrop first: within the top layer, later-shown paints on top.
+            promoteToTopLayer(this.shadowRoot.querySelector('.backdrop'));
+            promoteToTopLayer(panel);
 
             // Desktop: measure and position relative to trigger.
             // Use offsetWidth/Height — getBoundingClientRect includes the
@@ -445,6 +495,36 @@ export class OlPopover extends LitElement {
         }
 
         this._animState = 'exiting';
+        this._armCloseFallback();
+    }
+
+    /**
+     * `transitionend` drives the whole close path — top-layer demotion, listener
+     * removal, scroll unlock, focus restore — so a transition that never runs
+     * strands the panel in the top layer, above the page, holding focus inside a
+     * `role="dialog"` whose trigger already reports `aria-expanded="false"`.
+     *
+     * Two ways to miss the event: a backgrounded tab paints no frames, so the
+     * transition never starts; and closing while still in "preparing" changes no
+     * property at all (preparing and exiting both compute to `opacity: 0` with
+     * the same transform), so nothing transitions. Finish the close on a timer
+     * when the event doesn't arrive.
+     */
+    _armCloseFallback() {
+        this._clearCloseFallback();
+        this._closeFallbackId = setTimeout(() => {
+            this._closeFallbackId = null;
+            if (this._animState !== 'exiting') return;
+            this._animState = 'closed';
+            this._cleanup();
+        }, CLOSE_FALLBACK_MS);
+    }
+
+    _clearCloseFallback() {
+        if (this._closeFallbackId) {
+            clearTimeout(this._closeFallbackId);
+            this._closeFallbackId = null;
+        }
     }
 
     _onTransitionEnd(e) {
@@ -463,8 +543,11 @@ export class OlPopover extends LitElement {
      * Removes all global listeners, unlocks scroll, and restores focus.
      */
     _cleanup() {
+        this._clearCloseFallback();
         this._removeListeners();
         this._releaseScrollLock();
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.backdrop'));
         this._restoreFocus();
     }
 
@@ -876,6 +959,7 @@ export class OlPopover extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._clearCloseFallback();
         this._removeListeners();
         this._releaseScrollLock();
     }

@@ -38,6 +38,32 @@
  */
 @import "components/flash-messages.css";
 @import "components/provider-table.css";
+@import "components/ol-message.css";
+/* Import styles for fulltext-search-suggestion card */
+@import "components/fulltext-search-suggestion.css";
+/* Import styles for fulltext-search-suggestion card item */
+@import "components/fulltext-search-suggestion-item.css";
+/* Import styles for fulltext-search-suggestion card item snippet */
+@import "components/fulltext-snippet.css";
+/* Import styles for author infobox */
+@import "components/author-infobox.css";
+/* Import all common components */
+@import "legacy.css";
+/* Import styles specific to the BorrowTable for user pages */
+@import "legacy-borrowTable-adminUser.css";
+/* Import styles for notes and observations views */
+@import "components/notes-view.css";
+/* Import styles for community merge request views */
+@import "components/merge-request-table.css";
+/* Import styles for want-to-read buttons */
+@import "legacy-tools.css";
+@import "components/generic-dropper.css";
+@import "components/mybooks-dropper.css";
+/* Import styles for search box */
+@import "components/searchbox.css";
+/* Import styles for sort options */
+@import "components/sort-dropper.css";
+@import "components/pagination.css";
 
 body {
   background-color: var(--color-background);
@@ -303,30 +329,3 @@ textarea.toc-editor {
     margin-bottom: 4px;
   }
 }
-
-@import "components/ol-message.css";
-/* Import styles for fulltext-search-suggestion card */
-@import "components/fulltext-search-suggestion.css";
-/* Import styles for fulltext-search-suggestion card item */
-@import "components/fulltext-search-suggestion-item.css";
-/* Import styles for fulltext-search-suggestion card item snippet */
-@import "components/fulltext-snippet.css";
-/* Import styles for author infobox */
-@import "components/author-infobox.css";
-/* Import all common components */
-@import "legacy.css";
-/* Import styles specific to the BorrowTable for user pages */
-@import "legacy-borrowTable-adminUser.css";
-/* Import styles for notes and observations views */
-@import "components/notes-view.css";
-/* Import styles for community merge request views */
-@import "components/merge-request-table.css";
-/* Import styles for want-to-read buttons */
-@import "legacy-tools.css";
-@import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
-/* Import styles for search box */
-@import "components/searchbox.css";
-/* Import styles for sort options */
-@import "components/sort-dropper.css";
-@import "components/pagination.css";

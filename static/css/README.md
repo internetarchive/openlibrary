@@ -1,6 +1,6 @@
 # CSS Architecture
 
-All files in this folder with the `page-` prefix are **entry points** — each one corresponds to a page type and is compiled by webpack into a standalone CSS bundle.
+All files in this folder with the `page-` prefix are **entry points** — each one corresponds to a page type and is compiled by Vite into a standalone CSS bundle.
 
 ## Entry points
 
@@ -22,7 +22,7 @@ Shared values (colors, spacing, font sizes, breakpoints) are defined as CSS cust
 
 ## Build
 
-CSS is compiled via webpack (`webpack.config.css.js`). Run:
+CSS is compiled via Vite (`vite-css.config.mjs`). Run:
 
     make css
 

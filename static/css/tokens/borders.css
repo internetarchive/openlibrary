@@ -64,6 +64,11 @@
      there the highlight is dropped and the control keeps just this drop shadow. */
   --box-shadow-raised: 0 1px 1px hsla(0, 0%, 0%, 0.05);
 
+  /* Floating-control drop shadow — a control that sits over content (a save
+     button on cover art) rather than on the page. Pair with the same inline
+     specular highlight as above; see ol-button[elevation="floating"]. */
+  --box-shadow-floating: 0 1px 4px hsla(0, 0%, 0%, 0.15);
+
   /* Overlay surface — the floating panel behind popovers, menus, and dialogs.
      The hairline border draws the edge that a soft shadow alone loses against
      a white page; because the border carries the definition, the shadow can

@@ -6,9 +6,9 @@ import { LitElement, html } from 'lit';
  * Renders into the **light DOM** (no shadow root) so the banner is fully
  * styled at first paint by `static/css/components/ol-banner.css` — before
  * the component JS runs — and degrades gracefully without JavaScript.
- * Banners are server-rendered page chrome, often above the fold, so
- * first-paint fidelity outranks style encapsulation here (see ol-button
- * for the same trade-off and hydration pattern).
+ * Banners are server-rendered page chrome, often above the fold, whose
+ * height matters for layout shift, so first-paint fidelity outranks style
+ * encapsulation here. This is the one light-DOM component in the Lit layer.
  *
  * The announcement content is server-rendered as children — already
  * translated via $_(), visible to search engines. On upgrade, the

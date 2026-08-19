@@ -16,11 +16,13 @@ all: git css js components lit-components i18n
 frontend: css js components lit-components
 
 node_modules: package-lock.json package.json
+ifeq ($(LOCAL_DEV),true)
 	npm ci --no-audit --no-fund
+endif
 
 css: node_modules
 	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
+	BUILD_DIR=$(BUILD)/css_new npx vite build -c vite-css.config.mjs
 	mkdir -p $(BUILD)/css
 	rm -rf $(BUILD)/css
 	mv $(BUILD)/css_new $(BUILD)/css

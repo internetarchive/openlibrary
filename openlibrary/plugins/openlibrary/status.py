@@ -7,7 +7,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -19,7 +19,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
-from openlibrary.core.features import features as pydantic_features
+from openlibrary.core.env import get_ol_env
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
@@ -34,31 +34,20 @@ _DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
 
 class status(delegate.page):
     def GET(self):
-        testing_state = _load_testing_state()
+        testing_status = load_testing_status()
         is_maintainer_user = _is_maintainer()
-        drift_info = {}
-        if testing_state:
-            drift_info, _ = _get_drift_info(testing_state)
-        show_testing = testing_state is not None and is_maintainer_user
-        last_deploy = testing_state.last_deploy_at if testing_state else ""
-        has_pending = bool(testing_state) and any(
-            p.pull_latest_sha or p.pending_active is not None or drift_info.get(p.pr, {}).get("merged", False) or not last_deploy or p.added_at > last_deploy
-            for p in testing_state.prs
-        )
         i = web.input(deploy_triggered=None, drift_refreshed=None)
         return render_template(
             "status",
             status_info,
             features_table=get_features_table(),
             dev_merged_status=get_dev_merged_status(),
-            testing_state=testing_state,
-            drift_info=drift_info,
+            testing_status=testing_status,
             is_maintainer=is_maintainer_user,
-            show_testing=show_testing,
+            show_testing=testing_status is not None and is_maintainer_user,
             deploy_triggered=bool(i.deploy_triggered),
             drift_refreshed=bool(i.drift_refreshed),
             jenkins_job_url=_JENKINS_JOB_URL,
-            has_pending=has_pending,
         )
 
 
@@ -382,14 +371,69 @@ def _load_testing_state() -> TestingState | None:
     return None
 
 
+@dataclass
+class TestingPRStatus(TestingPR):
+    """A TestingPR merged with live GitHub drift info and derived flags."""
+
+    head_sha: str = ""  # current branch HEAD (short SHA); empty if GitHub unavailable
+    drift: int = -1  # commits the pinned commit is behind HEAD; -1 if unknown
+    merged: bool = False  # PR has been merged into master
+    is_new: bool = False  # added since the last deploy
+
+
+@dataclass
+class TestingStatus:
+    """Status of the testing environment: what backs the /status deploy table and the JSON API."""
+
+    last_deploy_at: str  # ISO timestamp, empty if never deployed
+    prs: list[TestingPRStatus]
+    has_pending: bool  # any change that a deploy would apply
+
+
+def build_testing_status(state: TestingState, drift_info: dict) -> TestingStatus:
+    """Compose the testing-environment status from persisted state and live drift info. Pure."""
+    last_deploy = state.last_deploy_at
+    prs = [
+        TestingPRStatus(
+            **asdict(p),
+            head_sha=drift_info.get(p.pr, {}).get("head_sha", ""),
+            drift=drift_info.get(p.pr, {}).get("drift", -1),
+            merged=drift_info.get(p.pr, {}).get("merged", False),
+            is_new=bool(last_deploy and p.added_at > last_deploy),
+        )
+        for p in state.prs
+    ]
+    has_pending = any(p.pull_latest_sha or p.pending_active is not None or p.merged or not last_deploy or p.is_new for p in prs)
+    return TestingStatus(last_deploy_at=last_deploy, prs=prs, has_pending=has_pending)
+
+
+def load_testing_status() -> TestingStatus | None:
+    """Load the state file and live drift info; None if there is no state file."""
+    if (state := _load_testing_state()) is None:
+        return None
+    drift_info, _ = _get_drift_info(state)
+    return build_testing_status(state, drift_info)
+
+
 def _save_testing_state(state: TestingState) -> None:
     TESTING_STATE_FILE.write_text(json.dumps(state.to_dict(), indent=2))
     get_dev_merged_status.cache_clear()
 
 
+def _ensure_testing_state_file() -> None:
+    """Create an empty testing state file at startup if missing.
+
+    Keeps the /status page and the testing-status API functional from first
+    boot without a manually created _testing-prs.json. Never overwrites
+    existing state.
+    """
+    if not TESTING_STATE_FILE.exists():
+        TESTING_STATE_FILE.write_text(json.dumps({"last_deploy_at": "", "prs": []}, indent=2))
+
+
 def _is_maintainer() -> bool:
     user = get_current_user()
-    return bool(user and user.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"]))
+    return bool(user and user.is_maintainer())
 
 
 def _github_get(path: str) -> dict:
@@ -540,32 +584,24 @@ def get_features_enabled():
     return config.features
 
 
-def get_features_table() -> list[dict[str, Any]]:
-    """Build a list of feature flags comparing infogami vs pydantic-settings."""
+def get_features_table() -> list[dict[str, str]]:
+    """Build a list of enabled feature flags."""
     infogami_dict = config.features  # type: ignore[attr-defined]
-    infogami_keys = set(infogami_dict.keys())
-    pydantic_fields = set(pydantic_features.model_fields.keys())
-    all_features = sorted(infogami_keys | pydantic_fields)
     features_table = []
-    for feature in all_features:
+    for feature in sorted(infogami_dict.keys()):
         infogami_value = infogami_dict.get(feature)
-        pydantic_value = getattr(pydantic_features, feature, None)
         if isinstance(infogami_value, dict):
             infogami_str = f"usergroup: {infogami_value.get('usergroup', '?')}"
         else:
             infogami_str = str(infogami_value) if infogami_value is not None else ""
-        features_table.append(
-            {
-                "feature": feature,
-                "infogami": infogami_str,
-                "pydantic": str(pydantic_value) if pydantic_value is not None else "",
-            }
-        )
+        features_table.append({"feature": feature, "infogami": infogami_str})
     return features_table
 
 
 def setup():
     "Basic startup status for the server"
+    if get_ol_env().LOCAL_DEV:
+        _ensure_testing_state_file()
     global status_info
     host = socket.gethostname()
     status_info = {

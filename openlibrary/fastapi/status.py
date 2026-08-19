@@ -1,0 +1,64 @@
+"""FastAPI router for server-status endpoints (testing environment, etc.).
+
+The testing-environment endpoints expose the same data that powers the
+/status deploy table on the legacy web.py page, so developers can query it
+via JSON without a browser.
+"""
+
+from __future__ import annotations
+
+import os
+
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, ConfigDict, Field
+
+from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
+from openlibrary.plugins.openlibrary.status import load_testing_status
+
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+router = APIRouter(tags=["status"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+
+
+class TestingPRResponse(BaseModel):
+    """A single PR in the testing environment, with live drift info merged in. Mirrors TestingPRStatus."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    pr: int = Field(..., description="GitHub pull request number")
+    title: str = Field(..., description="PR title")
+    commit: str = Field(..., description="Pinned commit SHA (full)")
+    active: bool = Field(..., description="Whether the PR is active in the testing set")
+    added_at: str = Field(..., description="ISO timestamp when the PR was added")
+    added_by: str = Field(..., description="OL username that added the PR")
+    pull_latest_sha: str = Field(..., description="Pending SHA from 'Fetch Latest'; applied on deploy. Empty if none")
+    pending_active: bool | None = Field(..., description="Pending enable/disable; applied on deploy. Null if none")
+    author: str = Field(..., description="GitHub login of the PR author")
+    author_avatar: str = Field(..., description="GitHub avatar URL of the PR author")
+    assignee: str = Field(..., description="GitHub login of the assignee, empty if unassigned")
+    assignee_avatar: str = Field(..., description="GitHub avatar URL of the assignee")
+    head_sha: str = Field(..., description="Current branch HEAD (short SHA); empty if GitHub unavailable")
+    drift: int = Field(..., description="Commits the pinned commit is behind HEAD; -1 if unknown")
+    merged: bool = Field(..., description="Whether the PR has been merged into master")
+    is_new: bool = Field(..., description="Whether the PR was added since the last deploy")
+
+
+class TestingStatusResponse(BaseModel):
+    """Status of the testing environment (the /status deploy table). Mirrors TestingStatus."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    last_deploy_at: str = Field(..., description="ISO timestamp of the last deploy; empty if never deployed")
+    has_pending: bool = Field(..., description="Whether there are pending changes ready to deploy")
+    prs: list[TestingPRResponse] = Field(..., description="PRs in the testing set")
+
+
+@router.get(
+    "/status/testing.json",
+    response_model=TestingStatusResponse,
+    description="Returns the current status of the testing environment (PRs pinned for testing deploys).",
+)
+def testing_status(_: MaintainerDep) -> TestingStatusResponse:
+    """Return the testing environment status backing the /status deploy table."""
+    if (result := load_testing_status()) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No testing state file found")
+    return TestingStatusResponse.model_validate(result)

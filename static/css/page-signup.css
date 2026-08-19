@@ -30,6 +30,13 @@
 @import "components/footer.css";
 @import "components/language.css";
 
+/* Tablet: @width-breakpoint-tablet = 768px */
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+
+/* Desktop: @width-breakpoint-desktop = 960px */
+@import "components/header-bar--desktop.css" all and (min-width: 960px);
+
 .ol-page-signup {
   display: flex;
   flex-direction: row;
@@ -235,10 +242,3 @@
   margin-bottom: 8px;
   width: 100%;
 }
-
-/* Tablet: @width-breakpoint-tablet = 768px */
-@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
-@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
-
-/* Desktop: @width-breakpoint-desktop = 960px */
-@import "components/header-bar--desktop.css" all and (min-width: 960px);

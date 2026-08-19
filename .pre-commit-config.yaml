@@ -85,7 +85,10 @@ repos:
           - stylelint@16.22.0
           - stylelint-declaration-strict-value@1.11.1
           - stylelint-prettier@5.0.3
-        args: [--fix]
+        # --allow-empty-input: pre-commit passes the staged .css files, and
+        # stylelint errors out if .stylelintignore excludes all of them (e.g. a
+        # commit that only touches static/css/tokens/). Exit 0 instead.
+        args: [--fix, --allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v10.8.0
