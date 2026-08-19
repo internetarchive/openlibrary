@@ -2,7 +2,9 @@
 """Generate nginx PCRE regex(es) that match every FastAPI endpoint.
 
 Pulls the OpenAPI spec, converts each path template into a regex segment,
-and prints two bare PCRE regexes to stdout (no nginx wrapper):
+and prints two bare PCRE regexes to stdout (no nginx wrapper). Routes
+hidden from the spec (registered with ``include_in_schema=False``) are
+merged in from ``HIDDEN_PATHS``:
 
   1. A regex for all ``.json`` endpoints
   2. A regex for all non-``.json`` endpoints
@@ -35,6 +37,20 @@ DEFAULT_OPENAPI_URL = "http://localhost:18080/openapi.json"
 # path template (e.g. "/health"), not on a real URL.
 EXCLUDE_PATHS: set[str] = {
     "/health",
+}
+
+# FastAPI routes that never appear in the OpenAPI schema because they're
+# registered with ``include_in_schema=False`` (e.g. bare aliases of
+# ``.json`` endpoints). The generator can't discover these from
+# ``openapi.json``, so they're listed here explicitly. Keep this in sync
+# with ``include_in_schema=False`` decorators/routers in
+# ``openlibrary/fastapi/``; the script warns if an entry here shows up in
+# the spec anyway (meaning it's no longer hidden and the entry is stale).
+HIDDEN_PATHS: set[str] = {
+    "/api/books",  # alias of /api/books.json (books.py)
+    "/api/volumes/{brief_or_full}/json/{req}",  # alias of .../json/{req}.json (books.py)
+    "/api/volumes/{brief_or_full}/{idtype}/{idval}",  # alias of .../{idtype}/{idval}.json (books.py)
+    "/api/link",  # internal POST endpoint (link.py)
 }
 
 # Drop any path whose template starts with one of these prefixes. Used
@@ -139,6 +155,21 @@ def collect_path_enums(spec: dict) -> dict[str, dict[str, list[str]]]:
     return out
 
 
+def enums_for_template(
+    enum_map: dict[str, dict[str, list[str]]],
+    template: str,
+) -> dict[str, list[str]] | None:
+    """Return the enum constraints for ``template``, or None if it has none.
+
+    Falls back to the ``.json`` sibling (``template + JSON_SUFFIX``) so
+    hidden routes like ``/api/volumes/{brief_or_full}/json/{req}`` pick up
+    the enums defined on their visible ``.../json/{req}.json`` twin.
+    """
+    if template in enum_map:
+        return enum_map[template]
+    return enum_map.get(template + JSON_SUFFIX)
+
+
 def path_to_regex(template: str, enums: dict[str, list[str]] | None = None) -> str:
     """Convert a FastAPI path template into an nginx/PCRE-safe regex segment.
 
@@ -216,7 +247,7 @@ def _assemble_regex(
     enum_map = enum_map or {}
     # Strip the leading "/" from per-path branches so the outer "^/" in
     # the anchor doesn't double up.
-    branches = [path_to_regex(t.removeprefix("/"), enum_map.get(t)) for t in per_path]
+    branches = [path_to_regex(t.removeprefix("/"), enums_for_template(enum_map, t)) for t in per_path]
     collapse_branches = [frag for frag in COLLAPSE_PREFIXES.values() if frag in collapses]
     all_branches = collapse_branches + branches
     if not all_branches:
@@ -398,10 +429,10 @@ def render_path_table(
     nonjson_set = set(nonjson_per)
     for tpl in paths:
         if tpl in json_set:
-            regex = path_to_regex(tpl.removeprefix("/"), enum_map.get(tpl))
+            regex = path_to_regex(tpl.removeprefix("/"), enums_for_template(enum_map, tpl))
             rows.append((".json", tpl, strip_suffix(regex)))
         elif tpl in nonjson_set:
-            regex = path_to_regex(tpl.removeprefix("/"), enum_map.get(tpl))
+            regex = path_to_regex(tpl.removeprefix("/"), enums_for_template(enum_map, tpl))
             rows.append(("non-.json", tpl, regex))
         elif tpl in collapse_lookup:
             block, frag = collapse_lookup[tpl]
@@ -438,8 +469,20 @@ def main() -> int:
         )
         return 2
 
-    all_paths = collect_paths(spec)
+    spec_paths = collect_paths(spec)
     enum_map = collect_path_enums(spec)
+
+    # Merge in routes hidden from the schema (include_in_schema=False) that
+    # openapi.json can't reveal. Warn if one of them is visible in the spec
+    # anyway — the entry is stale and can be dropped from HIDDEN_PATHS.
+    visible_hidden = sorted(HIDDEN_PATHS & set(spec_paths))
+    all_paths = sorted(set(spec_paths) | HIDDEN_PATHS)
+    if visible_hidden:
+        print(
+            f"# Warning: {len(visible_hidden)} HIDDEN_PATHS entry(ies) already visible in the spec "
+            f"(no longer hidden, remove from HIDDEN_PATHS): {', '.join(visible_hidden)}",
+            file=sys.stderr,
+        )
 
     excluded_present = [p for p in all_paths if p in EXCLUDE_PATHS]
     excluded_missing = sorted(EXCLUDE_PATHS - set(all_paths))
@@ -502,13 +545,13 @@ def main() -> int:
         for tpl in per_path:
             if tpl in collapsed_templates:
                 continue
-            url = materialize(tpl, enum_map.get(tpl))
+            url = materialize(tpl, enums_for_template(enum_map, tpl))
             if not rx.match(url):
                 misses.append(f"[{label}] {tpl}  ->  {url}")
         for frag, replaced in collapses.items():
             branch_rx = re.compile(r"^/(" + frag + r")$")
             for tpl in replaced:
-                url = materialize(tpl, enum_map.get(tpl))
+                url = materialize(tpl, enums_for_template(enum_map, tpl))
                 if not branch_rx.match(url):
                     misses.append(f"[{label}] COLLAPSE {frag!r} failed on {tpl}  ->  {url}")
 
@@ -521,14 +564,16 @@ def main() -> int:
     if combined:
         rx = re.compile(combined)
         for tpl in paths:
-            url = materialize(tpl, enum_map.get(tpl))
+            url = materialize(tpl, enums_for_template(enum_map, tpl))
             if not rx.search(url):
                 misses.append(f"[combined] no match: {tpl} -> {url}")
+            # Trailing-slash, extra-segment, and prefix probes. (A plain
+            # "url + 'x'" suffix probe is skipped: bare aliases like
+            # /api/volumes/.../json/{req} legitimately absorb junk via
+            # [^/]+, so it would false-positive.)
             for bad in (url + "/", url + "/extra", "/prefix" + url):
                 if rx.search(bad):
                     misses.append(f"[combined] over-match: {tpl} -> {bad}")
-            if tpl.endswith(JSON_SUFFIX) and rx.search(url + "x"):
-                misses.append(f"[combined] over-match: {tpl} -> {url}x")
 
     if misses:
         print(f"# VERIFY FAILED for {len(misses)} path(s):", file=sys.stderr)
