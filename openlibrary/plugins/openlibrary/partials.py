@@ -173,7 +173,15 @@ class CarouselCardPartial:
             "id_openstax",
             "editions",
         ]
-        query_params: dict = {"q": params.q}
+        query = params.q
+        # The publishing-history chart dispatches a year range on selection.
+        # Filter on publish_year (every edition year), not first_publish_year,
+        # so a selection narrows this carousel the same way it narrows a
+        # SUBJECTS one -- the chart counts editions, not works.
+        if publish_year := date_range_to_publish_year_filter(params.published_in):
+            query = f"{query} publish_year:{publish_year}"
+
+        query_params: dict = {"q": query}
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 
