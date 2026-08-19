@@ -48,14 +48,17 @@
   --blue-800: hsl(214, 79%, 19%); /* visited links */
 
   /* Red, green, amber — error, success, warning.
-     50 is a message background, 200 its border, 500 a solid object (filled
-     icon, destructive button), and 600/700 the text; only those last two are
-     dark enough to read on white.
+     50 is a message background, 200 its border, 400 the bright alarm step
+     for tiny attention dots, 500 a solid object (filled icon, destructive
+     button), and 600/700 the text; only those last two are dark enough to
+     read on white.
 
-     Brick red rather than fire-engine, so errors read serious, not alarming. */
+     Brick red rather than fire-engine, so errors read serious, not alarming —
+     400 is the one deliberate exception, because an 8px dot has to shout. */
   --red-50: hsl(14, 50%, 95%);
   --red-100: hsl(14, 48%, 91%);
   --red-200: hsl(14, 45%, 84%);
+  --red-400: hsl(12, 90%, 50%);
   --red-500: hsl(13, 55%, 42%);
   --red-600: hsl(11, 58%, 35%);
   --red-700: hsl(9, 60%, 28%);
@@ -175,7 +178,7 @@
      tuned for AA text and read muddy as a block of color. The neutral one is the
      same shape switched off: dark enough that a white knob still reads on it. */
   --color-success-object: var(--green-400);
-  --color-error-object: var(--red-500);
+  --color-error-object: var(--red-400);
   --color-neutral-object: var(--neutral-300);
 }
 
