@@ -47,11 +47,23 @@
   color: var(--color-text-secondary);
   max-width: 58ch;
   margin: 0 0 var(--spacing-stack-sm);
+  /* Tag descriptions aren't length-capped, and an over-long one would push the
+     stats and the whole page below the fold. */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
 }
 
 /* format() wraps the blurb in its own <p>; drop its default margins so the block gap above stays intact. */
 .subject-masthead__blurb p {
   margin: 0;
+}
+
+/* A multi-paragraph description would otherwise run together as one block. */
+.subject-masthead__blurb p + p {
+  margin-top: var(--spacing-stack-xs);
 }
 
 .subject-masthead__stats {
@@ -63,6 +75,18 @@
 .subject-masthead__stat {
   display: flex;
   flex-direction: column;
+}
+
+/* The link wraps both the value and its label, so it has to be the column. */
+.subject-masthead__stat-link {
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-masthead__stat-link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
 }
 
 .subject-masthead__stat-value {
@@ -108,9 +132,9 @@
 }
 
 /* --- Cover fan -----------------------------------------------
-   Covers stack in DOM order (later = on top). Hover never reorders
-   z-index -- that jump can't animate and reads as a flash. Instead the
-   later siblings slide right to uncover the hovered cover. */
+   Covers stack in DOM order (later = on top), and nothing ever reorders
+   z-index: that jump can't animate and reads as a flash. See the picked-up
+   rules below for how a cover is revealed instead. */
 
 .subject-masthead__covers {
   position: relative;
@@ -124,18 +148,26 @@
 .subject-masthead__cover {
   /* Deliberately unhurried: a gentle ease-out-cubic on enter and an even
      softer ease-out-quad on exit, long enough that the ease is felt. The
-     exit timing lives here on the base rule; hover rules override to enter. */
+     exit timing lives here on the base rule; the picked-up rules override
+     to enter. */
   --fan-ease-enter: cubic-bezier(0.33, 1, 0.68, 1);
   --fan-ease-exit: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --fan-duration-enter: 400ms;
   --fan-duration-exit: 340ms;
+  /* Resting values for the three things a picked-up cover changes. The
+     transform is assembled here and nowhere else, so each state rule only
+     has to move these -- no state repeats the whole transform. */
+  --fan-x: 0px; /* stylelint-disable-line length-zero-no-unit -- used inside translateX() */
+  --fan-lift: 0px; /* stylelint-disable-line length-zero-no-unit -- used inside calc() */
+  --fan-straighten: 1;
   position: relative;
   z-index: var(--z-index-base);
   display: block;
   width: 92px;
   height: 138px;
   margin-left: -38px;
-  transform: rotate(var(--fan-rotate)) translateY(var(--fan-y));
+  transform: rotate(calc(var(--fan-rotate) * var(--fan-straighten)))
+    translateY(calc(var(--fan-y) - var(--fan-lift))) translateX(var(--fan-x));
   border-radius: var(--border-radius-thumbnail);
   background: var(--color-surface-sunken);
   box-shadow: 0 6px 14px
@@ -191,12 +223,83 @@
   --fan-y: 14px;
 }
 
+/* Picked up: the cover lifts and straightens halfway, like pulling a book out
+   of a fan, and the covers after it slide right to uncover it. Only later
+   siblings overlap a cover, so sliding them past the 38px overlap reveals it
+   without any z-index change -- a z-index jump can't animate and reads as a
+   flash. The shift falls off with distance, so the far covers bunch up rather
+   than the whole row shoving over, and earlier siblings ease back a little so
+   it reads as parting.
+
+   Focus gets the same treatment as hover, and can't share a selector list
+   with it: hover has to stay behind a hover-capable pointer so a tap doesn't
+   leave a cover stuck lifted, while focus must apply on every device. Without
+   the parting, a keyboard user's focus ring is clipped by the next cover
+   (WCAG 2.4.11 Focus Not Obscured). */
+
+.subject-masthead__cover:focus-visible {
+  --fan-straighten: 0.5;
+  --fan-lift: 8px;
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
+}
+
+.subject-masthead__cover:focus-visible::after {
+  opacity: 1;
+  transition: opacity var(--fan-duration-enter) var(--fan-ease-enter);
+}
+
+.subject-masthead__cover:focus-visible ~ .subject-masthead__cover,
+.subject-masthead__cover:has(~ .subject-masthead__cover:focus-visible) {
+  transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
+}
+
+.subject-masthead__cover:focus-visible + .subject-masthead__cover {
+  --fan-x: 48px;
+}
+.subject-masthead__cover:focus-visible + * + .subject-masthead__cover {
+  --fan-x: 36px;
+}
+.subject-masthead__cover:focus-visible + * + * + .subject-masthead__cover {
+  --fan-x: 26px;
+}
+.subject-masthead__cover:focus-visible + * + * + * + .subject-masthead__cover {
+  --fan-x: 18px;
+}
+.subject-masthead__cover:focus-visible
+  + *
+  + *
+  + *
+  + *
+  + .subject-masthead__cover {
+  --fan-x: 12px;
+}
+
+.subject-masthead__cover:has(+ .subject-masthead__cover:focus-visible) {
+  --fan-x: -10px;
+}
+.subject-masthead__cover:has(+ * + .subject-masthead__cover:focus-visible) {
+  --fan-x: -6px;
+}
+.subject-masthead__cover:has(+ * + * + .subject-masthead__cover:focus-visible) {
+  --fan-x: -3px;
+}
+.subject-masthead__cover:has(
+  + * + * + * + .subject-masthead__cover:focus-visible
+) {
+  --fan-x: -2px;
+}
+.subject-masthead__cover:has(
+  + * + * + * + * + .subject-masthead__cover:focus-visible
+) {
+  --fan-x: -1px;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  /* Picked up: lifts and straightens halfway, like pulling a book
-     out of a fan. */
   .subject-masthead__cover:hover {
-    transform: rotate(calc(var(--fan-rotate) / 2))
-      translateY(calc(var(--fan-y) - 8px));
+    --fan-straighten: 0.5;
+    --fan-lift: 8px;
     transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
   }
 
@@ -205,16 +308,8 @@
     transition: opacity var(--fan-duration-enter) var(--fan-ease-enter);
   }
 
-  /* Part the stack: only later siblings overlap a cover, so sliding them
-     right past the 38px overlap reveals it fully without any z-index
-     change. The shift falls off with distance from the hovered cover --
-     nearest neighbour moves most, far ones barely stir -- so the far
-     covers bunch up rather than the whole row shoving over. Earlier
-     siblings ease back a little so it reads as parting. */
   .subject-masthead__cover:hover ~ .subject-masthead__cover,
   .subject-masthead__cover:has(~ .subject-masthead__cover:hover) {
-    transform: rotate(var(--fan-rotate)) translateY(var(--fan-y))
-      translateX(var(--fan-x));
     transition: transform var(--fan-duration-enter) var(--fan-ease-enter);
   }
 
@@ -253,38 +348,23 @@
   }
 }
 
+/* Zeroing the durations rather than setting `transition: none` on the base
+   rule: a media query adds no specificity, so a plain base-rule override
+   would lose to every :hover/:focus-visible rule above and the motion would
+   play anyway. Every transition here reads these two vars. */
 @media (prefers-reduced-motion: reduce) {
-  .subject-masthead__cover,
-  .subject-masthead__cover::after {
-    transition: none;
+  .subject-masthead__cover {
+    --fan-duration-enter: 0ms;
+    --fan-duration-exit: 0ms;
   }
 }
 
-.subject-masthead__cover img,
-.subject-masthead__cover-placeholder {
-  border-radius: inherit;
-}
-
 .subject-masthead__cover img {
+  border-radius: inherit;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-/* Shown when a featured work has neither cover_id nor cover_edition_key --
-   a subtle diagonal weave reads as "book spine" rather than a dead box. */
-.subject-masthead__cover-placeholder {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    135deg,
-    var(--neutral-200),
-    var(--neutral-200) 8px,
-    var(--neutral-300) 8px,
-    var(--neutral-300) 16px
-  );
 }
 
 @media (max-width: 700px) {
@@ -329,6 +409,7 @@
 
 .subject-page__main {
   min-width: 0;
+  padding-top: var(--spacing-stack-xl);
 }
 
 /* Availability toggle above the carousel; mirrors .search-filter-row. */
@@ -336,12 +417,11 @@
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
-  padding-top: var(--spacing-lg);
   margin-bottom: var(--spacing-stack-sm);
 }
 
 .subject-page__sidebar {
-  padding-top: var(--spacing-lg);
+  padding-top: var(--spacing-stack-xl);
 }
 
 /* Carousels ship with a tinted "decorated" band (carousel.css); on this

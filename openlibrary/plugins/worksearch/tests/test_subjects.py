@@ -7,7 +7,10 @@ import web
 
 from openlibrary.plugins.worksearch.subjects import (
     MAX_NOTABLE_AUTHORS,
+    MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM,
     SubjectEngine,
+    _filtered_publishing_year_range,
+    _get_featured_works,
     merge_notable_authors,
     normalize_author_name,
 )
@@ -580,3 +583,89 @@ class TestNormalizeAuthorName:
     def test_non_latin_scripts_still_dedupe(self):
         assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
         assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")
+
+
+class TestFilteredPublishingYearRange:
+    """The masthead's publication-year span."""
+
+    @staticmethod
+    def _dense(start: int, end: int, count: int = 2) -> list[list[int]]:
+        """A year-by-year run, so nothing in it looks disconnected."""
+        return [[year, count] for year in range(start, end + 1)]
+
+    def test_no_history_returns_nothing(self):
+        assert _filtered_publishing_year_range([]) == (None, None)
+
+    def test_zero_counts_return_nothing(self):
+        assert _filtered_publishing_year_range([[1990, 0], [1991, 0]]) == (None, None)
+
+    def test_single_year_is_its_own_range(self):
+        assert _filtered_publishing_year_range([[1985, 40]]) == (1985, 1985)
+
+    def test_dense_history_is_untouched(self):
+        assert _filtered_publishing_year_range(self._dense(1950, 2020)) == (1950, 2020)
+
+    def test_unsorted_input_still_ordered(self):
+        assert _filtered_publishing_year_range([[2020, 30], [1950, 30]]) == (1950, 2020)
+
+    def test_disconnected_stray_year_is_trimmed(self):
+        """The case this exists for: one reprint mis-tagged 1500."""
+        history = [[1500, 1], *self._dense(1950, 2020)]
+        assert _filtered_publishing_year_range(history) == (1950, 2020)
+
+    def test_stray_year_at_the_top_is_trimmed(self):
+        history = [*self._dense(1950, 2020), [2200, 1]]
+        assert _filtered_publishing_year_range(history) == (1950, 2020)
+
+    def test_genuine_early_edition_survives(self):
+        """Decades ahead of the next year is normal for a first edition."""
+        history = [[1897, 1], *self._dense(1951, 2020)]
+        assert _filtered_publishing_year_range(history) == (1897, 2020)
+
+    def test_well_represented_early_year_survives_a_wide_gap(self):
+        """Enough editions to clear the cut, so the gap alone can't trim it."""
+        history = [[1600, 40], *self._dense(1950, 2020)]
+        assert _filtered_publishing_year_range(history) == (1600, 2020)
+
+    def test_small_subject_is_never_trimmed(self):
+        """Under the floor a lone edition is the record, not noise."""
+        history = [[1500, 1], [1990, 2], [2020, 2]]
+        assert sum(count for _year, count in history) < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM
+        assert _filtered_publishing_year_range(history) == (1500, 2020)
+
+
+class TestGetFeaturedWorks:
+    """Which works reach the masthead's cover fan."""
+
+    @staticmethod
+    def _work(key: str, **overrides) -> web.storage:
+        return web.storage({"key": key, "title": key, "cover_id": 1, "subject": [], **overrides})
+
+    def test_coverless_works_are_skipped(self):
+        works = [self._work("a", cover_id=None), self._work("b")]
+        assert [w.key for w in _get_featured_works(works)] == ["b"]
+
+    def test_cover_edition_key_counts_as_a_cover(self):
+        works = [self._work("a", cover_id=None, cover_edition_key="OL1M")]
+        assert [w.key for w in _get_featured_works(works)] == ["a"]
+
+    def test_content_warned_covers_are_skipped(self):
+        """Curators hide these covers; the masthead shows them larger than any carousel."""
+        works = [self._work("a", subject=["Horror", "content_warning:cover"]), self._work("b")]
+        assert [w.key for w in _get_featured_works(works)] == ["b"]
+
+    def test_content_warning_match_ignores_case(self):
+        works = [self._work("a", subject=["Content_Warning:Cover"])]
+        assert _get_featured_works(works) == []
+
+    def test_missing_subject_field_is_not_a_warning(self):
+        works = [web.storage(key="a", title="a", cover_id=1)]
+        assert [w.key for w in _get_featured_works(works)] == ["a"]
+
+    def test_respects_the_limit(self):
+        works = [self._work(str(i)) for i in range(20)]
+        assert len(_get_featured_works(works, limit=6)) == 6
+
+    def test_no_works_is_empty(self):
+        assert _get_featured_works([]) == []
+        assert _get_featured_works(None) == []

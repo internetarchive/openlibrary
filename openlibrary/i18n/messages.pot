@@ -799,9 +799,11 @@ msgstr ""
 msgid "See all works"
 msgstr ""
 
-#: subjects.html
-msgid "works"
-msgstr ""
+#: search/subjects.html subjects.html
+msgid "work"
+msgid_plural "works"
+msgstr[0] ""
+msgstr[1] ""
 
 #: subjects.html
 msgid "See all readable works"
@@ -812,7 +814,11 @@ msgid "readable now"
 msgstr ""
 
 #: subjects.html
-msgid "years in print"
+msgid "published"
+msgstr ""
+
+#: subjects.html
+msgid "years published"
 msgstr ""
 
 #: subjects.html
@@ -5988,10 +5994,6 @@ msgstr ""
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
-
-#: search/subjects.html
-msgid "work"
 msgstr ""
 
 #: search/work_search_facets.html

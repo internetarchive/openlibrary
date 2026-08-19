@@ -48,6 +48,29 @@ DEFAULT_FACET_FIELDS: list[FacetSpec] = [
 
 # Works shown in the masthead's fanned cover stack.
 MASTHEAD_FEATURED_WORKS = 6
+# Rows fetched to fill it: coverless and content-warned works are skipped, and
+# the fq can't do that filtering without also shrinking work_count and the facets.
+MASTHEAD_CANDIDATE_ROWS = MASTHEAD_FEATURED_WORKS * 4
+
+# Curator-applied subject that hides a work's cover. Carousels drop these via
+# the _SAFE_MODE_FILTER fq (partials.py, fastapi/services/books_display.py); the
+# masthead can't use an fq without skewing work_count, so it filters in Python.
+CONTENT_WARNING_COVER_SUBJECT = "content_warning:cover"
+
+# Trimming outliers off the publish-year span. Purely proportional trimming is a
+# no-op on small subjects (1% of 40 editions is under one edition) -- exactly
+# where one bad date shows most -- hence the absolute floor.
+PUBLISH_YEAR_TRIM_PCT = 0.01
+MIN_PUBLISH_YEAR_TRIM_EDITIONS = 2
+# Under this many editions a single edition is signal, not noise: trimming would
+# throw away a genuine earliest or latest year.
+MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM = 25
+# A gap this wide between the outermost year and the next one inward means the
+# outer year is disconnected from the distribution rather than the start of it.
+# Deliberately generous: a mis-dated edition usually lands centuries off (a
+# modern reprint tagged 1500), while a genuine first edition sitting decades
+# ahead of the next one is common and must survive.
+MAX_PUBLISH_YEAR_GAP = 100
 
 # Works sampled per signal; 8 unique authors reliably appear in the first 40 rows.
 NOTABLE_AUTHORS_SAMPLE_SIZE = 40
@@ -82,7 +105,7 @@ class subjects(delegate.page):
         subj = get_subject(
             key,
             details=True,
-            limit=MASTHEAD_FEATURED_WORKS,
+            limit=MASTHEAD_CANDIDATE_ROWS,
             facet_fields=["ebook_access", {"name": "publish_year", "limit": -1}],
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
@@ -127,10 +150,11 @@ class subjects(delegate.page):
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
-                # Short masthead blurb. Editable description
-                # first, fall back to the tag body. None if neither is
-                # set -- template hides the blurb line entirely.
-                blurb = subject.tag.get("tag_description") or subject.tag.get("body")
+                # Short masthead blurb. Description only -- the body is
+                # already rendered in full as the page's main content, so
+                # falling back to it would print the same text twice. None
+                # when unset: the template hides the blurb line entirely.
+                blurb = subject.tag.get("tag_description")
                 subject.blurb = blurb.strip() if blurb else None
 
             for tag in subject.disambiguations:
@@ -375,18 +399,29 @@ async def get_subject_async(
 get_subject = async_bridge.wrap(get_subject_async)
 
 
-def _filtered_publishing_year_range(publishing_history: list[list[int]], trim_pct: float = 0.01) -> tuple[int, int] | tuple[None, None]:
+def _trim_outlier_end_year(ordered: list[list[int]], cut: float) -> int:
+    """Walk in from one end of a year-sorted distribution to the first real year.
+
+    A year is skipped only when it is both a sliver of the data (the editions
+    seen so far stay under `cut`) and separated from the next year inward by
+    more than MAX_PUBLISH_YEAR_GAP. Requiring both means a genuine lone first
+    edition close to the bulk survives while a disconnected stray does not.
     """
+    running = 0
+    for (year, count), (next_year, _next_count) in itertools.pairwise(ordered):
+        running += count
+        if running >= cut or abs(next_year - year) <= MAX_PUBLISH_YEAR_GAP:
+            return year
+    return ordered[-1][0]
 
-    The 1000 < year <= current_year+1 check in get_subject_async already
-    kills obviously broken years. This handles the sneakier case: a
-    single mis-dated but *plausible-looking* edition (say, a reprint
-    tagged 1500) that still drags the range out to "1500-2025".
 
-    We trim `trim_pct` of total edition COUNT off each end of the
-    distribution, not off the year values. A lone stray edition has a
-    tiny count, so it gets trimmed even though its year sits far from
-    where most editions actually are.
+def _filtered_publishing_year_range(publishing_history: list[list[int]]) -> tuple[int, int] | tuple[None, None]:
+    """The span of publication years for a subject, with outliers trimmed.
+
+    The 1000 < year <= current_year+1 check in get_subject_async already kills
+    obviously broken years. This handles the sneakier case: a single mis-dated
+    but *plausible-looking* edition (say, a reprint tagged 1500) that still
+    drags the span out to "1500-2025".
     """
     if not publishing_history:
         return None, None
@@ -395,38 +430,38 @@ def _filtered_publishing_year_range(publishing_history: list[list[int]], trim_pc
     total = sum(count for _year, count in ordered)
     if total == 0:
         return None, None
+    if len(ordered) == 1:
+        return ordered[0][0], ordered[0][0]
+    # Too little data to tell an outlier from the record itself.
+    if total < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM:
+        return ordered[0][0], ordered[-1][0]
 
-    lo_cut = total * trim_pct
-    hi_cut = total * (1 - trim_pct)
-
-    running = 0
-    start_year = ordered[0][0]
-    for year, count in ordered:
-        running += count
-        if running >= lo_cut:
-            start_year = year
-            break
-
-    running = 0
-    end_year = ordered[-1][0]
-    for year, count in reversed(ordered):
-        running += count
-        if running >= total - hi_cut:
-            end_year = year
-            break
-
+    cut = max(MIN_PUBLISH_YEAR_TRIM_EDITIONS, total * PUBLISH_YEAR_TRIM_PCT)
+    start_year = _trim_outlier_end_year(ordered, cut)
+    end_year = _trim_outlier_end_year(ordered[::-1], cut)
+    # Trimming from both ends can cross over on a sparse, gappy distribution.
+    if start_year > end_year:
+        return ordered[0][0], ordered[-1][0]
     return start_year, end_year
 
 
 def _get_featured_works(works: list, limit: int = MASTHEAD_FEATURED_WORKS) -> list:
     """
-    Editable pick with a signal-driven fallback. Currently
-    just takes the top N works as already ranked/sorted by the search
-    query (relevance/edition_count), since there's no curated-picks
-    field on Subject yet. Swap in an editable override here once one
-    exists (e.g. subject.tag.featured_works).
+    Editable pick with a signal-driven fallback. Currently takes the first N
+    works with a cover, in the order the search query already ranked them,
+    since there's no curated-picks field on Subject yet. Swap in an editable
+    override here once one exists (e.g. subject.tag.featured_works).
+
+    Works whose covers a curator has hidden are skipped: the masthead shows
+    covers larger and higher than any carousel, so it has to honour the same
+    content warning they do.
     """
-    return (works or [])[:limit]
+    return [w for w in works or [] if (w.get("cover_id") or w.get("cover_edition_key")) and not _has_hidden_cover(w)][:limit]
+
+
+def _has_hidden_cover(work) -> bool:
+    """True if a curator tagged this work so its cover isn't displayed."""
+    return any(str(subject).lower() == CONTENT_WARNING_COVER_SUBJECT for subject in work.get("subject") or [])
 
 
 @dataclass
@@ -578,15 +613,11 @@ class SubjectEngine:
                 if 1000 < year <= current_year + 1
             ]
 
-            # Masthead stat "years in print", outlier-filtered
-            # so one bad date doesn't blow up the range
+            # Masthead publication-year span, outlier-filtered so one bad date
+            # doesn't blow up the range. The template formats it: a span and a
+            # lone year need different labels.
             start_year, end_year = _filtered_publishing_year_range(subject.publishing_history)
-            if start_year is None:
-                subject.years_in_print = None
-            elif start_year == end_year:
-                subject.years_in_print = str(start_year)
-            else:
-                subject.years_in_print = f"{start_year}–{end_year}"  # noqa: RUF001
+            subject.publish_year_range = None if start_year is None else (start_year, end_year)
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[self.key]):

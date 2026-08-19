@@ -20,52 +20,64 @@ $ has_tag = 'tag' in page
       <div class="subject-masthead__body">
         <h1 class="subject-masthead__title">$page.name</h1>
 
-        $# Phase 2: short blurb pulled from the editable Tag description,
-        $# falling back to the tag body. Hidden entirely if neither is set.
+        $# Phase 2: short blurb from the editable Tag description. Not the tag
+        $# body -- that renders in full below. Hidden entirely if unset.
         $ blurb = page.get('blurb')
         $if blurb:
           <div class="subject-masthead__blurb" itemprop="description">$:format(sanitize(blurb))</div>
 
-        $# Phase 2: stat row -- works, readable-now, years-in-print
+        $# Phase 2: stat row -- works, readable-now, publication span.
+        $# Value and label sit inside the same link so the phrase they form
+        $# isn't split across a link boundary, and the count picks the plural.
         <div class="subject-masthead__stats">
             <div class="subject-masthead__stat">
                 <a class="subject-masthead__stat-link" href="/search?$urlencode(dict(q=page.solr_query))" title="$_('See all works')">
-                    <span class="subject-masthead__stat-value" id="coversCount">$page.work_count</span>
+                    <span class="subject-masthead__stat-value" id="coversCount">$commify(page.work_count)</span>
+                    <span class="subject-masthead__stat-label">$ungettext("work", "works", page.work_count)</span>
                 </a>
-                <span class="subject-masthead__stat-label">$_("works")</span>
             </div>
             $if page.get('ebook_count'):
                 <div class="subject-masthead__stat">
                     <a class="subject-masthead__stat-link" href="/search?$urlencode(dict(q=page.solr_query, has_fulltext='true'))" title="$_('See all readable works')">
-                        <span class="subject-masthead__stat-value">$page.ebook_count</span>
+                        <span class="subject-masthead__stat-value">$commify(page.ebook_count)</span>
+                        <span class="subject-masthead__stat-label">$_("readable now")</span>
                     </a>
-                    <span class="subject-masthead__stat-label">$_("readable now")</span>
                 </div>
-            $if page.get('years_in_print'):
+            $if page.get('publish_year_range'):
+                $ start_year, end_year = page.publish_year_range
+                $# A span of publication years, not a claim of continuous availability.
                 <div class="subject-masthead__stat">
-                    <span class="subject-masthead__stat-value">$page.years_in_print</span>
-                    <span class="subject-masthead__stat-label">$_("years in print")</span>
+                    $if start_year == end_year:
+                        <span class="subject-masthead__stat-value">$start_year</span>
+                        <span class="subject-masthead__stat-label">$_("published")</span>
+                    $else:
+                        $ year_span = "%s\u2013%s" % (start_year, end_year)
+                        <span class="subject-masthead__stat-value">$year_span</span>
+                        <span class="subject-masthead__stat-label">$_("years published")</span>
                 </div>
         </div>
       </div>
 
-      $# Phase 4: featured works -- fanned cover stack. Editable pick
-      $# with a signal-driven fallback (currently top N by relevance).
+      $# Phase 4: featured works -- fanned cover stack. Editable pick with a
+      $# signal-driven fallback (currently the top N ranked works that have a
+      $# cover and no content warning on it -- see _get_featured_works).
       $# Stacking/rotation is handled entirely in CSS (nth-child) now --
       $# no inline z-index -- so DOM order alone controls the fan.
       $if page.get('featured_works'):
           <div class="subject-masthead__covers">
               $for work in page.featured_works:
+                  $# _get_featured_works only picks works with a cover, so one of
+                  $# these two ids is always set. Some works only carry
+                  $# cover_edition_key (no top-level cover_i).
+                  $if work.cover_id:
+                      $ cover_src = "%s/b/id/%s-M.jpg" % (get_coverstore_public_url(), work.cover_id)
+                  $else:
+                      $ cover_src = "%s/b/olid/%s-M.jpg" % (get_coverstore_public_url(), work.cover_edition_key)
+                  $# Eager, and the leading covers prioritised: this stack is the
+                  $# top of the page, so lazy-loading it just makes the masthead
+                  $# render as blank cards and then pop in.
                   <a href="$work.key" class="subject-masthead__cover" title="$work.title">
-                      $if work.cover_id:
-                          <img src="https://covers.openlibrary.org/b/id/$(work.cover_id)-M.jpg" alt="$work.title" loading="lazy"/>
-                      $elif work.cover_edition_key:
-                          $# Some works only carry cover_edition_key (no top-level cover_i)
-                          $# -- this is why the rest of the site still shows a cover for
-                          $# them while cover_id alone would fall through to the placeholder.
-                          <img src="https://covers.openlibrary.org/b/olid/$(work.cover_edition_key)-M.jpg" alt="$work.title" loading="lazy"/>
-                      $else:
-                          <span class="subject-masthead__cover-placeholder"></span>
+                      <img src="$cover_src" alt="$work.title" width="92" height="138" decoding="async" $:cond(loop.index0 < 3, 'fetchpriority="high"')/>
                   </a>
           </div>
     </div>
