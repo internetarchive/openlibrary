@@ -1,0 +1,60 @@
+{#
+   Testing Environment panel for /status, rendered by the Vue web component
+   ol-testing-environment. The server supplies maintainer visibility, the
+   Jenkins link, and translated strings because those are page configuration,
+   not testing-environment state — the component fetches /status/testing.json
+   and renders from that.
+   #}
+{% set i18n_strings = {
+    "loading": _("Loading testing environment…"),
+    "loadError": _("Could not load the testing environment."),
+    "retry": _("Try again"),
+    "actionFailed": _("Could not complete that action."),
+    "title": _("Testing Environment"),
+    "addPrs": _("Add PRs"),
+    "addPlaceholder": _("PR numbers or URLs, space or comma separated"),
+    "add": _("Add PRs"),
+    "addChange": _("Add"),
+    "pr": _("PR"),
+    "author": _("Author"),
+    "assignee": _("Assignee"),
+    "drift": _("Drift"),
+    "next": _("Next deploy"),
+    "liveNow": _("Live now"),
+    "notLive": _("Not yet deployed"),
+    "mergeConflict": _("Deploy failed (merge conflict)"),
+    "actions": _("Actions"),
+    "ok": _("OK"),
+    "prOnTesting": _("PR %(num)s on testing", num="%s"),
+    "changeOnDeploy": _("changes on deploy"),
+    "update": _("Update"),
+    "updatePin": _("Update pin"),
+    "enable": _("Enable"),
+    "disable": _("Disable"),
+    "remove": _("Remove"),
+    "refresh": _("Refresh from GitHub"),
+    "deploy": _("Deploy"),
+    "changeOne": _("%(num)s change will be applied", num="%s"),
+    "changeMany": _("%(num)s changes will be applied", num="%s"),
+    "nothingToDeploy": _("Nothing to deploy — testing matches the current set."),
+    "mergedToMaster": _("merged to master"),
+    "unknown": _("Drift unknown, pinned at %(sha)s", sha="%s"),
+    "currentCommit": _("Up-to-date, pinned at %(sha)s", sha="%s"),
+    "behindOne": ngettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 1, num="%s", sha="%s"),
+    "behindMany": ngettext("%(num)s commit behind %(sha)s", "%(num)s commits behind %(sha)s", 2, num="%s", sha="%s"),
+    "neverDeployed": _("Never deployed"),
+    "deployingStarted": _("Deploying, started %(time)s", time="%s"),
+    "deployingStage": _("Deploying, started %(time)s — %(stage)s", time="%s", stage="%s"),
+    "deploySucceeded": _("Deploy succeeded %(time)s", time="%s"),
+    "deployFailed": _("Deploy failed %(time)s", time="%s"),
+    "deployFailedTrigger": _("Could not start the deploy — Jenkins did not accept the build."),
+    "deployUnconfigured": _("Deploy is not configured on this instance — nothing was deployed."),
+    "lastDeploy": _("Last deploy %(time)s", time="%s"),
+    "viewJenkins": _("View Jenkins"),
+    "noPrs": _("No PRs in testing set.")
+} %}
+{{ render_component('TestingEnvironment', attrs={
+    'maintainer': 'true' if is_maintainer else 'false',
+    'jenkins-url': jenkins_job_url,
+    'i18n': i18n_strings,
+}) | safe }}

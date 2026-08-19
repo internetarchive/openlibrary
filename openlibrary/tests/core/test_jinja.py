@@ -76,6 +76,14 @@ def _create_validation_env() -> jinja2.Environment:
 
         env.globals["render_templetor_template"] = _stub
 
+    # The TestingEnvironment macro renders a Vue component via
+    # render_component(); this env has no component build output, so stub it
+    # the same way render_templetor_template is stubbed above.
+    def _stub_render_component(*a, **kw):
+        return ""
+
+    env.globals["render_component"] = _stub_render_component
+
     env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
 
     env.filters["dedent"] = lambda s: textwrap.dedent(str(s)).strip()
