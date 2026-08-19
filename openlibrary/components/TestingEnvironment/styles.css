@@ -410,8 +410,7 @@ a.testing-env__pill:focus-visible {
   justify-self: center;
 }
 
-/* A closed (not merged) PR reads as finished-but-not-landed, so its lock
-   sits in the same slot as the staged-change hourglass but in a muted tint. */
+/* A closed (not merged) PR reads in the same slot as the hourglass, muted. */
 .testing-env__closed {
   color: var(--color-text-muted);
 }
@@ -449,8 +448,7 @@ a.testing-env__pill:focus-visible {
   color: var(--color-error-fg);
 }
 
-/* Restore (undo a removal): same icon-only treatment, tinted green so a
-   non-destructive re-add reads differently from the red remove button. */
+/* Restore (undo a removal): green tint to read as non-destructive. */
 .testing-env__row-action--restore:hover:not(:disabled) {
   border-color: var(--color-success-fg);
   background: var(--color-success-bg);

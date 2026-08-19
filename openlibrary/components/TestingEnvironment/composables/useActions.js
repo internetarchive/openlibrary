@@ -67,9 +67,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         runAction('/status/remove', { prs: [pr.pr] });
     }
 
-    // Undo a removal: a deleted row is still running on the box until the next
-    // deploy, so re-adding it puts it back in the testing set. The /status/add
-    // handler re-fetches the PR from GitHub, mirroring how the add box works.
+    // Undo a removal: re-add via /status/add (the same path the add box uses).
     function restorePr(pr) {
         runAction('/status/add', { pr: String(pr.pr) });
     }

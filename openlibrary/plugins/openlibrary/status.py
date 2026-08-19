@@ -201,10 +201,9 @@ class status_deploy(delegate.page):
         state = _load_testing_state()
         if not state:
             return _json_ok()
-        # Decide merged/closed removals on the *un-mutated* state — `merged` and
-        # `closed` are independent of staged pins/toggles — and with persist=False,
-        # so the drift metadata refresh can never write staged changes to disk
-        # before Jenkins accepts the build.
+        # Drop merged/closed PRs on the *un-mutated* state; persist=False so the
+        # drift metadata refresh can never write staged changes before Jenkins
+        # accepts the build.
         drift_info, _ = _get_drift_info(state, persist=False)
         state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
         # Apply all pending changes before deploying
@@ -267,9 +266,9 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     """The plan: what deploying would change, one entry per staged change.
 
     Every row action writes staged intent that only status_deploy applies, so
-    this walks the same fields it flushes. A PR merged to master — or closed on
-    GitHub without a merge — is dropped by the deploy regardless of what else is
-    staged on it, so it yields one ``remove`` and nothing more.
+    this walks the same fields it flushes. A PR merged to master — or closed
+    without merging — is dropped on deploy regardless of what else is staged on
+    it, so it yields one ``remove`` and nothing more.
 
     Removal is the one action that stages nothing: it deletes the row. Those are
     recovered at the end by diffing ``state.deployed`` — what the last deploy
@@ -755,8 +754,7 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
             "head_sha": head_sha[:7],
             "drift": drift,
             "merged": merged,
-            # Closing a PR also closes the GitHub issue's state, and a merge is
-            # itself a close — so "closed" means closed *without* being merged.
+            # A merge is itself a close, so "closed" means closed without merging.
             "closed": gh.get("state") == "closed" and not merged,
             "title": gh.get("title", f"PR #{pr.pr}"),
             "author": user.get("login", ""),
