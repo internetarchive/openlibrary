@@ -80,7 +80,7 @@ export class OlMenuPopover extends LitElement {
         .menu-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;

@@ -145,10 +145,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         /* The selected segment's text. Doubled class (.segment.segment--ghost)
            so this beats the later, equal-specificity ".segment" color rule —
-           otherwise the cascade resolves the ghost to --accessible-grey and the
+           otherwise the cascade resolves the ghost to --color-text-muted and the
            selected segment looks dimmed instead of full-strength #333. */
         .segment.segment--ghost {
-            color: var(--dark-grey);
+            color: var(--color-text);
         }
 
         /* The sliding white pill — carries the raised look the selected segment
@@ -216,7 +216,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             background-color: transparent;
             /* Non-selected segments are dimmed so the selected one reads as
                active; hover and the selected pill darken back to full strength. */
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-control);
@@ -246,7 +246,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .segment:not([aria-checked="true"]):not(:disabled):hover {
-                color: var(--dark-grey);
+                color: var(--color-text);
             }
         }
 

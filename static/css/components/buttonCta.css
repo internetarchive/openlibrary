@@ -68,7 +68,7 @@ a.cta-btn--no-pointer {
 a.cta-btn--available,
 a.cta-btn--preview,
 a.cta-btn--primary {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
 }
 
@@ -102,7 +102,7 @@ a.cta-btn--external {
 
 .cta-btn--unavailable,
 a.cta-btn--unavailable {
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   color: var(--white);
 }
 
@@ -123,13 +123,13 @@ a.cta-btn--shell,
 a.cta-btn--shell:link,
 a.cta-btn--shell:visited {
   background-color: var(--white);
-  border: 2px solid var(--primary-blue);
+  border: 2px solid var(--color-primary);
   color: var(--primary-blue);
 }
 
 .cta-btn--shell:disabled,
 a.cta-btn--shell:disabled {
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   color: var(--light-grey);
   cursor: default;
 }
@@ -147,9 +147,9 @@ a.cta-btn--vanilla,
 a.cta-btn--vanilla:visited,
 a.cta-btn--vanilla:link {
   padding: var(--spacing-inset-xs);
-  border: 2px solid var(--light-grey);
+  border: 2px solid var(--color-border-muted);
   background: var(--white);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border-radius: 6px;
 }
 
@@ -161,7 +161,7 @@ a.cta-btn--unstyled:visited,
 a.cta-btn--unstyled:link {
   padding: var(--spacing-inset-sm);
   background: var(--white);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   border-radius: 6px;
 }
 
@@ -176,7 +176,7 @@ a.cta-btn--cancel {
 .cta-btn--cancel:visited,
 a.cta-btn--delete:visited,
 a.cta-btn--cancel:visited {
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .cta-btn--delete:hover,
@@ -197,7 +197,7 @@ a.cta-btn.cta-btn--w-icon {
 .cta-btn--sponsor:visited,
 a.cta-btn--sponsor:link,
 a.cta-btn--sponsor:visited {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .cta-btn--sponsor:hover,
@@ -242,9 +242,9 @@ a.cta-btn__badge {
   width: auto;
   display: inline-block;
   margin: 0;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   background-color: var(--light-beige);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .waitinglist-message {
@@ -340,7 +340,7 @@ form.return-form .cta-btn {
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--dark-grey);
+  color: var(--color-text);
   display: flex;
   align-items: center;
 }

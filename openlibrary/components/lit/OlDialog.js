@@ -103,7 +103,7 @@ export class OlDialog extends LitElement {
             max-width: 90vw;
             max-height: 85vh;
             overflow: hidden;
-            box-shadow: 0 4px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         dialog:focus {
