@@ -248,14 +248,14 @@ export default {
     },
     mounted() {
         this.loadStatus();
-        // Silent background refresh: every 5s and whenever the tab regains
-        // focus, re-fetch so drift/deploy state stays fresh. No spinner — the
-        // explicit Refresh button is the only thing that spins, and an action in
-        // flight is left alone so this can't race the POST-triggered reload.
-        this._refreshTimer = setInterval(() => {
+        // Single 1s interval: bumps `now` every tick (advances the label, no
+        // network), and refreshes data only on a tick at a :05 clock boundary.
+        this._timer = setInterval(() => {
             this.now = Date.now();
-            this.silentRefresh();
-        }, 5000);
+            if (Math.floor(this.now / 1000) % 5 === 0) {
+                this.silentRefresh();
+            }
+        }, 1000);
         document.addEventListener('visibilitychange', this.onVisibilityChange);
         // Active deploy badge (see syncDeployFavicon); null while idle.
         // Non-reactive: nothing renders from it.
@@ -263,7 +263,7 @@ export default {
     },
     beforeUnmount() {
         clearTimeout(this.toastTimer);
-        clearInterval(this._refreshTimer);
+        clearInterval(this._timer);
         document.removeEventListener('visibilitychange', this.onVisibilityChange);
         this.syncDeployFavicon(false);
     },
