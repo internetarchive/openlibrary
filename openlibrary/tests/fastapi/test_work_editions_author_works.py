@@ -1,6 +1,6 @@
 """Tests for the FastAPI work editions and author works endpoints."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from starlette.datastructures import URL
@@ -169,7 +169,7 @@ class TestAuthorWorks:
 
     def test_uses_default_pagination(self, fastapi_client, patched_site):
         entries = [{"key": "/works/OL1W", "title": "Test Work"}]
-        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
         patched_site.get.return_value = current_site
         response = fastapi_client.get(self.ENDPOINT)
 
@@ -185,7 +185,7 @@ class TestAuthorWorks:
 
     def test_caps_limit_and_preserves_legacy_links(self, fastapi_client, patched_site):
         entries = [{"key": "/works/OL1W"}]
-        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2000), thing_keys=["/works/OL1W"], entries=entries)
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=2000), thing_keys=["/works/OL1W"], entries=entries)
         patched_site.get.return_value = current_site
         response = fastapi_client.get(f"{self.ENDPOINT}?limit=1000&offset=25")
 
@@ -204,7 +204,7 @@ class TestAuthorWorks:
 
     def test_zero_limit_passed_through(self, fastapi_client, patched_site):
         entries = [{"key": "/works/OL1W"}]
-        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=1), thing_keys=["/works/OL1W"], entries=entries)
         patched_site.get.return_value = current_site
         response = fastapi_client.get(f"{self.ENDPOINT}?limit=0&offset=0")
 
@@ -217,7 +217,7 @@ class TestAuthorWorks:
         current_site.things.assert_called_once_with(self._things_query(0, 0))
 
     def test_rejects_invalid_pagination(self, fastapi_client, patched_site):
-        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=0))
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=0))
         patched_site.get.return_value = current_site
         response = fastapi_client.get(f"{self.ENDPOINT}?limit=abc&offset=xyz")
 
@@ -225,7 +225,7 @@ class TestAuthorWorks:
         current_site.get.assert_not_called()
 
     def test_rejects_negative_offset(self, fastapi_client, patched_site):
-        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=0))
+        current_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=0))
         patched_site.get.return_value = current_site
         response = fastapi_client.get(f"{self.ENDPOINT}?limit=10&offset=-5")
 
@@ -258,16 +258,16 @@ class TestAuthorWorks:
     def test_response_matches_legacy(self, fastapi_client, patched_site):
         entries = [{"key": "/works/OL1W"}]
 
-        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
+        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
         patched_site.get.return_value = legacy_site
-        legacy_response = legacy_api.author_works.get_works_data(
+        legacy_response = legacy_api.get_works_data(
             self.DOC_KEY,
             url=URL(f"{self.ENDPOINT}?limit=1&offset=0"),
             limit=1,
             offset=0,
         )
 
-        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=Mock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
+        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
         patched_site.get.return_value = fastapi_site
         fastapi_response = fastapi_client.get(f"{self.ENDPOINT}?limit=1&offset=0")
 

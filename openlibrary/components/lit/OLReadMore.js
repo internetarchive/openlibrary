@@ -24,7 +24,7 @@ import { LitElement, html, css } from 'lit';
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
  *
- * @cssprop [--ol-readmore-link-color=hsl(206, 95%, 30%)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-link-color=var(--color-link)] - Color of the more/less toggle button
  * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
  * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
@@ -53,7 +53,7 @@ export class OLReadMore extends LitElement {
         :host {
             display: block;
             position: relative;
-            --ol-readmore-link-color: hsl(206, 95%, 30%);
+            --ol-readmore-link-color: var(--color-link);
             --ol-readmore-gradient-color: white;
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
         }

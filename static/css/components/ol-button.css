@@ -38,7 +38,7 @@ ol-button:not(:defined) {
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-button);
   background-color: var(--white);
-  color: var(--dark-grey);
+  color: var(--color-text);
   --control-highlight-strength: 35%;
   box-shadow:
     var(--box-shadow-raised),
@@ -99,16 +99,16 @@ ol-button[elevation="floating"]:not(:defined) {
 
 /* Variants */
 ol-button[variant="primary"]:not(:defined) {
-  background-color: var(--primary-blue);
-  border-color: var(--primary-blue);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
   color: var(--white);
-  --control-surface: var(--primary-blue);
+  --control-surface: var(--color-primary);
   --control-highlight-strength: 18%;
 }
 
 ol-button[variant="destructive"]:not(:defined) {
   background-color: var(--red);
-  border-color: var(--red);
+  border-color: var(--color-border-error);
   color: var(--white);
   --control-surface: var(--red);
   --control-highlight-strength: 18%;
@@ -124,6 +124,6 @@ ol-button[variant="ghost"]:not(:defined) {
 ol-button[selected]:not(:defined) {
   background-color: var(--color-control-selected-bg);
   border-color: var(--color-control-selected-border);
-  color: var(--link-blue);
+  color: var(--color-link);
   --control-surface: var(--color-control-selected-surface);
 }

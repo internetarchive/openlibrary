@@ -108,7 +108,7 @@
   list-style: none;
   width: 90%;
   margin-top: var(--spacing-stack-xs);
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-input);
   padding: var(--spacing-inset-sm);
   background: var(--grey-fafafa);

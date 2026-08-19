@@ -71,7 +71,7 @@
 }
 
 .ol-signup-hero .ol-signup-hero__subtitle {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-title-large);
 }
 
@@ -106,7 +106,7 @@
   gap: 10px;
   margin-top: 10px;
   max-width: 600px;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .ol-signup-form .ol-signup-form__big-or::before,
@@ -133,7 +133,7 @@
 
 .ol-signup-form .ol-signup-form__note {
   font-size: var(--font-size-label-large);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .ol-signup-form .ol-signup-form__input {
@@ -141,14 +141,14 @@
 }
 
 .ol-signup-form .ol-signup-form__input input {
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   border-radius: var(--border-radius-input);
   width: 100%;
   padding: 6px 4px;
 }
 
 .ol-signup-form .ol-signup-form__input input.invalid {
-  border: 1px solid var(--red);
+  border: 1px solid var(--color-border-error);
 }
 
 .ol-signup-form .ol-signup-form__input label,
@@ -177,7 +177,7 @@
 
 .ol-signup-form .ol-signup-form__suffix {
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .ol-signup-form .input {
@@ -216,7 +216,7 @@
 
 .ol-signup-form .ol-signup-form__tos {
   font-size: var(--font-size-label-large);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   display: block;
   margin-top: 5px;
   margin-bottom: 10px;
@@ -229,7 +229,7 @@
 }
 
 .ol-signup-form .ol-signup-form__login-hint a {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .ol-signup-form .ol-signup-form__select {

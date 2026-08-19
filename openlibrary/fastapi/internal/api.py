@@ -35,8 +35,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import author_works as legacy_author_works
-from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
+from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async, get_works_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
 from openlibrary.plugins.openlibrary.api import work_editions as legacy_work_editions
@@ -322,14 +321,14 @@ def work_editions(
 
 
 @router.get("/authors/OL{author_id}A/works.json", response_model=PaginatedGroupEntryResponse, response_model_exclude_none=True)
-def author_works(
+async def author_works(
     request: Request,
     author_id: Annotated[int, Path(ge=0)],
     limit: Annotated[int, Query(ge=0, le=1000, description="Maximum number of works to return")] = 50,
     offset: Annotated[int, Query(ge=0, description="Number of works to skip")] = 0,
 ) -> PaginatedGroupEntryResponse:
     """Get paginated works for an author."""
-    data = legacy_author_works.get_works_data(
+    data = await get_works_data_async(
         f"/authors/OL{author_id}A",
         url=request.url,
         limit=limit,
