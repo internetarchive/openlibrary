@@ -47,11 +47,12 @@
   --blue-700: hsl(211, 82%, 24%);
   --blue-800: hsl(214, 79%, 19%); /* visited links */
 
-  /* Red, green, amber — error, success, warning. 50 is a message background,
-     200 its border, 500 a solid object (filled icon, destructive button), and
-     600/700 the text; only those last two are dark enough to read on white. */
+  /* Red, green, amber — error, success, warning.
+     50 is a message background, 200 its border, 500 a solid object (filled
+     icon, destructive button), and 600/700 the text; only those last two are
+     dark enough to read on white.
 
-  /* Brick red rather than fire-engine, so errors read serious, not alarming. */
+     Brick red rather than fire-engine, so errors read serious, not alarming. */
   --red-50: hsl(14, 50%, 95%);
   --red-100: hsl(14, 48%, 91%);
   --red-200: hsl(14, 45%, 84%);

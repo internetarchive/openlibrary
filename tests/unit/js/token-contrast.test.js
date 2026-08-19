@@ -85,6 +85,8 @@ const MATRIX = [
     ['--color-on-primary', '--color-primary-hover', 4.5],
     ['--color-on-primary', '--color-primary-active', 4.5],
     // Status text on white and on its own tint
+    ['--color-info-fg', '--color-surface', 4.5],
+    ['--color-info-fg', '--color-info-bg', 4.5],
     ['--color-success-fg', '--color-surface', 4.5],
     ['--color-success-fg', '--color-success-bg', 4.5],
     ['--color-error-fg', '--color-surface', 4.5],
