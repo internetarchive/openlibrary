@@ -1,7 +1,15 @@
 /* Titled carousels on subject pages (Tag-body QueryCarousels): a bold serif
    heading with an optional pill badge beside it and a muted caption below. */
+
+/* Spacing hangs off the bottom of each carousel, not the top of its heading,
+   so the first heading lines up with the sidebar's at the top of the column. */
+.subject-page__main .carousel-section,
+.subject-page__main .lazy-carousel {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
 .subject-page__main .carousel-section-header {
-  margin: var(--spacing-stack-xl) 0 var(--spacing-stack-sm);
+  margin: 0 0 var(--spacing-stack-sm);
 }
 
 .subject-page__main .home-h2 {

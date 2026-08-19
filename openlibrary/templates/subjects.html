@@ -75,25 +75,32 @@ $ has_tag = 'tag' in page
     $# authors in a sidebar on the right. Related subjects sit below, full width.
     <div class="subject-page__columns">
       <div class="subject-page__main">
-        $if has_tag:
-          $:format(sanitize(page.tag.body))
+        $# A tag can exist with only a blurb (no body) -- sanitize() chokes on the
+        $# missing value, so fall back to the default carousel unless there's a body.
+        $ tag_body = page.tag.body if has_tag else None
+        $if tag_body:
+          $:format(sanitize(tag_body))
         $else:
-          $# Only show default carousel if subject doesn't have an associated Tag.
+          $# Only show default carousel if the subject's Tag has no body.
           $# Same page-scoped filter as the author page: results-filter-toggle.js
           $# rewrites `mode` in the URL and remembers nothing.
           $ ebooks_only = input(mode="everything").mode == "ebooks"
-          <div class="subject-page__filters">
-            <ol-toggle
-              class="results-filter-toggle"
-              variant="button"
-              label="$_('Readable Only')"
-              sublabel="$commify(page.get('ebook_count') or 0)"
-              accessible-label="$_('Filter by availability')"
-              data-filter-param="mode"
-              data-filter-value="ebooks"
-              $cond(ebooks_only, 'checked')
-            ></ol-toggle>
-          </div>
+          $# With nothing readable the toggle can only ever empty the carousel,
+          $# so hide it -- same test the masthead's "readable now" stat uses.
+          $# Kept when it's already on so a `?mode=ebooks` URL isn't a dead end.
+          $if page.get('ebook_count') or ebooks_only:
+            <div class="subject-page__filters">
+              <ol-toggle
+                class="results-filter-toggle"
+                variant="button"
+                label="$_('Show readable only')"
+                sublabel="$commify(page.get('ebook_count') or 0)"
+                accessible-label="$_('Filter by availability')"
+                data-filter-param="mode"
+                data-filter-value="ebooks"
+                $cond(ebooks_only, 'checked')
+              ></ol-toggle>
+            </div>
           $:macros.QueryCarousel(query=page.solr_query, title=_("Trending Books"), sort='trending,trending_score_hourly_sum', key='SubjectTrending', user_lang_only=True, fallback=True, has_fulltext_only=ebooks_only)
         $:macros.PublishingHistory(async_load=True, key=page.key)
         <div class="clearfix"></div>

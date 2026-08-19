@@ -160,7 +160,7 @@
 
 .subject-page__main {
   min-width: 0;
-  padding-top: var(--spacing-stack-xl);
+  padding-top: var(--spacing-stack-lg);
 }
 
 /* Availability toggle above the carousel; mirrors .search-filter-row. */
@@ -168,11 +168,13 @@
   display: flex;
   gap: var(--spacing-sm);
   align-items: center;
-  margin-bottom: var(--spacing-stack-sm);
+  /* A block gap, not a label gap: the toggle governs the carousels below it
+     rather than labelling the one it sits on. */
+  margin-bottom: var(--spacing-stack-lg);
 }
 
 .subject-page__sidebar {
-  padding-top: var(--spacing-stack-xl);
+  padding-top: var(--spacing-stack-lg);
 }
 
 /* Carousels ship with a tinted "decorated" band (carousel.css); on this

@@ -825,8 +825,8 @@ msgstr ""
 msgid "Disambiguations"
 msgstr ""
 
-#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html subjects.html type/author/view.html work_search.html
-msgid "Readable Only"
+#: subjects.html
+msgid "Show readable only"
 msgstr ""
 
 #: account/reading_log.html subjects.html type/author/view.html work_search.html
@@ -982,6 +982,10 @@ msgstr ""
 
 #: work_search.html
 msgid "Solr Editions"
+msgstr ""
+
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
+msgid "Readable Only"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
