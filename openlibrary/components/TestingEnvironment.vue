@@ -161,10 +161,12 @@ import {
     DEFAULT_STRINGS,
     decodeAndParseJSON,
     effectiveActive,
+    faviconEnv,
     getTestingStatus,
     postAction,
     safeHttpUrl,
-    sprintf
+    sprintf,
+    startFaviconSpinner
 } from './TestingEnvironment/utils.js';
 
 // The action endpoints answer {"ok": false, "error": "<code>"} for business
@@ -227,6 +229,13 @@ export default {
             return safeHttpUrl(this.jenkins_url);
         }
     },
+    watch: {
+        // The tab favicon follows the deploy: spinner-ring variant while a
+        // build is presumed running, the normal one when it finishes.
+        'payload.deploying'(deploying) {
+            this.syncDeployFavicon(deploying);
+        }
+    },
     created() {
         try {
             const parsed = decodeAndParseJSON(this.i18n);
@@ -248,11 +257,15 @@ export default {
             this.silentRefresh();
         }, 5000);
         document.addEventListener('visibilitychange', this.onVisibilityChange);
+        // Active spinner (see syncDeployFavicon); null while idle. Non-reactive:
+        // nothing renders from it.
+        this._faviconSpinner = null;
     },
     beforeUnmount() {
         clearTimeout(this.toastTimer);
         clearInterval(this._refreshTimer);
         document.removeEventListener('visibilitychange', this.onVisibilityChange);
+        this.syncDeployFavicon(false);
     },
     methods: {
         text(key, ...args) {
@@ -264,6 +277,24 @@ export default {
             this.toastTimer = setTimeout(() => {
                 this.toast = '';
             }, 6000);
+        },
+        // Animate the page favicon while a deploy runs: the real favicon is
+        // drawn with a spinning ring on a canvas and PNG frames are swapped
+        // into the rel="icon" links (SMIL/CSS animation doesn't run inside a
+        // favicon, but frame-swapping does). Only openlibrary favicons are
+        // touched; the spinner stops and hrefs are restored when the deploy
+        // ends or the panel unmounts.
+        syncDeployFavicon(deploying) {
+            if (deploying) {
+                if (this._faviconSpinner) return;
+                const links = Array.from(document.querySelectorAll('link[rel="icon"]'))
+                    .filter((link) => faviconEnv(link.getAttribute('href')));
+                if (!links.length) return;
+                this._faviconSpinner = startFaviconSpinner(links);
+            } else if (this._faviconSpinner) {
+                this._faviconSpinner();
+                this._faviconSpinner = null;
+            }
         },
         onVisibilityChange() {
             if (document.visibilityState === 'visible') {

@@ -134,6 +134,111 @@ export async function postAction(action, fields = {}) {
     return response.json();
 }
 
+// Ring color drawn over the env favicon while a deploy runs (see
+// templates/site/head.html): blue reads on the production paper tile, white
+// on the solid green/orange development and testing tiles.
+const FAVICON_RING = {
+    production: '#518abe',
+    development: '#ffffff',
+    testing: '#ffffff'
+};
+
+/**
+ * Which environment a favicon href belongs to: 'production', 'development',
+ * or 'testing'. Null for anything that isn't one of our openlibrary
+ * favicons, so foreign favicon links are left alone.
+ */
+export function faviconEnv(href) {
+    const value = String(href || '');
+    if (!/openlibrary(?:-[a-z]+)?-\d+x\d+\.png$/.test(value)) return null;
+    if (value.includes('-testing-')) return 'testing';
+    if (value.includes('-development-')) return 'development';
+    return 'production';
+}
+
+/**
+ * The spinner ring color for a favicon (null when it isn't one of ours).
+ */
+export function faviconRingColor(href) {
+    const env = faviconEnv(href);
+    return env ? FAVICON_RING[env] : null;
+}
+
+/**
+ * Animate the page favicon while a deploy runs: each frame draws the real
+ * favicon PNG onto a canvas with a 270° spinner arc rotated by the clock and
+ * swaps the link's href to the PNG data URL. Browsers won't run SMIL/CSS
+ * animation inside a favicon, but they will happily re-render a new static
+ * frame, so frame-swapping is the portable way to spin. Only the given
+ * rel="icon" links are touched; their hrefs are restored on stop. The arc
+ * geometry scales from the 192px design (center 96,96, radius 82, width 13).
+ */
+export function startFaviconSpinner(links) {
+    const frames = links.map((link) => ({
+        link,
+        original: link.getAttribute('href'),
+        image: new Image(),
+        canvas: document.createElement('canvas')
+    }));
+    let rafId = null;
+    let loaded = 0;
+    let last = 0;
+    let stopped = false;
+
+    function stop() {
+        if (stopped) return;
+        stopped = true;
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        frames.forEach(({ link, original }) => link.setAttribute('href', original));
+    }
+
+    function draw(time) {
+        // ~20fps is plenty for a 1.2s revolution and keeps the per-frame PNG
+        // encodes cheap.
+        if (time - last < 50) {
+            rafId = requestAnimationFrame(draw);
+            return;
+        }
+        last = time;
+        const start = -Math.PI / 2 + ((time % 1200) / 1200) * 2 * Math.PI;
+        for (const { link, image, canvas } of frames) {
+            const ctx = canvas.getContext('2d');
+            if (!ctx) continue;
+            const scale = canvas.width / 192;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.lineWidth = 13 * scale;
+            ctx.strokeStyle = faviconRingColor(link.getAttribute('href'));
+            ctx.lineCap = 'round';
+            ctx.arc(canvas.width / 2, canvas.height / 2, 82 * scale, start, start + Math.PI * 1.5);
+            ctx.stroke();
+            link.setAttribute('href', canvas.toDataURL('image/png'));
+        }
+        rafId = requestAnimationFrame(draw);
+    }
+
+    frames.forEach(({ link, image, canvas }) => {
+        image.onload = () => {
+            if (stopped) return;
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
+            loaded += 1;
+            // Wait for every favicon so the spinner appears on all of them at once.
+            if (loaded === frames.length) {
+                rafId = requestAnimationFrame(draw);
+            }
+        };
+        image.onerror = () => {
+            // A broken image means nothing to draw — restore and give up.
+            stop();
+        };
+        image.src = link.getAttribute('href');
+    });
+
+    return stop;
+}
+
 /**
  * "2026-08-06T15:00:00+00:00" → "2026-08-06 15:00"
  */
