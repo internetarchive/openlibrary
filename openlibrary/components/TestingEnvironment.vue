@@ -154,7 +154,8 @@
   </section>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import TestingRow from './TestingEnvironment/TestingRow.vue';
 import DeploySection from './TestingEnvironment/DeploySection.vue';
 import {
@@ -176,223 +177,235 @@ const ACTION_ERRORS = {
     deploy_unconfigured: 'deployUnconfigured'
 };
 
-export default {
-    name: 'TestingEnvironment',
-    components: {
-        TestingRow,
-        DeploySection
+defineOptions({ name: 'TestingEnvironment' });
+
+const props = defineProps({
+    maintainer: {
+        type: String,
+        default: 'false'
     },
-    props: {
-        maintainer: {
-            type: String,
-            default: 'false'
-        },
-        jenkinsUrl: {
-            type: String,
-            default: ''
-        },
-        /** URI-encoded JSON of translated panel strings.
-         * @see render_component() in openlibrary/plugins/upstream/utils.py */
-        i18n: {
-            type: String,
-            default: ''
-        }
+    jenkinsUrl: {
+        type: String,
+        default: ''
     },
-    data() {
-        return {
-            view: 'loading', // 'loading' | 'error' | 'ready'
-            payload: null,
-            busy: false,
-            refreshing: false,
-            adding: false,
-            deploying: false,
-            addInput: '',
-            strings: { ...DEFAULT_STRINGS },
-            toast: '',
-            // Wall-clock tick for the relative "X ago" deploy labels. Bumped by
-            // the same poll that refreshes data, so the labels advance even when
-            // the payload is unchanged (loadStatus skips identical JSON).
-            now: Date.now()
-        };
-    },
-    computed: {
-        isMaintainer() {
-            return this.maintainer === 'true';
-        },
-        prs() {
-            // Merged PRs land in the next deploy regardless; the row is noise.
-            return ((this.payload && this.payload.prs) || []).filter((pr) => pr.merged !== true);
-        }
-    },
-    watch: {
-        // The tab favicon follows the deploy: spinner-ring variant while a
-        // build is presumed running, the normal one when it finishes.
-        'payload.deploying'(deploying) {
-            this.syncDeployFavicon(deploying);
-        }
-    },
-    created() {
-        try {
-            const parsed = decodeAndParseJSON(this.i18n);
-            if (parsed && typeof parsed === 'object') {
-                this.strings = { ...DEFAULT_STRINGS, ...parsed };
-            }
-        } catch {
-            // A malformed translation payload falls back to English.
-        }
-    },
-    mounted() {
-        this.loadStatus();
-        // Single 1s interval: bumps `now` every tick (advances the label, no
-        // network), and refreshes data only on a tick at a :05 clock boundary.
-        this._timer = setInterval(() => {
-            this.now = Date.now();
-            if (Math.floor(this.now / 1000) % 5 === 0) {
-                this.silentRefresh();
-            }
-        }, 1000);
-        document.addEventListener('visibilitychange', this.onVisibilityChange);
-        // Active deploy badge (see syncDeployFavicon); null while idle.
-        // Non-reactive: nothing renders from it.
-        this._deployBadge = null;
-    },
-    beforeUnmount() {
-        clearTimeout(this._toastTimer);
-        clearInterval(this._timer);
-        document.removeEventListener('visibilitychange', this.onVisibilityChange);
-        this.syncDeployFavicon(false);
-    },
-    methods: {
-        text(key, ...args) {
-            return sprintf(this.strings[key] || DEFAULT_STRINGS[key] || key, ...args);
-        },
-        setToast(message) {
-            this.toast = message;
-            clearTimeout(this._toastTimer);
-            this._toastTimer = setTimeout(() => {
-                this.toast = '';
-            }, 6000);
-        },
-        // Mark the page favicon while a deploy runs: the real favicon is drawn
-        // once with a static badge wedge and swapped into the rel="icon" links
-        // (a static mark is one render at start and one swap at the end — no
-        // animation loop for a throttled tab to stall). Only openlibrary
-        // favicons are touched; the badge is removed when the deploy ends or
-        // the panel unmounts.
-        syncDeployFavicon(deploying) {
-            if (deploying) {
-                if (this._deployBadge) return;
-                const links = Array.from(document.querySelectorAll('link[rel="icon"]'))
-                    .filter((link) => faviconEnv(link.getAttribute('href')));
-                if (!links.length) return;
-                this._deployBadge = applyDeployBadge(links);
-            } else if (this._deployBadge) {
-                this._deployBadge();
-                this._deployBadge = null;
-            }
-        },
-        onVisibilityChange() {
-            if (document.visibilityState === 'visible') {
-                this.now = Date.now();
-                this.silentRefresh();
-            }
-        },
-        // Re-fetch quietly: no loading view, no error takeover, no busy flag —
-        // loadStatus(false, false, false). Skipped while an action is in flight.
-        silentRefresh() {
-            if (this.busy) return;
-            this.loadStatus(false, false, false);
-        },
-        async loadStatus(showLoading = false, renderError = true, manageBusy = true) {
-            // busy is a re-entrancy guard and aria-busy signal only.
-            if (manageBusy) this.busy = true;
-            if (showLoading) this.view = 'loading';
-            try {
-                const payload = await getTestingStatus();
-                // Skip the assignment when nothing changed — a fresh object
-                // identity would repaint the panel (the flash on tab return).
-                if (!this.payload || JSON.stringify(payload) !== JSON.stringify(this.payload)) {
-                    this.payload = payload;
-                }
-                this.view = 'ready';
-                return true;
-            } catch {
-                if (renderError) this.view = 'error';
-                return false;
-            } finally {
-                if (manageBusy) this.busy = false;
-            }
-        },
-        async runAction(action, fields) {
-            if (this.busy) return false;
-            this.busy = true;
-            try {
-                const result = await postAction(action, fields);
-                await this.loadStatus(false, false, false);
-                // A business failure ({"ok": false, "error": "<code>"}) is a
-                // completed request, not a thrown fetch — say why instead of
-                // pretending the action landed.
-                if (result && result.ok === false) {
-                    const key = ACTION_ERRORS[result.error] || 'actionFailed';
-                    this.setToast(this.text(key));
-                    return result;
-                }
-                return result;
-            } catch {
-                this.setToast(this.text('actionFailed'));
-                return false;
-            } finally {
-                this.busy = false;
-            }
-        },
-        togglePr(pr) {
-            const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
-            this.runAction(action, { prs: [pr.pr] });
-        },
-        updatePr(pr) {
-            this.runAction('/status/pull-latest', { prs: [pr.pr] });
-        },
-        removePr(pr) {
-            this.runAction('/status/remove', { prs: [pr.pr] });
-        },
-        async deploy() {
-            if (this.busy) return;
-            this.deploying = true;
-            try {
-                await this.runAction('/status/deploy', {});
-            } finally {
-                this.deploying = false;
-            }
-        },
-        async refresh() {
-            if (this.busy) return;
-            this.refreshing = true;
-            try {
-                await this.runAction('/status/refresh', {});
-            } finally {
-                this.refreshing = false;
-            }
-        },
-        async addPrs() {
-            if (this.adding || this.busy) return;
-            const value = this.addInput.trim();
-            if (!value) return;
-            this.adding = true;
-            try {
-                const result = await this.runAction('/status/add', { pr: value });
-                // A failed add keeps the input so it's obvious the PR didn't land.
-                if (result && result.ok) {
-                    this.addInput = '';
-                }
-            } finally {
-                this.adding = false;
-            }
-        },
-        retry() {
-            this.loadStatus(true);
-        }
+    /** URI-encoded JSON of translated panel strings.
+     * @see render_component() in openlibrary/plugins/upstream/utils.py */
+    i18n: {
+        type: String,
+        default: ''
     }
-};
+});
+
+// ── Reactive state ──────────────────────────────────────────────────
+const view = ref('loading'); // 'loading' | 'error' | 'ready'
+const payload = ref(null);
+const busy = ref(false);
+const refreshing = ref(false);
+const adding = ref(false);
+const deploying = ref(false);
+const addInput = ref('');
+const strings = ref({ ...DEFAULT_STRINGS });
+const toast = ref('');
+// Wall-clock tick for the relative "X ago" deploy labels. Bumped by
+// the same poll that refreshes data, so the labels advance even when
+// the payload is unchanged (loadStatus skips identical JSON).
+const now = ref(Date.now());
+
+// ── Non-reactive instance state (plain let, not refs) ──────────────
+let timer = null;
+let toastTimer = null;
+let deployBadge = null;
+
+// ── Computed ────────────────────────────────────────────────────────
+const isMaintainer = computed(() => props.maintainer === 'true');
+
+const prs = computed(() => {
+    // Merged PRs land in the next deploy regardless; the row is noise.
+    return ((payload.value && payload.value.prs) || []).filter((pr) => pr.merged !== true);
+});
+
+// ── Watchers ────────────────────────────────────────────────────────
+// The tab favicon follows the deploy: spinner-ring variant while a
+// build is presumed running, the normal one when it finishes.
+watch(
+    () => payload.value?.deploying,
+    (deploying) => syncDeployFavicon(deploying)
+);
+
+// ── Methods ─────────────────────────────────────────────────────────
+function text(key, ...args) {
+    return sprintf(strings.value[key] || DEFAULT_STRINGS[key] || key, ...args);
+}
+
+function setToast(message) {
+    toast.value = message;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.value = '';
+    }, 6000);
+}
+
+// Mark the page favicon while a deploy runs: the real favicon is drawn
+// once with a static badge wedge and swapped into the rel="icon" links
+// (a static mark is one render at start and one swap at the end — no
+// animation loop for a throttled tab to stall). Only openlibrary
+// favicons are touched; the badge is removed when the deploy ends or
+// the panel unmounts.
+function syncDeployFavicon(isDeploying) {
+    if (isDeploying) {
+        if (deployBadge) return;
+        const links = Array.from(document.querySelectorAll('link[rel="icon"]'))
+            .filter((link) => faviconEnv(link.getAttribute('href')));
+        if (!links.length) return;
+        deployBadge = applyDeployBadge(links);
+    } else if (deployBadge) {
+        deployBadge();
+        deployBadge = null;
+    }
+}
+
+function onVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        now.value = Date.now();
+        silentRefresh();
+    }
+}
+
+// Re-fetch quietly: no loading view, no error takeover, no busy flag —
+// loadStatus(false, false, false). Skipped while an action is in flight.
+function silentRefresh() {
+    if (busy.value) return;
+    loadStatus(false, false, false);
+}
+
+async function loadStatus(showLoading = false, renderError = true, manageBusy = true) {
+    // busy is a re-entrancy guard and aria-busy signal only.
+    if (manageBusy) busy.value = true;
+    if (showLoading) view.value = 'loading';
+    try {
+        const newPayload = await getTestingStatus();
+        // Skip the assignment when nothing changed — a fresh object
+        // identity would repaint the panel (the flash on tab return).
+        if (!payload.value || JSON.stringify(newPayload) !== JSON.stringify(payload.value)) {
+            payload.value = newPayload;
+        }
+        view.value = 'ready';
+        return true;
+    } catch {
+        if (renderError) view.value = 'error';
+        return false;
+    } finally {
+        if (manageBusy) busy.value = false;
+    }
+}
+
+async function runAction(action, fields) {
+    if (busy.value) return false;
+    busy.value = true;
+    try {
+        const result = await postAction(action, fields);
+        await loadStatus(false, false, false);
+        // A business failure ({"ok": false, "error": "<code>"}) is a
+        // completed request, not a thrown fetch — say why instead of
+        // pretending the action landed.
+        if (result && result.ok === false) {
+            const key = ACTION_ERRORS[result.error] || 'actionFailed';
+            setToast(text(key));
+            return result;
+        }
+        return result;
+    } catch {
+        setToast(text('actionFailed'));
+        return false;
+    } finally {
+        busy.value = false;
+    }
+}
+
+function togglePr(pr) {
+    const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
+    runAction(action, { prs: [pr.pr] });
+}
+
+function updatePr(pr) {
+    runAction('/status/pull-latest', { prs: [pr.pr] });
+}
+
+function removePr(pr) {
+    runAction('/status/remove', { prs: [pr.pr] });
+}
+
+async function deploy() {
+    if (busy.value) return;
+    deploying.value = true;
+    try {
+        await runAction('/status/deploy', {});
+    } finally {
+        deploying.value = false;
+    }
+}
+
+async function refresh() {
+    if (busy.value) return;
+    refreshing.value = true;
+    try {
+        await runAction('/status/refresh', {});
+    } finally {
+        refreshing.value = false;
+    }
+}
+
+async function addPrs() {
+    if (adding.value || busy.value) return;
+    const value = addInput.value.trim();
+    if (!value) return;
+    adding.value = true;
+    try {
+        const result = await runAction('/status/add', { pr: value });
+        // A failed add keeps the input so it's obvious the PR didn't land.
+        if (result && result.ok) {
+            addInput.value = '';
+        }
+    } finally {
+        adding.value = false;
+    }
+}
+
+function retry() {
+    loadStatus(true);
+}
+
+// ── Lifecycle ───────────────────────────────────────────────────────
+// Parse the i18n translation payload (runs at setup time — same timing
+// as the old `created` hook).
+try {
+    const parsed = decodeAndParseJSON(props.i18n);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        strings.value = { ...DEFAULT_STRINGS, ...parsed };
+    }
+} catch {
+    // A malformed translation payload falls back to English.
+}
+
+onMounted(() => {
+    loadStatus();
+    // Single 1s interval: bumps `now` every tick (advances the label, no
+    // network), and refreshes data only on a tick at a :05 clock boundary.
+    timer = setInterval(() => {
+        now.value = Date.now();
+        if (Math.floor(now.value / 1000) % 5 === 0) {
+            silentRefresh();
+        }
+    }, 1000);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+});
+
+onBeforeUnmount(() => {
+    clearTimeout(toastTimer);
+    clearInterval(timer);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    syncDeployFavicon(false);
+});
 </script>
 
 <!-- Shadow-DOM styles: rules here style the whole panel; inherited design

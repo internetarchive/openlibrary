@@ -27,23 +27,21 @@
   </span>
 </template>
 
-<script>
-export default {
-    name: 'PersonCell',
-    props: {
-        name: {
-            type: String,
-            default: ''
-        },
-        avatar: {
-            type: String,
-            default: ''
-        }
+<script setup>
+import { computed } from 'vue';
+
+defineOptions({ name: 'PersonCell' });
+
+const props = defineProps({
+    name: {
+        type: String,
+        default: ''
     },
-    computed: {
-        initial() {
-            return this.name.charAt(0).toUpperCase();
-        }
+    avatar: {
+        type: String,
+        default: ''
     }
-};
+});
+
+const initial = computed(() => props.name.charAt(0).toUpperCase());
 </script>

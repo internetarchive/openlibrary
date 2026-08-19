@@ -10,7 +10,7 @@
         class="testing-env__switch"
         :aria-pressed="isActive ? 'true' : 'false'"
         :aria-label="text('prOnTesting', pr.pr)"
-        @click="$emit('toggle', pr)"
+        @click="emit('toggle', pr)"
       >
         <span
           class="testing-env__switch-knob"
@@ -75,7 +75,7 @@
             class="testing-env__row-action"
             :title="strings.update"
             :aria-label="strings.update"
-            @click="$emit('update', pr)"
+            @click="emit('update', pr)"
           >
             <svg
               class="testing-env__btn-icon"
@@ -122,7 +122,7 @@
         class="testing-env__row-action testing-env__row-action--danger"
         :title="strings.remove"
         :aria-label="strings.remove"
-        @click="$emit('remove', pr)"
+        @click="emit('remove', pr)"
       >
         <svg
           class="testing-env__btn-icon"
@@ -156,7 +156,8 @@
   </tr>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
 import PersonCell from './PersonCell.vue';
 import {
     REPO_URL,
@@ -166,67 +167,54 @@ import {
     sprintf
 } from './utils.js';
 
-export default {
-    name: 'TestingRow',
-    components: {
-        PersonCell
+defineOptions({ name: 'TestingRow' });
+
+const props = defineProps({
+    pr: {
+        type: Object,
+        required: true
     },
-    props: {
-        pr: {
-            type: Object,
-            required: true
-        },
-        maintainer: {
-            type: Boolean,
-            default: false
-        },
-        strings: {
-            type: Object,
-            required: true
-        }
+    maintainer: {
+        type: Boolean,
+        default: false
     },
-    emits: ['toggle', 'update', 'remove'],
-    computed: {
-        inSet() {
-            return this.pr.in_set !== false;
-        },
-        liveNow() {
-            return this.pr.live_now === true;
-        },
-        mergeConflict() {
-            return this.pr.merge_conflict === true;
-        },
-        // Red beats live-now: a conflicted PR never landed, so the dot says so
-        // even if a stale live flag would still claim it.
-        dotLabel() {
-            if (this.mergeConflict) return this.strings.mergeConflict;
-            return this.liveNow ? this.strings.liveNow : this.strings.notLive;
-        },
-        // The switch shows what the next deploy leaves the row as: the staged
-        // toggle when one is pending (the server emits pending_active then),
-        // otherwise the live state. Clicking flips the row either way.
-        isActive() {
-            return effectiveActive(this.pr);
-        },
-        // The server classifies what the next deploy does with this row in
-        // `action`; any non-empty value means a change is staged for it.
-        pending() {
-            return Boolean(this.pr.action);
-        },
-        canUpdatePr() {
-            return canUpdate(this.pr);
-        },
-        pill() {
-            return driftPill(this.pr, this.strings);
-        },
-        prUrl() {
-            return `${REPO_URL}/pull/${encodeURIComponent(this.pr.pr)}`;
-        }
-    },
-    methods: {
-        text(key, ...args) {
-            return sprintf(this.strings[key] || key, ...args);
-        }
+    strings: {
+        type: Object,
+        required: true
     }
-};
+});
+
+const emit = defineEmits(['toggle', 'update', 'remove']);
+
+const inSet = computed(() => props.pr.in_set !== false);
+
+const liveNow = computed(() => props.pr.live_now === true);
+
+const mergeConflict = computed(() => props.pr.merge_conflict === true);
+
+// Red beats live-now: a conflicted PR never landed, so the dot says so
+// even if a stale live flag would still claim it.
+const dotLabel = computed(() => {
+    if (mergeConflict.value) return props.strings.mergeConflict;
+    return liveNow.value ? props.strings.liveNow : props.strings.notLive;
+});
+
+// The switch shows what the next deploy leaves the row as: the staged
+// toggle when one is pending (the server emits pending_active then),
+// otherwise the live state. Clicking flips the row either way.
+const isActive = computed(() => effectiveActive(props.pr));
+
+// The server classifies what the next deploy does with this row in
+// `action`; any non-empty value means a change is staged for it.
+const pending = computed(() => Boolean(props.pr.action));
+
+const canUpdatePr = computed(() => canUpdate(props.pr));
+
+const pill = computed(() => driftPill(props.pr, props.strings));
+
+const prUrl = computed(() => `${REPO_URL}/pull/${encodeURIComponent(props.pr.pr)}`);
+
+function text(key, ...args) {
+    return sprintf(props.strings[key] || key, ...args);
+}
 </script>
