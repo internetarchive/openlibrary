@@ -4,11 +4,13 @@ its experience. This does not include public facing APIs with LTS
 (long term support)
 """
 
+from __future__ import annotations
+
 import io
 import json
 import logging
 from collections import defaultdict
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 from warnings import deprecated
 
 import qrcode
@@ -31,12 +33,7 @@ from openlibrary.core import helpers as h
 from openlibrary.core.admin import get_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
 from openlibrary.core.bestbook import Bestbook
-from openlibrary.core.follows import PubSub
-from openlibrary.core.helpers import NothingEncoder
-from openlibrary.core.models import (
-    Booknotes,
-    Work,
-)
+from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import Observations
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
@@ -49,6 +46,9 @@ from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context, site
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import Work
 
 logger = logging.getLogger(__name__)
 
@@ -366,40 +366,6 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
                 metadata["ocaid"] = ed.ocaid
 
     return metadata
-
-
-@deprecated("migrated to fastapi")
-class patrons_follows_json(delegate.page):
-    path = r"(/people/[^/]+)/follows"
-    encoding = "json"
-
-    def GET(self, key):
-        i = web.input(publisher="", redir_url="", state="")
-        user = accounts.get_current_user()
-        if not user or user.key != key:
-            raise web.seeother(f"/account/login?redir_url={i.redir_url}")
-
-        username = user.key.split("/")[2]
-        return delegate.RawText(
-            json.dumps(PubSub.get_following(username), cls=NothingEncoder),
-            content_type="application/json",
-        )
-
-    def POST(self, key):
-        i = web.input(publisher="", redir_url="", state="")
-        user = accounts.get_current_user()
-        if not user or user.key != key:
-            raise web.seeother(f"/account/login?redir_url={i.redir_url}")
-
-        # Validate that the publisher account exists
-        publisher_account = accounts.find(username=i.publisher)
-        if not publisher_account:
-            raise web.notfound()
-
-        username = user.key.split("/")[2]
-        action = PubSub.subscribe if i.state == "0" else PubSub.unsubscribe
-        action(username, i.publisher)
-        raise web.seeother(i.redir_url)
 
 
 class patrons_observations(delegate.page):

@@ -18,7 +18,7 @@ from openlibrary.plugins.openlibrary.lists import (
     get_list_seeds,
     get_list_subjects,
 )
-from openlibrary.plugins.openlibrary.lists import list_seeds as _LegacyListSeeds
+from openlibrary.plugins.openlibrary.lists import list_seeds_process_update as _process_seeds_update
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -283,7 +283,7 @@ def _update_list_seeds(key: str, payload: dict) -> dict:
         # Pass the payload safely directly to the legacy processor
         data = {"add": payload.get("add", []), "remove": payload.get("remove", [])}
         with web_ctx_ip():
-            return _LegacyListSeeds.process_seeds_update(lst, data, key)
+            return _process_seeds_update(lst, data, key)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
