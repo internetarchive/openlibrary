@@ -57,29 +57,6 @@ $ has_tag = 'tag' in page
                 </div>
         </div>
       </div>
-
-      $# Phase 4: featured works -- fanned cover stack. Editable pick with a
-      $# signal-driven fallback (currently the top N ranked works that have a
-      $# cover and no content warning on it -- see _get_featured_works).
-      $# Stacking/rotation is handled entirely in CSS (nth-child) now --
-      $# no inline z-index -- so DOM order alone controls the fan.
-      $if page.get('featured_works'):
-          <div class="subject-masthead__covers">
-              $for work in page.featured_works:
-                  $# _get_featured_works only picks works with a cover, so one of
-                  $# these two ids is always set. Some works only carry
-                  $# cover_edition_key (no top-level cover_i).
-                  $if work.cover_id:
-                      $ cover_src = "%s/b/id/%s-M.jpg" % (get_coverstore_public_url(), work.cover_id)
-                  $else:
-                      $ cover_src = "%s/b/olid/%s-M.jpg" % (get_coverstore_public_url(), work.cover_edition_key)
-                  $# Eager, and the leading covers prioritised: this stack is the
-                  $# top of the page, so lazy-loading it just makes the masthead
-                  $# render as blank cards and then pop in.
-                  <a href="$work.key" class="subject-masthead__cover" title="$work.title">
-                      <img src="$cover_src" alt="$work.title" width="92" height="138" decoding="async" $:cond(loop.index0 < 3, 'fetchpriority="high"')/>
-                  </a>
-          </div>
     </div>
 
     $if page.get('disambiguations'):
@@ -117,7 +94,7 @@ $ has_tag = 'tag' in page
               $cond(ebooks_only, 'checked')
             ></ol-toggle>
           </div>
-          $:macros.BooksDisplay(query=page.solr_query, title=_("Trending Books"), sort='trending,trending_score_hourly_sum', key='SubjectTrending', user_lang_only=True, has_fulltext_only=ebooks_only)
+          $:macros.QueryCarousel(query=page.solr_query, title=_("Trending Books"), sort='trending,trending_score_hourly_sum', key='SubjectTrending', user_lang_only=True, fallback=True, has_fulltext_only=ebooks_only)
         $:macros.PublishingHistory(async_load=True, key=page.key)
         <div class="clearfix"></div>
       </div>

@@ -10,7 +10,6 @@ from openlibrary.plugins.worksearch.subjects import (
     MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM,
     SubjectEngine,
     _filtered_publishing_year_range,
-    _get_featured_works,
     merge_notable_authors,
     normalize_author_name,
 )
@@ -632,40 +631,3 @@ class TestFilteredPublishingYearRange:
         history = [[1500, 1], [1990, 2], [2020, 2]]
         assert sum(count for _year, count in history) < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM
         assert _filtered_publishing_year_range(history) == (1500, 2020)
-
-
-class TestGetFeaturedWorks:
-    """Which works reach the masthead's cover fan."""
-
-    @staticmethod
-    def _work(key: str, **overrides) -> web.storage:
-        return web.storage({"key": key, "title": key, "cover_id": 1, "subject": [], **overrides})
-
-    def test_coverless_works_are_skipped(self):
-        works = [self._work("a", cover_id=None), self._work("b")]
-        assert [w.key for w in _get_featured_works(works)] == ["b"]
-
-    def test_cover_edition_key_counts_as_a_cover(self):
-        works = [self._work("a", cover_id=None, cover_edition_key="OL1M")]
-        assert [w.key for w in _get_featured_works(works)] == ["a"]
-
-    def test_content_warned_covers_are_skipped(self):
-        """Curators hide these covers; the masthead shows them larger than any carousel."""
-        works = [self._work("a", subject=["Horror", "content_warning:cover"]), self._work("b")]
-        assert [w.key for w in _get_featured_works(works)] == ["b"]
-
-    def test_content_warning_match_ignores_case(self):
-        works = [self._work("a", subject=["Content_Warning:Cover"])]
-        assert _get_featured_works(works) == []
-
-    def test_missing_subject_field_is_not_a_warning(self):
-        works = [web.storage(key="a", title="a", cover_id=1)]
-        assert [w.key for w in _get_featured_works(works)] == ["a"]
-
-    def test_respects_the_limit(self):
-        works = [self._work(str(i)) for i in range(20)]
-        assert len(_get_featured_works(works, limit=6)) == 6
-
-    def test_no_works_is_empty(self):
-        assert _get_featured_works([]) == []
-        assert _get_featured_works(None) == []

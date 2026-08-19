@@ -46,17 +46,6 @@ DEFAULT_FACET_FIELDS: list[FacetSpec] = [
     "has_fulltext",
 ]
 
-# Works shown in the masthead's fanned cover stack.
-MASTHEAD_FEATURED_WORKS = 6
-# Rows fetched to fill it: coverless and content-warned works are skipped, and
-# the fq can't do that filtering without also shrinking work_count and the facets.
-MASTHEAD_CANDIDATE_ROWS = MASTHEAD_FEATURED_WORKS * 4
-
-# Curator-applied subject that hides a work's cover. Carousels drop these via
-# the _SAFE_MODE_FILTER fq (partials.py, fastapi/services/books_display.py); the
-# masthead can't use an fq without skewing work_count, so it filters in Python.
-CONTENT_WARNING_COVER_SUBJECT = "content_warning:cover"
-
 # Trimming outliers off the publish-year span. Purely proportional trimming is a
 # no-op on small subjects (1% of 40 editions is under one edition) -- exactly
 # where one bad date shows most -- hence the absolute floor.
@@ -96,16 +85,19 @@ class subjects(delegate.page):
         # this needs to be updated to include:
         # q=public_scan_b:true+OR+lending_edition_s:*
         # Related/people/places/times facets are fetched by the RelatedSubjects
-        # partial (see SubjectRelatedPartial). The main request only pulls what
-        # the masthead needs: a handful of works for the cover stack, plus the
-        # ebook_access / publish_year facets behind "readable now" and
+        # partial (see SubjectRelatedPartial). Nothing on the page reads the
+        # works themselves -- the carousels run their own searches and notable
+        # authors are cached separately -- so this asks for none: rows=0 keeps
+        # the count and the facets while skipping a large docs payload and the
+        # availability lookup that decorating them would trigger. The facets
+        # are the ebook_access / publish_year ones behind "readable now" and
         # "years in print". (ebook_access, not the has_fulltext facet: that one
         # includes printdisabled-only scans, so it over-counts vs the /search
         # "Readable Only" filter it links to.)
         subj = get_subject(
             key,
             details=True,
-            limit=MASTHEAD_CANDIDATE_ROWS,
+            limit=0,
             facet_fields=["ebook_access", {"name": "publish_year", "limit": -1}],
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
@@ -445,25 +437,6 @@ def _filtered_publishing_year_range(publishing_history: list[list[int]]) -> tupl
     return start_year, end_year
 
 
-def _get_featured_works(works: list, limit: int = MASTHEAD_FEATURED_WORKS) -> list:
-    """
-    Editable pick with a signal-driven fallback. Currently takes the first N
-    works with a cover, in the order the search query already ranked them,
-    since there's no curated-picks field on Subject yet. Swap in an editable
-    override here once one exists (e.g. subject.tag.featured_works).
-
-    Works whose covers a curator has hidden are skipped: the masthead shows
-    covers larger and higher than any carousel, so it has to honour the same
-    content warning they do.
-    """
-    return [w for w in works or [] if (w.get("cover_id") or w.get("cover_edition_key")) and not _has_hidden_cover(w)][:limit]
-
-
-def _has_hidden_cover(work) -> bool:
-    """True if a curator tagged this work so its cover isn't displayed."""
-    return any(str(subject).lower() == CONTENT_WARNING_COVER_SUBJECT for subject in work.get("subject") or [])
-
-
 @dataclass
 class SubjectEngine:
     name: str
@@ -551,11 +524,6 @@ class SubjectEngine:
             work_count=result.num_found,
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
-
-        # Featured works for the masthead cover stack. Works
-        # off whatever `subject.works` already has, so this runs
-        # whether or not details=True.
-        subject.featured_works = _get_featured_works(subject.works)
 
         if details and result.facet_counts:
             result.facet_counts = {
