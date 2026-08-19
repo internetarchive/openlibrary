@@ -210,7 +210,6 @@ export default {
             addInput: '',
             strings: { ...DEFAULT_STRINGS },
             toast: '',
-            toastTimer: null,
             // Wall-clock tick for the relative "X ago" deploy labels. Bumped by
             // the same poll that refreshes data, so the labels advance even when
             // the payload is unchanged (loadStatus skips identical JSON).
@@ -262,7 +261,7 @@ export default {
         this._deployBadge = null;
     },
     beforeUnmount() {
-        clearTimeout(this.toastTimer);
+        clearTimeout(this._toastTimer);
         clearInterval(this._timer);
         document.removeEventListener('visibilitychange', this.onVisibilityChange);
         this.syncDeployFavicon(false);
@@ -273,8 +272,8 @@ export default {
         },
         setToast(message) {
             this.toast = message;
-            clearTimeout(this.toastTimer);
-            this.toastTimer = setTimeout(() => {
+            clearTimeout(this._toastTimer);
+            this._toastTimer = setTimeout(() => {
                 this.toast = '';
             }, 6000);
         },
