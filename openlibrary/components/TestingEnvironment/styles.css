@@ -326,7 +326,7 @@
 }
 
 .testing-env__live-dot--conflict {
-  background: var(--color-error-object);
+  background: hsl(0, 100%, 50%);
 }
 
 .testing-env__person {
