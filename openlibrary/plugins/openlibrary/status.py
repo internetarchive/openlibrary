@@ -58,6 +58,21 @@ class status(delegate.page):
         )
 
 
+def _json_ok() -> delegate.RawText:
+    """JSON success response for the status action endpoints."""
+    return delegate.RawText(json.dumps({"ok": True}), content_type="application/json")
+
+
+def _json_error(error: str) -> delegate.RawText:
+    """JSON failure response: {"ok": false, "error": "<code>"}.
+
+    Business outcomes (an add GitHub couldn't verify, a deploy Jenkins
+    refused) answer 200 with ok=false so the panel can show a specific
+    message; auth and input errors stay real HTTP errors (401/400).
+    """
+    return delegate.RawText(json.dumps({"ok": False, "error": error}), content_type="application/json")
+
+
 class status_add(delegate.page):
     path = "/status/add"
 
@@ -82,7 +97,7 @@ class status_add(delegate.page):
                 info = _get_pr_info(pr_number)
                 if info.get("error"):
                     # GitHub unreachable, rate-limited, or an invalid PR — never
-                    # pretend the add landed. The redirect marker lets the panel
+                    # pretend the add landed. The error response lets the panel
                     # keep the input so the failure is visible.
                     failed.append(pr_number)
                     continue
@@ -104,8 +119,8 @@ class status_add(delegate.page):
         _save_testing_state(state)
         _evict_drift_cache()
         if failed:
-            raise web.seeother("/status?add_failed=1")
-        raise web.seeother("/status")
+            return _json_error("add_failed")
+        return _json_ok()
 
 
 class status_remove(delegate.page):
@@ -119,7 +134,7 @@ class status_remove(delegate.page):
         if state := _load_testing_state():
             state.prs = [p for p in state.prs if p.pr not in to_remove]
             _save_testing_state(state)
-        raise web.seeother("/status")
+        return _json_ok()
 
 
 class status_enable(delegate.page):
@@ -132,12 +147,12 @@ class status_enable(delegate.page):
         to_enable = {int(p) for p in i.prs}
         state = _load_testing_state()
         if not state or not to_enable:
-            raise web.seeother("/status")
+            return _json_ok()
         for p in state.prs:
             if p.pr in to_enable:
                 p.pending_active = True
         _save_testing_state(state)
-        raise web.seeother("/status")
+        return _json_ok()
 
 
 class status_disable(delegate.page):
@@ -150,12 +165,12 @@ class status_disable(delegate.page):
         to_disable = {int(p) for p in i.prs}
         state = _load_testing_state()
         if not state or not to_disable:
-            raise web.seeother("/status")
+            return _json_ok()
         for p in state.prs:
             if p.pr in to_disable:
                 p.pending_active = False
         _save_testing_state(state)
-        raise web.seeother("/status")
+        return _json_ok()
 
 
 class status_pull_latest(delegate.page):
@@ -168,14 +183,14 @@ class status_pull_latest(delegate.page):
         to_update = {int(p) for p in i.prs}
         state = _load_testing_state()
         if not state or not to_update:
-            raise web.seeother("/status")
+            return _json_ok()
         for p in state.prs:
             if p.pr in to_update:
                 info = _get_pr_info(p.pr)
                 if info["head_sha"] and info["head_sha"] != p.commit:
                     p.pull_latest_sha = info["head_sha"]
         _save_testing_state(state)
-        raise web.seeother("/status")
+        return _json_ok()
 
 
 class status_deploy(delegate.page):
@@ -186,7 +201,7 @@ class status_deploy(delegate.page):
             raise web.unauthorized()
         state = _load_testing_state()
         if not state:
-            raise web.seeother("/status")
+            return _json_ok()
         # Decide merged-removals on the *un-mutated* state — `merged` is
         # independent of staged pins/toggles — and with persist=False, so the
         # drift metadata refresh can never write staged changes to disk before
@@ -205,7 +220,7 @@ class status_deploy(delegate.page):
         # trigger leaves every staged change intact and retryable.
         outcome = trigger_rebuild(state.prs)
         if outcome == "failed":
-            raise web.seeother("/status?deploy_failed=1")
+            return _json_error("deploy_failed")
         state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
         # What this build puts on the box: active PRs only, the same filter
         # trigger_rebuild sends. Recorded so a later removal has a set to be
@@ -215,7 +230,12 @@ class status_deploy(delegate.page):
             state.deploy_started_at = state.last_deploy_at
         _save_testing_state(state)
         _evict_drift_cache()
-        raise web.seeother("/status?deploy_triggered=1" if outcome == "triggered" else "/status?deploy_unconfigured=1")
+        # "unconfigured" (no Jenkins token, local dev) still advances state so
+        # the panel is exercisable, but the response says the box was never
+        # touched so the UI doesn't claim a real deploy happened.
+        if outcome == "triggered":
+            return _json_ok()
+        return _json_error("deploy_unconfigured")
 
 
 class status_refresh(delegate.page):
@@ -225,7 +245,7 @@ class status_refresh(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         _evict_drift_cache()
-        raise web.seeother("/status?drift_refreshed=1")
+        return _json_ok()
 
 
 def _is_deploying(state: TestingState) -> bool:

@@ -167,6 +167,14 @@ import {
     sprintf
 } from './TestingEnvironment/utils.js';
 
+// The action endpoints answer {"ok": false, "error": "<code>"} for business
+// failures; map each code to the translated toast that explains it.
+const ACTION_ERRORS = {
+    add_failed: 'actionFailed',
+    deploy_failed: 'deployFailedTrigger',
+    deploy_unconfigured: 'deployUnconfigured'
+};
+
 export default {
     name: 'TestingEnvironment',
     components: {
@@ -293,15 +301,17 @@ export default {
             if (this.busy) return false;
             this.busy = true;
             try {
-                const response = await postAction(action, fields);
+                const result = await postAction(action, fields);
                 await this.loadStatus(false, false, false);
-                // The add handler redirects with add_failed=1 when it couldn't
-                // reach GitHub; say so instead of pretending success.
-                if (response && response.url.includes('add_failed')) {
-                    this.setToast(this.text('actionFailed'));
-                    return false;
+                // A business failure ({"ok": false, "error": "<code>"}) is a
+                // completed request, not a thrown fetch — say why instead of
+                // pretending the action landed.
+                if (result && result.ok === false) {
+                    const key = ACTION_ERRORS[result.error] || 'actionFailed';
+                    this.setToast(this.text(key));
+                    return result;
                 }
-                return response;
+                return result;
             } catch {
                 this.setToast(this.text('actionFailed'));
                 return false;
@@ -343,9 +353,9 @@ export default {
             if (!value) return;
             this.adding = true;
             try {
-                const response = await this.runAction('/status/add', { pr: value });
+                const result = await this.runAction('/status/add', { pr: value });
                 // A failed add keeps the input so it's obvious the PR didn't land.
-                if (response && !response.url.includes('add_failed')) {
+                if (result && result.ok) {
                     this.addInput = '';
                 }
             } finally {

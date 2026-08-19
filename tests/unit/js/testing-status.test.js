@@ -53,9 +53,10 @@ describe('Testing Environment utils', () => {
     });
 
     test('posts actions form-encoded, repeating array fields', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: true });
+        const body = { ok: true };
+        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue(body) });
 
-        await postAction('/status/remove', { prs: [13269, 13270] });
+        await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
             '/status/remove',
@@ -65,6 +66,17 @@ describe('Testing Environment utils', () => {
                 body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
             })
         );
+    });
+
+    test('resolves the JSON body of successful posts', async() => {
+        // Business failures still resolve: {"ok": false, "error": "<code>"} is
+        // a completed request, and the component turns the code into a toast.
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue({ ok: false, error: 'deploy_failed' })
+        });
+
+        await expect(postAction('/status/deploy', {})).resolves.toEqual({ ok: false, error: 'deploy_failed' });
     });
 
     test('rejects failed fetches and posts', async() => {

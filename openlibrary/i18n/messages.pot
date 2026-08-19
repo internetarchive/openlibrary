@@ -7552,6 +7552,14 @@ msgid "Deploy failed %(time)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Could not start the deploy — Jenkins did not accept the build."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Deploy is not configured on this instance — nothing was deployed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 #, python-format
 msgid "Last deploy %(time)s"
 msgstr ""

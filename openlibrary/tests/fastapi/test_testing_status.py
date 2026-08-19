@@ -444,16 +444,8 @@ def _make_deploy_state():
     return _make_state(prs=[pinned, toggled])
 
 
-def _seed_web_ctx():
-    """Minimal web.py request context so web.seeother() can build its redirect."""
-    web.ctx.path = "/status/deploy"
-    web.ctx.home = "http://localhost:8080"
-    web.ctx.headers = []
-
-
 def test_add_appends_pr_when_github_succeeds():
-    """A successful GitHub fetch adds the PR and redirects cleanly."""
-    _seed_web_ctx()
+    """A successful GitHub fetch adds the PR and answers ok."""
     state = status_module.TestingState(last_deploy_at="", prs=[])
     gh_info = {
         "title": "Test PR",
@@ -472,17 +464,15 @@ def test_add_appends_pr_when_github_succeeds():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
         patch("web.input", return_value=web.storage(pr="12914")),
-        pytest.raises(web.SeeOther),
     ):
-        status_module.status_add().POST()
+        response = status_module.status_add().POST()
 
-    assert ("Location", "http://localhost:8080/status") in web.ctx.headers
+    assert json.loads(response["rawtext"]) == {"ok": True}
     assert [p.pr for p in state.prs] == [12914]
 
 
 def test_add_skips_pr_and_marks_failure_when_github_errors():
     """A GitHub failure (rate limit, outage, invalid PR) must not pretend the add landed."""
-    _seed_web_ctx()
     state = status_module.TestingState(last_deploy_at="", prs=[])
     gh_info = {
         "title": "PR #12914",
@@ -501,13 +491,34 @@ def test_add_skips_pr_and_marks_failure_when_github_errors():
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
         patch("web.input", return_value=web.storage(pr="12914")),
-        pytest.raises(web.SeeOther),
     ):
-        status_module.status_add().POST()
+        response = status_module.status_add().POST()
 
-    # The redirect marker is what lets the panel keep the add input.
-    assert ("Location", "http://localhost:8080/status?add_failed=1") in web.ctx.headers
+    # The error code is what lets the panel keep the add input.
+    assert json.loads(response["rawtext"]) == {"ok": False, "error": "add_failed"}
     assert state.prs == []
+
+
+def test_deploy_unconfigured_answers_error_but_advances_state():
+    """Local dev (no Jenkins token): state advances so the UI is exercisable,
+    but the response says nothing was actually deployed."""
+    state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+    ):
+        response = status_module.status_deploy().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_unconfigured"}
+    # No build was accepted, so no deploy window starts…
+    assert state.deploy_started_at == ""
+    # …but the record advances so a dev can exercise the rest of the panel.
+    assert state.deployed == {13269: "Test PR"}
 
 
 def test_get_pr_info_distinguishes_not_found_from_unavailable():
@@ -538,7 +549,6 @@ def test_deploy_failure_never_persists_staged_changes():
     pins/toggles before Jenkins accepted the build. The drift read is now
     persist=False, and the only save happens after a successful trigger.
     """
-    _seed_web_ctx()
     state = _make_deploy_state()
 
     with (
@@ -553,11 +563,10 @@ def test_deploy_failure_never_persists_staged_changes():
         ) as mock_drift,
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="failed"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
-        pytest.raises(web.SeeOther),
     ):
-        status_module.status_deploy().POST()
+        response = status_module.status_deploy().POST()
 
-    assert ("Location", "http://localhost:8080/status?deploy_failed=1") in web.ctx.headers
+    assert json.loads(response["rawtext"]) == {"ok": False, "error": "deploy_failed"}
     # The drift read is a read, not a commit: it must not persist.
     mock_drift.assert_called_once_with(state, persist=False)
     mock_save.assert_not_called()
@@ -565,7 +574,6 @@ def test_deploy_failure_never_persists_staged_changes():
 
 def test_deploy_success_applies_staged_changes_then_saves_once():
     """A successful trigger lands the staged pins/toggles and saves exactly once."""
-    _seed_web_ctx()
     state = _make_deploy_state()
     pinned, toggled = state.prs
 
@@ -582,11 +590,10 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
-        pytest.raises(web.SeeOther),
     ):
-        status_module.status_deploy().POST()
+        response = status_module.status_deploy().POST()
 
-    assert ("Location", "http://localhost:8080/status?deploy_triggered=1") in web.ctx.headers
+    assert json.loads(response["rawtext"]) == {"ok": True}
     # Pin applied and consumed.
     assert pinned.commit == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
     assert pinned.pull_latest_sha == ""

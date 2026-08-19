@@ -54,6 +54,8 @@ export const DEFAULT_STRINGS = {
     deployingStage: 'Deploying, started %s — %s',
     deploySucceeded: 'Deploy succeeded %s',
     deployFailed: 'Deploy failed %s',
+    deployFailedTrigger: 'Could not start the deploy — Jenkins did not accept the build.',
+    deployUnconfigured: 'Deploy is not configured on this instance — nothing was deployed.',
     lastDeploy: 'Last deploy %s',
     viewJenkins: 'View Jenkins',
     noPrs: 'No PRs in testing set.'
@@ -101,9 +103,11 @@ export async function getTestingStatus(location = window.location) {
 }
 
 /**
- * POST an action and return its response. The legacy handlers redirect to
- * /status; callers intentionally discard that HTML and fetch JSON afterward.
- * Array values are repeated so web.input(prs=[]) sees multiple checkboxes.
+ * POST an action and resolve its JSON body. The status handlers answer
+ * {"ok": true} or {"ok": false, "error": "<code>"} directly — no redirect to
+ * re-fetch — so callers toast on ok=false and then reload the panel state
+ * from /status/testing.json. Array values are repeated so
+ * web.input(prs=[]) sees multiple checkboxes.
  */
 export async function postAction(action, fields = {}) {
     const body = new URLSearchParams();
@@ -117,14 +121,17 @@ export async function postAction(action, fields = {}) {
 
     const response = await fetch(action, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json'
+        },
         credentials: 'same-origin',
         body
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
     }
-    return response;
+    return response.json();
 }
 
 /**
