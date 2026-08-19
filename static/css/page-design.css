@@ -922,6 +922,14 @@ html:has(.ds) {
   width: 100%;
 }
 
+/* A fieldset used as a demo row is a grouping device, not a visible box. */
+fieldset.ds-demo-row {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .ds-demo-dialog-body {
   margin: 0;
 }
@@ -930,11 +938,6 @@ html:has(.ds) {
   display: flex;
   gap: var(--spacing-inline-md);
   justify-content: flex-end;
-}
-
-.ds-demo-btn-icon {
-  margin-inline-end: var(--spacing-2xs);
-  vertical-align: -2px;
 }
 
 .ds-demo-output {

@@ -194,14 +194,14 @@ one declaration, so there's nothing to keep in sync.
 
 ```css
 /* Light fill: darken fill + border on hover */
-ol-button[variant="secondary"] > button:hover {
-  background-color: var(--lightest-grey);
+:host([variant="secondary"]) .control:hover {
+  background-color: var(--color-control-hover);
   border-color: var(--light-grey);
 }
 
 /* Saturated fill: lighten the whole thing at once */
-ol-button[variant="primary"] > button:hover,
-ol-button[variant="destructive"] > button:hover {
+:host([variant="primary"]) .control:hover,
+:host([variant="destructive"]) .control:hover {
   filter: brightness(1.1);
 }
 ```
@@ -214,6 +214,7 @@ change; only the `:active` press-scale animates.
 | Scenario | Solution |
 | --- | --- |
 | Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
+| Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
 | Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
 | Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |

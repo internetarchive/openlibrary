@@ -1,4 +1,4 @@
-$def with (status = {}, features_table = [], dev_merged_status=None, testing_state=None, drift_info=None, is_maintainer=False, show_testing=False, deploy_triggered=False, drift_refreshed=False, jenkins_job_url='', has_pending=False)
+$def with (status = {}, features_table = [], dev_merged_status=None, testing_status=None, is_maintainer=False, show_testing=False, deploy_triggered=False, drift_refreshed=False, jenkins_job_url='')
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -68,8 +68,7 @@ $var title: $_("Open Library server status")
         <button type="submit">$_("Add PR(s)")</button>
       </form>
 
-    $if testing_state and testing_state.prs:
-      $ last_deploy_at = testing_state.last_deploy_at
+    $if testing_status and testing_status.prs:
       <form method="POST" id="testing-form">
         <table class="testing-table">
           <thead>
@@ -88,14 +87,9 @@ $var title: $_("Open Library server status")
             </tr>
           </thead>
           <tbody>
-            $for pr in testing_state.prs:
-              $ d = (drift_info or {}).get(pr.pr, {})
-              $ drift = d.get('drift', -1)
-              $ head_sha = d.get('head_sha', '')
-              $ merged = d.get('merged', False)
-              $ is_new = bool(last_deploy_at and pr.added_at > last_deploy_at)
-              $ row_class = 'row-merged' if merged else ('row-pending-enable' if pr.pending_active is True else ('row-pending-disable' if pr.pending_active is False else ('row-new' if is_new else ('' if pr.active else 'row-inactive'))))
-              $ row_class += (' drift-high' if drift > 5 else (' drift-low' if drift > 0 else ''))
+            $for pr in testing_status.prs:
+              $ row_class = 'row-merged' if pr.merged else ('row-pending-enable' if pr.pending_active is True else ('row-pending-disable' if pr.pending_active is False else ('row-new' if pr.is_new else ('' if pr.active else 'row-inactive'))))
+              $ row_class += (' drift-high' if pr.drift > 5 else (' drift-low' if pr.drift > 0 else ''))
               <tr class="$row_class.strip()">
                 $if is_maintainer:
                   <td><input type="checkbox" name="prs" value="$pr.pr"></td>
@@ -121,16 +115,16 @@ $var title: $_("Open Library server status")
                   $else:
                     <a href="https://github.com/internetarchive/openlibrary/commit/$pr.commit">$pr.short_commit</a>
                 </td>
-                <td>$head_sha</td>
+                <td>$pr.head_sha</td>
                 <td>
-                  $if drift == 0:
+                  $if pr.drift == 0:
                     $_("up to date")
-                  $elif drift < 0:
+                  $elif pr.drift < 0:
                     $_("unknown")
-                  $elif drift == 1:
+                  $elif pr.drift == 1:
                     $_("1 commit behind")
                   $else:
-                    $(_("%(count)s commits behind") % {"count": drift})
+                    $(_("%(count)s commits behind") % {"count": pr.drift})
                 </td>
                 <td>
                   $if pr.pending_active is True:
@@ -158,7 +152,7 @@ $var title: $_("Open Library server status")
           </div>
       </form>
 
-      $if is_maintainer and has_pending:
+      $if is_maintainer and testing_status.has_pending:
         <div class="testing-standalone" style="margin-top: 0.75em;">
           <form method="POST" action="/status/deploy" style="display:inline;">
             <button type="submit" class="cta-btn cta-btn--primary">$_("Deploy")</button>

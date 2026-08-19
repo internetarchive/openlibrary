@@ -1,4 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
+// Registers <ol-button> for the close control.
+import './OLButton.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
 /**
@@ -233,11 +235,11 @@ export class OlToast extends LitElement {
             font-size: var(--font-size-body-large);
             font-weight: 500;
 
-            /* Align single-line text to center of 28px close button height */
+            /* Align single-line text to center of the close button height */
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 28px;
+            min-height: var(--control-height-small);
         }
 
         .toast__message {
@@ -252,46 +254,15 @@ export class OlToast extends LitElement {
             font-weight: normal;
         }
 
+        /* The close control is an <ol-button shape="icon" variant="ghost" size="small">,
+           which paints itself; only the glyph size lives here. */
         .toast__close {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             flex-shrink: 0;
-            box-sizing: border-box;
-            /* Comfortable hit area (WCAG 2.2 target minimum) */
-            min-width: 28px;
-            min-height: 28px;
-            padding: 0;
-            background: none;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            color: var(--color-text-muted);
-            cursor: pointer;
         }
 
         .toast__close svg {
-            display: block;
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .toast__close:hover {
-                color: var(--darker-grey);
-            }
-        }
-
-        .toast__close:focus {
-            outline: none;
-        }
-
-        .toast__close:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .toast__close:active {
-            transform: scale(0.92);
+            width: 16px;
+            height: 16px;
         }
     `;
 
@@ -465,11 +436,14 @@ export class OlToast extends LitElement {
                         `}
                     ` : ''}
                 </span>
-                <button
+                <ol-button
                     class="toast__close"
+                    shape="icon"
+                    variant="ghost"
+                    size="small"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                >${OlToast._closeIcon}</button>
+                >${OlToast._closeIcon}</ol-button>
                 ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;
