@@ -7485,6 +7485,10 @@ msgid "Disable"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "Restore"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "Refresh from GitHub"
 msgstr ""
 

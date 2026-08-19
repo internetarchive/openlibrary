@@ -443,6 +443,14 @@ a.testing-env__pill:focus-visible {
   color: var(--color-error-fg);
 }
 
+/* Restore (undo a removal): same icon-only treatment, tinted green so a
+   non-destructive re-add reads differently from the red remove button. */
+.testing-env__row-action--restore:hover:not(:disabled) {
+  border-color: var(--color-success-fg);
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
 /* Last of the row backgrounds: pointer feedback beats every state tint. */
 .testing-env__row:hover td {
   background: var(--color-control-hover);

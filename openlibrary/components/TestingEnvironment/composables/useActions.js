@@ -11,7 +11,7 @@ const ACTION_ERRORS = {
 };
 
 /**
- * PR toggle, update, remove, deploy, refresh, and add actions.
+ * PR toggle, update, remove, restore, deploy, refresh, and add actions.
  *
  * @param {object}  opts
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — shared re-entrancy guard
@@ -67,6 +67,13 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         runAction('/status/remove', { prs: [pr.pr] });
     }
 
+    // Undo a removal: a deleted row is still running on the box until the next
+    // deploy, so re-adding it puts it back in the testing set. The /status/add
+    // handler re-fetches the PR from GitHub, mirroring how the add box works.
+    function restorePr(pr) {
+        runAction('/status/add', { pr: String(pr.pr) });
+    }
+
     async function deploy() {
         if (busy.value) return;
         deploying.value = true;
@@ -111,6 +118,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         togglePr,
         updatePr,
         removePr,
+        restorePr,
         deploy,
         refresh,
         addPrs

@@ -39,6 +39,7 @@ export const DEFAULT_STRINGS = {
     enable: 'Enable',
     disable: 'Disable',
     remove: 'Remove',
+    restore: 'Restore',
     refresh: 'Refresh from GitHub',
     deploy: 'Deploy',
     changeOne: '%s change will be applied',
