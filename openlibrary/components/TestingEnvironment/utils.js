@@ -30,6 +30,7 @@ export const DEFAULT_STRINGS = {
     liveNow: 'Live now',
     notLive: 'Not yet deployed',
     mergeConflict: 'Deploy failed (merge conflict)',
+    closed: 'This PR is already closed.',
     actions: 'Actions',
     ok: 'OK',
     prOnTesting: 'PR #%s on testing',

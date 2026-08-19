@@ -162,7 +162,14 @@ function text(key, ...args) {
             </svg>
           </button>
           <span
-            v-if="pending"
+            v-if="pr.closed"
+            class="testing-env__pending testing-env__closed"
+            role="img"
+            :title="strings.closed"
+            :aria-label="strings.closed"
+          >⛔</span>
+          <span
+            v-else-if="pending"
             class="testing-env__pending"
             role="img"
             :title="strings.changeOnDeploy"

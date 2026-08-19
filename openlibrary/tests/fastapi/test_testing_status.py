@@ -92,6 +92,7 @@ async def test_get_drift_info_fetches_prs_concurrently():
         "head_sha": "abc1234",
         "drift": 0,
         "merged": False,
+        "closed": False,
         "title": "Test PR",
         "author": "author",
         "author_avatar": "",
@@ -119,7 +120,7 @@ async def test_get_drift_info_fetches_prs_concurrently():
 
     assert from_cache is False
     assert peak > 1  # sequential awaits would never see overlap
-    assert drift == {p.pr: {"head_sha": "abc1234", "drift": 0, "merged": False} for p in state.prs}
+    assert drift == {p.pr: {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": False} for p in state.prs}
 
 
 def test_build_testing_status_marks_merge_conflicts():
@@ -262,6 +263,74 @@ def test_pending_changes_merged_pr_yields_only_a_removal():
     changes = status_module._pending_changes(state, {13238: {"merged": True}})
 
     assert [c.kind for c in changes] == ["remove"]
+
+
+def test_pending_changes_closed_pr_yields_only_a_removal():
+    """A closed (not merged) PR is dropped on deploy just like a merged one."""
+    pr = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {13238: {"merged": False, "closed": True}})
+
+    assert [(c.kind, c.reason) for c in changes] == [("remove", "closed")]
+
+
+def test_build_testing_status_marks_closed_prs():
+    """A closed PR carries the closed flag and reads as a pending removal."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    result = status_module.build_testing_status(state, {pr.pr: {"head_sha": "abc1234", "drift": 0, "merged": False, "closed": True}})
+
+    row = result.prs[0]
+    assert row.closed is True
+    assert row.action == "remove"
+    assert result.has_pending is True
+
+
+@pytest.mark.asyncio
+async def test_pr_drift_distinguishes_closed_from_merged():
+    """Merging closes a PR too; only a close without a merge counts as closed."""
+
+    async def fake_get(path):
+        if path.startswith("pulls/"):
+            return {"state": "closed", "merged": False, "merged_at": None, "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Closed PR"}
+        return {}  # compare response; no ahead_by → drift unknown
+
+    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get):
+        assert (await status_module._get_pr_drift_async(_make_pr()))["closed"] is True
+
+    async def fake_get_merged(path):
+        if path.startswith("pulls/"):
+            return {"state": "closed", "merged": True, "merged_at": "2026-08-01", "head": {"sha": "abc1234"}, "user": {}, "assignee": {}, "title": "Merged PR"}
+        return {}
+
+    with patch("openlibrary.plugins.openlibrary.status._github_get_async", side_effect=fake_get_merged):
+        info = await status_module._get_pr_drift_async(_make_pr())
+    assert info["closed"] is False
+    assert info["merged"] is True
+
+
+def test_deploy_drops_closed_prs():
+    """Deploying removes closed (not merged) PRs from the set, like merged ones."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch(
+            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            return_value=({pr.pr: {"head_sha": "", "drift": 0, "merged": False, "closed": True}}, False),
+        ),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+    ):
+        status_module.status_deploy().POST()
+
+    assert state.prs == []
 
 
 def test_pending_changes_folds_a_pin_into_an_unlanded_add():
@@ -644,6 +713,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "head_sha": "abc1234",
                 "drift": 2,
                 "merged": False,
+                "closed": False,
                 "is_new": True,
                 "live_now": False,
                 "merge_conflict": False,

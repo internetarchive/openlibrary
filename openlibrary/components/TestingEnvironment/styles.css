@@ -410,6 +410,12 @@ a.testing-env__pill:focus-visible {
   justify-self: center;
 }
 
+/* A closed (not merged) PR reads as finished-but-not-landed, so its lock
+   sits in the same slot as the staged-change hourglass but in a muted tint. */
+.testing-env__closed {
+  color: var(--color-text-muted);
+}
+
 /* Icon-only row actions (update / remove): bordered buttons, blue for update,
    red for remove on hover; tooltips ride in the title attribute. */
 .testing-env__row-action {
