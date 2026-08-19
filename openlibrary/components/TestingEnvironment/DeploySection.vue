@@ -156,9 +156,9 @@
         class="testing-env__status testing-env__status--idle"
       >{{ strings.neverDeployed }}</span>
       <a
-        v-if="jenkinsUrl"
+        v-if="safeJenkinsUrl"
         class="testing-env__jenkins"
-        :href="jenkinsUrl"
+        :href="safeJenkinsUrl"
         target="_blank"
         rel="noopener noreferrer"
       >{{ strings.viewJenkins }}</a>
@@ -198,7 +198,7 @@ export default {
             type: Object,
             required: true
         },
-        jenkins_url: {
+        jenkinsUrl: {
             type: String,
             default: ''
         },
@@ -223,8 +223,8 @@ export default {
             const template = this.changeCount === 1 ? this.strings.changeOne : this.strings.changeMany;
             return sprintf(template, this.changeCount);
         },
-        jenkinsUrl() {
-            return safeHttpUrl(this.jenkins_url);
+        safeJenkinsUrl() {
+            return safeHttpUrl(this.jenkinsUrl);
         },
         deployResult() {
             return (this.payload && this.payload.deploy_result) || '';

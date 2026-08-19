@@ -135,7 +135,7 @@
         :now="now"
         :maintainer="isMaintainer"
         :strings="strings"
-        :jenkins_url="jenkinsUrl"
+        :jenkins-url="safeJenkinsUrl"
         :refreshing="refreshing"
         :deploying="deploying"
         @deploy="deploy"
@@ -188,7 +188,7 @@ export default {
             type: String,
             default: 'false'
         },
-        jenkins_url: {
+        jenkinsUrl: {
             type: String,
             default: ''
         },
@@ -225,8 +225,8 @@ export default {
             // Merged PRs land in the next deploy regardless; the row is noise.
             return ((this.payload && this.payload.prs) || []).filter((pr) => pr.merged !== true);
         },
-        jenkinsUrl() {
-            return safeHttpUrl(this.jenkins_url);
+        safeJenkinsUrl() {
+            return safeHttpUrl(this.jenkinsUrl);
         }
     },
     watch: {

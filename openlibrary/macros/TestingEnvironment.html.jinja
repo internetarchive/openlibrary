@@ -55,6 +55,6 @@
 } %}
 {{ render_component('TestingEnvironment', attrs={
     'maintainer': 'true' if is_maintainer else 'false',
-    'jenkins_url': jenkins_job_url,
+    'jenkins-url': jenkins_job_url,
     'i18n': i18n_strings,
 }) | safe }}
