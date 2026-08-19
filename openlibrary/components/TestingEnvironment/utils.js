@@ -255,20 +255,6 @@ export function timeAgo(value, now = Date.now()) {
 }
 
 /**
- * https-only, same-origin-http fallback; blocks protocol-relative junk.
- */
-export function safeHttpUrl(value, origin = window.location.origin) {
-    if (!value || String(value).startsWith('//')) return '';
-    try {
-        const url = new URL(value, origin);
-        if (url.protocol === 'https:') return url.href;
-        return url.protocol === 'http:' && url.origin === origin ? url.href : '';
-    } catch {
-        return '';
-    }
-}
-
-/**
  * The state the next deploy leaves the row in — what the switch displays and
  * what a click moves away from. The server emits `pending_active` only when a
  * toggle is staged (and differs from `active`), so its presence is the staged

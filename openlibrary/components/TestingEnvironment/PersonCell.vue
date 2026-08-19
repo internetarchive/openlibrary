@@ -8,9 +8,9 @@
     class="testing-env__person"
   >
     <img
-      v-if="avatarUrl"
+      v-if="avatar"
       class="testing-env__avatar"
-      :src="avatarUrl"
+      :src="avatar"
       width="24"
       height="24"
       :alt="name"
@@ -28,8 +28,6 @@
 </template>
 
 <script>
-import { safeHttpUrl } from './utils.js';
-
 export default {
     name: 'PersonCell',
     props: {
@@ -43,9 +41,6 @@ export default {
         }
     },
     computed: {
-        avatarUrl() {
-            return safeHttpUrl(this.avatar);
-        },
         initial() {
             return this.name.charAt(0).toUpperCase();
         }

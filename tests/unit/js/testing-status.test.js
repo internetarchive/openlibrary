@@ -8,7 +8,6 @@ import {
     formatTime,
     getTestingStatus,
     postAction,
-    safeHttpUrl,
     sprintf,
     testingStatusUrl,
     timeAgo
@@ -164,16 +163,5 @@ describe('Testing Environment utils', () => {
         const behindWithoutSha = driftPill({ ...pr, drift: 1, head_sha: '' }, DEFAULT_STRINGS);
         expect(behindWithoutSha.href).toBe('');
         expect(behindWithoutSha.title).toBe('1 commit behind 1d23364');
-    });
-
-
-    test('only allows safe avatar and Jenkins URLs', () => {
-        expect(safeHttpUrl('https://avatars.githubusercontent.com/u/1?v=4', 'https://openlibrary.org'))
-            .toBe('https://avatars.githubusercontent.com/u/1?v=4');
-        expect(safeHttpUrl('//evil.example/x', 'https://openlibrary.org')).toBe('');
-        expect(safeHttpUrl('http://evil.example/x', 'https://openlibrary.org')).toBe('');
-        expect(safeHttpUrl('http://openlibrary.org/x', 'http://openlibrary.org'))
-            .toBe('http://openlibrary.org/x');
-        expect(safeHttpUrl('', 'https://openlibrary.org')).toBe('');
     });
 });

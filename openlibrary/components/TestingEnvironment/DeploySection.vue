@@ -156,9 +156,9 @@
         class="testing-env__status testing-env__status--idle"
       >{{ strings.neverDeployed }}</span>
       <a
-        v-if="safeJenkinsUrl"
+        v-if="jenkinsUrl"
         class="testing-env__jenkins"
-        :href="safeJenkinsUrl"
+        :href="jenkinsUrl"
         target="_blank"
         rel="noopener noreferrer"
       >{{ strings.viewJenkins }}</a>
@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import { REPO_URL, formatTime, safeHttpUrl, sprintf, timeAgo } from './utils.js';
+import { REPO_URL, formatTime, sprintf, timeAgo } from './utils.js';
 
 const CHANGE_LABELS = {
     add: 'addChange',
@@ -222,9 +222,6 @@ export default {
         changeHeading() {
             const template = this.changeCount === 1 ? this.strings.changeOne : this.strings.changeMany;
             return sprintf(template, this.changeCount);
-        },
-        safeJenkinsUrl() {
-            return safeHttpUrl(this.jenkinsUrl);
         },
         deployResult() {
             return (this.payload && this.payload.deploy_result) || '';

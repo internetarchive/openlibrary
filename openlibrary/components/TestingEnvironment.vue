@@ -135,7 +135,7 @@
         :now="now"
         :maintainer="isMaintainer"
         :strings="strings"
-        :jenkins-url="safeJenkinsUrl"
+        :jenkins-url="jenkinsUrl"
         :refreshing="refreshing"
         :deploying="deploying"
         @deploy="deploy"
@@ -165,7 +165,6 @@ import {
     faviconEnv,
     getTestingStatus,
     postAction,
-    safeHttpUrl,
     sprintf
 } from './TestingEnvironment/utils.js';
 
@@ -223,9 +222,6 @@ export default {
         prs() {
             // Merged PRs land in the next deploy regardless; the row is noise.
             return ((this.payload && this.payload.prs) || []).filter((pr) => pr.merged !== true);
-        },
-        safeJenkinsUrl() {
-            return safeHttpUrl(this.jenkinsUrl);
         }
     },
     watch: {
