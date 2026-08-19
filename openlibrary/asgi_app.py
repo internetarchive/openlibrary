@@ -167,7 +167,7 @@ def create_app() -> FastAPI | None:
             "endpoints with full data validation and type safety."
         ),
         version="1.0.0",
-        contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "support@openlibrary.org"},
+        contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "openlibrary@archive.org"},
         license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
