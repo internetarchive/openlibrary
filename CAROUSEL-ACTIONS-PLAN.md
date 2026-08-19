@@ -177,3 +177,19 @@ Follow-ups / known gaps:
 - Book preview modal (`data-book-preview`) isn't used for `preview` CTAs; they
   link straight to archive.org.
 - Other QueryCarousel callers (home page etc.) still on slick.
+
+## 6. Status (2026-08-19, split out of the masthead PR)
+
+PR #13333 keeps only the component: `<ol-books-display>`/`<ol-book-actions>`,
+their CSS and jest tests, the `BooksDisplay` macro, and the design-gallery
+docs, which render from a fixed `books` array
+(`design/components/_books_display_data.html.jinja`) instead of a query.
+
+Deferred to the follow-up PR, alongside putting the component on a real page:
+
+- The endpoints (`fastapi/books_display.py`, `fastapi/services/books_display.py`,
+  `tests/fastapi/test_books_display.py`), their `deprecated_handler.py` dev
+  proxy paths, `OL_COVERSTORE_PUBLIC_URL` on `fast_web`, and
+  `Ratings.get_users_ratings_of_works`.
+- `subjects.html` swapping `QueryCarousel` for the component — it is back on
+  the legacy carousel.

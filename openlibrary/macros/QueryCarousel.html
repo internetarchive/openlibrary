@@ -1,10 +1,8 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False, fallback=False, safe_mode=True, caption=None, badge=None)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', use_cache=True, lazy=True, user_lang_only=False, fallback=False, safe_mode=True)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
 $# * title (str) -- A title to show above the carousel (links to /search?q=query)
-$# * caption (str) -- optional one-line description shown under the title
-$# * badge (str) -- optional short pill label shown next to the title, e.g. "Award winner"
 $# * sort (str) -- optional sort param defined within work_search.py `work_search`
 $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
@@ -28,6 +26,6 @@ $ fallback = fallback and fallback_query
 
 $if use_cache and not lazy:
     $# Note this won't work with fallback; the JS that handles retries is in lazy-carousel.js
-    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode, caption=caption, badge=badge)
+    $:macros.CacheableMacro("RawQueryCarousel", query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, fallback=fallback, safe_mode=safe_mode)
 $else:
-    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback, safe_mode=safe_mode, caption=caption, badge=badge)
+    $:macros.RawQueryCarousel(query, title=title, sort=sort, key=key, limit=limit, search=search, has_fulltext_only=has_fulltext_only, url=url, layout=layout, lazy=lazy, fallback=fallback, safe_mode=safe_mode)

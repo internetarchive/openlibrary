@@ -826,7 +826,7 @@ msgid "Disambiguations"
 msgstr ""
 
 #: subjects.html
-msgid "Show readable only"
+msgid "Show Readable Only"
 msgstr ""
 
 #: account/reading_log.html subjects.html type/author/view.html work_search.html

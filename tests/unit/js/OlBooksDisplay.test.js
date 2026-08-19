@@ -182,6 +182,28 @@ describe('ol-books-display data flow', () => {
     });
 });
 
+describe('ol-books-display static books', () => {
+    test('renders the given books and never fetches', async() => {
+        stubFetch();
+        const el = await mount({ query: '', books: [doc(1), doc(2), doc(3)] });
+        expect(fetchCalls).toHaveLength(0);
+        expect(el.querySelectorAll('.obd-card')).toHaveLength(3);
+        expect(el.hasMore).toBe(false);
+        await el.loadMore();
+        expect(fetchCalls).toHaveLength(0);
+    });
+
+    test('list view pages through the set without fetching', async() => {
+        stubFetch();
+        const el = await mount({ query: '', view: 'list', limit: 2, books: [doc(1), doc(2), doc(3)] });
+        expect(el.querySelectorAll('.obd-row')).toHaveLength(2);
+        el.querySelector('.obd__list-footer .obd__link-btn').click();
+        await el.updateComplete;
+        expect(el.querySelectorAll('.obd-row')).toHaveLength(3);
+        expect(fetchCalls).toHaveLength(0);
+    });
+});
+
 describe('ol-books-display views', () => {
     test('toggle switches to the list view and back', async() => {
         stubFetch();

@@ -1,10 +1,8 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None, books_data=None, caption=None, badge=None)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, layout='carousel', lazy=True, safe_mode=True, fallback=None, books_data=None)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
 $# * title (str) -- A title to show above the carousel (links to /search?q=query)
-$# * caption (str) -- optional one-line description shown under the title
-$# * badge (str) -- optional short pill label shown next to the title, e.g. "Award winner"
 $# * sort (str) -- optional sort param defined within work_search.py `work_search`
 $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
@@ -30,10 +28,6 @@ $if lazy:
         }
         if title:
             config["title"] = title
-        if caption:
-            config["caption"] = caption
-        if badge:
-            config["badge"] = badge
         if url:
             config["url"] = url
     <div class="lazy-carousel" data-config="$json_encode(config)">
@@ -58,8 +52,13 @@ $else:
       </form>
 
     $code:
-      # Don't need fields in the search UI url, since they don't do anything there
-      url = url or "/search?" + urlencode({'q': query, 'sort': sort})
+      # Don't need fields in the search UI url, since they don't do anything there.
+      # has_fulltext carries the carousel's readable-only scope through to /search,
+      # so its "Readable Only" toggle arrives already on.
+      search_params = {'q': query, 'sort': sort}
+      if has_fulltext_only:
+        search_params['has_fulltext'] = 'true'
+      url = url or "/search?" + urlencode(search_params)
 
       if books_data is not None:
         # Data was pre-fetched by LazyCarouselPartial in Python — skip Solr.
@@ -79,4 +78,4 @@ $else:
         "hasFulltextOnly": has_fulltext_only
       }
 
-    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout, caption=caption, badge=badge)
+    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout)

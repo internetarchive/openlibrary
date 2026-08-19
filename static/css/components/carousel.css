@@ -17,34 +17,6 @@
   margin-top: 1.75em;
 }
 
-/* Optional badge + caption around the heading (see books/custom_carousel.html). */
-.carousel-section-heading {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-md);
-}
-
-.carousel-section-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--border-radius-pill);
-  background: var(--color-success-bg);
-  color: var(--color-success-fg);
-  font-size: var(--font-size-label-medium);
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.carousel-section-caption {
-  margin: 0 0 var(--spacing-stack-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-medium);
-}
-
 .carousel-container,
 .lazy-carousel {
   margin: 0 -20px;

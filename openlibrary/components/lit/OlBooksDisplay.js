@@ -28,6 +28,9 @@ import './OlBookActions.js';
  * @prop {String} query   - Solr work query
  * @prop {String} fallbackQuery - Query to retry with when `query` returns nothing
  *     (e.g. the same query without the user-language filter)
+ * @prop {Array} books    - Book cards to render instead of querying: same shape
+ *     as the `docs` the endpoint returns. Nothing is fetched and there is no
+ *     next page, so the whole set is passed at once (used by the design gallery)
  * @prop {String} sort    - Solr sort (default "new")
  * @prop {Number} limit   - Page size (default 20)
  * @prop {String} title   - Section heading
@@ -97,6 +100,7 @@ const VIEWS = ['covers', 'list'];
 export class OlBooksDisplay extends LitElement {
     static properties = {
         query: { type: String },
+        books: { type: Array },
         fallbackQuery: { type: String, attribute: 'fallback-query' },
         sort: { type: String },
         limit: { type: Number },
@@ -125,6 +129,7 @@ export class OlBooksDisplay extends LitElement {
     constructor() {
         super();
         this.query = '';
+        this.books = null;
         this.fallbackQuery = '';
         this.sort = 'new';
         this.limit = 20;
@@ -160,6 +165,11 @@ export class OlBooksDisplay extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
+        // Nothing to fetch when the books were handed to us.
+        if (this.books) {
+            this.start();
+            return;
+        }
         // Defer the first fetch until the section is near the viewport, as
         // the legacy lazy carousel does.
         if ('IntersectionObserver' in window) {
@@ -185,12 +195,17 @@ export class OlBooksDisplay extends LitElement {
         if (this._started) return;
         this._started = true;
         this._visible = this.limit;
+        if (this.books) {
+            this._docs = this.books;
+            this._numFound = this.books.length;
+            return;
+        }
         this.loadMore();
     }
 
     /** Fetch the next page and append it. Resolves when the DOM has updated. */
     async loadMore() {
-        if (this._loading || !this.hasMore) return;
+        if (this.books || this._loading || !this.hasMore) return;
         this._loading = true;
         this._error = false;
         try {

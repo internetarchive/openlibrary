@@ -1,18 +1,12 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel', caption=None, badge=None)
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
 
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
-          <div class="carousel-section-heading">
-            <h2 class="home-h2">
-              <a data-ol-link-track="BookCarousel|HeaderClick|$key" href="$url">$title</a>
-            </h2>
-            $if badge:
-              <span class="carousel-section-badge">$badge</span>
-          </div>
-          $if caption:
-            <p class="carousel-section-caption">$caption</p>
+          <h2 class="home-h2">
+            <a data-ol-link-track="BookCarousel|HeaderClick|$key" href="$url">$title</a>
+          </h2>
         </div>
       <div class="carousel-container carousel-container-decorated">
         $code:
