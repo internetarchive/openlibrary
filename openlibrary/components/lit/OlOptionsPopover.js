@@ -96,7 +96,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -171,26 +171,26 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
 
         .item--selected .item-label {
-            color: var(--link-blue);
+            color: var(--color-link);
             font-weight: 600;
         }
 
         .item-description {
             display: block;
             margin-top: 2px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             line-height: 1.35;
         }
 
         .item--selected .item-description {
-            color: var(--link-blue);
+            color: var(--color-link);
         }
 
         .item-count {
             flex-shrink: 0;
             margin-left: var(--spacing-inline-md);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 13px;
             font-variant-numeric: tabular-nums;
         }

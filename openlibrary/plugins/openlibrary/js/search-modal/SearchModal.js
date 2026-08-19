@@ -148,7 +148,7 @@ export class SearchModal extends LitElement {
             flex-shrink: 0;
             width: 20px;
             height: 20px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .search-input {
@@ -163,7 +163,7 @@ export class SearchModal extends LitElement {
             line-height: 1.4;
         }
 
-        .search-input::placeholder { color: var(--accessible-grey); }
+        .search-input::placeholder { color: var(--color-text-muted); }
         .search-input:focus         { outline: none; }
 
         /* Drop the native type="search" clear affordance — the modal renders
@@ -182,7 +182,7 @@ export class SearchModal extends LitElement {
             background: var(--white);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-medium);
             font-weight: 600;
@@ -218,7 +218,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
@@ -249,7 +249,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-circle);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
@@ -353,7 +353,7 @@ export class SearchModal extends LitElement {
         .results-heading {
             margin: 0;
             padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -431,7 +431,7 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 36px;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             background: var(--lightest-grey);
             border-radius: var(--border-radius-avatar);
         }
@@ -466,7 +466,7 @@ export class SearchModal extends LitElement {
         .result__author {
             display: block;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 13px;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -474,7 +474,7 @@ export class SearchModal extends LitElement {
 
         .result__year {
             display: block;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: 400;
         }
@@ -509,7 +509,7 @@ export class SearchModal extends LitElement {
            readable copy isn't in the patron's site language. Informational, not
            a button — muted so it sits below the pill without competing with it. */
         .result__lang {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 400;
             white-space: nowrap;
@@ -517,7 +517,7 @@ export class SearchModal extends LitElement {
 
         .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
             text-align: center;
         }
@@ -573,7 +573,7 @@ export class SearchModal extends LitElement {
             align-items: center;
             justify-content: center;
             height: 28px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .result__recent-icon ol-icon { width: 18px; height: 18px; }
@@ -592,7 +592,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
             opacity: 0;
             transition: opacity 100ms ease;

@@ -137,7 +137,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         }
 
         .filter-input::placeholder {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .filter-input:focus {
@@ -158,7 +158,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             left: calc(var(--spacing-inset-sm) + 10px);
             width: 14px;
             height: 14px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             pointer-events: none;
             transform: translateY(-50%);
         }
@@ -192,7 +192,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -260,7 +260,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .empty-state {
             padding: var(--spacing-inset-md);
             text-align: center;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
         }
 
@@ -278,7 +278,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-large);
             font-weight: 500;

@@ -27,45 +27,37 @@
   --border-width-divider: 1px;
   --focus-width: 2px;
 
-  /* Complete Border Styles */
-  --border-card: 1px solid hsl(0, 0%, 87%);
-  --border-divider: 1px solid hsl(0, 0%, 87%);
-  --border-table: 1px solid hsl(0, 0%, 87%);
+  /* Complete border styles. Every hairline is --color-border-subtle, so cards,
+     tables, and inputs share one warm line. */
+  --border-card: 1px solid var(--color-border-subtle);
+  --border-divider: 1px solid var(--color-border-subtle);
+  --border-table: 1px solid var(--color-border-subtle);
 
-  --border-input: 1px solid hsl(0, 0%, 87%);
+  --border-input: 1px solid var(--color-border-subtle);
   --border-input-hovered: 1px solid var(--color-border-focused);
   --border-input-focused: 1px solid var(--color-border-focused);
 
   /* Focus Ring — accessible focus indicator */
   --box-shadow-focus: 0 0 0 2px var(--color-focus-ring);
 
-  /* Surface a raised control sits on. Components override this next to
-     their own background-color so the specular highlight tones to the fill
-     instead of always being pure white. Defaults to the page surface for
-     white/light controls. */
+  /* Surface a raised control sits on. Components override it alongside their own
+     background-color so the specular highlight tones to that fill, not white. */
   --control-surface: var(--white);
 
-  /* Raised-control drop shadow — the surface-independent half of the lift,
-     shared by buttons, the segmented control, and future chips.
+  /* Raised-control drop shadow — the surface-independent half of the lift. The
+     matching inset highlight is deliberately not in this token: a :root custom
+     property resolves its var()s against :root, so --control-surface would bake
+     to white and element-level overrides could never reach it. Components apply
+     it inline instead, as
+     `inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface))`.
+     Alpha is on the --ink-overlay hue, and stays literal — var() can't carry it. */
+  --box-shadow-raised: 0 1px 1px hsla(44, 60%, 18%, 0.07);
 
-     The matching inset specular highlight deliberately is NOT in this token.
-     A :root custom property substitutes its var()s against :root, so
-     var(--control-surface) here would bake to the :root default (white) and
-     inherit that down — an element-level --control-surface override (e.g. the
-     primary button's blue) would never reach it. Components therefore apply
-     the highlight inline, where color-mix resolves --control-surface against
-     the element itself:
-
-       box-shadow:
-         var(--box-shadow-raised),
-         inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
-
-     color-mix is unsupported on very old Safari/Android in our browserslist;
-     there the highlight is dropped and the control keeps just this drop shadow. */
-  --box-shadow-raised: 0 1px 1px hsla(0, 0%, 0%, 0.05);
+  /* Floating surfaces — popovers, dialogs, menus. Same ink, more spread. */
+  --box-shadow-overlay: 0 8px 24px hsla(44, 60%, 18%, 0.16);
 
   /* Floating-control drop shadow — a control that sits over content (a save
      button on cover art) rather than on the page. Pair with the same inline
      specular highlight as above; see ol-button[elevation="floating"]. */
-  --box-shadow-floating: 0 1px 4px hsla(0, 0%, 0%, 0.15);
+  --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
 }

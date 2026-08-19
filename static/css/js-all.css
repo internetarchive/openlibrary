@@ -48,7 +48,7 @@
 .tools a.on,
 .tools a.on:hover,
 .tools a.on:active {
-  color: var(--dark-grey);
+  color: var(--color-text);
   cursor: default;
   text-decoration: none;
 }

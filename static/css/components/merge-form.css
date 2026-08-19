@@ -15,7 +15,7 @@ div.merge .entry {
   padding: var(--spacing-inset-sm) 0;
   float: left;
   clear: right;
-  border-bottom: 1px solid var(--lighter-grey);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 div.merge .header {
@@ -23,7 +23,7 @@ div.merge .header {
   padding: 0 !important;
   float: left;
   clear: right;
-  border-bottom: 1px solid var(--lighter-grey);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 div.merge .header div {
@@ -58,7 +58,7 @@ div.merge .record ul {
 }
 
 div.merge .record li {
-  color: var(--grey) !important;
+  color: var(--color-text-secondary) !important;
   font-size: 0.75em;
 }
 
@@ -73,7 +73,7 @@ div.merge .metaDate {
 }
 
 div.merge .metaSubject {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 0.8125em;
   display: block;
 }
@@ -97,7 +97,7 @@ div.merge .name a:visited {
 
 div.merge .name a:hover,
 div.merge .name a:active {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* stylelint-enable selector-max-specificity */

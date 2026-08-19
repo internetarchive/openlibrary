@@ -168,7 +168,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             background-color: var(--white);
-            color: var(--dark-grey);
+            color: var(--color-text);
             /* Strength of the specular top edge. Full on light fills (secondary); the
                dark-filled variants (primary/destructive) dial it down — see below. */
             --control-highlight-strength: 35%;
@@ -246,12 +246,12 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
 
         /* Primary — opt-in via variant="primary". */
         :host([variant="primary"]) .control {
-            background-color: var(--primary-blue);
-            border-color: var(--primary-blue);
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
             color: var(--white);
             /* Tone the specular highlight to the blue fill instead of pure white, and
                soften it — the white edge reads much louder on a dark fill than on white. */
-            --control-surface: var(--primary-blue);
+            --control-surface: var(--color-primary);
             --control-highlight-strength: 18%;
         }
 
@@ -259,13 +259,13 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         :host([variant="secondary"]) .control {
             background-color: var(--white);
             border-color: var(--color-border-subtle);
-            color: var(--dark-grey);
+            color: var(--color-text);
         }
 
         /* Destructive — solid red fill, mirroring primary but in the danger hue. */
         :host([variant="destructive"]) .control {
             background-color: var(--red);
-            border-color: var(--red);
+            border-color: var(--color-border-error);
             color: var(--white);
             /* Tone the specular highlight to the red fill and soften it, matching primary. */
             --control-surface: var(--red);
@@ -279,7 +279,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         :host([variant="ghost"]) .control {
             background-color: transparent;
             border-color: transparent;
-            color: var(--dark-grey);
+            color: var(--color-text);
             box-shadow: none;
         }
 
@@ -289,7 +289,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         :host([selected]) .control {
             background-color: var(--color-control-selected-bg);
             border-color: var(--color-control-selected-border);
-            color: var(--link-blue);
+            color: var(--color-link);
             /* Opaque twin of the tint — a translucent surface washes out the highlight. */
             --control-surface: var(--color-control-selected-surface);
         }
@@ -305,7 +305,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 /* Nudge the border a touch darker in step with the fill (both drop ~7%
                    in lightness) so the whole button reads as one shape on hover, rather
                    than the fill darkening inside a static outline. */
-                border-color: var(--light-grey);
+                border-color: var(--color-border-muted);
                 --control-surface: var(--color-control-hover);
             }
 

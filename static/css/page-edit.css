@@ -72,11 +72,11 @@ textarea {
 .formElement select {
   font-size: 1em;
   font-family: var(--font-family-body);
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: var(--spacing-inset-xs);
 }
 table.code {
-  border: 1px solid var(--grey-e7e7e7);
+  border: 1px solid var(--color-border-subtle);
   width: 100%;
   margin-right: 10px;
   margin-bottom: 40px;
@@ -139,7 +139,7 @@ div#bottom,
 div.adminDelete {
   margin-top: 8px;
   font-size: var(--font-size-label-medium);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 /* @width-breakpoint-desktop = 960px */
