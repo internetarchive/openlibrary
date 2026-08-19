@@ -17,7 +17,7 @@ const ACTION_ERRORS = {
  * @param {import('vue').ShallowRef<boolean>} opts.busy       — shared re-entrancy guard
  * @param {Function} opts.loadStatus — re-fetch after each action
  * @param {Function} opts.setToast   — show an error toast
- * @param {import('vue').ShallowRef<object>} opts.strings     — translated strings
+ * @param {object}  opts.strings     — translated strings (plain object, set once at setup)
  * @returns {object} action flags and methods
  */
 export function useActions({ busy, loadStatus, setToast, strings }) {
@@ -27,7 +27,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     const addInput = shallowRef('');
 
     function text(key, ...args) {
-        const fmt = strings.value[key] || key;
+        const fmt = strings[key] || key;
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 

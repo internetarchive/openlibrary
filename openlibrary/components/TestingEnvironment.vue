@@ -27,11 +27,13 @@ const props = defineProps({
 });
 
 // ── i18n (runs at setup time — same timing as the old `created` hook) ─
-const strings = shallowRef({ ...DEFAULT_STRINGS });
+// Plain object: translated strings are fixed at render time and never mutate,
+// so a ref would add unnecessary proxy overhead.
+let strings = { ...DEFAULT_STRINGS };
 try {
     const parsed = decodeAndParseJSON(props.i18n);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        strings.value = { ...DEFAULT_STRINGS, ...parsed };
+        strings = { ...DEFAULT_STRINGS, ...parsed };
     }
 } catch {
     // A malformed translation payload falls back to English.
@@ -88,37 +90,41 @@ onBeforeUnmount(() => syncDeployFavicon(false));
     class="testing-env"
     :aria-busy="busy ? 'true' : 'false'"
   >
-    <template v-if="view === 'loading'">
-      <div class="testing-env__main">
-        <p
-          class="testing-env__blank"
-          role="status"
-          aria-live="polite"
-        >
-          {{ strings.loading }}
-        </p>
-      </div>
-    </template>
+    <div
+      v-if="view === 'loading'"
+      class="testing-env__main"
+    >
+      <p
+        class="testing-env__blank"
+        role="status"
+        aria-live="polite"
+      >
+        {{ strings.loading }}
+      </p>
+    </div>
 
-    <template v-else-if="view === 'error'">
-      <div class="testing-env__main">
-        <div
-          class="testing-env__blank"
-          role="alert"
+    <div
+      v-else-if="view === 'error'"
+      class="testing-env__main"
+    >
+      <div
+        class="testing-env__blank"
+        role="alert"
+      >
+        <p>{{ strings.loadError }}</p>
+        <button
+          type="button"
+          class="testing-env__btn testing-env__btn--small"
+          @click="retry"
         >
-          <p>{{ strings.loadError }}</p>
-          <button
-            type="button"
-            class="testing-env__btn testing-env__btn--small"
-            @click="retry"
-          >
-            {{ strings.retry }}
-          </button>
-        </div>
+          {{ strings.retry }}
+        </button>
       </div>
-    </template>
+    </div>
 
-    <template v-else>
+    <div
+      v-else
+    >
       <div class="testing-env__main">
         <header class="testing-env__bar">
           <h2 class="testing-env__title">
@@ -226,7 +232,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
         @deploy="deploy"
         @refresh="refresh"
       />
-    </template>
+    </div>
 
     <div
       v-if="toast"
