@@ -44,7 +44,7 @@
 
 .header-bar .auth-component li button,
 .header-bar .auth-component li a {
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 .header-bar .auth-component .hide-me {
@@ -54,12 +54,12 @@
 .header-bar .dropdown-menu {
   text-align: left;
   background-color: var(--light-beige);
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   border-radius: 3px;
 }
 
 .header-bar .dropdown-menu li {
-  border-bottom: 1px solid var(--beige-two);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
@@ -74,7 +74,7 @@
 .header-bar .dropdown-menu li button,
 .header-bar .dropdown-menu li a {
   text-decoration: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
   white-space: nowrap;
   font-size: 0.9em;
   padding: var(--spacing-inset-md) var(--spacing-inset-sm);
@@ -108,7 +108,7 @@
 
 .header-bar .app-drawer .app-drawer__badge {
   color: var(--white);
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
   font-size: 0.9em;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 1px;
   border-radius: 4px;
@@ -150,7 +150,7 @@
 }
 
 .header-bar .app-drawer .subsection:first-child {
-  border-top: 1px solid var(--dark-beige);
+  border-top: 1px solid var(--color-border-muted);
 }
 
 .header-bar .app-drawer .login-links {
@@ -175,7 +175,7 @@
 }
 
 .header-bar .app-drawer .login-links .login-links__primary {
-  background: var(--primary-blue);
+  background: var(--color-primary);
   color: var(--white);
 }
 
@@ -184,7 +184,7 @@
 }
 
 .header-bar .app-drawer .login-links .login-links__secondary {
-  color: var(--link-blue);
+  color: var(--color-link);
   border: 2px solid var(--link-blue);
 }
 
@@ -304,7 +304,7 @@
 
 .header-bar .header-dropdown .mr-notifications {
   position: absolute;
-  background: var(--primary-blue);
+  background: var(--color-primary);
   color: var(--white);
   border-radius: var(--border-radius-notification);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
@@ -406,14 +406,14 @@
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
   display: block;
 }
 
 .header-bar .navigation-component li button:visited,
 .header-bar .navigation-component li a:visited {
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -509,7 +509,7 @@
   text-align: left;
   font-weight: 300;
   font-size: 0.9em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin: var(--spacing-stack-xs);
   padding: 0;
   line-height: 0;
@@ -638,7 +638,7 @@
   border: 0;
   border-radius: var(--border-radius-md);
   background: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font: inherit;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
@@ -706,7 +706,7 @@
   gap: var(--spacing-inline-md);
   padding: var(--spacing-inset-sm);
   border-radius: var(--border-radius-md);
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -783,7 +783,7 @@
   display: block;
   padding: var(--spacing-2xs) var(--spacing-inset-sm);
   border-radius: var(--border-radius-md);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
 }
@@ -814,7 +814,7 @@
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: inherit;
   font-size: 1em;
   cursor: pointer;
@@ -845,7 +845,7 @@
   width: 38px;
   min-height: 38px;
   border-radius: var(--border-radius-input);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   opacity: 0.7;
   transition:
     background-color 0.15s ease,

@@ -20,7 +20,7 @@
 }
 .listEntry .name {
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .listEntry .name .title {
   font-weight: bold;
@@ -29,12 +29,12 @@
 .listEntry .description p,
 .listEntry .description li {
   font-size: 0.8125em;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin: 0 !important;
 }
 .listEntry .meta {
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   line-height: 1.5em;
   margin: var(--spacing-stack-xs) 0;
 }

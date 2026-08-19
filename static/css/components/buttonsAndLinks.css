@@ -12,11 +12,11 @@ a.borrowResults:visited {
   text-decoration: none;
 }
 a.borrowResults:hover {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a.borrowResults:active {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a.coverLook {
@@ -29,7 +29,7 @@ a.facetSubject:visited {
 }
 a.facetSubject:hover,
 a.facetSubject:active {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* Can possibly be removed provided there are no usages of .results
@@ -43,11 +43,11 @@ a.results:visited {
   text-decoration: none;
 }
 a.results:hover {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a.results:active {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a.toggle {
@@ -71,7 +71,7 @@ button.plainText {
   cursor: pointer;
 }
 button.plainText:hover {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 button.plain {
   border: none;
@@ -82,7 +82,7 @@ button.plain {
   cursor: pointer;
 }
 button.plain:hover {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
 }
 button.addAnother {
   width: 32px;

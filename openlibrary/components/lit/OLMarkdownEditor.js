@@ -77,7 +77,7 @@ export class OLMarkdownEditor extends LitElement {
       border: var(--border-input);
       border-radius: var(--border-radius-card);
       background: var(--white);
-      color: var(--dark-grey);
+      color: var(--color-text);
       max-height: 70vh;
       overflow-y: auto;
       /* Contain the toolbar/popover layering — a shadow root is not a
@@ -142,7 +142,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .editor-input .tiptap a {
-      color: var(--link-blue);
+      color: var(--color-link);
     }
 
     .editor-input .tiptap img {
@@ -156,7 +156,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .html-block {
-      border: 1px dashed var(--light-grey);
+      border: 1px dashed var(--color-border-muted);
       border-radius: var(--border-radius-card);
       margin: 0.55em 0;
       overflow: hidden;
@@ -166,7 +166,7 @@ export class OLMarkdownEditor extends LitElement {
       display: block;
       padding: 4px 8px;
       background: var(--grey-f4f4f4);
-      border-bottom: 1px dashed var(--light-grey);
+      border-bottom: 1px dashed var(--color-border-muted);
       font-size: 0.7rem;
       font-family: monospace;
       font-weight: 600;
@@ -190,7 +190,7 @@ export class OLMarkdownEditor extends LitElement {
     .editor-input .tiptap blockquote {
       margin-left: var(--spacing-lg);
       padding: var(--spacing-sm) var(--spacing-lg);
-      border-left: var(--border-width-thick) solid var(--beige-deep);
+      border-left: var(--border-width-thick) solid var(--color-border-subtle);
       color: var(--darker-grey);
       background: var(--off-white);
       font-style: italic;
@@ -203,7 +203,7 @@ export class OLMarkdownEditor extends LitElement {
 
     .editor-input .tiptap code {
       background: var(--grey-f4f4f4);
-      border: 1px solid var(--lighter-grey);
+      border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-input);
       padding: 0.1em 0.3em;
       font-family: monospace;
@@ -212,7 +212,7 @@ export class OLMarkdownEditor extends LitElement {
 
     .editor-input .tiptap pre {
       background: var(--grey-f4f4f4);
-      border: 1px solid var(--lighter-grey);
+      border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-card);
       padding: var(--spacing-inset-sm);
       margin: 0 0 0.55em;
@@ -312,8 +312,8 @@ export class OLMarkdownEditor extends LitElement {
     .error-state {
       padding: var(--spacing-inset-sm);
       border: var(--border-width-control) solid var(--color-border-error);
-      background: var(--baby-pink);
-      color: var(--dark-red);
+      background: var(--color-error-bg);
+      color: var(--color-error-fg);
       border-radius: var(--border-radius-notification);
       font-family: var(--font-family-body);
       margin-bottom: var(--spacing-stack-sm);
@@ -348,7 +348,7 @@ export class OLMarkdownEditor extends LitElement {
       border: var(--border-width-none);
       border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
       background: var(--white);
-      color: var(--dark-grey);
+      color: var(--color-text);
       font-family: monospace;
       font-size: 0.75rem;
       line-height: 1.5;
