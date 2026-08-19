@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import datetime
-import functools
 import json
 import re
 import socket
@@ -303,7 +302,6 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     return changes
 
 
-@functools.cache
 def get_dev_merged_status():
     return DevMergedStatus.from_file()
 
@@ -615,7 +613,6 @@ def _save_testing_state(state: TestingState) -> None:
     tmp = TESTING_STATE_FILE.with_suffix(".tmp")
     tmp.write_text(json.dumps(state.model_dump(), indent=2))
     tmp.replace(TESTING_STATE_FILE)
-    get_dev_merged_status.cache_clear()
 
 
 def _ensure_testing_state_file() -> None:
