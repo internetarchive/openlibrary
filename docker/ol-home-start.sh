@@ -21,7 +21,14 @@ latest_language_timestamp() {
 
 seed_languages() {
     echo "Waiting for web container..."
+    local wait_timeout=60
+    local waited=0
     until curl -sf -o /dev/null http://web:8080/; do
+        if [ "$waited" -ge "$wait_timeout" ]; then
+            echo "Warning: web container not reachable after ${wait_timeout}s - skipping /languages/* seed."
+            return
+        fi
+        waited=$((waited + 1))
         sleep 1
     done
 
