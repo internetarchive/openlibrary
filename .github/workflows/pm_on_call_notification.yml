@@ -8,14 +8,12 @@ permissions:
   contents: read
 
 jobs:
-  build_message:
+  notify_on-call:
     if: ${{ github.repository == 'internetarchive/openlibrary' }}
     runs-on: ubuntu-latest
-    outputs:
-      message: ${{ steps.build.outputs.result }}
     steps:
       - uses: actions/checkout@v7
-      - id: build
+      - id: build_message
         uses: actions/github-script@v7
         with:
           result-encoding: string
@@ -39,13 +37,11 @@ jobs:
               return `Reminder: ${lead} will lead this week's deployment.`;
             }
             return '';
-
-  publish:
-    needs: build_message
-    if: ${{ needs.build_message.outputs.message != '' }}
-    uses: ./.github/workflows/notify_slack.yml
-    with:
-      message: ${{ needs.build_message.outputs.message }}
-    secrets:
-      slack_token: ${{ secrets.SLACK_TOKEN }}
-      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+      - if: ${{ steps.build_message.outputs.result != '' }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+            text: ${{ toJSON(steps.build_message.outputs.result) }}
