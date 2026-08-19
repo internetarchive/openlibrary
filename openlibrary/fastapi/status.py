@@ -39,6 +39,7 @@ async def testing_status(_: MaintainerDep) -> TestingStatus:
         result = result.model_copy(
             update={
                 "deploying": jenkins["status"] == "IN_PROGRESS",
+                "deploy_started_at": jenkins["start_time"],
                 "deploy_result": jenkins["status"],
                 "deploy_finished_at": jenkins["end_time"],
                 "deploy_stage": jenkins.get("current_stage", ""),

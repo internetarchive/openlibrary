@@ -672,6 +672,9 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
     """The latest Jenkins run replaces the time-window guess with real status."""
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(), {})
+    # A stale state-file start time (e.g. a week-old local copy): Jenkins' run
+    # start must win, or the panel says "Deploying, started 7 days ago".
+    result.deploy_started_at = "2026-08-11T09:00:00+00:00"
     jenkins = {
         "status": "SUCCESS",
         "start_time": "2026-08-18T20:25:57.516000+00:00",
@@ -687,6 +690,7 @@ def test_testing_status_endpoint_reports_jenkins_result(fastapi_client, mock_aut
     assert response.status_code == 200
     body = response.json()
     assert body["deploying"] is False
+    assert body["deploy_started_at"] == jenkins["start_time"]
     assert body["deploy_result"] == "SUCCESS"
     assert body["deploy_finished_at"] == jenkins["end_time"]
     assert body["deploy_stage"] == ""
@@ -696,6 +700,8 @@ def test_testing_status_endpoint_reports_deploy_stage(fastapi_client, mock_authe
     """A running deploy names the stage it is on."""
     mock_maintainer_user(is_maintainer=True)
     result = status_module.build_testing_status(_make_state(), {})
+    # Stale state-file start time; the live Jenkins run's start must replace it.
+    result.deploy_started_at = "2026-08-11T09:00:00+00:00"
     jenkins = {
         "status": "IN_PROGRESS",
         "start_time": "2026-08-18T20:25:57.516000+00:00",
@@ -711,6 +717,7 @@ def test_testing_status_endpoint_reports_deploy_stage(fastapi_client, mock_authe
     assert response.status_code == 200
     body = response.json()
     assert body["deploying"] is True
+    assert body["deploy_started_at"] == jenkins["start_time"]
     assert body["deploy_stage"] == "components"
 
 
