@@ -1,8 +1,6 @@
 /* https://docs.openlibrary.org/designers/design-pattern-library.html#book */
 
-.book > .cta-button-group,
-.book > .cta-btn,
-.book form .cta-button-group {
+.book .cta-button-group {
   margin-top: var(--spacing-stack-sm);
 }
 

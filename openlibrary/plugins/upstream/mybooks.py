@@ -19,10 +19,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import (
-    add_availability,
-    get_loans_of_user,
-)
+from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
@@ -73,14 +70,53 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
+
+            # Dictionary mapping dedup_key -> (book, timestamp, is_active)
+            merged_books: dict[str, tuple[Any, float, bool]] = {}
+
+            # Process active loans first
             for loan in myloans:
-                # Book will be None if no OL edition exists for the book
-                if book := site.get().get(loan["book"]):
-                    book.loan = loan
-                    loans.docs.append(book)
-            docs["loans"] = loans
+                book_key = loan["book"]
+                if book := site.get().get(book_key):
+                    for _ in range(5):
+                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                            book_key = book.location
+                            book = site.get().get(book_key)
+                        else:
+                            break
+                    if book:
+                        book.loan = loan
+                        works = getattr(book, "works", None)
+                        work_key = works[0].key if works and len(works) > 0 else book.key
+                        loaned_at = loan.get("loaned_at") or 0.0
+                        merged_books[work_key] = (book, float(loaned_at), True)
+
+            try:
+                history_data = get_loan_history_data(mb.username, page=1)
+                history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
+            except Exception:  # noqa: BLE001
+                history_books = []
+
+            for book in history_books:
+                works = getattr(book, "works", None)
+                work_key = works[0].key if works and len(works) > 0 else book.key
+                updatedate = book.get("last_loan_date") or ""
+                try:
+                    timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
+                except ValueError:
+                    timestamp = 0.0
+
+                # Add history record only if no active loan exists for this book
+                if work_key not in merged_books:
+                    merged_books[work_key] = (book, timestamp, False)
+
+            # Sort: active loans first (is_active=True > False), then by timestamp desc.
+            # This ensures a currently-borrowed book always ranks above a recently-returned one.
+            total_results = len(merged_books)
+            sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
+            final_books = [entry[0] for entry in sorted_entries[:18]]
+
+            docs["loans"] = web.Storage({"docs": final_books, "total_results": total_results})
 
         if mb.me or mb.is_public:
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)
