@@ -23,12 +23,7 @@ from infogami.utils.view import (
     public,
 )
 from openlibrary import accounts
-from openlibrary.accounts.model import (
-    OpenLibraryAccount,
-    get_s3_cookie,
-    get_s3_keys,
-    parse_s3_cookie,
-)
+from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
@@ -108,17 +103,9 @@ class checkout_with_ocaid(delegate.page):
 
 
 class BorrowParams(BaseModel):
-    """Framework-agnostic /borrow request params, so that borrow_post_core()'s
-    body doesn't need to know whether it's being called from web.py or
-    FastAPI. Built via from_web_input() on the web.py side and via
-    model_validate() against the query params on the FastAPI side (see
-    openlibrary/fastapi/borrow.py), the same way openlibrary.fastapi.models.
-    SolrInternalsParams is built from a request.
-    """
-
     model_config = {"populate_by_name": True}
 
-    action: str = "borrow"
+    action: Literal["borrow", "read", "locate", "return", "join-waitinglist", "leave-waitinglist", "browse"] = "borrow"
     format: str | None = None
     # web.input()/query param name is "_autoReadAloud" (matches the URL param
     # BookReader itself uses); aliased here so the Python-side name doesn't
@@ -140,7 +127,7 @@ class BorrowParams(BaseModel):
 
 @dataclass
 class BorrowRedirect:
-    """A redirect outcome of borrow_post_core(). The actual redirect, flash
+    """A redirect outcome of handle_borrow_async(). The actual redirect, flash
     message, and cookie side effects are performed by whichever
     framework-specific caller invoked it (web.py or FastAPI), since those are
     done differently in each.
@@ -160,27 +147,17 @@ class BorrowNotFound:
 BorrowOutcome = BorrowRedirect | BorrowNotFound
 
 
-async def borrow_post_core_async(key: str, i: BorrowParams, *, s3_cookie: str | None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
-    """Shared /borrow POST logic used by both the legacy web.py handler
-    (borrow.POST below, via the borrow_post_core sync bridge) and the FastAPI
-    route in openlibrary/fastapi/borrow.py (which awaits this directly).
+async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
+    """Shared /borrow POST logic for both the web.py handler (via the
+    handle_borrow sync bridge) and the FastAPI route (awaits directly).
 
-    Returns an outcome object describing what should happen next, rather than
-    performing redirects/flash messages/cookies directly, since those need to
-    be done differently by web.py (raise web.seeother(), add_flash_message(),
-    web.setcookie()) vs. FastAPI (return a RedirectResponse with cookies set
-    on it). The open-access "interstitial" render below is the one exception:
-    a render has no redirect/cookie side effect to bridge between frameworks,
-    so it calls render_template() directly and returns the result as-is.
+    Returns an outcome object rather than performing the redirect/flash/
+    cookie side effects itself, since those differ by framework -- except
+    the interstitial render, which has no such side effect to bridge.
 
-    :param s3_cookie: The raw "s3" cookie value (or None if absent), decrypted
-        below via parse_s3_cookie(). Required (not defaulted to reading it
-        here) since this function runs on the caller's own thread when
-        awaited directly (the FastAPI route), but NOT when called via the
-        borrow_post_core sync bridge below -- that runs it on AsyncBridge's
-        dedicated background thread, where web.ctx (thread-local) was never
-        populated. Both callers must read the cookie themselves, on their
-        own real request thread, before it's too late to do so correctly.
+    :param s3_cookie: Required, not read here: callers must read it on
+        their own real thread before this may hop onto AsyncBridge's
+        background thread, where web.ctx isn't populated.
     """
     action = i.action
     edition = site.get().get(key)
@@ -240,7 +217,7 @@ async def borrow_post_core_async(key: str, i: BorrowParams, *, s3_cookie: str | 
     if user:
         account = OpenLibraryAccount.get_by_email(user.email)
         ia_itemname = account.itemname if account else None
-        s3_keys = parse_s3_cookie(s3_cookie) or get_s3_keys(account)
+        s3_keys = parse_s3_cookie(s3_cookie)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
@@ -319,8 +296,8 @@ async def borrow_post_core_async(key: str, i: BorrowParams, *, s3_cookie: str | 
 
 
 # Sync wrapper so web.py's borrow.POST (below) can call this without needing
-# to be async itself; the FastAPI route awaits borrow_post_core_async directly.
-borrow_post_core = async_bridge.wrap(borrow_post_core_async)
+# to be async itself; the FastAPI route awaits handle_borrow_async directly.
+handle_borrow = async_bridge.wrap(handle_borrow_async)
 
 
 # Handler for /books/{bookid}/{title}/borrow
@@ -341,11 +318,8 @@ class borrow(delegate.page):
             redirect="",
         )
         params = BorrowParams.from_web_input(i)
-        # Read on this (real request) thread, before borrow_post_core hops
-        # onto the async bridge's own background thread -- see
-        # borrow_post_core_async's s3_cookie docstring for why.
-        s3_cookie = get_s3_cookie()
-        result = borrow_post_core(key, params, s3_cookie=s3_cookie)
+        s3_cookie = web.cookies().get("s3")
+        result = handle_borrow(key, params, s3_cookie=s3_cookie)
 
         match result:
             case BorrowNotFound():

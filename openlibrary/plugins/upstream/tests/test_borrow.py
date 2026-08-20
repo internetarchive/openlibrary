@@ -19,7 +19,7 @@ class TestBorrowPostCore:
     def test_not_found(self):
         with patch("openlibrary.plugins.upstream.borrow.site") as mock_site:
             mock_site.get.return_value.get.return_value = None
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
+            result = borrow.handle_borrow("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert result == borrow.BorrowNotFound()
 
@@ -29,7 +29,7 @@ class TestBorrowPostCore:
 
         with patch("openlibrary.plugins.upstream.borrow.site") as mock_site:
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(action="locate"), s3_cookie=None)
+            result = borrow.handle_borrow("/books/OL1M", borrow.BorrowParams(action="locate"), s3_cookie=None)
 
         assert result == borrow.BorrowRedirect("https://search.worldcat.org/title/1")
 
@@ -44,7 +44,7 @@ class TestBorrowPostCore:
             patch("openlibrary.plugins.upstream.borrow.accounts.get_current_user", return_value=None),
         ):
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
+            result = borrow.handle_borrow("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert isinstance(result, borrow.BorrowRedirect)
         assert result.clear_login_cookie is True
@@ -64,7 +64,7 @@ class TestBorrowPostCore:
             patch("openlibrary.plugins.upstream.borrow.lending.get_availability_async", return_value={}),
             patch("openlibrary.plugins.upstream.borrow.accounts.get_current_user", return_value=user),
             patch("openlibrary.plugins.upstream.borrow.OpenLibraryAccount.get_by_email", return_value=account),
-            patch("openlibrary.plugins.upstream.borrow.get_s3_keys", return_value={"s3_key": "x"}),
+            patch("openlibrary.plugins.upstream.borrow.parse_s3_cookie", return_value={"s3_key": "x"}),
             patch("openlibrary.plugins.upstream.borrow.user_can_borrow_edition_async", return_value="borrow"),
             patch(
                 "openlibrary.plugins.upstream.borrow.lending.s3_loan_api_async",
@@ -72,7 +72,7 @@ class TestBorrowPostCore:
             ),
         ):
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
+            result = borrow.handle_borrow("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert isinstance(result, borrow.BorrowRedirect)
         assert result.url == "/books/OL1M"
@@ -100,7 +100,7 @@ class TestBorrowPostAdapter:
 
     def test_not_found_raises_404(self):
         with (
-            patch("openlibrary.plugins.upstream.borrow.borrow_post_core", return_value=borrow.BorrowNotFound()),
+            patch("openlibrary.plugins.upstream.borrow.handle_borrow", return_value=borrow.BorrowNotFound()),
             pytest.raises(web.webapi.HTTPError),
         ):
             self._post()
@@ -110,7 +110,7 @@ class TestBorrowPostAdapter:
     def test_redirect_with_flash_sets_flash_and_seeothers(self):
         outcome = borrow.BorrowRedirect("/books/OL1M/Some_Title", flash=("success", "Returned!"))
         with (
-            patch("openlibrary.plugins.upstream.borrow.borrow_post_core", return_value=outcome),
+            patch("openlibrary.plugins.upstream.borrow.handle_borrow", return_value=outcome),
             patch("openlibrary.plugins.upstream.borrow.add_flash_message") as mock_flash,
             pytest.raises(web.webapi.HTTPError),
         ):
@@ -122,7 +122,7 @@ class TestBorrowPostAdapter:
     def test_permanent_redirect_uses_301(self):
         outcome = borrow.BorrowRedirect("/books/OL1M/Some_Title", permanent=True)
         with (
-            patch("openlibrary.plugins.upstream.borrow.borrow_post_core", return_value=outcome),
+            patch("openlibrary.plugins.upstream.borrow.handle_borrow", return_value=outcome),
             pytest.raises(web.webapi.HTTPError),
         ):
             self._post()
@@ -132,7 +132,7 @@ class TestBorrowPostAdapter:
     def test_clear_login_cookie_calls_setcookie(self):
         outcome = borrow.BorrowRedirect("/account/login?redirect=x", clear_login_cookie=True)
         with (
-            patch("openlibrary.plugins.upstream.borrow.borrow_post_core", return_value=outcome),
+            patch("openlibrary.plugins.upstream.borrow.handle_borrow", return_value=outcome),
             patch("openlibrary.plugins.upstream.borrow.web.setcookie") as mock_setcookie,
             pytest.raises(web.webapi.HTTPError),
         ):
