@@ -1105,7 +1105,6 @@ class author_search(delegate.page):
         return resp
 
 
-@public
 def random_author_search(limit=10) -> SearchResponse:
     return run_solr_query(
         AuthorSearchScheme(),
