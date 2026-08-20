@@ -88,35 +88,43 @@ class status_add(delegate.page):
         if not pr_numbers:
             raise web.badrequest()
         state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
-        existing = {p.pr for p in state.prs}
+        by_pr = {p.pr: p for p in state.prs}
         user = get_current_user()
         failed = []
+        changed = False
         for pr_number in pr_numbers:
-            if pr_number not in existing:
-                info = _get_pr_info(pr_number)
-                if info.get("error"):
-                    # GitHub unreachable, rate-limited, or an invalid PR — never
-                    # pretend the add landed. The error response lets the panel
-                    # keep the input so the failure is visible.
-                    failed.append(pr_number)
-                    continue
-                state.prs.append(
-                    TestingPR(
-                        pr=pr_number,
-                        commit=info["head_sha"],
-                        active=True,
-                        title=info["title"],
-                        added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                        added_by=user.key.split("/")[-1] if user else "",
-                        author=info["author"],
-                        author_avatar=info["author_avatar"],
-                        assignee=info["assignee"],
-                        assignee_avatar=info["assignee_avatar"],
-                    )
+            if pr_number in by_pr:
+                # PR already in the set — if it was staged for removal,
+                # unstage it (restore).
+                if by_pr[pr_number].pending_removal:
+                    by_pr[pr_number].pending_removal = None
+                    changed = True
+                continue
+            info = _get_pr_info(pr_number)
+            if info.get("error"):
+                # GitHub unreachable, rate-limited, or an invalid PR — never
+                # pretend the add landed. The error response lets the panel
+                # keep the input so the failure is visible.
+                failed.append(pr_number)
+                continue
+            state.prs.append(
+                TestingPR(
+                    pr=pr_number,
+                    commit=info["head_sha"],
+                    active=True,
+                    title=info["title"],
+                    added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+                    added_by=user.key.split("/")[-1] if user else "",
+                    author=info["author"],
+                    author_avatar=info["author_avatar"],
+                    assignee=info["assignee"],
+                    assignee_avatar=info["assignee_avatar"],
                 )
-                existing.add(pr_number)
-        _save_testing_state(state)
-        _evict_drift_cache()
+            )
+            changed = True
+        if changed:
+            _save_testing_state(state)
+            _evict_drift_cache()
         if failed:
             return _json_error("add_failed")
         return _json_ok()
@@ -130,8 +138,11 @@ class status_remove(delegate.page):
             raise web.unauthorized()
         i = web.input(prs=[])
         to_remove = {int(p) for p in i.prs}
-        if state := _load_testing_state():
-            state.prs = [p for p in state.prs if p.pr not in to_remove]
+        state = _load_testing_state()
+        if state and to_remove:
+            for p in state.prs:
+                if p.pr in to_remove:
+                    p.pending_removal = True
             _save_testing_state(state)
         return _json_ok()
 
