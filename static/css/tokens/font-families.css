@@ -59,7 +59,6 @@
 
   --font-size-body-large: 16px;
   --font-size-body-medium: 14px;
-  --font-size-body-xlarge: 18px; /* long-form reading columns */
 }
 
 /* Display sizes are set for wide columns; on a phone they overwhelm the measure

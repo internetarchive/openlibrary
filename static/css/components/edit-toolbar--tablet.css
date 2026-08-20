@@ -7,7 +7,7 @@ div#editHistory {
 }
 
 /* #editTools sets its own padding in edit-toolbar.css, so it takes only the
-   float from here — sharing the rule above would override that padding. */
+   float from here. Mirrored in the inlined copy in legacy.css. */
 div#editTools {
   float: right;
   margin-top: var(--spacing-stack-xs);

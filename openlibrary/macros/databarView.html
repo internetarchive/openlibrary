@@ -13,10 +13,7 @@ $else:
     <div id="editInfo">
         $ author = page.get_most_recent_change().author
         $ date = page.last_modified and datestr(page.last_modified) or ''
-        $if page.url:
-            $ history_url = page.url(m='history')
-        $else:
-            $ history_url = changequery(m='history')
+        $ history_url = page.url(m='history') if page.url else changequery(m='history')
         <div class="brown smaller sansserif">
             $if author:
                 $:_('Last edited by %(author_link)s', author_link=author.render_link())

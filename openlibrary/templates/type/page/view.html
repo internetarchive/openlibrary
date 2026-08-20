@@ -13,17 +13,19 @@ $# Curated collections get their own bundle: Literata titles and a centered read
 $# /type/i18n_page renders the translated doc, so /collections arrives here as /collections.en.
 $ key = page.key.split('.', 1)[0]
 $ is_collection = key == '/collections' or key.startswith('/collections/')
+$# The index page lists collections rather than being one, so it gets no back link or label.
+$ is_collection_page = is_collection and key != '/collections'
 $if is_collection:
     $ _x = ctx.setdefault('cssfile', 'collections')
     $ bodyclass = ctx.setdefault('bodyclass', [])
-    $ _x = bodyclass.append('collections-page')
+    $ bodyclass.append('collections-page')
 
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
         $# A collection page shares its top row with a link back up to the index.
         $if is_collection:
             <div class="collection-topbar">
-                $if key != '/collections':
+                $if is_collection_page:
                     <a class="collection-back" href="/collections">
                         $# Chevron matching OlPagination's: stroked, so it takes the link's color.
                         <svg class="collection-back__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
@@ -37,8 +39,7 @@ $if '<!--suppress-title-->' not in page.body:
             <div class="superNav">
                 <a href="/community">$_("Community")</a> /
             </div>
-        $# The index page lists collections rather than being one, so it gets no label.
-        $if is_collection and key != '/collections':
+        $if is_collection_page:
             $ book_count = get_collection_book_count(page)
             <p class="collection-eyebrow">
                 <span>$_("Collection")</span>

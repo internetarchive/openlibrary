@@ -165,9 +165,8 @@ export class OlPopover extends LitElement {
         /* ── Mobile tray backdrop ── */
 
         /* Same scrim as ol-dialog: the tray is modal, so it should push the
-           page back the same way. The blur is declared once and fades with the
-           layer's opacity — transitioning the filter itself buys nothing when
-           its value never changes between states. */
+           page back the same way. The blur is constant, so only opacity
+           animates. */
         .backdrop {
             position: fixed;
             inset: 0;

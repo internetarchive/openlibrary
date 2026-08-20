@@ -9,10 +9,6 @@
   /* rem, not em: an em measure would resolve against each element's own
      font-size and widen the column under every heading. */
   --collections-measure: 40rem;
-  /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
-  --collections-media-width: min(60rem, 1018px);
-  /* Between the two: not a narrow stack, still short of the image. */
-  --collections-title-measure: 48rem;
 }
 
 /* The layout hooks are ids owned by type/page/view.html, and the image rule has
@@ -97,7 +93,7 @@
   font-size: var(--font-size-label-medium);
   font-weight: 600;
   letter-spacing: 0.12em;
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
   text-align: center;
   text-transform: uppercase;
 }
@@ -106,9 +102,10 @@
   margin-inline: 0.35em;
 }
 
-/* The measure breaks a long title into a readable stack, not one wide line. */
+/* The measure breaks a long title into a readable stack, not one wide line —
+   between text and image width: not a narrow stack, still short of the image. */
 .collections-page #contentHead h1 {
-  max-width: var(--collections-title-measure);
+  max-width: 48rem;
   /* No bottom margin: the head's padding sets the gap to the body. */
   margin: var(--spacing-stack-lg) auto 0;
   font-family: var(--font-family-title);
@@ -176,7 +173,8 @@
    so a small image sits at its own size. */
 .collections-page #contentBody > figure,
 .collections-page #contentBody > img {
-  max-width: min(var(--collections-media-width), 100%);
+  /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
+  max-width: min(60rem, 1018px, 100%);
   margin-bottom: var(--spacing-stack-xl);
 }
 
@@ -199,7 +197,7 @@
   max-width: var(--collections-measure);
   margin: var(--spacing-stack-xs) auto 0;
   font-size: var(--font-size-body-medium);
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
   text-align: center;
 }
 

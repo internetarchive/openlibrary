@@ -76,8 +76,7 @@ ol-button[size="small"]:not(:defined),
   font-size: var(--font-size-label-medium);
 }
 
-ol-button[size="large"]:not(:defined),
-.ol-button-static--large {
+ol-button[size="large"]:not(:defined) {
   --ol-button-height: var(--control-height-large);
   padding: 0 var(--spacing-lg);
   font-size: var(--font-size-body-large);
@@ -143,7 +142,7 @@ ol-button[selected]:not(:defined) {
    <ol-button> those live in shadow DOM (see OLButton.js) and never reach it. */
 a.ol-button-static:link,
 a.ol-button-static:visited {
-  color: var(--dark-grey);
+  color: var(--color-text);
   text-decoration: none;
 }
 
@@ -158,7 +157,7 @@ a.ol-button-static:visited {
      one shape rather than the fill darkening inside a static outline. */
   .ol-button-static:hover {
     background-color: var(--color-control-hover);
-    border-color: var(--light-grey);
+    border-color: var(--color-border-muted);
     --control-surface: var(--color-control-hover);
   }
 }
