@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import { effectiveActive, postAction } from '../utils.js';
+import { effectiveActive, patchAction, postAction } from '../utils.js';
 
 // The action endpoints answer {"ok": false, "error": "<code>"} for
 // business failures; map each code to the translated toast that
@@ -31,15 +31,40 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         return String(fmt).replace(/%s/g, () => (args.length ? args.shift() : '%s'));
     }
 
+    /**
+     * Run a form-encoded POST action, reload status, and toast on failure.
+     */
     async function runAction(action, fields) {
         if (busy.value) return false;
         busy.value = true;
         try {
             const result = await postAction(action, fields);
             await loadStatus(false, false, false);
-            // A business failure ({"ok": false, "error": "<code>"}) is a
-            // completed request, not a thrown fetch — say why instead of
-            // pretending the action landed.
+            if (result && result.ok === false) {
+                const key = ACTION_ERRORS[result.error] || 'actionFailed';
+                setToast(text(key));
+                return result;
+            }
+            return result;
+        } catch {
+            setToast(text('actionFailed'));
+            return false;
+        } finally {
+            busy.value = false;
+        }
+    }
+
+    /**
+     * Run a JSON PATCH action on a single PR, reload status, and toast on
+     * failure. Same error/reload contract as ``runAction`` but speaks JSON
+     * to the new REST endpoint.
+     */
+    async function patchPr(pr, fields) {
+        if (busy.value) return false;
+        busy.value = true;
+        try {
+            const result = await patchAction(`/status/prs/${pr.pr}`, fields);
+            await loadStatus(false, false, false);
             if (result && result.ok === false) {
                 const key = ACTION_ERRORS[result.error] || 'actionFailed';
                 setToast(text(key));
@@ -55,21 +80,19 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
     }
 
     function togglePr(pr) {
-        const action = effectiveActive(pr) ? '/status/disable' : '/status/enable';
-        runAction(action, { prs: [pr.pr] });
+        patchPr(pr, { active: !effectiveActive(pr) });
     }
 
     function updatePr(pr) {
-        runAction('/status/pull-latest', { prs: [pr.pr] });
+        patchPr(pr, { pull_latest: true });
     }
 
     function removePr(pr) {
-        runAction('/status/remove', { prs: [pr.pr] });
+        patchPr(pr, { pending_removal: true });
     }
 
-    // Undo a removal: re-add via /status/add (the same path the add box uses).
     function restorePr(pr) {
-        runAction('/status/add', { pr: String(pr.pr) });
+        patchPr(pr, { pending_removal: false });
     }
 
     async function deploy() {
@@ -98,7 +121,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (!value) return;
         adding.value = true;
         try {
-            const result = await runAction('/status/add', { pr: value });
+            const result = await runAction('/status/prs', { prs: [value] });
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';
