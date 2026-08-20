@@ -214,6 +214,10 @@ class status_deploy(delegate.page):
             if p.pending_active is not None:
                 p.active = p.pending_active
                 p.pending_active = None
+        # Stage-removal PRs are deleted from the set on deploy.
+        state.prs = [p for p in state.prs if not p.pending_removal]
+        for p in state.prs:
+            p.pending_removal = None
         # Nothing above is persisted until Jenkins accepts the build, so a failed
         # trigger leaves every staged change intact and retryable.
         outcome = trigger_rebuild(state.prs)
@@ -291,6 +295,8 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="pin", detail=p.short_pull_latest))
         if (toggle := p.pending_toggle) is not None:
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="enable" if toggle else "disable", detail=""))
+        if p.pending_removal:
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="staged", detail=""))
     # Deployed but no longer in the set: removed, and still on the box until the
     # next deploy drops it. State files written before `deployed` existed start
     # empty here, so their first deploy is what makes removals visible.
@@ -383,6 +389,7 @@ class TestingPR(BaseModel):
     added_by: str = ""  # OL username
     pull_latest_sha: str = ""  # pending SHA from "Fetch Latest"; applied on deploy
     pending_active: bool | None = None  # pending enable/disable; applied on deploy
+    pending_removal: bool | None = None  # pending remove; applied on deploy
     author: str = ""  # GitHub login of PR author
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned

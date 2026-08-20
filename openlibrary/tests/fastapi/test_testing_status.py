@@ -706,6 +706,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "added_by": "openlibrary",
                 "pull_latest_sha": "",
                 "pending_active": None,
+                "pending_removal": None,
                 "author": "author",
                 "author_avatar": "",
                 "assignee": "assignee",
