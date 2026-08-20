@@ -38,7 +38,6 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context, site
 
@@ -232,9 +231,6 @@ async def get_works_data_async(key: str, url: URL, limit: int, offset: int) -> d
         links["next"] = str(url.include_query_params(offset=offset + limit))
 
     return {"links": links, "size": size, "entries": works}
-
-
-get_works_data = async_bridge.wrap(get_works_data_async)
 
 
 async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:

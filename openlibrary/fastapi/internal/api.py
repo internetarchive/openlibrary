@@ -535,10 +535,6 @@ async def get_bestbook_count(
     return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
-async def unlink_ia_ol():
-    pass
-
-
 class MonthlyLoginsResponse(BaseModel):
     """Response model for the /api/monthly_logins.json endpoint."""
 
