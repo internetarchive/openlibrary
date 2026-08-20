@@ -2,6 +2,19 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
+/** Next node up the flattened tree: into the slot a node is assigned to, and
+ *  out of a shadow root through its host. */
+function flattenedParent(node) {
+    if (node.assignedSlot) return node.assignedSlot;
+    const parent = node.parentNode;
+    return parent instanceof ShadowRoot ? parent.host : parent;
+}
+
+function isScrollable(el) {
+    const { overflowX, overflowY } = getComputedStyle(el);
+    return /auto|scroll/.test(`${overflowX} ${overflowY}`);
+}
+
 /**
  * A tooltip component that displays contextual information on hover/focus.
  *
@@ -74,7 +87,7 @@ export class OlTooltip extends LitElement {
             display: none;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;
-            background: var(--dark-grey);
+            background: var(--neutral-900);
             color: var(--white);
             font-size: 13px;
             line-height: var(--line-height-snug);
@@ -139,6 +152,8 @@ export class OlTooltip extends LitElement {
         this._showTimer = null;
         this._hideTimer = null;
         this._tooltipId = `ol-tooltip-${++OlTooltip._idCounter}`;
+        this._scrollTargets = [];
+        this._anchorRect = null;
 
         // Gates the *pointer* path only. On touch devices a tap would both fire
         // the action and surface the tooltip via an emulated mouseenter, so we
@@ -171,7 +186,7 @@ export class OlTooltip extends LitElement {
         this.removeEventListener('focusin', this._onFocusIn);
         this.removeEventListener('focusout', this._onFocusOut);
         this.removeEventListener('keydown', this._onKeydown);
-        window.removeEventListener('scroll', this._onScroll, true);
+        this._unbindScroll();
         this._clearTimers();
     }
 
@@ -258,10 +273,57 @@ export class OlTooltip extends LitElement {
     }
 
     _onScroll() {
-        // The panel is positioned once at show time (position: fixed), so any
-        // scroll would strand it away from the trigger. Hiding is simpler and
-        // less jarring than repositioning mid-scroll.
+        // The panel is positioned once at show time (position: fixed), so a
+        // scroll that moves the trigger strands it. Hiding is simpler and less
+        // jarring than repositioning mid-scroll.
+        //
+        // Gated on the trigger having actually moved: a snap container emits
+        // scroll events that settle back to the same offset, and those must not
+        // dismiss a tooltip the pointer is still resting on.
+        if (!this._anchorMoved()) return;
         this._hide();
+    }
+
+    /** Whether the trigger has shifted since the panel was positioned. */
+    _anchorMoved() {
+        const anchored = this._anchorRect;
+        if (!anchored) return true;
+        const rect = this._triggerEl?.getBoundingClientRect();
+        if (!rect) return true;
+        return Math.abs(rect.top - anchored.top) >= 1 || Math.abs(rect.left - anchored.left) >= 1;
+    }
+
+    /**
+     * Listen on every scroller that can move the trigger. Watching `window` in
+     * the capture phase is not enough: `scroll` does not cross a shadow
+     * boundary, so a scroller inside another component's shadow root (an
+     * `ol-carousel` viewport, say) would slide the trigger out from under a
+     * still-visible tooltip.
+     */
+    _bindScroll() {
+        this._scrollTargets = [window, ...this._scrollParents()];
+        for (const target of this._scrollTargets) {
+            target.addEventListener('scroll', this._onScroll, { capture: true, passive: true });
+        }
+    }
+
+    _unbindScroll() {
+        for (const target of this._scrollTargets) {
+            target.removeEventListener('scroll', this._onScroll, true);
+        }
+        this._scrollTargets = [];
+    }
+
+    /** The trigger's scrollable ancestors, walked up the flattened tree so the
+     *  chain passes through slots and out of shadow roots. */
+    _scrollParents() {
+        const parents = [];
+        let node = this._triggerEl && flattenedParent(this._triggerEl);
+        while (node && node !== document.documentElement) {
+            if (node.nodeType === Node.ELEMENT_NODE && isScrollable(node)) parents.push(node);
+            node = flattenedParent(node);
+        }
+        return parents;
     }
 
     // ── Show / Hide ──
@@ -275,9 +337,7 @@ export class OlTooltip extends LitElement {
         this._position = { top: -9999, left: -9999 };
         this._visible = true;
 
-        // Capture phase catches scrolls in any ancestor scroll container, not
-        // just the window. Passive since we never preventDefault.
-        window.addEventListener('scroll', this._onScroll, { capture: true, passive: true });
+        this._bindScroll();
 
         this.updateComplete.then(() => {
             if (!this._visible) return;
@@ -298,7 +358,8 @@ export class OlTooltip extends LitElement {
     _hide() {
         if (!this._visible) return;
 
-        window.removeEventListener('scroll', this._onScroll, true);
+        this._unbindScroll();
+        this._anchorRect = null;
         demoteFromTopLayer(this.shadowRoot?.querySelector('.tooltip'));
         this._visible = false;
         this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
@@ -401,6 +462,7 @@ export class OlTooltip extends LitElement {
         this._position = { top, left };
         this._actualSide = side;
         this._arrowOffset = arrowPos;
+        this._anchorRect = { top: anchor.top, left: anchor.left };
     }
 
     get _arrowStyle() {

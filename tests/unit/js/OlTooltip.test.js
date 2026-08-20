@@ -42,7 +42,7 @@ function installPopoverApiStub() {
  * module instance — and customElements.define is one-shot per name.
  */
 let tagSeq = 0;
-async function mountTooltip() {
+async function mountTooltip(parent = document.body) {
     const tag = `ol-tooltip-test-${++tagSeq}`;
     let el;
     await jest.isolateModulesAsync(async() => {
@@ -52,10 +52,29 @@ async function mountTooltip() {
         el.setAttribute('content', 'Tooltip text');
         el.setAttribute('show-delay', '0');
         el.innerHTML = '<button>Trigger</button>';
-        document.body.appendChild(el);
+        parent.appendChild(el);
     });
     await el.updateComplete;
     return el;
+}
+
+/**
+ * A stand-in for <ol-carousel>: a scroll container inside a shadow root, with
+ * the tooltip slotted into it from the light DOM.
+ * @returns {{host: HTMLElement, viewport: HTMLElement}}
+ */
+let hostSeq = 0;
+function mountScrollHost() {
+    const tag = `scroll-host-test-${++hostSeq}`;
+    customElements.define(tag, class extends HTMLElement {
+        connectedCallback() {
+            const root = this.attachShadow({ mode: 'open' });
+            root.innerHTML = '<div class="viewport" style="overflow-x: auto"><slot></slot></div>';
+        }
+    });
+    const host = document.createElement(tag);
+    document.body.appendChild(host);
+    return { host, viewport: host.shadowRoot.querySelector('.viewport') };
 }
 
 const tooltipOf = (el) => el.shadowRoot.querySelector('.tooltip');
@@ -132,5 +151,71 @@ describe('ol-tooltip top-layer promotion', () => {
         const el = await mountTooltip();
 
         expect(() => el._hide()).not.toThrow();
+    });
+});
+
+describe('ol-tooltip scroll dismissal', () => {
+    beforeEach(() => {
+        window.matchMedia = (query) => ({
+            matches: false,
+            media: query,
+            addEventListener() {},
+            removeEventListener() {},
+            addListener() {},
+            removeListener() {},
+        });
+        document.body.innerHTML = '';
+    });
+
+    /** jsdom has no layout, so the trigger reports whatever rect we hand it. */
+    function stubTriggerRect(el, rect) {
+        const trigger = el.querySelector('button');
+        const box = { top: 0, left: 0, width: 100, height: 20, ...rect };
+        trigger.getBoundingClientRect = () => ({ ...box, right: box.left + box.width, bottom: box.top + box.height });
+        return (next) => Object.assign(box, next);
+    }
+
+    it('hides when a scroller inside a shadow root moves the trigger', async() => {
+        // `scroll` is not composed, so a window-level capture listener never
+        // sees this one — the tooltip has to listen on the scroller itself or
+        // it strands above a cover that has already been swiped away.
+        const { host, viewport } = mountScrollHost();
+        const el = await mountTooltip(host);
+        const moveTrigger = stubTriggerRect(el, { top: 200, left: 300 });
+
+        el._show();
+        await settle(el);
+        expect(el._visible).toBe(true);
+
+        moveTrigger({ left: 40 });
+        viewport.dispatchEvent(new Event('scroll'));
+        expect(el._visible).toBe(false);
+    });
+
+    it('stays open when a scroll leaves the trigger where it was', async() => {
+        // A snap container settles back to the same offset and still emits
+        // scroll events; those must not dismiss a tooltip under the pointer.
+        const { host, viewport } = mountScrollHost();
+        const el = await mountTooltip(host);
+        stubTriggerRect(el, { top: 200, left: 300 });
+
+        el._show();
+        await settle(el);
+
+        viewport.dispatchEvent(new Event('scroll'));
+        expect(el._visible).toBe(true);
+    });
+
+    it('stops listening on the scroller once hidden', async() => {
+        const { host, viewport } = mountScrollHost();
+        const el = await mountTooltip(host);
+        const remove = jest.spyOn(viewport, 'removeEventListener');
+
+        el._show();
+        await settle(el);
+        el._hide();
+
+        expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function), true);
+        expect(el._scrollTargets).toEqual([]);
     });
 });
