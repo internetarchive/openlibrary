@@ -1,0 +1,31 @@
+{% import "design/_example.html.jinja" as ex %}
+{% import "design/components/_books_display_data.html.jinja" as demo %}
+{% macro demos() %}
+    <p class="ds-lead">
+        A titled set of books, switchable between views. Pass <code>books</code> to render a set you already have, or a Solr <code>query</code> to let the component fetch and page its own data and overlay the signed-in reader's shelf and rating. Per-book actions are handed to <a href="#book-actions">Book Actions</a>. <code>view</code> is an open enum — <code>covers</code> (an <code>ol-carousel</code> of cover cards) and <code>list</code> (full-width rows) today, more layouts later without changing the data path. Templates should go through the <code>BooksDisplay</code> macro, which fills in the translated <code>labels</code>.
+    </p>
+    {% call ex.example("Covers view", "The default. Cards show the cover, a corner save button and the access CTA (Read / Borrow / Preview / Find in a library) the server derived from lending state. Title, year and author come from the cover's hover card where the pointer can hover, and sit under the cover where it can't. With a query, nearing the end of the carousel loads the next page.",
+        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', title=_("Trending Books"), sort="trending", key="Demo")') %}
+        <ol-books-display books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="12" url="/search?q=subject_key:fiction" analytics-key="DesignDemo">
+        </ol-books-display>
+    {% endcall %}
+    {% call ex.example("List view", "Rows put the first-publish year beside the title and add stars, rating count and a split shelf button: the main part toggles the shown shelf, the chevron opens the actions popover. The footer pages with Show more / Collapse / See all.",
+        code='<ol-books-display view="list" query=\'subject_key:"fiction"\' title="Trending Books" sort="trending"></ol-books-display>') %}
+        <ol-books-display view="list" books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="4" url="/search?q=subject_key:fiction" analytics-key="DesignDemo">
+        </ol-books-display>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Demo data.</b> Both examples above pass a fixed <code>books</code> array — twelve real works covering every access CTA — so the gallery renders without a search index behind it. On a real page you pass <code>query</code> instead and the component fetches its own pages.
+        </p>
+        <p>
+            <b>Light DOM.</b> Like <code>ol-button</code>, this renders into the light DOM: <code>ol-carousel</code> needs the cards as real children, sitewide handlers (<code>.js-login-intent</code>, analytics) keep working, and its styles live in <code>static/css/components/ol-books-display.css</code> (class prefix <code>obd-</code>).
+        </p>
+        <p>
+            <b>Signed out.</b> Without <code>user-key</code> the corner button and shelf controls send the visitor to log in (remembering the intent), and Borrow CTAs carry the standard login-intent hook. No user-state request is made.
+        </p>
+        <p>
+            <b>Labels.</b> Every string is a key in the <code>labels</code> JSON attribute with an English default; <code>%(name)s</code>-style placeholders match the server-side i18n strings.
+        </p>
+    </div>
+{% endmacro %}
