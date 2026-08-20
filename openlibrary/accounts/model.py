@@ -106,26 +106,47 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     return access, secret
 
 
-def get_s3_keys(account, s3_cookie: str | None = None) -> dict | None:
-    """Return S3 keys from the session cookie, falling back to the account store.
+def get_s3_cookie() -> str | None:
+    """Read the raw "s3" cookie value from the current web.py request.
 
-    New logins set an encrypted ``s3`` cookie; this fallback handles sessions
-    that predate the cookie-based approach.
-
-    :param s3_cookie: The raw "s3" cookie value, for callers that don't run
-        under a web.py request (e.g. FastAPI, where web.cookies() can't be
-        read). web.py callers can omit this -- it defaults to web.cookies().
+    Must be called synchronously, on the request's own thread: web.ctx is
+    thread-local, so this returns nothing useful if called from a different
+    thread than the one handling the request -- e.g. after hopping through
+    openlibrary.utils.async_utils.AsyncBridge, which runs coroutines on its
+    own dedicated background thread. Callers that might run there (or aren't
+    running under web.py at all, e.g. FastAPI) must read the cookie
+    themselves, on the right thread, and pass the raw value to
+    parse_s3_cookie() -- a plain string -> dict function, with no thread or
+    framework dependency of its own.
     """
-    if s3_cookie is None:
-        s3_cookie = web.cookies().get("s3")
-    if s3_cookie:
-        try:
-            from cryptography.fernet import InvalidToken
+    return web.cookies().get("s3")
 
-            access, secret = decrypt_s3_keys(s3_cookie)
-            return {"access": access, "secret": secret}
-        except InvalidToken:
-            pass  # tampered or stale cookie; fall through to store
+
+def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
+    """Decrypt an "s3" cookie value (from get_s3_cookie(), or a FastAPI
+    request's cookies) into {"access": ..., "secret": ...}.
+
+    Returns None if there's no cookie, or it's tampered/stale -- callers
+    should fall back to get_s3_keys(account) in that case, for sessions
+    that predate the cookie-based approach.
+    """
+    if not s3_cookie:
+        return None
+    try:
+        from cryptography.fernet import InvalidToken
+
+        access, secret = decrypt_s3_keys(s3_cookie)
+        return {"access": access, "secret": secret}
+    except InvalidToken:
+        return None
+
+
+def get_s3_keys(account) -> dict | None:
+    """Return S3 keys from the account store.
+
+    This is the fallback for sessions that predate the cookie-based
+    approach; try parse_s3_cookie() on the request's "s3" cookie first.
+    """
     return site.get().store.get(account._key, {}).get("s3_keys")
 
 

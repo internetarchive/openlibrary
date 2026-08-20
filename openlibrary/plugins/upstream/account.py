@@ -32,7 +32,9 @@ from openlibrary.accounts import (
     audit_accounts,
     clear_cookies,
     encrypt_s3_keys,
+    get_s3_cookie,
     get_s3_keys,
+    parse_s3_cookie,
     valid_email,
 )
 from openlibrary.core import helpers as h
@@ -1419,7 +1421,7 @@ def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = get_s3_keys(account)
+    s3_keys = parse_s3_cookie(get_s3_cookie()) or get_s3_keys(account)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
     loan_history = s3_loan_api(

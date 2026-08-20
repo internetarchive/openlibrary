@@ -19,7 +19,7 @@ class TestBorrowPostCore:
     def test_not_found(self):
         with patch("openlibrary.plugins.upstream.borrow.site") as mock_site:
             mock_site.get.return_value.get.return_value = None
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams())
+            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert result == borrow.BorrowNotFound()
 
@@ -29,7 +29,7 @@ class TestBorrowPostCore:
 
         with patch("openlibrary.plugins.upstream.borrow.site") as mock_site:
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(action="locate"))
+            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(action="locate"), s3_cookie=None)
 
         assert result == borrow.BorrowRedirect("https://search.worldcat.org/title/1")
 
@@ -44,7 +44,7 @@ class TestBorrowPostCore:
             patch("openlibrary.plugins.upstream.borrow.accounts.get_current_user", return_value=None),
         ):
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams())
+            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert isinstance(result, borrow.BorrowRedirect)
         assert result.clear_login_cookie is True
@@ -72,7 +72,7 @@ class TestBorrowPostCore:
             ),
         ):
             mock_site.get.return_value.get.return_value = edition
-            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams())
+            result = borrow.borrow_post_core("/books/OL1M", borrow.BorrowParams(), s3_cookie=None)
 
         assert isinstance(result, borrow.BorrowRedirect)
         assert result.url == "/books/OL1M"
