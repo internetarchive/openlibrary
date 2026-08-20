@@ -15,17 +15,6 @@ def test_verify_hash():
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
-@mock.patch("openlibrary.accounts.model.web")
-def test_get_s3_cookie_reads_from_web_cookies(mock_web):
-    """get_s3_cookie() must be called on the request's own thread -- see its
-    docstring -- so it's a thin, directly-testable wrapper around
-    web.cookies()."""
-    mock_web.cookies.return_value.get.return_value = "encrypted-token"
-
-    assert model.get_s3_cookie() == "encrypted-token"
-    mock_web.cookies.return_value.get.assert_called_once_with("s3")
-
-
 @mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
 def test_parse_s3_cookie_decrypts_a_valid_token(mock_secret_key):
     token = model.encrypt_s3_keys("AKIA123", "secret456")
@@ -34,9 +23,6 @@ def test_parse_s3_cookie_decrypts_a_valid_token(mock_secret_key):
 
 
 def test_parse_s3_cookie_returns_none_when_absent():
-    """None is a legitimate "no cookie" result -- parse_s3_cookie() is a
-    plain string -> dict function with no thread or framework dependency,
-    so it's always safe to call with whatever a caller found (or didn't)."""
     assert model.parse_s3_cookie(None) is None
     assert model.parse_s3_cookie("") is None
 
@@ -44,21 +30,6 @@ def test_parse_s3_cookie_returns_none_when_absent():
 @mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
 def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
     assert model.parse_s3_cookie("not-a-real-token") is None
-
-
-@mock.patch("openlibrary.accounts.model.site")
-def test_get_s3_keys_reads_from_the_account_store(mock_site):
-    """get_s3_keys() is the account-store-only fallback and doesn't touch
-    cookies at all (see parse_s3_cookie() for that), so it has no thread
-    dependency and is safe to call from anywhere, including across
-    openlibrary.utils.async_utils.AsyncBridge's background thread."""
-    account = mock.Mock(_key="test/test")
-    mock_site.get.return_value.store.get.return_value = {"s3_keys": {"access": "stored", "secret": "stored-secret"}}
-
-    keys = model.get_s3_keys(account)
-
-    assert keys == {"access": "stored", "secret": "stored-secret"}
-    mock_site.get.return_value.store.get.assert_called_once_with("test/test", {})
 
 
 def test_xauth_http_error_without_json(monkeypatch):

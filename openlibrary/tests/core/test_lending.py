@@ -205,9 +205,9 @@ class TestGetLendingState:
 
 @pytest.mark.usefixtures("request_context_fixture")
 class TestGetLoanHistoryData:
-    """get_s3_keys() is annotated `dict | None` and legitimately returns None for
-    a patron with no `s3` cookie and no `s3_keys` in the account store.
-    s3_loan_api() then does `s3_keys | kwargs`, which raises
+    """parse_s3_cookie() is annotated `dict | None` and legitimately returns
+    None for a patron with no `s3` cookie. s3_loan_api() then does
+    `s3_keys | kwargs`, which raises
     TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'.
 
     This matters because /account/loans calls get_loan_history_data() directly
@@ -220,7 +220,8 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.get_s3_keys", return_value=None),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value=None),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):
@@ -244,7 +245,8 @@ class TestGetLoanHistoryData:
         response.json.return_value = {"history": {"items": []}}
         with (
             patch.object(lending.OpenLibraryAccount, "get_by_username", return_value=Mock()),
-            patch("openlibrary.core.lending.get_s3_keys", return_value={"access": "a", "secret": "s"}),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "a", "secret": "s"}),
             patch("openlibrary.core.lending.s3_loan_api", return_value=response) as mock_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}),
         ):

@@ -17,7 +17,7 @@ from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys, parse_s3_cookie
+from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
@@ -1151,17 +1151,16 @@ def get_loan_history_data(username: str, page: int) -> dict:
     """
     from infogami.utils.view import render
 
-    if not (account := OpenLibraryAccount.get_by_username(username)):
+    if not OpenLibraryAccount.get_by_username(username):
         raise render.notfound("Account not found for %s" % username, create=False)
 
-    s3_keys = parse_s3_cookie(web.cookies().get("s3")) or get_s3_keys(account)
+    s3_keys = parse_s3_cookie(web.cookies().get("s3"))
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 
-    # get_s3_keys() is `dict | None`: it returns None for a patron with no `s3`
-    # session cookie and no `s3_keys` in the account store. s3_loan_api() would
-    # then evaluate `s3_keys | kwargs` and raise
-    # `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
+    # parse_s3_cookie() is `dict | None`: it returns None for a patron with no
+    # `s3` session cookie. s3_loan_api() would then evaluate `s3_keys | kwargs`
+    # and raise `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
     # /account/loans renders this history inline with no try/except of its own,
     # so that TypeError takes down the whole page -- including the active-loans
     # table, which has nothing to do with IA history. Degrade to an empty

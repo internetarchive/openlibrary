@@ -3,7 +3,7 @@ FastAPI endpoint for /books/{key}/borrow.
 
 This is a parallel implementation alongside the legacy web.py version in
 openlibrary/plugins/upstream/borrow.py, which stays in place until this one
-is fully validated in production. Both share the borrow_post_core() outcome
+is fully validated in production. Both share the handle_borrow_async() outcome
 logic; only the redirect/flash/cookie/404 handling differs per framework.
 """
 
@@ -21,7 +21,7 @@ from openlibrary.plugins.upstream.borrow import (
     BorrowNotFound,
     BorrowParams,
     BorrowRedirect,
-    borrow_post_core_async,
+    handle_borrow_async,
 )
 
 router = APIRouter()
@@ -34,26 +34,21 @@ def _borrow_params_from_request(request: Request) -> BorrowParams:
     return BorrowParams.model_validate(request.query_params)
 
 
-@router.get("/books/{key_suffix:path}/borrow")
-@router.post("/books/{key_suffix:path}/borrow")
+@router.get("/books/{olid}/{slug}/borrow")
+@router.post("/books/{olid}/{slug}/borrow")
 async def borrow(
     request: Request,
-    key_suffix: str,
+    olid: str,
+    slug: str,
     params: Annotated[BorrowParams, Depends(_borrow_params_from_request)],
 ) -> Response:
     """Called when the user wants to borrow the edition. Mirrors the legacy
     web.py borrow.GET/POST handler, including the interstitial render branch
-    (see borrow_post_core's docstring for why that branch's behavior here is
+    (see handle_borrow_async's docstring for why that branch's behavior here is
     unverified).
-
-    web.py strips a URL's title slug (e.g. /books/OL1M/Some_Title -> /books/OL1M)
-    before dispatch, via ReadableUrlProcessor. Nothing does that for FastAPI
-    requests yet, so it's done here for editions specifically -- the OLID is
-    always the first path segment after /books/.
     """
-    olid = key_suffix.split("/", 1)[0]
     key = f"/books/{olid}"
-    result = await borrow_post_core_async(key, params, s3_cookie=request.cookies.get("s3"))
+    result = await handle_borrow_async(key, params, s3_cookie=request.cookies.get("s3"))
 
     match result:
         case BorrowNotFound():
