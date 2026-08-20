@@ -242,6 +242,7 @@ class BooknoteResponse(BaseModel):
 
 
 @router.post("/works/OL{work_id}W/notes", response_model=BooknoteResponse)
+@router.post("/works/OL{work_id}W/notes.json", response_model=BooknoteResponse)
 async def booknotes_post(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
