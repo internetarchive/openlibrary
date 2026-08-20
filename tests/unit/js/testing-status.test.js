@@ -11,6 +11,7 @@ import {
     patchAction,
     postAction,
     sprintf,
+    statusApiUrl,
     testingStatusUrl,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
@@ -40,6 +41,13 @@ describe('Testing Environment utils', () => {
         expect(testingStatusUrl({ hostname: 'localhost' })).toBe('/status/testing.json');
         expect(testingStatusUrl({ hostname: 'testing.openlibrary.org' })).toBe('/_fast/status/testing.json');
         expect(testingStatusUrl({ hostname: 'openlibrary.org' })).toBe('/status/testing.json');
+    });
+
+    test('statusApiUrl prefixes /_fast on testing for any path', () => {
+        expect(statusApiUrl('/status/prs', { hostname: 'localhost' })).toBe('/status/prs');
+        expect(statusApiUrl('/status/prs', { hostname: 'testing.openlibrary.org' })).toBe('/_fast/status/prs');
+        expect(statusApiUrl('/status/prs/123', { hostname: 'testing.openlibrary.org' })).toBe('/_fast/status/prs/123');
+        expect(statusApiUrl('/status/deploy', { hostname: 'openlibrary.org' })).toBe('/status/deploy');
     });
 
     test('fetches JSON with same-origin credentials', async() => {

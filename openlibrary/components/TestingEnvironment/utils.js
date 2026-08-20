@@ -81,15 +81,20 @@ export function decodeAndParseJSON(str) {
 }
 
 /**
- * Return the same-origin JSON endpoint for the current deployment.
+ * Prefix a /status/* path with /_fast on the testing site.
  *
  * The testing site exposes FastAPI behind /_fast; local development proxies
  * the unprefixed path through web.py to the FastAPI container.
  */
+export function statusApiUrl(path, location = window.location) {
+    return location.hostname === 'testing.openlibrary.org' ? `/_fast${path}` : path;
+}
+
+/**
+ * Return the same-origin JSON endpoint for the current deployment.
+ */
 export function testingStatusUrl(location) {
-    return location.hostname === 'testing.openlibrary.org'
-        ? '/_fast/status/testing.json'
-        : '/status/testing.json';
+    return statusApiUrl('/status/testing.json', location);
 }
 
 /**

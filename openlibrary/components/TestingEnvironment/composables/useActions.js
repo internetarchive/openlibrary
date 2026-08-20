@@ -1,5 +1,5 @@
 import { shallowRef } from 'vue';
-import { effectiveActive, patchAction, postAction } from '../utils.js';
+import { effectiveActive, patchAction, postAction, statusApiUrl } from '../utils.js';
 
 // The action endpoints answer {"ok": false, "error": "<code>"} for
 // business failures; map each code to the translated toast that
@@ -63,7 +63,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (busy.value) return false;
         busy.value = true;
         try {
-            const result = await patchAction(`/status/prs/${pr.pr}`, fields);
+            const result = await patchAction(statusApiUrl(`/status/prs/${pr.pr}`), fields);
             await loadStatus(false, false, false);
             if (result && result.ok === false) {
                 const key = ACTION_ERRORS[result.error] || 'actionFailed';
@@ -99,7 +99,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (busy.value) return;
         deploying.value = true;
         try {
-            await runAction('/status/deploy', {});
+            await runAction(statusApiUrl('/status/deploy'), {});
         } finally {
             deploying.value = false;
         }
@@ -109,7 +109,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (busy.value) return;
         refreshing.value = true;
         try {
-            await runAction('/status/refresh', {});
+            await runAction(statusApiUrl('/status/refresh'), {});
         } finally {
             refreshing.value = false;
         }
@@ -121,7 +121,7 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         if (!value) return;
         adding.value = true;
         try {
-            const result = await runAction('/status/prs', { prs: [value] });
+            const result = await runAction(statusApiUrl('/status/prs'), { prs: [value] });
             // A failed add keeps the input so it's obvious the PR didn't land.
             if (result && result.ok) {
                 addInput.value = '';
