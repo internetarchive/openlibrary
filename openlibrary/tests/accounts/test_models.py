@@ -48,9 +48,9 @@ def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
 
 @mock.patch("openlibrary.accounts.model.site")
 def test_get_s3_keys_reads_from_the_account_store(mock_site):
-    """get_s3_keys() is now the account-store-only fallback -- it no longer
-    touches cookies at all (see parse_s3_cookie() for that), so it has no
-    thread dependency and is safe to call from anywhere, including across
+    """get_s3_keys() is the account-store-only fallback and doesn't touch
+    cookies at all (see parse_s3_cookie() for that), so it has no thread
+    dependency and is safe to call from anywhere, including across
     openlibrary.utils.async_utils.AsyncBridge's background thread."""
     account = mock.Mock(_key="test/test")
     mock_site.get.return_value.store.get.return_value = {"s3_keys": {"access": "stored", "secret": "stored-secret"}}
