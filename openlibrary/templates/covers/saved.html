@@ -1,4 +1,4 @@
-$def with (image, showinfo=True, image_info=None)
+$def with (image, image_info, showinfo=True)
 
 $putctx("cssfile", "form")
 $putctx("show_ol_shell", False)
@@ -14,10 +14,7 @@ $putctx("show_ol_shell", False)
         <div class="meta">
             $if showinfo:
                 <strong>$_("Notes:")</strong><br/>
-                $if image_info is None:
-                    $ d = image.info()
-                $else:
-                    $ d = image_info
+                $ d = image_info
                 $if d:
                     $if d.author:
                         Uploaded by <a href="$d.author.key">$d.author.name</a> on $format_date(d.created)<br/>

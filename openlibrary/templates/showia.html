@@ -5,8 +5,6 @@ $ title = "MARC record from Internet Archive"
 $var title: $title
 
 <div id="contentHead">
-    $if edition is None and len(books):
-        $ edition = get_document(books[0])
     $if edition:
         <div class="breadcrumbs"><a href="$edition.key">$edition.title</a> /</div>
     <h1>$title</h1>

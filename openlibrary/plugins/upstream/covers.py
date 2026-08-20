@@ -193,7 +193,7 @@ class manage_covers(delegate.page):
             images = [int(id) for id in images[: images.index("-")]]
             self.save_images(book, images)
             cover = self.get_image(book)
-            return render_template("covers/saved", cover, showinfo=False)
+            return render_template("covers/saved", cover, image_info=None, showinfo=False)
         else:
             # ERROR
             pass

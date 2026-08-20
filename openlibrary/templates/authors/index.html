@@ -1,8 +1,6 @@
-$def with (results=None)
+$def with (results)
 
 $ q = query_param('q', '')
-$if results is None:
-    $ results = random_author_search()
 $var title: $_('Authors')
 
 <div id="contentHead">

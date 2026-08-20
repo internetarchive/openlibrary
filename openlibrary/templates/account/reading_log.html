@@ -1,8 +1,6 @@
 $def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything', meta_photo_url=None)
 
 $ username = user.key.split('/')[-1]
-$if meta_photo_url is None:
-    $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ readlog_keys = ['want-to-read', 'already-read', 'currently-reading', 'stopped-reading']
 

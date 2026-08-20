@@ -6,8 +6,7 @@ $var title: $_("Imports") / $date
     <h1><a href="/admin/imports">$_("Imports")</a> / $date</h1>
 
 <h2>$_("Summary")</h2>
-$if summary is None:
-    $ summary = stats.get_items_summary(date)
+
 
 <table class="changeHistory" style="width: 300px;">
     <tr><td>$_("Total")</td><td>$sum(summary['counts'].values())</td></tr>
@@ -31,8 +30,7 @@ $if summary is None:
             <th>$_("Added Time")</th>
             <th>$_("Imported Time")</th>
         </tr>
-        $if items is None:
-            $ items = stats.get_items(date)
+
         $for row in items:
             <tr>
                 <td>$loop.index</td>

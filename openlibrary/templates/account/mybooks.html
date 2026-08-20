@@ -87,8 +87,6 @@ $def empty_mobile_carousel(data):
         </li>
         <li>
           $ year = current_year()
-          $if current_goal is None:
-              $ current_goal = get_reading_goals(year=year)
           <div class="yearly-goal-section carousel-section-header">
             $# Hide "Set reading goal" call to action with hidden class if a goal has already been set:
             <div class="">
