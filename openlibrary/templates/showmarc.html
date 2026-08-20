@@ -1,4 +1,4 @@
-$def with (record, filename, begin, length, books)
+$def with (record, filename, begin, length, books, edition=None)
 $# Template entry point for MARC record's that are not amazon or IA.
 $# e.g. /show-records/marc_loc_2016/BooksAll.2016.part21.utf8:30354813:779
 $ format = query_param('format')
@@ -14,9 +14,10 @@ $ next_url = "../%s:%s:5" % (filename, begin + length)
 $var title: $title
 
 <div id="contentHead">
-    $if len(books):
-        $ e = get_document(books[0])
-        <div class="breadcrumbs"><a href="$e.key">$e.title</a> /</div>
+    $if edition is None and len(books):
+        $ edition = get_document(books[0])
+    $if edition:
+        <div class="breadcrumbs"><a href="$edition.key">$edition.title</a> /</div>
     <h1>$title</h1>
 </div>
 

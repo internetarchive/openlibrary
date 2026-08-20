@@ -1,13 +1,14 @@
-$def with (ia, record, books)
+$def with (ia, record, books, edition=None)
 $# e.g. /show-records/ia:isbn_9781555531799
 $ title = "MARC record from Internet Archive"
 
 $var title: $title
 
 <div id="contentHead">
-    $if len(books):
-        $ e = get_document(books[0])
-        <div class="breadcrumbs"><a href="$e.key">$e.title</a> /</div>
+    $if edition is None and len(books):
+        $ edition = get_document(books[0])
+    $if edition:
+        <div class="breadcrumbs"><a href="$edition.key">$edition.title</a> /</div>
     <h1>$title</h1>
 </div>
 <div id="contentBody">

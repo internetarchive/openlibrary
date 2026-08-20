@@ -75,7 +75,12 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showia", ia, record, books)
+        # Precompute the edition document for the breadcrumb
+        edition = books[0] if books else None
+        if edition:
+            edition = web.ctx.site.get(edition)
+
+        return app.render_template("showia", ia, record, books, edition=edition)
 
 
 class show_amazon(app.view):
@@ -144,4 +149,9 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showmarc", record, filename, offset, length, books)
+        # Precompute the edition document for the breadcrumb
+        edition = books[0] if books else None
+        if edition:
+            edition = web.ctx.site.get(edition)
+
+        return app.render_template("showmarc", record, filename, offset, length, books, edition=edition)

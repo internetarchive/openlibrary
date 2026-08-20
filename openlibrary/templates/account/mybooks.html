@@ -1,4 +1,4 @@
-$def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
+$def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={}, current_goal=None)
 
 $ username = user.key.split('/')[-1]
 
@@ -87,7 +87,8 @@ $def empty_mobile_carousel(data):
         </li>
         <li>
           $ year = current_year()
-          $ current_goal = get_reading_goals(year=year)
+          $if current_goal is None:
+              $ current_goal = get_reading_goals(year=year)
           <div class="yearly-goal-section carousel-section-header">
             $# Hide "Set reading goal" call to action with hidden class if a goal has already been set:
             <div class="">

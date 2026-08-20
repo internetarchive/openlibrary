@@ -13,6 +13,7 @@ from infogami.utils.view import public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
+    get_internet_archive_id,
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -28,6 +29,7 @@ from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
+from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
@@ -102,6 +104,9 @@ class mybooks_home(delegate.page):
 
             docs |= {"want-to-read": want_to_read, "currently-reading": currently_reading, "already-read": already_read, "stopped-reading": stopped_reading}
 
+        # Precompute reading goal for the mobile sidebar
+        current_goal = get_reading_goals(year=current_year()) if mb.is_my_page else None
+
         return render["account/mybooks"](
             mb.user,
             docs,
@@ -111,6 +116,7 @@ class mybooks_home(delegate.page):
             counts=mb.counts,
             lists=mb.lists,
             component_times=mb.component_times,
+            current_goal=current_goal,
         )
 
 
@@ -148,6 +154,7 @@ class mybooks_feed(delegate.page):
         if mb.is_my_page:
             docs = PubSub.get_feed(username)
             doc_count = len(docs)
+            meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
                 docs,
                 mb.key,
@@ -156,6 +163,7 @@ class mybooks_feed(delegate.page):
                 mb.is_my_page,
                 current_page=1,
                 user=mb.me,
+                meta_photo_url=meta_photo_url,
             )
             return mb.render(header_title=_("My Feed"), template=template)
         raise web.seeother(mb.user.key)
@@ -299,6 +307,7 @@ class mybooks_readinglog(delegate.page):
             mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
+        meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.user.key)
         return render["account/reading_log"](
             docs,
             mb.key,
@@ -314,6 +323,7 @@ class mybooks_readinglog(delegate.page):
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
+            meta_photo_url=meta_photo_url,
         )
 
 
