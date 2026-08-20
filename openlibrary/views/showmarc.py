@@ -80,7 +80,7 @@ class show_ia(app.view):
         if edition:
             edition = web.ctx.site.get(edition)
 
-        return app.render_template("showia", ia, record, books, edition=edition)
+        return app.render_template("showia", ia, record, edition=edition)
 
 
 class show_amazon(app.view):
@@ -154,4 +154,4 @@ class show_marc(app.view):
         if edition:
             edition = web.ctx.site.get(edition)
 
-        return app.render_template("showmarc", record, filename, offset, length, books, edition=edition)
+        return app.render_template("showmarc", record, filename, offset, length, edition=edition)
