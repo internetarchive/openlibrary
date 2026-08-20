@@ -35,10 +35,15 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async, get_works_data_async
+from openlibrary.plugins.openlibrary.api import (
+    bestbook_award,
+    get_bookshelves_summary,
+    get_editions_data,
+    get_price_data_async,
+    get_works_data_async,
+    process_work_bookshelves,
+)
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
-from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
-from openlibrary.plugins.openlibrary.api import work_editions as legacy_work_editions
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
@@ -275,7 +280,7 @@ async def booknotes_post(
 @router.get("/works/OL{work_id}W/bookshelves.json")
 def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
     """Get reading-log shelf counts for a work."""
-    return legacy_work_bookshelves.get_bookshelves_summary(work_id)
+    return get_bookshelves_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/bookshelves.json")
@@ -287,7 +292,7 @@ def post_work_bookshelves(
     dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
-    return legacy_work_bookshelves.process_work_bookshelves(
+    return process_work_bookshelves(
         username=user.username,
         work_id=work_id,
         bookshelf_id=bookshelf_id,
@@ -310,7 +315,7 @@ def work_editions(
     offset: Annotated[int, Query(ge=0, description="Number of editions to skip")] = 0,
 ) -> PaginatedGroupEntryResponse:
     """Get paginated editions for a work."""
-    data = legacy_work_editions.get_editions_data(
+    data = get_editions_data(
         f"/works/OL{work_id}W",
         url=request.url,
         limit=limit,
@@ -528,10 +533,6 @@ async def get_bestbook_count(
 ) -> BestbookCountResponse:
     """Get a count of bestbook awards matching the optional filters."""
     return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
-
-
-async def unlink_ia_ol():
-    pass
 
 
 class MonthlyLoginsResponse(BaseModel):
