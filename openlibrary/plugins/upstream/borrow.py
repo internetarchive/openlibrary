@@ -23,7 +23,12 @@ from infogami.utils.view import (
     public,
 )
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys
+from openlibrary.accounts.model import (
+    OpenLibraryAccount,
+    get_s3_cookie,
+    get_s3_keys,
+    parse_s3_cookie,
+)
 from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
@@ -155,7 +160,7 @@ class BorrowNotFound:
 BorrowOutcome = BorrowRedirect | BorrowNotFound
 
 
-async def borrow_post_core_async(key: str, i: BorrowParams, s3_cookie: str | None = None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
+async def borrow_post_core_async(key: str, i: BorrowParams, *, s3_cookie: str | None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
     """Shared /borrow POST logic used by both the legacy web.py handler
     (borrow.POST below, via the borrow_post_core sync bridge) and the FastAPI
     route in openlibrary/fastapi/borrow.py (which awaits this directly).
@@ -168,9 +173,14 @@ async def borrow_post_core_async(key: str, i: BorrowParams, s3_cookie: str | Non
     a render has no redirect/cookie side effect to bridge between frameworks,
     so it calls render_template() directly and returns the result as-is.
 
-    :param s3_cookie: The raw "s3" cookie value, passed through to
-        get_s3_keys() for FastAPI callers, which can't use web.cookies().
-        web.py callers can omit this.
+    :param s3_cookie: The raw "s3" cookie value (or None if absent), decrypted
+        below via parse_s3_cookie(). Required (not defaulted to reading it
+        here) since this function runs on the caller's own thread when
+        awaited directly (the FastAPI route), but NOT when called via the
+        borrow_post_core sync bridge below -- that runs it on AsyncBridge's
+        dedicated background thread, where web.ctx (thread-local) was never
+        populated. Both callers must read the cookie themselves, on their
+        own real request thread, before it's too late to do so correctly.
     """
     action = i.action
     edition = site.get().get(key)
@@ -230,7 +240,7 @@ async def borrow_post_core_async(key: str, i: BorrowParams, s3_cookie: str | Non
     if user:
         account = OpenLibraryAccount.get_by_email(user.email)
         ia_itemname = account.itemname if account else None
-        s3_keys = get_s3_keys(account, s3_cookie=s3_cookie)
+        s3_keys = parse_s3_cookie(s3_cookie) or get_s3_keys(account)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
@@ -331,7 +341,11 @@ class borrow(delegate.page):
             redirect="",
         )
         params = BorrowParams.from_web_input(i)
-        result = borrow_post_core(key, params)
+        # Read on this (real request) thread, before borrow_post_core hops
+        # onto the async bridge's own background thread -- see
+        # borrow_post_core_async's s3_cookie docstring for why.
+        s3_cookie = get_s3_cookie()
+        result = borrow_post_core(key, params, s3_cookie=s3_cookie)
 
         match result:
             case BorrowNotFound():

@@ -17,7 +17,7 @@ from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys
+from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
@@ -1154,7 +1154,7 @@ def get_loan_history_data(username: str, page: int) -> dict:
     if not (account := OpenLibraryAccount.get_by_username(username)):
         raise render.notfound("Account not found for %s" % username, create=False)
 
-    s3_keys = get_s3_keys(account)
+    s3_keys = parse_s3_cookie(web.cookies().get("s3")) or get_s3_keys(account)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 

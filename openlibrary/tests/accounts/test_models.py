@@ -15,43 +15,44 @@ def test_verify_hash():
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
-@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
-@mock.patch("openlibrary.accounts.model.site")
 @mock.patch("openlibrary.accounts.model.web")
-def test_get_s3_keys_uses_explicit_cookie_when_provided(mock_web, mock_site, mock_secret_key):
-    """An explicit s3_cookie (as FastAPI callers must pass, since they can't
-    use web.cookies()) takes precedence and skips web.cookies() entirely."""
-    account = mock.Mock(_key="test/test")
-    token = model.encrypt_s3_keys("AKIA123", "secret456")
+def test_get_s3_cookie_reads_from_web_cookies(mock_web):
+    """get_s3_cookie() must be called on the request's own thread -- see its
+    docstring -- so it's a thin, directly-testable wrapper around
+    web.cookies()."""
+    mock_web.cookies.return_value.get.return_value = "encrypted-token"
 
-    keys = model.get_s3_keys(account, s3_cookie=token)
-
-    assert keys == {"access": "AKIA123", "secret": "secret456"}
-    mock_web.cookies.assert_not_called()
+    assert model.get_s3_cookie() == "encrypted-token"
+    mock_web.cookies.return_value.get.assert_called_once_with("s3")
 
 
 @mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
-@mock.patch("openlibrary.accounts.model.site")
-@mock.patch("openlibrary.accounts.model.web")
-def test_get_s3_keys_defaults_to_web_cookies(mock_web, mock_site, mock_secret_key):
-    """web.py callers omit s3_cookie; it falls back to web.cookies()."""
-    account = mock.Mock(_key="test/test")
+def test_parse_s3_cookie_decrypts_a_valid_token(mock_secret_key):
     token = model.encrypt_s3_keys("AKIA123", "secret456")
-    mock_web.cookies.return_value.get.return_value = token
 
-    keys = model.get_s3_keys(account)
+    assert model.parse_s3_cookie(token) == {"access": "AKIA123", "secret": "secret456"}
 
-    assert keys == {"access": "AKIA123", "secret": "secret456"}
+
+def test_parse_s3_cookie_returns_none_when_absent():
+    """None is a legitimate "no cookie" result -- parse_s3_cookie() is a
+    plain string -> dict function with no thread or framework dependency,
+    so it's always safe to call with whatever a caller found (or didn't)."""
+    assert model.parse_s3_cookie(None) is None
+    assert model.parse_s3_cookie("") is None
+
+
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
+    assert model.parse_s3_cookie("not-a-real-token") is None
 
 
 @mock.patch("openlibrary.accounts.model.site")
-@mock.patch("openlibrary.accounts.model.web")
-def test_get_s3_keys_falls_back_to_store_when_no_cookie(mock_web, mock_site):
-    """Sessions predating the cookie-based approach fall back to the account
-    store, read via the shared `site` contextvar (not web.ctx.site, which
-    isn't populated for FastAPI requests)."""
+def test_get_s3_keys_reads_from_the_account_store(mock_site):
+    """get_s3_keys() is now the account-store-only fallback -- it no longer
+    touches cookies at all (see parse_s3_cookie() for that), so it has no
+    thread dependency and is safe to call from anywhere, including across
+    openlibrary.utils.async_utils.AsyncBridge's background thread."""
     account = mock.Mock(_key="test/test")
-    mock_web.cookies.return_value.get.return_value = None
     mock_site.get.return_value.store.get.return_value = {"s3_keys": {"access": "stored", "secret": "stored-secret"}}
 
     keys = model.get_s3_keys(account)
