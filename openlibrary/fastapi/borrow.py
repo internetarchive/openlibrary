@@ -43,12 +43,12 @@ async def borrow(
     params: Annotated[BorrowParams, Depends(_borrow_params_from_request)],
 ) -> Response:
     """Called when the user wants to borrow the edition. Mirrors the legacy
-    web.py borrow.GET/POST handler, including the interstitial render branch
-    (see handle_borrow_async's docstring for why that branch's behavior here is
-    unverified).
+    web.py borrow.GET/POST handler, passing fastapi=True so the interstitial
+    render branch knows to render itself for a standalone page (no site
+    stylesheet/JS bundle loaded) rather than for the web.py request cycle.
     """
     key = f"/books/{olid}"
-    result = await handle_borrow_async(key, params, s3_cookie=request.cookies.get("s3"))
+    result = await handle_borrow_async(key, params, s3_cookie=request.cookies.get("s3"), fastapi=True)
 
     match result:
         case BorrowNotFound():
@@ -73,8 +73,8 @@ async def borrow(
                 response.set_cookie("flash", quote(flash_json, safe=""))
             return response
         case _:
-            # The interstitial render_template() result, returned as-is. No
-            # FastAPI route renders a Templetor/Jinja template yet, so
-            # whether this works correctly outside the web.py request cycle
-            # is unverified.
+            # The interstitial render_template() result, returned as-is --
+            # its own inline style/script (from fastapi=True above) is all
+            # the presentation it gets, since no site stylesheet/JS bundle
+            # is loaded here.
             return HTMLResponse(str(result))
