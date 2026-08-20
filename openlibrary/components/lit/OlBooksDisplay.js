@@ -48,6 +48,7 @@ import './OlBookActions.js';
  */
 export const DEFAULT_LABELS = {
     ...ACTION_LABELS,
+    by: 'by %(name)s',
     viewAs: 'View as',
     covers: 'Covers',
     list: 'List',
@@ -487,7 +488,7 @@ export class OlBooksDisplay extends LitElement {
     }
 
     _actionsBook(doc) {
-        return { key: doc.key, title: doc.title, authors: doc.authors, editionKey: doc.edition_key };
+        return { key: doc.key, title: doc.title, firstPublishYear: doc.first_publish_year, editionKey: doc.edition_key };
     }
 
     _renderSaveButton(doc, shelf, rating) {

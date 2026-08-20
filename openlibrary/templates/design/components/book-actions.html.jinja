@@ -1,10 +1,10 @@
 {% import "design/_example.html.jinja" as ex %}
 {% macro demos() %}
     <p class="ds-lead">
-        The per-book action popover: the four reading-log shelves, a star rating, and an "Add to list" pane that slides in from the right with a filter and inline list creation. It composes <a href="#popover">Popover</a> for the shell; you supply the trigger. State is optimistic — the UI updates first and an error toast rolls back — and every accepted change fires <code>ol-book-state-change</code> so the surrounding card can update. Only render it for signed-in readers; send everyone else to log in.
+        The per-book action popover: the four reading-log shelves, a star rating, and an "Add to list" pane that slides in with a filter and inline list creation. It composes <a href="#popover">Popover</a> for the shell; you supply the trigger. State is optimistic — the UI updates first, an error toast rolls it back — and every accepted change fires <code>ol-book-state-change</code> so the surrounding card can follow. Only render it for signed-in readers; send everyone else to log in.
     </p>
-    {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). The trigger is whatever you slot in.",
-        code='<ol-book-actions user-key="/people/you">\n  <button slot="trigger">Save</button>\n</ol-book-actions>\n\n<script>\n  el.book = { key: "/works/OL27448W", title: "The Lord of the Rings",\n              authors: [{ name: "J.R.R. Tolkien" }] };\n  el.shelf = 1; // Want to Read\n</script>') %}
+    {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). The trigger is whatever you slot in. Signed in, this demo opens on your real state for The Lord of the Rings and saves every change to your account.",
+        code='<ol-book-actions user-key="/people/you">\n  <button slot="trigger">Save</button>\n</ol-book-actions>\n\n<script>\n  el.book = { key: "/works/OL27448W", title: "The Lord of the Rings",\n              firstPublishYear: 1954 };\n  el.shelf = 1; // Want to Read\n</script>') %}
         <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}">
             <ol-button slot="trigger">
                 Save
@@ -14,7 +14,7 @@
         <script>
             (function () {
                 const el = document.getElementById('demo-book-actions');
-                el.book = { key: '/works/OL27448W', title: 'The Lord of the Rings', authors: [{ name: 'J.R.R. Tolkien' }] };
+                el.book = { key: '/works/OL27448W', title: 'The Lord of the Rings', firstPublishYear: 1954 };
                 el.addEventListener('ol-book-state-change', (e) => {
                     document.getElementById('demo-book-actions-out').textContent = JSON.stringify(e.detail);
                 });
@@ -40,9 +40,6 @@
     </p>
     <p>
         <b>Escape.</b> In the lists pane, Escape goes back to the main pane; a second Escape closes the popover.
-    </p>
-    <p>
-        <b>This demo is live.</b> It opens on your real shelf and rating for <i>The Lord of the Rings</i>, and every change here is saved to your account.
     </p>
 </div>
 {% endmacro %}

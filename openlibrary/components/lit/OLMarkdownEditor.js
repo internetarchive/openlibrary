@@ -68,6 +68,14 @@ export class OLMarkdownEditor extends LitElement {
     };
 
     static styles = css`
+    :host {
+      display: block;
+      /* Code blocks can't wrap, so the host's automatic minimum size as a flex
+         item is the widest code line — enough to push a narrow container wide.
+         Fit the container instead and let the code block scroll itself. */
+      min-width: 0;
+    }
+
     .loading-placeholder {
       color: var(--light-grey);
       pointer-events: none;

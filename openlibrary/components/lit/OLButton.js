@@ -84,7 +84,7 @@ const PROXY_FORM_ATTRS = ['formaction', 'formenctype', 'formmethod', 'formnovali
  *
  * @slot - Default slot carries the button label.
  * @slot icon-start - Leading icon (an inline SVG). Sized to the button's size
- *   (14/16/18px) and separated from the label by a 4px gap only when filled.
+ *   (14/16/18px) and separated from the label by an 8px gap only when filled.
  * @slot icon-end - Trailing icon, same treatment. Not for the disclosure
  *   chevron, which is automatic on popover triggers.
  *
@@ -363,7 +363,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: var(--spacing-2xs);
+            gap: var(--spacing-inline-md);
             transition:
                 opacity 0.24s ease,
                 transform 0.24s ease,

@@ -17,7 +17,7 @@ import './OlPopover.js';
  *
  * @element ol-book-actions
  *
- * @prop {Object} book     - `{ key, title, authors: [{name}], editionKey? }`
+ * @prop {Object} book     - `{ key, title, firstPublishYear?, editionKey? }`
  * @prop {Number} shelf    - Current shelf id (1–4) or null
  * @prop {Number} rating   - Current rating (1–5) or null
  * @prop {String} userKey  - "/people/<username>", needed to create lists
@@ -30,7 +30,6 @@ import './OlPopover.js';
  * @slot trigger - The button that opens the popover.
  */
 export const DEFAULT_LABELS = {
-    by: 'by %(name)s',
     actionsFor: 'Actions for %(title)s',
     wantToRead: 'Want to Read',
     currentlyReading: 'Currently Reading',
@@ -99,8 +98,9 @@ export class OlBookActions extends LitElement {
         }
 
         .panel {
+            /* A fixed measure: the popover shrink-wraps its content, and the
+               nowrap title would otherwise size the panel per book. */
             width: 300px;
-            max-width: 90vw;
             color: var(--color-text);
             font-size: var(--font-size-body-medium);
             /* clip, not hidden: focusing the off-screen pane must not scroll
@@ -109,10 +109,17 @@ export class OlBookActions extends LitElement {
             border-radius: var(--border-radius-overlay);
         }
 
+        /* ol-popover becomes a full-bleed bottom tray here (keep in sync with
+           its 767px breakpoint), so fill it instead of leaving a dead strip. */
+        @media (max-width: 767px) {
+            .panel {
+                width: 100%;
+            }
+        }
+
         .header {
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
             border-bottom: var(--border-divider);
-            font-size: var(--font-size-label-medium);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -122,7 +129,7 @@ export class OlBookActions extends LitElement {
             font-weight: 700;
         }
 
-        .header .byline {
+        .header .year {
             color: var(--color-text-secondary);
         }
 
@@ -176,7 +183,7 @@ export class OlBookActions extends LitElement {
         .row {
             display: flex;
             align-items: center;
-            gap: var(--spacing-inline-sm);
+            gap: var(--spacing-inline-md);
             width: 100%;
             box-sizing: border-box;
             margin: 0;
@@ -194,7 +201,7 @@ export class OlBookActions extends LitElement {
             width: 20px;
             height: 20px;
             flex: 0 0 20px;
-            color: var(--color-text-secondary);
+            color: var(--color-icon-muted);
         }
 
         .row .label {
@@ -208,7 +215,7 @@ export class OlBookActions extends LitElement {
         .row .trail {
             width: 16px;
             height: 16px;
-            color: var(--color-text-muted);
+            color: var(--color-icon-muted);
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -511,11 +518,11 @@ export class OlBookActions extends LitElement {
     }
 
     _renderMain() {
-        const authors = (this.book.authors || []).map(a => a.name).filter(Boolean).join(', ');
+        const year = this.book.firstPublishYear;
         return html`
             <div class="header">
                 <strong>${this.book.title}</strong>
-                ${authors ? html` <span class="byline">${this.t('by', { name: authors })}</span>` : nothing}
+                ${year ? html` <span class="year">(${year})</span>` : nothing}
             </div>
             <div class="group" role="group">
                 ${SHELF_ROWS.map(row => html`

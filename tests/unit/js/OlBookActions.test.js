@@ -6,7 +6,7 @@
 import { OlBookActions, resetListsCache, fmt } from '../../../openlibrary/components/lit/OlBookActions.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 
-const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', authors: [{ name: 'Andy Weir' }], editionKey: 'OL9M' };
+const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear: 2021, editionKey: 'OL9M' };
 
 let calls;
 let listData;
@@ -77,7 +77,7 @@ describe('ol-book-actions shelves', () => {
     test('renders header and four shelf rows with the current one checked', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING });
-        expect(q(el, '.header').textContent.replace(/\s+/g, ' ').trim()).toBe('Project Hail Mary by Andy Weir');
+        expect(q(el, '.header').textContent.replace(/\s+/g, ' ').trim()).toBe('Project Hail Mary (2021)');
         const rows = qa(el, '.row[role="menuitemradio"]');
         expect(rows.map(r => r.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false', 'false']);
     });

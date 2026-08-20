@@ -42,10 +42,6 @@ ol-books-display:not(:defined) {
   text-decoration: none;
 }
 
-.obd .obd-row__author .obd-link {
-  color: var(--color-link);
-}
-
 .obd .obd-link:hover {
   text-decoration: underline;
 }
@@ -322,8 +318,8 @@ ol-books-display:not(:defined) {
 .obd-save,
 .obd-cover > ol-book-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 4px;
+  right: 4px;
 }
 
 .obd-save {
@@ -338,6 +334,7 @@ ol-books-display:not(:defined) {
   color: var(--color-text);
   cursor: pointer;
   --control-highlight-strength: 35%;
+  transition: transform 0.08s;
 }
 
 /* The visible circle is smaller than the 32px hit target. Same inset
@@ -357,7 +354,6 @@ ol-books-display:not(:defined) {
         var(--white) var(--control-highlight-strength),
         var(--control-surface)
       );
-  transition: transform 0.08s;
 }
 
 .obd-save .obd-icon {
@@ -366,11 +362,11 @@ ol-books-display:not(:defined) {
   height: 14px;
 }
 
-.obd-save:hover::before {
+.obd-save:hover {
   transform: scale(1.08);
 }
 
-.obd-save:active::before {
+.obd-save:active {
   transform: scale(0.95);
 }
 
@@ -597,12 +593,28 @@ ol-books-display:not(:defined) {
     width: auto;
   }
 
+  /* Share the row by content width, not equal halves — an equal split
+     ellipsizes "Want to Read" while a short CTA sits in dead space. */
   .obd-row__actions > * {
-    flex: 1;
+    flex: 1 1 auto;
+  }
+
+  .obd-row__cta {
+    width: auto;
   }
 
   .obd-row__title,
   .obd-row__year {
     font-size: var(--font-size-title-small);
+  }
+
+  /* Cards are narrow here, and the meta only shows on touch. */
+  .obd .obd-card__title,
+  .obd-card__year {
+    font-size: var(--font-size-label-medium);
+  }
+
+  .obd-card__author {
+    font-size: var(--font-size-label-small);
   }
 }
