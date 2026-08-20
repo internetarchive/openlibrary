@@ -1,4 +1,5 @@
 import { html, svg } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 /**
  * Lucide glyphs used by the books-display components, inlined until the
@@ -27,10 +28,11 @@ const PATHS = {
 
 /**
  * @param {keyof typeof PATHS} name
- * @param {{fill?: string, strokeWidth?: number, cls?: string}} [opts]
+ * @param {{fill?: string, strokeWidth?: number, cls?: string, slot?: string}} [opts]
+ *     `slot` assigns the glyph to a named slot, e.g. ol-button's `icon-end`.
  */
-export function icon(name, { fill = 'none', strokeWidth = 2, cls = 'obd-icon' } = {}) {
-    return html`<svg class=${cls} viewBox="0 0 24 24" fill=${fill} stroke="currentColor" stroke-width=${strokeWidth} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
+export function icon(name, { fill = 'none', strokeWidth = 2, cls = 'obd-icon', slot } = {}) {
+    return html`<svg class=${cls} slot=${ifDefined(slot)} viewBox="0 0 24 24" fill=${fill} stroke="currentColor" stroke-width=${strokeWidth} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name]}</svg>`;
 }
 
 export const ICON_NAMES = Object.keys(PATHS);

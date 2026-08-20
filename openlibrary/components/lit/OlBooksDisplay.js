@@ -6,6 +6,7 @@ import { fetchBooks, fetchUserState, setShelf, queuePendingAction, redirectToLog
 import { trackEvent } from './utils/analytics.js';
 import { fmt, DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import { showToast } from './OlToastRegion.js';
+import './OLButton.js';
 import './OlCarousel.js';
 import './OlTooltip.js';
 import './OlSegmentedControl.js';
@@ -285,79 +286,6 @@ export class OlBooksDisplay extends LitElement {
             white-space: nowrap;
         }
 
-        /* Mirrors ol-button (see ol-button.css): raised shadow + inset specular
-           edge, primary lightens on hover, secondary darkens. */
-        .obd-cta {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-inline-xs);
-            box-sizing: border-box;
-            height: var(--control-height-medium);
-            padding: 0 var(--spacing-md);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            font-family: var(--font-family-button);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-control);
-            white-space: nowrap;
-            text-decoration: none;
-            cursor: pointer;
-            user-select: none;
-            background-color: var(--white);
-            color: var(--dark-grey);
-            --control-highlight-strength: 35%;
-            box-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0
-                    color-mix(
-                        in srgb,
-                        var(--white) var(--control-highlight-strength),
-                        var(--control-surface)
-                    );
-            transition: transform 0.08s;
-        }
-
-        .obd-cta:active {
-            transform: scale(0.97);
-        }
-
-        .obd-cta--primary {
-            background-color: var(--primary-blue);
-            border-color: var(--primary-blue);
-            color: var(--white);
-            --control-surface: var(--primary-blue);
-            --control-highlight-strength: 18%;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .obd-cta--primary:hover {
-                filter: brightness(1.1);
-            }
-
-            .obd-cta--secondary:hover {
-                background-color: var(--color-control-hover);
-                border-color: var(--light-grey);
-                --control-surface: var(--color-control-hover);
-            }
-        }
-
-        .obd-cta--static {
-            color: var(--color-text-muted);
-            cursor: default;
-        }
-
-        .obd-cta:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: var(--spacing-3xs);
-        }
-
-        .obd-cta__ext {
-            width: 14px;
-            height: 14px;
-        }
-
         .obd-cta-form {
             margin: 0;
         }
@@ -431,7 +359,6 @@ export class OlBooksDisplay extends LitElement {
         }
 
         .obd-card__cta {
-            width: 100%;
             margin-top: auto;
         }
 
@@ -607,10 +534,6 @@ export class OlBooksDisplay extends LitElement {
             width: 200px;
         }
 
-        .obd-row__cta {
-            width: 100%;
-        }
-
         /* Split shelf button: main toggles the shown shelf, chevron opens the menu. */
         .obd-shelf {
             display: flex;
@@ -724,7 +647,15 @@ export class OlBooksDisplay extends LitElement {
                 flex: 1 1 auto;
             }
 
-            .obd-row__cta {
+            /* Undo full-width so the CTA sizes to its label: both the host
+               (its flex-basis) and the control ol-button stretches inside it.
+               Left on, the CTA takes ~2/3 of the row and ellipsizes the shelf
+               button beside it. */
+            .obd-row__cta[full-width] {
+                width: auto;
+            }
+
+            .obd-row__cta[full-width]::part(control) {
                 width: auto;
             }
 
@@ -1074,28 +1005,32 @@ export class OlBooksDisplay extends LitElement {
         const access = doc.access || {};
         const label = this.t(CTA_LABEL[access.cta] || 'notInLibrary');
         const primary = ['read', 'audiobook', 'borrow', 'special_access', 'preview'].includes(access.cta);
-        const classes = { 'obd-cta': true, 'obd-cta--primary': primary, 'obd-cta--secondary': !primary, [cls]: true };
+        const variant = primary ? 'primary' : 'secondary';
 
+        // No URL: the CTA is reporting a state the reader can't act on
+        // ("Checked Out", "Not in Library") rather than offering a way in.
         if (!access.url) {
-            return html`<span class="${classMap({ ...classes, 'obd-cta--static': true })}">${label}</span>`;
+            return html`<ol-button class=${cls} variant=${variant} full-width disabled>${label}</ol-button>`;
         }
         if (access.method === 'post') {
             return html`
                 <form method="POST" action=${access.url} class="obd-cta-form">
                     <input type="hidden" name="action" value="join-waitinglist" />
-                    <button type="submit" class=${classMap(classes)} @click=${() => this._track('CTAClick')}>${label}</button>
+                    <ol-button class=${cls} type="submit" variant=${variant} full-width @click=${() => this._track('CTAClick')}>${label}</ol-button>
                 </form>
             `;
         }
         const loginIntent = access.login_intent && !this.userKey;
         return html`
-            <a
-                class=${classMap(classes)}
+            <ol-button
+                class=${cls}
+                variant=${variant}
+                full-width
                 href=${access.url}
                 target=${ifDefined(access.external ? '_blank' : undefined)}
                 rel=${ifDefined(access.external ? 'noopener noreferrer' : undefined)}
                 @click=${() => this._onCtaClick(doc, label, loginIntent)}
-            >${label}${access.external ? icon('arrow-up-right', { cls: 'obd-icon obd-cta__ext' }) : nothing}</a>
+            >${label}${access.external ? icon('arrow-up-right', { slot: 'icon-end' }) : nothing}</ol-button>
         `;
     }
 

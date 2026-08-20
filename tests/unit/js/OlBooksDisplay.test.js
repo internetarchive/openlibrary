@@ -121,16 +121,16 @@ describe('ol-books-display data flow', () => {
     test('renders label-free CTA kinds with translated labels', async() => {
         stubFetch();
         const el = await mount({ labels: { borrow: 'Emprunter' } });
-        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
+        const cta = el.renderRoot.querySelector('.obd-card__cta');
         expect(cta.textContent.trim()).toBe('Emprunter');
-        expect(cta.classList.contains('obd-cta--primary')).toBe(true);
+        expect(cta.getAttribute('variant')).toBe('primary');
         expect(cta.getAttribute('href')).toBe('/borrow/ia/x0?ref=ol');
     });
 
     test('logged out: a borrow CTA queues the pending action and "+" has no popover', async() => {
         stubFetch();
         const el = await mount();
-        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
+        const cta = el.renderRoot.querySelector('.obd-card__cta');
         // Still an ordinary link to the borrow URL — only the cookie is ours.
         cta.addEventListener('click', e => e.preventDefault());
         cta.click();
@@ -152,7 +152,7 @@ describe('ol-books-display data flow', () => {
         expect(actions[1].rating).toBe(5);
         expect(actions[1].querySelector('.obd-save').classList.contains('obd-save--on')).toBe(true);
         expect(actions[0].querySelector('.obd-save').classList.contains('obd-save--on')).toBe(false);
-        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
+        const cta = el.renderRoot.querySelector('.obd-card__cta');
         cta.addEventListener('click', e => e.preventDefault());
         cta.click();
         expect(pendingAction()).toBeNull();
@@ -222,6 +222,16 @@ describe('ol-books-display cover cards', () => {
         expect(tip.querySelector('.obd-save')).toBeNull();
         expect(tip.querySelector('[slot="content"]').textContent.replace(/\s+/g, ' ').trim()).toBe('Book 0 (2000) Author 0');
         expect(card.querySelector('.obd-card__heading').textContent.replace(/\s+/g, ' ').trim()).toBe('Book 0 (2000)');
+    });
+
+    test('an unavailable book shows a disabled CTA with no link', async() => {
+        stubFetch();
+        const el = await mount({ query: '', books: [doc(1, { access: { cta: 'checked_out', url: null, login_intent: false } })] });
+        const cta = el.renderRoot.querySelector('.obd-card__cta');
+        expect(cta.textContent.trim()).toBe('Checked Out');
+        expect(cta.getAttribute('variant')).toBe('secondary');
+        expect(cta.hasAttribute('disabled')).toBe(true);
+        expect(cta.hasAttribute('href')).toBe(false);
     });
 
     test('a book with no year shows the title alone', async() => {
