@@ -106,21 +106,27 @@ def decrypt_s3_keys(token: str) -> tuple[str, str]:
     return access, secret
 
 
-def get_s3_keys(account) -> dict | None:
+def get_s3_keys(account, s3_cookie: str | None = None) -> dict | None:
     """Return S3 keys from the session cookie, falling back to the account store.
 
     New logins set an encrypted ``s3`` cookie; this fallback handles sessions
     that predate the cookie-based approach.
+
+    :param s3_cookie: The raw "s3" cookie value, for callers that don't run
+        under a web.py request (e.g. FastAPI, where web.cookies() can't be
+        read). web.py callers can omit this -- it defaults to web.cookies().
     """
-    if token := web.cookies().get("s3"):
+    if s3_cookie is None:
+        s3_cookie = web.cookies().get("s3")
+    if s3_cookie:
         try:
             from cryptography.fernet import InvalidToken
 
-            access, secret = decrypt_s3_keys(token)
+            access, secret = decrypt_s3_keys(s3_cookie)
             return {"access": access, "secret": secret}
         except InvalidToken:
             pass  # tampered or stale cookie; fall through to store
-    return web.ctx.site.store.get(account._key, {}).get("s3_keys")
+    return site.get().store.get(account._key, {}).get("s3_keys")
 
 
 def create_verification_cookie_value() -> str:

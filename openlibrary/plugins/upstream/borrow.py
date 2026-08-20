@@ -33,6 +33,7 @@ from openlibrary.core import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.borrow")
@@ -154,9 +155,10 @@ class BorrowNotFound:
 BorrowOutcome = BorrowRedirect | BorrowNotFound
 
 
-def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
+async def borrow_post_core_async(key: str, i: BorrowParams, s3_cookie: str | None = None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
     """Shared /borrow POST logic used by both the legacy web.py handler
-    (borrow.POST below) and the FastAPI route in openlibrary/fastapi/borrow.py.
+    (borrow.POST below, via the borrow_post_core sync bridge) and the FastAPI
+    route in openlibrary/fastapi/borrow.py (which awaits this directly).
 
     Returns an outcome object describing what should happen next, rather than
     performing redirects/flash messages/cookies directly, since those need to
@@ -165,6 +167,10 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
     on it). The open-access "interstitial" render below is the one exception:
     a render has no redirect/cookie side effect to bridge between frameworks,
     so it calls render_template() directly and returns the result as-is.
+
+    :param s3_cookie: The raw "s3" cookie value, passed through to
+        get_s3_keys() for FastAPI callers, which can't use web.cookies().
+        web.py callers can omit this.
     """
     action = i.action
     edition = site.get().get(key)
@@ -201,7 +207,7 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
 
     # Make a call to availability v2 update the subjects according
     # to result if `open`, redirect to bookreader
-    response = lending.get_availability("identifier", [edition.ocaid])
+    response = await lending.get_availability_async("identifier", [edition.ocaid])
     availability = response.get(edition.ocaid)
     if availability and availability["status"] == "open":
         from openlibrary.plugins.openlibrary.code import is_bot
@@ -224,7 +230,7 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
     if user:
         account = OpenLibraryAccount.get_by_email(user.email)
         ia_itemname = account.itemname if account else None
-        s3_keys = get_s3_keys(account)
+        s3_keys = get_s3_keys(account, s3_cookie=s3_cookie)
         lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
     if not user or not ia_itemname or not s3_keys:
         return_path = f"{edition_redirect}/borrow?action={action}"
@@ -235,7 +241,7 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
 
     if action == "return":
         with contextlib.suppress(lending.PatronAccessException):
-            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action="return_loan")
+            await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="return_loan")
 
         edition.update_loan_status()
         user.update_loan_status()
@@ -249,24 +255,24 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
         return BorrowRedirect(edition_redirect, flash=flash)
     elif action == "join-waitinglist":
         lending.get_cached_user_waiting_loans.memcache_delete(user.key, {})  # invalidate cache for user waiting loans
-        lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action="join_waitlist")
+        await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="join_waitlist")
         stats.increment("ol.loans.joinWaitlist")
         return BorrowRedirect(edition_redirect, permanent=True)
     elif action == "leave-waitinglist":
         lending.get_cached_user_waiting_loans.memcache_delete(user.key, {})  # invalidate cache for user waiting loans
-        lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action="leave_waitlist")
+        await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="leave_waitlist")
         stats.increment("ol.loans.leaveWaitlist")
         return BorrowRedirect(edition_redirect, permanent=True)
 
     elif action in ("borrow", "browse") and not user.has_borrowed(edition):
-        borrow_access = user_can_borrow_edition(user, edition)
+        borrow_access = await user_can_borrow_edition_async(user, edition)
 
         if not (s3_keys and borrow_access):
             stats.increment("ol.loans.outdatedAvailabilityStatus")
             return BorrowRedirect(error_redirect)
 
         try:
-            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action="%s_book" % borrow_access)
+            await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="%s_book" % borrow_access)
             stats.increment("ol.loans.bookreader")
             stats.increment("ol.loans.%s" % borrow_access)
         except lending.PatronAccessException:
@@ -300,6 +306,11 @@ def borrow_post_core(key: str, i: BorrowParams) -> BorrowOutcome:  # noqa: PLR09
 
     # Action not recognized
     return BorrowRedirect(error_redirect)
+
+
+# Sync wrapper so web.py's borrow.POST (below) can call this without needing
+# to be async itself; the FastAPI route awaits borrow_post_core_async directly.
+borrow_post_core = async_bridge.wrap(borrow_post_core_async)
 
 
 # Handler for /books/{bookid}/{title}/borrow
@@ -498,13 +509,13 @@ def is_loaned_out_from_status(status) -> bool:
     return status and status["returned"] != "T"
 
 
-def user_can_borrow_edition(user, edition) -> Literal["borrow", "browse", False]:
+async def user_can_borrow_edition_async(user, edition) -> Literal["borrow", "browse", False]:
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
     patron is not eligible.
 
     """
-    lending_st = lending.get_groundtruth_availability(edition.ocaid, {})
+    lending_st = await lending.get_groundtruth_availability_async(edition.ocaid, {})
 
     book_is_lendable = lending_st.get("is_lendable", False)
     book_is_waitlistable = lending_st.get("available_to_waitlist", False)

@@ -15,6 +15,51 @@ def test_verify_hash():
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+@mock.patch("openlibrary.accounts.model.site")
+@mock.patch("openlibrary.accounts.model.web")
+def test_get_s3_keys_uses_explicit_cookie_when_provided(mock_web, mock_site, mock_secret_key):
+    """An explicit s3_cookie (as FastAPI callers must pass, since they can't
+    use web.cookies()) takes precedence and skips web.cookies() entirely."""
+    account = mock.Mock(_key="test/test")
+    token = model.encrypt_s3_keys("AKIA123", "secret456")
+
+    keys = model.get_s3_keys(account, s3_cookie=token)
+
+    assert keys == {"access": "AKIA123", "secret": "secret456"}
+    mock_web.cookies.assert_not_called()
+
+
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+@mock.patch("openlibrary.accounts.model.site")
+@mock.patch("openlibrary.accounts.model.web")
+def test_get_s3_keys_defaults_to_web_cookies(mock_web, mock_site, mock_secret_key):
+    """web.py callers omit s3_cookie; it falls back to web.cookies()."""
+    account = mock.Mock(_key="test/test")
+    token = model.encrypt_s3_keys("AKIA123", "secret456")
+    mock_web.cookies.return_value.get.return_value = token
+
+    keys = model.get_s3_keys(account)
+
+    assert keys == {"access": "AKIA123", "secret": "secret456"}
+
+
+@mock.patch("openlibrary.accounts.model.site")
+@mock.patch("openlibrary.accounts.model.web")
+def test_get_s3_keys_falls_back_to_store_when_no_cookie(mock_web, mock_site):
+    """Sessions predating the cookie-based approach fall back to the account
+    store, read via the shared `site` contextvar (not web.ctx.site, which
+    isn't populated for FastAPI requests)."""
+    account = mock.Mock(_key="test/test")
+    mock_web.cookies.return_value.get.return_value = None
+    mock_site.get.return_value.store.get.return_value = {"s3_keys": {"access": "stored", "secret": "stored-secret"}}
+
+    keys = model.get_s3_keys(account)
+
+    assert keys == {"access": "stored", "secret": "stored-secret"}
+    mock_site.get.return_value.store.get.assert_called_once_with("test/test", {})
+
+
 def test_xauth_http_error_without_json(monkeypatch):
     xauth = InternetArchiveAccount.xauth
     resp = Response()
