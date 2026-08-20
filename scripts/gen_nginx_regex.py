@@ -45,16 +45,21 @@ EXCLUDE_PATHS: set[str] = {
 
 # FastAPI routes that never appear in the OpenAPI schema because they're
 # registered with ``include_in_schema=False`` (e.g. bare aliases of
-# ``.json`` endpoints). The generator can't discover these from
-# ``openapi.json``, so they're listed here explicitly. Keep this in sync
-# with ``include_in_schema=False`` decorators/routers in
-# ``openlibrary/fastapi/``; the script warns if an entry here shows up in
-# the spec anyway (meaning it's no longer hidden and the entry is stale).
+# ``.json`` endpoints) or because they're built-in framework routes.
+# The generator can't discover these from ``openapi.json``, so they're
+# listed here explicitly. Keep this in sync with ``include_in_schema=False``
+# decorators/routers in ``openlibrary/fastapi/``; the script warns if an
+# entry here shows up in the spec anyway (meaning it's no longer hidden
+# and the entry is stale).
 HIDDEN_PATHS: set[str] = {
     "/api/books",  # alias of /api/books.json (books.py)
     "/api/volumes/{brief_or_full}/json/{req}",  # alias of .../json/{req}.json (books.py)
     "/api/volumes/{brief_or_full}/{idtype}/{idval}",  # alias of .../{idtype}/{idval}.json (books.py)
     "/api/link",  # internal POST endpoint (link.py)
+    # FastAPI built-in discovery/documentation routes
+    "/docs",
+    "/redoc",
+    "/openapi.json",
 }
 
 # Drop any path whose template starts with one of these prefixes. Used
