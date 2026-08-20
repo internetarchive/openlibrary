@@ -37,6 +37,10 @@ DEFAULT_OPENAPI_URL = "http://localhost:18080/openapi.json"
 # path template (e.g. "/health"), not on a real URL.
 EXCLUDE_PATHS: set[str] = {
     "/health",
+    # Internal/test FastAPI account endpoints that should not be proxied
+    "/account/optional.json",
+    "/account/protected.json",
+    "/account/test.json",
 }
 
 # FastAPI routes that never appear in the OpenAPI schema because they're
@@ -56,9 +60,7 @@ HIDDEN_PATHS: set[str] = {
 # Drop any path whose template starts with one of these prefixes. Used
 # when a whole family of routes is served by the legacy web.py app or
 # otherwise shouldn't be proxied to FastAPI.
-EXCLUDE_PREFIXES: tuple[str, ...] = (
-    "/account",  # account routes are still served by the legacy web.py app
-)
+EXCLUDE_PREFIXES: tuple[str, ...] = ()
 
 # Master switch for collapsing. When False, every path is emitted as its
 # own per-path branch (no wildcard fragments from COLLAPSE_PREFIXES are
