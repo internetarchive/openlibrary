@@ -2,6 +2,11 @@ $def with (page, worldcat_links, affiliate_links, editions_page=False, render_ti
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
+$# Buy button is primary (blue) only when no digital access and a WorldCat URL exists
+$ availability = (page.availability or {}) if hasattr(page, 'availability') else {}
+$ _has_digital = bool(page.get('ocaid') or availability.get('is_readable') or availability.get('status') == 'open' or availability.get('is_lendable') or availability.get('is_previewable'))
+$ buy_is_primary = editions_page and not _has_digital and bool(worldcat_url)
+
 <div class="Tools">
   <div id="read">
     $if page.volumes:
@@ -28,16 +33,29 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
 
-        $ render_times['databarWork: List widget'] = time()
-        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, async_load=True)
-        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         $# For the Works & Editions page, only use ground_truth_availability API for selected Edition
         $# if edition availability status is error
         $ render_times['databarWork: LoanStatus'] = time()
         $ expensive_check = page.get('availability', {}).get('status') in ['error']
-        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, post=lists_widget, lending_state=lending_state)
+        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_loan_status=editions_page, lending_state=lending_state)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
+
+        $if editions_page:
+          <ol-popover class="buy-popover" aria-label="$_('Buy this book')">
+            <button slot="trigger" type="button" class="cta-btn cta-btn--w-icon cta-btn--buy">
+              <svg class="btn-icon cart" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M213-117.21q-21-21.21-21-51T213.21-219q21.21-21 51-21T315-218.79q21 21.21 21 51T314.79-117q-21.21 21-51 21T213-117.21Zm432 0q-21-21.21-21-51T645.21-219q21.21-21 51-21T747-218.79q21 21.21 21 51T746.79-117q-21.21 21-51 21T645-117.21ZM253-696l83 192h301l82-192H253Zm-31-72h570q14 0 20.5 11t1.5 23L702.63-476.14Q694-456 676.5-444T637-432H317l-42 72h493v72H276q-43 0-63.5-36.15-20.5-36.16.5-71.85l52-90-131-306H48v-72h133l41 96Zm114 264h301-301Z"/></svg>
+              <span class="btn-label">$_("Buy")</span>
+              <span class="arrow-down"></span>
+            </button>
+            <div class="buy-options">
+              $:affiliate_links
+            </div>
+          </ol-popover>
+
+        $ render_times['databarWork: List widget'] = time()
+        $:render_template('lists/widget', edition or work, include_rating=True, async_load=True)
+        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         <hr>
         $ share_url = request.home + (edition or work).key
@@ -62,17 +80,6 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
           $if book_provider and ((availability.get('is_readable') or availability.get('status') == 'open') or book_provider.get_access(page).to_solr_str() == "public"):
             $:book_provider.render_download_options(page)
           $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
-      </div>
-    </div>
-
-    <div class="panel desktop-vendor">
-      <div class="btn-notice">
-        $:worldcat_links
-
-        <div class="cta-section">
-          <p class="cta-section-title">$_('Buy this book')</p>
-          $:affiliate_links
-        </div>
       </div>
     </div>
   </div>
