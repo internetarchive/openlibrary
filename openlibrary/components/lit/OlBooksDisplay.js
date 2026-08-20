@@ -395,7 +395,7 @@ export class OlBooksDisplay extends LitElement {
         return html`
             <div class="obd-card" data-key=${doc.key}>
                 <div class="obd-cover">
-                    <ol-tooltip placement="bottom" arrow>
+                    <ol-tooltip placement="top" arrow>
                         <a class="obd-cover__link" href=${doc.key} data-ol-link-track="BookCarousel|CoverClick|${this.analyticsKey}">
                             ${this._renderCover(doc)}
                         </a>
