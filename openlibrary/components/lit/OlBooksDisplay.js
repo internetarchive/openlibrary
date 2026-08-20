@@ -3,7 +3,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { icon } from './utils/book-icons.js';
 import { fetchBooks, fetchUserState, setShelf, queuePendingAction, redirectToLogin, SHELF } from './utils/books-api.js';
-import { trackEvent } from './utils/analytics.js';
+import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { fmt, DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import { showToast } from './OlToastRegion.js';
 import './OLButton.js';
