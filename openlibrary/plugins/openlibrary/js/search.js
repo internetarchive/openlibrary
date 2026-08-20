@@ -78,10 +78,16 @@ export async function initSearchFacets(facetsElem) {
                 }
                 if (data.activeFacets) {
                     const activeFacetsElem = createElementFromMarkup(data.activeFacets);
+                    if (!(activeFacetsElem instanceof HTMLElement)) {
+                        throw new Error('Search facets partials response contains invalid active facets markup.');
+                    }
                     const activeFacetsContainer = document.querySelector('.selected-search-facets-container');
                     activeFacetsContainer.replaceChildren(activeFacetsElem);
                 }
                 const newFacetsElem = createElementFromMarkup(data.sidebar);
+                if (!(newFacetsElem instanceof HTMLElement)) {
+                    throw new Error('Search facets partials response contains invalid sidebar markup.');
+                }
                 facetsElem.replaceWith(newFacetsElem);
                 hydrateFacets();
 

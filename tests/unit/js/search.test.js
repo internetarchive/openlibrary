@@ -185,16 +185,20 @@ describe('initSearchFacets', () => {
         expect(document.body.textContent).not.toContain('Loading...');
     });
 
-    test('shows a fallback message instead of rendering an invalid sidebar payload', async() => {
+    test('shows a fallback message instead of rendering a plain-text sidebar payload', async() => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({title: 'Search results'}),
+            json: jest.fn().mockResolvedValue({
+                title: 'Search results',
+                sidebar: 'Unable to render this page.',
+            }),
         });
 
         await initSearchFacets(document.getElementById('searchFacets'));
 
         expect(document.querySelector('.search-facets-error').classList.contains('ui-helper-hidden')).toBe(false);
         expect(document.body.textContent).not.toContain('undefined');
+        expect(document.body.textContent).not.toContain('Unable to render this page.');
     });
 });
 
