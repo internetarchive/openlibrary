@@ -7099,11 +7099,6 @@ msgstr ""
 
 #: BooksDisplay.html
 #, python-format
-msgid "First published %(year)s"
-msgstr ""
-
-#: BooksDisplay.html
-#, python-format
 msgid "More options for %(title)s"
 msgstr ""
 

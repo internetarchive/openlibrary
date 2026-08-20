@@ -52,6 +52,16 @@ function stubFetch({ total = 45, userState = { shelves: {}, ratings: {} } } = {}
 beforeAll(() => {
     // jsdom has no IntersectionObserver; the component falls back to start().
     delete window.IntersectionObserver;
+    // ...nor matchMedia, which ol-tooltip reads to detect hover. False keeps
+    // the cover tooltips inert.
+    window.matchMedia = query => ({
+        matches: false,
+        media: query,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {},
+    });
     global.ResizeObserver = class { observe() {} disconnect() {} };
     // jsdom's ElementInternals lacks the form-association API the segmented
     // control calls; give it inert stand-ins.
@@ -182,6 +192,27 @@ describe('ol-books-display data flow', () => {
     });
 });
 
+describe('ol-books-display cover cards', () => {
+    test('the cover carries a hover card, and the card text repeats it for touch', async() => {
+        stubFetch();
+        const el = await mount();
+        const card = el.querySelector('.obd-card');
+        // The tooltip wraps the cover link only — not the save button or badge.
+        const tip = card.querySelector('.obd-cover > ol-tooltip');
+        expect(tip.querySelector('.obd-cover__link')).not.toBeNull();
+        expect(tip.querySelector('.obd-save')).toBeNull();
+        expect(tip.querySelector('[slot="content"]').textContent.replace(/\s+/g, ' ').trim()).toBe('Book 0 (2000) Author 0');
+        expect(card.querySelector('.obd-card__heading').textContent.replace(/\s+/g, ' ').trim()).toBe('Book 0 (2000)');
+    });
+
+    test('a book with no year shows the title alone', async() => {
+        stubFetch();
+        const el = await mount({ query: '', books: [doc(1, { first_publish_year: null })] });
+        expect(el.querySelector('.obd-card__heading').textContent.trim()).toBe('Book 1');
+        expect(el.querySelector('.obd-card__year')).toBeNull();
+    });
+});
+
 describe('ol-books-display static books', () => {
     test('renders the given books and never fetches', async() => {
         stubFetch();
@@ -219,14 +250,14 @@ describe('ol-books-display views', () => {
         expect(events).toEqual(['list']);
     });
 
-    test('list rows show byline links, stars, and first-publish year', async() => {
+    test('list rows show byline links, stars, and the year beside the title', async() => {
         stubFetch();
         const el = await mount({ view: 'list' });
         const row = el.querySelector('.obd-row');
         expect(row.querySelector('.obd-row__author a').getAttribute('href')).toBe('/authors/OL0A');
         expect(row.querySelector('.obd-row__author').textContent.replace(/\s+/g, ' ').trim()).toBe('Author 0');
         expect(row.querySelector('.obd-row__rating-text').textContent).toContain('4.2');
-        expect(row.querySelector('.obd-row__meta').textContent).toBe('First published 2000');
+        expect(row.querySelector('.obd-row__heading').textContent.replace(/\s+/g, ' ').trim()).toBe('Book 0 (2000)');
     });
 
     test('list footer: show more fetches and reveals, collapse hides', async() => {

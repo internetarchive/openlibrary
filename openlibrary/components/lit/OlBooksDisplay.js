@@ -6,6 +6,7 @@ import { fetchBooks, fetchUserState, setShelf, redirectToLogin, SHELF } from './
 import { fmt, DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import { showToast } from './OlToastRegion.js';
 import './OlCarousel.js';
+import './OlTooltip.js';
 import './OlSegmentedControl.js';
 import './OlBookActions.js';
 
@@ -65,7 +66,6 @@ export const DEFAULT_LABELS = {
     ratingsOne: '%(count)s rating',
     ratingsMany: '%(count)s ratings',
     ratingsAverage: 'Rated %(average)s out of 5',
-    firstPublished: 'First published %(year)s',
     shelfMenu: 'More options for %(title)s',
     showMore: 'Show %(count)s more',
     collapse: 'Collapse',
@@ -368,19 +368,48 @@ export class OlBooksDisplay extends LitElement {
         return html`<span class="obd-badge">${badge === 'preview' ? this.t('previewBadge') : this.t('notOnline')}</span>`;
     }
 
+    /** "(1846)" — the year that trails the title, unbolded beside it. */
+    _renderYear(doc, cls) {
+        return doc.first_publish_year ? html`<span class=${cls}>(${doc.first_publish_year})</span>` : nothing;
+    }
+
+    /**
+     * The cover's hover card: title, year and author. `ol-tooltip` arms on the
+     * same media query the CSS hides the card text with, so a pointer gets the
+     * tooltip and touch gets the card text — never both.
+     */
+    _renderCoverTip(doc) {
+        const authors = this._authorsText(doc);
+        return html`
+            <div slot="content" class="obd-tip">
+                <div class="obd-tip__heading">
+                    <span class="obd-tip__title">${doc.title}</span> ${this._renderYear(doc, 'obd-tip__year')}
+                </div>
+                ${authors ? html`<div class="obd-tip__byline">${authors}</div>` : nothing}
+            </div>
+        `;
+    }
+
     _renderCoverCard(doc) {
         const { shelf, rating } = this._stateFor(doc);
         return html`
             <div class="obd-card" data-key=${doc.key}>
                 <div class="obd-cover">
-                    <a class="obd-cover__link" href=${doc.key} data-ol-link-track="BookCarousel|CoverClick|${this.analyticsKey}">
-                        ${this._renderCover(doc)}
-                    </a>
+                    <ol-tooltip placement="bottom" arrow>
+                        <a class="obd-cover__link" href=${doc.key} data-ol-link-track="BookCarousel|CoverClick|${this.analyticsKey}">
+                            ${this._renderCover(doc)}
+                        </a>
+                        ${this._renderCoverTip(doc)}
+                    </ol-tooltip>
                     ${this._renderBadge(doc)}
                     ${this._renderSaveButton(doc, shelf, rating)}
                 </div>
-                <a class="obd-card__title" href=${doc.key}>${doc.title}</a>
-                ${this._renderByline(doc, 'obd-card__author')}
+                <div class="obd-card__meta">
+                    <div class="obd-card__heading">
+                        <a class="obd-card__title" href=${doc.key}>${doc.title}</a> ${this._renderYear(doc, 'obd-card__year')}
+                    </div>
+                    ${this._renderByline(doc, 'obd-card__author')}
+                </div>
                 ${this._renderCta(doc, 'obd-card__cta')}
             </div>
         `;
@@ -392,10 +421,11 @@ export class OlBooksDisplay extends LitElement {
             <li class="obd-row" data-key=${doc.key}>
                 <a class="obd-row__cover obd-cover" href=${doc.key}>${this._renderCover(doc, 'small')}</a>
                 <div class="obd-row__body">
-                    <a class="obd-row__title" href=${doc.key}>${doc.title}</a>
+                    <div class="obd-row__heading">
+                        <a class="obd-row__title" href=${doc.key}>${doc.title}</a> ${this._renderYear(doc, 'obd-row__year')}
+                    </div>
                     ${this._renderByline(doc, 'obd-row__author')}
                     ${this._renderRating(doc)}
-                    ${doc.first_publish_year ? html`<div class="obd-row__meta">${this.t('firstPublished', { year: doc.first_publish_year })}</div>` : nothing}
                 </div>
                 <div class="obd-row__actions">
                     ${this._renderCta(doc, 'obd-row__cta')}

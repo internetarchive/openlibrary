@@ -100,6 +100,31 @@ ol-books-display:not(:defined) {
   height: 100%;
 }
 
+/* Wraps the cover link only, keeping the save button and badge out of the
+   trigger area. */
+.obd-cover > ol-tooltip {
+  display: block;
+  height: 100%;
+}
+
+/* Slotted content lives in the light DOM; only the panel comes from ol-tooltip. */
+.obd-tip {
+  font-size: var(--font-size-body-medium);
+}
+
+.obd-tip__title {
+  font-weight: 600;
+}
+
+.obd-tip__year,
+.obd-tip__byline {
+  color: var(--neutral-300);
+}
+
+.obd-tip__byline {
+  font-size: var(--font-size-label-medium);
+}
+
 .obd-cover__img {
   display: block;
   width: 100%;
@@ -252,6 +277,29 @@ ol-books-display:not(:defined) {
   margin-bottom: var(--spacing-stack-xs);
 }
 
+.obd-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  min-width: 0;
+}
+
+/* On a fine pointer the cover tooltip carries title/year/author instead. Same
+   query ol-tooltip arms with, so exactly one of the two shows. */
+@media (hover: hover) and (pointer: fine) {
+  .obd-card__meta {
+    display: none;
+  }
+}
+
+/* Clamped as one line so the year wraps with the title. */
+.obd-card__heading {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .obd .obd-card__title {
   font-family: var(--font-family-heading);
   font-size: var(--font-size-title-small);
@@ -259,14 +307,15 @@ ol-books-display:not(:defined) {
   line-height: var(--line-height-tight);
   color: var(--color-text);
   text-decoration: none;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .obd .obd-card__title:hover {
   text-decoration: underline;
+}
+
+.obd-card__year {
+  font-size: var(--font-size-title-small);
+  color: var(--color-text-secondary);
 }
 
 .obd-card__author {
@@ -417,9 +466,13 @@ ol-books-display:not(:defined) {
   text-decoration: underline;
 }
 
-.obd-row__author,
-.obd-row__meta {
+.obd-row__author {
   font-size: var(--font-size-label-medium);
+  color: var(--color-text-secondary);
+}
+
+.obd-row__year {
+  font-size: var(--font-size-title-medium);
   color: var(--color-text-secondary);
 }
 
@@ -564,7 +617,8 @@ ol-books-display:not(:defined) {
     flex: 1;
   }
 
-  .obd-row__title {
+  .obd-row__title,
+  .obd-row__year {
     font-size: var(--font-size-title-small);
   }
 }
