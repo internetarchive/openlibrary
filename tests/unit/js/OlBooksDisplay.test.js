@@ -17,7 +17,7 @@ function doc(i, overrides = {}) {
         first_publish_year: 2000 + i,
         ratings_average: 4.2,
         ratings_count: 3,
-        access: { state: 'borrowable', cta: 'borrow', url: `/borrow/ia/x${i}?ref=ol`, external: false, method: 'get', badge: null, login_intent: true, ocaid: `x${i}` },
+        access: { state: 'borrowable', cta: 'borrow', url: `/borrow/ia/x${i}?ref=ol`, external: false, method: 'get', login_intent: true, ocaid: `x${i}` },
         ...overrides,
     };
 }
@@ -197,7 +197,7 @@ describe('ol-books-display cover cards', () => {
         stubFetch();
         const el = await mount();
         const card = el.querySelector('.obd-card');
-        // The tooltip wraps the cover link only — not the save button or badge.
+        // The tooltip wraps the cover link only — not the save button.
         const tip = card.querySelector('.obd-cover > ol-tooltip');
         expect(tip.querySelector('.obd-cover__link')).not.toBeNull();
         expect(tip.querySelector('.obd-save')).toBeNull();

@@ -64,7 +64,6 @@ class BookAccess(TypedDict):
     url: str | None
     external: bool
     method: Literal["get", "post"]
-    badge: Literal["not_online", "preview"] | None
     login_intent: bool
     ocaid: str | None
 
@@ -136,19 +135,13 @@ def _partner_access(edition: dict, edition_key: str | None) -> BookAccess | None
     if not acquisitions:
         return None
     acq = acquisitions[0]
-    cta: CtaKind
-    badge: Literal["preview"] | None
-    if acq.access == "open-access":
-        cta, badge = ("audiobook" if acq.format == "audio" else "read"), None
-    else:
-        cta, badge = "preview", "preview"
+    cta: CtaKind = ("audiobook" if acq.format == "audio" else "read") if acq.access == "open-access" else "preview"
     return BookAccess(
         state="partner",
         cta=cta,
         url=f"/books/{edition_key}/-/borrow?action=read",
         external=True,
         method="get",
-        badge=badge,
         login_intent=False,
         ocaid=None,
     )
@@ -170,7 +163,6 @@ def build_access(edition: dict, user=None) -> BookAccess:
         "url": None,
         "external": False,
         "method": "get",
-        "badge": None,
         "login_intent": False,
         "ocaid": ocaid,
     }
@@ -193,11 +185,11 @@ def build_access(edition: dict, user=None) -> BookAccess:
     if state == "checkedout":
         return {**base, "cta": "checked_out", "url": None}
     if state == "preview_only":
-        return {**base, "cta": "preview", "url": f"https://archive.org/details/{ocaid}", "external": True, "badge": "preview"}
+        return {**base, "cta": "preview", "url": f"https://archive.org/details/{ocaid}", "external": True}
     # locate
     if edition_key:
-        return {**base, "cta": "find_in_library", "url": f"/books/{edition_key}/-/borrow?action=locate", "external": True, "badge": "not_online"}
-    return {**base, "badge": "not_online"}
+        return {**base, "cta": "find_in_library", "url": f"/books/{edition_key}/-/borrow?action=locate", "external": True}
+    return base
 
 
 def to_book_card(work: dict, user=None) -> BookCard:

@@ -66,7 +66,7 @@ class TestBuildAccess:
 
     def test_open(self):
         a = self.access("open", {"identifier": "x"})
-        assert (a["cta"], a["url"], a["badge"], a["login_intent"]) == ("read", "/borrow/ia/x?ref=ol", None, False)
+        assert (a["cta"], a["url"], a["login_intent"]) == ("read", "/borrow/ia/x?ref=ol", False)
 
     def test_borrowable_requires_login_intent(self):
         a = self.access("borrowable", {"identifier": "x"})
@@ -76,9 +76,9 @@ class TestBuildAccess:
         a = self.access("waitlist", {"identifier": "x"})
         assert (a["cta"], a["url"], a["method"]) == ("join_waitlist", "/borrow/ia/x", "post")
 
-    def test_preview_only_badge_and_external(self):
+    def test_preview_only_is_external(self):
         a = self.access("preview_only", {"identifier": "x"})
-        assert (a["cta"], a["badge"], a["external"]) == ("preview", "preview", True)
+        assert (a["cta"], a["external"]) == ("preview", True)
         assert a["url"] == "https://archive.org/details/x"
 
     def test_printdisabled_with_standard_borrow(self):
@@ -93,13 +93,13 @@ class TestBuildAccess:
 
     def test_locate(self):
         a = self.access("locate")
-        assert (a["cta"], a["badge"], a["external"]) == ("find_in_library", "not_online", True)
+        assert (a["cta"], a["external"]) == ("find_in_library", True)
         assert a["url"] == "/books/OL9M/-/borrow?action=locate"
 
     def test_locate_without_edition_key_is_not_in_library(self):
         with patch(f"{SERVICE}.get_lending_state", return_value="locate"):
             a = svc.build_access({"key": "/works/OL1W"})
-        assert (a["cta"], a["url"], a["badge"]) == ("not_in_library", None, "not_online")
+        assert (a["cta"], a["url"]) == ("not_in_library", None)
 
     def test_partner_open_access(self):
         edition = {"key": "/books/OL9M", "id_standard_ebooks": ["foo/bar"], "ebook_access": "public"}

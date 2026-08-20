@@ -84,7 +84,7 @@ ol-books-display:not(:defined) {
   border-radius: var(--border-radius-sm);
 }
 
-/* ── Shared: covers, badges, CTAs ─────────────────────────── */
+/* ── Shared: covers, CTAs ─────────────────────────────────── */
 
 .obd-cover {
   position: relative;
@@ -100,8 +100,8 @@ ol-books-display:not(:defined) {
   height: 100%;
 }
 
-/* Wraps the cover link only, keeping the save button and badge out of the
-   trigger area. */
+/* Wraps the cover link only, keeping the save button out of the trigger
+   area. */
 .obd-cover > ol-tooltip {
   display: block;
   height: 100%;
@@ -163,22 +163,6 @@ ol-books-display:not(:defined) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.obd-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 2px 6px;
-  border-radius: var(--border-radius-badge);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--font-size-label-small);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  box-shadow: 0 1px 2px var(--book-cover-shadow-color);
-  pointer-events: none;
 }
 
 /* Mirrors ol-button (see ol-button.css): raised shadow + inset specular

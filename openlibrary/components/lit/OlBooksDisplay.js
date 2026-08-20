@@ -62,8 +62,6 @@ export const DEFAULT_LABELS = {
     checkedOut: 'Checked Out',
     findInLibrary: 'Find in a library',
     notInLibrary: 'Not in Library',
-    notOnline: 'Not online',
-    previewBadge: 'Preview',
     ratingsOne: '%(count)s rating',
     ratingsMany: '%(count)s ratings',
     ratingsAverage: 'Rated %(average)s out of 5',
@@ -366,12 +364,6 @@ export class OlBooksDisplay extends LitElement {
         `;
     }
 
-    _renderBadge(doc) {
-        const badge = doc.access?.badge;
-        if (!badge) return nothing;
-        return html`<span class="obd-badge">${badge === 'preview' ? this.t('previewBadge') : this.t('notOnline')}</span>`;
-    }
-
     /** "(1846)" — the year that trails the title, unbolded beside it. */
     _renderYear(doc, cls) {
         return doc.first_publish_year ? html`<span class=${cls}>(${doc.first_publish_year})</span>` : nothing;
@@ -405,7 +397,6 @@ export class OlBooksDisplay extends LitElement {
                         </a>
                         ${this._renderCoverTip(doc)}
                     </ol-tooltip>
-                    ${this._renderBadge(doc)}
                     ${this._renderSaveButton(doc, shelf, rating)}
                 </div>
                 <div class="obd-card__meta">

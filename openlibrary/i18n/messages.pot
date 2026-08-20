@@ -6977,10 +6977,6 @@ msgid "Not in Library"
 msgstr ""
 
 #: BooksDisplay.html
-msgid "Not online"
-msgstr ""
-
-#: BooksDisplay.html
 #, python-format
 msgid "%(count)s rating"
 msgstr ""
