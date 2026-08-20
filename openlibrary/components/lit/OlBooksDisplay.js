@@ -30,8 +30,9 @@ import './OlBookActions.js';
  * @prop {String} fallbackQuery - Query to retry with when `query` returns nothing
  *     (e.g. the same query without the user-language filter)
  * @prop {Array} books    - Book cards to render instead of querying: same shape
- *     as the `docs` the endpoint returns. Nothing is fetched and there is no
- *     next page, so the whole set is passed at once (used by the design gallery)
+ *     as the `docs` the endpoint returns. No search request is made and there
+ *     is no next page, so the whole set is passed at once (used by the design
+ *     gallery); the signed-in reader's state is still overlaid
  * @prop {String} sort    - Solr sort (default "new")
  * @prop {Number} limit   - Page size (default 20)
  * @prop {String} title   - Section heading
@@ -198,6 +199,9 @@ export class OlBooksDisplay extends LitElement {
         if (this.books) {
             this._docs = this.books;
             this._numFound = this.books.length;
+            // Nothing to fetch, but a signed-in reader's shelf and rating
+            // still overlay a set that was handed to us.
+            this._loadUserState(this._docs.map(doc => doc.key));
             return;
         }
         this.loadMore();

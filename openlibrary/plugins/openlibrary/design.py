@@ -22,6 +22,7 @@ from pathlib import Path
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from openlibrary import accounts
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 
 logger = logging.getLogger("openlibrary.design")
@@ -431,11 +432,15 @@ class DesignContext:
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
     undocumented: list[str] = field(default_factory=list)
+    # The book demos write to the signed-in reader's real reading log and
+    # lists, so they need their key; empty sends the demo to log in instead.
+    user_key: str = ""
 
 
 def build_context(section_id: str) -> DesignContext:
     section = next(candidate for candidate in SECTIONS if candidate.id == section_id)
-    context = DesignContext(section=section)
+    user = accounts.get_current_user()
+    context = DesignContext(section=section, user_key=user.key if user else "")
     if section_id == "foundations":
         context.token_categories = load_token_categories()
     elif section_id == "components":

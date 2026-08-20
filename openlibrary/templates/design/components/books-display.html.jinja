@@ -6,17 +6,20 @@
     </p>
     {% call ex.example("Covers view", "The default. Cards show the cover, a corner save button and the access CTA (Read / Borrow / Preview / Find in a library) the server derived from lending state. Title, year and author come from the cover's hover card where the pointer can hover, and sit under the cover where it can't. With a query, nearing the end of the carousel loads the next page.",
         code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', title=_("Trending Books"), sort="trending", key="Demo")') %}
-        <ol-books-display books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="12" url="/search?q=subject_key:fiction" analytics-key="DesignDemo">
+        <ol-books-display books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="12" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
         </ol-books-display>
     {% endcall %}
     {% call ex.example("List view", "Rows put the first-publish year beside the title and add stars, rating count and a split shelf button: the main part toggles the shown shelf, the chevron opens the actions popover. The footer pages with Show more / Collapse / See all.",
         code='<ol-books-display view="list" query=\'subject_key:"fiction"\' title="Trending Books" sort="trending"></ol-books-display>') %}
-        <ol-books-display view="list" books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="4" url="/search?q=subject_key:fiction" analytics-key="DesignDemo">
+        <ol-books-display view="list" books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="4" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
         </ol-books-display>
     {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Demo data.</b> Both examples above pass a fixed <code>books</code> array — twelve real works covering every access CTA — so the gallery renders without a search index behind it. On a real page you pass <code>query</code> instead and the component fetches its own pages.
+        </p>
+        <p>
+            <b>These demos are live.</b> Signed in, they carry your own key, overlay your shelf and rating from <code>/books-display/user-state.json</code>, and write to your real reading log and lists. Shelving a book here shelves it for real.
         </p>
         <p>
             <b>Light DOM.</b> Like <code>ol-button</code>, this renders into the light DOM: <code>ol-carousel</code> needs the cards as real children, sitewide handlers (<code>.js-login-intent</code>, analytics) keep working, and its styles live in <code>static/css/components/ol-books-display.css</code> (class prefix <code>obd-</code>).

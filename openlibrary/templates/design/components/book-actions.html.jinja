@@ -5,7 +5,7 @@
     </p>
     {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). The trigger is whatever you slot in.",
         code='<ol-book-actions user-key="/people/you">\n  <button slot="trigger">Save</button>\n</ol-book-actions>\n\n<script>\n  el.book = { key: "/works/OL27448W", title: "The Lord of the Rings",\n              authors: [{ name: "J.R.R. Tolkien" }] };\n  el.shelf = 1; // Want to Read\n</script>') %}
-        <ol-book-actions id="demo-book-actions" user-key="/people/openlibrary">
+        <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}">
             <ol-button slot="trigger">
                 Save
             </ol-button>
@@ -18,6 +18,19 @@
                 el.addEventListener('ol-book-state-change', (e) => {
                     document.getElementById('demo-book-actions-out').textContent = JSON.stringify(e.detail);
                 });
+                // Open on the reader's real shelf and rating — this demo writes
+                // to their actual reading log, so it should show what's there.
+                // The attribute, not the property: the element upgrades later.
+                if (el.getAttribute('user-key')) {
+                    fetch('/books-display/user-state.json?work_ids=OL27448W', { credentials: 'same-origin' })
+                        .then((r) => (r.ok ? r.json() : null))
+                        .then((state) => {
+                            if (!state) return;
+                            el.shelf = state.shelves.OL27448W ?? null;
+                            el.rating = state.ratings.OL27448W ?? null;
+                        })
+                        .catch(() => {});
+                }
             })();
         </script>
 {% endcall %}
@@ -27,6 +40,9 @@
     </p>
     <p>
         <b>Escape.</b> In the lists pane, Escape goes back to the main pane; a second Escape closes the popover.
+    </p>
+    <p>
+        <b>This demo is live.</b> It opens on your real shelf and rating for <i>The Lord of the Rings</i>, and every change here is saved to your account.
     </p>
 </div>
 {% endmacro %}
