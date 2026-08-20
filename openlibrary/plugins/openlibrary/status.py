@@ -101,7 +101,6 @@ class status_remove(delegate.page):
         state = _load_testing_state()
         if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], pending_removal=True):
             _save_testing_state(state)
-            _evict_drift_cache()
         return _json_ok()
 
 
@@ -115,7 +114,6 @@ class status_enable(delegate.page):
         state = _load_testing_state()
         if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], active=True):
             _save_testing_state(state)
-            _evict_drift_cache()
         return _json_ok()
 
 
@@ -129,7 +127,6 @@ class status_disable(delegate.page):
         state = _load_testing_state()
         if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], active=False):
             _save_testing_state(state)
-            _evict_drift_cache()
         return _json_ok()
 
 
@@ -821,7 +818,6 @@ async def stage_pull_latest_async(state: TestingState, pr_numbers: list[int]) ->
             if info.get("head_sha") and not info.get("error"):
                 p.pull_latest_sha = info["head_sha"]
     _save_testing_state(state)
-    _evict_drift_cache()
     return {"ok": True}
 
 

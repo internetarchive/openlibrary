@@ -18,7 +18,6 @@ from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
 from openlibrary.plugins.openlibrary.status import (
     TestingState,
     TestingStatus,
-    _evict_drift_cache,
     _get_pr_info_async,
     _load_testing_state,
     _parse_pr_numbers_from_string,
@@ -145,7 +144,6 @@ async def update_pr(pr_id: int, body: UpdatePRRequest, _: MaintainerDep) -> dict
 
     if changed:
         _save_testing_state(state)
-        _evict_drift_cache()
 
     return {"ok": True}
 
