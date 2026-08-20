@@ -70,7 +70,7 @@ EXCLUDE_PREFIXES: tuple[str, ...] = ()
 # Master switch for collapsing. When False, every path is emitted as its
 # own per-path branch (no wildcard fragments from COLLAPSE_PREFIXES are
 # applied). Flip to True to use the collapse rules below.
-ENABLE_COLLAPSING: bool = False
+ENABLE_COLLAPSING: bool = True
 
 # Instead of expanding every child path individually, emit a single
 # wildcard branch. Each entry maps a path template prefix (matched with
@@ -78,14 +78,7 @@ ENABLE_COLLAPSING: bool = False
 # no anchors). Only used when ``ENABLE_COLLAPSING`` is True. Ordered
 # roughly by impact (most paths collapsed first).
 COLLAPSE_PREFIXES: dict[str, str] = {
-    "/partials/": r"partials/.*\.json",  # 8 paths -> 1
-    "/people/": r"people/.*",  # 8 paths -> 1
-    "/works/OL": r"works/OL\d+W/.*",  # 6 paths -> 1
-    "/search": r"search.*\.json",  # 5 paths -> 1
-    "/lists/": r"lists/.*\.json",  # 5 paths -> 1
-    "/series/": r"series/.*\.json",  # 4 paths -> 1
-    "/api/volumes/": r"api/volumes/.*\.json",  # 2 paths -> 1
-    "/subjects/": r"subjects/.*\.json",  # 2 paths -> 1
+    "/partials/": r"partials/.*\.json",  # any partials/{name}.json
 }
 
 # Suffix used to partition paths into the two location blocks.
