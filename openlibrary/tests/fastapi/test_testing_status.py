@@ -321,7 +321,8 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
+            new_callable=AsyncMock,
             return_value=({pr.pr: {"head_sha": "", "drift": 0, "merged": False, "closed": True}}, False),
         ),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
@@ -528,7 +529,7 @@ def test_add_appends_pr_when_github_succeeds():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
@@ -651,7 +652,8 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
+            new_callable=AsyncMock,
             return_value=(
                 {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
                 False,
@@ -994,7 +996,8 @@ def test_deploy_flushes_pending_removal():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
+            new_callable=AsyncMock,
             return_value=({13269: {"head_sha": "", "drift": 0, "merged": False}}, False),
         ),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
@@ -1048,7 +1051,6 @@ def test_webpy_add_unstages_removal():
     assert state.prs[0].pending_removal is None
 
 
-# ---------------------------------------------------------------------------
 # FastAPI mutation endpoint tests
 # ---------------------------------------------------------------------------
 
