@@ -826,6 +826,11 @@ msgid "Disambiguations"
 msgstr ""
 
 #: subjects.html
+#, python-format
+msgid "Search %(subject)s books"
+msgstr ""
+
+#: subjects.html
 msgid "Show Readable Only"
 msgstr ""
 

@@ -153,9 +153,22 @@
    the full width, so it isn't part of the grid. */
 .subject-page__columns {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 282px;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-3xl);
   align-items: start;
+}
+
+/* The sidebar is conditional -- SubjectAuthors renders nothing when a subject
+   has no notable authors -- so the track it sits in has to be too, or those
+   pages get a blank gutter and needlessly narrow carousels. */
+.subject-page__sidebar:not(:has(> *)) {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .subject-page__columns:has(.subject-page__sidebar > *) {
+    grid-template-columns: minmax(0, 1fr) 282px;
+  }
 }
 
 .subject-page__main {
@@ -171,6 +184,34 @@
   /* A block gap, not a label gap: the toggle governs the carousels below it
      rather than labelling the one it sits on. */
   margin-bottom: var(--spacing-stack-lg);
+}
+
+/* The searchbox ships at 50% of its container; here it's one control in a row
+   beside the toggle, so pin it to a comfortable measure and let it take the
+   full width once the row wraps. */
+.subject-page__search .searchbox {
+  width: 280px;
+}
+
+/* The submit button takes its height from an empty value -- 15.5px, which
+   crops the 18px icon top and bottom. Size the glass down to fit rather than
+   growing the control past the toggle's height. */
+.subject-page__search .searchbox__btn-icon {
+  background-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .subject-page__filters {
+    flex-wrap: wrap;
+  }
+
+  .subject-page__search {
+    flex: 1 1 100%;
+  }
+
+  .subject-page__search .searchbox {
+    width: 100%;
+  }
 }
 
 .subject-page__sidebar {
@@ -194,10 +235,4 @@
 .subject-page__sidebar .widget-box {
   float: none;
   width: auto;
-}
-
-@media (max-width: 767px) {
-  .subject-page__columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

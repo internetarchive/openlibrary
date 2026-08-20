@@ -20,12 +20,23 @@ export function loadEditionsGraph() {
         plot, dateFrom, dateTo, previousPoint;
     data = [{data: JSON.parse(document.getElementById('graph-json-chartPubHistory').textContent)}];
     placeholder = $('#chartPubHistory');
-    // Flot needs literal colors, so resolve the design tokens off the chart node.
-    const css = getComputedStyle(placeholder[0]);
-    const token = (name) => css.getPropertyValue(name).trim();
+    // Flot's color parser only reads rgb()/hex, and our tokens are hsl() until
+    // the CSS minifier folds them -- so unminified dev builds plot black. Round-
+    // trip each through a probe element's computed `color`, always normalized.
+    const probe = document.createElement('span');
+    probe.style.display = 'none';
+    placeholder[0].appendChild(probe);
+    const token = (name) => {
+        probe.style.color = `var(${name})`;
+        return getComputedStyle(probe).color;
+    };
     const barColor = token('--color-text-muted');
     const gridColor = token('--color-border-subtle');
     const accentColor = token('--color-primary');
+    const surfaceColor = token('--color-surface');
+    const tooltipBg = token('--color-text');
+    const tooltipFg = token('--color-text-inverse');
+    probe.remove();
     options = {
         series: {
             bars: {
@@ -48,7 +59,7 @@ export function loadEditionsGraph() {
             tickColor: gridColor,
             borderWidth: {top: 0, right: 0, bottom: 1, left: 0},
             borderColor: gridColor,
-            backgroundColor: token('--color-surface')
+            backgroundColor: surfaceColor
         },
         xaxis: { tickDecimals: 0, tickLength: 0, tickColor: 'transparent' },
         yaxis: { tickDecimals: 0, tickLength: 0 },
@@ -68,8 +79,8 @@ export function loadEditionsGraph() {
             left: x + 12,
             padding: '2px 6px',
             'border-radius': '3px',
-            'background-color': token('--color-text'),
-            color: token('--color-text-inverse'),
+            'background-color': tooltipBg,
+            color: tooltipFg,
             'font-size': '11px',
             'z-index': 100
         }).appendTo('body').fadeIn(200);

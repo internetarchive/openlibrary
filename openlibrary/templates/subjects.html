@@ -78,29 +78,43 @@ $ has_tag = 'tag' in page
         $# A tag can exist with only a blurb (no body) -- sanitize() chokes on the
         $# missing value, so fall back to the default carousel unless there's a body.
         $ tag_body = page.tag.body if has_tag else None
-        $if tag_body:
-          $:format(sanitize(tag_body))
-        $else:
-          $# Only show default carousel if the subject's Tag has no body.
-          $# Same page-scoped filter as the author page: results-filter-toggle.js
-          $# rewrites `mode` in the URL and remembers nothing.
-          $ ebooks_only = input(mode="everything").mode == "ebooks"
-          $# With nothing readable the toggle can only ever empty the carousel,
-          $# so hide it -- same test the masthead's "readable now" stat uses.
-          $# Kept when it's already on so a `?mode=ebooks` URL isn't a dead end.
-          $if page.get('ebook_count') or ebooks_only:
-            <div class="subject-page__filters">
+        $# Same page-scoped filter as the author page: results-filter-toggle.js
+        $# rewrites `mode` in the URL and remembers nothing.
+        $ ebooks_only = input(mode="everything").mode == "ebooks"
+
+        <div class="subject-page__filters">
+          $# Search scoped to this subject. subject_type is literally one of
+          $# search's public params (subject/person/place/time), which match
+          $# case-insensitively -- unlike `*_facet`, which needs the exact
+          $# original casing that page.name no longer carries.
+          <form action="/search" class="subject-page__search" role="search">
+            $:render_template("search/searchbox", q='', placeholder=_("Search %(subject)s books", subject=page.name.title()))
+            <input type="hidden" name="${page.subject_type}" value="$page.name"/>
+          </form>
+          $# The toggle scopes the default carousel, so it goes when a tag body
+          $# replaces it, and when nothing is readable -- same test the masthead's
+          $# "readable now" stat uses. Kept when already on so `?mode=ebooks` isn't
+          $# a dead end.
+          $if not tag_body:
+            $if page.get('ebook_count') or ebooks_only:
+              $# No sublabel count here: the masthead's "readable now" stat is
+              $# subject-wide, while this toggle scopes a carousel already filtered
+              $# to the user's language -- a second, smaller number reads as a bug.
               <ol-toggle
                 class="results-filter-toggle"
                 variant="button"
                 label="$_('Show Readable Only')"
-                sublabel="$commify(page.get('ebook_count') or 0)"
                 accessible-label="$_('Filter by availability')"
                 data-filter-param="mode"
                 data-filter-value="ebooks"
                 $cond(ebooks_only, 'checked')
               ></ol-toggle>
-            </div>
+        </div>
+
+        $if tag_body:
+          $:format(sanitize(tag_body))
+        $else:
+          $# Only show the default carousel if the subject's Tag has no body.
           $:macros.QueryCarousel(query=page.solr_query, title=_("Trending Books"), sort='trending,trending_score_hourly_sum', key='SubjectTrending', user_lang_only=True, fallback=True, has_fulltext_only=ebooks_only)
         $:macros.PublishingHistory(async_load=True, key=page.key)
         <div class="clearfix"></div>
