@@ -2,14 +2,21 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
-/** Next node up the flattened tree: into the slot a node is assigned to, and
- *  out of a shadow root through its host. */
+/**
+ * One step up from `node` toward the page, following where it actually renders
+ * rather than where it was authored. Plain `parentNode` misses two hops that
+ * web components introduce: markup passed into a component renders inside that
+ * component's `<slot>`, and a component's internal DOM has no parent at all —
+ * you have to jump to the component element itself. Used to find the scrollers
+ * between a trigger and the page, either of which those hops can hide.
+ */
 function flattenedParent(node) {
     if (node.assignedSlot) return node.assignedSlot;
     const parent = node.parentNode;
     return parent instanceof ShadowRoot ? parent.host : parent;
 }
 
+/** Whether this element scrolls its own content, rather than growing to fit it. */
 function isScrollable(el) {
     const { overflowX, overflowY } = getComputedStyle(el);
     return /auto|scroll/.test(`${overflowX} ${overflowY}`);
@@ -314,8 +321,8 @@ export class OlTooltip extends LitElement {
         this._scrollTargets = [];
     }
 
-    /** The trigger's scrollable ancestors, walked up the flattened tree so the
-     *  chain passes through slots and out of shadow roots. */
+    /** Every ancestor of the trigger that can scroll, including those on the
+     *  other side of a component boundary (see `flattenedParent`). */
     _scrollParents() {
         const parents = [];
         let node = this._triggerEl && flattenedParent(this._triggerEl);
