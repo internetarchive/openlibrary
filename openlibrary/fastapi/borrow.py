@@ -21,7 +21,7 @@ from openlibrary.plugins.upstream.borrow import (
     BorrowNotFound,
     BorrowParams,
     BorrowRedirect,
-    borrow_post_core,
+    borrow_post_core_async,
 )
 
 router = APIRouter()
@@ -37,6 +37,7 @@ def _borrow_params_from_request(request: Request) -> BorrowParams:
 @router.get("/books/{key_suffix:path}/borrow")
 @router.post("/books/{key_suffix:path}/borrow")
 async def borrow(
+    request: Request,
     key_suffix: str,
     params: Annotated[BorrowParams, Depends(_borrow_params_from_request)],
 ) -> Response:
@@ -52,7 +53,7 @@ async def borrow(
     """
     olid = key_suffix.split("/", 1)[0]
     key = f"/books/{olid}"
-    result = borrow_post_core(key, params)
+    result = await borrow_post_core_async(key, params, s3_cookie=request.cookies.get("s3"))
 
     match result:
         case BorrowNotFound():

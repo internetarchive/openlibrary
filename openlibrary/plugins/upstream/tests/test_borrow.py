@@ -40,7 +40,7 @@ class TestBorrowPostCore:
         with (
             patch("openlibrary.plugins.upstream.borrow.site") as mock_site,
             patch("openlibrary.book_providers.get_book_provider", return_value=None),
-            patch("openlibrary.plugins.upstream.borrow.lending.get_availability", return_value={}),
+            patch("openlibrary.plugins.upstream.borrow.lending.get_availability_async", return_value={}),
             patch("openlibrary.plugins.upstream.borrow.accounts.get_current_user", return_value=None),
         ):
             mock_site.get.return_value.get.return_value = edition
@@ -61,13 +61,13 @@ class TestBorrowPostCore:
         with (
             patch("openlibrary.plugins.upstream.borrow.site") as mock_site,
             patch("openlibrary.book_providers.get_book_provider", return_value=None),
-            patch("openlibrary.plugins.upstream.borrow.lending.get_availability", return_value={}),
+            patch("openlibrary.plugins.upstream.borrow.lending.get_availability_async", return_value={}),
             patch("openlibrary.plugins.upstream.borrow.accounts.get_current_user", return_value=user),
             patch("openlibrary.plugins.upstream.borrow.OpenLibraryAccount.get_by_email", return_value=account),
             patch("openlibrary.plugins.upstream.borrow.get_s3_keys", return_value={"s3_key": "x"}),
-            patch("openlibrary.plugins.upstream.borrow.user_can_borrow_edition", return_value="borrow"),
+            patch("openlibrary.plugins.upstream.borrow.user_can_borrow_edition_async", return_value="borrow"),
             patch(
-                "openlibrary.plugins.upstream.borrow.lending.s3_loan_api",
+                "openlibrary.plugins.upstream.borrow.lending.s3_loan_api_async",
                 side_effect=borrow.lending.PatronAccessException,
             ),
         ):
