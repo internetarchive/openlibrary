@@ -55,10 +55,7 @@
 }
 
 .dataTables_paginate {
-  /* stylelint-disable declaration-block-no-duplicate-properties */
   width: 44px;
-  *width: 50px;
-  /* stylelint-enable declaration-block-no-duplicate-properties */
   text-align: right;
   font-size: var(--font-size-label-medium);
   color: var(--color-text-secondary);
@@ -102,10 +99,7 @@ table.display {
 }
 
 table.display thead th {
-  /* stylelint-disable declaration-block-no-duplicate-properties */
   cursor: pointer;
-  *cursor: hand;
-  /* stylelint-enable declaration-block-no-duplicate-properties */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

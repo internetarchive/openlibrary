@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Functionality for templates/admin
  */

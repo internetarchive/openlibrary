@@ -32,8 +32,6 @@ module.exports = [
   // Configuration for build and config files (CommonJS)
   {
     files: [
-      "webpack.config.js",
-      "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
       "stylelint/*.cjs",
@@ -56,6 +54,10 @@ module.exports = [
       "openlibrary/components/vite.config.mjs",
       "openlibrary/components/vite-lit.config.mjs",
       "vite-css.config.mjs",
+      "vite-js.config.mjs",
+      "vite-js-iife.config.mjs",
+      "vite-js-plugins.mjs",
+      "vite-js-shared.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
@@ -91,8 +93,6 @@ module.exports = [
       },
       globals: {
         ...globals.browser,
-        $: "readonly",
-        jQuery: "readonly",
       },
     },
     rules: {

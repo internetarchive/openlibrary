@@ -1,8 +1,7 @@
+import $ from 'jquery';
 // jquery plugins to provide author, language, and subject autocompletes.
-import 'jquery-ui/ui/widget';
-import 'jquery-ui/ui/widgets/autocomplete';
-import 'jquery-ui/ui/widgets/mouse';
-import 'jquery-ui/ui/widgets/sortable';
+import './jquery-ui-autocomplete'; // widget + autocomplete + mouse
+import './jquery-ui-sortable'; // drag-to-reorder of the dropdown
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 /**

@@ -7,7 +7,7 @@
  *
  *   - entry: static/css/tokens.css, static/css/ol-components.css, static/css/page-*.css
  *   - @import resolution (css-loader import:true) -> Vite handles natively (postcss-import)
- *   - minification (css-minimizer-webpack-plugin) -> esbuild via cssMinify
+ *   - minification (css-minimizer-webpack-plugin) -> LightningCSS via cssMinify
  *   - url() passthrough (webpack url:false) -> see the publicDir comment below
  *   - no JS output (webpack's RemoveJSAssetsPlugin) -> Vite 8 omits the stub
  *     JS chunk for pure-CSS entries natively, so no plugin needed

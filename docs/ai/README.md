@@ -196,7 +196,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 ### Frontend
 
 - **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
-- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via Vite (`vite-js.config.mjs` + `vite-js-iife.config.mjs`) to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
@@ -207,7 +207,7 @@ We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Comp
 
 What the toolchain guarantees:
 
-- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/index.js` (see `js-vite-migration-progress.md`). `all.js` is a `<script type="module">`, so the practical floor is ~Chrome 61 / Safari 11.
 - **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 

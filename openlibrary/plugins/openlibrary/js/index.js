@@ -1,5 +1,13 @@
+import $ from 'jquery';
+import jQuery from 'jquery';
+// API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite lowers
+// syntax only (Oxc); these replace babel `preset-env` `useBuiltIns: 'usage'` for
+// the ES2018+ APIs used in this codebase (see docs/ai/js-vite-migration-progress.md).
+import 'core-js/es/array/flat-map';
+import 'core-js/es/object/from-entries';
+import 'core-js/es/promise/finally';
+import 'core-js/es/symbol/async-iterator';
 import initSentry from './sentry';
-import 'jquery';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
@@ -48,13 +56,13 @@ initAnalytics();
 jQuery(function() {
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
-        import(/* webpackChunkName: "tabs" */ './tabs')
+        import('./tabs')
             .then((module) => module.initTabs($tabs));
     }
 
     const $autocomplete = $('.multi-input-autocomplete');
     if ($autocomplete.length) {
-        import(/* webpackChunkName: "autocomplete" */ './autocomplete')
+        import('./autocomplete')
             .then((module) => module.init($));
     }
 
@@ -90,7 +98,7 @@ jQuery(function() {
         addRowButton || roles || classifications ||
         excerpts || links || deleteRecordButtons.length
     ) {
-        import(/* webpackChunkName: "user-website" */ './edit')
+        import('./edit')
             .then(module => {
                 if (edition) {
                     module.initEdit();
@@ -138,7 +146,7 @@ jQuery(function() {
     const mergePageElement = document.querySelector('#author-merge-page');
     const preMergePageElement = document.getElementById('preMerge');
     if (mergePageElement || preMergePageElement) {
-        import(/* webpackChunkName: "merge" */ './merge')
+        import('./merge')
             .then(module => {
                 if (mergePageElement) {
                     module.initAuthorMergePage();
@@ -152,26 +160,26 @@ jQuery(function() {
     // conditionally load for type changing input
     const typeChanger = document.getElementById('type.key');
     if (typeChanger) {
-        import(/* webpackChunkName: "type-changer" */ './type_changer.js')
+        import('./type_changer.js')
             .then(module => module.initTypeChanger(typeChanger));
     }
 
     // conditionally load validation and submission js for registration form
     if (document.querySelector('form[name=signup]')) {
-        import(/* webpackChunkName: "signup" */'./signup.js')
+        import('./signup.js')
             .then(module => module.initSignupForm());
     }
 
     // conditionally load submission js for login form
     if (document.querySelector('form[name=login]')) {
-        import(/* webpackChunkName: "signup" */'./signup.js')
+        import('./signup.js')
             .then(module => module.initLoginForm());
     }
 
     // conditionally load clamping components
     const clampers = document.querySelectorAll('.clamp');
     if (clampers.length) {
-        import(/* webpackChunkName: "clampers" */ './clampers.js')
+        import('./clampers.js')
             .then(module => {
                 if (clampers.length) {
                     module.initClampers(clampers);
@@ -181,36 +189,36 @@ jQuery(function() {
 
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
+        import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
-        import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
+        import('./lists/ListViewBody.js');
     }
 
     // Enable any carousels in the page
     const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
     if (carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel')
+        import('./carousel')
             .then((module) => {
                 module.initialzeCarousels(carouselElements);
             });
     }
     if ($('script[type="text/json+graph"]').length > 0) {
-        import(/* webpackChunkName: "graphs" */ './graphs')
+        import('./graphs')
             .then((module) => module.init());
     }
 
     const readingLogCharts = document.querySelector('.readinglog-charts');
     if (readingLogCharts) {
         const readingLogConfig = JSON.parse(readingLogCharts.dataset.config);
-        import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
+        import('./readinglog_stats')
             .then(module => module.init(readingLogConfig));
     }
 
     if (document.getElementsByClassName('toast').length) {
-        import(/* webpackChunkName: "Toast" */ './Toast')
+        import('./Toast')
             .then((module) => {
                 Array.from(document.getElementsByClassName('toast'))
                     .forEach(el => new module.Toast($(el)));
@@ -218,14 +226,14 @@ jQuery(function() {
     }
 
     if ($('.lazy-thing-preview').length) {
-        import(/* webpackChunkName: "lazy-thing-preview" */ './lazy-thing-preview')
+        import('./lazy-thing-preview')
             .then((module) => new module.LazyThingPreview().init());
     }
 
     // Disable data export buttons on form submit
     const patronImportForms = document.querySelectorAll('.patron-export-form');
     if (patronImportForms.length) {
-        import(/* webpackChunkName: "patron-exports" */ './patron_exports')
+        import('./patron_exports')
             .then(module => module.initPatronExportForms(patronImportForms));
     }
 
@@ -234,7 +242,7 @@ jQuery(function() {
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
     if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
-        import(/* webpackChunkName: "modal-links" */ './modals')
+        import('./modals')
             .then(module => {
                 if ($observationModalLinks.length) {
                     module.initObservationsModal($observationModalLinks);
@@ -258,7 +266,7 @@ jQuery(function() {
     const coverForm = document.querySelector('.ol-cover-form--clipboard');
 
     if (addCoversElement || manageCoversElement || saveCoversElement || coverForm) {
-        import(/* webpackChunkName: "covers" */ './covers')
+        import('./covers')
             .then((module) => {
                 if (manageCoversElement) {
                     module.initCoversChange();
@@ -276,7 +284,7 @@ jQuery(function() {
     }
 
     if (document.getElementById('addbook')) {
-        import(/* webpackChunkName: "add-book" */ './add-book')
+        import('./add-book')
             .then(module => module.initAddBookImport());
     }
 
@@ -289,7 +297,7 @@ jQuery(function() {
     const adminLinks = document.getElementById('adminLinks');
     const confirmButtons = document.querySelectorAll('.do-confirm');
     if (adminLinks || anonymizationButton || confirmButtons.length) {
-        import(/* webpackChunkName: "admin" */ './admin')
+        import('./admin')
             .then(module => {
                 if (adminLinks) {
                     module.initAdmin();
@@ -304,13 +312,13 @@ jQuery(function() {
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
-        import(/* webpackChunkName: "offline-banner" */ './offline-banner')
+        import('./offline-banner')
             .then((module) => module.initOfflineBanner());
     }
 
     const searchFacets = document.getElementById('searchFacets');
     if (searchFacets) {
-        import(/* webpackChunkName: "search" */ './search')
+        import('./search')
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
@@ -328,7 +336,7 @@ jQuery(function() {
 
     const searchFilterBar = document.querySelector('.search-filter-row');
     if (searchFilterBar) {
-        import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
+        import('./SearchFilterBar')
             .then((module) => module.initSearchFilterBar(searchFilterBar));
     }
 
@@ -336,13 +344,13 @@ jQuery(function() {
     // search filter bar above, these don't share state across pages.
     const resultsFilterToggles = document.querySelectorAll('.results-filter-toggle');
     if (resultsFilterToggles.length) {
-        import(/* webpackChunkName: "results-filter-toggle" */ './results-filter-toggle')
+        import('./results-filter-toggle')
             .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
     }
 
     const designSystem = document.querySelector('[data-ds-root]');
     if (designSystem) {
-        import(/* webpackChunkName: "design-system" */ './design-system')
+        import('./design-system')
             .then((module) => module.initDesignSystem(designSystem));
     }
 
@@ -359,7 +367,7 @@ jQuery(function() {
 
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
-        import(/* webpackChunkName: "ile" */ './ile')
+        import('./ile')
             .then((module) => module.init())
             .then(() => {
                 // book page subject editing
@@ -378,13 +386,13 @@ jQuery(function() {
             });
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-            import(/* webpackChunkName: "editions-table" */ './editions-table')
+            import('./editions-table')
                 .then(module => module.initEditionsTable());
         }
     }
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import(/* webpackChunkName: "editions-table" */ './editions-table')
+        import('./editions-table')
             .then(module => module.initEditionsTable());
     }
     if ($('#cboxPrevious').length) {
@@ -400,7 +408,7 @@ jQuery(function() {
     const droppers = document.querySelectorAll('.dropper');
     const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
     if (droppers.length || genericDroppers.length) {
-        import(/* webpackChunkName: "droppers" */ './dropper')
+        import('./dropper')
             .then((module) => {
                 module.initDroppers(droppers);
                 module.initGenericDroppers(genericDroppers);
@@ -412,7 +420,7 @@ jQuery(function() {
     if (myBooksDroppers.length) {
         const actionableListShowcases = document.querySelectorAll('.actionable-item');
 
-        import(/* webpackChunkName: "my-books" */ './my-books')
+        import('./my-books')
             .then((module) => {
                 module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases);
             });
@@ -421,13 +429,13 @@ jQuery(function() {
     // TODO: Make these selectors a consistent interface
     const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
     if ($dialogs.length) {
-        import(/* webpackChunkName: "dialog" */ './dialog')
+        import('./dialog')
             .then(module => module.initDialogs());
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
-        import(/* webpackChunkName: "native-dialog" */ './native-dialog')
+        import('./native-dialog')
             .then(module => module.initDialogs(nativeDialogs));
     }
 
@@ -437,7 +445,7 @@ jQuery(function() {
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button');
     const yearElements = document.querySelectorAll('.use-local-year');
     if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
-        import(/* webpackChunkName: "reading-goals" */ './reading-goals')
+        import('./reading-goals')
             .then((module) => {
                 if (setGoalLinks.length) {
                     module.initYearlyGoalPrompt(setGoalLinks);
@@ -506,7 +514,7 @@ jQuery(function() {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form');
     if (ratingForms.length) {
-        import(/* webpackChunkName: "star-ratings" */'./star-ratings')
+        import('./star-ratings')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
@@ -514,12 +522,12 @@ jQuery(function() {
     const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper');
     if (navbarWrappers.length) {
         // Add JS for book page navbar:
-        import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
+        import('./edition-nav-bar')
             .then((module) => {
                 module.initNavbars(navbarWrappers);
             });
         // Add sticky title component animations to desktop views:
-        import(/* webpackChunkName: "compact-title" */ './compact-title')
+        import('./compact-title')
             .then((module) => {
                 const compactTitle = document.querySelector('.compact-title');
                 const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'));
@@ -531,7 +539,7 @@ jQuery(function() {
     const librarianQueue = document.querySelector('.librarian-queue-wrapper');
 
     if (librarianQueue) {
-        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
+        import('./merge-request-table')
             .then(module => {
                 module.initLibrarianQueue(librarianQueue);
             });
@@ -540,7 +548,7 @@ jQuery(function() {
     // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container');
     if (teamCards) {
-        import(/* webpackChunkName "team" */ './team')
+        import('./team')
             .then(module => {
                 module.initTeamFilter();
             });
@@ -549,7 +557,7 @@ jQuery(function() {
     // Add new providers in edit edition view:
     const addProviderRowLink = document.querySelector('#add-new-provider-row');
     if (addProviderRowLink) {
-        import(/* webpackChunkName "add-provider-link" */ './add_provider')
+        import('./add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink));
     }
 
@@ -557,126 +565,126 @@ jQuery(function() {
     // Allow banner announcements to be dismissed by logged-in users:
     const banners = document.querySelectorAll('.page-banner--dismissable');
     if (banners.length) {
-        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+        import('./banner')
             .then(module => module.initDismissibleBanners(banners));
     }
 
     // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
     if (document.querySelector('ol-banner[dismiss-id], ol-banner[dismissible]')) {
-        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+        import('./banner')
             .then(module => module.initOlBannerDismissals());
     }
 
     const returnForms = document.querySelectorAll('.return-form');
     if (returnForms.length) {
-        import(/* webpackChunkName: "return-form" */ './return-form')
+        import('./return-form')
             .then(module => module.initReturnForms(returnForms));
     }
 
     const crumbs = document.querySelectorAll('.crumb select');
     if (crumbs.length) {
-        import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
+        import('./breadcrumb_select')
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
     const interstitial = document.querySelector('.interstitial');
     if (interstitial) {
-        import (/* webpackChunkName: "interstitial" */ './interstitial')
+        import('./interstitial')
             .then(module => module.initInterstitial(interstitial));
     }
 
     const leaveWaitlistLinks = document.querySelectorAll('a.leave');
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
-        import(/* webpackChunkName: "waitlist" */ './waitlist')
+        import('./waitlist')
             .then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
     }
 
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
     if (thirdPartyLoginsIframe) {
-        import(/* webpackChunkName: "ia_thirdparty_logins" */ './ia_thirdparty_logins')
+        import('./ia_thirdparty_logins')
             .then((module) => module.initMessageEventListener(thirdPartyLoginsIframe));
     }
 
     // Password visibility toggle:
     const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle');
     if (passwordVisibilityToggle) {
-        import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
+        import('./password-toggle')
             .then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
     // Affiliate links:
     const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section');
     if (affiliateLinksSection.length) {
-        import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
+        import('./affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection));
     }
 
     // Fulltext search box:
     const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion');
     if (fulltextSearchSuggestion) {
-        import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
+        import('./fulltext-search-suggestion')
             .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion));
     }
 
     // Go back redirect:
     const backLinks = document.querySelectorAll('.go-back-link');
     if (backLinks.length) {
-        import (/* webpackChunkName: "go-back-links" */ './go-back-links')
+        import('./go-back-links')
             .then(module => module.initGoBackLinks(backLinks));
     }
 
     // Lazy-load book page lists section
     const listSection = document.querySelector('.lists-section');
     if (listSection) {
-        import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
+        import('./book-page-lists')
             .then(module => module.initListsSection(listSection));
     }
 
     // Initialize follow forms lazily
     const followForms = document.querySelectorAll('.follow-form');
     if (followForms.length) {
-        import(/* webpackChunkName: "following" */ './following')
+        import('./following')
             .then(module => module.initAsyncFollowing(followForms));
     }
 
     // Generalized carousel lazy-loading
     const lazyCarousels = document.querySelectorAll('.lazy-carousel');
     if (lazyCarousels.length) {
-        import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
+        import('./lazy-carousel')
             .then(module => module.initLazyCarousel(lazyCarousels));
     }
 
     // Librarian Dashboard
     const librarianDashboard = document.querySelector('.librarian-dashboard');
     if (librarianDashboard) {
-        import(/* webpackChunkName: "librarian-dashboard" */ './librarian-dashboard')
+        import('./librarian-dashboard')
             .then(module => module.initLibrarianDashboard(librarianDashboard));
     }
 
     // List books
     if (document.querySelector('.list-books')) {
-        import(/* webpackChunkName: "list-books" */ './list_books')
+        import('./list_books')
             .then(module => module.ListBooks.init());
     }
 
     // Sort options popover (results toolbars)
     const sortOptions = document.querySelector('.sort-options');
     if (sortOptions) {
-        import(/* webpackChunkName: "sort-options" */ './sort_options')
+        import('./sort_options')
             .then(module => module.initSortOptions(sortOptions));
     }
 
     // Stats page login counts
     const monthlyLoginStats = document.querySelector('.monthly-login-counts');
     if (monthlyLoginStats) {
-        import(/* webpackChunkName: "stats" */ './stats')
+        import('./stats')
             .then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 
     // History page comparison
     const pageHistory = document.querySelector('#pageHistory');
     if (pageHistory) {
-        import(/* webpackChunkName: "history" */ './history')
+        import('./history')
             .then(module => module.initHistory(pageHistory));
     }
 });

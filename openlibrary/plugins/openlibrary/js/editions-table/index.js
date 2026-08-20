@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.css';
 
