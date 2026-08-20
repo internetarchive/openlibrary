@@ -1,23 +1,17 @@
 /**
  * Collections pages (/collections and its sub-pages)
  * =================================================
- * A long-form reading layout: one centered column holding left-aligned text at
- * a comfortable measure, with images allowed to break out wider than the text.
- * Titles are set in Literata.
+ * A long-form reading layout: one centered text column, with images allowed to
+ * break out wider.
  */
 
 .collections-page {
-  /* Reading measure for text. Images break out to the wider value.
-     rem, not em: a var() length resolves against the font-size of whatever
-     element uses it, so an em measure would widen the column under every
-     heading rather than holding one column down the page. */
+  /* rem, not em: an em measure would resolve against each element's own
+     font-size and widen the column under every heading. */
   --collections-measure: 40rem;
-  /* What images break out to. The px cap is what #contentBody can actually give
-     them — <main> is held to 1060px, less its border and padding either side —
-     and it only binds if the reader has scaled their default text up. */
+  /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
   --collections-media-width: min(60rem, 1018px);
-  /* The title sits between the two: wider than the reading measure so it isn't
-     forced into a narrow stack, short of the image so it stays a display line. */
+  /* Between the two: not a narrow stack, still short of the image. */
   --collections-title-measure: 48rem;
 }
 
@@ -27,11 +21,9 @@
 
 /* === centered column === */
 
-/* Full width so the edit metadata can sit in the page's top-right corner. The
-   title centers itself below it rather than inheriting the head's box.
-   Column, not float, so the two can never overlap on a narrow screen. */
-/* legacy.css caps the head at a hardcoded 1018px, 40px narrower than
-   #contentBody — enough to push the centered title off the body's axis. */
+/* Full width — legacy.css caps the head 40px narrower than #contentBody, enough
+   to push the centered title off the body's axis. Column, not float, so the edit
+   metadata and the title can't overlap on a narrow screen. */
 .collections-page #contentHead {
   display: flex;
   flex-direction: column;
@@ -39,8 +31,7 @@
   padding: var(--spacing-inset-md);
 }
 
-/* The back link and the edit metadata share the top row, in opposite corners.
-   They wrap onto separate lines rather than crushing together on a phone. */
+/* Back link and edit metadata in opposite corners, wrapping on a phone. */
 .collections-page #contentHead .collection-topbar {
   display: flex;
   flex-wrap: wrap;
@@ -49,15 +40,13 @@
   margin-bottom: var(--spacing-stack-lg);
 }
 
-/* Pinned right by margin rather than space-between, so it stays there on the
-   index page, where there is no back link to sit opposite. The toolbar's own
-   bottom inset goes: the head sets the gap down to the title. */
+/* Margin, not space-between, so it stays right on the index page, which has no
+   back link opposite. Its bottom inset goes; the head sets the gap to the title. */
 .collections-page #contentHead #editTools {
   margin-left: auto;
   padding-bottom: 0;
 }
 
-/* Up-link to the index, set as an ordinary link. */
 .collections-page #contentHead .collection-back {
   display: inline-flex;
   align-items: center;
@@ -72,31 +61,26 @@
   color: var(--color-link-hover);
 }
 
-/* Sized off the label so the two scale together. The nudge back offsets the
-   chevron's own side bearing, which reads as a wider gap than the one set. */
+/* Sized off the label; the nudge offsets the chevron's own side bearing. */
 .collections-page .collection-back__chevron {
   width: 1em;
   height: 1em;
   margin-left: -0.15em;
 }
 
-/* One text size across the row, matching the Edit button's own label size.
-   Only the edit metadata needs moving: the shared toolbar sets it at 11px,
-   a size below everything beside it. */
+/* One size across the row — the shared toolbar sets this metadata at 11px. */
 .collections-page .collection-topbar #editInfo > div {
   font-size: var(--font-size-label-medium);
 }
 
-/* #contentBody keeps its page padding; each block inside is centered and
-   capped instead, so images can opt out and run wider below. */
+/* Cap each block rather than the body, so images can opt out and run wider. */
 .collections-page #contentBody > * {
   max-width: var(--collections-measure);
   margin-inline: auto;
 }
 
-/* Book carousels escape the reading measure and run the full body width.
-   Three shapes can reach the body: the lazy placeholder, the wrapper div the
-   lazy loader swaps in, and a directly rendered section (lazy=False). */
+/* Carousels run full body width. Three shapes reach the body: lazy placeholder,
+   the wrapper the loader swaps in, and a directly rendered section. */
 .collections-page
   #contentBody
   > :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section) {
@@ -105,9 +89,8 @@
 
 /* === titles === */
 
-/* Kicker above the title: what this page is, and how big. Uppercase and wide
-   tracking let it read as a label at a size small enough to stay subordinate
-   to the title it introduces. */
+/* Kicker above the title. Uppercase and wide tracking let it read as a label at
+   a size that stays subordinate to the title. */
 .collections-page #contentHead .collection-eyebrow {
   margin: var(--spacing-stack-lg) auto 0;
   font-family: var(--font-family-body);
@@ -123,11 +106,10 @@
   margin-inline: 0.35em;
 }
 
-/* Centered, and set off from the metadata above it. The measure keeps a long
-   title breaking into a readable stack rather than one wide line. */
+/* The measure breaks a long title into a readable stack, not one wide line. */
 .collections-page #contentHead h1 {
   max-width: var(--collections-title-measure);
-  /* No bottom margin: the head's own padding already sets the gap to the body. */
+  /* No bottom margin: the head's padding sets the gap to the body. */
   margin: var(--spacing-stack-lg) auto 0;
   font-family: var(--font-family-title);
   font-size: var(--font-size-display-medium);
@@ -137,9 +119,8 @@
   text-align: center;
 }
 
-/* The eyebrow has taken over the gap down from the metadata, so the title only
-   needs the tight pairing gap. Pages without an eyebrow keep the rule above.
-   Ordered after it so the cascade reads in ascending specificity. */
+/* The eyebrow owns the gap from the metadata, so the title only needs the tight
+   pairing gap. Pages without one keep the rule above. */
 .collections-page #contentHead .collection-eyebrow + h1 {
   margin-top: var(--spacing-stack-xs);
 }
@@ -163,8 +144,7 @@
   font-weight: 400;
 }
 
-/* common.css sets a color on p and li directly, so inheriting from the
-   container above wouldn't reach them. */
+/* common.css colors p and li directly, so inheritance wouldn't reach them. */
 .collections-page #contentBody p,
 .collections-page #contentBody li {
   color: var(--color-text);
@@ -174,14 +154,13 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Drop cap on the paragraph that opens the story. A leading image has been
-   promoted out to a <figure> by now, so the first paragraph is that prose. */
+/* Drop cap on the opening paragraph. A leading image is already promoted out to
+   a <figure> by now, so the first paragraph is prose. */
 .collections-page #contentBody > p:first-of-type::first-letter {
   float: left;
   font-family: var(--font-family-title);
-  /* Cap height set to reach from the first line's cap to the second baseline;
-     the short line-height keeps the float box under two lines so no third line
-     indents. */
+  /* Cap reaches the second baseline; the short line-height keeps the float
+     box to two lines so no third line indents. */
   font-size: 3.15em;
   font-weight: 500;
   line-height: 0.86;
@@ -192,18 +171,16 @@
 
 /* === images === */
 
-/* Standalone images get the wider measure. promote_leading_images gives an image
-   that opens a paragraph its own <figure>, so it reaches the top level; raw <img>
-   markup in the source is already there. A cap, not a width — a small image sits
-   at its own size rather than being stretched to fill. */
+/* Standalone images get the wider measure (promote_leading_images lifts a
+   paragraph-opening image into its own top-level <figure>). A cap, not a width,
+   so a small image sits at its own size. */
 .collections-page #contentBody > figure,
 .collections-page #contentBody > img {
   max-width: min(var(--collections-media-width), 100%);
   margin-bottom: var(--spacing-stack-xl);
 }
 
-/* Prose images only: in a figure, standalone, or left inline in a top-level
-   paragraph. Book covers in carousels sit deeper and keep their component styles. */
+/* Prose images only — covers sit deeper and keep their component styles. */
 .collections-page #contentBody > img,
 .collections-page #contentBody > figure img,
 .collections-page #contentBody > p img {
@@ -212,13 +189,12 @@
   border-radius: var(--border-radius-media);
 }
 
-/* An image still inline in a paragraph keeps the reading measure, and carries its
-   own gap — a figure's sits below the caption instead. */
+/* Inline images carry their own gap; a figure's sits below the caption. */
 .collections-page #contentBody > p img {
   margin-bottom: var(--spacing-stack-xl);
 }
 
-/* Centered on the reading measure, so a caption stays readable under a wider image. */
+/* Held to the reading measure so captions stay readable under a wider image. */
 .collections-page #contentBody > figure figcaption {
   max-width: var(--collections-measure);
   margin: var(--spacing-stack-xs) auto 0;

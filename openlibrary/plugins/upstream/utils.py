@@ -1640,11 +1640,25 @@ def promote_leading_images(html: str) -> str:
     """Give an image that opens a paragraph its own ``<figure>``.
 
     Markdown wraps a standalone image in a paragraph, and OL's flavor turns the
-    newline after it into a ``<br>``, so the image ends up sharing that
-    paragraph with its caption or with the opening prose. That caps the image at
-    the reading measure and hands the drop cap to the wrong paragraph. A
-    ``<small>`` tail becomes the figure's caption; anything else goes back to
-    being a paragraph of its own.
+    newline after it into a ``<br>``, so the image ends up sharing that paragraph
+    with whatever came next in the source — its caption, or the opening prose::
+
+        <p><img src="a.png"/><br/>
+        <small>Graphic by Sam</small></p>
+        <p><img src="b.png"/><br/>
+        From 1861 to 1865, the war...</p>
+
+    Both are wrong on a collections page. Nested in a ``<p>`` the image is capped
+    at the reading measure instead of breaking wider, and the drop cap disappears
+    entirely: ``::first-letter`` skips a first line that opens with an image, and
+    the prose that should have taken it is no longer ``p:first-of-type``.
+    Promoting gives each part the element it should have had::
+
+        <figure><img src="a.png"/><figcaption>Graphic by Sam</figcaption></figure>
+        <figure><img src="b.png"/></figure><p>From 1861 to 1865, the war...</p>
+
+    A ``<small>`` tail becomes the caption; anything else goes back to being a
+    paragraph of its own.
     """
 
     def split(match: re.Match) -> str:

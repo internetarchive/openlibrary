@@ -266,14 +266,21 @@ def _clean_comment(raw: str) -> tuple[str, list[Block]]:
 
 
 def _mask_conditional(text: str) -> str:
-    """Blank every ``@media``/``@supports`` block, and the comments introducing it.
+    """Hide every conditional block (``@media``, ``@supports``, ``@container``)
+    from the parser, along with the comment introducing it.
 
-    A responsive override redeclares a token the base ``:root`` already
-    documents, so parsing both would list it twice. Offsets and newlines survive
-    the masking, so "a comment on the same line as its token" still reads true.
+    Such a block restates a token the base ``:root`` already declares — a smaller
+    display size for phones, say. Foundations shows one row per token, so reading
+    both would list that token twice with two different values, and strand its
+    lead-in comment as a heading with nothing under it.
+
+    Blanked rather than cut, so every offset survives and a trailing comment still
+    reads as trailing. Braces are counted on a comment-free copy of the text,
+    because a comment can spell out a brace of its own — breakpoints.css documents
+    ``@media (min-width: 768px) { ... }`` as prose — which would otherwise close
+    the block early and swallow the real ``:root`` below it.
     """
     comment_starts = {match.end(): match.start() for match in _COMMENT_RE.finditer(text)}
-    # Comments carry braces and the word @media, so scan a copy without them.
     scan = _COMMENT_RE.sub(lambda match: " " * len(match.group()), text)
     masked = list(text)
     for match in _CONDITIONAL_RE.finditer(scan):
@@ -281,6 +288,7 @@ def _mask_conditional(text: str) -> str:
         while end < len(scan) and depth:
             depth += {"{": 1, "}": -1}.get(scan[end], 0)
             end += 1
+        # Walk back over the comments stacked directly above, one per pass.
         start = match.start()
         while (lead := text[:start].rstrip()).endswith("*/"):
             start = comment_starts[len(lead)]
