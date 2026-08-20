@@ -6902,6 +6902,38 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
+#: type/work/editions_datatable.html
+msgid "Search editions"
+msgstr ""
+
+#: type/work/editions_datatable.html type/work/solr_editions_table.html
+msgid "Solr Editions Table"
+msgstr ""
+
+#: type/work/solr_editions_table.html
+#, python-format
+msgid "Editions of %(work_title)s"
+msgstr ""
+
+#: type/work/solr_editions_table.html
+#, python-format
+msgid "Showing %(count)s edition from Solr."
+msgid_plural "Showing %(count)s editions from Solr."
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/work/solr_editions_table.html
+msgid "Work total:"
+msgstr ""
+
+#: type/work/solr_editions_table.html
+msgid "Solr Error:"
+msgstr ""
+
+#: type/work/solr_editions_table.html
+msgid "No editions matched your query or filter criteria."
+msgstr ""
+
 #: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
