@@ -147,13 +147,15 @@ class BorrowNotFound:
 BorrowOutcome = BorrowRedirect | BorrowNotFound
 
 
-async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
+async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None, fastapi: bool = False) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
     """Shared /borrow POST logic for both the web.py handler (via the
     handle_borrow sync bridge) and the FastAPI route (awaits directly).
 
     Returns an outcome object rather than performing the redirect/flash/
     cookie side effects itself, since those differ by framework -- except
-    the interstitial render, which has no such side effect to bridge.
+    the interstitial render, which has no such side effect to bridge, so
+    it's rendered directly here; `fastapi` tells it which framework this
+    is, since it's the one thing this function can't otherwise infer.
 
     :param s3_cookie: Required, not read here: callers must read it on
         their own real thread before this may hop onto AsyncBridge's
@@ -182,6 +184,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
             "interstitial",
             url=acquisitions[0].url,
             provider_name=acquisitions[0].provider_name,
+            fastapi=fastapi,
         )
 
     archive_url = get_bookreader_stream_url(edition.ocaid) + "?ref=ol"
