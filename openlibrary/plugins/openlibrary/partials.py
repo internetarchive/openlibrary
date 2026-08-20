@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -32,6 +33,7 @@ from openlibrary.plugins.worksearch.code import (
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
+    get_cached_publishing_history,
     get_subject_async,
 )
 from openlibrary.utils.async_utils import async_bridge
@@ -391,17 +393,19 @@ class SubjectPublishingHistoryPartial:
 
     @classmethod
     async def generate_async(cls, key: str) -> dict:
-        subject = await get_subject_async(
-            key,
-            details=True,
-            limit=0,
-            facet_fields=[{"name": "publish_year", "limit": -1}],
-            request_label="SUBJECT_PUBLISHING_HISTORY",
-        )
+        # Same cached facet the masthead's "years published" stat reads, so a
+        # subject pays for it once rather than once here and once per page
+        # render. memcache_memoize is sync and blocks until the value is in
+        # hand, so it runs off the event loop -- a plain worker thread is the
+        # same shape its own background refresh already uses, which is what
+        # makes async_bridge safe to call from in there.
+        history = await asyncio.to_thread(get_cached_publishing_history, key)
         macro = render_macro(
             "PublishingHistory",
             (),
-            publishing_history=subject.get("publishing_history", []),
+            # Defensive read: entries outlive the deploy that changed their
+            # shape -- see decorate_with_publish_year_range.
+            publishing_history=history.get("publishing_history", []),
             async_load=False,
             key=key,
         )

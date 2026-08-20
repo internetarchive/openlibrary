@@ -67,6 +67,12 @@ MAX_NOTABLE_AUTHORS = 8
 # Reading-log surfaces a subject's contemporary authors, syllabus assignments its
 # canonical ones; neither is dense enough alone. Reading-log leads because the
 # first sort owns the most visible slot.
+# Long TTL is safe: memcache_memoize is stale-while-revalidate. Not longer,
+# though -- entries are written without an expiry under a key_prefix that's
+# stable across deploys, so the timeout doubles as the window in which a
+# payload in an old shape gets replaced. See get_cached_publishing_history.
+PUBLISHING_HISTORY_CACHE_TIMEOUT = 12 * 60 * 60  # 12h
+
 NOTABLE_AUTHORS_SORTS = ("readinglog", "osp_count desc")
 # Works with no signal at all can only be tie-broken arbitrarily. Excluding them
 # shrinks the scanned corpus 3-84x depending on the subject.
@@ -89,16 +95,20 @@ class subjects(delegate.page):
         # works themselves -- the carousels run their own searches and notable
         # authors are cached separately -- so this asks for none: rows=0 keeps
         # the count and the facets while skipping a large docs payload and the
-        # availability lookup that decorating them would trigger. The facets
-        # are the ebook_access / publish_year ones behind "readable now" and
-        # "years in print". (ebook_access, not the has_fulltext facet: that one
-        # includes printdisabled-only scans, so it over-counts vs the /search
-        # "Readable Only" filter it links to.)
+        # availability lookup that decorating them would trigger.
+        #
+        # ebook_access only. It's single-valued and 4 buckets, so it's cheap
+        # enough to ride along on the query the page can't render without.
+        # (ebook_access, not the has_fulltext facet: that one includes
+        # printdisabled-only scans, so it over-counts vs the /search "Readable
+        # Only" filter it links to.) The masthead's other stat needs the
+        # publish_year facet, which is neither cheap nor safe to couple to this
+        # query -- that one is cached, see decorate_with_publish_year_range.
         subj = get_subject(
             key,
             details=True,
             limit=0,
-            facet_fields=["ebook_access", {"name": "publish_year", "limit": -1}],
+            facet_fields=["ebook_access"],
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -110,6 +120,7 @@ class subjects(delegate.page):
         else:
             self.decorate_with_tags(subj)
             self.decorate_with_notable_authors(subj)
+            self.decorate_with_publish_year_range(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -185,6 +196,35 @@ class subjects(delegate.page):
             # A cold miss touches solr, memcache and infobase; none of them
             # should be able to take down a page whose main content is ready.
             logger.exception("Failed to load notable authors for %s", subject.key)
+
+    def decorate_with_publish_year_range(self, subject) -> None:
+        """
+        Adds the masthead's "years published" span.
+
+        Fetched separately from the page's own query rather than as another
+        facet on it. The publish_year facet is multi-valued (a value per
+        edition, not per work) and asks for every distinct year, which makes it
+        the most expensive question the page asks -- and the page's query is the
+        one that yields work_count, without which there is no page at all. Left
+        coupled, a facet slow enough to hit the solr timeout on a large subject
+        would take the whole page down rather than one line of the masthead.
+
+        Cached because the answer moves on the scale of months, and shared with
+        the publishing-history chart, which needs the same facet -- see
+        SubjectPublishingHistoryPartial.
+        """
+        try:
+            history = get_cached_publishing_history(subject.key)
+            # Defensive read: memcache entries are written without an expiry
+            # under a key_prefix that's stable across deploys, so a payload in
+            # an older shape can outlive the deploy that changed it.
+            year_range = history.get("publish_year_range")
+            # JSON round-trips the tuple to a list; the template unpacks either.
+            subject.publish_year_range = tuple(year_range) if year_range else None
+        except Exception:
+            # One stat in the masthead. Not worth a 500.
+            logger.exception("Failed to load publishing history for %s", subject.key)
+            subject.publish_year_range = None
 
 
 def normalize_author_name(name: str) -> str:
@@ -389,6 +429,41 @@ async def get_subject_async(
 
 
 get_subject = async_bridge.wrap(get_subject_async)
+
+
+def _compute_publishing_history(key: SubjectPseudoKey) -> dict:
+    """
+    Sync seam for memcache_memoize -- see _compute_notable_authors.
+
+    Returns both the year-by-year counts the chart plots and the trimmed span
+    the masthead prints, so the one facet serves both.
+    """
+    if "site" not in web.ctx:
+        # The background refresh thread has no request ctx. Same guard as
+        # core/lending.get_user_waiting_loans.
+        delegate.fakeload()
+
+    subject = async_bridge.run(
+        get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=[{"name": "publish_year", "limit": -1}],
+            request_label="SUBJECT_PUBLISHING_HISTORY",
+        )
+    )
+    return {
+        "publishing_history": subject.get("publishing_history", []),
+        "publish_year_range": subject.get("publish_year_range"),
+    }
+
+
+get_cached_publishing_history = cache.memcache_memoize(
+    _compute_publishing_history,
+    key_prefix="subjects.publishing_history",
+    timeout=PUBLISHING_HISTORY_CACHE_TIMEOUT,
+    hash_args=True,  # long subject slugs would overflow memcache's 250-char key limit
+)
 
 
 def _trim_outlier_end_year(ordered: list[list[int]], cut: float) -> int:

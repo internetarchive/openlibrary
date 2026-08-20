@@ -631,3 +631,54 @@ class TestFilteredPublishingYearRange:
         history = [[1500, 1], [1990, 2], [2020, 2]]
         assert sum(count for _year, count in history) < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM
         assert _filtered_publishing_year_range(history) == (1500, 2020)
+
+
+class TestDecorateWithPublishYearRange:
+    """Tests for subjects.decorate_with_publish_year_range.
+
+    The masthead's year span is read from get_cached_publishing_history
+    (memcache_memoize-wrapped) rather than faceted on the page's own query --
+    see the method's docstring for why. Memcache round-trips through JSON, so
+    the tuple written goes in as a tuple and comes back as a list.
+    """
+
+    def _make_handler(self):
+        return subjects_handler()
+
+    def _patch_cache(self, **kwargs):
+        return patch("openlibrary.plugins.worksearch.subjects.get_cached_publishing_history", **kwargs)
+
+    def test_rehydrates_cached_list_into_a_tuple(self):
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={"publish_year_range": [1902, 2026]}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range == (1902, 2026)
+
+    def test_missing_range_is_none(self):
+        """A subject whose history was all bad dates caches a null range."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={"publish_year_range": None}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None
+
+    def test_payload_in_an_older_shape_is_survivable(self):
+        """Entries are written without an expiry, so one can outlive the deploy that changed its shape."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None
+
+    def test_a_failed_lookup_does_not_take_down_the_page(self):
+        """One stat in the masthead. A cold miss touches solr and memcache; neither should 500 the page."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(side_effect=OSError("solr is having a day")):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None
