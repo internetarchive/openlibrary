@@ -26,5 +26,3 @@ export { OlToastRegion, showToast } from './OlToastRegion.js';
 export { OpenLibraryOTP } from './OpenLibraryOTP.js';
 export { OlCarousel } from './OlCarousel.js';
 export { OlScorecard } from './OlScorecard.js';
-export { OlBookActions } from './OlBookActions.js';
-export { OlBooksDisplay } from './OlBooksDisplay.js';
