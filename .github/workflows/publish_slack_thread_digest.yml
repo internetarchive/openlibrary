@@ -1,0 +1,93 @@
+name: Publish Slack thread
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: Slack channel to publish to.
+        type: string
+        required: true
+      message:
+        description: >
+          Posted as a new parent message when thread_ts is not given, or as a
+          reply into the thread when thread_ts is given.
+        type: string
+        required: false
+      thread_ts:
+        description: Existing thread timestamp to post into. Omit to start a new thread.
+        type: string
+        required: false
+      replies_json:
+        description: JSON-encoded array of additional strings to post as threaded replies.
+        type: string
+        required: false
+        default: '[]'
+    secrets:
+      slack_token:
+        required: true
+    outputs:
+      ts:
+        description: >
+          Timestamp of the parent/thread used. Pass this back in as thread_ts
+          to keep posting to the same thread in a later call.
+        value: ${{ jobs.publish_parent.outputs.ts }}
+
+jobs:
+  publish_parent:
+    runs-on: ubuntu-latest
+    outputs:
+      ts: ${{ steps.resolve.outputs.ts }}
+    steps:
+      # Values are wrapped in toJson() rather than interpolated as "${{ ... }}" directly:
+      # message/reply text can contain real newlines and arbitrary characters (issue titles,
+      # quotes, colons), and toJson() properly escapes both so the resulting payload stays
+      # valid YAML/JSON. Without it, a stray '"' would break the payload, and embedded
+      # newlines would get silently flattened to spaces by YAML's line-folding rules.
+      - name: Start a new thread
+        if: ${{ inputs.thread_ts == '' && inputs.message != '' }}
+        id: new_thread
+        uses: slackapi/slack-github-action@v3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.slack_token }}
+          payload: |
+            channel: ${{ toJson(inputs.channel) }}
+            text: ${{ toJson(inputs.message) }}
+      - name: Reply into an existing thread
+        if: ${{ inputs.thread_ts != '' && inputs.message != '' }}
+        uses: slackapi/slack-github-action@v3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.slack_token }}
+          payload: |
+            channel: ${{ toJson(inputs.channel) }}
+            thread_ts: ${{ toJson(inputs.thread_ts) }}
+            text: ${{ toJson(inputs.message) }}
+      - id: resolve
+        run: echo "ts=${{ inputs.thread_ts != '' && inputs.thread_ts || steps.new_thread.outputs.ts }}" >> "$GITHUB_OUTPUT"
+
+  publish_replies:
+    needs: publish_parent
+    # The inputs.replies_json != '[]' check is deliberate, not just a ts guard: GitHub's docs
+    # don't confirm that a matrix sourced from an empty JSON array ([]) cleanly skips the job
+    # rather than erroring, so we avoid relying on that undocumented behavior. Both callers
+    # that don't post replies (the two failure-notification jobs) rely on this to skip cleanly.
+    if: ${{ needs.publish_parent.outputs.ts != '' && inputs.replies_json != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      # fail-fast: false so one bad reply doesn't cancel the rest (matrix default would).
+      # max-parallel: 1 keeps replies paced against Slack's rate limit; posting order doesn't
+      # matter for this workflow's callers.
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        reply: ${{ fromJson(inputs.replies_json) }}
+    steps:
+      - uses: slackapi/slack-github-action@v3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.slack_token }}
+          payload: |
+            channel: ${{ toJson(inputs.channel) }}
+            thread_ts: ${{ toJson(needs.publish_parent.outputs.ts) }}
+            text: ${{ toJson(matrix.reply) }}
