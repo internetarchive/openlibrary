@@ -19,7 +19,7 @@
             <b>Demo data.</b> Both examples pass a fixed <code>books</code> array — twelve real works covering every access CTA — so the gallery renders without a search index behind it; a real page passes <code>query</code>. Signed in, the demos are live: they overlay your own shelf and rating and write to your real reading log and lists.
         </p>
         <p>
-            <b>Light DOM.</b> Like <code>ol-button</code>, this renders into the light DOM: <code>ol-carousel</code> needs the cards as real children and sitewide handlers (<code>.js-login-intent</code>, analytics) keep working. Styles live in <code>static/css/components/ol-books-display.css</code> (class prefix <code>obd-</code>).
+            <b>Shadow DOM.</b> Styles ship in the component's <code>static styles</code> (class prefix <code>obd-</code>); only the pre-upgrade host box lives in <code>static/css/components/ol-books-display.css</code>. The two sitewide click delegations a shadow boundary defeats are handled inside the component: Matomo events are pushed by hand, and a logged-out CTA queues its own pending action instead of leaning on <code>.js-login-intent</code>.
         </p>
         <p>
             <b>Signed out.</b> Without <code>user-key</code> the corner button and shelf controls send the visitor to log in, remembering the intent; no user-state request is made.

@@ -1,8 +1,9 @@
-import { LitElement, html, nothing } from 'lit';
+import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { icon } from './utils/book-icons.js';
-import { fetchBooks, fetchUserState, setShelf, redirectToLogin, SHELF } from './utils/books-api.js';
+import { fetchBooks, fetchUserState, setShelf, queuePendingAction, redirectToLogin, SHELF } from './utils/books-api.js';
+import { trackEvent } from './utils/analytics.js';
 import { fmt, DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import { showToast } from './OlToastRegion.js';
 import './OlCarousel.js';
@@ -20,9 +21,13 @@ import './OlBookActions.js';
  * `list` (full-width rows) today; more layouts (e.g. a multi-row grid) slot in
  * alongside without changing the data path.
  *
- * Renders into the light DOM (like `<ol-button>`) so `<ol-carousel>` gets the
- * cards as real children, sitewide handlers (`.js-login-intent`, analytics)
- * keep working, and `static/css/components/ol-books-display.css` styles it.
+ * Renders into its shadow root, so its styles live in `static styles` and the
+ * page cascade can't reach them. The two sitewide click delegations that a
+ * shadow boundary defeats are handled here instead: Matomo events are pushed
+ * by hand through `trackEvent`, and a logged-out CTA queues its own pending
+ * action rather than relying on the `.js-login-intent` document handler.
+ * `static/css/components/ol-books-display.css` keeps only the pre-upgrade
+ * rules for the host tag.
  *
  * @element ol-books-display
  *
@@ -41,7 +46,7 @@ import './OlBookActions.js';
  * @prop {Boolean} hasFulltextOnly - Restrict to readable books (default true; attr has-fulltext-only="false" to disable)
  * @prop {Boolean} safeMode - Hide content-warning covers (default true; attr safe-mode="false" to disable)
  * @prop {String} userKey - "/people/<username>" when signed in; empty when not
- * @prop {String} analyticsKey - Suffix for data-ol-link-track values
+ * @prop {String} analyticsKey - Label on the Matomo events this reports
  * @prop {Object} labels  - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-books-display-view-change - detail: { view }
@@ -122,9 +127,623 @@ export class OlBooksDisplay extends LitElement {
         _userState: { state: true },
     };
 
-    createRenderRoot() {
-        return this;
-    }
+    static styles = css`
+        :host {
+            display: block;
+            /* Hold to the container even inside flex/grid parents: the
+               carousel's track is wide, and must never set this element's
+               width. */
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family-body);
+            color: var(--color-text);
+        }
+
+        .obd__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--spacing-inline-md);
+            margin-bottom: var(--spacing-stack-sm);
+        }
+
+        /* Color and weight came from the page's h1-h6 rule until this moved
+           into a shadow root; they are declared here to keep the same look. */
+        .obd__title {
+            margin: 0;
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-title-large);
+            font-weight: 600;
+            line-height: var(--line-height-heading);
+            color: var(--color-text-secondary);
+        }
+
+        /* Inherit the surrounding text color; the page's a:link rules stop
+           at the shadow boundary. */
+        .obd-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .obd-link:hover {
+            text-decoration: underline;
+        }
+
+        .obd__status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-inline-md);
+            padding: var(--spacing-inset-lg);
+            color: var(--color-text-secondary);
+        }
+
+        .obd__link-btn {
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--color-link);
+            font: inherit;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .obd__link-btn:hover {
+            text-decoration: underline;
+        }
+
+        .obd__link-btn:disabled {
+            color: var(--color-text-muted);
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .obd__link-btn:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        /* ── Shared: covers, CTAs ─────────────────────────────────── */
+
+        .obd-cover {
+            position: relative;
+            display: block;
+            aspect-ratio: 2 / 3;
+            border-radius: var(--border-radius-thumbnail);
+            overflow: hidden;
+            background: var(--color-surface-sunken);
+        }
+
+        .obd-cover__link {
+            display: block;
+            height: 100%;
+        }
+
+        /* Wraps the cover link only, keeping the save button out of the trigger
+           area. */
+        .obd-cover > ol-tooltip {
+            display: block;
+            height: 100%;
+        }
+
+        /* Slotted content lives in the light DOM; only the panel comes from ol-tooltip. */
+        .obd-tip {
+            font-size: var(--font-size-body-medium);
+        }
+
+        .obd-tip__title {
+            font-weight: 600;
+        }
+
+        .obd-tip__year,
+        .obd-tip__byline {
+            color: var(--neutral-300);
+        }
+
+        .obd-tip__byline {
+            font-size: var(--font-size-label-medium);
+        }
+
+        .obd-cover__img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .obd-cover__blank {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            box-sizing: border-box;
+            padding: var(--spacing-inset-md);
+            background: linear-gradient(160deg, var(--neutral-600), var(--neutral-800));
+            color: var(--color-text-inverse);
+            text-align: center;
+        }
+
+        .obd-cover__blank-title {
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-title-medium);
+            font-weight: 700;
+            line-height: var(--line-height-tight);
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+        }
+
+        .obd-cover__blank-author {
+            font-size: var(--font-size-label-small);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.85;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Mirrors ol-button (see ol-button.css): raised shadow + inset specular
+           edge, primary lightens on hover, secondary darkens. */
+        .obd-cta {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-inline-xs);
+            box-sizing: border-box;
+            height: var(--control-height-medium);
+            padding: 0 var(--spacing-md);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            font-family: var(--font-family-button);
+            font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-control);
+            white-space: nowrap;
+            text-decoration: none;
+            cursor: pointer;
+            user-select: none;
+            background-color: var(--white);
+            color: var(--dark-grey);
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+            transition: transform 0.08s;
+        }
+
+        .obd-cta:active {
+            transform: scale(0.97);
+        }
+
+        .obd-cta--primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+            --control-surface: var(--primary-blue);
+            --control-highlight-strength: 18%;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .obd-cta--primary:hover {
+                filter: brightness(1.1);
+            }
+
+            .obd-cta--secondary:hover {
+                background-color: var(--color-control-hover);
+                border-color: var(--light-grey);
+                --control-surface: var(--color-control-hover);
+            }
+        }
+
+        .obd-cta--static {
+            color: var(--color-text-muted);
+            cursor: default;
+        }
+
+        .obd-cta:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: var(--spacing-3xs);
+        }
+
+        .obd-cta__ext {
+            width: 14px;
+            height: 14px;
+        }
+
+        .obd-cta-form {
+            margin: 0;
+        }
+
+        /* ── Covers view (carousel cards) ─────────────────────────── */
+
+        .obd__carousel {
+            --ol-carousel-viewport-padding: 6px;
+
+            min-width: 0;
+        }
+
+        .obd-card {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-stack-xs);
+            min-width: 0;
+        }
+
+        .obd-card .obd-cover {
+            margin-bottom: var(--spacing-stack-xs);
+        }
+
+        .obd-card__meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-stack-xs);
+            min-width: 0;
+        }
+
+        /* On a fine pointer the cover tooltip carries title/year/author instead. Same
+           query ol-tooltip arms with, so exactly one of the two shows. */
+        @media (hover: hover) and (pointer: fine) {
+            .obd-card__meta {
+                display: none;
+            }
+        }
+
+        /* Clamped as one line so the year wraps with the title. */
+        .obd-card__heading {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .obd-card__title {
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-title-small);
+            font-weight: 600;
+            line-height: var(--line-height-tight);
+            color: var(--color-text);
+            text-decoration: none;
+        }
+
+        .obd-card__title:hover {
+            text-decoration: underline;
+        }
+
+        .obd-card__year {
+            font-size: var(--font-size-title-small);
+            color: var(--color-text-secondary);
+        }
+
+        .obd-card__author {
+            font-size: var(--font-size-label-medium);
+            color: var(--color-text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .obd-card__cta {
+            width: 100%;
+            margin-top: auto;
+        }
+
+        /* Corner save button: "+" until the book is on a shelf, then a filled check.
+           Signed in, the button is slotted into <ol-book-actions>, whose popover host
+           is position: relative — so the wrapper takes the corner and the button
+           goes static inside it. */
+        .obd-save,
+        .obd-cover > ol-book-actions {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+        }
+
+        .obd-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--color-text);
+            cursor: pointer;
+            --control-highlight-strength: 35%;
+            transition: transform 0.08s;
+        }
+
+        /* The visible circle is smaller than the 32px hit target. Same inset
+           specular edge as ol-button; the drop shadow is heavier since it floats
+           over cover art. */
+        .obd-save::before {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border-radius: var(--border-radius-circle);
+            background: var(--white);
+            box-shadow:
+                0 1px 4px var(--boxshadow-black),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+        }
+
+        .obd-save .obd-icon {
+            position: relative;
+            width: 14px;
+            height: 14px;
+        }
+
+        .obd-save:hover {
+            transform: scale(1.08);
+        }
+
+        .obd-save:active {
+            transform: scale(0.95);
+        }
+
+        .obd-save:focus-visible {
+            outline: none;
+        }
+
+        .obd-save:focus-visible::before {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        .obd-save--on {
+            color: var(--white);
+            --control-surface: var(--primary-blue);
+            --control-highlight-strength: 18%;
+        }
+
+        .obd-save--on::before {
+            background: var(--primary-blue);
+        }
+
+        .obd-cover > ol-book-actions .obd-save {
+            position: relative;
+            top: auto;
+            right: auto;
+        }
+
+        /* ── List view (rows) ─────────────────────────────────────── */
+
+        .obd__list-wrap {
+            border: var(--border-card);
+            border-radius: var(--border-radius-card);
+            background: var(--color-surface);
+        }
+
+        .obd__list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .obd-row {
+            display: grid;
+            grid-template-columns: 72px minmax(0, 1fr) auto;
+            gap: var(--spacing-inline-lg);
+            align-items: start;
+            padding: var(--spacing-inset-md);
+            border-bottom: var(--border-divider);
+        }
+
+        .obd-row:last-child {
+            border-bottom: 0;
+        }
+
+        .obd-row__cover {
+            width: 72px;
+        }
+
+        .obd-row__body {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .obd-row__title {
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-title-medium);
+            font-weight: 600;
+            line-height: var(--line-height-tight);
+            color: var(--color-text);
+            text-decoration: none;
+        }
+
+        .obd-row__title:hover {
+            text-decoration: underline;
+        }
+
+        .obd-row__author {
+            font-size: var(--font-size-body-medium);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-stack-xs);
+        }
+
+        .obd-row__year {
+            font-size: var(--font-size-title-medium);
+            color: var(--color-text-secondary);
+        }
+
+        .obd-row__rating {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-inline-xs);
+            font-size: var(--font-size-label-medium);
+            color: var(--color-text-secondary);
+        }
+
+        .obd-stars {
+            display: inline-flex;
+            color: var(--gold);
+        }
+
+        .obd-stars .obd-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        .obd-row__actions {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: var(--spacing-stack-xs);
+            width: 200px;
+        }
+
+        .obd-row__cta {
+            width: 100%;
+        }
+
+        /* Split shelf button: main toggles the shown shelf, chevron opens the menu. */
+        .obd-shelf {
+            display: flex;
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        .obd-shelf--on {
+            border-color: var(--color-control-selected-border);
+            background: var(--color-control-selected-bg);
+        }
+
+        .obd-shelf__main,
+        .obd-shelf__more {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: calc(var(--control-height-medium) - 2px);
+            border: 0;
+            background: none;
+            color: var(--color-text);
+            font-family: var(--font-family-button);
+            font-size: var(--font-size-body-medium);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .obd-shelf__main {
+            flex: 1;
+            min-width: 0;
+            padding: 0 var(--spacing-sm);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .obd-shelf__main span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .obd-shelf__main--on {
+            color: var(--color-link);
+        }
+
+        .obd-shelf > ol-book-actions {
+            display: flex;
+        }
+
+        .obd-shelf__more {
+            width: 40px;
+            border-left: 1px solid var(--color-border-subtle);
+        }
+
+        .obd-shelf--on .obd-shelf__more {
+            border-left-color: var(--color-control-selected-border);
+            color: var(--color-link);
+        }
+
+        .obd-shelf__main:hover,
+        .obd-shelf__more:hover {
+            background: var(--color-hover-overlay);
+        }
+
+        .obd-shelf__main:focus-visible,
+        .obd-shelf__more:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -2px;
+        }
+
+        .obd-shelf .obd-icon {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 16px;
+        }
+
+        .obd__list-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-inline-md);
+            padding: var(--spacing-inset-md);
+            border-top: var(--border-divider);
+            font-size: var(--font-size-body-medium);
+        }
+
+        .obd__dot {
+            color: var(--color-text-muted);
+        }
+
+        @media (max-width: 600px) {
+            .obd-row {
+                grid-template-columns: 56px minmax(0, 1fr);
+            }
+
+            .obd-row__cover {
+                width: 56px;
+            }
+
+            .obd-row__actions {
+                grid-column: 1 / -1;
+                flex-direction: row;
+                width: auto;
+            }
+
+            /* Share the row by content width, not equal halves — an equal split
+               ellipsizes "Want to Read" while a short CTA sits in dead space. */
+            .obd-row__actions > * {
+                flex: 1 1 auto;
+            }
+
+            .obd-row__cta {
+                width: auto;
+            }
+
+            .obd-row__title,
+            .obd-row__year {
+                font-size: var(--font-size-title-small);
+            }
+
+            /* Cards are narrow here, and the meta only shows on touch. */
+            .obd-card__title,
+            .obd-card__year {
+                font-size: var(--font-size-label-medium);
+            }
+
+            .obd-card__author {
+                font-size: var(--font-size-label-small);
+            }
+        }
+    `;
 
     constructor() {
         super();
@@ -264,10 +883,8 @@ export class OlBooksDisplay extends LitElement {
 
     render() {
         return html`
-            <div class="obd">
-                ${this._renderHeader()}
-                ${this._error ? this._renderError() : this._renderView()}
-            </div>
+            ${this._renderHeader()}
+            ${this._error ? this._renderError() : this._renderView()}
         `;
     }
 
@@ -393,7 +1010,7 @@ export class OlBooksDisplay extends LitElement {
             <div class="obd-card" data-key=${doc.key}>
                 <div class="obd-cover">
                     <ol-tooltip placement="top" arrow>
-                        <a class="obd-cover__link" href=${doc.key} data-ol-link-track="BookCarousel|CoverClick|${this.analyticsKey}">
+                        <a class="obd-cover__link" href=${doc.key} @click=${() => this._track('CoverClick')}>
                             ${this._renderCover(doc)}
                         </a>
                         ${this._renderCoverTip(doc)}
@@ -456,7 +1073,6 @@ export class OlBooksDisplay extends LitElement {
     _renderCta(doc, cls) {
         const access = doc.access || {};
         const label = this.t(CTA_LABEL[access.cta] || 'notInLibrary');
-        const track = `BookCarousel|CTAClick|${this.analyticsKey}`;
         const primary = ['read', 'audiobook', 'borrow', 'special_access', 'preview'].includes(access.cta);
         const classes = { 'obd-cta': true, 'obd-cta--primary': primary, 'obd-cta--secondary': !primary, [cls]: true };
 
@@ -467,22 +1083,18 @@ export class OlBooksDisplay extends LitElement {
             return html`
                 <form method="POST" action=${access.url} class="obd-cta-form">
                     <input type="hidden" name="action" value="join-waitinglist" />
-                    <button type="submit" class=${classMap(classes)} data-ol-link-track=${track}>${label}</button>
+                    <button type="submit" class=${classMap(classes)} @click=${() => this._track('CTAClick')}>${label}</button>
                 </form>
             `;
         }
         const loginIntent = access.login_intent && !this.userKey;
         return html`
             <a
-                class="${classMap({ ...classes, 'js-login-intent': loginIntent })}"
+                class=${classMap(classes)}
                 href=${access.url}
                 target=${ifDefined(access.external ? '_blank' : undefined)}
                 rel=${ifDefined(access.external ? 'noopener noreferrer' : undefined)}
-                data-ol-link-track=${track}
-                data-action=${ifDefined(loginIntent ? label : undefined)}
-                data-title=${ifDefined(loginIntent ? doc.title : undefined)}
-                data-type=${ifDefined(loginIntent ? 'book' : undefined)}
-                data-resumeurl=${ifDefined(loginIntent && doc.edition_key ? `/books/${doc.edition_key}` : undefined)}
+                @click=${() => this._onCtaClick(doc, label, loginIntent)}
             >${label}${access.external ? icon('arrow-up-right', { cls: 'obd-icon obd-cta__ext' }) : nothing}</a>
         `;
     }
@@ -574,6 +1186,32 @@ export class OlBooksDisplay extends LitElement {
     _onCollapse() {
         this._visible = this.limit;
         this.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+
+    /**
+     * Report a Matomo event. `data-ol-link-track` is invisible to Matomo's
+     * document-level click trigger from in here — the click retargets to the
+     * host on its way out of the shadow root — so report by hand.
+     */
+    _track(action) {
+        trackEvent('BookCarousel', action, this.analyticsKey);
+    }
+
+    /**
+     * The CTA is an ordinary navigation, and stays one: a logged-out visitor
+     * still lands on the target URL, having queued what they were doing so the
+     * page can resume it after they sign in. That queueing used to come from
+     * the sitewide `.js-login-intent` handler, which the shadow boundary hides
+     * this link from.
+     */
+    _onCtaClick(doc, label, loginIntent) {
+        this._track('CTAClick');
+        if (!loginIntent) return;
+        queuePendingAction({
+            action: label,
+            title: doc.title,
+            resumeUrl: doc.edition_key ? `/books/${doc.edition_key}` : undefined,
+        });
     }
 
     _onLoggedOutAction(e, doc) {

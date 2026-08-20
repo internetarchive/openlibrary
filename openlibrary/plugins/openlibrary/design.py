@@ -230,7 +230,6 @@ COMPONENTS = (
         "design/components/books-display.html.jinja",
         group="Content",
         tag="ol-books-display",
-        css_files=("ol-books-display",),
     ),
     Component(
         "book-actions",

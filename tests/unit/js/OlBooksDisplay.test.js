@@ -2,6 +2,11 @@
  * Unit tests for <ol-books-display>: data flow (fetch → cards → user-state
  * overlay), the view toggle, list-view paging, and the logged-in/out branches
  * of the per-book controls. Network is stubbed at `fetch`.
+ *
+ * The component renders into its shadow root, so queries for its own markup go
+ * through `el.renderRoot`. Anything it hands to a child component (the save
+ * button slotted into <ol-book-actions>, the tooltip's content) is a light
+ * child of that child and is reached from it directly.
  */
 import '../../../openlibrary/components/lit/OlBooksDisplay.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
@@ -74,7 +79,14 @@ beforeAll(() => {
 
 afterEach(() => {
     document.body.innerHTML = '';
+    document.cookie = 'pending_action=; path=/; max-age=0';
 });
+
+/** The `pending_action` cookie the CTA writes for a logged-out visitor. */
+function pendingAction() {
+    const match = document.cookie.match(/(?:^|; )pending_action=([^;]*)/);
+    return match ? JSON.parse(decodeURIComponent(match[1])) : null;
+}
 
 async function mount(attrs = {}) {
     const el = document.createElement('ol-books-display');
@@ -98,7 +110,7 @@ describe('ol-books-display data flow', () => {
         stubFetch();
         const el = await mount();
         expect(el.docs).toHaveLength(20);
-        expect(el.querySelectorAll('.obd-card')).toHaveLength(20);
+        expect(el.renderRoot.querySelectorAll('.obd-card')).toHaveLength(20);
         const first = fetchCalls[0].url;
         expect(first).toContain('/books-display.json?');
         expect(first).toContain('q=subject%3Afiction');
@@ -109,18 +121,22 @@ describe('ol-books-display data flow', () => {
     test('renders label-free CTA kinds with translated labels', async() => {
         stubFetch();
         const el = await mount({ labels: { borrow: 'Emprunter' } });
-        const cta = el.querySelector('.obd-card .obd-cta');
+        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
         expect(cta.textContent.trim()).toBe('Emprunter');
         expect(cta.classList.contains('obd-cta--primary')).toBe(true);
         expect(cta.getAttribute('href')).toBe('/borrow/ia/x0?ref=ol');
     });
 
-    test('logged out: borrow CTAs carry the login-intent hook and "+" has no popover', async() => {
+    test('logged out: a borrow CTA queues the pending action and "+" has no popover', async() => {
         stubFetch();
         const el = await mount();
-        expect(el.querySelector('.obd-card .obd-cta').classList.contains('js-login-intent')).toBe(true);
-        expect(el.querySelector('ol-book-actions')).toBeNull();
-        expect(el.querySelector('.obd-save')).not.toBeNull();
+        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
+        // Still an ordinary link to the borrow URL — only the cookie is ours.
+        cta.addEventListener('click', e => e.preventDefault());
+        cta.click();
+        expect(pendingAction()).toEqual({ name: 'Book 0', url: '/books/OL0M', action: 'Borrow', type: 'book' });
+        expect(el.renderRoot.querySelector('ol-book-actions')).toBeNull();
+        expect(el.renderRoot.querySelector('.obd-save')).not.toBeNull();
         // No user-state request without a user
         expect(fetchCalls.some(c => c.url.includes('user-state'))).toBe(false);
     });
@@ -130,31 +146,34 @@ describe('ol-books-display data flow', () => {
         const el = await mount({ userKey: '/people/tester' });
         const stateCall = fetchCalls.find(c => c.url.includes('user-state'));
         expect(stateCall.url).toContain('work_ids=OL0W%2COL1W');
-        const actions = el.querySelectorAll('ol-book-actions');
+        const actions = el.renderRoot.querySelectorAll('ol-book-actions');
         expect(actions).toHaveLength(20);
         expect(actions[1].shelf).toBe(SHELF.ALREADY_READ);
         expect(actions[1].rating).toBe(5);
         expect(actions[1].querySelector('.obd-save').classList.contains('obd-save--on')).toBe(true);
         expect(actions[0].querySelector('.obd-save').classList.contains('obd-save--on')).toBe(false);
-        expect(el.querySelector('.obd-card .obd-cta').classList.contains('js-login-intent')).toBe(false);
+        const cta = el.renderRoot.querySelector('.obd-card .obd-cta');
+        cta.addEventListener('click', e => e.preventDefault());
+        cta.click();
+        expect(pendingAction()).toBeNull();
     });
 
     test('ol-book-state-change updates the card', async() => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
-        const actions = el.querySelector('ol-book-actions');
+        const actions = el.renderRoot.querySelector('ol-book-actions');
         actions.dispatchEvent(new CustomEvent('ol-book-state-change', {
             bubbles: true, composed: true,
             detail: { key: '/works/OL0W', shelf: SHELF.WANT_TO_READ, rating: null },
         }));
         await el.updateComplete;
-        expect(el.querySelector('ol-book-actions .obd-save').classList.contains('obd-save--on')).toBe(true);
+        expect(el.renderRoot.querySelector('ol-book-actions .obd-save').classList.contains('obd-save--on')).toBe(true);
     });
 
     test('carousel nearing its end loads the next page', async() => {
         stubFetch({ total: 45 });
         const el = await mount();
-        const carousel = el.querySelector('ol-carousel');
+        const carousel = el.renderRoot.querySelector('ol-carousel');
         carousel.dispatchEvent(new CustomEvent('ol-carousel-page-change', { detail: { page: 2, totalPages: 3 }, bubbles: true }));
         await new Promise(r => setTimeout(r, 0));
         await el.updateComplete;
@@ -187,8 +206,8 @@ describe('ol-books-display data flow', () => {
     test('shows the error state with a retry on failure', async() => {
         global.fetch = jest.fn(async() => ({ ok: false, status: 500, json: async() => ({}) }));
         const el = await mount();
-        expect(el.querySelector('[role="alert"]').textContent).toContain('load these books');
-        expect(el.querySelector('.obd-card')).toBeNull();
+        expect(el.renderRoot.querySelector('[role="alert"]').textContent).toContain('load these books');
+        expect(el.renderRoot.querySelector('.obd-card')).toBeNull();
     });
 });
 
@@ -196,7 +215,7 @@ describe('ol-books-display cover cards', () => {
     test('the cover carries a hover card, and the card text repeats it for touch', async() => {
         stubFetch();
         const el = await mount();
-        const card = el.querySelector('.obd-card');
+        const card = el.renderRoot.querySelector('.obd-card');
         // The tooltip wraps the cover link only — not the save button.
         const tip = card.querySelector('.obd-cover > ol-tooltip');
         expect(tip.querySelector('.obd-cover__link')).not.toBeNull();
@@ -208,8 +227,8 @@ describe('ol-books-display cover cards', () => {
     test('a book with no year shows the title alone', async() => {
         stubFetch();
         const el = await mount({ query: '', books: [doc(1, { first_publish_year: null })] });
-        expect(el.querySelector('.obd-card__heading').textContent.trim()).toBe('Book 1');
-        expect(el.querySelector('.obd-card__year')).toBeNull();
+        expect(el.renderRoot.querySelector('.obd-card__heading').textContent.trim()).toBe('Book 1');
+        expect(el.renderRoot.querySelector('.obd-card__year')).toBeNull();
     });
 });
 
@@ -218,7 +237,7 @@ describe('ol-books-display static books', () => {
         stubFetch();
         const el = await mount({ query: '', books: [doc(1), doc(2), doc(3)] });
         expect(fetchCalls).toHaveLength(0);
-        expect(el.querySelectorAll('.obd-card')).toHaveLength(3);
+        expect(el.renderRoot.querySelectorAll('.obd-card')).toHaveLength(3);
         expect(el.hasMore).toBe(false);
         await el.loadMore();
         expect(fetchCalls).toHaveLength(0);
@@ -227,10 +246,10 @@ describe('ol-books-display static books', () => {
     test('list view pages through the set without fetching', async() => {
         stubFetch();
         const el = await mount({ query: '', view: 'list', limit: 2, books: [doc(1), doc(2), doc(3)] });
-        expect(el.querySelectorAll('.obd-row')).toHaveLength(2);
-        el.querySelector('.obd__list-footer .obd__link-btn').click();
+        expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(2);
+        el.renderRoot.querySelector('.obd__list-footer .obd__link-btn').click();
         await el.updateComplete;
-        expect(el.querySelectorAll('.obd-row')).toHaveLength(3);
+        expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(3);
         expect(fetchCalls).toHaveLength(0);
     });
 });
@@ -241,19 +260,19 @@ describe('ol-books-display views', () => {
         const el = await mount();
         const events = [];
         el.addEventListener('ol-books-display-view-change', e => events.push(e.detail.view));
-        el.querySelector('ol-segmented-control').dispatchEvent(new CustomEvent('ol-segmented-control-change', { detail: { value: 'list' } }));
+        el.renderRoot.querySelector('ol-segmented-control').dispatchEvent(new CustomEvent('ol-segmented-control-change', { detail: { value: 'list' } }));
         await el.updateComplete;
         expect(el.view).toBe('list');
         expect(el.getAttribute('view')).toBe('list');
-        expect(el.querySelectorAll('.obd-row')).toHaveLength(20);
-        expect(el.querySelector('ol-carousel')).toBeNull();
+        expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(20);
+        expect(el.renderRoot.querySelector('ol-carousel')).toBeNull();
         expect(events).toEqual(['list']);
     });
 
     test('list rows show byline links, stars, and the year beside the title', async() => {
         stubFetch();
         const el = await mount({ view: 'list' });
-        const row = el.querySelector('.obd-row');
+        const row = el.renderRoot.querySelector('.obd-row');
         expect(row.querySelector('.obd-row__author a').getAttribute('href')).toBe('/authors/OL0A');
         expect(row.querySelector('.obd-row__author').textContent.replace(/\s+/g, ' ').trim()).toBe('Author 0');
         expect(row.querySelector('.obd-row__rating-text').textContent).toContain('4.2');
@@ -263,23 +282,23 @@ describe('ol-books-display views', () => {
     test('list footer: show more fetches and reveals, collapse hides', async() => {
         stubFetch({ total: 45 });
         const el = await mount({ view: 'list' });
-        const footerText = () => el.querySelector('.obd__list-footer').textContent.replace(/\s+/g, ' ').trim();
+        const footerText = () => el.renderRoot.querySelector('.obd__list-footer').textContent.replace(/\s+/g, ' ').trim();
         expect(footerText()).toBe('Show 20 more · See all →');
-        el.querySelector('.obd__list-footer .obd__link-btn').click();
+        el.renderRoot.querySelector('.obd__list-footer .obd__link-btn').click();
         await new Promise(r => setTimeout(r, 0));
         await el.updateComplete;
-        expect(el.querySelectorAll('.obd-row')).toHaveLength(40);
+        expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(40);
         expect(footerText()).toBe('Show 5 more · Collapse · See all →');
         el.scrollIntoView = () => {};
-        [...el.querySelectorAll('.obd__list-footer .obd__link-btn')].find(b => b.textContent === 'Collapse').click();
+        [...el.renderRoot.querySelectorAll('.obd__list-footer .obd__link-btn')].find(b => b.textContent === 'Collapse').click();
         await el.updateComplete;
-        expect(el.querySelectorAll('.obd-row')).toHaveLength(20);
+        expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(20);
     });
 
     test('split button main click toggles Want to Read for a signed-in user', async() => {
         stubFetch();
         const el = await mount({ view: 'list', userKey: '/people/tester' });
-        const main = el.querySelector('.obd-shelf__main');
+        const main = el.renderRoot.querySelector('.obd-shelf__main');
         expect(main.textContent.trim()).toBe('Want to Read');
         main.click();
         await new Promise(r => setTimeout(r, 0));
@@ -287,6 +306,6 @@ describe('ol-books-display views', () => {
         const post = fetchCalls.find(c => c.url.endsWith('/works/OL0W/bookshelves.json'));
         expect(post.init.method).toBe('POST');
         expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.WANT_TO_READ));
-        expect(el.querySelector('.obd-shelf').classList.contains('obd-shelf--on')).toBe(true);
+        expect(el.renderRoot.querySelector('.obd-shelf').classList.contains('obd-shelf--on')).toBe(true);
     });
 });

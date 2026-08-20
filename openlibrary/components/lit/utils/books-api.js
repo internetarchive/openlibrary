@@ -93,15 +93,26 @@ export function createList(userKey, name, seedKey) {
     return request(`${userKey}/lists.json`, json({ name, description: '', seeds: seedKey ? [{ key: seedKey }] : [] }));
 }
 
+/** Where a logged-out visitor lands back after signing in. */
+function resumeTarget(resumeUrl) {
+    return resumeUrl || window.location.pathname + window.location.search;
+}
+
 /**
  * Mirror of js/utils.js `queueAction` (that bundle can't be imported here):
- * remember what the visitor was doing, then send them to log in.
+ * remember what the visitor was doing so the page they land on after signing
+ * in can pick it back up. Does not navigate — the caller decides whether the
+ * click continues to its href or diverts to the login page.
  */
+export function queuePendingAction({ action, title, type = 'book', resumeUrl } = {}) {
+    if (!action || !title) return;
+    const target = resumeTarget(resumeUrl);
+    const data = encodeURIComponent(JSON.stringify({ name: title, url: target, action, type }));
+    document.cookie = `pending_action=${data}; path=/; max-age=129600; samesite=lax`;
+}
+
+/** Queue the action, then send the visitor to log in. */
 export function redirectToLogin({ action, title, type = 'book', resumeUrl } = {}) {
-    const target = resumeUrl || window.location.pathname + window.location.search;
-    if (action && title) {
-        const data = encodeURIComponent(JSON.stringify({ name: title, url: target, action, type }));
-        document.cookie = `pending_action=${data}; path=/; max-age=129600; samesite=lax`;
-    }
-    window.location.href = `/account/login?redirect=${encodeURIComponent(target)}`;
+    queuePendingAction({ action, title, type, resumeUrl });
+    window.location.href = `/account/login?redirect=${encodeURIComponent(resumeTarget(resumeUrl))}`;
 }
