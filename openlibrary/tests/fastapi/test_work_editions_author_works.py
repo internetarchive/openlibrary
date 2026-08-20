@@ -3,9 +3,6 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from starlette.datastructures import URL
-
-from openlibrary.plugins.openlibrary import api as legacy_api
 
 
 def make_test_site(
@@ -133,25 +130,6 @@ class TestWorkEditions:
         current_site.get.assert_called_once_with("/works/OL0W")
         current_site.things.assert_not_called()
 
-    def test_response_matches_legacy(self, fastapi_client, patched_site):
-        entries = [{"key": "/books/OL1M"}]
-
-        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=2, thing_keys=["/books/OL1M"], entries=entries)
-        patched_site.get.return_value = legacy_site
-        legacy_response = legacy_api.work_editions.get_editions_data(
-            self.DOC_KEY,
-            url=URL(f"{self.ENDPOINT}?limit=1&offset=0"),
-            limit=1,
-            offset=0,
-        )
-
-        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, edition_count=2, thing_keys=["/books/OL1M"], entries=entries)
-        patched_site.get.return_value = fastapi_site
-        fastapi_response = fastapi_client.get(f"{self.ENDPOINT}?limit=1&offset=0")
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response
-
 
 class TestAuthorWorks:
     DOC_KEY = "/authors/OL456A"
@@ -254,22 +232,3 @@ class TestAuthorWorks:
         assert response.status_code == 404
         current_site.get.assert_called_once_with("/authors/OL0A")
         current_site.things.assert_not_called()
-
-    def test_response_matches_legacy(self, fastapi_client, patched_site):
-        entries = [{"key": "/works/OL1W"}]
-
-        legacy_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
-        patched_site.get.return_value = legacy_site
-        legacy_response = legacy_api.get_works_data(
-            self.DOC_KEY,
-            url=URL(f"{self.ENDPOINT}?limit=1&offset=0"),
-            limit=1,
-            offset=0,
-        )
-
-        fastapi_site = make_test_site(self.DOC_KEY, self.DOC_TYPE, get_work_count=AsyncMock(return_value=2), thing_keys=["/works/OL1W"], entries=entries)
-        patched_site.get.return_value = fastapi_site
-        fastapi_response = fastapi_client.get(f"{self.ENDPOINT}?limit=1&offset=0")
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response

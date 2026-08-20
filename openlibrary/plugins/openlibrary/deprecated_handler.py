@@ -129,4 +129,13 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/people/[^/]+/lists/OL\d+L/subjects", "json"),
     (r"/lists/OL\d+L/subjects", "json"),
     (r"/series/OL\d+L/subjects", "json"),
+    # Works endpoints migrated to FastAPI
+    (r"/works/OL(\d+)W/check-ins", "json"),
+    (r"/works/OL(\d+)W/bookshelves", "json"),
+    (r"(/works/OL\d+W)/editions", "json"),
+    (r"(/authors/OL\d+A)/works", "json"),
+    (r"/hide_banner", None),
+    (r"/api/link", "json"),
+    (r"/api/monthly_logins", "json"),
+    (r"/qrcode", None),
 ]
