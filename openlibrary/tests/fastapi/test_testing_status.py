@@ -919,3 +919,309 @@ def test_testing_status_endpoint_forbidden_for_non_maintainer(fastapi_client, mo
     assert response.status_code == 403
     assert response.json()["detail"] == "Insufficient permissions"
     mock.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# pending_removal tests
+# ---------------------------------------------------------------------------
+
+
+def test_pending_changes_includes_staged_removal():
+    """A PR with pending_removal=True emits a remove change in the plan."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {})
+
+    assert len(changes) == 1
+    assert changes[0].kind == "remove"
+    assert changes[0].reason == "staged"
+    assert changes[0].pr == 13269
+
+
+def test_pending_changes_staged_removal_alongside_other_changes():
+    """A staged removal can coexist with other staged changes on other PRs."""
+    removal = _make_pr(pr_number=13269, added_at="2026-08-01T10:00:00+00:00")
+    removal.pending_removal = True
+    toggled = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    toggled.pending_active = False
+    state = _make_state(prs=[removal, toggled])
+
+    changes = status_module._pending_changes(state, {})
+
+    assert [(c.kind, c.pr) for c in changes] == [
+        ("disable", 13238),
+        ("remove", 13269),
+    ]
+
+
+def test_pending_changes_staged_removal_ignored_for_merged_pr():
+    """A merged PR yields only a merged removal, even if pending_removal is set."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {13269: {"merged": True}})
+
+    assert len(changes) == 1
+    assert changes[0].reason == "merged"
+
+
+def test_build_testing_status_marks_pending_removal_action():
+    """A PR staged for removal gets action='remove' in the row."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+    state.deployed = {13269: pr.title}
+
+    result = status_module.build_testing_status(state, {})
+
+    row = result.prs[0]
+    assert row.action == "remove"
+    assert row.in_set is True  # still in the set, just staged for removal
+    assert row.live_now is True
+
+
+def test_deploy_flushes_pending_removal():
+    """Deploying removes PRs with pending_removal=True from the set."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch(
+            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            return_value=({13269: {"head_sha": "", "drift": 0, "merged": False}}, False),
+        ),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+    ):
+        status_module.status_deploy().POST()
+
+    # The PR should be removed from the set
+    assert state.prs == []
+    # The deploy record should be empty (no active PRs left)
+    assert state.deployed == {}
+
+
+def test_webpy_remove_stages_removal():
+    """The legacy /status/remove endpoint now stages removal instead of deleting."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("web.input", return_value=web.storage(prs=["13269"])),
+    ):
+        status_module.status_remove().POST()
+
+    # PR should still be in the set, just staged for removal
+    assert len(state.prs) == 1
+    assert state.prs[0].pending_removal is True
+
+
+def test_webpy_add_unstages_removal():
+    """Adding a PR that's staged for removal cancels the removal."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
+        patch("web.input", return_value=web.storage(pr="13269")),
+    ):
+        status_module.status_add().POST()
+
+    # PR should still be in the set, removal unstaged
+    assert len(state.prs) == 1
+    assert state.prs[0].pending_removal is None
+
+
+# ---------------------------------------------------------------------------
+# FastAPI mutation endpoint tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_fastapi_patch_pr_stages_removal(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._save_testing_state") as mock_save,
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.patch("/status/prs/13269", json={"pending_removal": True})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert state.prs[0].pending_removal is True
+    mock_save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_fastapi_patch_pr_unstages_removal(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._save_testing_state"),
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.patch("/status/prs/13269", json={"pending_removal": False})
+
+    assert response.status_code == 200
+    assert state.prs[0].pending_removal is None
+
+
+@pytest.mark.asyncio
+async def test_fastapi_patch_pr_stages_enable(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(active=True, added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._save_testing_state"),
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.patch("/status/prs/13269", json={"active": False})
+
+    assert response.status_code == 200
+    assert state.prs[0].pending_active is False
+
+
+@pytest.mark.asyncio
+async def test_fastapi_patch_pr_404_for_missing_pr(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    state = _make_state(prs=[])
+
+    with patch("openlibrary.fastapi.status._load_testing_state", return_value=state):
+        response = fastapi_client.patch("/status/prs/99999", json={"pending_removal": True})
+
+    assert response.status_code == 404
+    assert "not in testing set" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_fastapi_patch_pr_404_for_no_state(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+
+    with patch("openlibrary.fastapi.status._load_testing_state", return_value=None):
+        response = fastapi_client.patch("/status/prs/13269", json={"pending_removal": True})
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_fastapi_add_prs_batch(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    state = _make_state(prs=[])
+    gh_info = {
+        "title": "Test PR",
+        "head_sha": "abc1234def5678901234567890123456789012345",
+        "author": "author",
+        "author_avatar": "",
+        "assignee": "assignee",
+        "assignee_avatar": "",
+        "error": "",
+    }
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.fastapi.status._save_testing_state") as mock_save,
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.post("/status/prs", json={"prs": ["12914", "13269"]})
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert len(state.prs) == 2
+    assert {p.pr for p in state.prs} == {12914, 13269}
+    mock_save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_fastapi_add_prs_skips_existing(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    existing_pr = _make_pr(pr_number=12914, added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[existing_pr])
+    gh_info = {
+        "title": "New PR",
+        "head_sha": "abc1234def5678901234567890123456789012345",
+        "author": "author",
+        "author_avatar": "",
+        "assignee": "assignee",
+        "assignee_avatar": "",
+        "error": "",
+    }
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.fastapi.status._save_testing_state"),
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.post("/status/prs", json={"prs": ["12914"]})
+
+    assert response.status_code == 200
+    assert len(state.prs) == 1  # not duplicated
+
+
+@pytest.mark.asyncio
+async def test_fastapi_add_prs_empty_input(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+
+    response = fastapi_client.post("/status/prs", json={"prs": ["not-a-number!!!"]})
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_fastapi_deploy_flushes_pending_removal(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_removal = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
+        patch("openlibrary.fastapi.status._get_drift_info_async", new_callable=AsyncMock, return_value=({}, False)),
+        patch("openlibrary.fastapi.status.trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.fastapi.status._save_testing_state") as mock_save,
+        patch("openlibrary.fastapi.status._evict_drift_cache"),
+    ):
+        response = fastapi_client.post("/status/deploy")
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    assert state.prs == []
+    mock_save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_fastapi_refresh_evicts_cache(fastapi_client, mock_authenticated_user, mock_maintainer_user):
+    mock_maintainer_user(is_maintainer=True)
+
+    with patch("openlibrary.fastapi.status._evict_drift_cache") as mock_evict:
+        response = fastapi_client.post("/status/refresh")
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True}
+    mock_evict.assert_called_once()

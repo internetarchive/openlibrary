@@ -193,7 +193,7 @@ async def update_pr(pr_id: int, body: UpdatePRRequest, _: MaintainerDep) -> dict
 
     # Stage or unstage removal
     if body.pending_removal is not None:
-        target.pending_removal = body.pending_removal
+        target.pending_removal = True if body.pending_removal else None
         changed = True
 
     if changed:

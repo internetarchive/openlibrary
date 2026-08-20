@@ -4,9 +4,11 @@ import {
     decodeAndParseJSON,
     driftPill,
     effectiveActive,
+    effectivePendingRemoval,
     faviconEnv,
     formatTime,
     getTestingStatus,
+    patchAction,
     postAction,
     sprintf,
     testingStatusUrl,
@@ -56,14 +58,31 @@ describe('Testing Environment utils', () => {
         const body = { ok: true };
         global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue(body) });
 
-        await expect(postAction('/status/remove', { prs: [13269, 13270] })).resolves.toBe(body);
+        await expect(postAction('/status/prs', { prs: ['13269', '13270'] })).resolves.toBe(body);
 
         expect(global.fetch).toHaveBeenCalledWith(
-            '/status/remove',
+            '/status/prs',
             expect.objectContaining({
                 method: 'POST',
                 credentials: 'same-origin',
                 body: new URLSearchParams([['prs', '13269'], ['prs', '13270']])
+            })
+        );
+    });
+
+    test('patches PR actions as JSON', async() => {
+        const body = { ok: true };
+        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: jest.fn().mockResolvedValue(body) });
+
+        await expect(patchAction('/status/prs/13269', { pending_removal: true })).resolves.toBe(body);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/status/prs/13269',
+            expect.objectContaining({
+                method: 'PATCH',
+                credentials: 'same-origin',
+                headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ pending_removal: true })
             })
         );
     });
@@ -83,7 +102,7 @@ describe('Testing Environment utils', () => {
         global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
 
         await expect(getTestingStatus({ hostname: 'localhost' })).rejects.toThrow('500');
-        await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
+        await expect(postAction('/status/prs', {})).rejects.toThrow('failed');
     });
 
     test('fills %s placeholders in order', () => {
@@ -136,6 +155,14 @@ describe('Testing Environment utils', () => {
         expect(effectiveActive({ active: true, pending_active: false })).toBe(false);
         expect(effectiveActive({ active: false, pending_active: true })).toBe(true);
         expect(effectiveActive({ active: true, pending_active: null })).toBe(true);
+    });
+
+    test('resolves pending removal state', () => {
+        expect(effectivePendingRemoval({ pending_removal: true })).toBe(true);
+        expect(effectivePendingRemoval({ pending_removal: false })).toBe(false);
+        expect(effectivePendingRemoval({ pending_removal: null })).toBe(false);
+        expect(effectivePendingRemoval({})).toBe(false);
+        expect(effectivePendingRemoval({ active: true })).toBe(false);
     });
 
     test('offers pull-latest only when a newer commit is available', () => {
