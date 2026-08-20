@@ -1,4 +1,32 @@
-import { more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
+import { initSearchFacets, more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
+
+function createAsyncSearchFacets() {
+    const facets = document.createElement('div');
+    facets.id = 'searchFacets';
+    facets.dataset.asyncLoad = 'true';
+    facets.dataset.param = '{}';
+    facets.innerHTML = `
+        <p class="search-facets-error ui-helper-hidden" role="status">Search filters are temporarily unavailable.</p>
+        <div class="facet"><span class="small">Loading...</span></div>
+    `;
+    return facets;
+}
+
+const originalIntersectionObserver = global.IntersectionObserver;
+const originalFetch = global.fetch;
+
+class ImmediatelyVisibleObserver {
+    constructor(callback) {
+        this.callback = callback;
+    }
+
+    observe(target) {
+        this.callback([{isIntersecting: true, target}], this);
+    }
+
+    unobserve() {}
+    disconnect() {}
+}
 
 /** Creates a dummy search facets section with a list of 'facetEntry' element and a
  * 'facetMoreLess' section.
@@ -135,6 +163,40 @@ const _stubbedGetClientRects = function() {
     }
     return [{width: 1, height: 1}];
 };
+
+describe('initSearchFacets', () => {
+    beforeEach(() => {
+        global.IntersectionObserver = ImmediatelyVisibleObserver;
+        document.body.replaceChildren(createAsyncSearchFacets());
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+        global.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    test('shows a fallback message when the partials request fails', async() => {
+        global.fetch = jest.fn().mockResolvedValue({ok: false, status: 503});
+
+        await initSearchFacets(document.getElementById('searchFacets'));
+
+        expect(document.querySelector('.search-facets-error').classList.contains('ui-helper-hidden')).toBe(false);
+        expect(document.querySelector('.facet')).toBeNull();
+        expect(document.body.textContent).not.toContain('Loading...');
+    });
+
+    test('shows a fallback message instead of rendering an invalid sidebar payload', async() => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue({title: 'Search results'}),
+        });
+
+        await initSearchFacets(document.getElementById('searchFacets'));
+
+        expect(document.querySelector('.search-facets-error').classList.contains('ui-helper-hidden')).toBe(false);
+        expect(document.body.textContent).not.toContain('undefined');
+    });
+});
 
 describe('more', () => {
     [

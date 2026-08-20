@@ -71,8 +71,11 @@ export async function initSearchFacets(facetsElem) {
         const param = JSON.parse(facetsElem.dataset.param);
         await whenVisible(facetsElem);
 
-        fetchPartials(param)
+        return fetchPartials(param)
             .then((data) => {
+                if (!data || typeof data.sidebar !== 'string') {
+                    throw new Error('Search facets partials response is missing sidebar markup.');
+                }
                 if (data.activeFacets) {
                     const activeFacetsElem = createElementFromMarkup(data.activeFacets);
                     const activeFacetsContainer = document.querySelector('.selected-search-facets-container');
@@ -85,11 +88,21 @@ export async function initSearchFacets(facetsElem) {
                 document.title = data.title;
             })
             .catch(() => {
-                // XXX : Handle case where `/partials` response is not `2XX` here
+                showSearchFacetsError(facetsElem);
             });
     } else {
         hydrateFacets();
     }
+}
+
+/**
+ * Replaces the loading indicators with a localized failure message.
+ *
+ * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
+ */
+function showSearchFacetsError(facetsElem) {
+    facetsElem.querySelectorAll('.facet').forEach((facet) => facet.remove());
+    facetsElem.querySelector('.search-facets-error').classList.remove('ui-helper-hidden');
 }
 
 
