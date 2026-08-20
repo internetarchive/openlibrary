@@ -414,7 +414,8 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     :param last_modified: Limit results to those modifier >= this date
     :param progress: Where/if to save progress indicator to
     :param log_file: Redirect logs to file instead of stdout
-    :param skip_ia_metadata: If true, skip fetching Internet Archive metadata for editions.
+    :param skip_ia_metadata: If true, skip fetching Internet Archive metadata for editions
+    (both the bulk pre-caching step and any per-document fallback fetches).
     ia_collection, ia_box_id, and related fields will be empty in the Solr documents.
     """
 
@@ -517,6 +518,8 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
 
     # load the contents of the config?
     with LocalPostgresDataProvider(postgres) as db:
+        db.skip_ia_metadata = skip_ia_metadata
+
         # Check to see where we should be starting from
         if cmd == "fetch-end":
             next_start_query = build_job_query(job, start_at, limit, last_modified, 1)
@@ -564,6 +567,7 @@ async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
             plog.update(next=keys[0], cached=len(db.cache), ia_cache=0)
 
             with LocalPostgresDataProvider(postgres) as db2:
+                db2.skip_ia_metadata = skip_ia_metadata
                 key_range = [keys[0], keys[-1]]
 
                 if job == "works":
