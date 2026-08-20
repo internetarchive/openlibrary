@@ -200,7 +200,7 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else 5
+    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
     try:
         response = await ia.async_session.post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
@@ -240,7 +240,7 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.async_session.post(url + params, data=data)
+    response = await ia.async_session.post(url + params, data=data, timeout=config_http_request_timeout)
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
