@@ -555,7 +555,7 @@ def test_add_skips_pr_and_marks_failure_when_github_errors():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_pr_info", return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
         patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
@@ -576,7 +576,7 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
     with (
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
-        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", new_callable=AsyncMock, return_value=({}, False)),
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
@@ -624,7 +624,8 @@ def test_deploy_failure_never_persists_staged_changes():
         patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch(
-            "openlibrary.plugins.openlibrary.status._get_drift_info",
+            "openlibrary.plugins.openlibrary.status._get_drift_info_async",
+            new_callable=AsyncMock,
             return_value=(
                 {13238: {"head_sha": "", "drift": 0, "merged": False}, 13240: {"head_sha": "", "drift": 0, "merged": False}},
                 False,
@@ -1144,9 +1145,9 @@ async def test_fastapi_add_prs_batch(fastapi_client, mock_authenticated_user, mo
 
     with (
         patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
-        patch("openlibrary.fastapi.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
-        patch("openlibrary.fastapi.status._save_testing_state") as mock_save,
-        patch("openlibrary.fastapi.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
     ):
         response = fastapi_client.post("/status/prs", json={"prs": ["12914", "13269"]})
 
@@ -1174,9 +1175,9 @@ async def test_fastapi_add_prs_skips_existing(fastapi_client, mock_authenticated
 
     with (
         patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
-        patch("openlibrary.fastapi.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
-        patch("openlibrary.fastapi.status._save_testing_state"),
-        patch("openlibrary.fastapi.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info_async", new_callable=AsyncMock, return_value=gh_info),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
     ):
         response = fastapi_client.post("/status/prs", json={"prs": ["12914"]})
 
@@ -1202,10 +1203,10 @@ async def test_fastapi_deploy_flushes_pending_removal(fastapi_client, mock_authe
 
     with (
         patch("openlibrary.fastapi.status._load_testing_state", return_value=state),
-        patch("openlibrary.fastapi.status._get_drift_info_async", new_callable=AsyncMock, return_value=({}, False)),
-        patch("openlibrary.fastapi.status.trigger_rebuild", return_value="triggered"),
-        patch("openlibrary.fastapi.status._save_testing_state") as mock_save,
-        patch("openlibrary.fastapi.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", new_callable=AsyncMock, return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
     ):
         response = fastapi_client.post("/status/deploy")
 
@@ -1219,7 +1220,7 @@ async def test_fastapi_deploy_flushes_pending_removal(fastapi_client, mock_authe
 async def test_fastapi_refresh_evicts_cache(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
 
-    with patch("openlibrary.fastapi.status._evict_drift_cache") as mock_evict:
+    with patch("openlibrary.plugins.openlibrary.status._evict_drift_cache") as mock_evict:
         response = fastapi_client.post("/status/refresh")
 
     assert response.status_code == 200

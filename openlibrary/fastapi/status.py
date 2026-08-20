@@ -8,26 +8,26 @@ via JSON without a browser.
 from __future__ import annotations
 
 import asyncio
-import contextlib
-import datetime
 import os
-import re
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from openlibrary.fastapi.auth import MaintainerDep  # noqa: TC001
-from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status, trigger_rebuild
+from openlibrary.plugins.openlibrary.jenkins import jenkins_deploy_status
 from openlibrary.plugins.openlibrary.status import (
-    TestingPR,
     TestingState,
     TestingStatus,
     _evict_drift_cache,
-    _get_drift_info_async,
     _get_pr_info_async,
     _load_testing_state,
+    _parse_pr_numbers_from_string,
     _save_testing_state,
+    add_prs_to_set_async,
+    execute_deploy_async,
     load_testing_status_async,
+    refresh_drift_cache,
+    stage_pr_update,
 )
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -83,68 +83,21 @@ class AddPRsRequest(BaseModel):
     prs: list[str] = Field(..., min_length=1, description="PR numbers or URLs to add")
 
 
-def _parse_pr_numbers(raw: str) -> list[int]:
-    """Extract PR numbers from a single string (numbers, URLs, mixed)."""
-    parts = re.split(r"[\s,]+", raw.strip())
-    numbers: list[int] = []
-    for part in parts:
-        if not part:
-            continue
-        with contextlib.suppress(ValueError, AttributeError):
-            if m := re.search(r"/pull/(\d+)", part):
-                numbers.append(int(m.group(1)))
-            else:
-                numbers.append(int(part.lstrip("#")))
-    return numbers
-
-
 @router.post(
     "/status/prs",
     description="Add one or more PRs to the testing set. Accepts PR numbers or GitHub URLs.",
 )
 async def add_prs(body: AddPRsRequest, _: MaintainerDep) -> dict:
     state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
-    existing = {p.pr for p in state.prs}
-
-    # Parse all input strings into PR numbers.
     pr_numbers: list[int] = []
     for raw in body.prs:
-        pr_numbers.extend(_parse_pr_numbers(raw))
+        pr_numbers.extend(_parse_pr_numbers_from_string(raw))
     if not pr_numbers:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No valid PR numbers provided")
-
-    # Fetch metadata from GitHub concurrently.
-    infos = await asyncio.gather(*(_get_pr_info_async(n) for n in pr_numbers))
-
-    failed: list[int] = []
-    for pr_number, info in zip(pr_numbers, infos):
-        if pr_number in existing:
-            continue
-        if info.get("error"):
-            failed.append(pr_number)
-            continue
-        state.prs.append(
-            TestingPR(
-                pr=pr_number,
-                commit=info["head_sha"],
-                active=True,
-                title=info["title"],
-                added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                added_by="",
-                author=info["author"],
-                author_avatar=info["author_avatar"],
-                assignee=info["assignee"],
-                assignee_avatar=info["assignee_avatar"],
-            )
-        )
-        existing.add(pr_number)
-
-    _save_testing_state(state)
-    _evict_drift_cache()
-
-    if failed:
-        return {"ok": False, "error": "add_failed", "failed": failed}
-    return {"ok": True}
+    result = await add_prs_to_set_async(state, pr_numbers)
+    if result.get("error"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -179,22 +132,16 @@ async def update_pr(pr_id: int, body: UpdatePRRequest, _: MaintainerDep) -> dict
 
     changed = False
 
-    # Stage enable/disable
-    if body.active is not None:
-        target.pending_active = body.active if body.active != target.active else None
-        changed = True
+    # Stage enable/disable and/or removal (pure state mutation).
+    if body.active is not None or body.pending_removal is not None:
+        changed = stage_pr_update(state, [pr_id], active=body.active, pending_removal=body.pending_removal)
 
-    # Stage pull-latest (fetch current HEAD from GitHub)
+    # Stage pull-latest (fetch current HEAD from GitHub).
     if body.pull_latest is True:
         info = await _get_pr_info_async(pr_id)
         if info.get("head_sha") and not info.get("error"):
             target.pull_latest_sha = info["head_sha"]
             changed = True
-
-    # Stage or unstage removal
-    if body.pending_removal is not None:
-        target.pending_removal = True if body.pending_removal else None
-        changed = True
 
     if changed:
         _save_testing_state(state)
@@ -216,43 +163,10 @@ async def deploy_prs(_: MaintainerDep) -> dict:
     state = _load_testing_state()
     if not state:
         return {"ok": True}
-
-    # Drop merged/closed PRs on the *un-mutated* state; persist=False so the
-    # drift metadata refresh can never write staged changes before Jenkins
-    # accepts the build.
-    drift_info, _drift_from_cache = await _get_drift_info_async(state, persist=False)
-    state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
-
-    # Apply all pending changes before deploying
-    for p in state.prs:
-        if p.pull_latest_sha:
-            p.commit = p.pull_latest_sha
-            p.pull_latest_sha = ""
-        if p.pending_active is not None:
-            p.active = p.pending_active
-            p.pending_active = None
-    # Stage-removal PRs are deleted from the set on deploy.
-    state.prs = [p for p in state.prs if not p.pending_removal]
-    for p in state.prs:
-        p.pending_removal = None
-
-    # Nothing above is persisted until Jenkins accepts the build, so a failed
-    # trigger leaves every staged change intact and retryable.
-    outcome = trigger_rebuild(state.prs)
-    if outcome == "failed":
-        return {"ok": False, "error": "deploy_failed"}
-
-    state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
-    state.deployed = {p.pr: p.title for p in state.prs if p.active}
-    if outcome == "triggered":
-        state.deploy_started_at = state.last_deploy_at
-
-    _save_testing_state(state)
-    _evict_drift_cache()
-
-    if outcome == "triggered":
-        return {"ok": True}
-    return {"ok": False, "error": "deploy_unconfigured"}
+    result = await execute_deploy_async(state)
+    if result.get("error"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -265,5 +179,5 @@ async def deploy_prs(_: MaintainerDep) -> dict:
     description="Evict the GitHub drift cache so the next status fetch is fresh.",
 )
 async def refresh_status(_: MaintainerDep) -> dict:
-    _evict_drift_cache()
+    refresh_drift_cache()
     return {"ok": True}
