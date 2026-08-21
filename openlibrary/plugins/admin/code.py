@@ -762,7 +762,10 @@ class imports_add:
 
 class imports_by_date:
     def GET(self, date):
-        return render_template("admin/imports_by_date", imports.Stats(), date)
+        stats = imports.Stats()
+        summary = stats.get_items_summary(date)
+        items = list(stats.get_items(date))
+        return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 
 class show_log:
