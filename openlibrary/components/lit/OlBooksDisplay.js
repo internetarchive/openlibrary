@@ -431,14 +431,9 @@ export class OlBooksDisplay extends LitElement {
             outline-offset: 2px;
         }
 
+        /* Saved: the circle stays white; only the bookmark fills, in blue. */
         .obd-save--on {
-            color: var(--white);
-            --control-surface: var(--primary-blue);
-            --control-highlight-strength: 18%;
-        }
-
-        .obd-save--on::before {
-            background: var(--primary-blue);
+            color: var(--primary-blue);
         }
 
         .obd-cover > ol-book-actions .obd-save {
