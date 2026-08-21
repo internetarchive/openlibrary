@@ -341,38 +341,6 @@ def get_bookreader_stream_url(itemid: str) -> str:
 # ######### Helper Functions
 
 
-def get_loan_key(resource_id: str):
-    """Get the key for the loan associated with the resource_id"""
-    # Find loan in OL
-    loan_keys = site.get().store.query("/type/loan", "resource_id", resource_id)
-    if not loan_keys:
-        # No local records
-        return None
-
-    # Only support single loan of resource at the moment
-    if len(loan_keys) > 1:
-        # raise Exception('Found too many local loan records for resource %s' % resource_id)
-        logger.error("Found too many loan records for resource %s: %s", resource_id, loan_keys)
-
-    loan_key = loan_keys[0]["key"]
-    return loan_key
-
-
-def is_loaned_out(resource_id: str) -> bool | None:
-    # bookreader loan status is stored in the private data store
-
-    # Check our local status
-    loan_key = get_loan_key(resource_id)
-    if not loan_key:
-        # No loan recorded
-        identifier = resource_id[len("bookreader:") :]
-        return lending.is_loaned_out_on_ia(identifier)
-
-    # Find the loan and check if it has expired
-    loan = site.get().store.get(loan_key)
-    return bool(loan and datetime_from_isoformat(loan["expiry"]) < datetime.utcnow())
-
-
 def user_can_borrow_edition(user, edition) -> Literal["borrow", "browse", False]:
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
