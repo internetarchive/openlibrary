@@ -17,7 +17,14 @@ componentNames.forEach(name => { buildInput[name] = getTemporaryVueInputPath(nam
 
 export default defineConfig({
     plugins: [
-        vue({ customElement: true })
+        vue({
+            customElement: true,
+            // Lets Vue templates use the site-wide Lit component bundle's <ol-*> custom
+            // elements (already globally registered by static/build/lit-components/
+            // ol-components.js, loaded in openlibrary/templates/site/footer.html) directly,
+            // e.g. <ol-toggle>, without Vue treating them as unresolved Vue components.
+            template: { compilerOptions: { isCustomElement: tag => tag.startsWith('ol-') } },
+        })
     ],
     build: {
         // Keep syntax compatible with our supported floor (see browserslist in

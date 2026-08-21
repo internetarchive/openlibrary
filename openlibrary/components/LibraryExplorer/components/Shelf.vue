@@ -8,18 +8,12 @@
       :key="node.short"
       class="shelf-label"
       :node="node"
+      :expanded="showShelfIndex"
+      @toggle-index="showShelfIndex = !showShelfIndex"
     >
       <template #extra-actions>
         <button
-          v-if="features.shelfLabel === 'slider' && node.children"
-          :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          :class="{selected: showShelfIndex}"
-          @click="showShelfIndex = !showShelfIndex"
-        >
-          <IndexIcon />
-        </button>
-        <button
-          v-if="node.children && node.children.length"
+          v-if="!hideExpand && node.children && node.children.length"
           :title="`See more books in ${node.short}: ${node.name}`"
           @click="expandBookshelf(parent, node)"
         >
@@ -28,40 +22,18 @@
       </template>
     </component>
 
-    <ShelfIndex
-      v-if="showShelfIndex"
-      class="shelf-index"
-      :node="node"
-    />
-
     <OLCarousel
       class="shelf-carousel"
-      :data-short="
-        node.children && node.position != 'root'
-          ? node.children[node.position].short
-          : node.short
-      "
-      :query="`${sort.includes('_sort') ? classification.field + '_sort' : classification.field}:${
-        node.children && node.position != 'root'
-          ? node.children[node.position].query
-          : node.query
-      } ${filter}`"
-      :node="
-        node.children && node.position != 'root'
-          ? node.children[node.position]
-          : node
-      "
+      :data-short="activeNode.short"
+      :query="effectiveQuery"
+      :node="activeNode"
       :sort="sort"
       :fetch-coordinator="fetchCoordinator"
     >
       <template #book-end-start>
         <div class="book-end-start">
           <h3>
-            {{
-              node.children && node.position != "root"
-                ? node.children[node.position].name
-                : node.name
-            }}
+            {{ activeNode.name }}
           </h3>
         </div>
       </template>
@@ -104,6 +76,16 @@
       </template>
     </OLCarousel>
   </div>
+
+  <!-- A sibling of .shelf, not a child: .shelf is `position: relative` (the anchor for the
+       genre-mode baseboard label's `position: absolute; bottom: 3px`), so an in-flow list
+       nested inside it would grow .shelf's height and drag that label down into the list
+       instead of leaving it pinned to the shelf board above. -->
+  <ShelfIndex
+    v-if="showShelfIndex"
+    class="shelf-index"
+    :node="node"
+  />
 </template>
 
 <script>
@@ -114,7 +96,6 @@ import BookCover3D from './BookCover3D.vue';
 import FlatBookCover from './FlatBookCover.vue';
 import ShelfIndex from './ShelfIndex.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
-import IndexIcon from './icons/IndexIcon.vue';
 import maxBy from 'lodash/maxBy';
 
 class FetchCoordinator {
@@ -190,7 +171,6 @@ export default {
         ShelfIndex,
         ShelfLabel,
         ExpandIcon,
-        IndexIcon,
     },
     props: {
         /** @type {import('../utils').ClassificationNode} */
@@ -204,6 +184,14 @@ export default {
         features: Object,
         filter: String,
         sort: String,
+        // Genre mode's "All Genres"/single-genre shelves aren't nested inside a real
+        // bookcase the way DDC/LCC shelves are, so expandBookshelf(parent, node) has
+        // no sensible parent bookcase to expand -- hide the button rather than wire up
+        // a no-op/incorrect click.
+        hideExpand: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
@@ -211,7 +199,42 @@ export default {
             showShelfIndex: false,
             fetchCoordinator: fetchCoordinator,
         };
-    }
+    },
+
+    computed: {
+        activeNode() {
+            return this.node.children && this.node.position !== 'root'
+                ? this.node.children[this.node.position]
+                : this.node;
+        },
+
+        // Genre mode only, and only for the AMBIGUOUS_SUBGENRES handful flagged in
+        // generate_genre_classification.py (requiresIntersection): subject_key is a flat,
+        // non-hierarchical tag, so a subgenre's own tag alone is normally trusted (a book
+        // tagged with a specific-enough subgenre is usually already on-genre without also
+        // requiring the parent tag -- live counts back this up broadly). requiresIntersection
+        // is the opt-in exception, for a subgenre tag ambiguous enough on its own to pull in
+        // clearly off-genre results (e.g. "Reimagining Democracy" carries "utopian" but
+        // has nothing to do with Fantasy). hierarchyQuery is ancestor-prefixed only for
+        // subgenres ("fantasy/utopian*") -- a top-level genre's own hierarchyQuery has no
+        // slash -- so its prefix is exactly the parent genre's slug, regardless of whether
+        // this subgenre is showing via the All Genres view's ClassSlider paging (where
+        // `node` is the genre) or a drilled-into genre's own per-subgenre shelf (where
+        // `node` IS the subgenre and `parent` is the genre).
+        parentGenreShort() {
+            if (!this.activeNode.requiresIntersection) return null;
+            const slashIndex = this.activeNode.hierarchyQuery?.indexOf('/') ?? -1;
+            return slashIndex === -1 ? null : this.activeNode.hierarchyQuery.slice(0, slashIndex);
+        },
+
+        effectiveQuery() {
+            const field = this.sort.includes('_sort') ? `${this.classification.field}_sort` : this.classification.field;
+            const q = this.classification.alphabeticalTopNav && this.parentGenreShort
+                ? `(${this.activeNode.query} AND ${this.parentGenreShort}*)`
+                : this.activeNode.query;
+            return `${field}:${q} ${this.filter}`;
+        },
+    },
 };
 </script>
 
