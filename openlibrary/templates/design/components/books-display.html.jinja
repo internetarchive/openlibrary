@@ -2,21 +2,31 @@
 {% import "design/components/_books_display_data.html.jinja" as demo %}
 {% macro demos() %}
     <p class="ds-lead">
-        A titled set of books, switchable between views. Give it a Solr <code>query</code> and it fetches and pages its own data and overlays the signed-in reader's shelf and rating; give it <code>books</code> to render a set you already have. Per-book actions go to <a href="#book-actions">Book Actions</a>. <code>view</code> is an open enum — <code>covers</code> (an <code>ol-carousel</code> of cover cards) and <code>list</code> (full-width rows) today, more layouts later without changing the data path. Templates should go through the <code>BooksDisplay</code> macro, which fills in the translated <code>labels</code>.
+        A titled set of books, switchable between views. Give it a Solr <code>query</code> and it fetches and pages its own data and overlays the signed-in reader's shelf and rating; give it <code>books</code> to render a set you already have. Per-book actions go to <a href="#book-actions">Book Actions</a>. <code>view</code> is an open enum — <code>carousel</code> (an <code>ol-carousel</code> of cover cards), <code>grid</code> (the same cards wrapped into rows) and <code>list</code> (full-width rows) today, more layouts later without changing the data path. <code>views</code> picks which of them a section offers. Templates should go through the <code>BooksDisplay</code> macro, which fills in the translated <code>labels</code>.
     </p>
-    {% call ex.example("Covers view", "The default. Each card is a cover, a corner save button and the access CTA (Read / Borrow / Preview / Find in a library) the server derived from lending state. Title, year and author sit in the cover's hover card on pointer devices and under the cover on touch. With a query, nearing the end of the carousel loads the next page.",
-        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', title=_("Trending Books"), sort="trending", key="Demo")') %}
-        <ol-books-display books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="12" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
+    {% call ex.example("Carousel view", "The default. Each card is a cover, a corner save button and the access CTA (Read / Borrow / Preview / Find in a library) the server derived from lending state. Title, year and author sit in the cover's hover card on pointer devices and under the cover on touch. With a query, nearing the end of the carousel loads the next page.",
+        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', heading=_("Trending Books"), sort="trending", key="Demo")') %}
+        <ol-books-display books='{{ demo.BOOKS|tojson }}' heading="Trending Books" limit="12" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
+        </ol-books-display>
+    {% endcall %}
+    {% call ex.example("Grid view", "The carousel view's cards, wrapped into rows instead of a scrolling track — same cover size, hover card, save button and CTA. Column count tracks the carousel's at every width. The footer pages with Show more / Collapse / See all.",
+        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', heading=_("Trending Books"), view="grid", key="Demo")') %}
+        <ol-books-display view="grid" books='{{ demo.BOOKS|tojson }}' heading="Trending Books" limit="6" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
         </ol-books-display>
     {% endcall %}
     {% call ex.example("List view", "Rows add stars, a rating count and a split shelf button: the main part toggles the shown shelf, the chevron opens the actions popover. The footer pages with Show more / Collapse / See all.",
-        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', title=_("Trending Books"), view="list", key="Demo")') %}
-        <ol-books-display view="list" books='{{ demo.BOOKS|tojson }}' title="Trending Books" limit="4" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
+        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', heading=_("Trending Books"), view="list", key="Demo")') %}
+        <ol-books-display view="list" books='{{ demo.BOOKS|tojson }}' heading="Trending Books" limit="4" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
+        </ol-books-display>
+    {% endcall %}
+    {% call ex.example("Offering fewer views", "The views attribute lists what this section offers, in switcher order; anything left out is unreachable. A single view fixes the section in it and drops the switcher entirely.",
+        code='$:macros.BooksDisplay(query=\'subject_key:"fiction"\', heading=_("Trending Books"), views="grid,list", key="Demo")') %}
+        <ol-books-display views="grid,list" books='{{ demo.BOOKS|tojson }}' heading="Trending Books" limit="6" url="/search?q=subject_key:fiction" analytics-key="DesignDemo" user-key="{{ user_key|default('', true) }}">
         </ol-books-display>
     {% endcall %}
     <div class="ds-notes">
         <p>
-            <b>Demo data.</b> Both examples pass a fixed <code>books</code> array — twelve real works covering every access CTA — so the gallery renders without a search index behind it; a real page passes <code>query</code>. Signed in, the demos are live: they overlay your own shelf and rating and write to your real reading log and lists.
+            <b>Demo data.</b> Every example passes a fixed <code>books</code> array — twelve real works covering every access CTA — so the gallery renders without a search index behind it; a real page passes <code>query</code>. Signed in, the demos are live: they overlay your own shelf and rating and write to your real reading log and lists.
         </p>
         <p>
             <b>Shadow DOM.</b> Styles ship in the component's <code>static styles</code> (class prefix <code>obd-</code>); only the pre-upgrade host box lives in <code>static/css/components/ol-books-display.css</code>. The two sitewide click delegations a shadow boundary defeats are handled inside the component: Matomo events are pushed by hand, and a logged-out CTA queues its own pending action instead of leaning on <code>.js-login-intent</code>.

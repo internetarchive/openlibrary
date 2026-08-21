@@ -6,29 +6,6 @@ import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, 
 import { showToast } from './OlToastRegion.js';
 import './OlPopover.js';
 
-/**
- * Per-book action popover: reading-log shelves, a star rating, and an
- * "Add to list" pane that slides in from the right. Composes `<ol-popover>`
- * for the shell; the caller supplies the trigger.
- *
- * Only for logged-in users — the caller sends logged-out visitors to login
- * instead of rendering this. State is optimistic: the UI updates first and
- * an error toast rolls back.
- *
- * @element ol-book-actions
- *
- * @prop {Object} book     - `{ key, title, firstPublishYear?, editionKey? }`
- * @prop {Number} shelf    - Current shelf id (1–4) or null
- * @prop {Number} rating   - Current rating (1–5) or null
- * @prop {String} userKey  - "/people/<username>", needed to create lists
- * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
- * @prop {String} placement - ol-popover placement (default "bottom-end")
- *
- * @fires ol-book-state-change - After a shelf or rating change is accepted by
- *     the server. detail: { key, shelf, rating }
- *
- * @slot trigger - The button that opens the popover.
- */
 export const DEFAULT_LABELS = {
     actionsFor: 'Actions for %(title)s',
     wantToRead: 'Want to Read',
@@ -71,6 +48,29 @@ export function fmt(template, vars) {
     return template.replace(/%\((\w+)\)s/g, (_, k) => (vars[k] ?? ''));
 }
 
+/**
+ * Per-book action popover: reading-log shelves, a star rating, and an
+ * "Add to list" pane that slides in from the right. Composes `<ol-popover>`
+ * for the shell; the caller supplies the trigger.
+ *
+ * Only for logged-in users — the caller sends logged-out visitors to login
+ * instead of rendering this. State is optimistic: the UI updates first and
+ * an error toast rolls back.
+ *
+ * @element ol-book-actions
+ *
+ * @prop {Object} book     - `{ key, title, firstPublishYear?, editionKey? }`
+ * @prop {Number} shelf    - Current shelf id (1–4) or null
+ * @prop {Number} rating   - Current rating (1–5) or null
+ * @prop {String} userKey  - "/people/<username>", needed to create lists
+ * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
+ * @prop {String} placement - ol-popover placement (default "bottom-end")
+ *
+ * @fires ol-book-state-change - After a shelf or rating change is accepted by
+ *     the server. detail: { key, shelf, rating }
+ *
+ * @slot trigger - The button that opens the popover.
+ */
 export class OlBookActions extends LitElement {
     static properties = {
         book: { type: Object },

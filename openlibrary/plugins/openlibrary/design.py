@@ -222,7 +222,7 @@ COMPONENTS = (
     Component(
         "books-display",
         "Books Display",
-        "A titled set of books for a query, switchable between a covers carousel and a list.",
+        "A titled set of books for a query, switchable between a covers carousel, a grid and a list.",
         "design/components/books-display.html.jinja",
         group="Content",
         tag="ol-books-display",

@@ -12,51 +12,12 @@ import './OlTooltip.js';
 import './OlSegmentedControl.js';
 import './OlBookActions.js';
 
-/**
- * A titled set of books for a Solr query, switchable between views. Fetches
- * from `/books-display.json`, overlays the signed-in user's shelf/rating from
- * `/books-display/user-state.json`, and hands per-book actions to
- * `<ol-book-actions>`.
- *
- * `view` is an open enum: `covers` (an `<ol-carousel>` of cover cards) and
- * `list` (full-width rows) today; more layouts (e.g. a multi-row grid) slot in
- * alongside without changing the data path.
- *
- * Renders into its shadow root, so its styles live in `static styles` and the
- * page cascade can't reach them. The two sitewide click delegations that a
- * shadow boundary defeats are handled here instead: Matomo events are pushed
- * by hand through `trackEvent`, and a logged-out CTA queues its own pending
- * action rather than relying on the `.js-login-intent` document handler.
- * `static/css/components/ol-books-display.css` keeps only the pre-upgrade
- * rules for the host tag.
- *
- * @element ol-books-display
- *
- * @prop {String} query   - Solr work query
- * @prop {String} fallbackQuery - Query to retry with when `query` returns nothing
- *     (e.g. the same query without the user-language filter)
- * @prop {Array} books    - Book cards to render instead of querying: same shape
- *     as the `docs` the endpoint returns. No search request is made and there
- *     is no next page, so the whole set is passed at once (used by the design
- *     gallery); the signed-in reader's state is still overlaid
- * @prop {String} sort    - Solr sort (default "new")
- * @prop {Number} limit   - Page size (default 20)
- * @prop {String} title   - Section heading
- * @prop {String} url     - "See all" link
- * @prop {String} view    - "covers" | "list" (default "covers")
- * @prop {Boolean} hasFulltextOnly - Restrict to readable books (default true; attr has-fulltext-only="false" to disable)
- * @prop {Boolean} safeMode - Hide content-warning covers (default true; attr safe-mode="false" to disable)
- * @prop {String} userKey - "/people/<username>" when signed in; empty when not
- * @prop {String} analyticsKey - Label on the Matomo events this reports
- * @prop {Object} labels  - Translated strings, merged over DEFAULT_LABELS
- *
- * @fires ol-books-display-view-change - detail: { view }
- */
 export const DEFAULT_LABELS = {
     ...ACTION_LABELS,
     by: 'by %(name)s',
     viewAs: 'View as',
-    covers: 'Covers',
+    carousel: 'Carousel',
+    grid: 'Grid',
     list: 'List',
     save: 'Save %(title)s to your reading log',
     saved: '%(title)s is on your reading log',
@@ -101,8 +62,58 @@ const SHELF_LABEL = {
     [SHELF.STOPPED_READING]: 'stoppedReading',
 };
 
-const VIEWS = ['covers', 'list'];
+/** Every view, in switcher order, with the ol-icon each segment shows. */
+const VIEW_ICON = {
+    carousel: 'covers-row',
+    grid: 'layout-grid',
+    list: 'list',
+};
 
+const VIEWS = Object.keys(VIEW_ICON);
+
+/**
+ * A titled set of books for a Solr query, switchable between views. Fetches
+ * from `/books-display.json`, overlays the signed-in user's shelf/rating from
+ * `/books-display/user-state.json`, and hands per-book actions to
+ * `<ol-book-actions>`.
+ *
+ * `view` is an open enum: `carousel` (an `<ol-carousel>` of cover cards), `grid`
+ * (the same cards wrapped into rows) and `list` (full-width rows) today; more
+ * layouts slot in alongside without changing the data path.
+ *
+ * Renders into its shadow root, so its styles live in `static styles` and the
+ * page cascade can't reach them. The two sitewide click delegations that a
+ * shadow boundary defeats are handled here instead: Matomo events are pushed
+ * by hand through `trackEvent`, and a logged-out CTA queues its own pending
+ * action rather than relying on the `.js-login-intent` document handler.
+ * `static/css/components/ol-books-display.css` keeps only the pre-upgrade
+ * rules for the host tag.
+ *
+ * @element ol-books-display
+ *
+ * @prop {String} query   - Solr work query
+ * @prop {String} fallbackQuery - Query to retry with when `query` returns nothing
+ *     (e.g. the same query without the user-language filter)
+ * @prop {Array} books    - Book cards to render instead of querying: same shape
+ *     as the `docs` the endpoint returns. No search request is made and there
+ *     is no next page, so the whole set is passed at once (used by the design
+ *     gallery); the signed-in reader's state is still overlaid
+ * @prop {String} sort    - Solr sort
+ * @prop {Number} limit   - Page size
+ * @prop {String} heading - Section heading
+ * @prop {String} url     - "See all" link
+ * @prop {String} view    - The view on show: "carousel", "grid" or "list"
+ * @prop {String} views   - Comma-separated list of the views this instance
+ *     offers, in switcher order; empty offers all of them. A single view
+ *     leaves the section fixed in it and drops the switcher.
+ * @prop {Boolean} hasFulltextOnly - Restrict to readable books; write has-fulltext-only="false" to turn off
+ * @prop {Boolean} safeMode - Hide content-warning covers; write safe-mode="false" to turn off
+ * @prop {String} userKey - "/people/<username>" when signed in; empty when not
+ * @prop {String} analyticsKey - Label on the Matomo events this reports
+ * @prop {Object} labels  - Translated strings, merged over DEFAULT_LABELS
+ *
+ * @fires ol-books-display-view-change - detail: { view }
+ */
 export class OlBooksDisplay extends LitElement {
     static properties = {
         query: { type: String },
@@ -110,9 +121,12 @@ export class OlBooksDisplay extends LitElement {
         fallbackQuery: { type: String, attribute: 'fallback-query' },
         sort: { type: String },
         limit: { type: Number },
-        title: { type: String },
+        // Named heading, not title: a `title` attribute would draw a native
+        // browser tooltip over the whole host.
+        heading: { type: String },
         url: { type: String },
         view: { type: String, reflect: true },
+        views: { type: String },
         // Default-true flags: written as has-fulltext-only="false" to turn off,
         // since a bare boolean attribute can't express false.
         hasFulltextOnly: { attribute: 'has-fulltext-only', converter: v => v !== 'false' },
@@ -290,7 +304,7 @@ export class OlBooksDisplay extends LitElement {
             margin: 0;
         }
 
-        /* ── Covers view (carousel cards) ─────────────────────────── */
+        /* ── Carousel view (cover cards) ──────────────────────────── */
 
         .obd__carousel {
             --ol-carousel-viewport-padding: 6px;
@@ -440,6 +454,31 @@ export class OlBooksDisplay extends LitElement {
             position: relative;
             top: auto;
             right: auto;
+        }
+
+        /* ── Grid view (the same cards, wrapped) ──────────────────── */
+
+        /* 128px + a 16px gap reproduces the carousel's column count at every
+           one of its breakpoints, so a card is the same size in both views —
+           without the carousel's element-width measuring. */
+        .obd__grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+            gap: var(--spacing-stack-lg) var(--spacing-inline-xl);
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        /* The card stretches so the CTAs bottom-align across a row. */
+        .obd__grid-item {
+            display: flex;
+            min-width: 0;
+        }
+
+        .obd__grid-item > .obd-card {
+            flex: 1;
+            min-width: 0;
         }
 
         /* ── List view (rows) ─────────────────────────────────────── */
@@ -615,8 +654,13 @@ export class OlBooksDisplay extends LitElement {
             justify-content: center;
             gap: var(--spacing-inline-md);
             padding: var(--spacing-inset-md);
-            border-top: var(--border-divider);
             font-size: var(--font-size-body-medium);
+        }
+
+        /* The rule belongs to the list's card, not the footer: in the grid view
+           the same footer floats under the cards with nothing to divide. */
+        .obd__list-wrap .obd__list-footer {
+            border-top: var(--border-divider);
         }
 
         .obd__dot {
@@ -680,9 +724,10 @@ export class OlBooksDisplay extends LitElement {
         this.fallbackQuery = '';
         this.sort = 'new';
         this.limit = 20;
-        this.title = '';
+        this.heading = '';
         this.url = '';
-        this.view = 'covers';
+        this.view = 'carousel';
+        this.views = '';
         this.hasFulltextOnly = true;
         this.safeMode = true;
         this.userKey = '';
@@ -704,6 +749,22 @@ export class OlBooksDisplay extends LitElement {
 
     get docs() {
         return this._docs;
+    }
+
+    // The views this instance offers, in the order `views` lists them. Unknown
+    // names are dropped, and an empty result means all of them — a typo
+    // shouldn't leave the section with no switcher at all.
+    get availableViews() {
+        const named = [...new Set(String(this.views).split(',').map(v => v.trim()))].filter(v => VIEWS.includes(v));
+        return named.length ? named : VIEWS;
+    }
+
+    willUpdate(changed) {
+        // A view this instance doesn't offer (a stale `view`, a mismatched
+        // pair of attributes) falls back to the first one it does.
+        if ((changed.has('view') || changed.has('views')) && !this.availableViews.includes(this.view)) {
+            this.view = this.availableViews[0];
+        }
     }
 
     get hasMore() {
@@ -817,21 +878,25 @@ export class OlBooksDisplay extends LitElement {
     }
 
     _renderHeader() {
+        const views = this.availableViews;
         return html`
             <div class="obd__header">
                 <h2 class="obd__title">
-                    ${this.url ? html`<a class="obd-link" href=${this.url}>${this.title}</a>` : this.title}
+                    ${this.url ? html`<a class="obd-link" href=${this.url}>${this.heading}</a>` : this.heading}
                 </h2>
-                <ol-segmented-control
-                    class="obd__toggle"
-                    size="small"
-                    .value=${this.view}
-                    accessible-label=${this.t('viewAs')}
-                    @ol-segmented-control-change=${this._onViewChange}
-                >
-                    <ol-segment value="covers" label=""><ol-icon name="covers-row"></ol-icon> <span>${this.t('covers')}</span></ol-segment>
-                    <ol-segment value="list" label=""><ol-icon name="list"></ol-icon> <span>${this.t('list')}</span></ol-segment>
-                </ol-segmented-control>
+                ${views.length > 1 ? html`
+                    <ol-segmented-control
+                        class="obd__toggle"
+                        size="small"
+                        .value=${this.view}
+                        accessible-label=${this.t('viewAs')}
+                        @ol-segmented-control-change=${this._onViewChange}
+                    >
+                        ${views.map(view => html`
+                            <ol-segment value=${view} label=${this.t(view)}><ol-icon name=${VIEW_ICON[view]}></ol-icon></ol-segment>
+                        `)}
+                    </ol-segmented-control>
+                ` : ''}
             </div>
         `;
     }
@@ -849,14 +914,16 @@ export class OlBooksDisplay extends LitElement {
         if (!this._docs.length) {
             return html`<div class="obd__status" role="status">${this._loading || !this._started ? this.t('loading') : this.t('empty')}</div>`;
         }
-        return this.view === 'list' ? this._renderList() : this._renderCovers();
+        if (this.view === 'list') return this._renderList();
+        if (this.view === 'grid') return this._renderGrid();
+        return this._renderCarousel();
     }
 
-    _renderCovers() {
+    _renderCarousel() {
         return html`
             <ol-carousel
                 class="obd__carousel"
-                label=${this.title}
+                label=${this.heading}
                 gap="16"
                 @ol-carousel-page-change=${this._onPageChange}
             >
@@ -867,27 +934,48 @@ export class OlBooksDisplay extends LitElement {
 
     _renderList() {
         const shown = this._docs.slice(0, this._visible);
-        const remaining = (this._numFound ?? this._docs.length) - shown.length;
         return html`
             <div class="obd__list-wrap">
                 <ul class="obd__list">
                     ${shown.map(doc => this._renderRow(doc))}
                 </ul>
-                <div class="obd__list-footer">
-                    ${remaining > 0 ? html`
-                        <button type="button" class="obd__link-btn" ?disabled=${this._loading} @click=${this._onShowMore}>
-                            ${this.t('showMore', { count: Math.min(remaining, this.limit) })}
-                        </button>
-                    ` : nothing}
-                    ${shown.length > this.limit ? html`
-                        <span class="obd__dot" aria-hidden="true">·</span>
-                        <button type="button" class="obd__link-btn" @click=${this._onCollapse}>${this.t('collapse')}</button>
-                    ` : nothing}
-                    ${this.url ? html`
-                        <span class="obd__dot" aria-hidden="true">·</span>
-                        <a class="obd__link-btn" href=${this.url}>${this.t('seeAll')} →</a>
-                    ` : nothing}
-                </div>
+                ${this._renderFooter(shown.length)}
+            </div>
+        `;
+    }
+
+    /**
+     * The carousel view's cards wrapped into rows instead of a scrolling track,
+     * paged by the same Show more / Collapse footer the list view uses.
+     */
+    _renderGrid() {
+        const shown = this._docs.slice(0, this._visible);
+        return html`
+            <ul class="obd__grid">
+                ${shown.map(doc => html`<li class="obd__grid-item">${this._renderCoverCard(doc)}</li>`)}
+            </ul>
+            ${this._renderFooter(shown.length)}
+        `;
+    }
+
+    /** Show more / Collapse / See all, shared by the grid and list views. */
+    _renderFooter(shownCount) {
+        const remaining = (this._numFound ?? this._docs.length) - shownCount;
+        return html`
+            <div class="obd__list-footer">
+                ${remaining > 0 ? html`
+                    <button type="button" class="obd__link-btn" ?disabled=${this._loading} @click=${this._onShowMore}>
+                        ${this.t('showMore', { count: Math.min(remaining, this.limit) })}
+                    </button>
+                ` : nothing}
+                ${shownCount > this.limit ? html`
+                    <span class="obd__dot" aria-hidden="true">·</span>
+                    <button type="button" class="obd__link-btn" @click=${this._onCollapse}>${this.t('collapse')}</button>
+                ` : nothing}
+                ${this.url ? html`
+                    <span class="obd__dot" aria-hidden="true">·</span>
+                    <a class="obd__link-btn" href=${this.url}>${this.t('seeAll')} →</a>
+                ` : nothing}
             </div>
         `;
     }
@@ -1099,7 +1187,7 @@ export class OlBooksDisplay extends LitElement {
 
     _onViewChange(e) {
         const view = e.detail?.value;
-        if (!VIEWS.includes(view) || view === this.view) return;
+        if (!this.availableViews.includes(view) || view === this.view) return;
         this.view = view;
         this.dispatchEvent(new CustomEvent('ol-books-display-view-change', { bubbles: true, detail: { view } }));
     }

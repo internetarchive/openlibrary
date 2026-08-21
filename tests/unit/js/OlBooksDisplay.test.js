@@ -1,6 +1,6 @@
 /**
  * Unit tests for <ol-books-display>: data flow (fetch → cards → user-state
- * overlay), the view toggle, list-view paging, and the logged-in/out branches
+ * overlay), the view toggle, grid- and list-view paging, and the logged-in/out branches
  * of the per-book controls. Network is stubbed at `fetch`.
  *
  * The component renders into its shadow root, so queries for its own markup go
@@ -92,7 +92,7 @@ async function mount(attrs = {}) {
     const el = document.createElement('ol-books-display');
     el.query = 'subject:fiction';
     el.limit = 20;
-    el.title = 'Trending';
+    el.heading = 'Trending';
     el.url = '/search?q=x';
     Object.assign(el, attrs);
     document.body.appendChild(el);
@@ -265,7 +265,7 @@ describe('ol-books-display static books', () => {
 });
 
 describe('ol-books-display views', () => {
-    test('toggle switches to the list view and back', async() => {
+    test('toggle switches between the list and grid views', async() => {
         stubFetch();
         const el = await mount();
         const events = [];
@@ -276,7 +276,47 @@ describe('ol-books-display views', () => {
         expect(el.getAttribute('view')).toBe('list');
         expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(20);
         expect(el.renderRoot.querySelector('ol-carousel')).toBeNull();
-        expect(events).toEqual(['list']);
+        el.renderRoot.querySelector('ol-segmented-control').dispatchEvent(new CustomEvent('ol-segmented-control-change', { detail: { value: 'grid' } }));
+        await el.updateComplete;
+        expect(el.view).toBe('grid');
+        expect(el.renderRoot.querySelectorAll('.obd__grid-item')).toHaveLength(20);
+        expect(el.renderRoot.querySelector('.obd-row')).toBeNull();
+        expect(events).toEqual(['list', 'grid']);
+    });
+
+    test('views limits the switcher to the named views, in order', async() => {
+        stubFetch();
+        const el = await mount({ views: 'list,carousel' });
+        const segments = [...el.renderRoot.querySelectorAll('ol-segment')].map(s => s.getAttribute('value'));
+        expect(segments).toEqual(['list', 'carousel']);
+        // A view left out stays unreachable.
+        el.renderRoot.querySelector('ol-segmented-control').dispatchEvent(new CustomEvent('ol-segmented-control-change', { detail: { value: 'grid' } }));
+        await el.updateComplete;
+        expect(el.view).toBe('carousel');
+    });
+
+    test('a view the instance doesn\'t offer falls back to the first one it does', async() => {
+        stubFetch();
+        const el = await mount({ views: 'grid,list' });
+        expect(el.view).toBe('grid');
+        expect(el.getAttribute('view')).toBe('grid');
+        expect(el.renderRoot.querySelectorAll('.obd__grid-item')).toHaveLength(20);
+    });
+
+    test('a single view drops the switcher', async() => {
+        stubFetch();
+        const el = await mount({ views: 'grid' });
+        expect(el.renderRoot.querySelector('ol-segmented-control')).toBeNull();
+        expect(el.view).toBe('grid');
+        expect(el.renderRoot.querySelectorAll('.obd__grid-item')).toHaveLength(20);
+    });
+
+    test('an unrecognized views list falls back to all three', async() => {
+        stubFetch();
+        const el = await mount({ views: 'shelf', view: 'list' });
+        const segments = [...el.renderRoot.querySelectorAll('ol-segment')].map(s => s.getAttribute('value'));
+        expect(segments).toEqual(['carousel', 'grid', 'list']);
+        expect(el.view).toBe('list');
     });
 
     test('list rows show byline links, stars, and the year beside the title', async() => {
@@ -303,6 +343,35 @@ describe('ol-books-display views', () => {
         [...el.renderRoot.querySelectorAll('.obd__list-footer .obd__link-btn')].find(b => b.textContent === 'Collapse').click();
         await el.updateComplete;
         expect(el.renderRoot.querySelectorAll('.obd-row')).toHaveLength(20);
+    });
+
+    test('grid view renders the carousel view\'s cards in rows, not a carousel', async() => {
+        stubFetch();
+        const el = await mount({ view: 'grid' });
+        expect(el.renderRoot.querySelector('ol-carousel')).toBeNull();
+        const items = el.renderRoot.querySelectorAll('.obd__grid-item');
+        expect(items).toHaveLength(20);
+        // Same card the carousel slots: cover, corner save button, CTA.
+        const card = items[0].querySelector('.obd-card');
+        expect(card.querySelector('.obd-cover__img').getAttribute('src')).toBe('https://covers.test/b/id/0-M.jpg');
+        expect(card.querySelector('.obd-save')).not.toBeNull();
+        expect(card.querySelector('.obd-card__cta').textContent.trim()).toBe('Borrow');
+    });
+
+    test('grid footer: show more fetches and reveals, collapse hides', async() => {
+        stubFetch({ total: 45 });
+        const el = await mount({ view: 'grid' });
+        const footerText = () => el.renderRoot.querySelector('.obd__list-footer').textContent.replace(/\s+/g, ' ').trim();
+        expect(footerText()).toBe('Show 20 more · See all →');
+        el.renderRoot.querySelector('.obd__list-footer .obd__link-btn').click();
+        await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+        expect(el.renderRoot.querySelectorAll('.obd__grid-item')).toHaveLength(40);
+        expect(footerText()).toBe('Show 5 more · Collapse · See all →');
+        el.scrollIntoView = () => {};
+        [...el.renderRoot.querySelectorAll('.obd__list-footer .obd__link-btn')].find(b => b.textContent === 'Collapse').click();
+        await el.updateComplete;
+        expect(el.renderRoot.querySelectorAll('.obd__grid-item')).toHaveLength(20);
     });
 
     test('split button main click toggles Want to Read for a signed-in user', async() => {

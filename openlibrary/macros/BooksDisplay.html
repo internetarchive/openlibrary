@@ -1,18 +1,19 @@
-$def with(query, title='', sort='new', key='', limit=20, has_fulltext_only=True, url=None, view='covers', user_lang_only=False, safe_mode=True)
+$def with(query, heading='', sort='new', key='', limit=20, has_fulltext_only=True, url=None, view='carousel', views='', user_lang_only=False, safe_mode=True)
 
 $# Renders an <ol-books-display> for a Solr query: a titled set of books
-$# switchable between the covers carousel and the list view, with per-book
+$# switchable between the carousel, the grid and the list view, with per-book
 $# shelf/rating/list actions. Data is fetched client-side from
 $# /books-display.json, so this macro only emits config + translated labels.
 $#
 $# * query (str) -- Any Open Library search query, e.g. subject:"Textbooks"
-$# * title (str) -- Section heading
+$# * heading (str) -- Section heading
 $# * sort (str) -- work_search sort param
 $# * key (str) -- analytics key for this section
 $# * limit (int) -- page size
 $# * has_fulltext_only (bool) -- only readable books
 $# * url (str) -- "See all" link (defaults to the search page for `query`)
-$# * view (str) -- initial view: 'covers' or 'list'
+$# * view (str) -- initial view: 'carousel', 'grid' or 'list'
+$# * views (str) -- comma-separated views this section offers, in switcher order (default: all three; one view drops the switcher)
 $# * user_lang_only (bool) -- restrict to the user's language, falling back to all languages when that finds nothing
 $# * safe_mode (bool) -- hide covers of books with a content_warning tag
 
@@ -32,7 +33,8 @@ $code:
     labels = {
         # views
         "viewAs": _("View as"),
-        "covers": _("Covers"),
+        "carousel": _("Carousel"),
+        "grid": _("Grid"),
         "list": _("List"),
         # cards
         "by": _("by %(name)s"),
@@ -86,9 +88,10 @@ $code:
   fallback-query="$fallback_query"
   sort="$sort"
   limit="$limit"
-  title="$title"
+  heading="$heading"
   url="$url"
   view="$view"
+  views="$views"
   has-fulltext-only="$('true' if has_fulltext_only else 'false')"
   safe-mode="$('true' if safe_mode else 'false')"
   analytics-key="$key"

@@ -2,33 +2,6 @@ import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
 
-/**
- * A WYSIWYG markdown editor built on Tiptap.
- *
- * Syncs its output to a hidden target element (textarea or input) identified by `target-id`.
- * The target element must exist in the DOM before the editor connects.
- *
- * @element ol-markdown-editor
- *
- * @prop {String} targetId - The ID of the DOM element to sync the Markdown output with.
- * @prop {String} placeholder - Text to display when the editor is empty (default: 'Write something...').
- * @prop {String} height - Minimum height of the editor area, e.g. '100px' (default: '200px'). The editor grows beyond this as content is added.
- *
- * @fires ol-markdown-editor-change - Dispatched whenever the editor content changes. `e.detail.value` contains the raw markdown string.
- *
- * @example
- * <textarea id="body-input">value</textarea>
- * <ol-markdown-editor target-id="body-input" placeholder="Type here..."></ol-markdown-editor>
- *
- * @example
- * <form action="/save" method="POST">
- *   <label for="page--body">Document Body:</label>
- *   <textarea id="page--body" name="body">**Initial** markdown.</textarea>
- *   <ol-markdown-editor target-id="page--body" placeholder="Write the main content..."></ol-markdown-editor>
- *   <button type="submit">Save Document</button>
- * </form>
- */
-
 // Toolbar glyphs from the shared icon set, keyed by the editor's local names.
 // .toolbar-btn ol-icon governs size and stroke width.
 const glyph = (name) => html`<ol-icon name="${name}"></ol-icon>`;
@@ -55,6 +28,32 @@ const ICONS = {
     source: glyph('file-code'),
 };
 
+/**
+ * A WYSIWYG markdown editor built on Tiptap.
+ *
+ * Syncs its output to a hidden target element (textarea or input) identified by `target-id`.
+ * The target element must exist in the DOM before the editor connects.
+ *
+ * @element ol-markdown-editor
+ *
+ * @prop {String} targetId - The ID of the DOM element to sync the Markdown output with.
+ * @prop {String} placeholder - Text to display when the editor is empty (default: 'Write something...').
+ * @prop {String} height - Minimum height of the editor area, e.g. '100px' (default: '200px'). The editor grows beyond this as content is added.
+ *
+ * @fires ol-markdown-editor-change - Dispatched whenever the editor content changes. `e.detail.value` contains the raw markdown string.
+ *
+ * @example
+ * <textarea id="body-input">value</textarea>
+ * <ol-markdown-editor target-id="body-input" placeholder="Type here..."></ol-markdown-editor>
+ *
+ * @example
+ * <form action="/save" method="POST">
+ *   <label for="page--body">Document Body:</label>
+ *   <textarea id="page--body" name="body">**Initial** markdown.</textarea>
+ *   <ol-markdown-editor target-id="page--body" placeholder="Write the main content..."></ol-markdown-editor>
+ *   <button type="submit">Save Document</button>
+ * </form>
+ */
 export class OLMarkdownEditor extends LitElement {
     static properties = {
         targetId: { type: String, attribute: 'target-id' },
