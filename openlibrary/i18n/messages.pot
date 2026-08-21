@@ -7077,6 +7077,10 @@ msgstr ""
 msgid "Checked Out"
 msgstr ""
 
+#: LoanStatus.html
+msgid "Only a preview is available."
+msgstr ""
+
 #: LocateButton.html
 msgid "Locate"
 msgstr ""
