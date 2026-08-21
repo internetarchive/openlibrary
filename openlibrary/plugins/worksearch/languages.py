@@ -1,3 +1,5 @@
+"""Language pages"""
+
 import functools
 import logging
 from dataclasses import dataclass
