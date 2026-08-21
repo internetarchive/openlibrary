@@ -26,6 +26,30 @@ Wait ~15s for first boot (`docker logs -f solr_builder-jenkins-1` until
    all index types on, `MAX_CORES=18`).
 3. Stage 1 downloads ~15GB of dumps into `/storage`; the full reindex takes hours.
 
+## Skipping Internet Archive metadata (`SKIP_IA_METADATA`)
+
+Indexing normally fetches metadata for every edition ocaid from archive.org
+(ia_collection, ia_box_id, etc.). On slow/offline networks this dominates run
+time. Skipping those fetches leaves the `ia_*` fields empty in the resulting
+Solr documents — **testing only, never for a production reindex**.
+
+In the Jenkins UI: tick the `SKIP_IA_METADATA` parameter before hitting Run.
+
+Manual full-type run (works/orphans/authors/lists):
+
+```bash
+SKIP_IA_METADATA=1 CHUNK_ETA=70 docker compose run --rm -T ol \
+    ./index-type.sh work 18 works
+```
+
+Notes:
+- The flag flows: Jenkinsfile param → env var → `compose.yaml` (`ol` service) →
+  `index-type.sh` → `solr_builder.py --skip-ia-metadata`.
+- Subjects don't fetch IA metadata at all (pure Solr facet queries), so the flag
+  is a no-op for them.
+- Direct single-chunk runs can also pass `--skip-ia-metadata` straight to
+  `solr_builder.py`.
+
 ## Upgrade Jenkins or plugins
 
 1. Bump versions: `FROM` tag in `Dockerfile`, lines in `plugins.txt`, the two ARGs.

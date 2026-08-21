@@ -13,6 +13,12 @@ INSTANCES="$2"
 LOG_DIR="$3"
 CHUNK_SIZE=${CHUNK_SIZE:-10000}
 CHUNK_ETA=${CHUNK_ETA:-90}
+# Set SKIP_IA_METADATA=1 to skip fetching edition metadata from archive.org
+# (testing only; ia_* fields will be empty in the resulting solr docs)
+SKIP_IA_METADATA=${SKIP_IA_METADATA:-0}
+
+EXTRA_ARGS=""
+if [ "$SKIP_IA_METADATA" = "1" ]; then EXTRA_ARGS="--skip-ia-metadata"; fi
 
 done="false"
 next_start="//"
@@ -34,6 +40,7 @@ while [ $done != "true" ]; do
       --limit $CHUNK_SIZE \
       --osp-dump /storage/openlibrary/osp_totals.db \
       --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
+      $EXTRA_ARGS \
     &)
 
     next_start=$(python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)

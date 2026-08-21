@@ -135,6 +135,13 @@ Apply these once the whole setup is verified working, so the README reflects rea
    workaround sentence (no longer how you edit); keep fork-branch advice.
 5. **"Resetting" section**: add Jenkins container removal line:
    `docker rm -f -v solr_builder-jenkins-1` (note: keeps `jenkins-data` volume unless `-v`).
+6. **New section on `--skip-ia-metadata`**: now fully supported in the pipeline
+   (Jenkinsfile `SKIP_IA_METADATA` param → compose env passthrough on the `ol`
+   service → `index-type.sh` → `solr_builder.py`). Documented in
+   `jenkins/RUNNING.md`; mirror a short version into the main README when it
+   gets updated. Bonus: the env passthrough also makes the Jenkinsfile's
+   existing `CHUNK_ETA=70/35` values actually reach `index-type.sh` (they
+   previously never propagated into the container).
 
 ## Verification evidence
 

@@ -106,6 +106,12 @@ services:
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
       - "/storage:/storage"
+    environment:
+      # Tunables forwarded to index-type.sh / solr_builder.py; set them on the
+      # `docker compose run` invocation, e.g.
+      #   SKIP_IA_METADATA=1 CHUNK_ETA=70 docker compose run --rm ol ./index-type.sh work 18 works
+      - CHUNK_ETA=${CHUNK_ETA:-}
+      - SKIP_IA_METADATA=${SKIP_IA_METADATA:-}
     networks:
       - solr-access
       - db-access
