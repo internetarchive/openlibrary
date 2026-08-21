@@ -29,7 +29,7 @@ msgstr ""
 msgid "View"
 msgstr ""
 
-#: account.html status.html
+#: account.html
 msgid "or"
 msgstr ""
 
@@ -260,7 +260,7 @@ msgstr ""
 msgid "history"
 msgstr ""
 
-#: diff.html status.html
+#: diff.html
 msgid "Added"
 msgstr ""
 
@@ -659,108 +659,7 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
-msgid "Testing Environment"
-msgstr ""
-
-#: status.html
-msgid "Deploy triggered!"
-msgstr ""
-
-#: status.html
-msgid "View Jenkins progress"
-msgstr ""
-
-#: status.html
-msgid "GitHub status refreshed."
-msgstr ""
-
-#: status.html
-msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
-
-#: status.html
-msgid "Add PR(s)"
-msgstr ""
-
-#: status.html
-msgid "PR"
-msgstr ""
-
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html status.html type/about/edit.html type/page/edit.html type/template/edit.html
-msgid "Title"
-msgstr ""
-
-#: SearchAuthorSuggestion.html books/add.html books/edit.html books/edit/edition.html openlibrary/plugins/worksearch/code.py search/advancedsearch.html search/search_modal_i18n.html search/work_search_selected_facets.html status.html
-msgid "Author"
-msgstr ""
-
-#: status.html
-msgid "Assignee"
-msgstr ""
-
-#: status.html
-msgid "Pinned Commit"
-msgstr ""
-
-#: status.html
-msgid "Branch HEAD"
-msgstr ""
-
-#: status.html
-msgid "Drift"
-msgstr ""
-
-#: status.html
-msgid "Enabled"
-msgstr ""
-
-#: status.html
-msgid "up to date"
-msgstr ""
-
-#: status.html
-msgid "unknown"
-msgstr ""
-
-#: status.html
-msgid "1 commit behind"
-msgstr ""
-
-#: status.html
-#, python-format
-msgid "%(count)s commits behind"
-msgstr ""
-
-#: admin/solr.html status.html
-msgid "Update"
-msgstr ""
-
-#: status.html
-msgid "Enable"
-msgstr ""
-
-#: status.html
-msgid "Disable"
-msgstr ""
-
-#: lists/lists.html status.html type/list/edit.html type/series/edit.html
-msgid "Remove"
-msgstr ""
-
-#: status.html
-msgid "Selected PRs"
-msgstr ""
-
-#: status.html
-msgid "Refresh"
-msgstr ""
-
-#: status.html
-msgid "Deploy"
-msgstr ""
-
-#: status.html
-msgid "No PRs in testing set."
+msgid "The testing environment panel is only visible to maintainers."
 msgstr ""
 
 #: status.html
@@ -1331,7 +1230,7 @@ msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html admin/loans_table.html
+#: TestingEnvironment.html.jinja account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr ""
 
@@ -1942,7 +1841,7 @@ msgstr ""
 msgid "Imports"
 msgstr ""
 
-#: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: TestingEnvironment.html.jinja admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -2355,6 +2254,10 @@ msgstr ""
 
 #: admin/solr.html
 msgid "Write one entry per line"
+msgstr ""
+
+#: TestingEnvironment.html.jinja admin/solr.html
+msgid "Update"
 msgstr ""
 
 #: admin/spamwords.html
@@ -3047,12 +2950,20 @@ msgstr ""
 msgid "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
+#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html type/about/edit.html type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr ""
+
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
 #: books/add.html books/edit.html type/author/edit.html type/tag/tag_form_inputs.html
 msgid "Required field"
+msgstr ""
+
+#: SearchAuthorSuggestion.html TestingEnvironment.html.jinja books/add.html books/edit.html books/edit/edition.html openlibrary/plugins/worksearch/code.py search/advancedsearch.html search/search_modal_i18n.html search/work_search_selected_facets.html
+msgid "Author"
 msgstr ""
 
 #: books/add.html
@@ -4957,6 +4868,10 @@ msgstr ""
 msgid "Remove this seed?"
 msgstr ""
 
+#: TestingEnvironment.html.jinja lists/lists.html type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
 #: lists/lists.html
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
@@ -6020,6 +5935,10 @@ msgstr ""
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr ""
 
+#: search/work_search_facets.html
+msgid "Search filters are temporarily unavailable. Please try again later."
+msgstr ""
+
 #: search/work_search_selected_facets.html
 msgid "Published by"
 msgstr ""
@@ -6449,7 +6368,7 @@ msgstr ""
 msgid "Format"
 msgstr ""
 
-#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -6990,6 +6909,24 @@ msgstr ""
 msgid "Edition"
 msgstr ""
 
+#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+msgid "Go to previous page"
+msgstr ""
+
+#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+msgid "Go to next page"
+msgstr ""
+
+#: OlPagination.html type/work/editions_datatable.html
+#, python-brace-format
+msgid "Go to page {page}"
+msgstr ""
+
+#: OlPagination.html type/work/editions_datatable.html
+#, python-brace-format
+msgid "Page {page}, current page"
+msgstr ""
+
 #: type/work/editions_datatable.html
 msgid "No editions available"
 msgstr ""
@@ -7090,14 +7027,6 @@ msgid "Checking for Search Inside matches"
 msgstr ""
 
 #: FulltextSearchSuggestion.html
-msgid "Search Inside Icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "search inside icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
 msgstr ""
@@ -7105,10 +7034,6 @@ msgstr ""
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "right chevron"
 msgstr ""
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
@@ -7186,24 +7111,6 @@ msgstr ""
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html
-msgid "Go to previous page"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html
-msgid "Go to next page"
-msgstr ""
-
-#: OlPagination.html
-#, python-brace-format
-msgid "Go to page {page}"
-msgstr ""
-
-#: OlPagination.html
-#, python-brace-format
-msgid "Page {page}, current page"
 msgstr ""
 
 #: PreviewSearchInside.html
@@ -7497,6 +7404,175 @@ msgstr ""
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Loading testing environment…"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Could not load the testing environment."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Try again"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Could not complete that action."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Testing Environment"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Add PRs"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "PR numbers or URLs, space or comma separated"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "PR"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Assignee"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Drift"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Next deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Live now"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Not yet deployed"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Deploy failed (merge conflict)"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "OK"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "PR %(num)s on testing"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "changes on deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Update pin"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Enable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Refresh from GitHub"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Deploy"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(num)s change will be applied"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(num)s changes will be applied"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Nothing to deploy — testing matches the current set."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Drift unknown, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Up-to-date, pinned at %(sha)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "%(num)s commit behind %(sha)s"
+msgid_plural "%(num)s commits behind %(sha)s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: TestingEnvironment.html.jinja
+msgid "Never deployed"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploying, started %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploy succeeded %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploy failed %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Could not start the deploy — Jenkins did not accept the build."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Deploy is not configured on this instance — nothing was deployed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Last deploy %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "View Jenkins"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "No PRs in testing set."
 msgstr ""
 
 #: TrendingBadge.html

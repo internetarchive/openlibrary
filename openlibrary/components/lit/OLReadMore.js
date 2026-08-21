@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import './OlIcon.js';
 
 /**
  * OLReadMore - A web component for expandable/collapsible content
@@ -113,6 +114,7 @@ export class OLReadMore extends LitElement {
             width: 1.2em;
             height: 1.2em;
             vertical-align: middle;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .chevron.up {
@@ -235,7 +237,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleMoreClick}"
             >
                 ${this.moreText}
-                <svg class="chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron" name="chevron-down"></ol-icon>
             </button>
             <button
                 part="toggle-btn"
@@ -244,7 +246,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleLessClick}"
             >
                 ${this.lessText}
-                <svg class="chevron up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron up" name="chevron-down"></ol-icon>
             </button>
         `;
     }

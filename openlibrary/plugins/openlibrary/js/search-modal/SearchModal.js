@@ -1,10 +1,11 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
-// The <ol-*> custom elements this modal uses (ol-dialog, ol-toggle,
+// The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
-// modules here — re-running customElements.define() throws NotSupportedError.
+// modules here — re-running customElements.define() throws NotSupportedError,
+// which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
@@ -221,7 +222,7 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        .back-btn svg {
+        .back-btn ol-icon {
             width: 24px;
             height: 24px;
         }
@@ -252,7 +253,7 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        .clear-btn svg {
+        .clear-btn ol-icon {
             width: 16px;
             height: 16px;
         }
@@ -435,7 +436,7 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-avatar);
         }
 
-        .result__avatar svg { width: 20px; height: 20px; }
+        .result__avatar ol-icon { width: 20px; height: 20px; }
 
         .result__avatar-photo {
             position: absolute;
@@ -575,7 +576,7 @@ export class SearchModal extends LitElement {
             color: var(--color-text-muted);
         }
 
-        .result__recent-icon svg { width: 18px; height: 18px; }
+        .result__recent-icon ol-icon { width: 18px; height: 18px; }
 
         .result__remove-recent {
             flex-shrink: 0;
@@ -606,7 +607,7 @@ export class SearchModal extends LitElement {
             .result__remove-recent:hover { background: var(--lighter-grey); }
         }
 
-        .result__remove-recent svg { width: 16px; height: 16px; }
+        .result__remove-recent ol-icon { width: 16px; height: 16px; }
 
         .result__remove-recent:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
@@ -1634,17 +1635,17 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // ── Static SVGs ──────────────────────────────────────────────────────
+    // ── Static icons ─────────────────────────────────────────────────────
 
-    static _clockIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    static _clockIcon = html`<ol-icon name="clock"></ol-icon>`;
 
-    static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<ol-icon class="search-icon" name="search"></ol-icon>`;
 
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    static _closeIcon = html`<ol-icon name="x"></ol-icon>`;
 
-    static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+    static _backIcon = html`<ol-icon name="arrow-left"></ol-icon>`;
 
-    static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    static _personIcon = html`<ol-icon name="user"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
