@@ -53,7 +53,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.openlibrary.pd import get_pd_options
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import borrow, forms
+from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
@@ -1186,7 +1186,7 @@ class my_follows(delegate.page):
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
     user.update_loan_status()
-    loans = borrow.get_loans(user)
+    loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
 
