@@ -13,7 +13,6 @@ $# @param {string|null} props.icon sprite icon name, e.g. "menu" (optional)
 $# @param {string|null} props.image-class class applied to that icon (optional)
 $# @param {DropdownLink[]} props.links
 $ singleton = len(props.get('links', [])) == 1
-$ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
 
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
@@ -25,13 +24,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
     >$(props['label'])</a>
   $else:
     <details>
-      <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
-        $if props['name'] == 'hamburger' and ctx.user:
-            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
-            $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
-              <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
-            $:macros.icon(props['icon'], size="lg", label=props['label'], extra_class='%s logged' % props['image-class'])
-        $elif 'icon' in props:
+      <summary>
+        $if 'icon' in props:
             $:macros.icon(props['icon'], size="lg", label=props['label'], extra_class=props['image-class'])
         $elif 'label' in props:
             $(props['label'])
@@ -39,12 +33,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
 
         <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
       </summary>
-      $if 'show_mask' in props:
-        <div class="mask-menu"></div>
       <div
-      $if props['name'] == 'hamburger':
-        class="app-drawer"
-      $elif not singleton:
+      $if not singleton:
         class="$(props['name'])-dropdown-component navigation-dropdown-component"
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
@@ -70,20 +60,14 @@ $ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
                   >$(link["text"])</button>
                 </form>
               $else:
-                $if is_privileged_user:
-                  $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
-                    <div class="app-drawer__badge">$(cached_get_counts_by_mode(mode='open'))</div>
                 <a href="$(link['href'])"
                   $if tracker_value:
                     data-ol-link-track="$tracker_value"
                 >
-                  $if 'new' in link and props['name'] == 'hamburger':
-                    <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
-                  $else:
-                    $(link['text'])
-                    $if 'subheading' in link:
-                      <br>
-                      <i class="subheading">$(link['subheading'])</i>
+                  $(link['text'])
+                  $if 'subheading' in link:
+                    <br>
+                    <i class="subheading">$(link['subheading'])</i>
                 </a>
               </li>
         </ul>

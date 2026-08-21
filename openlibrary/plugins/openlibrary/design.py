@@ -176,6 +176,15 @@ COMPONENTS = (
         group="Overlays",
         tag="ol-dialog",
     ),
+    Component(
+        "drawer",
+        "Drawer",
+        "A full-height panel sliding in from a viewport edge — navigation or filters that would crowd the page.",
+        "design/components/drawer.html.jinja",
+        group="Overlays",
+        tag="ol-drawer",
+        avoid="A centered interruption is a Dialog. A panel anchored to its trigger is a Popover.",
+    ),
     # --- Feedback --------------------------------------------------------
     Component(
         "toast",
