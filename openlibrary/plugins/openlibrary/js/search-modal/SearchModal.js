@@ -30,6 +30,7 @@ import {
     removeRecentSearch,
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
+import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -743,7 +744,12 @@ export class SearchModal extends LitElement {
 
         // Curated set shown instantly; replaced by the real catalogue list
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
-        this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
+        // `_languageItems` is what the popover renders — the catalogue, or the
+        // catalogue merged with the current query's facet counts. `_allLanguageItems`
+        // keeps the uncounted catalogue so each new query re-merges from a clean
+        // list instead of one already filtered by the previous query's counts.
+        this._languageItems    = DEFAULT_LANGUAGE_OPTIONS;
+        this._allLanguageItems = DEFAULT_LANGUAGE_OPTIONS;
 
         // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
         // `language` field. Mapped from the trigger's 2-letter data-search-lang in
@@ -771,6 +777,11 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
+        // Search context the currently-merged language counts describe, and the
+        // one a request is in flight for. Equal keys mean the counts on screen
+        // are already right for this query, so re-opening the dropper is free.
+        this._facetKey       = null;
+        this._activeFacetKey = null;
         // Search-outcome analytics (NoResults / ResultsShown): keys already
         // counted this modal session, so re-settling the same query — a filter
         // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
@@ -864,14 +875,79 @@ export class SearchModal extends LitElement {
         }
     }
 
+    // Fetch the catalogue once per modal instance. The in-flight promise is
+    // memoized so the modal-open prefetch and a dropper opened before it lands
+    // share one request instead of racing two.
+    _ensureLanguageCatalogue() {
+        if (!this._languageCataloguePromise) {
+            this._languageCataloguePromise = fetchLanguageOptions().then(options => {
+                this._allLanguageItems = options;
+                this._allLangsLoaded   = true;
+                return options;
+            });
+        }
+        return this._languageCataloguePromise;
+    }
+
     async _loadAllLanguages() {
         this._langsLoading = true;
         try {
-            this._languageItems = await fetchLanguageOptions();
+            this._languageItems = await this._ensureLanguageCatalogue();
         } finally {
-            this._allLangsLoaded = true;
-            this._langsLoading   = false;
+            this._langsLoading = false;
         }
+    }
+
+    _onLanguageOpenRequest(e) {
+        return openWhenCountsReady(e, () => this._loadLanguageFacets());
+    }
+
+    // Context-aware counts for the language dropper, fetched when the patron
+    // asks for it rather than alongside every search — most never open it, and
+    // the counts are only ever seen while it's on screen.
+    //
+    // Loading can't race the query: the dropper takes focus, so the query is
+    // frozen from the moment it's asked for. A query typed while it was
+    // *closed* just changes the key, and the next open refetches.
+    async _loadLanguageFacets() {
+        // Counts describe the current query's results. With no query there's
+        // nothing to count, so fall back to the plain catalogue — this also
+        // undoes a previous query's merge after the input is cleared.
+        if (!this._shouldAutocomplete()) {
+            this._languageItems = this._allLanguageItems;
+            this._facetKey      = null;
+            return;
+        }
+
+        const params = this._buildFacetParams(this._query.trim());
+        const key    = params.toString();
+        if (key === this._facetKey) return;   // already merged for this context
+
+        this._activeFacetKey = key;
+        this._langsLoading   = true;
+        // Drop the outgoing query's counts now rather than showing them under
+        // the spinner. The suggestion list is hidden while `loading` is set, but
+        // any selected rows stay on screen and would otherwise read as current.
+        this._languageItems = this._allLanguageItems;
+
+        // The catalogue is normally already in flight (kicked off on modal open);
+        // await it so a dropper opened immediately still merges. Counts are
+        // caught rather than awaited fail-fast, so a failed count request still
+        // leaves the catalogue that did load on screen.
+        const [catalogue, counts] = await Promise.all([
+            this._ensureLanguageCatalogue(),
+            fetchFacetCounts('language', params).catch(() => null),
+        ]);
+        if (this._activeFacetKey !== key) return;
+
+        // No counts (request failed, or the query matched nothing) degrades to
+        // the uncounted catalogue — filtering must never break. Only a real
+        // response is cached; a null key lets the next open retry.
+        this._languageItems = counts?.length
+            ? mergeFacetCounts(catalogue, counts, this._languages)
+            : catalogue;
+        this._facetKey     = counts ? key : null;
+        this._langsLoading = false;
     }
 
     // ── Render ────────────────────────────────────────────────────────────
@@ -994,8 +1070,11 @@ export class SearchModal extends LitElement {
                     label=${this._i18n.languageLabel}
                     placeholder=${this._i18n.languagePlaceholder}
                     unselected-heading=${this._i18n.languageHeading}
+                    loading-label=${this._i18n.languagesLoading}
+                    ?loading=${this._langsLoading}
                     .items=${this._languageItems}
                     .selected=${this._languages}
+                    @ol-select-popover-request-open=${this._onLanguageOpenRequest}
                     @ol-select-popover-change=${this._onLanguagesChange}
                 ></ol-select-popover>
                 ${showClearAll ? html`
@@ -1621,6 +1700,23 @@ export class SearchModal extends LitElement {
         params.set('q', trimmed);
         this._appendFilterParams(params);
         return `/search?${params.toString()}`;
+    }
+
+    // Search context for /search/facets.json: the query plus the availability
+    // subset, so the counts describe the same result set the modal is showing.
+    //
+    // The selected `language` values are deliberately left out: they'd change
+    // the cache key, making every tick of a checkbox refetch and flash the
+    // spinner while the dropper is open. fetchFacetCounts() strips them too —
+    // Solr ANDs an fq on the faceted field, collapsing the list to what's ticked.
+    _buildFacetParams(query) {
+        const params = new URLSearchParams();
+        params.set('q', query);
+        const availParams = AVAILABILITY_TO_PARAMS[this._availability] || {};
+        for (const [key, value] of Object.entries(availParams)) {
+            params.append(key, value);
+        }
+        return params;
     }
 
     // `availability` defaults to the patron's current selection; the readable
