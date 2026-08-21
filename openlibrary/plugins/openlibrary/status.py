@@ -201,12 +201,11 @@ class status_deploy(delegate.page):
         state = _load_testing_state()
         if not state:
             return _json_ok()
-        # Decide merged-removals on the *un-mutated* state — `merged` is
-        # independent of staged pins/toggles — and with persist=False, so the
-        # drift metadata refresh can never write staged changes to disk before
-        # Jenkins accepts the build.
+        # Drop merged/closed PRs on the *un-mutated* state; persist=False so the
+        # drift metadata refresh can never write staged changes before Jenkins
+        # accepts the build.
         drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False)]
+        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
         # Apply all pending changes before deploying
         for p in state.prs:
             if p.pull_latest_sha:
@@ -267,9 +266,9 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     """The plan: what deploying would change, one entry per staged change.
 
     Every row action writes staged intent that only status_deploy applies, so
-    this walks the same fields it flushes. A PR merged to master is dropped by
-    the deploy regardless of what else is staged on it, so it yields one
-    ``remove`` and nothing more.
+    this walks the same fields it flushes. A PR merged to master — or closed
+    without merging — is dropped on deploy regardless of what else is staged on
+    it, so it yields one ``remove`` and nothing more.
 
     Removal is the one action that stages nothing: it deletes the row. Those are
     recovered at the end by diffing ``state.deployed`` — what the last deploy
@@ -280,6 +279,9 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     for p in state.prs:
         if drift_info.get(p.pr, {}).get("merged", False):
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="merged", detail=""))
+            continue
+        if drift_info.get(p.pr, {}).get("closed", False):
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="closed", detail=""))
             continue
         if not last_deploy or p.added_at > last_deploy:
             # A pin staged on a PR that isn't live yet isn't a separate change:
@@ -450,6 +452,7 @@ class TestingPRStatus(TestingPR):
     is_new: bool = False  # added since the last deploy
     live_now: bool = False  # the last deploy put this PR on the box
     merge_conflict: bool = False  # the last deploy's merge of this PR conflicted, so it did not land
+    closed: bool = False  # the PR was closed on GitHub without being merged; the next deploy drops it
     action: str = ""  # what the next deploy does with this row: add, pin, enable, disable, remove, or empty
     in_set: bool = True  # False for rows dropped from the set but still on the box
 
@@ -461,7 +464,7 @@ class PendingChange(BaseModel):
     title: str
     kind: str  # add, pin, enable, disable, remove
     detail: str = ""  # short SHA for add/pin changes; empty otherwise
-    reason: str = ""  # why a removal is staged: merged or dropped; empty otherwise
+    reason: str = ""  # why a removal is staged: merged, closed, or dropped; empty otherwise
 
 
 class TestingStatus(BaseModel):
@@ -520,6 +523,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
             is_new=bool(last_deploy and p.added_at > last_deploy),
             live_now=p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
             merge_conflict=p.pr in merge_conflicts,
+            closed=drift_info.get(p.pr, {}).get("closed", False),
             action=actions.get(p.pr, ""),
             in_set=True,
         )
@@ -667,7 +671,7 @@ async def _get_drift_info_async(state: TestingState, persist: bool = True) -> tu
     state_changed = False
     infos = await asyncio.gather(*(_get_pr_drift_async(p) for p in state.prs))
     for p, info in zip(state.prs, infos):
-        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged")}
+        drift[p.pr] = {k: info[k] for k in ("head_sha", "drift", "merged", "closed")}
         for attr in ("title", "author", "author_avatar", "assignee", "assignee_avatar"):
             new_val = info.get(attr, "")
             if new_val and getattr(p, attr) != new_val:
@@ -750,6 +754,8 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
             "head_sha": head_sha[:7],
             "drift": drift,
             "merged": merged,
+            # A merge is itself a close, so "closed" means closed without merging.
+            "closed": gh.get("state") == "closed" and not merged,
             "title": gh.get("title", f"PR #{pr.pr}"),
             "author": user.get("login", ""),
             "author_avatar": user.get("avatar_url", ""),
@@ -761,6 +767,7 @@ async def _get_pr_drift_async(pr: TestingPR) -> dict:
             "head_sha": "",
             "drift": -1,
             "merged": False,
+            "closed": False,
             "title": "",
             "author": "",
             "author_avatar": "",
