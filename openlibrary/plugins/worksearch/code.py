@@ -20,7 +20,12 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.lending import add_availability, add_availability_async
+from openlibrary.core.lending import (
+    add_availability,  # noqa: F401 kept for the commented-out call in works_by_author
+    add_availability_async,
+    get_ebook_access_availability,
+    get_ocaid,
+)
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -663,6 +668,7 @@ def get_doc(doc: SolrDocument):
         collections=(doc.get("ia_collection") or []),
         has_fulltext=doc.get("has_fulltext", False),
         public_scan=doc.get("public_scan_b", bool(doc.get("ia"))),
+        ebook_access=doc.get("ebook_access"),
         lending_edition=doc.get("lending_edition_s", None),
         lending_identifier=doc.get("lending_identifier_s", None),
         authors=[
@@ -935,7 +941,14 @@ def works_by_author(
     )
 
     result.docs = [get_doc(doc) for doc in result.docs]
-    add_availability([(work.get("editions") or [None])[0] or work for work in result.docs])
+    # add_availability([(work.get("editions") or [None])[0] or work for work in result.docs])
+    from openlibrary.book_providers import EbookAccess
+
+    for work in result.docs:
+        item = (work.get("editions") or [None])[0] or work
+        ocaid = get_ocaid(item)
+        if ocaid and item.get("ebook_access"):
+            item["availability"] = get_ebook_access_availability(ocaid, EbookAccess.from_solr_str(item["ebook_access"]))
     return result
 
 
