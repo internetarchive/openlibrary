@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { icon } from './utils/book-icons.js';
+import './OlIcon.js';
 import { fetchBooks, fetchUserState, setShelf, queuePendingAction, redirectToLogin, SHELF } from './utils/books-api.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { fmt, DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
@@ -411,6 +411,7 @@ export class OlBooksDisplay extends LitElement {
             position: relative;
             width: 14px;
             height: 14px;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .obd-save:hover {
@@ -524,6 +525,7 @@ export class OlBooksDisplay extends LitElement {
         .obd-stars .obd-icon {
             width: 14px;
             height: 14px;
+            --ol-icon-stroke-width: 1.5;
         }
 
         .obd-row__actions {
@@ -832,8 +834,8 @@ export class OlBooksDisplay extends LitElement {
                     accessible-label=${this.t('viewAs')}
                     @ol-segmented-control-change=${this._onViewChange}
                 >
-                    <ol-segment value="covers" label="">${icon('covers-row')} <span>${this.t('covers')}</span></ol-segment>
-                    <ol-segment value="list" label="">${icon('list')} <span>${this.t('list')}</span></ol-segment>
+                    <ol-segment value="covers" label=""><ol-icon name="covers-row"></ol-icon> <span>${this.t('covers')}</span></ol-segment>
+                    <ol-segment value="list" label=""><ol-icon name="list"></ol-icon> <span>${this.t('list')}</span></ol-segment>
                 </ol-segmented-control>
             </div>
         `;
@@ -994,7 +996,7 @@ export class OlBooksDisplay extends LitElement {
         return html`
             <div class="obd-row__rating">
                 <span class="obd-stars" role="img" aria-label=${this.t('ratingsAverage', { average: avg.toFixed(1) })}>
-                    ${[1, 2, 3, 4, 5].map(n => icon('star', { fill: n <= rounded ? 'currentColor' : 'none', strokeWidth: 1.5 }))}
+                    ${[1, 2, 3, 4, 5].map(n => html`<ol-icon class="obd-icon" name=${n <= rounded ? 'star-filled' : 'star'}></ol-icon>`)}
                 </span>
                 <span class="obd-row__rating-text">${avg.toFixed(1)} · ${this.t(doc.ratings_count === 1 ? 'ratingsOne' : 'ratingsMany', { count })}</span>
             </div>
@@ -1030,7 +1032,7 @@ export class OlBooksDisplay extends LitElement {
                 target=${ifDefined(access.external ? '_blank' : undefined)}
                 rel=${ifDefined(access.external ? 'noopener noreferrer' : undefined)}
                 @click=${() => this._onCtaClick(doc, label, loginIntent)}
-            >${label}${access.external ? icon('arrow-up-right', { slot: 'icon-end' }) : nothing}</ol-button>
+            >${label}${access.external ? html`<ol-icon name="arrow-up-right" slot="icon-end"></ol-icon>` : nothing}</ol-button>
         `;
     }
 
@@ -1047,7 +1049,7 @@ export class OlBooksDisplay extends LitElement {
                 class="obd-save ${classMap({ 'obd-save--on': saved })}"
                 aria-label=${saved ? this.t('saved', { title: doc.title }) : this.t('save', { title: doc.title })}
                 @click=${this.userKey ? undefined : e => this._onLoggedOutAction(e, doc)}
-            >${icon(saved ? 'check' : 'plus', { strokeWidth: 2.5 })}</button>
+            ><ol-icon class="obd-icon" name=${saved ? 'check' : 'plus'}></ol-icon></button>
         `;
         if (!this.userKey) return button;
         return html`
@@ -1070,7 +1072,7 @@ export class OlBooksDisplay extends LitElement {
                 type="button"
                 class="obd-shelf__main ${classMap({ 'obd-shelf__main--on': on })}"
                 @click=${e => this._onShelfMainClick(e, doc, shelf)}
-            >${on ? icon('check') : nothing}<span>${label}</span></button>
+            >${on ? html`<ol-icon class="obd-icon" name="check"></ol-icon>` : nothing}<span>${label}</span></button>
         `;
         const chevron = html`
             <button
@@ -1079,7 +1081,7 @@ export class OlBooksDisplay extends LitElement {
                 class="obd-shelf__more"
                 aria-label=${this.t('shelfMenu', { title: doc.title })}
                 @click=${this.userKey ? undefined : e => this._onLoggedOutAction(e, doc)}
-            >${icon('chevron-down')}</button>
+            ><ol-icon class="obd-icon" name="chevron-down"></ol-icon></button>
         `;
         return html`
             <div class="obd-shelf ${classMap({ 'obd-shelf--on': on })}">

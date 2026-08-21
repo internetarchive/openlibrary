@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { icon } from './utils/book-icons.js';
+import './OlIcon.js';
 import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import './OlPopover.js';
@@ -267,6 +267,7 @@ export class OlBookActions extends LitElement {
         .star .obd-icon {
             width: 24px;
             height: 24px;
+            --ol-icon-stroke-width: 1.5;
         }
 
         .star:focus-visible {
@@ -534,9 +535,9 @@ export class OlBookActions extends LitElement {
                         ?disabled=${this._busy}
                         @click=${() => this._onShelfClick(row.id)}
                     >
-                        ${icon(row.icon)}
+                        <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
                         <span class="label">${this.t(row.label)}</span>
-                        ${this.shelf === row.id ? icon('check', { cls: 'obd-icon trail' }) : nothing}
+                        ${this.shelf === row.id ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                     </button>
                 `)}
             </div>
@@ -545,10 +546,10 @@ export class OlBookActions extends LitElement {
             </div>
             <div class="group">
                 <button type="button" class="row" @click=${this._openLists}>
-                    ${icon('list-plus')}
+                    <ol-icon class="obd-icon" name="list-plus"></ol-icon>
                     <span class="label">${this.t('addToList')}</span>
                     ${this._listCount ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
-                    ${icon('chevron-right', { cls: 'obd-icon trail' })}
+                    <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
                 </button>
             </div>
         `;
@@ -575,7 +576,7 @@ export class OlBookActions extends LitElement {
                             @focus=${() => { this._hoverRating = n; }}
                             @blur=${() => { this._hoverRating = 0; }}
                             @click=${() => this._onRate(n)}
-                        >${icon('star', { fill: n <= shown ? 'currentColor' : 'none', strokeWidth: 1.5 })}</button>
+                        ><ol-icon class="obd-icon" name=${n <= shown ? 'star-filled' : 'star'}></ol-icon></button>
                     `)}
                 </span>
                 ${caption}
@@ -587,11 +588,11 @@ export class OlBookActions extends LitElement {
         return html`
             <div class="lists-header">
                 <button type="button" class="back" @click=${this._closeLists}>
-                    ${icon('chevron-left')}${this.t('back')}
+                    <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
                 </button>
                 ${this._creating ? nothing : html`
                     <button type="button" class="btn" @click=${this._startCreate}>
-                        ${icon('plus')}${this.t('createList')}
+                        <ol-icon class="obd-icon" name="plus"></ol-icon>${this.t('createList')}
                     </button>
                 `}
             </div>
@@ -628,7 +629,7 @@ export class OlBookActions extends LitElement {
 
     _renderListItems() {
         if (this._listsLoading || this._lists === null) {
-            return html`<div class="loading" role="status">${icon('loader', { cls: 'obd-icon spinner' })}${this.t('loadingLists')}</div>`;
+            return html`<div class="loading" role="status"><ol-icon class="obd-icon spinner" name="loader"></ol-icon>${this.t('loadingLists')}</div>`;
         }
         const entries = Object.entries(this._lists);
         if (!entries.length) return html`<div class="empty">${this.t('noLists')}</div>`;
