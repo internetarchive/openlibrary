@@ -6,6 +6,7 @@ import {
     canUpdate,
     driftPill,
     effectiveActive,
+    effectivePendingRemoval,
     sprintf
 } from './utils.js';
 
@@ -45,6 +46,9 @@ const dotLabel = computed(() => {
 // toggle when one is pending (the server emits pending_active then),
 // otherwise the live state. Clicking flips the row either way.
 const isActive = computed(() => effectiveActive(props.pr));
+
+// Whether this PR is staged for removal on the next deploy.
+const pendingRemoval = computed(() => effectivePendingRemoval(props.pr));
 
 // The server classifies what the next deploy does with this row in
 // `action`; any non-empty value means a change is staged for it.
@@ -169,6 +173,13 @@ function text(key, ...args) {
             :aria-label="strings.closed"
           >⛔</span>
           <span
+            v-else-if="pendingRemoval"
+            class="testing-env__pending testing-env__pending--removal"
+            role="img"
+            :title="strings.stagedRemoval"
+            :aria-label="strings.stagedRemoval"
+          >🗑️</span>
+          <span
             v-else-if="pending"
             class="testing-env__pending"
             role="img"
@@ -186,8 +197,34 @@ function text(key, ...args) {
       v-if="maintainer"
       class="testing-env__col-actions"
     >
+      <!-- Staged for removal: show cancel-removal button -->
       <button
-        v-if="inSet"
+        v-if="inSet && pendingRemoval"
+        type="button"
+        class="testing-env__row-action testing-env__row-action--restore"
+        :title="strings.unstageRemoval"
+        :aria-label="strings.unstageRemoval"
+        @click="emit('restore', pr)"
+      >
+        <svg
+          class="testing-env__btn-icon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+      </button>
+      <!-- Normal: show trash button -->
+      <button
+        v-else-if="inSet"
         type="button"
         class="testing-env__row-action testing-env__row-action--danger"
         :title="strings.remove"
@@ -222,6 +259,7 @@ function text(key, ...args) {
           />
         </svg>
       </button>
+      <!-- Dropped from set (still on box): show restore button -->
       <button
         v-else
         type="button"

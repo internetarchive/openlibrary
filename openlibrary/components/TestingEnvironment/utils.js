@@ -41,6 +41,8 @@ export const DEFAULT_STRINGS = {
     disable: 'Disable',
     remove: 'Remove',
     restore: 'Restore',
+    stagedRemoval: 'Removal staged for next deploy',
+    unstageRemoval: 'Cancel staged removal',
     refresh: 'Refresh from GitHub',
     deploy: 'Deploy',
     changeOne: '%s change will be applied',
@@ -79,15 +81,20 @@ export function decodeAndParseJSON(str) {
 }
 
 /**
- * Return the same-origin JSON endpoint for the current deployment.
+ * Prefix a /status/* path with /_fast on the testing site.
  *
  * The testing site exposes FastAPI behind /_fast; local development proxies
  * the unprefixed path through web.py to the FastAPI container.
  */
+export function statusApiUrl(path, location = window.location) {
+    return location.hostname === 'testing.openlibrary.org' ? `/_fast${path}` : path;
+}
+
+/**
+ * Return the same-origin JSON endpoint for the current deployment.
+ */
 export function testingStatusUrl(location) {
-    return location.hostname === 'testing.openlibrary.org'
-        ? '/_fast/status/testing.json'
-        : '/status/testing.json';
+    return statusApiUrl('/status/testing.json', location);
 }
 
 /**
@@ -132,6 +139,26 @@ export async function postAction(action, fields = {}) {
     });
     if (!response.ok) {
         throw new Error(`${action} failed: ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
+ * PATCH a resource with a JSON body. Used by the new REST-style endpoints
+ * (e.g. PATCH /status/prs/{id}) that accept partial updates.
+ */
+export async function patchAction(url, fields = {}) {
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(fields)
+    });
+    if (!response.ok) {
+        throw new Error(`${url} failed: ${response.status}`);
     }
     return response.json();
 }
@@ -267,6 +294,13 @@ export function effectiveActive(pr) {
     return pr.pending_active === undefined || pr.pending_active === null
         ? pr.active !== false
         : pr.pending_active;
+}
+
+/**
+ * Whether the PR is staged for removal on the next deploy.
+ */
+export function effectivePendingRemoval(pr) {
+    return pr.pending_removal === true;
 }
 
 /**

@@ -415,6 +415,11 @@ a.testing-env__pill:focus-visible {
   color: var(--color-text-muted);
 }
 
+/* Staged removal: red-tinted to signal a destructive pending action. */
+.testing-env__pending--removal {
+  color: var(--color-error-fg);
+}
+
 /* Icon-only row actions (update / remove): bordered buttons, blue for update,
    red for remove on hover; tooltips ride in the title attribute. */
 .testing-env__row-action {

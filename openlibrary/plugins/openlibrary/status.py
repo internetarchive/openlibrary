@@ -79,46 +79,15 @@ class status_add(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(pr="")
-        raw = re.split(r"[\s,]+", i.pr.strip())
-        pr_numbers = []
-        for val in raw:
-            if val:
-                with contextlib.suppress(ValueError, AttributeError):
-                    pr_numbers.append(_parse_pr_number(val))
+        pr_numbers = _parse_pr_numbers_from_string(i.pr)
         if not pr_numbers:
             raise web.badrequest()
         state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
-        existing = {p.pr for p in state.prs}
         user = get_current_user()
-        failed = []
-        for pr_number in pr_numbers:
-            if pr_number not in existing:
-                info = _get_pr_info(pr_number)
-                if info.get("error"):
-                    # GitHub unreachable, rate-limited, or an invalid PR — never
-                    # pretend the add landed. The error response lets the panel
-                    # keep the input so the failure is visible.
-                    failed.append(pr_number)
-                    continue
-                state.prs.append(
-                    TestingPR(
-                        pr=pr_number,
-                        commit=info["head_sha"],
-                        active=True,
-                        title=info["title"],
-                        added_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                        added_by=user.key.split("/")[-1] if user else "",
-                        author=info["author"],
-                        author_avatar=info["author_avatar"],
-                        assignee=info["assignee"],
-                        assignee_avatar=info["assignee_avatar"],
-                    )
-                )
-                existing.add(pr_number)
-        _save_testing_state(state)
-        _evict_drift_cache()
-        if failed:
-            return _json_error("add_failed")
+        added_by = user.key.split("/")[-1] if user else ""
+        result = add_prs_to_set(state, pr_numbers, added_by)
+        if result.get("error"):
+            return _json_error(result["error"])
         return _json_ok()
 
 
@@ -129,9 +98,8 @@ class status_remove(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(prs=[])
-        to_remove = {int(p) for p in i.prs}
-        if state := _load_testing_state():
-            state.prs = [p for p in state.prs if p.pr not in to_remove]
+        state = _load_testing_state()
+        if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], pending_removal=True):
             _save_testing_state(state)
         return _json_ok()
 
@@ -143,14 +111,9 @@ class status_enable(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(prs=[])
-        to_enable = {int(p) for p in i.prs}
         state = _load_testing_state()
-        if not state or not to_enable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_enable:
-                p.pending_active = True
-        _save_testing_state(state)
+        if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], active=True):
+            _save_testing_state(state)
         return _json_ok()
 
 
@@ -161,14 +124,9 @@ class status_disable(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(prs=[])
-        to_disable = {int(p) for p in i.prs}
         state = _load_testing_state()
-        if not state or not to_disable:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_disable:
-                p.pending_active = False
-        _save_testing_state(state)
+        if state and i.prs and stage_pr_update(state, [int(p) for p in i.prs], active=False):
+            _save_testing_state(state)
         return _json_ok()
 
 
@@ -179,16 +137,9 @@ class status_pull_latest(delegate.page):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(prs=[])
-        to_update = {int(p) for p in i.prs}
         state = _load_testing_state()
-        if not state or not to_update:
-            return _json_ok()
-        for p in state.prs:
-            if p.pr in to_update:
-                info = _get_pr_info(p.pr)
-                if info["head_sha"] and info["head_sha"] != p.commit:
-                    p.pull_latest_sha = info["head_sha"]
-        _save_testing_state(state)
+        if state and i.prs:
+            pull_latest_from_github(state, [int(p) for p in i.prs])
         return _json_ok()
 
 
@@ -201,39 +152,10 @@ class status_deploy(delegate.page):
         state = _load_testing_state()
         if not state:
             return _json_ok()
-        # Drop merged/closed PRs on the *un-mutated* state; persist=False so the
-        # drift metadata refresh can never write staged changes before Jenkins
-        # accepts the build.
-        drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
-        # Apply all pending changes before deploying
-        for p in state.prs:
-            if p.pull_latest_sha:
-                p.commit = p.pull_latest_sha
-                p.pull_latest_sha = ""
-            if p.pending_active is not None:
-                p.active = p.pending_active
-                p.pending_active = None
-        # Nothing above is persisted until Jenkins accepts the build, so a failed
-        # trigger leaves every staged change intact and retryable.
-        outcome = trigger_rebuild(state.prs)
-        if outcome == "failed":
-            return _json_error("deploy_failed")
-        state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
-        # What this build puts on the box: active PRs only, the same filter
-        # trigger_rebuild sends. Recorded so a later removal has a set to be
-        # missing from — nothing else survives one.
-        state.deployed = {p.pr: p.title for p in state.prs if p.active}
-        if outcome == "triggered":
-            state.deploy_started_at = state.last_deploy_at
-        _save_testing_state(state)
-        _evict_drift_cache()
-        # "unconfigured" (no Jenkins token, local dev) still advances state so
-        # the panel is exercisable, but the response says the box was never
-        # touched so the UI doesn't claim a real deploy happened.
-        if outcome == "triggered":
-            return _json_ok()
-        return _json_error("deploy_unconfigured")
+        result = execute_deploy(state)
+        if result.get("error"):
+            return _json_error(result["error"])
+        return _json_ok()
 
 
 class status_refresh(delegate.page):
@@ -242,7 +164,7 @@ class status_refresh(delegate.page):
     def POST(self):
         if not _is_maintainer():
             raise web.unauthorized()
-        _evict_drift_cache()
+        refresh_drift_cache()
         return _json_ok()
 
 
@@ -291,6 +213,8 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="pin", detail=p.short_pull_latest))
         if (toggle := p.pending_toggle) is not None:
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="enable" if toggle else "disable", detail=""))
+        if p.pending_removal:
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="staged", detail=""))
     # Deployed but no longer in the set: removed, and still on the box until the
     # next deploy drops it. State files written before `deployed` existed start
     # empty here, so their first deploy is what makes removals visible.
@@ -383,6 +307,7 @@ class TestingPR(BaseModel):
     added_by: str = ""  # OL username
     pull_latest_sha: str = ""  # pending SHA from "Fetch Latest"; applied on deploy
     pending_active: bool | None = None  # pending enable/disable; applied on deploy
+    pending_removal: bool | None = None  # pending remove; applied on deploy
     author: str = ""  # GitHub login of PR author
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned
@@ -792,6 +717,162 @@ def _parse_pr_number(value: str) -> int:
     if m := re.search(r"/pull/(\d+)", value):
         return int(m.group(1))
     return int(value.lstrip("#"))
+
+
+def _parse_pr_numbers_from_string(raw: str) -> list[int]:
+    """Extract PR numbers from a single string (numbers, URLs, mixed, comma/whitespace-separated)."""
+    numbers: list[int] = []
+    for part in re.split(r"[\s,]+", raw.strip()):
+        if part:
+            with contextlib.suppress(ValueError, AttributeError):
+                numbers.append(_parse_pr_number(part))
+    return numbers
+
+
+# ---------------------------------------------------------------------------
+# Service functions: shared business logic for both web.py and FastAPI
+# ---------------------------------------------------------------------------
+
+
+async def add_prs_to_set_async(state: TestingState, pr_numbers: list[int], added_by: str = "") -> dict:
+    """Add PR(s) to the testing set.  Handles restore of staged removals.
+
+    Returns {"ok": True} or {"ok": False, "error": "add_failed", "failed": [...]}.
+    Saves state and evicts cache if anything changed.
+    """
+    by_pr = {p.pr: p for p in state.prs}
+    failed: list[int] = []
+    changed = False
+    # Restore PRs already in the set but staged for removal.
+    for pr_number in pr_numbers:
+        if pr_number in by_pr and by_pr[pr_number].pending_removal:
+            by_pr[pr_number].pending_removal = None
+            changed = True
+    # Fetch metadata for new PRs concurrently.
+    new_prs = [n for n in pr_numbers if n not in by_pr]
+    if new_prs:
+        infos = await asyncio.gather(*(_get_pr_info_async(n) for n in new_prs))
+        for pr_number, info in zip(new_prs, infos):
+            if info.get("error"):
+                failed.append(pr_number)
+                continue
+            state.prs.append(
+                TestingPR(
+                    pr=pr_number,
+                    commit=info["head_sha"],
+                    active=True,
+                    title=info["title"],
+                    added_at=datetime.datetime.now(datetime.UTC).isoformat(),
+                    added_by=added_by,
+                    author=info["author"],
+                    author_avatar=info["author_avatar"],
+                    assignee=info["assignee"],
+                    assignee_avatar=info["assignee_avatar"],
+                )
+            )
+            changed = True
+    if changed:
+        _save_testing_state(state)
+        _evict_drift_cache()
+    if failed:
+        return {"ok": False, "error": "add_failed", "failed": failed}
+    return {"ok": True}
+
+
+def stage_pr_update(
+    state: TestingState,
+    pr_numbers: list[int],
+    *,
+    active: bool | None = None,
+    pending_removal: bool | None = None,
+) -> bool:
+    """Stage field changes on PRs (enable/disable/remove/restore).
+
+    Pure state mutation — caller must persist and evict cache.
+    Returns True if anything changed.
+    """
+    targets = {int(n) for n in pr_numbers}
+    changed = False
+    for p in state.prs:
+        if p.pr not in targets:
+            continue
+        if active is not None:
+            p.pending_active = active if active != p.active else None
+            changed = True
+        if pending_removal is not None:
+            p.pending_removal = True if pending_removal else None
+            changed = True
+    return changed
+
+
+async def stage_pull_latest_async(state: TestingState, pr_numbers: list[int]) -> dict:
+    """Fetch latest HEAD from GitHub and stage pins for the given PRs.
+
+    Returns {"ok": True}.  Saves state and evicts cache.
+    """
+    targets = {int(n) for n in pr_numbers}
+    to_fetch = [p for p in state.prs if p.pr in targets]
+    if to_fetch:
+        infos = await asyncio.gather(*(_get_pr_info_async(p.pr) for p in to_fetch))
+        for p, info in zip(to_fetch, infos):
+            if info.get("head_sha") and not info.get("error"):
+                p.pull_latest_sha = info["head_sha"]
+    _save_testing_state(state)
+    return {"ok": True}
+
+
+async def execute_deploy_async(state: TestingState) -> dict:
+    """Execute a deploy: flush all pending changes and trigger Jenkins.
+
+    Returns {"ok": True} or {"ok": False, "error": "..."}.
+    Saves state and evicts cache.
+    """
+    drift_info, _ = await _get_drift_info_async(state, persist=False)
+    # Drop merged/closed PRs.
+    state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
+    # Apply all pending changes before deploying.
+    for p in state.prs:
+        if p.pull_latest_sha:
+            p.commit = p.pull_latest_sha
+            p.pull_latest_sha = ""
+        if p.pending_active is not None:
+            p.active = p.pending_active
+            p.pending_active = None
+    # Stage-removal PRs are deleted from the set on deploy.
+    state.prs = [p for p in state.prs if not p.pending_removal]
+    for p in state.prs:
+        p.pending_removal = None
+    # Nothing above is persisted until Jenkins accepts the build, so a failed
+    # trigger leaves every staged change intact and retryable.
+    outcome = trigger_rebuild(state.prs)
+    if outcome == "failed":
+        return {"ok": False, "error": "deploy_failed"}
+    state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+    # What this build puts on the box: active PRs only, the same filter
+    # trigger_rebuild sends. Recorded so a later removal has a set to be
+    # missing from — nothing else survives one.
+    state.deployed = {p.pr: p.title for p in state.prs if p.active}
+    if outcome == "triggered":
+        state.deploy_started_at = state.last_deploy_at
+    _save_testing_state(state)
+    _evict_drift_cache()
+    # "unconfigured" (no Jenkins token, local dev) still advances state so
+    # the panel is exercisable, but the response says the box was never
+    # touched so the UI doesn't claim a real deploy happened.
+    if outcome == "triggered":
+        return {"ok": True}
+    return {"ok": False, "error": "deploy_unconfigured"}
+
+
+def refresh_drift_cache() -> None:
+    """Evict the drift cache."""
+    _evict_drift_cache()
+
+
+# Sync bridge wrappers so the web.py handlers can call async service functions.
+add_prs_to_set = async_bridge.wrap(add_prs_to_set_async)
+pull_latest_from_github = async_bridge.wrap(stage_pull_latest_async)
+execute_deploy = async_bridge.wrap(execute_deploy_async)
 
 
 @public
