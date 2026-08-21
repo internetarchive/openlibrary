@@ -14,6 +14,19 @@ from openlibrary.core import cache
 
 logger = logging.getLogger("openlibrary.ia")
 
+
+class IANotFoundError:
+    """Item genuinely doesn't exist (404). Cacheable for 5 min."""
+
+    pass
+
+
+class IATransientError:
+    """Temporary failure (timeout, 5xx, network). Short cache (30 sec)."""
+
+    pass
+
+
 IA_BASE_URL = "https://archive.org"
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
@@ -28,10 +41,10 @@ def setup(config):
     IA_BASE_URL = config.get("ia_base_url", "https://archive.org")
 
 
-def get_api_response(url: str, params: dict | None = None) -> dict:
+def get_api_response(url: str, params: dict | None = None) -> dict | IANotFoundError | IATransientError:
     """
     Makes an API GET request to archive.org, collects stats
-    Returns a JSON dict.
+    Returns a JSON dict or sentinel error value.
     :param dict params: url parameters
     """
     api_response = {}
@@ -40,8 +53,24 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
         r = session.get(url, params=params, timeout=3)
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
+        elif r.status_code == httpx.codes.NOT_FOUND:
+            logger.info(f"404 response received from {url} - item not found")
+            stats.end()
+            return IANotFoundError()
+        elif r.status_code in {500, 502, 503}:
+            logger.info(f"{r.status_code} response received from {url} - transient server error")
+            stats.end()
+            return IATransientError()
         else:
             logger.info(f"{r.status_code} response received from {url}")
+    except httpx.TimeoutException:
+        logger.info(f"Timeout occurred accessing {url} - transient error")
+        stats.end()
+        return IATransientError()
+    except httpx.ConnectError, httpx.NetworkError:
+        logger.info(f"Network error occurred accessing {url} - transient error")
+        stats.end()
+        return IATransientError()
     except Exception:
         logger.exception(f"Exception occurred accessing {url}.")
     stats.end()
@@ -86,7 +115,7 @@ def get_ia_s3_keys() -> tuple[str | None, str | None]:
     return spn_config.get("s3_key"), spn_config.get("s3_secret")
 
 
-def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict:
+def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict | IANotFoundError | IATransientError:
     """
     Fetches metadata by querying the archive.org metadata API, without local caching.
     :param bool cache: if false, requests uncached metadata from archive.org
@@ -96,11 +125,18 @@ def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = T
     params = {}
     if cache is False:
         params["dontcache"] = 1
-    full_json = get_api_response(url, params)
-    return extract_item_metadata(full_json) if only_metadata else full_json
+    result = get_api_response(url, params)
+
+    # If result is a sentinel, return it directly
+    if isinstance(result, (IANotFoundError, IATransientError)):
+        return result
+
+    return extract_item_metadata(result) if only_metadata else result
 
 
-get_metadata: Callable[[str], dict] = cache.memcache_memoize(get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS)
+get_metadata: Callable[[str], dict | IANotFoundError | IATransientError] = cache.memcache_memoize(
+    get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS
+)
 
 
 def extract_item_metadata(item_json: dict) -> dict:
@@ -140,7 +176,9 @@ def process_metadata_dict(metadata: dict) -> dict[str, str | list[str] | bool]:
 def locate_item(itemid: str) -> tuple[str | None, str | None]:
     """Returns (hostname, path) for the item."""
     d = get_metadata_direct(itemid, only_metadata=False)
-    return d.get("server"), d.get("dir")
+    if isinstance(d, dict):
+        return d.get("server"), d.get("dir")
+    return None, None
 
 
 def edition_from_item_metadata(itemid: str, metadata: dict) -> ItemEdition | None:
@@ -175,7 +213,7 @@ def get_fallback_cover_url(item_id: str) -> str:
     return base_url + "title.jpg"
 
 
-def get_item_manifest(item_id: str, item_server: str, item_path: str) -> dict:
+def get_item_manifest(item_id: str, item_server: str, item_path: str) -> dict | IANotFoundError | IATransientError:
     url = f"https://{item_server}/BookReader/BookReaderJSON.php"
     url += f"?itemPath={item_path}&itemId={item_id}&server={item_server}"
     return get_api_response(url)
@@ -241,6 +279,8 @@ class ItemEdition(dict):
                 return "no-imagecount"
             else:
                 manifest = get_item_manifest(itemid, item_server, item_path)
+                if isinstance(manifest, (IANotFoundError, IATransientError)):
+                    return "no-imagecount"
                 if not manifest.get("numPages"):
                     return "no-imagecount"
 

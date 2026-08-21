@@ -3,6 +3,7 @@
 import functools
 import json
 import re
+import typing
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, cast
@@ -92,13 +93,20 @@ def sanitize(html: str, encoding: str = "utf8", beautify: bool = True) -> str:
 
 class NothingEncoder(json.JSONEncoder):
     def default(self, obj):
-        """Custom JSON encoder for handling Nothing values.
+        """Custom JSON encoder for handling Nothing values and IA sentinel classes.
 
-        Returns None if a value is a Nothing object. Otherwise,
-        encode values using the default JSON encoder.
+        Returns None if a value is a Nothing object.
+        Returns string representation for IA sentinel classes (IANotFoundError, IATransientError).
+        Returns ISO format for date objects.
+        Otherwise, encode values using the default JSON encoder.
         """
         if isinstance(obj, Nothing):
             return None
+        # Handle IA sentinel classes for caching
+        if obj.__class__.__name__ == "IANotFoundError":
+            return {"__error__": "IANotFoundError"}
+        if obj.__class__.__name__ == "IATransientError":
+            return {"__error__": "IATransientError"}
         if isinstance(obj, date):
             return obj.isoformat()
         return super().default(obj)
@@ -245,7 +253,7 @@ _texsafe_map = {
     "~": r"\~{}",
 }
 
-_texsafe_re = None
+_texsafe_re: typing.Pattern[str] | None = None
 
 
 def texsafe(text):

@@ -189,6 +189,14 @@ class memcache_memoize[**P, T]:
 
         memcache doesn't like spaces in the key.
         """
+        # Handle sentinel values specially for caching
+        from openlibrary.core.ia import IANotFoundError, IATransientError
+
+        if isinstance(value, IANotFoundError):
+            value = {"__error__": "IANotFoundError"}
+        elif isinstance(value, IATransientError):
+            value = {"__error__": "IATransientError"}
+
         return json.dumps(
             [] if isinstance(value, Nothing) else value,
             separators=(",", ":"),
@@ -200,8 +208,18 @@ class memcache_memoize[**P, T]:
         key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
 
+        # Apply different TTLs based on sentinel type
+        cache_ttl = self.timeout  # default TTL
+        # Import here to avoid circular dependency
+        from openlibrary.core.ia import IANotFoundError, IATransientError
+
+        if isinstance(value, IATransientError):
+            cache_ttl = 30  # 30 seconds for transient errors
+        elif isinstance(value, IANotFoundError):
+            cache_ttl = 5 * 60  # 5 minutes for permanent not found
+
         stats.begin("memcache.set", key=key)
-        self.memcache.set(key, json_data)
+        self.memcache.set(key, json_data, time=cache_ttl)
         stats.end()
 
     def memcache_delete(self, args: tuple, kw: dict) -> None:
@@ -228,7 +246,21 @@ class memcache_memoize[**P, T]:
             # 5. We must `cast` here. JSON serialization erases types,
             # so we are telling the type checker to trust us that the
             # deserialized object matches our generic type T.
-            return cast(tuple[T, float], json.loads(json_str))
+            decoded = json.loads(json_str)
+            value, t = decoded
+
+            # Handle sentinel deserialization
+            # Import here to avoid circular dependency
+            from openlibrary.core.ia import IANotFoundError, IATransientError
+
+            if isinstance(value, dict) and "__error__" in value:
+                error_type = value["__error__"]
+                if error_type == "IANotFoundError":
+                    value = IANotFoundError()
+                elif error_type == "IATransientError":
+                    value = IATransientError()
+
+            return cast(tuple[T, float], (value, t))
         else:
             return None
 
