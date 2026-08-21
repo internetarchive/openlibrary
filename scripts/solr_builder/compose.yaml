@@ -8,10 +8,9 @@ services:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
     volumes:
-      # postgres:18+ stores data in major-version-specific subdirectories of
-      # /var/lib/postgresql; mounting the legacy .../data path makes the
-      # entrypoint refuse to start ("unused mount/volume").
-      - "postgres-data:/var/lib/postgresql"
+      # Big-storage bind (1TB volume): the imported dump table dwarfs the OS
+      # disk. postgres:18 stores data under /var/lib/postgresql/<major>/.
+      - "/mnt/HC_Volume_106672133/openlibrary/postgres:/var/lib/postgresql"
       - ".:/solr_builder"
       - "/storage:/storage"
     networks:
@@ -44,7 +43,9 @@ services:
     ports:
       - 8983:8983
     volumes:
-      - solr-data:/var/solr
+      # Big-storage bind (1TB volume): the solr index grows to tens of GB and
+      # the optimize step transiently needs ~2x that.
+      - "/mnt/HC_Volume_106672133/openlibrary/solr:/var/solr"
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
@@ -157,7 +158,8 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
 volumes:
-  postgres-data:
+  # postgres-data and solr-data moved to big-storage binds (see db/solr
+  # services); solr_prod still uses the named solr-data volume.
   solr-data:
   ol-vendor:
   # The exact name matters: the Jenkinsfile runs
