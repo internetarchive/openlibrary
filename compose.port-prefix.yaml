@@ -1,0 +1,27 @@
+##
+## Helper docker compose file for running multiple OL dev instances on one machine
+## without port collisions: prefixes every host port with ${PORT_PREFIX}, eg
+## PORT_PREFIX=2 turns web's 8080 into 28080. You probably want to run something like:
+## PORT_PREFIX=2 docker compose -f compose.yaml -f compose.override.yaml -f compose.port-prefix.yaml up -d
+##
+
+services:
+  web:
+    environment:
+      - OL_COVERSTORE_PUBLIC_URL=http://localhost:${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}7075
+    ports: !override
+      - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8080:8080"
+      - "127.0.0.1:${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}3000:3000"
+  fast_web:
+    ports: !override
+      - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8081:8080"
+      - "127.0.0.1:${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}3001:3000"
+  solr:
+    ports: !override
+      - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8983:8983"
+  covers:
+    ports: !override
+      - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}7075:7075"
+  mockservices:
+    ports: !override
+      - "${PORT_PREFIX:?Set PORT_PREFIX, e.g. PORT_PREFIX=2}8025:8025"

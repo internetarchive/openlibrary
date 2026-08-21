@@ -8,7 +8,7 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 8081.
 
 ## Build Commands
 
@@ -91,7 +91,7 @@ matches the app's configured `http_ext_header_uri`. The dev app sets this to
   `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
 - **Prefer FastAPI endpoints instead:** they share the session auth and need
   no custom headers — e.g. author merges via
-  `POST http://localhost:18080/authors/merge.json`.
+  `POST http://localhost:8081/authors/merge.json`.
 
 ### Scripts must log in via the JSON endpoint
 

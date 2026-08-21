@@ -91,17 +91,17 @@ cat /tmp/cookies.txt
 2. **Use the session cookie in subsequent requests:**
 ```bash
 # Just use -b to send the cookie automatically (no manual extraction needed)
-curl -X POST "http://localhost:18080/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
-curl "http://localhost:18080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
+curl -X POST "http://localhost:8081/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
+curl "http://localhost:8081/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
 ```
 
-**Note:** Sessions expire — always login fresh before testing. Both web.py (port 8080) and FastAPI (port 18080) share the same auth system.
+**Note:** Sessions expire — always login fresh before testing. Both web.py (port 8080) and FastAPI (port 8081) share the same auth system.
 
 ### FastAPI and web.py Interaction
 
 Open Library runs two web servers in parallel:
 - **web.py** (port 8080) — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI
-- **FastAPI** (port 18080) — New async endpoints via nginx proxy
+- **FastAPI** (port 8081) — New async endpoints via nginx proxy
 
 When testing:
 - Both servers share the same database

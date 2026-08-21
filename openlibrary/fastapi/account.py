@@ -105,11 +105,11 @@ async def check_authentication(
 
     Example:
         # With valid session cookie
-        curl http://localhost:18080/account/test.json \\
+        curl http://localhost:8081/account/test.json \\
             -b "session=/people/openlibrary%2C2026-01-18T17%3A25%3A46%2C7897f%24841a3bd2f8e9a5ca46f505fa557d57bd"
 
         # Without cookie
-        curl http://localhost:18080/account/test.json
+        curl http://localhost:8081/account/test.json
     """
 
     cookie_name = config.get("login_cookie_name", "session")
