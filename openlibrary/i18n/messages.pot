@@ -6368,7 +6368,7 @@ msgstr ""
 msgid "Format"
 msgstr ""
 
-#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/editions_datatable.html type/work/view.html
 msgid "Pagination"
 msgstr ""
 
@@ -6898,6 +6898,24 @@ msgstr ""
 msgid "Edition"
 msgstr ""
 
+#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+msgid "Go to previous page"
+msgstr ""
+
+#: OlPagination.html OlPaginationArrows.html type/work/editions_datatable.html
+msgid "Go to next page"
+msgstr ""
+
+#: OlPagination.html type/work/editions_datatable.html
+#, python-brace-format
+msgid "Go to page {page}"
+msgstr ""
+
+#: OlPagination.html type/work/editions_datatable.html
+#, python-brace-format
+msgid "Page {page}, current page"
+msgstr ""
+
 #: type/work/editions_datatable.html
 msgid "No editions available"
 msgstr ""
@@ -6998,14 +7016,6 @@ msgid "Checking for Search Inside matches"
 msgstr ""
 
 #: FulltextSearchSuggestion.html
-msgid "Search Inside Icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "search inside icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
 msgstr ""
@@ -7013,10 +7023,6 @@ msgstr ""
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "right chevron"
 msgstr ""
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
@@ -7094,24 +7100,6 @@ msgstr ""
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html
-msgid "Go to previous page"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html
-msgid "Go to next page"
-msgstr ""
-
-#: OlPagination.html
-#, python-brace-format
-msgid "Go to page {page}"
-msgstr ""
-
-#: OlPagination.html
-#, python-brace-format
-msgid "Page {page}, current page"
 msgstr ""
 
 #: PreviewSearchInside.html

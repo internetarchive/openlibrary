@@ -8,6 +8,9 @@ on:
       - 'Makefile'
       - '.github/workflows/javascript_tests.yml'
       - 'vendor/js/**'
+      # Icon sources feed the generated glyph module the JS tests import.
+      - 'static/icons/**'
+      - 'scripts/build_icon_sprite.mjs'
       - '**.json'
       - '**.js'
       - '**.vue'

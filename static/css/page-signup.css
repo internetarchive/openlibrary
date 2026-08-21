@@ -190,7 +190,10 @@
   top: 5px;
 }
 
-.ol-signup-form .ol-signup-form__icon-wrap > img {
+/* The loading spinner is still an <img>; the eye toggle and the success check
+   are sprite icons, one of them inside a show()/hide() wrapper span. */
+.ol-signup-form .ol-signup-form__icon-wrap > img,
+.ol-signup-form .ol-signup-form__icon-wrap .ol-icon {
   width: 22px;
   height: 22px;
 }

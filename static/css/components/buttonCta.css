@@ -327,6 +327,8 @@ form.return-form .cta-btn {
   border: none;
   padding: 0;
   cursor: pointer;
+  /* The glyph strokes with currentColor, so the blue is set on the button. */
+  color: var(--primary-blue);
   display: flex;
   align-items: center;
 }

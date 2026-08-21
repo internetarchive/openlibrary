@@ -55,6 +55,8 @@
 }
 
 .dropdown {
+  display: flex;
+  align-items: center;
   box-shadow: 0 0 0 1px var(--lightest-grey);
   border-radius: var(--border-radius-button);
 }
@@ -66,9 +68,11 @@
 
 /* stylelint-enable selector-max-specificity */
 
-.down-chevron {
-  margin: 6px 10px 0 3px;
-  display: inline-block;
+/* Cancel .icon-link__image's PNG-era `top: 3px` nudge; flex centering on
+   .dropdown handles vertical alignment. */
+.dropdown .down-chevron {
+  top: 0;
+  margin: 0 10px 0 3px;
   transform: rotate(90deg);
 }
 
