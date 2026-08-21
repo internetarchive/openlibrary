@@ -36,6 +36,11 @@ paramDefs << new StringParameterDefinition("NO_PROXY", "archive.org,openlibrary.
 
 def jenkins = Jenkins.get()
 def jobName = "solr-builder"
+
+if (System.getenv("ADMIN_PASSWORD") in [null, ""]) {
+    println("SEEDER: WARNING - ADMIN_PASSWORD is not set; the seeded 'admin' user has an empty password. Restart with ADMIN_PASSWORD=<password> to fix.")
+}
+
 WorkflowJob job = jenkins.getItem(jobName)
 
 if (job == null) {

@@ -134,8 +134,12 @@ services:
       - "8080:8080"
       - "50000:50000"
     environment:
-      # Required; JCasC seeds the admin user's password from it at first boot.
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD to seed the Jenkins admin user}
+      # Required at first boot; JCasC seeds the admin user's password from it.
+      # Intentionally NOT `${ADMIN_PASSWORD:?...}`: required-var syntax makes
+      # EVERY `docker compose` command in this project fail (including the
+      # pipeline's own, which runs without this var set) whenever the whole
+      # file gets interpolated. The seed job logs a loud warning instead.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       JENKINS_URL: ${JENKINS_URL:-http://localhost:8080}
       # Which branch of internetarchive/openlibrary the solr-builder job tracks.
       # Defaults to master. E.g.: SEED_BRANCH=chore/pinned-jenkins-solr-builder
