@@ -5,26 +5,11 @@ or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
 
-import sys as _sys
-import traceback as _tb
-
 import httpx
 import web
 
 from infogami.utils import delegate
 from openlibrary.core.env import get_ol_env
-
-_orig_rawinput = web.webapi.rawinput
-
-
-def _traced_rawinput(method=None):
-    if web.ctx.get("env", {}).get("REQUEST_METHOD") == "POST":
-        print("[RAWINPUT] method=%r\n%s" % (method, "".join(_tb.format_stack()[-12:])), file=_sys.stderr, flush=True)
-    return _orig_rawinput(method)
-
-
-web.webapi.rawinput = _traced_rawinput
-web.rawinput = _traced_rawinput
 
 
 def handle_deprecated_request():
@@ -50,13 +35,6 @@ def proxy_to_fastapi():
     if "CONTENT_TYPE" in web.ctx.environ:
         headers["Content-Type"] = web.ctx.environ["CONTENT_TYPE"]
 
-    import sys
-
-    print(
-        f"[PROXYDEBUG] ct={web.ctx.environ.get('CONTENT_TYPE')!r} cl={web.ctx.environ.get('CONTENT_LENGTH')!r} datalen={len(web.data())} has_fieldstorage={'_fieldstorage' in web.ctx} ctxdata={'data' in web.ctx}",
-        file=sys.stderr,
-        flush=True,
-    )
     try:
         with httpx.Client(follow_redirects=False, timeout=60.0) as client:
             resp = client.request(
@@ -116,8 +94,6 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"(/subjects/[^/]+)", "json"),
     (r"(/publishers/[^/]+)", "json"),
     (r"(/partials/[^/]+)", "json"),
-    (r"/books-display", "json"),
-    (r"/books-display/user-state", "json"),
     (r"/api/books", "json"),
     (r"/api/books", None),
     # Simplified regex
@@ -125,17 +101,17 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/api/volumes/(.+)", None),
     (r"/prices", "json"),
     (r"/works/OL(\d+)W/awards", "json"),
-    (r"/works/OL\d+W/ratings", "json"),
     (r"/awards/count", "json"),
     (r"/cdn/archive.org/(.+)", None),
     (r"/check-ins/(\d+)", None),
     # FastAPI /status/testing.json (testing-environment status)
     (r"/status/testing", "json"),
     (r"/people/[^/]+/follows", "json"),
-    # `pages` is keyed by the regex text, so this has to match lists.py's path
-    # string exactly; an equivalent spelled differently registers alongside the
-    # old GET-only handler instead of replacing it.
-    (r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists", "json"),
+    (r"/works/OL\d+W/lists", "json"),
+    (r"/people/[^/]+/lists", "json"),
+    (r"/books/OL\d+M/lists", "json"),
+    (r"/authors/OL\d+A/lists", "json"),
+    (r"/subjects/[^/]+/lists", "json"),
     (r"/people/[^/]+/lists/OL\d+L", "json"),
     (r"/lists/OL\d+L", "json"),
     (r"/series/OL\d+L", "json"),
