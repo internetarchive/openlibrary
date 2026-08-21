@@ -14,7 +14,7 @@
 }
 
 .header-bar .logo-component {
-  /* border-right: 1px solid var(--dark-beige); */
+  /* border-right: 1px solid var(--color-border-muted); */
   padding-right: var(--spacing-inset-md);
 }
 
@@ -31,7 +31,7 @@
 
 .header-bar .navigation-component .dropdown-menu {
   border-radius: 3px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
 }
 
 /* stylelint-disable-next-line max-nesting-depth, selector-max-specificity */
@@ -49,7 +49,7 @@
 .header-bar .search-component .search-bar-component {
   width: 100%;
   background-color: var(--grey-fafafa);
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
   border-radius: 6px;
 }
 

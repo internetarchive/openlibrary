@@ -1,9 +1,9 @@
 """The Open Library design system docs at /developers/design.
 
-Three sections share one shell: Components (the landing section), Foundations
-(design tokens), and Playground. Each section is one long browsable page — the
-goal is density, so an engineer can scan everything available before picking
-something.
+Four sections share one shell: Components (the landing section), Foundations
+(design tokens), Icons, and Playground. Each section is one long browsable page
+— the goal is density, so an engineer can scan everything available before
+picking something.
 
 Three things here are derived rather than hand-maintained, which is what keeps
 the page from drifting as the system grows:
@@ -30,7 +30,6 @@ logger = logging.getLogger("openlibrary.design")
 # `npx cem analyze` (see custom-elements-manifest.config.mjs), which
 # `make lit-components` runs. Generated, not committed — see .gitignore.
 MANIFEST_PATH = Path(__file__).parents[2] / "components" / "lit" / "custom-elements.json"
-CSS_COMPONENTS_DIR = Path(__file__).parents[3] / "static" / "css" / "components"
 
 
 @dataclass(frozen=True)
@@ -49,6 +48,7 @@ class Section:
 SECTIONS = (
     Section("components", "Components", has_code=True),
     Section("foundations", "Foundations"),
+    Section("icons", "Icons", has_code=True),
     Section("playground", "Playground"),
 )
 
@@ -59,7 +59,8 @@ class Component:
 
     ``partial`` names a Jinja template defining a ``demos()`` macro holding the
     component's write-up. A row with no ``tag`` is a class-based CSS component,
-    which has no manifest entry and so renders without an API table.
+    which has no manifest entry and so renders without an API table. Clear
+    ``api_table`` for a row that is documented in full somewhere else.
     """
 
     id: str
@@ -69,10 +70,7 @@ class Component:
     group: str = ""
     tag: str = ""
     avoid: str = ""
-    # Which files under static/css/components/ this row documents — a Lit
-    # component's own stylesheet, or the class definitions behind a CSS one.
-    # Used for the coverage report, so the page can show its gaps.
-    css_files: tuple[str, ...] = ()
+    api_table: bool = True
 
 
 COMPONENTS = (
@@ -84,7 +82,6 @@ COMPONENTS = (
         "design/components/button.html.jinja",
         group="Actions",
         tag="ol-button",
-        css_files=("ol-button",),
     ),
     Component(
         "toggle",
@@ -212,7 +209,6 @@ COMPONENTS = (
         "Inline status next to the thing it describes — info, success, warning, error.",
         "design/components/message.html.jinja",
         group="Feedback",
-        css_files=("ol-message", "flash-messages"),
     ),
     Component(
         "scorecard",
@@ -247,64 +243,24 @@ COMPONENTS = (
         group="Content",
         tag="ol-markdown-editor",
     ),
+    # A stub on purpose: icons have a section of their own, and this row exists
+    # so someone scanning the component list finds them rather than concluding
+    # there is nothing.
+    Component(
+        "icon",
+        "Icon",
+        "Any glyph. Three ways to draw one; the Icons section covers which to reach for.",
+        "design/components/icon.html.jinja",
+        group="Content",
+        tag="ol-icon",
+        api_table=False,
+    ),
 )
 
-# CSS files that document nothing reusable: page-specific styles, vendor
-# overrides, and layout shims. Excluded from the coverage report so the
-# "undocumented" list stays a real to-do list rather than permanent noise.
-NOT_COMPONENTS = frozenset(
-    {
-        "admin-table",
-        "chart",
-        "chart-stats",
-        "diff",
-        "donate",
-        "edit-toolbar",
-        "edit-toolbar--tablet",
-        "footer",
-        "header",
-        "header-bar",
-        "header-bar--desktop",
-        "header-bar--js",
-        "header-bar--tablet",
-        "jquery.autocomplete",
-        "librarian-dashboard",
-        "manage-covers",
-        "merge-form",
-        "merge-request-table",
-        "metadata-form",
-        "mybooks",
-        "mybooks-details",
-        "mybooks-dropper",
-        "mybooks-list",
-        "mybooks-menu",
-        "observationStats",
-        "pd-dashboard",
-        "preview",
-        "readerStats",
-        "readinglog-stats",
-        "team",
-        "throbber",
-        "ui-dialog",
-        "ui-tabs",
-        "work--tablet",
-    }
-)
-
-# Legacy class-based components, deliberately undocumented: a write-up would
-# only advertise what the web components replaced. Excluded like NOT_COMPONENTS.
-LEGACY_CSS = frozenset(
-    {
-        "buttonBtn",
-        "buttonCta",
-        "buttonGhost",
-        "buttonLink",
-        "buttonsAndLinks",
-        "link-box",
-        "loading-indicator",
-        "widget-box",
-    }
-)
+# Icon sources, one SVG per icon, grouped into folders by provenance. The file
+# names are the icon names, so the gallery globs them rather than reading a
+# generated list that could drift.
+ICON_SRC_DIR = Path(__file__).parents[3] / "static" / "icons" / "src"
 
 
 def _clean_default(value):
@@ -389,15 +345,15 @@ def load_components():
 
 
 @cache
-def undocumented_css_components() -> list[str]:
-    """CSS component files that no registry row covers, so the page can report
-    its own coverage gaps instead of implying the list is complete."""
-    documented = {name for component in COMPONENTS for name in component.css_files}
-    try:
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-    except OSError:
-        return []
-    return sorted(on_disk - documented - NOT_COMPONENTS - LEGACY_CSS)
+def load_icons() -> list[str]:
+    """The sorted icon names, taken from the source SVG file names.
+
+    Cached because the set is fixed for the life of the process. A missing
+    directory renders an empty gallery rather than 500ing.
+    """
+    if not (names := sorted(path.stem for path in ICON_SRC_DIR.glob("*/*.svg"))):
+        logger.warning("No icon sources found at %s — the icon gallery will be empty.", ICON_SRC_DIR)
+    return names
 
 
 def _component_groups() -> tuple[tuple[str, list[Component]], ...]:
@@ -422,7 +378,7 @@ class DesignContext:
     groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
-    undocumented: list[str] = field(default_factory=list)
+    icons: list[str] = field(default_factory=list)
 
 
 def build_context(section_id: str) -> DesignContext:
@@ -431,9 +387,13 @@ def build_context(section_id: str) -> DesignContext:
     if section_id == "foundations":
         context.token_categories = load_token_categories()
     elif section_id == "components":
-        # Playground renders neither, so it pays for neither.
+        # Playground renders no API tables, so it pays for none.
         context.api = load_components()
-        context.undocumented = undocumented_css_components()
+    elif section_id == "icons":
+        context.icons = load_icons()
+        # <ol-icon> is one of three ways to draw a glyph, so the Icons section
+        # carries its API table too — the Components row only points here.
+        context.api = load_components()
     return context
 
 
@@ -445,7 +405,7 @@ class design(delegate.page):
 
 
 class design_section(delegate.page):
-    path = r"/developers/design/(components|foundations|playground)"
+    path = r"/developers/design/(components|foundations|icons|playground)"
 
     def GET(self, section_id):
         return render_template("design", build_context(section_id))

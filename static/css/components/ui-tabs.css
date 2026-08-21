@@ -43,11 +43,11 @@
 /* stylelint-disable max-nesting-depth */
 .ui-tabs-nav a:link,
 .ui-tabs-nav a:visited {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 
 .ui-tabs-nav a:hover {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 /* stylelint-enable max-nesting-depth */

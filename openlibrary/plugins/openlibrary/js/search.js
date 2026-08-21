@@ -2,7 +2,7 @@
  * Functionalities for templates/work_search and related templates.
  */
 
-import { buildPartialsUrl } from './utils';
+import { buildPartialsUrl, createElementFromMarkup, whenVisible } from './utils';
 
 /**
  * Displays more facets by removing the ui-helper-hidden class.
@@ -71,25 +71,44 @@ export async function initSearchFacets(facetsElem) {
         const param = JSON.parse(facetsElem.dataset.param);
         await whenVisible(facetsElem);
 
-        fetchPartials(param)
+        return fetchPartials(param)
             .then((data) => {
+                if (!data || typeof data.sidebar !== 'string') {
+                    throw new Error('Search facets partials response is missing sidebar markup.');
+                }
                 if (data.activeFacets) {
                     const activeFacetsElem = createElementFromMarkup(data.activeFacets);
+                    if (!(activeFacetsElem instanceof HTMLElement)) {
+                        throw new Error('Search facets partials response contains invalid active facets markup.');
+                    }
                     const activeFacetsContainer = document.querySelector('.selected-search-facets-container');
                     activeFacetsContainer.replaceChildren(activeFacetsElem);
                 }
                 const newFacetsElem = createElementFromMarkup(data.sidebar);
+                if (!(newFacetsElem instanceof HTMLElement)) {
+                    throw new Error('Search facets partials response contains invalid sidebar markup.');
+                }
                 facetsElem.replaceWith(newFacetsElem);
                 hydrateFacets();
 
                 document.title = data.title;
             })
             .catch(() => {
-                // XXX : Handle case where `/partials` response is not `2XX` here
+                showSearchFacetsError(facetsElem);
             });
     } else {
         hydrateFacets();
     }
+}
+
+/**
+ * Replaces the loading indicators with a localized failure message.
+ *
+ * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
+ */
+function showSearchFacetsError(facetsElem) {
+    facetsElem.querySelectorAll('.facet').forEach((facet) => facet.remove());
+    facetsElem.querySelector('.search-facets-error').classList.remove('ui-helper-hidden');
 }
 
 
@@ -141,53 +160,4 @@ function fetchPartials(param) {
             }
             return resp.json();
         });
-}
-
-/**
- * Returns an `HTMLElement` that was created using the given `markup`.
- *
- * `markup` is expected to be well-formed, and only have a single root
- * element.
- *
- * @param {string} markup HTML markup for a single element
- * @returns {HTMLElement}
- */
-function createElementFromMarkup(markup) {
-    const template = document.createElement('template');
-    template.innerHTML = markup;
-    return template.content.children[0];
-}
-
-
-/**
- * Waits until the given element is visible in the viewport, then resolves.
- *
- * @param {HTMLElement} elem
- * @param {IntersectionObserverInit} options
- * @returns {Promise<void>}
- */
-async function whenVisible(elem, options = {}) {
-    return new Promise((resolve) => {
-        const intersectionObserver = new IntersectionObserver(
-            (entries, observer) => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting) {
-                        return;
-                    }
-
-                    // Stop observing once the element is visible
-                    observer.unobserve(entry.target);
-                    observer.disconnect();
-                    resolve();
-                });
-            },
-            Object.assign({
-                root: null,
-                rootMargin: '200px',
-                threshold: 0
-            }, options)
-        );
-
-        intersectionObserver.observe(elem);
-    });
 }

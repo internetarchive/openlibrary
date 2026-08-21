@@ -18,7 +18,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
@@ -536,10 +536,10 @@ class Author(models.Author):
             request_label="AUTHOR_BOOKS_READABLE_COUNT",
         ).num_found
 
-    def get_work_count(self):
+    async def get_work_count(self):
         """Returns the number of works by this author."""
         # TODO: avoid duplicate works_by_author calls
-        result = works_by_author(self.get_olid(), rows=0)
+        result = await works_by_author_async(self.get_olid(), rows=0)
         return result.num_found
 
     def as_fake_solr_record(self):

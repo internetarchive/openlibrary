@@ -1,0 +1,370 @@
+{#
+  Icons — the curated set and the three ways to draw a glyph from it. `icons` is
+  the sprite manifest's name list (design.py load_icons). The gallery draws with
+  the real `icon` global, so what is shown is what a template gets.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% macro nav() %}
+    <ul class="ds__nav-list">
+        <li><a href="#icon-gallery">Gallery ({{ icons | length }})</a></li>
+        <li><a href="#icon-techniques">Which technique</a></li>
+        <li><a href="#icon-usage">Usage</a></li>
+        <li><a href="#icon-controls">What you control</a></li>
+        <li><a href="#icon-sources">Where glyphs come from</a></li>
+        <li><a href="#icon-add">Adding an icon</a></li>
+    </ul>
+{% endmacro %}
+{# Gallery first: finding a glyph is the errand; the guidance is read once. #}
+{% macro body() %}
+    {{ gallery() }}
+    {{ techniques() }}
+    {{ usage() }}
+    {{ controls() }}
+    {{ sources() }}
+    {{ adding() }}
+{% endmacro %}
+{# All three read the same sources, so the choice is where the icon lives. #}
+{% macro techniques() %}
+    <section class="ds-section" id="icon-techniques">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Which technique</h2>
+        <p class="ds-section__blurb">
+            Two ways to render a glyph, both drawing from the same source
+            (<code>static/icons/src/</code>), so an icon looks identical either way.
+            Pick by <em>who renders the markup</em>.
+        </p>
+        <div class="ds-table-wrap">
+            <table class="ds-table ds-table--guide">
+                <thead>
+                    <tr>
+                        <th>Where the icon lives</th>
+                        <th>What to use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            A server-rendered template, Templetor or Jinja. <b>The default.</b>
+                        </td>
+                        <td>
+                            <b><code>$:macros.icon()</code> in Templetor, {% raw %}<code>{{ icon() }}</code>{% endraw %} in
+                                Jinja.</b> One macro behind both — a plain inline <code>&lt;svg&gt;</code> against the
+                            sprite asset, one file cached sitewide. No JavaScript, no layout shift.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Anywhere the client renders the markup — a Lit template, a web component's own
+                            shadow DOM, or plain HTML handed to an outside consumer.
+                        </td>
+                        <td>
+                            <b>The <code>&lt;ol-icon&gt;</code> element.</b> One element everywhere: it inlines
+                            the glyph into its own shadow root, so it needs neither the sprite nor the global
+                            stylesheet and works just as well nested inside another component. The box is
+                            reserved so nothing shifts, but the glyph appears only once the JS upgrades it —
+                            prefer the macro whenever the markup is server-rendered.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endmacro %}
+{% macro usage() %}
+    <section class="ds-section" id="icon-usage">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Usage</h2>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a Templetor template</h3>
+            <p class="ds-group__blurb">
+                Pass <code>label</code> for an accessible name; without one the icon is <code>aria-hidden</code>.
+            </p>
+            {{ ex.code_snippet("$:macros.icon(\"search\") \n$:macros.icon(\"globe\", size=\"lg\")\n$:macros.icon(\"globe\", label=_(\"Language\"))") }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a Jinja template</h3>
+            <p class="ds-group__blurb">
+                The same macro, reached through the <code>icon</code> global — nothing to import or pass in.
+            </p>
+            {# A raw block, not a string literal: djLint reads the snippet's braces
+               inside a quoted argument as unterminated syntax (T027). #}
+            {% set jinja_snippet %}
+                {% raw %}
+                    {{ icon("search") }}
+                    {{ icon("globe", size="lg") }}
+                    {{ icon("globe", label=_("Language")) }}
+                {% endraw %}
+            {% endset %}
+            {{ ex.code_snippet(jinja_snippet) }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">In a Lit component</h3>
+            <p class="ds-group__blurb">
+                Import the element once, then use it like any other tag — including inside your own shadow
+                root. Size it from your component's CSS; stroke width follows the size unless you set
+                <code>--ol-icon-stroke-width</code>. The import is only for modules inside the Lit bundle;
+                code bundled by webpack already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
+                <em>not</em> import it, or the second <code>customElements.define()</code> throws and takes the
+                rest of the Lit bundle down with it.
+            </p>
+            {{ ex.code_snippet('import \'./OlIcon.js\';\n\nhtml`<ol-icon name="search"></ol-icon>`', 'js') }}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">As a custom element</h3>
+            <p class="ds-group__blurb">
+                Hand-written markup, or markup a script builds at runtime. Nothing to import — the main
+                bundle registers <code>&lt;ol-icon&gt;</code> site-wide. Prefer the macro when the markup is
+                server-rendered: the box is reserved up front, but the glyph only appears once the JS
+                upgrades the element.
+            </p>
+            {% call ex.example("", "The same element, in plain markup.") %}
+                <ol-icon name="search">
+                </ol-icon>
+                <ol-icon name="globe" size="lg" label="Language">
+                </ol-icon>
+            {% endcall %}
+        </div>
+        {% if api and api.get("ol-icon") %}{{ ex.api_tables(api["ol-icon"]) }}{% endif %}
+    </section>
+{% endmacro %}
+{% macro controls() %}
+    <section class="ds-section" id="icon-controls">
+        <h2 class="ds-section__title ds-section__title--eyebrow">What you control</h2>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Size</h3>
+            {# The pixel column is why anyone opens this section, so it leads. #}
+            <div class="ds-table-wrap">
+                <table class="ds-table ds-table--sizes">
+                    <thead>
+                        <tr>
+                            <th>Preset</th>
+                            <th>Box</th>
+                            <th>Stroke, as drawn</th>
+                            <th>Reach for it when</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>sm</code></td>
+                            <td>
+                                <b class="ds-table__figure">16px</b> <span class="ds-table__muted">1rem</span>
+                            </td>
+                            <td>1.33px</td>
+                            <td>Inline with body text, dense toolbars.</td>
+                        </tr>
+                        <tr>
+                            <td><code>md</code></td>
+                            <td>
+                                <b class="ds-table__figure">20px</b> <span class="ds-table__muted">1.25rem</span>
+                            </td>
+                            <td>1.67px</td>
+                            <td>
+                                <b>The default.</b> Almost everything — buttons, menu rows, form affordances.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>lg</code></td>
+                            <td>
+                                <b class="ds-table__figure">24px</b> <span class="ds-table__muted">1.5rem</span>
+                            </td>
+                            <td>1.75px</td>
+                            <td>Standalone icon buttons, section headers.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="ds-group__blurb">
+                <b>Size scales the stroke with it.</b> The box scales the whole 24×24 grid, geometry and stroke
+                together, so the weight stays a roughly constant fraction of the icon rather than a fixed
+                hairline. That is deliberate: a fixed stroke would make <code>sm</code> read as a heavier,
+                different family. <code>lg</code> is the one step pulled back from the raw ratio — see
+                <a href="#icon-stroke">stroke weight</a>.
+            </p>
+            <p class="ds-group__blurb">
+                Each preset is a token — <code>--icon-size-sm</code>, <code>-md</code>, <code>-lg</code> — declared
+                in <code>rem</code>, so the pixel figures above hold at the default 16px root and grow with the
+                reader's font size. The macro and <code>&lt;ol-icon&gt;</code> both take
+                <code>size="sm|md|lg"</code> — there is no off-scale value. A genuine one-off is a CSS
+                job: set <code>width</code>/<code>height</code> on the <code>&lt;ol-icon&gt;</code> host (the
+                inner <code>&lt;svg&gt;</code> fills it) or on a fragment import's own wrapping
+                <code>&lt;svg&gt;</code>.
+            </p>
+            {# Explicit `code`: the live markup is the macro's expanded <svg>. #}
+            {% call ex.example("", "", code='$:macros.icon("search", size="sm")\n$:macros.icon("search", size="md")\n$:macros.icon("search", size="lg")') %}
+                {{ draw('search', 'sm') }}
+                {{ draw('search', 'md') }}
+                {{ draw('search', 'lg') }}
+            {% endcall %}
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Color</h3>
+            <p class="ds-group__blurb">
+                Every glyph is drawn in <code>currentColor</code>, so an icon is simply the text color of wherever
+                it sits. Recolor it by setting <code>color</code> on the icon or any ancestor — say
+                <code>.danger { color: var(--color-error-fg) }</code> — with no <code>fill</code> or
+                <code>stroke</code> override needed.
+            </p>
+            {% call ex.example("", "", code='<span class="danger">$:macros.icon("trash")</span>') %}
+            <span class="ds-demo-danger">{{ draw('trash', 'lg') }}</span>
+{% endcall %}
+</div>
+<div class="ds-group" id="icon-stroke">
+    <h3 class="ds-group__title">Stroke weight</h3>
+    <p class="ds-group__blurb">
+        One weight across the whole set: <b>2 units on the 24×24 grid</b>, which the box scales down with
+        the geometry — 1.33px at <code>sm</code>, 1.67px at <code>md</code>. Carried through, <code>lg</code>
+        would land at a full 2px and read noticeably heavier than the same glyph one step down, so it is
+        corrected to 1.75. Absolute weight then stays near-constant across the scale
+        (1.33 / 1.67 / 1.75px) instead of growing with the box.
+    </p>
+    <p class="ds-group__blurb">
+        Weight is a per-step token — <code>--icon-stroke-sm</code>, <code>-md</code>, <code>-lg</code> — and
+        not baked into the sprite: the build strips <code>stroke-width</code> from each
+        <code>&lt;symbol&gt;</code> precisely so the value can be inherited from the referencing
+        <code>&lt;svg&gt;</code>. (A presentation attribute on the symbol would outrank any inherited value,
+        and CSS cannot select into a <code>&lt;use&gt;</code> shadow tree, so a baked weight would be
+        unoverridable.) Tune the set from those tokens; a component with a genuine reason can set
+        <code>stroke-width</code> on its own wrapper, but that is the exception.
+    </p>
+</div>
+</section>
+{% endmacro %}
+{# Answers "why Lucide, and are we stuck with it?" — a source of geometry, never
+   a dependency, and mixing sources is designed for. #}
+{% macro sources() %}
+    <section class="ds-section" id="icon-sources">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Where glyphs come from</h2>
+        <p class="ds-section__blurb">
+            Every glyph is a plain SVG file committed under
+            <code>static/icons/src/&lt;source&gt;/</code>, normalized to the canonical form — 24×24 grid,
+            2px stroke, <code>currentColor</code>. The folder name records provenance and nothing else:
+            the build reads every folder identically, and callers address bare names
+            (<code>icon("search")</code>) that never mention a library.
+        </p>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Why Lucide</h3>
+            <p class="ds-group__blurb">
+                Most geometry today is vendored from
+                <a href="https://lucide.dev">Lucide</a>, the ISC-licensed community fork of Feather —
+                chosen because its design language already <em>is</em> our canonical form, and its
+                coverage makes most icon needs a copy-and-normalize away. That is a head start, not an
+                attachment: there is no package dependency and no runtime coupling, so replacing a
+                glyph's geometry later changes one file, never an API or a call site.
+            </p>
+        </div>
+        <div class="ds-group">
+            <h3 class="ds-group__title">Mixing sources is the design</h3>
+            <p class="ds-group__blurb">
+                <code>custom/</code> holds original Open Library glyphs, and glyphs adapted from another
+                library get a folder of their own — the build discovers new folders automatically. The
+                one real rule is aesthetic, not technical: a newcomer must be redrawn to the canonical
+                form so the set still reads as a single family. The recipe is
+                <a href="#icon-add">below</a>.
+            </p>
+        </div>
+    </section>
+{% endmacro %}
+{# The recipe: three steps, and `make icons` needs no npm install. #}
+{% macro adding() %}
+    <section class="ds-section" id="icon-add">
+        <h2 class="ds-section__title ds-section__title--eyebrow">Adding an icon</h2>
+        <ol class="ds-prose-list ds-prose-list--numbered">
+            <li>
+                <b>Author the SVG in the canonical form</b> — <code>viewBox="0 0 24 24"</code>,
+                <code>stroke="currentColor"</code>, no <code>width</code>/<code>height</code>, no
+                <code>id</code>s. A glyph copied from <a href="https://lucide.dev">lucide.dev</a> is
+                already in this form — paste it verbatim. (A <code>stroke-width</code> in the source is
+                fine; the build strips it so weight stays themable.)
+            </li>
+            <li>
+                <b>Name the file in kebab-case and drop it in the folder matching its provenance</b> —
+                <code>static/icons/src/lucide/</code> for Lucide geometry,
+                <code>src/custom/</code> for original Open Library work. The file name becomes the
+                icon's name everywhere: <code>pencil.svg</code> is <code>icon("pencil")</code>. A glyph
+                from a new library gets a new folder plus a license section in
+                <code>static/icons/ATTRIBUTION.md</code>.
+            </li>
+            <li>
+                <b>Run <code>make icons</code>.</b> One step rebuilds both outputs:
+                <code>static/icons/sprite.svg</code> and the Lit glyph module the
+                <code>&lt;ol-icon&gt;</code> bundle imports. Neither is committed, so the source
+                SVG is the only file in the commit.
+            </li>
+        </ol>
+        <p class="ds-section__blurb">
+            That's it — the icon now renders through both techniques and appears in the
+            <a href="#icon-gallery">gallery</a> above.
+        </p>
+    </section>
+{% endmacro %}
+{% macro gallery() %}
+    <section class="ds-section" id="icon-gallery">
+        <h2 class="ds-section__title">Icons</h2>
+        <p class="ds-section__blurb">
+            One curated set, every glyph on a 24×24 grid at a single stroke weight, themed with
+            <code>currentColor</code>. Shown here at <code>lg</code> (24px). Click a glyph to copy it in any of
+            the four usage forms.
+        </p>
+        {% if not icons %}
+            <p class="ds__empty">
+                No icon sources found in <code>static/icons/src/</code>.
+            </p>
+        {% endif %}
+        {% if icons %}
+            <input type="search"
+                   class="ds-icon-gallery__filter"
+                   data-ds-icon-filter
+                   placeholder="Filter {{ icons | length }} icons…"
+                   aria-label="Filter icons"
+                   aria-controls="ds-icon-grid">
+            <ul class="ds-icon-gallery" id="ds-icon-grid">
+                {% for name in icons %}
+                    {# Clicking a cell opens the usage popover; without the Popover
+                       API the click falls back to copying the macro call. #}
+                    <li class="ds-icon-gallery__item" data-ds-icon-name="{{ name }}">
+                        <button class="ds-icon-gallery__cell"
+                                type="button"
+                                aria-haspopup="true"
+                                title="Usage for &quot;{{ name }}&quot;">
+                            {{ draw(name, "lg") }}
+                            <span class="ds-icon-gallery__name">{{ name }}</span>
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ icon_popover() }}
+        {% endif %}
+    </section>
+{% endmacro %}
+{# One shared panel for the whole grid. JS fills the snippets for the clicked
+   glyph and anchors the panel to its cell; `hidden` comes off only once the
+   Popover API is confirmed, so unsupported browsers never paint it. #}
+{% macro icon_popover() %}
+    <div class="ds-icon-popover"
+         data-ds-icon-popover
+         popover
+         hidden
+         tabindex="-1">
+        <h3 class="ds-icon-popover__title">
+            <span class="ds-icon-popover__preview" data-ds-icon-popover-preview></span>
+            <code data-ds-icon-popover-name></code>
+        </h3>
+        {% for key, label in [("templetor", "Templetor"), ("jinja", "Jinja"), ("html", "HTML / Lit")] %}
+            {# The whole well is the copy button — code text and glyph included.
+               data-ds-code makes it a copy target for the shared handler. #}
+            <div class="ds-icon-popover__row">
+                <span class="ds-icon-popover__label">{{ label }}</span>
+                <button class="ds-icon-popover__snippet"
+                        type="button"
+                        data-ds-code
+                        data-ds-copy
+                        aria-label="Copy {{ label }} snippet">
+                    <code class="ds-icon-popover__code" data-ds-snippet="{{ key }}"></code>
+                    {{ icon("copy", size="sm", extra_class="ds-icon-popover__glyph--copy") }}
+                    {{ icon("check", size="sm", extra_class="ds-icon-popover__glyph--check") }}
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+{% macro draw(name, size) %}
+    {{- icon(name, size=size) -}}
+{% endmacro %}

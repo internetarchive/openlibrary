@@ -8,8 +8,9 @@ $# @property {string|null} subheading that will appear below the link text
 $#
 $# @param {Object} props template properties
 $# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
-$# @param {string} props.label for menu, also used as alt text for dropdown icon when props.image is set
-$# @param {string|null} props.image URL for image (optional)
+$# @param {string} props.label for menu, also the accessible name of the dropdown icon when props.icon is set
+$# @param {string|null} props.icon sprite icon name, e.g. "menu" (optional)
+$# @param {string|null} props.image-class class applied to that icon (optional)
 $# @param {DropdownLink[]} props.links
 $ singleton = len(props.get('links', [])) == 1
 
@@ -24,8 +25,8 @@ $ singleton = len(props.get('links', [])) == 1
   $else:
     <details>
       <summary>
-        $if 'image' in props:
-            <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
+        $if 'icon' in props:
+            $:macros.icon(props['icon'], size="lg", label=props['label'], extra_class=props['image-class'])
         $elif 'label' in props:
             $(props['label'])
             <span class="shift">$_('Menu')</span>

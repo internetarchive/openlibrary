@@ -67,7 +67,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       title="$_('Search by barcode')"
       href="/barcodescanner?returnTo=/isbn/$$$$$$"
     >
-      <img src="/static/images/icons/barcode_scanner.svg" alt="" width="22" height="22"/>
+      $# Decorative: the link is already named by aria-label.
+      $:macros.icon("scan-barcode", size="lg")
     </a>
   </div>
 
@@ -85,7 +86,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
         <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
         $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
           <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
-      <img class="hamburger__icon" src="/static/images/hamburger-icon.svg" alt=""/>
+      $# Decorative — the button carries the accessible name.
+      $:macros.icon('menu', size="lg", extra_class='hamburger__icon')
     </button>
   </div>
 

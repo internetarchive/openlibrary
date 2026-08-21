@@ -36,6 +36,10 @@ SolrRequestLabel = Literal[
     "SUBJECT_ENGINE_API",
     # Cached "Notable authors" widget on subject pages
     "SUBJECT_NOTABLE_AUTHORS",
+    # Async-loaded publishing-history chart on subject pages
+    "SUBJECT_PUBLISHING_HISTORY",
+    # Async-loaded related-subjects/places/people/times widget on subject pages
+    "SUBJECT_RELATED",
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     "EDITION_MATCH",

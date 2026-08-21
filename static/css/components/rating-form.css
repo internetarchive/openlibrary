@@ -27,7 +27,7 @@
 }
 
 .review .review-btn {
-  border-left: 1px solid var(--lighter-grey);
+  border-left: 1px solid var(--color-border-subtle);
   width: 35px;
   height: 35px;
 }

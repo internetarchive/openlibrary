@@ -3,3 +3,8 @@
   justify-content: flex-end;
   margin-bottom: 0.5rem;
 }
+
+/* `display: flex` above would otherwise beat the UA rule for [hidden]. */
+.ol-pagination-wrapper[hidden] {
+  display: none;
+}

@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import './OlIcon.js';
 
 /**
  * A Netflix-style carousel component with page-based navigation.
@@ -34,12 +35,12 @@ import { LitElement, html, css, nothing } from 'lit';
  *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
- * @cssprop [--ol-carousel-arrow-color=#333] - Colour of the arrow glyphs
- * @cssprop [--ol-carousel-arrow-icon-bg=#fff] - Background of the round arrow buttons
- * @cssprop [--ol-carousel-arrow-icon-border=hsl(55, 20%, 83%)] - Border of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
+ * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-surface)] - Background of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-border=var(--color-border-subtle)] - Border of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
- * @cssprop [--ol-carousel-indicator-color=#ccc] - Colour of the inactive page indicators
- * @cssprop [--ol-carousel-indicator-active=#333] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
+ * @cssprop [--ol-carousel-indicator-active=var(--neutral-700)] - Colour of the active page indicator
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  *
  * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
@@ -76,12 +77,12 @@ export class OlCarousel extends LitElement {
             /* A shadow root is not a stacking context — without this the
                edge fades' and arrows' z-index compete with the whole page. */
             isolation: isolate;
-            --_arrow-color: var(--ol-carousel-arrow-color, #333);
-            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, #fff);
-            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, hsl(55, 20%, 83%));
+            --_arrow-color: var(--ol-carousel-arrow-color, var(--neutral-700));
+            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-surface));
+            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, var(--color-border-subtle));
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
-            --_indicator-color: var(--ol-carousel-indicator-color, #ccc);
-            --_indicator-active: var(--ol-carousel-indicator-active, #333);
+            --_indicator-color: var(--ol-carousel-indicator-color, var(--neutral-300));
+            --_indicator-active: var(--ol-carousel-indicator-active, var(--neutral-700));
             /* Breathing room inside the clipped viewport so slotted items can
                show a hover lift/shadow without it being cut off. Opt-in: 0 by
                default, set --ol-carousel-viewport-padding to enable. */
@@ -262,17 +263,17 @@ export class OlCarousel extends LitElement {
             transform: scale(0.92);
         }
 
-        .arrow svg {
+        .arrow ol-icon {
             width: 28px;
             height: 28px;
+            /* Heavier stroke than the system default, to hold up against cover art. */
+            --ol-icon-stroke-width: 2.5;
         }
     `;
 
-    /** Left chevron SVG */
-    static _leftArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>`;
+    static _leftArrow = html`<ol-icon name="chevron-left"></ol-icon>`;
 
-    /** Right chevron SVG */
-    static _rightArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+    static _rightArrow = html`<ol-icon name="chevron-right"></ol-icon>`;
 
     /** Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
     static _breakpoints = [

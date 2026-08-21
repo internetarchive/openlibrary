@@ -1,5 +1,8 @@
 import { LitElement, html, css } from 'lit';
+// Registers <ol-button> for the header close control.
+import './OLButton.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import './OlIcon.js';
 import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
@@ -101,7 +104,7 @@ export class OlDialog extends LitElement {
             max-width: 90vw;
             max-height: 85vh;
             overflow: hidden;
-            box-shadow: 0 4px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         dialog:focus {
@@ -264,39 +267,9 @@ export class OlDialog extends LitElement {
             font-weight: 600;
         }
 
-        .close-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            background: transparent;
-            border: none;
-            border-radius: var(--border-radius-button);
-            color: inherit;
-            cursor: pointer;
-            transition: background-color 150ms ease;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .close-button:hover {
-                background-color: var(--color-hover-overlay);
-            }
-        }
-
-        .close-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .close-button {
-                transition: none;
-            }
-        }
-
-        .close-button svg {
+        /* The close control is an <ol-button shape="icon" variant="ghost">, which
+           paints itself; only the glyph size lives here. */
+        .close-button ol-icon {
             width: 20px;
             height: 20px;
         }
@@ -749,26 +722,15 @@ export class OlDialog extends LitElement {
             >
                 <header class="header ${showDefaultHeader ? '' : 'hidden'}">
                     <h2 class="title" id=${this._titleId}>${this.label}</h2>
-                    <button
+                    <ol-button
                         class="close-button"
-                        type="button"
+                        shape="icon"
+                        variant="ghost"
                         aria-label="Close dialog"
                         @click=${this._handleCloseClick}
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
+                        <ol-icon name="x"></ol-icon>
+                    </ol-button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>
                 <div class="body">

@@ -511,16 +511,166 @@ html:has(.ds) {
   color: var(--color-warning-fg);
 }
 
-.ds-undocumented {
+/* ------------------------------------------------------------ Icon gallery */
+
+.ds-icon-gallery__filter {
+  width: 100%;
+  max-width: 320px;
+  height: var(--control-height-medium);
+  margin-bottom: var(--spacing-stack-md);
+  padding: 0 var(--spacing-inset-sm);
+  border: var(--border-input);
+  border-radius: var(--border-radius-input);
+  background: var(--color-surface);
+  font-size: var(--font-size-body-medium);
+}
+
+/* One shared grid line between cells: the list draws top and left, each cell
+   draws right and bottom. */
+.ds-icon-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 2px var(--spacing-inline-md);
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
+  border-top: var(--border-card);
+  border-left: var(--border-card);
+}
+
+.ds-icon-gallery__item {
+  display: flex;
+  border-right: var(--border-card);
+  border-bottom: var(--border-card);
+}
+
+.ds-icon-gallery__item[hidden] {
+  display: none;
+}
+
+.ds-icon-gallery__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--spacing-inset-md);
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ds-icon-gallery__cell:hover {
+  background: var(--color-surface-sunken);
+}
+
+.ds-icon-gallery__name {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  color: var(--color-text-muted);
+  text-align: center;
+  word-break: break-word;
+}
+
+.ds-icon-gallery__cell.is-copied .ds-icon-gallery__name {
+  color: var(--color-success-fg);
+}
+
+/* Usage popover: one shared top-layer panel, anchored to the clicked cell by
+   JS — hence the fixed position with inset/margin cleared of UA defaults. */
+.ds-icon-popover {
+  position: fixed;
+  inset: auto;
+  width: max-content;
+  max-width: min(92vw, 560px);
+  margin: 0;
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px var(--boxshadow-black);
+}
+
+.ds-icon-popover__title {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+}
+
+.ds-icon-popover__preview {
+  display: inline-flex;
+  color: var(--color-text-muted);
+}
+
+.ds-icon-popover__row {
+  display: grid;
+  grid-template-columns: 5.5em 1fr;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+}
+
+.ds-icon-popover__row + .ds-icon-popover__row {
+  margin-top: var(--spacing-stack-xs);
+}
+
+.ds-icon-popover__label {
+  font-size: var(--font-size-label-small);
+  color: var(--color-text-muted);
+}
+
+/* The whole well copies: code text, glyph, and the space between. */
+.ds-icon-popover__snippet {
+  display: flex;
+  gap: var(--spacing-inline-sm);
+  align-items: center;
+  min-width: 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border: 0;
+  border-radius: var(--border-radius-button);
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ds-icon-popover__snippet:hover {
+  /* The overlay token composes over the sunken fill via a gradient layer. */
+  background: linear-gradient(
+      var(--color-hover-overlay),
+      var(--color-hover-overlay)
+    )
+    var(--color-surface-sunken);
+}
+
+.ds-icon-popover__code {
+  flex: 1;
+  overflow-x: auto;
   font-family: var(--font-family-code);
   font-size: var(--font-size-label-medium);
+  white-space: nowrap;
+}
+
+.ds-icon-popover__snippet .ol-icon {
+  flex-shrink: 0;
   color: var(--color-text-muted);
+}
+
+/* Copied feedback: the copy glyph swaps for a green check. */
+.ds-icon-popover__glyph--check {
+  display: none;
+}
+
+.ds-icon-popover__snippet.is-copied .ds-icon-popover__glyph--copy {
+  display: none;
+}
+
+.ds-icon-popover__snippet.is-copied .ds-icon-popover__glyph--check {
+  display: block;
+  color: var(--color-success-fg);
 }
 
 /* -------------------------------------------------------------- API tables */
@@ -613,6 +763,16 @@ html:has(.ds) {
 .ds-table--guide td:first-child,
 .ds-table--guide td:last-child {
   width: 50%;
+}
+
+/* A scale reference: keep every column but the trailing prose on one line. */
+.ds-table--sizes td:not(:last-child) {
+  white-space: nowrap;
+}
+
+.ds-table__figure {
+  font-size: var(--font-size-body-medium);
+  font-variant-numeric: tabular-nums;
 }
 
 .ds-table tbody tr:last-child td {
@@ -888,6 +1048,11 @@ html:has(.ds) {
   font-weight: 500;
 }
 
+/* Stands in for the reader's own `.danger` in the icon color example. */
+.ds-demo-danger {
+  color: var(--color-error-fg);
+}
+
 .ds-demo-textarea {
   box-sizing: border-box;
   width: 100%;
@@ -922,6 +1087,14 @@ html:has(.ds) {
   width: 100%;
 }
 
+/* A fieldset used as a demo row is a grouping device, not a visible box. */
+fieldset.ds-demo-row {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .ds-demo-dialog-body {
   margin: 0;
 }
@@ -930,11 +1103,6 @@ html:has(.ds) {
   display: flex;
   gap: var(--spacing-inline-md);
   justify-content: flex-end;
-}
-
-.ds-demo-btn-icon {
-  margin-inline-end: var(--spacing-2xs);
-  vertical-align: -2px;
 }
 
 .ds-demo-output {
