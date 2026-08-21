@@ -19,7 +19,7 @@ import { glyphs } from './icons.generated.js';
  * @element ol-icon
  *
  * @prop {String} name  - Icon name, e.g. "search". See /developers/design#icons.
- * @prop {String} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px).
+ * @prop {'sm' | 'md' | 'lg'} size  - "sm" (16px) | "md" (20px, default) | "lg" (24px).
  * @prop {String} label - Accessible name; exposes the icon as role="img". Without
  *                        it the icon is aria-hidden.
  *
