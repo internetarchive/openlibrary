@@ -39,23 +39,34 @@ class RunAs:
         if not self.tmp_account:
             raise KeyError("Invalid username")
 
+    def _set_conn_auth_token(self, token: str | None) -> None:
+        """Set the auth token on all available connections.
+
+        The canonical connection lives on ``site.get()._conn`` (set by both
+        web.py and FastAPI middleware).  Some legacy code also reads
+        ``web.ctx.conn`` directly, so we set it there too when available.
+        """
+        site.get()._conn.set_auth_token(token)
+        if hasattr(web.ctx, "conn"):
+            web.ctx.conn.set_auth_token(token)
+
     def __enter__(self):
         # Save token of currently logged in user (or no-user)
         account = get_current_user()
         self.calling_user_auth_token = account and account.generate_login_code()
 
         # Temporarily become user
-        web.ctx.conn.set_auth_token(self.tmp_account.generate_login_code())
+        self._set_conn_auth_token(self.tmp_account.generate_login_code())
         return self.tmp_account
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Return auth token to original user or no-user
-        web.ctx.conn.set_auth_token(self.calling_user_auth_token)
+        self._set_conn_auth_token(self.calling_user_auth_token)
 
 
 # Confirmed functions (these have to be here)
 @public
-def get_current_user() -> "User | None":
+def get_current_user() -> User | None:
     """
     Returns the currently logged in user. None if not logged in.
     """
@@ -80,7 +91,7 @@ def get_days_registered(user) -> str:
     try:
         reg_date = user.created.date()
         days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
-    except (AttributeError, TypeError):
+    except AttributeError, TypeError:
         # If the date is incorrectly encoded, assume the patron
         # registered a long time ago before we had this set up.
         return "d90+"

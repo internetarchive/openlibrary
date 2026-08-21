@@ -317,11 +317,19 @@ button {
   margin-bottom: 40px;
 }
 
+/* Seal the room's internal layering (books, shelves, signs) off from the
+   page. The toolbar outside still paints above everything in the room —
+   the whole isolated room sits at `auto` beneath its `fixed`. */
+.book-room {
+  isolation: isolate;
+}
+
 .lr-signs {
   position: sticky;
   top: 10px;
   pointer-events: none;
-  z-index: 10;
+  /* Above the shelves and books (local-1) inside the isolated room. */
+  z-index: var(--z-index-local-2);
   display: flex;
 }
 @media (max-width: 450px) {

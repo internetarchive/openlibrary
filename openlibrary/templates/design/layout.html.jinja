@@ -1,0 +1,37 @@
+{#
+  Shell for /developers/design: tabs and sidebar, then the section template,
+  which supplies a `nav()` macro and a `body()` macro. `ds` is the namespace.
+#}
+{# Falls back to a bare section so the shell still renders with no context at
+   all, which is what test_all_jinja_templates_render_valid_html does. #}
+{% set section = section or {"id": "components", "title": "", "has_code": false} %}
+{% import "design/" + section.id + ".html.jinja" as page with context %}
+<div class="ds" data-ds-root>
+    <header class="ds__masthead">
+        <div class="ds__masthead-row">
+            <h1 class="ds__title">Design system</h1>
+            <nav class="ds__tabs" aria-label="Design system sections">
+                {% for candidate in sections %}
+                    <a class="ds__tab{% if candidate.id == section.id %} ds__tab--current{% endif %}"
+                       href="/developers/design/{{ candidate.id }}"
+                       {% if candidate.id == section.id %}aria-current="page"{% endif %}>{{ candidate.title }}</a>
+                {% endfor %}
+            </nav>
+        </div>
+    </header>
+    <div class="ds__layout">
+        <nav class="ds__sidebar" aria-label="{{ section.title }} contents">
+            {{ page.nav() }}
+            {% if section.has_code %}
+                {# Dogfooding: the page's own control is the component it documents. #}
+                <div class="ds__sidebar-controls">
+                    <ol-toggle data-ds-code-toggle label="Show code">
+                    </ol-toggle>
+                </div>
+            {% endif %}
+        </nav>
+        <main class="ds__main">
+            {{ page.body() }}
+        </main>
+    </div>
+</div>

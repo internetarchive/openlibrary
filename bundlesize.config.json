@@ -54,24 +54,31 @@
     },
     {
       "path": "static/build/js/all.js",
-      "maxSize": "130KB"
+      "maxSize": "155KB"
+    },
+    {
+      "path": "static/build/css/tokens.css",
+      "maxSize": "6KB"
+    },
+    {
+      "path": "static/build/css/ol-components.css",
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/css/page-admin.css",
-      "maxSize": "27KB"
-
+      "maxSize": "28KB"
     },
     {
       "path": "static/build/css/page-book.css",
-      "maxSize": "16KB"
+      "maxSize": "17KB"
     },
     {
       "path": "static/build/css/page-edit.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-form.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-home.css",
@@ -79,7 +86,7 @@
     },
     {
       "path": "static/build/css/page-plain.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/css/page-subject.css",

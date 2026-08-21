@@ -1724,6 +1724,7 @@ COPY public.bookshelves (id, name, description, archived, updated, created) FROM
 1	Want to Read	A list of books I want to read	f	2026-04-09 00:52:42.440498	2026-04-09 00:52:42.440498
 2	Currently Reading	A list of books I am currently reading	f	2026-04-09 00:52:42.446241	2026-04-09 00:52:42.446241
 3	Already Read	A list of books I have finished reading	f	2026-04-09 00:52:42.448473	2026-04-09 00:52:42.448473
+4	Stopped Reading	A list of books I have stopped reading	f	2026-04-09 00:52:42.448473	2026-04-09 00:52:42.448473
 \.
 
 

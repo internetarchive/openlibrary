@@ -1,0 +1,31 @@
+$def with (authors)
+
+$# Signal-ranked "Notable authors" cards, built in
+$# subjects.decorate_with_notable_authors. The photo and representative work are
+$# each optional. The photo is a CSS background layer rather than an <img>: it's
+$# decorative, and a background that 404s just doesn't paint, where a broken
+$# <img> draws the browser's error icon over the placeholder. -M rather than the
+$# tempting -S: coverstore bounds -S to 58px tall, which a portrait photo spends
+$# on its height, leaving it short of the 2x pixels the 36px-wide box needs.
+
+$if authors:
+  <div id="resultsAuthors" class="widget-box">
+    <div class="head">
+      <h3>$_("Notable Authors")</h3>
+    </div>
+    <ul class="subjectAuthors">
+      $for author in authors:
+        $ olid = author.key.split('/')[-1]
+        $ rep_work = author.get('representative_work')
+        <li class="subjectAuthors-item">
+          <a class="subjectAuthors-card" href="$author.key" title="$_('See more books by %(name)s', name=author.name)">
+            <span class="subjectAuthors-avatar" style="--author-photo: url('$(get_coverstore_public_url())/a/olid/$(olid)-M.jpg?default=false')"></span>
+            <span class="subjectAuthors-text">
+              <span class="subjectAuthors-name">$author.name</span>
+              $if rep_work:
+                <span class="subjectAuthors-blurb">$rep_work.title</span>
+            </span>
+          </a>
+        </li>
+    </ul>
+  </div>

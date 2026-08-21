@@ -152,6 +152,30 @@ class TestListRecord:
                 ListRecord.from_input()
 
 
+@pytest.mark.parametrize(
+    ("seed", "expected", "error_match"),
+    [
+        pytest.param("/subjects/foo", "subject", None, id="subjects-path"),
+        pytest.param("/authors/OL1A", "author", None, id="authors-path"),
+        pytest.param("/works/OL1W", "work", None, id="works-path"),
+        pytest.param("/books/OL1M", "edition", None, id="books-path"),
+        pytest.param("subject:ibm_database_2.", "subject", None, id="subject-raw-string"),
+        pytest.param("place:london", "subject", None, id="place-raw-string"),
+        pytest.param("person:jane_austen", "subject", None, id="person-raw-string"),
+        pytest.param("time:20th_century", "subject", None, id="time-raw-string"),
+        pytest.param("", None, "Seed key cannot be empty", id="empty-string"),
+        pytest.param("/people/alice", None, "Invalid seed key", id="invalid-path-prefix"),
+        pytest.param("/lists/OL1L", None, "Invalid seed key", id="invalid-list-path"),
+    ],
+)
+def test_seed_key_to_seed_type(seed, expected, error_match):
+    if error_match:
+        with pytest.raises(ValueError, match=error_match):
+            legacy_lists.seed_key_to_seed_type(seed)
+    else:
+        assert legacy_lists.seed_key_to_seed_type(seed) == expected
+
+
 class FakePreviewList:
     def __init__(self, key):
         self.key = key

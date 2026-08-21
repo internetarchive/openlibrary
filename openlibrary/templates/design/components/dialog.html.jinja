@@ -1,0 +1,121 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Confirmation", "Opening traps focus inside; closing restores focus to the trigger. The default header renders the title and a close button automatically.",
+        code='<ol-dialog label="Delete this list?" width="small">\n  <p>This can\'t be undone.</p>\n  <div slot="footer">\n    <ol-button variant="secondary" value="cancel">Cancel</ol-button>\n    <ol-button variant="destructive" value="delete">Delete list</ol-button>\n  </div>\n</ol-dialog>') %}
+        <ol-button id="demo-dialog-confirm-trigger" variant="secondary">
+            Delete list…
+        </ol-button>
+        <ol-dialog id="demo-dialog-confirm" label="Delete this list?" width="small">
+            <p class="ds-demo-dialog-body">
+                Deleting <strong>“Want to Read”</strong> removes it permanently. This can't be undone.
+            </p>
+            <div slot="footer" class="ds-demo-dialog-footer">
+                <ol-button data-action="cancel" variant="secondary">
+                    Cancel
+                </ol-button>
+                <ol-button data-action="delete" variant="destructive">
+                    Delete list
+                </ol-button>
+            </div>
+        </ol-dialog>
+        <p>Last action: <strong id="demo-dialog-confirm-out">(none)</strong></p>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-confirm');
+                const out = document.getElementById('demo-dialog-confirm-out');
+                document.getElementById('demo-dialog-confirm-trigger').addEventListener('click', () => { dialog.open = true; });
+                dialog.querySelectorAll('[data-action]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        out.textContent = button.dataset.action;
+                        dialog.open = false;
+                    });
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Width presets", "small is 400px, medium 550px (default), large 800px. Never exceeds 90vw, so presets stay responsive. Override one instance with the --ol-dialog-width-* custom properties.",
+        output_style="display: flex; gap: 12px; flex-wrap: wrap;") %}
+        <ol-button data-width="small" variant="secondary">
+            Small
+        </ol-button>
+        <ol-button data-width="medium" variant="secondary">
+            Medium
+        </ol-button>
+        <ol-button data-width="large" variant="secondary">
+            Large
+        </ol-button>
+        <ol-dialog id="demo-dialog-width" label="Width demo">
+            <p class="ds-demo-dialog-body">
+                Using the <strong id="demo-dialog-width-label">medium</strong> preset. Resize the window to see it stay within 90vw.
+            </p>
+        </ol-dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-width');
+                const label = document.getElementById('demo-dialog-width-label');
+                document.querySelectorAll('[data-width]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        dialog.width = button.dataset.width;
+                        label.textContent = button.dataset.width;
+                        dialog.open = true;
+                    });
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Form dialog", "The focus trap cycles Tab between the fields, footer buttons, and close button — well suited to quick edit flows.") %}
+        <ol-button id="demo-dialog-form-trigger" variant="secondary">
+            Add a note…
+        </ol-button>
+        <ol-dialog id="demo-dialog-form" label="Add a note" width="medium">
+            <label for="demo-dialog-note" class="ds-demo-label">Your note</label>
+            <textarea id="demo-dialog-note"
+                      rows="3"
+                      class="ds-demo-textarea"
+                      placeholder="e.g. Recommended by a friend — start with chapter 3."></textarea>
+            <div slot="footer" class="ds-demo-dialog-footer">
+                <ol-button data-action="cancel" variant="secondary">
+                    Cancel
+                </ol-button>
+                <ol-button data-action="save" variant="primary">
+                    Save note
+                </ol-button>
+            </div>
+        </ol-dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-form');
+                document.getElementById('demo-dialog-form-trigger').addEventListener('click', () => { dialog.open = true; });
+                dialog.querySelectorAll('[data-action]').forEach((button) => {
+                    button.addEventListener('click', () => { dialog.open = false; });
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Command palette / search modal", "placement=\"top\" plus without-header, fullscreen-on-mobile, and --ol-dialog-padding: 0 slots a search bar into the header region and lets results grow downward while the top edge stays put. This is the site header's search modal. Focus the input on ol-after-open.",
+        code='<ol-dialog\n placement="top"\n  without-header\n  fullscreen-on-mobile\n  label="Search the catalog"\n  style="--ol-dialog-padding: 0">\n  <div slot="header"><input type="search" /></div>\n  <ul>…results…</ul>\n</ol-dialog>') %}
+        <ol-button id="demo-dialog-search-trigger" variant="secondary">
+            Search…
+        </ol-button>
+        <ol-dialog id="demo-dialog-search" placement="top" without-header fullscreen-on-mobile label="Search the catalog" style="--ol-dialog-padding: 0;">
+            <div slot="header" class="ds-demo-search-header">
+                <input id="demo-dialog-search-input"
+                       type="search"
+                       class="ds-demo-search-input"
+                       placeholder="Search books, authors, subjects…">
+            </div>
+            <ul class="ds-demo-menu">
+                <li>The Left Hand of Darkness <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+                <li>A Wizard of Earthsea <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+                <li>The Dispossessed <span class="ds-demo-menu__muted">— Ursula K. Le Guin</span></li>
+            </ul>
+        </ol-dialog>
+        <script>
+            (function () {
+                const dialog = document.getElementById('demo-dialog-search');
+                document.getElementById('demo-dialog-search-trigger').addEventListener('click', () => { dialog.open = true; });
+                dialog.addEventListener('ol-after-open', () => { document.getElementById('demo-dialog-search-input').focus(); });
+            })();
+        </script>
+    {% endcall %}
+{% endmacro %}

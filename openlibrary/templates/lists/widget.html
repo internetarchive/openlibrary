@@ -1,9 +1,6 @@
 $def with (page, include_rating=True, read_status=None, exclude_own_lists=False, async_load=False)
 
 <div class="lists-widget-container">
-$if "lists" not in ctx.features:
-    $return
-
 $if render_once('lists/widget.i18n-strings'):
   $ show_list_i18n_strings = {
     $ "cover_of": _('Cover of: %(title)s', title=''),

@@ -5,11 +5,10 @@ import datetime
 import io
 import logging
 import re
-import urllib
-from typing import Literal, NoReturn, overload
+import urllib.parse
+from typing import TYPE_CHECKING, Literal, NoReturn, overload
 
 import web
-from web.webapi import SeeOther
 
 from infogami import config
 from infogami.core.db import ValidationException
@@ -18,15 +17,19 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.core.lists.model import List, Series
 from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.request_context import site
+
+if TYPE_CHECKING:
+    from web.webapi import SeeOther
+
+    from openlibrary.core.lists.model import List, Series
+    from openlibrary.plugins.upstream.models import Author, Edition, Work
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -282,7 +285,7 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(self, i: web.utils.Storage) -> None | Work | Edition | list[web.utils.Storage]:
+    def find_matches(self, i: web.utils.Storage) -> Work | Edition | list[web.utils.Storage] | None:
         """
         Tries to find an edition, or work, or multiple work candidates that match the
         given input data.
@@ -364,7 +367,7 @@ class addbook(delegate.page):
         publish_year: str | None = None,
         id_name: str | None = None,
         id_value: str | None = None,
-    ) -> None | Edition | list[web.Storage]:
+    ) -> Edition | list[web.Storage] | None:
         """
         Searches solr for potential edition matches.
 
@@ -553,7 +556,7 @@ class SaveBookHelper:
         comment = formdata.pop("_comment", "")
 
         user = accounts.get_current_user()
-        delete = user and (user.is_admin() or user.is_super_librarian()) and formdata.pop("_delete", "")
+        delete = user and user.is_super_librarian_or_higher() and formdata.pop("_delete", "")
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
@@ -745,7 +748,7 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and (user.is_admin() or user.is_super_librarian()):
+        if user and user.is_super_librarian_or_higher():
             return
 
         # read ocaid from form data
@@ -963,6 +966,10 @@ class daisy(delegate.page):
 
         if not page:
             raise web.notfound()
+
+        if page.ocaid:
+            ia_item_url = f"https://archive.org/details/{urllib.parse.quote(page.ocaid, safe='')}"
+            raise web.seeother(ia_item_url)
 
         return render_template("books/daisy", page)
 

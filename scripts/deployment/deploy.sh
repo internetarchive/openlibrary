@@ -35,7 +35,10 @@ SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+# Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
+LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+RELEASE_MERGED_PRS_URL="https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr++is%3Amerged+merged%3A$LATEST_TAG_TIMESTAMP..$(date -u +%Y-%m-%dT%H:%M)"
 DEPLOY_TAG="deploy-$(date -u +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
@@ -467,7 +470,14 @@ deploy_openlibrary() {
     if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
         echo ""
         echo "Pull the latest docker images..."
-        deploy_images
+        until deploy_images; do
+            read -p "Pulling images failed, retry? [Y/n] " choice
+            choice=${choice:-Y}
+            if [[ ! "$choice" =~ ^[Yy]$ ]]; then
+                echo "Aborting deployment."
+                clean_exit
+            fi
+        done
     fi
 
     if [[ "$TAG_DEPLOY" == "1" ]]; then
@@ -496,6 +506,23 @@ deploy_images() {
         IMAGE_META=$(curl -s https://hub.docker.com/v2/repositories/openlibrary/olbase/tags/latest)
         OLBASE_DIGEST=$(echo "$IMAGE_META" | jq -r '.images[0].digest')
         echo "✓ ($OLBASE_DIGEST)"
+    fi
+
+    # Pull on one node first to warm the nexus cache, avoiding Docker Hub rate limits
+    # when all servers pull in parallel.
+    local FIRST_SERVER
+    FIRST_SERVER=$(echo "$HOSTNAMES" | awk '{print $1}')
+    echo -n "   Warming nexus cache on ${FIRST_SERVER} ... "
+    local WARM_OUTPUT
+    WARM_OUTPUT=$(ssh "${FIRST_SERVER}${SERVER_SUFFIX}" "docker pull openlibrary/olbase@${OLBASE_DIGEST}" 2>&1)
+    if [ $? -eq 0 ]; then
+        echo "✓"
+    else
+        echo "✗"
+        echo "Failed to warm nexus cache on ${FIRST_SERVER}"
+        echo "Output:"
+        echo "$WARM_OUTPUT"
+        return 1
     fi
 
     local pids=()
@@ -630,12 +657,6 @@ prune_docker () {
     return 0
 }
 
-clone_booklending_utils() {
-    :
-    #HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
-    # parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $HOSTNAMES ::: /opt/booklending_utils
-}
-
 recreate_services() {
     echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
@@ -656,7 +677,11 @@ deploy_wizard() {
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
-    echo "Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+    echo "Open Library is in the process of deploying its weekly release."
+    echo ""
+    echo "See what's changed: $RELEASE_DIFF_URL"
+    echo "PRs going out: $RELEASE_MERGED_PRS_URL"
+    echo ""
     read -p "Once announced, press Enter to continue..."
     echo ""
 
@@ -678,9 +703,6 @@ deploy_wizard() {
     until check_olbase_image_up_to_date; do
         read -p "Once built, press Enter to continue..."
     done
-    echo ""
-
-    read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
     read -p "[Now] Run openlibrary deploy? [Y/n]..." answer

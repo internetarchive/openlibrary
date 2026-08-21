@@ -22,7 +22,7 @@ class NoTitle(MarcException):
 
 
 class MarcFieldBase:
-    rec: "MarcBase"
+    rec: MarcBase
 
     @abstractmethod
     def ind1(self) -> str:

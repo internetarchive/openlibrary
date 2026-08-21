@@ -34,7 +34,7 @@ def get_adapter(name):
         return _adapters[name]()
 
 
-_constants: dict[str, "Constant"] = {}
+_constants: dict[str, Constant] = {}
 
 
 def register_constant(name, constant):

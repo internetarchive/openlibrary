@@ -133,7 +133,7 @@ def read_file(path):
         return f.read()
 
 
-def read_image(d: "PartialCoverDetails | db.CoverDbDetails", size):
+def read_image(d: PartialCoverDetails | db.CoverDbDetails, size):
     if size:
         filename = d["filename_" + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:

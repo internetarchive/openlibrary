@@ -1,0 +1,12 @@
+$def with ()
+
+$if render_once('book-preview-floater'):
+  <ol-dialog id="bookPreview" label="$_('Preview Book')" width="large">
+    <div class="book-preview">
+      <iframe width="100%" style="border: 0;" title="$_('Book Preview')"></iframe>
+      <!-- <p class="learn-more">
+        <a data-key="book_preview_learn_more"
+           data-ol-link-track="book_preview_learn_more">$_("See more about this book on Archive.org")</a>
+      </p> -->
+    </div>
+  </ol-dialog>

@@ -1,196 +1,1188 @@
 /**
- * This is the entry for CSS for the style guide
- * that lives @ /developers/design
- * Any CSS loaded here will be render blocking.
+ * The design system docs at /developers/design. `ds` namespaces the shell,
+ * `ds-*` the shared content blocks. Render-blocking, so keep it lean.
  */
 
-.design-pattern-library {
-  padding: var(--spacing-inset-md);
-  max-width: 860px;
+/* Site chrome: the masthead, header, and footer that site.html renders around
+   this page. Named individually rather than via legacy.css — the design system
+   docs shouldn't pull in the legacy kitchen sink to style a header. */
+@import "base/common.css";
+@import "base/headings.css";
+@import "base/helpers-common.css";
+@import "layout/index.css";
+@import "components/header-bar.css";
+@import "components/iaBar.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+@import "components/header-bar--desktop.css" all and (min-width: 960px);
+
+/* Stylesheets for the CSS components documented on this page. Documenting a
+   CSS component without loading its stylesheet renders unstyled markup, which
+   is worse than not documenting it at all. */
+@import "components/ol-message.css";
+
+.ds {
+  --ds-gutter: var(--spacing-inset-md);
+  --ds-sidebar-width: 208px;
+  --ds-masthead-height: 112px;
+
+  padding: 0 var(--ds-gutter) var(--spacing-inset-xl);
+  color: var(--color-text);
 }
 
-.design-pattern-library__layout {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: stretch;
+/* Anchors land below the sticky masthead rather than under it. */
+.ds [id] {
+  scroll-margin-top: calc(var(--ds-masthead-height) + var(--spacing-inset-md));
 }
 
-/* Sidebar nav: horizontal scrolling on mobile, vertical sidebar on desktop */
-.design-pattern-nav {
+/* Opt out of the site-wide smooth scroll in base/common.css: the sidebar is a
+   directory you click through quickly, and waiting out an animation per jump
+   adds up. Scoped to this page via the scrolling element, which is <html>. */
+html:has(.ds) {
+  scroll-behavior: auto;
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.ds__masthead {
   position: sticky;
   top: 0;
-  z-index: var(--z-index-level-1);
-  margin: 0 -16px;
-  padding: 4px 16px;
-  background-color: var(--beige);
+  z-index: var(--z-index-level-2);
+  margin: 0 calc(var(--ds-gutter) * -1);
+  padding: var(--spacing-inset-md) var(--ds-gutter);
+  background-color: var(--color-surface-header);
   border-bottom: var(--border-divider);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.design-pattern-nav__title {
-  font-size: var(--font-size-body-large);
-  margin: 0 0 12px;
-  color: var(--dark-grey);
-}
-
-.design-pattern-nav__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.ds__masthead-row {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-xl);
+  align-items: baseline;
 }
 
-.design-pattern-nav__list li {
+.ds__title {
+  margin: 0;
+  font-size: var(--font-size-title-large);
+  color: var(--color-text);
+}
+
+.ds__tabs {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  overflow-x: auto;
+}
+
+.ds__tab {
   flex-shrink: 0;
-}
-
-.design-pattern-nav__list a {
-  display: block;
-  padding: 8px 12px;
-  border-radius: var(--border-radius-card);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-large);
   text-decoration: none;
-  color: var(--dark-grey);
-  font-size: var(--font-size-body-medium);
   white-space: nowrap;
-  transition: background-color 0.15s;
 }
 
-.design-pattern-nav__list a:hover {
-  background-color: var(--lightest-grey);
-  color: var(--link-blue);
+/* Nav chrome stays neutral — blue is reserved for links in content. The
+   masthead is already neutral-100, so hover lifts to white. */
+.ds__tab:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
-/* Main content area */
-.design-pattern-main {
+.ds__tab--current,
+.ds__tab--current:hover {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ layout */
+
+.ds__layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-lg);
+  align-items: stretch;
+  padding-top: var(--spacing-stack-lg);
+}
+
+.ds__main {
   flex: 1;
   min-width: 0;
 }
 
-.design-pattern {
-  padding-bottom: var(--spacing-inset-lg);
+/* ----------------------------------------------------------------- sidebar */
+
+.ds__sidebar {
+  overflow-x: auto;
+}
+
+.ds__nav-list {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds__nav-list li {
+  flex-shrink: 0;
+}
+
+.ds__nav-list a {
+  display: block;
+  padding: var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ds__nav-list a:hover {
+  background-color: var(--color-surface-sunken);
+  color: var(--color-text);
+}
+
+.ds__nav-list a.is-current {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.ds__nav-group {
+  display: contents;
+}
+
+.ds__nav-group-title {
+  display: none;
+}
+
+/* Sits below the nav in the sidebar, separated by a rule so it reads as a
+   page-level control rather than another link in the list. */
+.ds__sidebar-controls {
+  padding-top: var(--spacing-stack-md);
+  margin-top: var(--spacing-stack-md);
+  border-top: var(--border-divider);
+}
+
+.ds__empty {
+  padding: var(--spacing-inset-lg);
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------- sections */
+
+.ds-section {
+  padding-bottom: var(--spacing-stack-xl);
+  margin-bottom: var(--spacing-stack-xl);
   border-bottom: var(--border-divider);
+  /* No content-visibility here: its implicit layout containment would make each
+     section the containing block for position: fixed, displacing every tooltip,
+     popover and toast on the page by the section's offset. */
+}
+
+.ds-section__title {
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-headline-small);
+  color: var(--color-text);
+}
+
+/* On Components the section title labels a group of components, and the
+   component titles below it are the headings people scan for. At 24px bold it
+   sat 2px from them and read as a sibling; as a quiet eyebrow over a rule it
+   reads as the container it is. */
+/* The eyebrow's rule already marks where a group starts, so the section's own
+   closing rule would land a second hairline a few pixels above it. */
+.ds-section:has(> .ds-section__title--eyebrow) {
+  border-bottom: 0;
+}
+
+.ds-section__title--eyebrow {
+  padding-bottom: var(--spacing-stack-xs);
+  margin-bottom: var(--spacing-stack-md);
+  border-bottom: var(--border-divider);
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.ds-section__blurb,
+.ds-group__blurb,
+.ds-lead {
+  max-width: 78ch;
+  margin: 0 0 var(--spacing-stack-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.ds-prose-list {
+  padding-left: var(--spacing-inset-lg);
+}
+
+/* base/common.css strips every list marker and hard-sets li colour site-wide,
+   so a list inside a blurb has to ask for both back. */
+.ds-prose-list li {
+  margin-bottom: var(--spacing-stack-xs);
+  list-style: disc;
+  color: inherit;
+}
+
+.ds-prose-list--numbered li {
+  list-style: decimal;
+}
+
+/* Token names and selectors quoted in the comments. */
+.ds-section__blurb code,
+.ds-group__blurb code,
+.ds-prose-list code {
+  font-family: var(--font-family-code);
+  font-size: 0.9em;
+}
+
+.ds-tier {
+  margin: var(--spacing-stack-xl) 0 var(--spacing-stack-md);
+}
+
+.ds-tier__title {
+  margin: 0 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-title-medium);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ds-group {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+.ds-group__title {
+  margin: 0 0 var(--spacing-stack-sm);
+  font-size: var(--font-size-title-medium);
+  color: var(--color-text);
+}
+
+.ds-group__diagram {
+  margin: 0 0 var(--spacing-stack-md);
+  padding: var(--spacing-inset-md) var(--spacing-inset-lg);
+  overflow-x: auto;
+  background: var(--color-surface-sunken);
+  border-radius: var(--border-radius-card);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  line-height: 1.35;
+}
+
+/* A lead-in sits close to the list, table or diagram it introduces. Last of the
+   group, so it wins over the per-block margins above. */
+.ds-prose--tight {
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.ds-notes {
+  max-width: 78ch;
+  margin: var(--spacing-stack-md) 0 var(--spacing-stack-lg);
+  padding: var(--spacing-inset-md) var(--spacing-inset-lg);
+  background: var(--color-surface-sunken);
+  border-radius: var(--border-radius-card);
+  font-size: var(--font-size-body-medium);
+}
+
+.ds-notes p {
+  margin: 0 0 var(--spacing-stack-xs);
+  color: var(--color-text-secondary);
+}
+
+.ds-notes p:last-child {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------- examples */
+
+.ds-example {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+.ds-example__title {
+  margin: 0 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-title-small);
+  color: var(--color-text);
+}
+
+.ds-example__note {
+  max-width: 78ch;
+  margin: 0 0 var(--spacing-stack-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.ds-example__output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-xl);
+  align-items: center;
+  padding: var(--spacing-inset-lg);
+  background-color: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+/* An example that sets its own layout (a column, a max-width) opts out of the
+   default row so the inline style isn't fighting these rules. */
+.ds-example__output[style] {
+  display: block;
+}
+
+/* The carousel picks columns, pages and peek off its container width, so a
+   shrink-wrapped host would demo it at the wrong breakpoint. */
+.ds-example__output > ol-carousel {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+.ds .ds-example__output p {
+  width: 100%;
+  margin: var(--spacing-stack-xs) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+/* ------------------------------------------------------------ code blocks */
+
+.ds-code {
+  position: relative;
+  display: none;
+  margin-top: var(--spacing-stack-xs);
+}
+
+.ds--code-visible .ds-code {
+  display: block;
+}
+
+.ds-code__pre {
+  margin: 0;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  overflow-x: auto;
+  background-color: var(--neutral-900);
+  border-radius: var(--border-radius-card);
+  color: var(--neutral-100);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  line-height: 1.5;
+}
+
+.ds-code__pre code {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.ds-code__copy {
+  position: absolute;
+  top: var(--spacing-inset-xs);
+  right: var(--spacing-inset-xs);
+  z-index: var(--z-index-level-1);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border: 0;
+  border-radius: var(--border-radius-badge);
+  background: var(--neutral-700);
+  color: var(--neutral-100);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-small);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.ds-code__copy:focus-visible,
+.ds-code:hover .ds-code__copy {
+  opacity: 1;
+}
+
+.ds-code__copy.is-copied {
+  opacity: 1;
+  background: var(--green-600);
+}
+
+.ds-code__copy.is-copied::after {
+  content: "ed";
+}
+
+/* Prism's tomorrow-ish palette, restated against our ramps. */
+.ds-code__pre .token.comment,
+.ds-code__pre .token.prolog,
+.ds-code__pre .token.doctype,
+.ds-code__pre .token.cdata {
+  color: var(--neutral-400);
+}
+
+.ds-code__pre .token.punctuation {
+  color: var(--neutral-300);
+}
+
+.ds-code__pre .token.tag,
+.ds-code__pre .token.keyword,
+.ds-code__pre .token.deleted {
+  color: var(--red-200);
+}
+
+.ds-code__pre .token.attr-name,
+.ds-code__pre .token.property,
+.ds-code__pre .token.class-name {
+  color: var(--amber-200);
+}
+
+.ds-code__pre .token.attr-value,
+.ds-code__pre .token.string,
+.ds-code__pre .token.inserted {
+  color: var(--green-200);
+}
+
+.ds-code__pre .token.function,
+.ds-code__pre .token.selector {
+  color: var(--blue-200);
+}
+
+.ds-code__pre .token.number,
+.ds-code__pre .token.boolean {
+  color: var(--amber-100);
+}
+
+/* Placeholder cards for the carousel demos. The carousel sets each item's
+   width; these just give the slotted children a visible 2:3 box. */
+.design-carousel-demo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 3;
+  background: var(--color-surface-sunken);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+}
+
+/* --------------------------------------------------------------- components */
+
+.ds-component {
+  padding-bottom: var(--spacing-stack-lg);
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+.ds-component__header {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.ds-component__title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  align-items: baseline;
+  margin: 0 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-title-large);
+  color: var(--color-text);
+}
+
+.ds-component__tag {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.ds-component__use-when,
+.ds-component__avoid {
+  max-width: 78ch;
+  margin: 0 0 var(--spacing-stack-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-medium);
+}
+
+.ds-component__avoid {
+  color: var(--color-warning-fg);
+}
+
+.ds-undocumented {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2px var(--spacing-inline-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text-muted);
+}
+
+/* -------------------------------------------------------------- API tables */
+
+.ds-api {
   margin-bottom: var(--spacing-stack-lg);
 }
 
-.design-pattern__title {
-  color: var(--dark-grey);
-  margin: 0 0 8px;
+.ds-api__summary {
+  display: inline-block;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+  cursor: pointer;
 }
 
-.design-pattern__description {
-  margin: 0 0 var(--spacing-stack-md);
-  font-size: 18px;
-  color: var(--mid-grey);
+.ds-api__summary:hover {
+  color: var(--color-link);
 }
 
-.example {
-  margin-bottom: 48px;
+.ds-api__group {
+  margin: var(--spacing-stack-md) 0 var(--spacing-stack-xs);
+  font-size: var(--font-size-label-large);
+  color: var(--color-text);
 }
 
-.example__title {
-  font-size: var(--font-size-title-medium);
-  margin-top: 0;
-  margin-bottom: var(--spacing-stack-xs);
-  color: var(--dark-grey);
+/* ------------------------------------------------------------------ tables */
+
+.ds-table-wrap {
+  margin-bottom: var(--spacing-stack-md);
+  overflow-x: auto;
 }
 
-.design-pattern-library p {
-  margin-top: 0;
-  margin-bottom: 8px;
+.ds-table {
+  width: 100%;
+  /* Separate, not collapse, so the rounded outer border clips cleanly. */
+  border-collapse: separate;
+  border-spacing: 0;
+  border: var(--border-table);
+  border-radius: var(--border-radius-card);
+  overflow: hidden;
+  background: var(--color-surface);
+  font-size: var(--font-size-body-medium);
 }
 
-/* Reset Prism theme styles that leak outside code blocks */
-.design-pattern-library .tag,
-.design-pattern-library .token:not(.example__code .token) {
-  color: inherit;
-  background: none;
-}
-
-pre.example__code {
-  background-color: var(--lightest-grey);
+.ds-table th,
+.ds-table td {
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  margin-bottom: 12px;
+  /* Override the site-wide `tbody { font-size: 0.9em }`. */
+  font-size: var(--font-size-label-large);
+  border-bottom: var(--border-table);
+  border-right: var(--border-table);
+  vertical-align: middle;
+  text-align: start;
+}
+
+.ds-table th {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  background: var(--color-surface-sunken);
+}
+
+.ds-table td {
+  /* Paint over the site-wide `tbody tr` tint. */
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.ds-table th:last-child,
+.ds-table td:last-child {
+  border-right: none;
+}
+
+/* The last column carries the prose; let it claim the slack so the short
+   columns stay compact. */
+.ds-table td:last-child {
+  width: 100%;
+}
+
+.ds-table--migration td:last-child {
+  white-space: nowrap;
+}
+
+/* A lookup table written into a token file's comment. The left column asks the
+   question and the right answers it, so neither may collapse: split the width
+   rather than letting the base rule hand it all to the last column. */
+.ds-table--guide td:first-child,
+.ds-table--guide td:last-child {
+  width: 50%;
+}
+
+.ds-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ds-table code {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  color: var(--color-text);
+}
+
+.ds-table__muted {
+  color: var(--color-text-muted);
+}
+
+.ds-table__preview-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.ds-table__arrow {
+  width: 1%;
+  color: var(--color-text-muted);
+}
+
+/* -------------------------------------------------------------- token bits */
+
+/* Token names and values are identifiers — wrapping them mid-string makes the
+   table much harder to scan than letting the notes column absorb the width. */
+.ds-token__name {
+  cursor: copy;
+  white-space: nowrap;
+}
+
+.ds-token__name.is-copied,
+.ds-swatch.is-copied,
+.ds-ramp__step.is-copied {
+  outline: 2px solid var(--color-success-fg);
+  outline-offset: 1px;
+}
+
+.ds-token__value {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.ds-token__ref {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-small);
+  white-space: nowrap;
+}
+
+.ds-token__note {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+}
+
+.ds-token__contrast {
+  white-space: nowrap;
+}
+
+.ds-contrast__ratio {
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+}
+
+.ds-contrast__level {
+  display: inline-block;
+  margin-inline-start: 4px;
+  padding: 1px 4px;
+  border-radius: var(--border-radius-badge);
+  font-size: var(--font-size-label-small);
+}
+
+.ds-contrast__level--pass {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.ds-contrast__level--fail {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+}
+
+/* Swatches are drawn over a checkerboard so partly-transparent tokens
+   (the color-mix tints) read as transparent rather than as a flat color. */
+.ds-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 20px;
+  border: var(--border-card);
+  border-radius: var(--border-radius-badge);
+  cursor: copy;
+  vertical-align: middle;
+  background-image:
+    linear-gradient(45deg, var(--neutral-200) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--neutral-200) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--neutral-200) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--neutral-200) 75%);
+  background-size: 8px 8px;
+  background-position:
+    0 0,
+    0 4px,
+    4px -4px,
+    -4px 0;
+}
+
+.ds-swatch--inline {
+  width: 16px;
+  height: 12px;
+  margin-inline-end: 4px;
+}
+
+/* ------------------------------------------------------------------- ramps */
+
+.ds-ramp {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.ds-ramp__strip {
+  display: flex;
+  overflow: hidden;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.ds-ramp__step {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  cursor: copy;
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-small);
+  /* Fallback until the script picks a label color from the step's measured
+     luminance — see initRampLabels(). */
+  color: var(--neutral-900);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.ds-ramp__step--dark {
+  color: var(--white);
+}
+
+.ds-ramp__label {
+  opacity: 0.9;
+}
+
+/* ---------------------------------------------------------- token previews */
+
+.ds-preview-bar {
+  display: inline-block;
+  height: 12px;
+  min-width: 1px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+.ds-preview-bar--scaled {
+  background: var(--color-border);
+}
+
+.ds-preview-box {
+  display: inline-block;
+  width: 28px;
+  height: 20px;
+  background: var(--color-surface-sunken);
+  border: var(--border-card);
+  vertical-align: middle;
+}
+
+.ds-preview-box--control {
+  width: 44px;
+  height: auto;
+  border: var(--border-input);
+  border-radius: var(--border-radius-button);
+}
+
+.ds-preview-rule {
+  display: inline-block;
+  width: 40px;
+  vertical-align: middle;
+}
+
+.ds-preview-type {
+  display: inline-block;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.ds-preview-leading {
+  display: inline-block;
+  font-size: var(--font-size-label-small);
+  color: var(--color-text);
+}
+
+.ds-preview-none {
+  color: var(--color-text-muted);
+}
+
+.ds-deprecated {
+  margin-top: var(--spacing-stack-md);
+}
+
+.ds-deprecated__summary {
+  display: inline-block;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+  font-size: var(--font-size-label-medium);
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------- demo scaffolding */
+
+/* Shared chrome for the demos themselves — not part of the design system. */
+
+.demo-btn {
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md);
+  border: var(--border-input);
+  border-radius: var(--border-radius-button);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  cursor: pointer;
+}
+
+.ds-demo-menu {
+  min-width: 160px;
+  margin: 0;
+  padding: var(--spacing-inset-xs) 0;
+  list-style: none;
+}
+
+.ds-demo-menu li {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  cursor: pointer;
+}
+
+.ds-demo-menu li:hover {
+  background: var(--color-surface-sunken);
+}
+
+.ds-demo-menu__divided {
+  border-top: var(--border-divider);
+}
+
+.ds-demo-menu__muted {
+  color: var(--color-text-muted);
+}
+
+.ds-demo-link-trigger {
+  color: var(--color-link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ds-demo-label {
+  display: block;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: var(--font-size-body-medium);
+  font-weight: 500;
+}
+
+.ds-demo-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--spacing-inset-sm);
+  border: var(--border-input);
+  border-radius: var(--border-radius-input);
+  font: inherit;
+  font-size: var(--font-size-body-medium);
+  resize: vertical;
+}
+
+.ds-demo-search-header {
+  padding: var(--spacing-inset-md);
+  border-bottom: var(--border-divider);
+}
+
+.ds-demo-search-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--spacing-inset-sm);
+  border: var(--border-input);
+  border-radius: var(--border-radius-input);
+  font: inherit;
+}
+
+/* Layout helpers for the demos, so the templates stay free of inline styles. */
+.ds-demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  width: 100%;
+}
+
+/* A fieldset used as a demo row is a grouping device, not a visible box. */
+fieldset.ds-demo-row {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.ds-demo-dialog-body {
+  margin: 0;
+}
+
+.ds-demo-dialog-footer {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  justify-content: flex-end;
+}
+
+.ds-demo-output {
+  width: 100%;
+  max-height: 120px;
+  margin-top: var(--spacing-stack-xs);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  overflow-y: auto;
+  background: var(--color-surface-sunken);
+  border: var(--border-card);
   border-radius: var(--border-radius-card);
   font-size: var(--font-size-label-medium);
-  font-family: var(--font-family-code);
-  overflow-x: auto;
   white-space: pre-wrap;
-  word-break: break-all;
 }
 
-pre.example__code code[class*="language-"] {
+/* Rich tooltip content, styled by the consuming page (see components/tooltip). */
+.book-tip {
+  font-size: var(--font-size-body-medium);
+}
+
+.book-tip__heading {
+  margin-bottom: var(--spacing-2xs);
+}
+
+.book-tip__trigger {
+  display: block;
+  width: 120px;
+  /* Pinned to the declared width/height attributes so the box doesn't shift
+     when a cover with a different native ratio loads. */
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  box-shadow: 0 0 0 0 var(--color-surface-sunken);
+  transition: box-shadow 0.15s ease;
+}
+
+.book-tip__trigger:hover,
+.book-tip__trigger:focus-visible {
+  box-shadow: 0 0 0 6px var(--color-surface-sunken);
+  outline: none;
+}
+
+.book-tip__title {
+  font-weight: 600;
+}
+
+.book-tip__year,
+.book-tip__byline {
+  color: var(--neutral-300);
+}
+
+.book-tip__byline {
   font-size: var(--font-size-label-medium);
+}
+
+/* ------------------------------------------------------- playground bits */
+
+/* A realistic toolbar row — controls at the start, one action pushed to the end. */
+.ds-pattern-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+  width: 100%;
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.ds-pattern-bar__spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-state-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-inline-xl);
+  align-items: center;
+  padding: var(--spacing-inset-lg);
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.ds-state-grid__head {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-label-medium);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ds-longform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-md);
+  align-items: flex-start;
+  /* Deliberately narrow: the point is to squeeze over-long labels. */
+  max-width: 420px;
+}
+
+/* Control alignment check (see design/playground.html.jinja). Lays controls in
+   a single row, top-aligned, each wrapped in a box that hugs its bounds so
+   equal heights read as aligned top/bottom edges. */
+.control-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--spacing-inline-xl);
+  align-items: flex-start;
+  overflow-x: auto;
+  /* Two dashed guide lines at the top and bottom of the exact target token
+     height, top-aligned with the cells. A control that overshoots or
+     undershoots the zone reads as misaligned at a glance. Each line is a
+     horizontally-repeating gradient (dash, gap) drawn 1px tall.
+     background-attachment: local keeps the lines pinned to the controls when
+     the row scrolls horizontally; background-origin: content-box starts them at
+     the content edge so the top line aligns with the controls' top edge. */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--color-border) 0 4px,
+      transparent 4px 8px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--color-border) 0 4px,
+      transparent 4px 8px
+    );
+  background-size:
+    100% 1px,
+    100% 1px;
+  background-position:
+    left top,
+    left calc(var(--control-target-height) - 1px);
+  background-repeat: no-repeat;
+  background-attachment: local;
+  background-origin: content-box;
+}
+
+.control-alignment__guides-toggle {
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.control-alignment--guides-hidden .control-row {
+  background-image: none;
+}
+
+.control-row--small {
+  --control-target-height: var(--control-height-small);
+}
+
+.control-row--medium {
+  --control-target-height: var(--control-height-medium);
+}
+
+.control-row--large {
+  --control-target-height: var(--control-height-large);
+}
+
+.control-row__cell {
+  display: inline-flex;
+  flex: none;
+}
+
+/* A bare native input, height-locked to the same control-height tokens so it
+   joins the alignment check alongside the button and segmented control. */
+.control-row__field {
+  box-sizing: border-box;
+  width: 12ch;
+  /* The row publishes the size, so the field inherits rather than re-derives. */
+  height: var(--control-target-height);
+  padding: 0 var(--spacing-inset-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: var(--border-input);
+  border-radius: var(--border-radius-button);
+}
+
+/* ----------------------------------------------------------------- desktop */
+
+/* ------------------------------------------------------------ link resets */
+
+/* The site-wide `a:link { text-decoration: underline }` from base/common.css both
+   outweighs a lone class and lands after these rules, and decoration inherited
+   from an anchor can't be removed by its children — so the chrome's links opt
+   out at a specificity that wins. Kept last so it never precedes the rules it
+   is overriding. Links inside demo content are deliberately left alone. */
+.ds a.ds__tab,
+.ds .ds__nav-list a {
+  text-decoration: none;
 }
 
 @media only screen and (min-width: 768px) {
-  .design-pattern-library {
-    padding: var(--spacing-inset-lg);
+  .ds {
+    --ds-gutter: var(--spacing-inset-xl);
+    --ds-masthead-height: 72px;
   }
 
-  .design-pattern-library__layout {
+  .ds__layout {
     flex-direction: row;
-    gap: 40px;
+    gap: var(--spacing-section-gap);
     align-items: flex-start;
+    padding-top: var(--spacing-stack-xl);
   }
 
-  .design-pattern-nav {
+  .ds__sidebar {
     position: sticky;
-    top: 24px;
-    flex: 0 0 200px;
-    margin: 0;
-    padding: 0;
-    background-color: transparent;
-    border-bottom: none;
-    overflow: visible;
+    top: calc(var(--ds-masthead-height) + var(--spacing-inset-md));
+    flex: 0 0 var(--ds-sidebar-width);
+    max-height: calc(
+      100vh - var(--ds-masthead-height) - var(--spacing-inset-lg)
+    );
+    overflow-y: auto;
   }
 
-  .design-pattern-nav__list {
+  .ds__nav-list {
     display: block;
   }
 
-  .design-pattern-nav__list li {
-    margin-bottom: var(--spacing-stack-xs);
+  /* Stacked here, so the block padding sets the gap between links rather than
+     the tap-target height it controls in the mobile row. Tightened to keep a
+     long contents list scannable as one column. */
+  .ds__nav-list a {
+    padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   }
 
-  .design-pattern-nav__list a {
-    padding: 6px 12px;
+  .ds__nav-group {
+    display: block;
+    margin-bottom: var(--spacing-stack-md);
   }
 
-  pre.example__code {
-    word-break: normal;
+  .ds__nav-group-title {
+    display: block;
+    padding: var(--spacing-inset-xs) var(--spacing-inset-sm)
+      var(--spacing-inset-xs);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-label-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .ds-state-grid {
+    grid-template-columns: repeat(3, minmax(0, 220px));
   }
 }
-
-.example__output {
-  margin-bottom: var(--spacing-stack-lg);
-}
-
-.color-swatch {
-  display: flex;
-  gap: var(--spacing-inline-xs);
-}
-
-.color-swatch .color-block {
-  width: 1em;
-  height: 1em;
-  display: block;
-  margin: 3px;
-}
-
-.color-block-primary-cta {
-  background-color: var(--primary-blue);
-}
-.color-block-background {
-  background-color: var(--beige);
-}
-.color-block-link-clicked {
-  background-color: var(--dark-blue);
-}
-.color-block-link-unclicked {
-  background-color: var(--link-blue);
-}
-
-@import "legacy.css";

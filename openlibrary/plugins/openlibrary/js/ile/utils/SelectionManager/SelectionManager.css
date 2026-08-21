@@ -5,7 +5,7 @@
   --ile-toolbar-background: #0067d5;
   --ile-toolbar-text-color: white;
   /* stylelint-enable color-no-hex, color-named */
-  --ile-toolbar-z-index: 10;
+  --ile-toolbar-z-index: var(--z-index-fixed);
 }
 
 .ile-drag-over {

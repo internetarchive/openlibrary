@@ -1,0 +1,238 @@
+{#
+  Foundations — every design token, parsed out of static/css/tokens/*.css by
+  design_tokens.py, so a new token appears here as soon as it's declared.
+  Previews use `var(--token)`: the parsed value is only ever a label.
+#}
+{% macro nav() %}
+    <ul class="ds__nav-list">
+        {% for category in token_categories %}
+            <li>
+                <a href="#{{ category.anchor }}">{{ category.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+{% macro body() %}
+    {% if not token_categories %}<p class="ds__empty">Could not read <code>static/css/tokens/</code>.</p>{% endif %}
+    {% for category in token_categories %}
+        <section class="ds-section" id="{{ category.anchor }}">
+            <h2 class="ds-section__title">{{ category.title }}</h2>
+            {{ prose(category.blurb, "ds-section__blurb") }}
+            {% set live = category.groups | rejectattr("deprecated") | list %}
+            {% set retired = category.groups | selectattr("deprecated") | list %}
+            {% for group in live %}{{ token_group(group, category) }}{% endfor %}
+            {% if retired %}
+                {# Roughly a hundred legacy aliases. Collapsed, and rendered as a
+                   migration table rather than a wall of swatches. #}
+                {% set count = retired | map(attribute="tokens") | map("length") | sum %}
+                <details class="ds-deprecated">
+                    <summary class="ds-deprecated__summary">Deprecated aliases ({{ count }}) — do not use in new code</summary>
+                    {% for group in retired %}
+                        {% if group.tokens %}
+                            {% if group.title %}<h4 class="ds-group__title">{{ group.display_title }}</h4>{% endif %}
+                            {{ prose(group.blurb, "ds-group__blurb") }}
+                            <div class="ds-table-wrap">
+                                <table class="ds-table ds-table--migration">
+                                    <thead>
+                                        <tr>
+                                            <th>Legacy name</th>
+                                            <th></th>
+                                            <th>Now points at</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for token in group.tokens %}
+                                            <tr>
+                                                <td><code>{{ token.name }}</code></td>
+                                                <td class="ds-table__arrow">→</td>
+                                                <td>
+                                                    {% if token.is_color %}{{ swatch(token, "ds-swatch--inline") }}{% endif %}
+                                                    <code>{{ token.reference or token.value }}</code>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </details>
+            {% endif %}
+        </section>
+    {% endfor %}
+{% endmacro %}
+{#
+  One heading's worth of tokens. No tokens means a tier header; otherwise
+  ramps render as strips and everything else as rows.
+#}
+{% macro token_group(group, category) %}
+    {% if group.tokens %}
+        <div class="ds-group">
+            {{ group_heading(group) }}
+            {% for prefix, tokens in group.ramps %}{{ ramp(prefix, tokens) }}{% endfor %}
+            {% if group.loose_tokens %}{{ token_table(group.loose_tokens, category) }}{% endif %}
+        </div>
+    {% else %}
+        <div class="ds-tier">{{ group_heading(group, "ds-tier__title") }}</div>
+    {% endif %}
+{% endmacro %}
+{% macro group_heading(group, title_class="ds-group__title") %}
+    {% if group.title %}<h3 class="{{ title_class }}">{{ group.display_title }}</h3>{% endif %}
+    {{ prose(group.blurb, "ds-group__blurb") }}
+{% endmacro %}
+{#
+  A comment body, parsed into blocks by design_tokens.py, so the paragraphs,
+  lists and diagrams survive instead of flattening into one paragraph.
+#}
+{% macro prose(blocks, class) %}
+    {% for block in blocks %}
+        {# "The rules:" belongs to the list under it, so a lead-in closes up against
+           what it introduces. Everything else keeps the paragraph gap. #}
+        {% set introduces = not loop.last and blocks[loop.index].kind in ("list", "table", "pre") %}
+        {% set tight = " ds-prose--tight" if introduces else "" %}
+        {% if block.kind == "pre" %}
+            <pre class="ds-group__diagram{{ tight }}">{{ block.text }}</pre>
+        {% elif block.kind == "table" %}
+            <div class="ds-table-wrap{{ tight }}">
+                <table class="ds-table ds-table--guide">
+                    <thead>
+                        <tr>
+                            {% for cell in block.headers %}<th>{{ rich(cell) }}</th>{% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in block.rows %}
+                            <tr>
+                                {% for cell in row %}<td>{{ rich(cell) }}</td>{% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% elif block.kind == "list" and block.ordered %}
+            <ol class="ds-prose-list ds-prose-list--numbered {{ class }}{{ tight }}">
+                {% for item in block.items %}<li>{{ rich(item) }}</li>{% endfor %}
+            </ol>
+        {% elif block.kind == "list" %}
+            <ul class="ds-prose-list {{ class }}{{ tight }}">
+                {% for item in block.items %}<li>{{ rich(item) }}</li>{% endfor %}
+            </ul>
+        {% else %}
+            <p class="{{ class }}{{ tight }}">{{ rich(block.text) }}</p>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+{#
+  Inline `backticks` rendered as code — odd segments were inside a pair.
+  Gotcha: every tag trims on both sides so djLint can't reformat whitespace
+  into the middle of a sentence.
+#}
+{% macro rich(text) %}
+    {%- for part in text.split("`") -%}
+        {%- if loop.index0 is odd -%}
+            <code>{{ part }}</code>
+        {%- else -%}
+            {{ part }}
+        {%- endif -%}
+    {%- endfor -%}
+{% endmacro %}
+{# A ramp as one strip, so an uneven jump in it reads at a glance. #}
+{% macro ramp(prefix, tokens) %}
+    <div class="ds-ramp">
+        <div class="ds-ramp__strip">
+            {% for token in tokens %}
+                <button class="ds-ramp__step"
+                        type="button"
+                        style="background: var({{ token.name }})"
+                        data-ds-copy
+                        data-ds-copy-text="var({{ token.name }})"
+                        title="{{ token.name }} — {{ token.display_value }}">
+                    <span class="ds-ramp__label">{{ token.name | replace(prefix + "-", "") }}</span>
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
+{# The general token row: preview, name, resolved value, CSS comment. #}
+{% macro token_table(tokens, category) %}
+    {% set show_contrast = category.id == "colors" %}
+    <div class="ds-table-wrap">
+        <table class="ds-table ds-table--tokens">
+            <thead>
+                <tr>
+                    <th class="ds-table__preview-col">Preview</th>
+                    <th>Token</th>
+                    <th>Value</th>
+                    {% if show_contrast %}<th title="Contrast against white, and against the page canvas">Contrast</th>{% endif %}
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for token in tokens %}
+                    <tr>
+                        <td class="ds-table__preview-col">{{ preview(token, category) }}</td>
+                        <td>
+                            <code class="ds-token__name"
+                                  data-ds-copy
+                                  data-ds-copy-text="var({{ token.name }})"
+                                  title="Copy var({{ token.name }})">{{ token.name }}</code>
+                        </td>
+                        <td>
+                            <code class="ds-token__value">{{ token.display_value }}</code>
+                            {% if token.reference %}<span class="ds-token__ref">via <code>{{ token.reference }}</code></span>{% endif %}
+                        </td>
+                        {% if show_contrast %}
+                            <td class="ds-token__contrast">
+                                {% if token.is_color %}<span data-ds-contrast-for="{{ token.name }}"></span>{% endif %}
+                            </td>
+                        {% endif %}
+                        <td class="ds-token__note">{{ rich(token.description) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+{#
+  Colors get a swatch; dimensional categories get a preview that demonstrates
+  the value, which beats reading "1.25rem".
+#}
+{% macro preview(token, category) %}
+    {% if token.is_color %}
+        {{ swatch(token) }}
+    {% elif category.id == "spacing" %}
+        <span class="ds-preview-bar" style="inline-size: var({{ token.name }});"></span>
+    {% elif category.id == "border-radius" %}
+        <span class="ds-preview-box" style="border-radius: var({{ token.name }});"></span>
+    {% elif category.id == "control-heights" %}
+        <span class="ds-preview-box ds-preview-box--control"
+              style="block-size: var({{ token.name }})"></span>
+    {% elif category.id == "borders" and "shadow" in token.name %}
+        <span class="ds-preview-box" style="box-shadow: var({{ token.name }});"></span>
+    {% elif category.id == "borders" and "width" in token.name %}
+        <span class="ds-preview-rule"
+              style="border-top: var({{ token.name }}) solid var(--color-border)"></span>
+    {% elif category.id == "borders" %}
+        <span class="ds-preview-box" style="border: var({{ token.name }});"></span>
+    {% elif category.id == "font-families" and "size" in token.name %}
+        <span class="ds-preview-type" style="font-size: var({{ token.name }});">Ag</span>
+    {% elif category.id == "font-families" %}
+        <span class="ds-preview-type" style="font-family: var({{ token.name }});">Ag</span>
+    {% elif category.id == "line-heights" %}
+        <span class="ds-preview-leading" style="line-height: var({{ token.name }})">Ag
+            <br>
+        Ag</span>
+    {% elif category.id == "breakpoints" %}
+        <span class="ds-preview-bar ds-preview-bar--scaled"
+              style="inline-size: calc(var({{ token.name }}) / 8)"></span>
+    {% else %}
+        <span class="ds-preview-none">—</span>
+    {% endif %}
+{% endmacro %}
+{% macro swatch(token, extra="") %}
+    <span class="ds-swatch {{ extra }}"
+          style="background: var({{ token.name }})"
+          data-ds-copy
+          data-ds-copy-text="var({{ token.name }})"
+          title="Copy var({{ token.name }})"></span>
+{% endmacro %}

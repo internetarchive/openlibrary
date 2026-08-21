@@ -58,6 +58,7 @@ $code:
               { 'sort': 'want_to_read', 'name': _("Want to Read"), 'ga_key': 'ReadingLogWantToRead' },
               { 'sort': 'currently_reading', 'name': _("Currently Reading"), 'ga_key': 'ReadingLogCurrentlyReading' },
               { 'sort': 'already_read', 'name': _("Already Read"), 'ga_key': 'ReadingLogAlreadyRead' },
+              { 'sort': 'stopped_reading', 'name': _("Stopped Reading"), 'ga_key': "ReadingLogStoppedReading"}
             ]
           },
          { 'sort': 'trending', 'name': _("Trending"), 'ga_key': 'Trending' },
@@ -67,43 +68,46 @@ $code:
          sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
 
      selected_sort_option = get_selected_sort_option(sort_options, selected_sort) or get_selected_sort_option(sort_options, default_sort)
-    <details class="sort-dropper">
-      <summary class="tool-button">
-        <img src="/static/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" />
-        $selected_sort_option['name']
-      </summary>
-      <span class="sort-content">
-        <span class="sort-content-inner">
-          $for sort_option in sort_options:
-            $if exclude and sort_option['sort'] in exclude:
-              $continue
-            $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort
-            $ sub_sorts = sort_option.get('sub_sorts', [])
-            $ sub_sort_selected = any(sub_sort.get('selected') or sub_sort['sort'] == selected_sort for sub_sort in sub_sorts)
-            $if is_selected:
-              <a class="sort-selected">$sort_option['name']</a>
-            $else:
-              <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
-                  data-ol-link-track="SearchSort|$sort_option['ga_key']"
-                  rel="nofollow"
-              >
-                $sort_option['name']
-              </a>
-            $if sub_sorts and (is_selected or sub_sort_selected):
-              $for sub_sort in sort_option['sub_sorts']:
-                $ is_selected = sub_sort.get('selected') or sub_sort['sort'] == selected_sort
-                $if is_selected:
-                  <a class="sort-subsort-selected">$sub_sort['name']</a>
-                $else:
-                  <a class="sort-subsort"
-                      href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
-                      data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"
-                  >
-                    $sub_sort['name']
-                  </a>
-        </span>
-      </span>
-    </details>
+
+     def sort_url(sort_key):
+        return changequery(page=None, sort=None if sort_key == default_sort else sort_key)
+
+     # Flatten for the menu. Sub-sorts become `nested` rows, always visible.
+     # A sub-sort repeating its parent's key (Reading Log / "Any") is dropped:
+     # the parent already selects it, and both rows would read as checked.
+     items = []
+     for option in sort_options:
+       if exclude and option['sort'] in exclude:
+         continue
+       items.append({
+         'value': option['sort'],
+         'label': option['name'],
+         'url': sort_url(option['sort']),
+         'track': option['ga_key'],
+       })
+       for sub_sort in option.get('sub_sorts', []):
+         if sub_sort['sort'] == option['sort']:
+           continue
+         items.append({
+           'value': sub_sort['sort'],
+           'label': sub_sort['name'],
+           'nested': True,
+           'url': sort_url(sub_sort['sort']),
+           'track': option['ga_key'] + 'SubSort',
+         })
+
+    $# Trigger is slotted rather than left to the component's default so it's
+    $# server-rendered — no layout shift on upgrade. sort_options.js navigates.
+    <ol-menu-popover
+      class="sort-options"
+      label="$_('Sort by')"
+      heading="$_('Sort by')"
+      value="$selected_sort_option['sort']"
+      items="$json_encode(items)"
+      aria-label="$_('Sort results')"
+    >
+      <ol-button slot="trigger">$selected_sort_option['name']</ol-button>
+    </ol-menu-popover>
     $if selected_sort and selected_sort.startswith('random') and not is_bot():
           <a class="sort-random-shuffle"
              href="$changequery(page=None, sort='random_%s' % today().timestamp())"

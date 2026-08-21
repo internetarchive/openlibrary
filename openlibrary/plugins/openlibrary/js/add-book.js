@@ -17,11 +17,11 @@ let invalidIsbn13;
 let invalidLccn;
 let invalidOclc;
 let emptyId;
-
-const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
-const addBookForm = $('form#addbook');
+let i18nStrings;
 
 export function initAddBookImport() {
+    const addBookForm = $('form#addbook');
+
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
@@ -32,28 +32,36 @@ export function initAddBookImport() {
         addBookForm.trigger('submit');
     });
 
-    invalidChecksum = i18nStrings.invalid_checksum;
-    invalidIsbn10 = i18nStrings.invalid_isbn10;
-    invalidIsbn13 = i18nStrings.invalid_isbn13;
-    invalidLccn = i18nStrings.invalid_lccn;
-    invalidOclc = i18nStrings.invalid_oclc;
-    emptyId = i18nStrings.empty_id;
+    // `data-i18n` (and everything below that depends on it) is only rendered on
+    // add.html's form. check.html reuses the same #addbook/form[name=edit] markup
+    // for its "possible matches" page, but has none of the ID-validation or
+    // publish-date fields this block wires up.
+    if (addBookForm[0].dataset.i18n) {
+        i18nStrings = JSON.parse(addBookForm[0].dataset.i18n);
 
-    $('#id_value').on('change', autoCompleteIdName);
-    $('#addbook').on('submit', parseAndValidateId);
-    $('#id_value').on('input', clearErrors);
-    $('#id_name').on('change', clearErrors);
+        invalidChecksum = i18nStrings.invalid_checksum;
+        invalidIsbn10 = i18nStrings.invalid_isbn10;
+        invalidIsbn13 = i18nStrings.invalid_isbn13;
+        invalidLccn = i18nStrings.invalid_lccn;
+        invalidOclc = i18nStrings.invalid_oclc;
+        emptyId = i18nStrings.empty_id;
 
-    $('#publish_date').on('blur', validatePublishDate);
+        $('#id_value').on('change', autoCompleteIdName);
+        $('#addbook').on('submit', parseAndValidateId);
+        $('#id_value').on('input', clearErrors);
+        $('#id_name').on('change', clearErrors);
 
-    trimInputValues('input');
+        $('#publish_date').on('blur', validatePublishDate);
 
-    // Prevents submission if the publish date is > 1 year in the future
-    addBookForm.on('submit', function() {
-        if ($('#publish-date-errors').hasClass('hidden')) {
-            return true;
-        } else return false;
-    });
+        trimInputValues('input');
+
+        // Prevents submission if the publish date is > 1 year in the future
+        addBookForm.on('submit', function() {
+            if ($('#publish-date-errors').hasClass('hidden')) {
+                return true;
+            } else return false;
+        });
+    }
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls

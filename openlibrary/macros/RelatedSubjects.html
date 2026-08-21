@@ -1,10 +1,6 @@
-$def with (page)
+$def with (page=None, async_load=False, key=None)
 
 $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
-
-<div class="head" id="subjectRelated">
-  <h2>$_("Related...")</h2>
-</div>
 
 $def renderSubjects(subjects):
     $if len(subjects) > 0:
@@ -15,8 +11,22 @@ $def renderSubjects(subjects):
     $else:
         <span class="title"><em>$_("None found.")</em></span>
 
-$for category, label, limit in subject_list:
-    <div class="contentQuarter link-box link-box--with-header">
-      <h3 class="black collapse uppercase">$label</h3>
-      $:renderSubjects(page[category][:limit])
+<div id="subjectRelatedFacets" data-async-load="$json_encode(async_load)" data-key="$json_encode(key)">
+    <div class="head" id="subjectRelated">
+      <h2>$_("Related...")</h2>
     </div>
+
+    $for category, label, limit in subject_list:
+        <div class="contentQuarter link-box link-box--with-header">
+          <h3 class="black collapse uppercase">$label</h3>
+          $if async_load:
+              <span class="small loadingIndicator">$_("Loading...")</span>
+          $else:
+              $:renderSubjects(page[category][:limit])
+        </div>
+    $if async_load:
+        <span class="small async-partial-retry hidden">$_("Something went wrong.") <a href="#" class="retry-btn">$_("Retry")</a></span>
+    $# .contentQuarter floats on desktop widths (layout/index.css); clear it
+    $# inside this wrapper so the wrapper's own box isn't collapsed to nothing.
+    <div class="clearfix"></div>
+</div>

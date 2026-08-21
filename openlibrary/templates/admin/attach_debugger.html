@@ -15,7 +15,7 @@ $var title: $_("Attach Debugger")
     <form
         method="POST"
         class="olform"
-        onsubmit="this._start.disabled = true; this._start.textContent = $dumps(_('Waiting for debugger to attach...'));"
+        onsubmit="this._start.disabled = true; this._start.textContent = $json_encode(_('Waiting for debugger to attach...'));"
     >
         <div class="formElement">
             <div class="formElement collapse">

@@ -136,7 +136,7 @@
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
     <field name="title_suggest" type="text_general" multiValued="false"/>
-    <field name="title_sort" type="text_title_sort" multiValued="false"/>
+    <field name="title_sort" type="text_international_sort" multiValued="false" stored="false"/>
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
@@ -146,6 +146,9 @@
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="work_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
+    <field name="cover_i" type="pint" />
+    <field name="cover_width" type="pint" />
+    <field name="cover_height" type="pint" />
     <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
     <field name="publish_year" type="pint" multiValued="true"/>
@@ -162,6 +165,16 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
+
+    <!-- Usefulness scores -->
+    <field name="usefulness_score" type="pint" multiValued="false"/>
+    <field name="usefulness_score_normalized" type="pint" multiValued="false"/>
+    <field name="access_score" type="pint" multiValued="false"/>
+    <field name="access_score_normalized" type="pint" multiValued="false"/>
+    <field name="discovery_score" type="pint" multiValued="false"/>
+    <field name="discovery_score_normalized" type="pint" multiValued="false"/>
+    <field name="evaluation_score" type="pint" multiValued="false"/>
+    <field name="evaluation_score_normalized" type="pint" multiValued="false"/>
 
     <!-- Reading Levels -->
     <field name="lexile" type="pint" multiValued="true"/>
@@ -249,10 +262,12 @@
     <field name="want_to_read_count" type="pint"/>
     <field name="currently_reading_count" type="pint"/>
     <field name="already_read_count" type="pint"/>
+    <field name='stopped_reading_count' type="pint"/>
 
     <!-- Open Syllabus Project -->
     <field name="osp_count" type="pint"/>
 
+    <!-- TODO: This should probably be type text_international since it's the catchall -->
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
@@ -260,7 +275,7 @@
 
    <!-- fields used by documents of type author -->
    <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
-   <field name="name_str" type="string" indexed="true" stored="false"/>
+   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false"/>
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
@@ -336,8 +351,7 @@
     <!-- *** copyFields for OpenLibrary fields *** -->
     <!-- TODO: Can we pare this down for performance and storage? -->
 
-    <copyField source="title" dest="title_suggest"/>
-    <copyField source="title" dest="title_sort"/>
+    <copyField source="title" dest="title_suggest"/> <!-- TODO: Unused internally 3.4 GB text -->
     <copyField source="publisher" dest="publisher_facet"/>
     <copyField source="subject" dest="subject_facet"/>
     <copyField source="place" dest="place_facet"/>
@@ -372,7 +386,7 @@
 
     <!-- Copy author search fields into default search field "text" -->
     <copyField source="name" dest="text"/>
-    <copyField source="name_str" dest="text"/>
+    <copyField source="name" dest="name_sort"/>
     <copyField source="alternate_names" dest="text"/>
 
     <!-- *** END of OpenLibrary copyFields *** -->
@@ -566,18 +580,9 @@
       </analyzer>
     </fieldType>
 
-    <!-- A text field that applies standard title sorting conventions to its content -->
-    <fieldType name="text_title_sort" class="solr.SortableTextField" sortMissingLast="false" omitNorms="true">
-      <analyzer>
-        <tokenizer name="keyword" />
-        <filter name="trim" />
-        <filter name="icuFolding"/>
-        <filter name="patternReplace"
-                pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)"
-                replacement="$2, $1"
-                replace="all"
-        />
-      </analyzer>
+    <!-- A text field that uses the default ICU multi-locale (locale="") collating order -->
+    <fieldType name="text_international_sort" class="solr.ICUCollationField" locale="" strength="primary">
+        <!-- No analyzers allowed here, so field value must be pre-processed, if needed -->
     </fieldType>
 
     <!-- A text field with defaults appropriate for English: it tokenizes with StandardTokenizer,

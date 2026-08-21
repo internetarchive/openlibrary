@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 
 /**
  * A pagination component that displays page numbers with navigation controls.
@@ -7,6 +8,8 @@ import { LitElement, html, css } from 'lit';
  *
  * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
  *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {"small" | "medium"} size - Default: "medium". Heights track the shared
+ *                                  control-height tokens, so a same-size button lines up.
  * @prop {Number} totalPages - Total number of pages (required for "full" mode)
  * @prop {Number} currentPage - Currently selected page (1-indexed)
  * @prop {Boolean} hasNextPage - Whether a next page exists. Only used in "arrows" mode.
@@ -34,6 +37,10 @@ import { LitElement, html, css } from 'lit';
  * <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
  *
  * @example
+ * <!-- Small -->
+ * <ol-pagination size="small" total-pages="50" current-page="1"></ol-pagination>
+ *
+ * @example
  * <!-- Explicit base URL -->
  * <ol-pagination total-pages="50" current-page="1" base-url="/search?q=hello"></ol-pagination>
  *
@@ -58,6 +65,7 @@ import { LitElement, html, css } from 'lit';
 export class OlPagination extends LitElement {
     static properties = {
         mode: { type: String },
+        size: { type: String, reflect: true },
         totalPages: { type: Number, attribute: 'total-pages' },
         currentPage: { type: Number, attribute: 'current-page' },
         hasNextPage: { type: Boolean, attribute: 'has-next-page' },
@@ -71,34 +79,55 @@ export class OlPagination extends LitElement {
     };
 
     static styles = css`
+        /* Size lives in these three custom properties; the rules below read them. */
         :host {
             display: block;
             font-family: var(--font-family-body);
+            --pagination-item-height: var(--control-height-medium);
+            --pagination-font-size: var(--font-size-body-medium);
+            --pagination-icon-size: 18px;
+        }
+
+        :host([size="small"]) {
+            --pagination-item-height: var(--control-height-small);
+            --pagination-font-size: var(--font-size-label-medium);
+            --pagination-icon-size: 16px;
         }
 
         .pagination {
             display: flex;
-            font-size: 14px;
+            font-size: var(--pagination-font-size);
             gap: var(--spacing-inline-xs);
         }
 
+        /* Height (not padding) locks to the control token; min-width matches it
+           so single-digit pages read as squares. */
         .pagination-item {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            border: 1px solid transparent;
+            box-sizing: border-box;
+            height: var(--pagination-item-height);
+            min-width: var(--pagination-item-height);
+            padding: 0 var(--spacing-inset-xs);
             border-radius: var(--border-radius-button);
             background: transparent;
             color: var(--darker-grey, #444);
+            line-height: var(--line-height-control);
             cursor: pointer;
             text-decoration: none;
             font-variant-numeric: tabular-nums;
         }
 
+        .pagination-item svg {
+            display: block;
+            width: var(--pagination-icon-size);
+            height: var(--pagination-icon-size);
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-                background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+                background: var(--color-hover-overlay);
             }
         }
 
@@ -116,7 +145,6 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item[aria-current="page"] {
-            border-color: var(--lighter-grey, #ddd);
             background-color: var(--lightest-grey, #eee);
             cursor: default;
             user-select: none;
@@ -127,29 +155,34 @@ export class OlPagination extends LitElement {
             cursor: not-allowed;
         }
 
+        /* No text to inset — min-width centers the icon. */
         .pagination-arrow {
-            padding: 0 var(--spacing-inline-xs);
+            padding: 0;
         }
 
+        /* Height-matched to the items; natural width, since it's not a target. */
         .ellipsis {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: var(--pagination-item-height);
+            padding: 0 var(--spacing-inset-xs);
             color: var(--mid-grey, #aaa);
             cursor: default;
             user-select: none;
         }
     `;
 
-    /** Left chevron arrow icon */
-    static _leftArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
+    /** Left chevron arrow icon. Sized by CSS. */
+    static _leftArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
 
-    /** Right chevron arrow icon */
-    static _rightArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
+    /** Right chevron arrow icon. Sized by CSS. */
+    static _rightArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
 
     constructor() {
         super();
         this.mode = 'full';
+        this.size = 'medium';
         this.totalPages = 1;
         this.currentPage = 1;
         this.hasNextPage = false;
@@ -231,30 +264,15 @@ export class OlPagination extends LitElement {
      */
     _handleKeyDown(e) {
         const focusable = this._getFocusableElements();
-        const currentIndex = focusable.indexOf(this.shadowRoot.activeElement);
-
-        switch (e.key) {
-        case 'ArrowLeft':
-            e.preventDefault();
-            if (currentIndex > 0) {
-                focusable[currentIndex - 1].focus();
-            }
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            if (currentIndex < focusable.length - 1) {
-                focusable[currentIndex + 1].focus();
-            }
-            break;
-        case 'Home':
-            e.preventDefault();
-            focusable[0]?.focus();
-            break;
-        case 'End':
-            e.preventDefault();
-            focusable[focusable.length - 1]?.focus();
-            break;
-        }
+        const target = getNextKeyboardFocusIndex(e.key, {
+            count: focusable.length,
+            current: focusable.indexOf(this.shadowRoot.activeElement),
+            orientation: 'horizontal',
+            wrap: false,
+        });
+        if (target === -1) return;
+        e.preventDefault();
+        focusable[target].focus();
     }
 
     /**

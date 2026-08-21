@@ -4,13 +4,17 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.12 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 9.9
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
+
+> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+
+> 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
 ### Key Commands
 
-**Before committing**, run pre-commit on your changed files (requires Python 3.12 on host — `brew install python@3.12`):
+**Before committing**, run pre-commit on your changed files (requires Python 3.14 on host — `brew install python@3.14`):
 
 ```bash
 pre-commit run --files <file1> <file2> ...
@@ -25,10 +29,16 @@ The `mypy` and `generate-pot` hooks will fail on the host (they need `infogami` 
 - **Walrus operator** — prefer `if x := expr:` over `x = expr` / `if x:` (auto-walrus enforces this)
 - **Line length** — max 162 chars
 
-The following commands should always be run inside docker like this: `docker compose run --rm home <command>`
+The following commands should be run inside docker (with `docker compose run --rm home <command>`). The exception is `test-py-uv`, which runs faster outside Docker using `uv`:
 
 ```bash
+make test-py-uv             # Python tests (preferred — runs outside Docker with uv)
 make test-py                # Python tests
+
+# Run a subset of Python tests by specifying a path:
+make test-py-uv PYTEST_ARGS="openlibrary/tests/fastapi/"
+# Or directly: uv run --with-requirements requirements_test.txt pytest openlibrary/tests/fastapi/
+
 npm run test:js             # JS tests
 make lint                   # Python lint (ruff)
 npm run lint                # JS + CSS lint
@@ -41,6 +51,7 @@ npm run watch               # Dev mode with hot reload
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
 - **JS:** ESLint, single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
+- **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
 - **Branches:** `{issue-number}/{type}/{slug}`
 
 ### Entry Points
@@ -49,7 +60,7 @@ npm run watch               # Dev mode with hot reload
 |---|---|
 | App entry | `openlibrary/code.py` |
 | FastAPI | `openlibrary/asgi_app.py` |
-| Route handlers | `openlibrary/plugins/*/code.py` |
+| Route handlers | `openlibrary/plugins/*/code.py` (legacy web.py) · **FastAPI routers** (preferred): `openlibrary/fastapi/*.py` |
 | Templates | `openlibrary/templates/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
@@ -89,7 +100,7 @@ curl "http://localhost:18080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies
 ### FastAPI and web.py Interaction
 
 Open Library runs two web servers in parallel:
-- **web.py** (port 8080) — Legacy Infogami app
+- **web.py** (port 8080) — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI
 - **FastAPI** (port 18080) — New async endpoints via nginx proxy
 
 When testing:

@@ -1,5 +1,14 @@
 import {initialzeCarousels} from './carousel';
-import { buildPartialsUrl } from './utils';
+import { buildPartialsUrl, whenVisible } from './utils';
+
+let relatedBooksTracked = false;
+let bannerClicked = false;
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('a[data-ol-link-track="OpenRelatedBooks|BannerClick"]')) {
+        bannerClicked = true;
+    }
+});
 
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
@@ -8,16 +17,8 @@ import { buildPartialsUrl } from './utils';
  * @param elems {NodeList<HTMLElement>} Collection of placeholder carousel elements
  */
 export function initLazyCarousel(elems) {
-    // Create intersection observer
-    const intersectionObserver = new IntersectionObserver(intersectionCallback, {
-        root: null,
-        rootMargin: '200px',
-        threshold: 0
-    });
-
     elems.forEach(elem => {
-        // Observe element for intersections
-        intersectionObserver.observe(elem);
+        whenVisible(elem).then(() => doFetchAndUpdate(elem));
 
         // Add retry listener
         const retryElem = elem.querySelector('.retry-btn');
@@ -80,6 +81,36 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
+
+                // ==========================================
+                // EXPERIMENT TRACKING: Related Books Discovery
+                // Tracks natural scrolling vs banner clicks.
+                // Can be safely deleted no problems
+                // ==========================================
+                if (config.key === 'related-subjects-carousel' || config.key === 'related-authors-carousel') {
+                    const body = document.getElementById('contentBody');
+                    const lendingState = body ? body.getAttribute('data-lending-state') : null;
+                    const unavailableStates = ['preview_only', 'checkedout', 'waitlist', 'locate'];
+                    const isUnavailable = unavailableStates.indexOf(lendingState) !== -1;
+
+                    let action;
+                    if (bannerClicked) {
+                        action = 'FromBanner';
+                    } else if (isUnavailable) {
+                        action = 'ScrolledDownUnavailable';
+                    } else {
+                        action = 'ScrolledDownAvailable';
+                    }
+
+                    if (!relatedBooksTracked && window.archive_analytics && window.archive_analytics.ol_send_event_ping) {
+                        window.archive_analytics.ol_send_event_ping({
+                            category: 'OpenRelatedBooks',
+                            action: action,
+                            label: lendingState,
+                        });
+                        relatedBooksTracked = true;
+                    }
+                }
             }
         })
         .catch(() => {
@@ -103,22 +134,4 @@ function handleRetry(target) {
         carouselFallbackElem.classList.add('hidden');
     }
     doFetchAndUpdate(target);
-}
-
-/**
- * Callback used by the lazy-loaded carousel intersection observer.
- *
- * Unregisters target from observer and fetches carousel HTML.
- *
- * @param entries {Array<IntersectionObserverEntry>}
- * @param observer {IntersectionObserver}
- */
-function intersectionCallback(entries, observer) {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const target = entry.target;
-            observer.unobserve(target);
-            doFetchAndUpdate(target);
-        }
-    });
 }

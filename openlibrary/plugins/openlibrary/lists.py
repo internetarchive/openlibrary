@@ -10,7 +10,6 @@ from urllib.parse import parse_qs
 import web
 from pydantic import BaseModel
 from starlette.datastructures import URL
-from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
@@ -116,7 +115,7 @@ class ListRecord:
         else:
             raise ValueError("Invalid seed")
 
-    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
+    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict]:
         for seed in self.seeds:
             if isinstance(seed, dict):
                 if "thing" in seed:
@@ -191,6 +190,13 @@ SeedType = Literal["subject", "author", "work", "edition"]
 
 
 def seed_key_to_seed_type(key: str) -> SeedType:
+    if not key:
+        raise ValueError("Seed key cannot be empty")
+
+    if "/" not in key:
+        # E.g. "subject:foo" or "place:bar"
+        return "subject"
+
     match key.split("/")[1]:
         case "subjects":
             return "subject"
@@ -279,9 +285,6 @@ class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
-
-    def is_enabled(self):
-        return "lists" in web.ctx.features
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
@@ -463,30 +466,12 @@ class lists_add(delegate.page):
         return lists_edit().POST(user_key, list_type_plural, None)
 
 
-@deprecated("migrated to fastapi")
-class lists_delete(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
-    encoding = "json"
+class lists_delete:
+    """Legacy helper for the FastAPI list delete endpoints.
 
-    def POST(self, key):
-        if not (user := get_current_user()):
-            raise web.unauthorized()
-        # Check if current user is admin or list owner
-        if not user.is_admin() and (user.key and not key.startswith(user.key)):
-            raise web.unauthorized()
-        doc = web.ctx.site.get(key)
-        if doc is None or doc.type.key != "/type/list":
-            raise web.notfound()
-
-        try:
-            self.process_delete(doc, key)
-        except client.ClientException as e:
-            web.ctx.status = e.status
-            web.header("Content-Type", "application/json")
-            return delegate.RawText(e.json)
-
-        web.header("Content-Type", "application/json")
-        return delegate.RawText('{"status": "ok"}')
+    POST /people/{username}/lists/{list_id}/delete.json is served by FastAPI
+    (openlibrary/fastapi/lists.py) and reuses this helper.
+    """
 
     @staticmethod
     def process_delete(doc, key: str):
@@ -530,28 +515,12 @@ def build_pagination_links(
     return links
 
 
-class lists_json(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
-    encoding = "json"
-    content_type = "application/json"
+class lists_json:
+    """Legacy helper for the FastAPI lists.json endpoints.
 
-    def GET(self, path):
-        i = web.input(offset=0, limit=50)
-        offset = h.safeint(i.offset, 0)
-        limit = h.safeint(i.limit, 50)
-
-        limit = min(limit, 100)
-        offset = max(offset, 0)
-
-        lists = self.get_lists_data(
-            path,
-            limit=limit,
-            offset=offset,
-            query_path=web.ctx.path,
-        )
-        if lists is None:
-            raise web.notfound()
-        return delegate.RawText(self.dumps(lists))
+    GET and POST */lists.json are served by FastAPI (openlibrary/fastapi/lists.py)
+    and reuse these helpers.
+    """
 
     @staticmethod
     def get_lists_data(
@@ -593,42 +562,6 @@ class lists_json(delegate.page):
             "entries": [lst.preview() for lst in lists],
         }
 
-    def forbidden(self):
-        headers = {"Content-Type": self.get_content_type()}
-        data = {"message": "Permission denied."}
-        return web.HTTPError("403 Forbidden", data=self.dumps(data), headers=headers)
-
-    def POST(self, user_key):
-        # POST is allowed only for /people/foo/lists
-        if not user_key.startswith("/people/"):
-            raise web.nomethod()
-
-        site = web.ctx.site
-        user = site.get(user_key)
-
-        if not user:
-            raise web.notfound()
-
-        if not site.can_write(user_key):
-            raise self.forbidden()
-
-        data = self.loads(web.data())
-        # TODO: validate data
-
-        try:
-            result = self.process_new_list(user, data, site)
-        except ValueError as e:
-            if str(e) == "Spam list":
-                raise self.forbidden()
-            raise
-        except client.ClientException as e:
-            headers = {"Content-Type": self.get_content_type()}
-            err_data = {"message": str(e)}
-            raise web.HTTPError(e.status, data=self.dumps(err_data), headers=headers)
-
-        web.header("Content-Type", self.get_content_type())
-        return delegate.RawText(self.dumps(result))
-
     @staticmethod
     def process_new_list(user, data, site):
         seeds = lists_json.process_seeds(data.get("seeds", []))
@@ -656,19 +589,26 @@ class lists_json(delegate.page):
     ) -> list[Seed]:
         return [ListRecord.normalize_input_seed(seed) for seed in seeds]
 
-    def get_content_type(self):
-        return self.content_type
 
-    def dumps(self, data):
-        return formats.dump(data, self.encoding)
-
-    def loads(self, text):
-        return formats.load(text, self.encoding)
-
-
-class lists_yaml(lists_json):
+class lists_yaml(delegate.page):
+    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "yml"
     content_type = "text/yaml"
+
+    def GET(self, path):
+        i = web.input(offset=0, limit=50)
+        offset = max(h.safeint(i.offset, 0), 0)
+        limit = min(h.safeint(i.limit, 50), 100)
+
+        lists = lists_json.get_lists_data(
+            path,
+            limit=limit,
+            offset=offset,
+            query_path=web.ctx.path,
+        )
+        if lists is None:
+            raise web.notfound()
+        return delegate.RawText(formats.dump(lists, self.encoding))
 
 
 def get_list(key: str, raw: bool = False) -> dict | None:
@@ -708,11 +648,10 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     }
 
 
-@deprecated("migrated to fastapi")
-class list_view_json(delegate.page):
+class list_view_yaml(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
-    encoding = "json"
-    content_type = "application/json"
+    encoding = "yml"
+    content_type = "text/yaml"
 
     def GET(self, key):
         i = web.input()
@@ -724,13 +663,8 @@ class list_view_json(delegate.page):
         return delegate.RawText(formats.dump(lst, self.encoding))
 
 
-class list_view_yaml(list_view_json):
-    encoding = "yml"
-    content_type = "text/yaml"
-
-
 def get_list_seeds(key):
-    if lst := web.ctx.site.get(key):
+    if lst := site.get().get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
             "links": {"self": key + "/seeds", "list": key},
@@ -739,78 +673,32 @@ def get_list_seeds(key):
         }
 
 
-class list_seeds(delegate.page):
-    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/seeds"
-    encoding = "json"
+def list_seeds_process_update(lst, data, key):
+    # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
+    for seed in lists_json.process_seeds(data["add"]):
+        lst.add_seed(seed)
 
-    content_type = "application/json"
+    for seed in lists_json.process_seeds(data["remove"]):
+        lst.remove_seed(seed)
 
-    def GET(self, key):
-        lst = get_list_seeds(key)
-        if not lst:
-            raise web.notfound()
+    seeds = []
+    for seed in data["add"] + data["remove"]:
+        if isinstance(seed, dict):
+            seeds.append(seed["key"])
+        else:
+            seeds.append(seed)
 
-        return delegate.RawText(formats.dump(lst, self.encoding), content_type=self.content_type)
+    changeset_data = {
+        "list": {"key": key},
+        "seeds": seeds,
+        "add": data["add"],
+        "remove": data["remove"],
+    }
 
-    def POST(self, key):
-        site = web.ctx.site
+    # Distinguish between list and series seed updates for logging/audit purposes.
+    action = "edit-series-seeds" if "/series/" in key else "edit-list-seeds"
 
-        lst = cast(List | None, site.get(key))
-        if not lst:
-            raise web.notfound()
-
-        if not site.can_write(key):
-            raise web.HTTPError(
-                "403 Forbidden",
-                {"Content-Type": "application/json"},
-                data=json.dumps({"message": "Permission denied."}),
-            )
-
-        data = formats.load(web.data(), self.encoding)
-
-        data.setdefault("add", [])
-        data.setdefault("remove", [])
-
-        try:
-            d = self.process_seeds_update(lst, data, key)
-        except ValueError as e:
-            raise web.badrequest(json.dumps({"message": str(e)}))
-
-        web.header("Content-Type", self.content_type)
-        return delegate.RawText(formats.dump(d, self.encoding))
-
-    @staticmethod
-    def process_seeds_update(lst, data, key):
-        # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
-        for seed in lists_json.process_seeds(data["add"]):
-            lst.add_seed(seed)
-
-        for seed in lists_json.process_seeds(data["remove"]):
-            lst.remove_seed(seed)
-
-        seeds = []
-        for seed in data["add"] + data["remove"]:
-            if isinstance(seed, dict):
-                seeds.append(seed["key"])
-            else:
-                seeds.append(seed)
-
-        changeset_data = {
-            "list": {"key": key},
-            "seeds": seeds,
-            "add": data["add"],
-            "remove": data["remove"],
-        }
-
-        # Distinguish between list and series seed updates for logging/audit purposes.
-        action = "edit-series-seeds" if "/series/" in key else "edit-list-seeds"
-
-        return lst._save(comment="Updated list.", action=action, data=changeset_data)
-
-
-class list_seed_yaml(list_seeds):
-    encoding = "yml"
-    content_type = 'text/yaml; charset="utf-8"'
+    return lst._save(comment="Updated list.", action=action, data=changeset_data)
 
 
 def _pagination_url(url: URL, **kwargs) -> str:
@@ -884,12 +772,10 @@ def get_list_editions(
     )
 
 
-@deprecated("migrated to fastapi")
-class list_editions_json(delegate.page):
+class list_editions_yaml(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/editions"
-    encoding = "json"
-
-    content_type = "application/json"
+    encoding = "yml"
+    content_type = 'text/yaml; charset="utf-8"'
 
     def GET(self, key):
         i = web.input(limit=50, offset=0)
@@ -904,25 +790,6 @@ class list_editions_json(delegate.page):
         if not editions:
             raise web.notfound()
         return delegate.RawText(formats.dump(editions.dict(), self.encoding), content_type=self.content_type)
-
-
-class list_editions_yaml(list_editions_json):
-    encoding = "yml"
-    content_type = 'text/yaml; charset="utf-8"'
-
-
-@deprecated("migrated to fastapi")
-class list_subjects_json(delegate.page):
-    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/subjects"
-    encoding = "json"
-    content_type = "application/json"
-
-    def GET(self, key):
-        data = get_list_subjects(key, limit=h.safeint(web.input(limit=20).limit, 20))
-        if not data:
-            raise web.notfound()
-        text = formats.dump(data.dict(), self.encoding)
-        return delegate.RawText(text, content_type=self.content_type)
 
 
 def _process_subject(s: dict) -> ListSubjectEntry:
@@ -947,11 +814,6 @@ def get_list_subjects(key: str, limit: int = 20) -> ListSubjectsModel | None:
         times=[_process_subject(s) for s in data.get("times", [])],
         links=ListSubjectsLinks(self=key + "/subjects", list=key),
     )
-
-
-class list_subjects_yaml(list_subjects_json):
-    encoding = "yml"
-    content_type = 'text/yaml; charset="utf-8"'
 
 
 class lists_embed(delegate.page):

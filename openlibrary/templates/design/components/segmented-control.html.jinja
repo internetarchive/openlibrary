@@ -1,0 +1,140 @@
+{% import "design/_example.html.jinja" as ex %}
+{% set GRID_ICON %}
+    <svg viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linejoin="round"
+         aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+{% endset %}
+{% set LIST_ICON %}
+    <svg viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         aria-hidden="true">
+        <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+    </svg>
+{% endset %}
+{% macro icon_pair(size, label) %}
+    <ol-segmented-control {% if size %}size="{{ size }}"{% endif %} value="grid" accessible-label="{{ label }}">
+        <ol-segment value="grid" label="Grid">
+            {{ GRID_ICON }}
+        </ol-segment>
+        <ol-segment value="list" label="List">
+            {{ LIST_ICON }}
+        </ol-segment>
+    </ol-segmented-control>
+{% endmacro %}
+{% macro demos() %}
+    <p class="ds-lead">
+        Options are <code>&lt;ol-segment&gt;</code> children with a <code>value</code>; their text is the label. The component reads them once and renders accessible radios — no per-option wiring. Exactly one option is always selected.
+    </p>
+    {% call ex.example("Default") %}
+        <ol-segmented-control value="list" accessible-label="View">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+            <ol-segment value="compact">
+                Compact
+            </ol-segment>
+        </ol-segmented-control>
+    {% endcall %}
+    {% call ex.example("Sizes", "Heights track the shared --control-height-* tokens, so each size lines up with the same-size button.", output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
+        <ol-segmented-control size="small" accessible-label="View (small)">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-segmented-control accessible-label="View (medium)">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-segmented-control size="large" accessible-label="View (large)">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+        </ol-segmented-control>
+    {% endcall %}
+    {% call ex.example("Icons", "A segment's content can be markup instead of text. Give icon-only segments a label attribute so the radio is named. Icons inherit the segment's color, so they track selected and hover states for free.",
+        code='<ol-segmented-control value="grid" accessible-label="View">\n  <ol-segment value="grid" label="Grid">\n    <svg viewBox="0 0 24 24" ...>...</svg>\n  </ol-segment>\n  <ol-segment value="list" label="List">\n    <svg viewBox="0 0 24 24" ...>...</svg>\n  </ol-segment>\n</ol-segmented-control>',
+        output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
+        {{ icon_pair('small', 'View (small)') }}
+        {{ icon_pair('', 'View (medium)') }}
+        {{ icon_pair('large', 'View (large)') }}
+    {% endcall %}
+    {% call ex.example("Disabled", "Disable the whole control, or a single option with disabled on its <ol-segment>.", output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
+        <ol-segmented-control disabled accessible-label="Disabled control">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+        </ol-segmented-control>
+        <ol-segmented-control accessible-label="Range">
+            <ol-segment value="day">
+                Day
+            </ol-segment>
+            <ol-segment value="week">
+                Week
+            </ol-segment>
+            <ol-segment value="year" disabled>
+                Year
+            </ol-segment>
+        </ol-segmented-control>
+    {% endcall %}
+    {% call ex.example("Full width", "Options share the container width equally.", output_style="max-width: 420px;") %}
+        <ol-segmented-control full-width accessible-label="Format">
+            <ol-segment value="ebook">
+                Ebook
+            </ol-segment>
+            <ol-segment value="audiobook">
+                Audiobook
+            </ol-segment>
+            <ol-segment value="print">
+                Print
+            </ol-segment>
+        </ol-segmented-control>
+    {% endcall %}
+    {% call ex.example("Change event", "Selecting fires ol-segmented-control-change with the new value in event.detail.value. Click, or focus the control and use the arrow / Home / End keys.") %}
+        <ol-segmented-control id="demo-segmented" accessible-label="View">
+            <ol-segment value="grid">
+                Grid
+            </ol-segment>
+            <ol-segment value="list">
+                List
+            </ol-segment>
+            <ol-segment value="compact">
+                Compact
+            </ol-segment>
+        </ol-segmented-control>
+        <p>Selected value: <strong id="demo-segmented-output">grid</strong></p>
+        <script>
+            document.getElementById('demo-segmented').addEventListener('ol-segmented-control-change', (e) => {
+                document.getElementById('demo-segmented-output').textContent = e.detail.value;
+            });
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Keyboard &amp; accessibility.</b> Renders as a <code>radiogroup</code> of <code>radio</code>s. Tab moves into the selected option; arrow keys and Home / End move the selection between enabled options, wrapping at the ends. Disabled options are skipped. Always provide an <code>accessible-label</code>.
+        </p>
+    </div>
+{% endmacro %}

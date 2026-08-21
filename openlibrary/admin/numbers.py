@@ -147,8 +147,14 @@ def admin_range__covers(**kargs):
         db = kargs["coverdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__covers")
-    q1 = f"SELECT count(*) as count from cover where created>= '{start}' and created < '{end}'"
-    result = db.query(q1)
+    # Match the parameterized form used by sibling admin_range__* helpers in
+    # this module (see admin_range__bot_edits, admin_range__loans). `start`
+    # and `end` are derived from `datetime.strftime` so they are not directly
+    # user-controllable today, but using `vars=` keeps this consistent with
+    # the parameterized convention and removes the f-string footgun if a
+    # future caller passes raw input.
+    q1 = "SELECT count(*) as count FROM cover WHERE created >= $start AND created < $end"
+    result = db.query(q1, vars={"start": start, "end": end})
     count = result[0].count
     return count
 

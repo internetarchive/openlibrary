@@ -111,7 +111,7 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
 
     # Process ocaids in batches of 1000
     BATCH_SIZE = 1_000
-    for batch_keys in batched(edition_keys, BATCH_SIZE):
+    for batch_keys in batched(edition_keys, BATCH_SIZE, strict=False):
         ol_editions = web.ctx.site.get_many(list(batch_keys))
 
         updated_eds = []

@@ -8,7 +8,7 @@
   font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
-  border-bottom: 1px solid var(--beige);
+  border-bottom: 1px solid var(--color-border-subtle);
   z-index: var(--z-index-level-2);
 }
 .page-banner-mybooks {
@@ -70,17 +70,33 @@
   font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
-  border-bottom: 1px solid var(--beige);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .page-banner--dismissable-content {
   flex: 1;
   text-align: center;
 }
 .page-banner--dismissable-close {
-  height: 100%;
-  margin-left: auto;
-  color: var(--white);
-  border: none;
-  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
   cursor: pointer;
+}
+.page-banner--dismissable-close::before,
+.page-banner--dismissable-close::after {
+  width: var(--focus-width);
+  height: var(--font-size-title-large);
+  background-color: var(--grey);
+  content: " ";
+  display: block;
+  position: absolute;
+  border-radius: var(--border-radius-sm);
+}
+.page-banner--dismissable-close::after {
+  transform: rotate(45deg);
+}
+.page-banner--dismissable-close::before {
+  transform: rotate(-45deg);
 }

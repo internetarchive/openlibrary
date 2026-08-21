@@ -3,6 +3,12 @@
  * https://docs.openlibrary.org/designers/design-pattern-library.html#searchresultcontainer
  */
 
+:root {
+  /* Shared so .search-filter-row can reserve the same space and line up with
+     the results column rather than the full content width. */
+  --search-facets-width: 220px;
+}
+
 @media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
   .resultsContainer {
     display: flex;

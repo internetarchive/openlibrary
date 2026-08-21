@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,9 +7,11 @@ import web
 
 from infogami import config
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
-from openlibrary.mocks.mock_infobase import MockSite
 
 from .. import utils
+
+if TYPE_CHECKING:
+    from openlibrary.mocks.mock_infobase import MockSite
 
 
 def test_url_quote():
@@ -383,3 +386,10 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
+
+
+def test_json_encode():
+    assert utils.json_encode({"a": 1, "b": 2}) == '{"a": 1, "b": 2}'
+    assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
+        '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
+    )

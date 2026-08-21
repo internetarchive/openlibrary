@@ -1,0 +1,73 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Types", "Errors are announced assertively (role=\"alert\").",
+        code="showToast(i18nStrings.savedToReadingLog);\nshowToast(i18nStrings.subjectsUpdated, { type: 'success' });\nshowToast(i18nStrings.listUpdateFailed, { type: 'error' });",
+        language="js",
+        output_style="display: flex; flex-direction: column; gap: 12px;") %}
+        <ol-toast persistent message="Saved to your reading log" label-close="Close">
+        </ol-toast>
+        <ol-toast type="success" persistent message="Subjects successfully updated" label-close="Close">
+        </ol-toast>
+        <ol-toast type="error" persistent message="Could not update list. Please try again later." label-close="Close">
+        </ol-toast>
+    {% endcall %}
+    {% call ex.example("Description and rich content", "description adds a secondary line. For rich content, author the markup in an inert <template> in the page template — where $_() extraction works — and pass that element to showToast(); its content is cloned in. Nothing is ever parsed from a runtime string as HTML.",
+        code='showToast(i18nStrings.relaunchToUpdate, { description: \'v1.11187.4\', persistent: true });\n\n<!-- Rich content: write the HTML in the page template… -->\n<template id="save-error-toast">\n  $_("Could not save.") <a href="/help">$_("Get help")</a>\n</template>\n\n// …and pass the template element to showToast()\nshowToast(document.querySelector(\'#save-error-toast\'), { type: \'error\', persistent: true });',
+        output_style="display: flex; flex-direction: column; gap: 12px;") %}
+        <ol-toast persistent message="Relaunch to update" description="v1.11187.4" label-close="Close">
+        </ol-toast>
+        <ol-toast type="error" persistent label-close="Close">
+            Could not save. <a href="/help">Get help</a>
+        </ol-toast>
+    {% endcall %}
+    {% call ex.example("Imperative use", "showToast() stacks toasts in a shared fixed <ol-toast-region> at the bottom-center of the viewport. New toasts slide up from below; older ones move up to make room. They dismiss after timeout ms (default 4000) unless persistent. Hovering or focusing the list pauses every timer. The message is set as an attribute — always text, never HTML — and should already be translated.",
+        code="import { showToast } from './OlToastRegion.js';\n\nshowToast(i18nStrings.updateSuccess, { type: 'success' });\nshowToast(i18nStrings.failedSubmitCheckIn, { type: 'error', persistent: true });",
+        language="js",
+        output_style="display: flex; gap: 12px; flex-wrap: wrap;") %}
+        <button id="demo-toast-add" class="demo-btn">Add toast</button>
+        <button id="demo-toast-error" class="demo-btn">Add persistent error toast</button>
+        <button id="demo-toast-rich" class="demo-btn">Add rich content toast</button>
+        <template id="demo-rich-toast-template">Could not save. <a href="/help">Get help</a></template>
+        <script>
+            (function () {
+                // Mirrors showToast() from OlToastRegion.js, which isn't importable from a page script.
+                function demoShowToast(message, options = {}) {
+                    let region = document.querySelector('ol-toast-region');
+                    if (!region) {
+                        region = document.createElement('ol-toast-region');
+                        document.body.appendChild(region);
+                    }
+                    const toast = document.createElement('ol-toast');
+                    if (options.type) toast.setAttribute('type', options.type);
+                    if (options.persistent) toast.setAttribute('persistent', '');
+                    if (options.timeout) toast.setAttribute('timeout', options.timeout);
+                    if (options.description) toast.setAttribute('description', options.description);
+                    if (typeof message === 'string') {
+                        toast.setAttribute('message', message);
+                    } else if (message instanceof HTMLTemplateElement) {
+                        toast.append(message.content.cloneNode(true));
+                    } else {
+                        toast.append(...[].concat(message));
+                    }
+                    region.appendChild(toast);
+                }
+                let count = 0;
+                document.getElementById('demo-toast-add').addEventListener('click', () => {
+                    count += 1;
+                    demoShowToast(`Update successful! (${count})`, { timeout: 6000 });
+                });
+                document.getElementById('demo-toast-error').addEventListener('click', () => {
+                    demoShowToast('Comment submission failed. Please try again.', { type: 'error', persistent: true });
+                });
+                document.getElementById('demo-toast-rich').addEventListener('click', () => {
+                    demoShowToast(document.getElementById('demo-rich-toast-template'), { type: 'error', persistent: true });
+                });
+            })();
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Close event.</b> Fires <code>ol-toast-close</code> once when closing begins, with the reason in <code>event.detail.reason</code> — <code>"timeout"</code>, <code>"close-button"</code>, or <code>"programmatic"</code>.
+        </p>
+    </div>
+{% endmacro %}

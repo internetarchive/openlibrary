@@ -13,6 +13,12 @@ class Bestbook(db.CommonExtras):
     class AwardConditionsError(Exception):
         pass
 
+    # `select` is interpolated raw into the SQL string below. Restrict it to
+    # the two values the rest of this class actually needs so the function
+    # cannot be turned into a column-list SQL injection sink if a future
+    # caller forwards user input as `select`.
+    _ALLOWED_SELECTS: tuple[str, ...] = ("*", "count(*)")
+
     @classmethod
     def prepare_query(
         cls,
@@ -22,6 +28,8 @@ class Bestbook(db.CommonExtras):
         topic: str | None = None,
     ) -> tuple[str, dict]:
         """Prepare query for fetching bestbook awards"""
+        if select not in cls._ALLOWED_SELECTS:
+            raise ValueError(f"Invalid select: {select!r}. Must be one of {cls._ALLOWED_SELECTS}.")
         conditions = []
         filters = {
             "work_id": work_id,

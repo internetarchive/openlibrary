@@ -1,0 +1,46 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Event-based", "Clicking a page fires update:page with the page number in event.detail. The component does not move itself — set current-page in your handler.") %}
+        <ol-pagination id="demo-pagination" total-pages="10" current-page="1">
+        </ol-pagination>
+        <p>Selected page: <strong id="demo-selected-page">1</strong></p>
+        <script>
+            document.getElementById('demo-pagination').addEventListener('update:page', (e) => {
+                document.getElementById('demo-selected-page').textContent = e.detail;
+                e.target.setAttribute('current-page', e.detail);
+            });
+        </script>
+    {% endcall %}
+    {% call ex.example("Sizes", "Use size to match the surrounding controls. Heights track the shared --control-height-* tokens, so each size lines up with the same-size button. Medium is the default.", output_style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;") %}
+        <ol-pagination size="small" total-pages="10" current-page="3" label-pagination="Pagination sizes, small">
+        </ol-pagination>
+        <ol-pagination total-pages="10" current-page="3" label-pagination="Pagination sizes, medium">
+        </ol-pagination>
+    {% endcall %}
+    {% call ex.example("URL-based navigation", "With base-url the component renders anchors instead, for SEO-friendly links.") %}
+        <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example">
+        </ol-pagination>
+    {% endcall %}
+    {% call ex.example("Edges and ellipsis", "Arrows drop out at the first and last page; long ranges collapse to an ellipsis.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-pagination total-pages="20" current-page="1">
+        </ol-pagination>
+        <ol-pagination total-pages="20" current-page="10">
+        </ol-pagination>
+        <ol-pagination total-pages="20" current-page="20">
+        </ol-pagination>
+        <ol-pagination total-pages="3" current-page="2">
+        </ol-pagination>
+        <ol-pagination total-pages="5" current-page="3">
+        </ol-pagination>
+        <ol-pagination total-pages="100" current-page="50">
+        </ol-pagination>
+    {% endcall %}
+    {% call ex.example("Arrows mode", "When the total isn't known, show only previous/next. has-next-page controls whether the forward arrow is live.", output_style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;") %}
+        <ol-pagination mode="arrows" current-page="3" has-next-page>
+        </ol-pagination>
+        <ol-pagination mode="arrows" current-page="3">
+        </ol-pagination>
+        <ol-pagination mode="arrows" current-page="1" has-next-page>
+        </ol-pagination>
+    {% endcall %}
+{% endmacro %}

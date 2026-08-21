@@ -1,4 +1,4 @@
-$def with (book, edition_sort_key, render_first=False)
+$def with (book, edition_sort_key, render_first=False, lending_state=None)
 $# :param Edition book:
 $# :param str edition_sort_key:
 
@@ -90,7 +90,7 @@ $ url = book.get_cover_url("S") or "/static/images/icons/avatar_book-sm.png"
       <div class="links">
         <ul class="read">
           $# render_first is only true on the book page for an edition.
-          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first, lending_state=lending_state)</li>
         </ul>
       </div>
     </td>

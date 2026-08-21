@@ -1,11 +1,9 @@
-import json
 from dataclasses import dataclass
 from typing import Literal, cast, override
 
 import requests
 import web
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.flash import add_flash_message
 from infogami.utils.template import render_template
@@ -24,7 +22,7 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
@@ -38,7 +36,7 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
@@ -62,56 +60,14 @@ class import_preview(delegate.page):
             )
 
 
-class import_preview_json(delegate.page):
-    path = "/import/preview"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self):
-        user = web.ctx.site.get_user()
-
-        if user is None:
-            raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
-        if not has_access:
-            raise web.forbidden()
-
-        try:
-            req = ImportPreviewRequest.from_input(web.input())
-        except ValueError as e:
-            return {"success": False, "error": str(e)}
-
-        # GET requests should not save the import
-        req.save = False
-
-        return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
-
-    @jsonapi
-    def POST(self):
-        user = web.ctx.site.get_user()
-
-        if user is None:
-            raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
-        if not has_access:
-            raise web.forbidden()
-
-        try:
-            req = ImportPreviewRequest.from_input(web.input())
-        except ValueError as e:
-            return {"success": False, "error": str(e)}
-
-        return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
-
-
 @dataclass
 class ImportPreviewRequest:
-    metadata_provider: "AbstractMetadataProvider"
+    metadata_provider: AbstractMetadataProvider
     identifier: str
     save: bool
 
     @staticmethod
-    def from_input(i: dict) -> "ImportPreviewRequest":
+    def from_input(i: dict) -> ImportPreviewRequest:
         source = cast(str | None, i.get("source"))
         provider = cast(str | None, i.get("provider"))
 

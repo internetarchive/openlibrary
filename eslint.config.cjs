@@ -24,6 +24,7 @@ module.exports = [
       "vendor/",
       "tests/screenshots/",
       "venv/",
+      ".venv/",
       "eslint.config.cjs",
     ],
   },
@@ -32,11 +33,10 @@ module.exports = [
   {
     files: [
       "webpack.config.js",
-      "webpack.config.css.js",
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
-      "stories/.storybook/main.js",
+      "stylelint/*.cjs",
     ],
     languageOptions: {
       sourceType: "script",
@@ -55,25 +55,11 @@ module.exports = [
     files: [
       "openlibrary/components/vite.config.mjs",
       "openlibrary/components/vite-lit.config.mjs",
+      "vite-css.config.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Storybook preview files (ES modules)
-  {
-    files: ["stories/.storybook/preview.js"],
-    languageOptions: {
-      sourceType: "module",
-      ecmaVersion: "latest",
       globals: {
         ...globals.node,
       },
@@ -219,7 +205,7 @@ module.exports = [
 
   // Configuration for test files
   {
-    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js"],
+    files: ["tests/unit/**/*.{js,vue}", "tests/unit/js/setup.js", "openlibrary/components/__tests__/**/*.js", "openlibrary/components/test-utils/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.es2021,

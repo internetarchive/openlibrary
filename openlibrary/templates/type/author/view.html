@@ -59,7 +59,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 </div>
 
 <div id="contentBody">
-    $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
+    $if ctx.user and ctx.user.is_librarian_or_higher() and query_param('merge', 'false') == 'true':
         $ mrid = query_param('mrid', None)
         $ comment = query_param('comment', None)
         $ duplicate_olids = query_param('duplicates', '').split(',')
@@ -74,7 +74,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $ data['olids'] = olids
 
         <div class="message" style="display: none;">
-            <div id="preMerge" style="display: none;" data-keys="$dumps(data)">
+            <div id="preMerge" style="display: none;" data-keys="$json_encode(data)">
                 <p class="larger collapse"><strong>$_('Merging Authors...')</strong></p>
                 <p class="collapse adjust"><img src="/static/images/ajax-loader-bar.gif" width="220" height="19" alt="$_('In progress...')"/></p>
                 <p class="smaller lightgreen collapse">$_('Duplicates')</p>
@@ -100,7 +100,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         </div>
 
     <div class="contentTwothird" style="margin-bottom:0;">
-        $ show_dashboard = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+        $ show_dashboard = ctx.user and ctx.user.is_librarian_or_higher()
         $if show_dashboard:
           $:render_template("librarian_dashboard/data_quality_table", books_count)
         <div itemprop="description">
@@ -127,18 +127,38 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                   </form>
         <div class="clearfix"></div>
 
+                $# This filter is scoped to this author: results-filter-toggle.js
+                $# only rewrites `mode` in the URL, and remembers nothing — the
+                $# search page's sticky filters stay out of it.
+                $ ebooks_only = input(mode="everything").mode == "ebooks"
                 <div class="search-results-stats">
-                    $if books_count > 1:
-                        $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+                    $# Shown while filtered even with no results, so it's always
+                    $# possible to switch back off.
+                    $if books_count > 0 or ebooks_only:
+                        $# Filtering to ebooks already counted them, so only the
+                        $# unfiltered view pays for the extra count query.
+                        $ readable_count = books_count if ebooks_only else page.get_readable_book_count(q=query_param('q'))
+                        <ol-toggle
+                          class="results-filter-toggle"
+                          variant="button"
+                          label="$_('Readable Only')"
+                          sublabel="$commify(readable_count)"
+                          accessible-label="$_('Filter by availability')"
+                          data-filter-param="mode"
+                          data-filter-value="ebooks"
+                          $cond(ebooks_only, 'checked')
+                        ></ol-toggle>
 
-                    $if books_count > 0:
-                        $:render_template("search/layout_options.html", selected_layout=layout)
+                    $# Sort and layout shape the results rather than filter them,
+                    $# so they sit at the far end of the row — same split as the
+                    $# search page's .search-filter-row.
+                    <div class="search-results-stats__tools">
+                        $if books_count > 1:
+                            $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
-                    $if input(mode="everything").mode == "everything":
                         $if books_count > 0:
-                            <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-                    $else:
-                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
+                            $:render_template("search/layout_options.html", selected_layout=layout)
+                    </div>
                 </div>
 
                 $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
@@ -175,10 +195,9 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $:render_subjects(_("Time"), books.facet_counts.get('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
-        $if "lists" in ctx.features:
-            <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, async_load=True)
-            </div>
+        <div class="section Tools">
+            $:render_template("lists/widget", page, include_rating=False, async_load=True)
+        </div>
 
         <div class="section">
             <h3>$_('ID Numbers')</h3>

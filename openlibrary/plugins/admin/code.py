@@ -316,8 +316,6 @@ class people_view:
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
             return self.POST_update_password(user, i)
-        elif i.action == "resend_link":
-            return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
         elif i.action == "block_account":
@@ -359,14 +357,6 @@ class people_view:
 
     def POST_unblock_account(self, account):
         account.unblock()
-        raise web.seeother(web.ctx.path)
-
-    def POST_resend_link(self, user):
-        key = "account/%s/verify" % user.username
-        activation_link = web.ctx.site.store.get(key)
-        del activation_link
-        user.send_verification_email()
-        add_flash_message("info", "Activation mail has been resent.")
         raise web.seeother(web.ctx.path)
 
     def POST_update_email(self, account, i):

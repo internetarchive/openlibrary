@@ -56,7 +56,7 @@ async def fetch_docs(
                 )
                 response.raise_for_status()
                 break
-            except (httpx.RequestError, httpx.HTTPStatusError):
+            except httpx.RequestError, httpx.HTTPStatusError:
                 if attempt == 4:
                     raise
                 await asyncio.sleep(2)
@@ -68,7 +68,7 @@ async def stream_bounds(
     params: dict[str, str],
     solr_base: str,
     page_size=100,
-) -> AsyncGenerator[tuple[str, str], None]:
+) -> AsyncGenerator[tuple[str, str]]:
     """Stream bounds from a Solr query. Uses cursors."""
     params = params.copy()
     params["rows"] = page_size
@@ -93,7 +93,7 @@ async def stream_bounds(
                     )
                     response.raise_for_status()
                     break
-                except (httpx.RequestError, httpx.HTTPStatusError):
+                except httpx.RequestError, httpx.HTTPStatusError:
                     if attempt == 4:
                         raise
                     await asyncio.sleep(2)

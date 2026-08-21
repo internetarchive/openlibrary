@@ -38,6 +38,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 "want_to_read_count": "sum(want_to_read_count)",
                 "currently_reading_count": "sum(currently_reading_count)",
                 "already_read_count": "sum(already_read_count)",
+                "stopped_reading_count": "sum(stopped_reading_count)",
             },
         }
         for field in SUBJECT_FACETS:
@@ -116,8 +117,8 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
         all_subjects.sort(reverse=True)
         return [top_facets for num, top_facets in all_subjects[:10]]
 
-    def build(self) -> SolrDocument:
-        doc = cast(dict, super().build())
+    def build(self, exclude: list[str] | None = None) -> SolrDocument:
+        doc = cast(dict, super().build(exclude=exclude))
         doc |= self.build_ratings()
         doc |= self.build_reading_log()
         return cast(SolrDocument, doc)
@@ -130,6 +131,7 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
             "want_to_read_count": self._solr_reply["facets"].get("want_to_read_count", 0.0),
             "already_read_count": self._solr_reply["facets"].get("already_read_count", 0.0),
             "currently_reading_count": self._solr_reply["facets"].get("currently_reading_count", 0.0),
+            "stopped_reading_count": self._solr_reply["facets"].get("stopped_reading_count", 0.0),
             "readinglog_count": self._solr_reply["facets"].get("readinglog_count", 0.0),
         }
         return cast(WorkReadingLogSolrSummary, reading_log)

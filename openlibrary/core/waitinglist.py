@@ -99,7 +99,7 @@ class WaitingLoan(dict):
         return {k: process_value(v) for k, v in self.items()}
 
     @classmethod
-    def query(cls, **kw) -> list["WaitingLoan"]:
+    def query(cls, **kw) -> list[WaitingLoan]:
         # kw.setdefault('order', 'since')
         # # as of web.py 0.33, the version used by OL,
         # # db.where doesn't work with no conditions
@@ -112,7 +112,7 @@ class WaitingLoan(dict):
         return [cls(row) for row in rows]
 
     @classmethod
-    def new(cls, **kw) -> "WaitingLoan | None":
+    def new(cls, **kw) -> WaitingLoan | None:
         user_key = kw["user_key"]
         itemname = kw.get("itemname", "")
         if not itemname:
@@ -122,7 +122,7 @@ class WaitingLoan(dict):
         return cls.find(user_key, kw["identifier"], itemname=itemname)
 
     @classmethod
-    def find(cls, user_key: str, identifier: str, itemname: str | None = None) -> "WaitingLoan | None":
+    def find(cls, user_key: str, identifier: str, itemname: str | None = None) -> WaitingLoan | None:
         """Returns the waitingloan for given book_key and user_key.
 
         Returns None if there is no such waiting loan.
@@ -234,7 +234,7 @@ def update_ebook(ebook_key: str, **data) -> None:
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
 
 
-def sendmail_book_available(book: "Edition") -> None:
+def sendmail_book_available(book: Edition) -> None:
     """Informs the first person in the waiting list that the book is available.
 
     Safe to call multiple times. This'll make sure the email is sent only once.

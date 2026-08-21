@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 
 /**
  * A WYSIWYG markdown editor built on Tiptap.
@@ -76,9 +77,12 @@ export class OLMarkdownEditor extends LitElement {
       border: var(--border-input);
       border-radius: var(--border-radius-card);
       background: var(--white);
-      color: var(--dark-grey);
+      color: var(--color-text);
       max-height: 70vh;
       overflow-y: auto;
+      /* Contain the toolbar/popover layering — a shadow root is not a
+         stacking context, so without this their z-index leaks to the page. */
+      isolation: isolate;
     }
 
     .toolbar {
@@ -92,7 +96,8 @@ export class OLMarkdownEditor extends LitElement {
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: var(--z-index-level-5);
+      /* Above the editor content; the popovers below are its descendants. */
+      z-index: var(--z-index-local-1);
     }
 
     .toolbar-divider {
@@ -137,7 +142,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .editor-input .tiptap a {
-      color: var(--link-blue);
+      color: var(--color-link);
     }
 
     .editor-input .tiptap img {
@@ -151,7 +156,7 @@ export class OLMarkdownEditor extends LitElement {
     }
 
     .html-block {
-      border: 1px dashed var(--light-grey);
+      border: 1px dashed var(--color-border-muted);
       border-radius: var(--border-radius-card);
       margin: 0.55em 0;
       overflow: hidden;
@@ -161,7 +166,7 @@ export class OLMarkdownEditor extends LitElement {
       display: block;
       padding: 4px 8px;
       background: var(--grey-f4f4f4);
-      border-bottom: 1px dashed var(--light-grey);
+      border-bottom: 1px dashed var(--color-border-muted);
       font-size: 0.7rem;
       font-family: monospace;
       font-weight: 600;
@@ -185,7 +190,7 @@ export class OLMarkdownEditor extends LitElement {
     .editor-input .tiptap blockquote {
       margin-left: var(--spacing-lg);
       padding: var(--spacing-sm) var(--spacing-lg);
-      border-left: var(--border-width-thick) solid var(--beige-deep);
+      border-left: var(--border-width-thick) solid var(--color-border-subtle);
       color: var(--darker-grey);
       background: var(--off-white);
       font-style: italic;
@@ -198,7 +203,7 @@ export class OLMarkdownEditor extends LitElement {
 
     .editor-input .tiptap code {
       background: var(--grey-f4f4f4);
-      border: 1px solid var(--lighter-grey);
+      border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-input);
       padding: 0.1em 0.3em;
       font-family: monospace;
@@ -207,7 +212,7 @@ export class OLMarkdownEditor extends LitElement {
 
     .editor-input .tiptap pre {
       background: var(--grey-f4f4f4);
-      border: 1px solid var(--lighter-grey);
+      border: 1px solid var(--color-border-subtle);
       border-radius: var(--border-radius-card);
       padding: var(--spacing-inset-sm);
       margin: 0 0 0.55em;
@@ -247,7 +252,7 @@ export class OLMarkdownEditor extends LitElement {
     .toolbar-btn svg { width: var(--spacing-xl); height: var(--spacing-xl); stroke-width: 2.2; }
 
     @media (hover: hover) and (pointer: fine) {
-      .toolbar-btn:hover:not(:disabled) { background: var(--lighter-grey); }
+      .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }
     }
 
     .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
@@ -277,7 +282,7 @@ export class OLMarkdownEditor extends LitElement {
       display: flex;
       gap: var(--spacing-inline-md);
       min-width: 260px;
-      z-index: var(--z-index-level-5);
+      z-index: var(--z-index-local-1);
     }
 
     @media (max-width: 767px) {
@@ -307,8 +312,8 @@ export class OLMarkdownEditor extends LitElement {
     .error-state {
       padding: var(--spacing-inset-sm);
       border: var(--border-width-control) solid var(--color-border-error);
-      background: var(--baby-pink);
-      color: var(--dark-red);
+      background: var(--color-error-bg);
+      color: var(--color-error-fg);
       border-radius: var(--border-radius-notification);
       font-family: var(--font-family-body);
       margin-bottom: var(--spacing-stack-sm);
@@ -343,7 +348,7 @@ export class OLMarkdownEditor extends LitElement {
       border: var(--border-width-none);
       border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
       background: var(--white);
-      color: var(--dark-grey);
+      color: var(--color-text);
       font-family: monospace;
       font-size: 0.75rem;
       line-height: 1.5;
@@ -369,7 +374,7 @@ export class OLMarkdownEditor extends LitElement {
       background: var(--white);
       display: flex;
       gap: var(--spacing-inline-sm);
-      z-index: var(--z-index-level-5);
+      z-index: var(--z-index-local-1);
     }
 
     @media (max-width: 767px) {
@@ -490,6 +495,20 @@ export class OLMarkdownEditor extends LitElement {
         if (!e.target.closest('.toolbar-btn')) e.preventDefault();
     }
 
+    /**
+     * Escape closes the overflow menu and returns focus to its trigger, which
+     * would otherwise be removed from the DOM under the user's focus. Scoped to
+     * the menu's wrapper — the link and image inputs handle their own Escape.
+     */
+    _handleOverflowKeydown(e) {
+        if (e.key !== 'Escape' || !this.showOverflowMenu) return;
+        e.stopPropagation();
+        this.showOverflowMenu = false;
+        this.updateComplete.then(() => {
+            this.shadowRoot.querySelector('.overflow-menu-wrapper .toolbar-btn')?.focus();
+        });
+    }
+
     _focusEditor(e) {
         if (!this.editor) return;
         if (e && e.target.closest('.html-block')) return;
@@ -601,7 +620,13 @@ export class OLMarkdownEditor extends LitElement {
         }));
     }
 
-    _renderButton({ title, icon, action, isActive = false, isDisabled = false, customColor = null }) {
+    /**
+     * `isPressed` defaults to `isActive` so plain format toggles need nothing
+     * extra; pass `null` for a disclosure trigger, where `aria-pressed` would
+     * claim a formatting state the button doesn't have. `isExpanded` marks the
+     * button as a disclosure and reflects whether its panel is open.
+     */
+    _renderButton({ title, icon, action, isActive = false, isDisabled = false, customColor = null, isPressed = isActive, isExpanded = null }) {
         const isBtnDisabled = !this.editor || isDisabled;
 
         return html`
@@ -609,7 +634,8 @@ export class OLMarkdownEditor extends LitElement {
         type="button"
         title="${title}"
         aria-label="${title}"
-        aria-pressed="${isActive}"
+        aria-pressed="${ifDefined(isPressed === null ? undefined : isPressed)}"
+        aria-expanded="${ifDefined(isExpanded === null ? undefined : isExpanded)}"
         class="toolbar-btn ${isActive ? 'is-active' : ''}"
         style="${customColor ? `color: ${customColor};` : ''}"
         @click="${action}"
@@ -657,7 +683,7 @@ export class OLMarkdownEditor extends LitElement {
             ${this._renderButton({ title: 'Bold', icon: ICONS.bold, action: () => this.formatText('bold'), isActive: this._isActive('bold') })}
             ${this._renderButton({ title: 'Italic', icon: ICONS.italic, action: () => this.formatText('italic'), isActive: this._isActive('italic') })}
             <div class="link-popover-wrapper">
-              ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover })}
+              ${this._renderButton({ title: 'Link', icon: ICONS.link, action: this.toggleLinkPopover.bind(this), isActive: this._isActive('link') || this.showLinkPopover, isPressed: this._isActive('link'), isExpanded: this.showLinkPopover })}
               ${this.showLinkPopover ? html`
                 <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
                   <input type="url" class="link-input" placeholder="https://..." .value="${this.linkInputValue}" @input="${this.handleLinkInput}" @keydown="${this.handleLinkKeydown}" />
@@ -668,7 +694,7 @@ export class OLMarkdownEditor extends LitElement {
             </div>
             <div class="link-popover-wrapper">
               <span class="overflow-secondary">
-                ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover })}
+                ${this._renderButton({ title: 'Image', icon: ICONS.image, action: this.toggleImagePopover.bind(this), isActive: this.showImagePopover, isPressed: null, isExpanded: this.showImagePopover })}
               </span>
               ${this.showImagePopover ? html`
                 <div class="link-popover" @mousedown="${(e) => e.stopPropagation()}">
@@ -688,8 +714,8 @@ export class OLMarkdownEditor extends LitElement {
               ${this.enableCode ? this._renderButton({ title: 'Code Block', icon: ICONS.codeBlock, action: this.formatCodeBlock.bind(this), isActive: this._isActive('codeBlock') }) : ''}
               ${this.enableHtmlBlock ? this._renderButton({ title: 'HTML Block', icon: ICONS.code, action: this.insertHtmlBlock.bind(this) }) : ''}
             </span>
-            <div class="overflow-menu-wrapper overflow-toggle">
-              ${this._renderButton({ title: 'More', icon: ICONS.more, action: () => { this.showOverflowMenu = !this.showOverflowMenu; if (this.showOverflowMenu) this.showLinkPopover = false; }, isActive: this.showOverflowMenu })}
+            <div class="overflow-menu-wrapper overflow-toggle" @keydown="${this._handleOverflowKeydown}">
+              ${this._renderButton({ title: 'More', icon: ICONS.more, action: () => { this.showOverflowMenu = !this.showOverflowMenu; if (this.showOverflowMenu) this.showLinkPopover = false; }, isActive: this.showOverflowMenu, isPressed: null, isExpanded: this.showOverflowMenu })}
               ${this.showOverflowMenu ? html`
                 <div class="overflow-menu" @mousedown="${(e) => e.stopPropagation()}">
                   ${secondaryButtons}

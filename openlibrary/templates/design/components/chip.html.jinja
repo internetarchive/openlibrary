@@ -1,0 +1,99 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Default", "Medium is the default size.") %}
+        <ol-chip>
+            Fiction
+        </ol-chip>
+        <ol-chip>
+            Science
+        </ol-chip>
+        <ol-chip>
+            History
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("Selected", "A selected chip shows a checkmark and switches to the active color scheme.") %}
+        <ol-chip>
+            Fiction
+        </ol-chip>
+        <ol-chip selected>
+            History
+        </ol-chip>
+        <ol-chip>
+            Science
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("Small size") %}
+        <ol-chip size="small">
+            Poetry
+        </ol-chip>
+        <ol-chip size="small" selected>
+            Drama
+        </ol-chip>
+        <ol-chip size="small">
+            Essays
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("With count") %}
+        <ol-chip count="1,024">
+            Fiction
+        </ol-chip>
+        <ol-chip count="76" selected>
+            History
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("As a link", "With href the chip renders as an anchor instead of a button.") %}
+        <ol-chip href="/subjects/fiction" count="1,024">
+            Fiction
+        </ol-chip>
+        <ol-chip href="/subjects/history" count="76" selected>
+            History
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("Domain variants", "Colors a chip by the kind of thing it represents. The chip maps the variant to a soft-tint palette internally — see the chip tokens under Foundations → Colors.") %}
+        <ol-chip variant="language">
+            English
+        </ol-chip>
+        <ol-chip variant="subject">
+            Science Fiction
+        </ol-chip>
+        <ol-chip variant="genre">
+            Memoir
+        </ol-chip>
+        <ol-chip variant="author">
+            Ursula K. Le Guin
+        </ol-chip>
+        <ol-chip variant="place">
+            San Francisco
+        </ol-chip>
+        <ol-chip variant="neutral">
+            Read now
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("Removable filter pills", "variant plus selected makes a removable, category-colored filter pill. The selected state adds a close icon; listen for ol-chip-select to remove the filter.") %}
+        <ol-chip variant="neutral" size="small" selected>
+            Read now
+        </ol-chip>
+        <ol-chip variant="language" size="small" selected>
+            English
+        </ol-chip>
+        <ol-chip variant="language" size="small" selected>
+            French
+        </ol-chip>
+    {% endcall %}
+    {% call ex.example("Interactive toggle", "Clicking fires ol-chip-select. The chip does not toggle itself — flip .selected in your handler.",
+        code="chip.addEventListener('ol-chip-select', (e) => {\n  e.target.selected = !e.target.selected;\n});", language="js") %}
+        <ol-chip id="demo-chip-1">
+            Toggle me
+        </ol-chip>
+        <ol-chip id="demo-chip-2" selected>
+            Toggle me too
+        </ol-chip>
+        <script>
+            document.querySelectorAll('#demo-chip-1, #demo-chip-2').forEach((chip) => {
+                chip.addEventListener('ol-chip-select', (e) => {
+                    e.target.selected = !e.target.selected;
+                });
+            });
+        </script>
+    {% endcall %}
+{% endmacro %}

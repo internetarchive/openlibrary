@@ -19,7 +19,7 @@
   justify-content: center;
   height: 30px;
   text-decoration: none;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0 12px;
   line-height: var(--line-height-control);
   border-bottom: 2px solid transparent;
@@ -27,7 +27,7 @@
 
 /* stylelint-disable selector-max-specificity */
 .nav-bar:not(.work-menu) li.selected a {
-  color: var(--link-blue);
+  color: var(--color-link);
   border-bottom: 2px solid var(--link-blue);
 }
 
@@ -124,7 +124,9 @@
 @media (hover: hover) and (pointer: fine) {
   /* stylelint-disable max-nesting-depth */
   .nav-bar-wrapper .nav-bar.work-menu li:hover {
-    background-color: hsl(212, 39%, 45%); /* darken(@blue-5e88B9, 10%) */
+    background-color: var(
+      --color-primary-hover
+    ); /* hsl(210, 84%, 31%) — passes 4.5:1 with white */
   }
 
   .nav-bar-wrapper .nav-bar.work-menu li:hover a {
@@ -133,7 +135,9 @@
 }
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected {
-  background-color: var(--blue-5e88B9);
+  background-color: var(
+    --color-primary
+  ); /* hsl(210, 82%, 40%) — passes 4.5:1 with white */
 }
 
 .nav-bar-wrapper .nav-bar.work-menu li.selected a {
@@ -188,4 +192,13 @@
   .nav-bar-wrapper.sticky.sticky--lowest {
     top: 35px; /* @compact-title-height */
   }
+}
+
+.nav-bar-banner.desktop-only {
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.nav-bar-banner.mobile-only {
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }

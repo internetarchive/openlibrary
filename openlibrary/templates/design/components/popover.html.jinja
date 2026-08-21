@@ -1,0 +1,36 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro menu(min_width="180px") %}
+    <ul class="ds-demo-menu" style="min-width: {{ min_width }};">
+        <li>Edit</li>
+        <li>Duplicate</li>
+        <li class="ds-demo-menu__divided">Archive</li>
+        <li>Move</li>
+        <li>Share</li>
+        <li class="ds-demo-menu__divided">Delete</li>
+    </ul>
+{% endmacro %}
+{% macro demos() %}
+    {% call ex.example("Menu popover", "Popovers animate from the trigger using transform-origin. Click to see the scale + fade entrance.",
+        code='<ol-popover>\n  <ol-button slot="trigger">Options</ol-button>\n  <ul>...</ul>\n</ol-popover>') %}
+        <ol-popover aria-label="Options menu">
+            <ol-button slot="trigger">
+                Options
+            </ol-button>
+            {{ menu() }}
+        </ol-popover>
+    {% endcall %}
+    {% call ex.example("Placement", "transform-origin follows placement, so the animation always expands from the trigger.", output_style="display: flex; gap: 16px; flex-wrap: wrap;") %}
+        <ol-popover placement="bottom-start" aria-label="Actions">
+            <ol-button slot="trigger">
+                bottom-start
+            </ol-button>
+            {{ menu("160px") }}
+        </ol-popover>
+        <ol-popover placement="top-center" aria-label="Actions">
+            <ol-button slot="trigger">
+                top-center
+            </ol-button>
+            {{ menu("160px") }}
+        </ol-popover>
+    {% endcall %}
+{% endmacro %}

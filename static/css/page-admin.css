@@ -9,6 +9,11 @@
  */
 
 @import "components/admin-table.css";
+/* Import all common components */
+@import "legacy.css";
+/* Import styles specific to the BorrowTable for user pages */
+@import "legacy-borrowTable-adminUser.css";
+@import "components/pd-dashboard.css";
 
 .status--0 {
   color: var(--red);
@@ -50,7 +55,7 @@ table.services th {
   font-size: var(--font-size-label-small);
   font-weight: bold;
   text-transform: uppercase;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 table.services td {
   padding: var(--spacing-inset-xs);
@@ -71,7 +76,7 @@ table.services td.node {
 #adminHistory th {
   background-color: var(--lightest-grey);
   border-bottom: 1px solid var(--admin-table-border);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-size: 0.8675em;
   font-weight: 700;
   padding: var(--spacing-inset-sm);
@@ -107,7 +112,7 @@ div#prolific span {
   font-size: 0.5625em;
   font-family: var(--font-family-body);
   font-weight: normal;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
 }
 
@@ -165,11 +170,6 @@ div.sparkDisplay {
   margin-right: 0 !important;
 }
 
-/* Import all common components */
-@import "legacy.css";
-/* Import styles specific to the BorrowTable for user pages */
-@import "legacy-borrowTable-adminUser.css";
-
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
   /* openlibrary/admin/templates/admin/index.html */
@@ -213,5 +213,3 @@ div.sparkDisplay {
     height: 50px;
   }
 }
-
-@import "components/pd-dashboard.css";

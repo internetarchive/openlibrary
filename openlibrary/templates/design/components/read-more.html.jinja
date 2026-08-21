@@ -1,0 +1,39 @@
+{% import "design/_example.html.jinja" as ex %}
+{% set LOREM %}
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+{% endset %}
+{% set SHORT %}
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, quis nostrud exercitation ullamco laboris.
+{% endset %}
+{% macro demos() %}
+    {% call ex.example("Height-based truncation", "max-height limits the content by pixel height.", output_style="max-width: 360px;") %}
+        <ol-read-more max-height="80px">
+            <p>{{ LOREM }}</p>
+        </ol-read-more>
+    {% endcall %}
+    {% call ex.example("Line-based truncation", "max-lines limits by number of lines.", output_style="max-width: 360px;") %}
+        <ol-read-more max-lines="3">
+            <p>{{ LOREM }}</p>
+        </ol-read-more>
+    {% endcall %}
+    {% call ex.example("Custom button text", output_style="max-width: 360px;") %}
+        <ol-read-more max-lines="2" more-text="Show more" less-text="Show less">
+            <p>{{ SHORT }}</p>
+        </ol-read-more>
+    {% endcall %}
+    {% call ex.example("Custom background color", "Match the gradient fade to your container's background.", output_style="max-width: 360px; background: var(--blue-50); padding: 12px 12px 0; border-radius: var(--border-radius-card);") %}
+        <ol-read-more max-lines="2" background-color="hsl(202, 80%, 95%)">
+            <p>{{ SHORT }}</p>
+        </ol-read-more>
+    {% endcall %}
+    {% call ex.example("Small label size", output_style="max-width: 360px;") %}
+        <ol-read-more max-lines="2" label-size="small">
+            <p>{{ SHORT }}</p>
+        </ol-read-more>
+    {% endcall %}
+    {% call ex.example("Content shorter than the limit", "When the content fits, no toggle button renders.", output_style="max-width: 360px;") %}
+        <ol-read-more max-lines="5">
+            <p>This is short content that fits within 5 lines, so no button appears.</p>
+        </ol-read-more>
+    {% endcall %}
+{% endmacro %}

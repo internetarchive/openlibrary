@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -15,7 +15,6 @@ import babel.numbers
 import genshi
 import genshi.filters
 import web
-from babel.core import Locale
 from bs4 import BeautifulSoup
 
 from infogami import config
@@ -24,6 +23,9 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
+if TYPE_CHECKING:
+    from babel.core import Locale
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -37,7 +39,7 @@ __all__ = [
     "days_since",
     "extract_year",
     "format_date",
-    "json_encode",
+    "format_decimal",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
     "private_collection_in",
@@ -100,15 +102,6 @@ class NothingEncoder(json.JSONEncoder):
         if isinstance(obj, date):
             return obj.isoformat()
         return super().default(obj)
-
-
-def json_encode(d, **kw) -> str:
-    """Calls json.dumps on the given data d.
-    If d is a Nothing object, passes an empty list to json.dumps.
-
-    Returns the json.dumps results.
-    """
-    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
 def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = False) -> list:
@@ -195,6 +188,16 @@ def commify(number, lang=None):
         return babel.numbers.format_decimal(int(number), locale=lang)
     except Exception:
         return str(number)
+
+
+def format_decimal(number, decimal_places=1, lang=None):
+    """Locale-aware decimal number formatting."""
+    try:
+        lang = lang or web.ctx.get("lang") or "en"
+        fmt = "#,##0." + "0" * decimal_places
+        return babel.numbers.format_decimal(number, format=fmt, locale=lang)
+    except Exception:
+        return str(round(number, decimal_places))
 
 
 def truncate(text: str, limit: int) -> str:
@@ -322,6 +325,41 @@ def extract_year(input: str, int_only: bool = True) -> str:
         return result.group()
 
     return ""
+
+
+@functools.cache
+def get_author_exclusions() -> frozenset[str]:
+    """Returns the set of excluded author keys from config.
+
+    Reads ``author_exclusions`` from openlibrary.yml (a list of full author keys
+    such as ``["/authors/OL123A"]``).  Initialized once per process since
+    config is static per-deploy; a restart is required to pick up changes.
+    """
+    return frozenset(config.get("author_exclusions") or [])
+
+
+def is_exclusion(thing) -> bool:
+    """Returns True if *thing* should be excluded from public view.
+
+    A thing is excluded when it is an author whose key is in the
+    ``author_exclusions`` config list, or when it is a book/work whose
+    first resolvable author is in that list.
+    """
+    if not thing or not thing.key:
+        return False
+    try:
+        _, _type, _ = thing.key.split("/")
+    except ValueError:
+        return False
+    exclusions = get_author_exclusions()
+    if _type == "authors":
+        return thing.key in exclusions
+    elif _type in ("books", "works"):
+        for a in thing.get("authors") or []:
+            akey = getattr(a, "key", None) or getattr(getattr(a, "author", None), "key", None)
+            if akey:
+                return akey in exclusions
+    return False
 
 
 def _get_helpers():

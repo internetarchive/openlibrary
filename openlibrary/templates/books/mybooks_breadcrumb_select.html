@@ -8,6 +8,7 @@ $if mb.is_my_page or mb.is_public:
   $   (_("Want to Read (%(count)d)", count=mb.counts['want-to-read']), readlog_url % "want-to-read"),
   $   (_("Currently Reading (%(count)d)", count=mb.counts['currently-reading']), readlog_url % "currently-reading"),
   $   (_("Already Read (%(count)d)", count=mb.counts['already-read']), readlog_url % "already-read"),
+  $   (_("Stopped Reading (%(count)d)", count=mb.counts['stopped-reading']), readlog_url % "stopped-reading"),
   $   (_("My Feed"), readlog_url % "feed"),
 $ ]
 $ options += [

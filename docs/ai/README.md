@@ -24,8 +24,11 @@ npm run watch:lit-components # Watch Lit components
 
 ```bash
 # Python tests (excludes integration tests by default)
-make test-py
-pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+# Preferred: run outside Docker with uv (faster)
+make test-py-uv
+
+# Alternative: run inside Docker
+docker compose run --rm home make test-py
 
 # Run a single Python test file
 pytest openlibrary/core/tests/test_models.py
@@ -71,6 +74,68 @@ docker volume rm openlibrary_solr-data
 docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
+
+### API writes silently drop `action`/`comment`/`data` or 500
+
+The infogami write API (`/api/save_many`, `/api/write`) only applies custom
+`action`, `comment`, and `data` headers when the request's `Opt` header
+matches the app's configured `http_ext_header_uri`. The dev app sets this to
+`http://openlibrary.org/dev/docs/api` (`openlibrary/plugins/openlibrary/code.py`),
+**not** the infogami default (`http://infogami.org/api`).
+
+- **Mismatch symptom:** saves succeed but are recorded as `default-bulk-update`
+  with no comment or data (silent — action-tagged saves like merges lose their
+  metadata), or `api/save_many` 500s when the custom headers come back `None`.
+- **Fix:** send the matching declaration, e.g.
+  `Opt: "http://openlibrary.org/dev/docs/api"; ns=12` plus
+  `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
+- **Prefer FastAPI endpoints instead:** they share the session auth and need
+  no custom headers — e.g. author merges via
+  `POST http://localhost:18080/authors/merge.json`.
+
+### Scripts must log in via the JSON endpoint
+
+`POST /account/login` with a form body returns **200 but does not set a
+session cookie** — scripts that use it appear logged in but their writes are
+unauthenticated. Always POST JSON to `/account/login.json`:
+
+```bash
+curl -s -c /tmp/ck.txt -X POST http://localhost:8080/account/login.json \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"openlibrary","password":"openlibrary"}'
+```
+
+The dev user `openlibrary` / `openlibrary` is a member of `/usergroup/admin`
+(see `scripts/dev-instance/dev_db.pg_dump`), i.e. a super-librarian.
+`scripts/copydocs.py`'s `~/.olrc` autologin hits the form-POST trap — see its
+docstring.
+
+### copydocs copies current revisions only
+
+`scripts/copydocs.py` copies the *current* revision of each document and
+follows *current* references. It does **not** copy changesets/transactions,
+version history (`?v=`), or references that only exist in older revisions,
+and it deliberately strips `authors` from editions.
+
+If you need older revisions:
+
+- **Fetch one revision directly:** `GET /api/get?key=<key>&v=<revision>`
+  (e.g. `curl 'http://localhost:8080/api/get?key=/books/OL1M&v=2'`). On
+  openlibrary.org the same works via `<key>.json?v=<revision>`.
+- **List a doc's revisions:** `GET /api/versions?query=<url-encoded JSON>` —
+  each entry includes the revision number, changeset id, action, and comment.
+  The `query` JSON must be URL-encoded, e.g.
+  `curl -G 'http://localhost:8080/api/versions' --data-urlencode 'query={"key": "/books/OL1M", "limit": 5}'`.
+- **copydocs `?v=N` keys** (`./scripts/copydocs.py /works/OL1W?v=2`) copy an
+  old revision's *content*, but it is saved as a fresh local revision — local
+  revision numbering and changeset history are still not preserved.
+- **Reproductions that depend on history** (e.g. undo, which fetches
+  `revision − 1`) need the local infobase rows
+  (`transaction`/`thing`/`data`/`version`) to match production — either
+  reconstruct them via `psql` in the `db` container (fetch R and R−1 from
+  production), or — usually simpler — build a synthetic scenario through the
+  API instead of copying history at all (the #5664 reproduction work is a
+  worked example of the API approach).
 
 ## Linting
 
@@ -130,15 +195,31 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
+### Browser Support
+
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+
+What the toolchain guarantees:
+
+- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
+
+Rules for new code:
+
+- **Do not add polyfills or legacy fallback bundles.** IE11-era polyfills were removed deliberately (#12685).
+- **Web platform APIs are not auto-polyfilled anywhere** — feature-detect (`if ('IntersectionObserver' in window)`) or verify the API is within the floor before using it unguarded.
+- Browsers below the floor get the server-rendered experience: content stays readable, JS enhancements are untested. Don't deliberately break them, but don't spend effort on them either.
+
 ### Search
 
-Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
+Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
 
 ### Data Model
 
@@ -155,7 +236,7 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 ## Code Style
 
-- **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.12.
+- **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
 - **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
@@ -164,9 +245,20 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
+- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations
-- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events
+- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM
+- [Internationalization](i18n.md) — `$_()` in templates, the `data-i18n` bridge for client-rendered strings
+
+## Domain Knowledge Bases
+
+Deep-dive references for major system domains. Each covers production architecture, key files, how it works, endpoints/APIs, debug playbook, open issues, and PR review expectations.
+
+- [Solr](solr/index.md) — search index, solr-updater, schema, search endpoints, facets
+- [Imports](imports/index.md) — import pipeline, DataProvider/DataProviderRecord pattern, batch import, importapi endpoints, adding new sources
+- [Tags](tag-system/index.md) — Tag objects (`/tags/OLnT`), legacy subject system, subject→Tag lookup, community tags/observations, Solr implications, Phase 3 integration checklist
+- [OPDS](opds/index.md) — OPDS 2.0 feed service (opds.openlibrary.org), pyopds2_openlibrary library, reader.archive.org integration, local dev setup
 
 ## Key File Locations
 

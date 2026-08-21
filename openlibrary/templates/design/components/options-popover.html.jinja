@@ -1,0 +1,49 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    {% call ex.example("Single-select menu", "With a value and label per item the rows render as a tidy single-select menu — a sort order or layout switcher. The heading defaults to the uppercased label; override with heading.",
+        code='<ol-options-popover\n  label="Sort by"\n  heading="SORT ORDER"\n  selected="relevance"\n  items=\'[{"value":"relevance","label":"Relevance"}, ...]\'>\n</ol-options-popover>') %}
+        <ol-options-popover id="demo-options-sort" label="Sort by" heading="SORT ORDER" selected="relevance" aria-label="Sort order">
+        </ol-options-popover>
+        <p>Selected: <strong id="demo-options-sort-out">relevance</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-options-sort');
+                el.items = [
+                    { value: 'relevance', label: 'Relevance' },
+                    { value: 'newest', label: 'Date added (newest)' },
+                    { value: 'oldest', label: 'Date added (oldest)' },
+                    { value: 'title', label: 'Title (A–Z)' },
+                    { value: 'rating', label: 'Rating' }
+                ];
+                el.addEventListener('ol-options-popover-change', (e) => {
+                    document.getElementById('demo-options-sort-out').textContent = e.detail.selected;
+                });
+            })();
+        </script>
+    {% endcall %}
+    {% call ex.example("Descriptions and counts", "Optional description and count per item. Both render only when present, so plain and rich rows can mix in one list.") %}
+        <ol-options-popover id="demo-options-genre" label="Genre" selected="fiction" aria-label="Genre filter">
+        </ol-options-popover>
+        <script>
+            document.getElementById('demo-options-genre').items = [
+                { value: 'fiction', label: 'Fiction', description: 'Novels and short stories', count: '1,024' },
+                { value: 'nonfiction', label: 'Nonfiction', description: 'Fact-based works and essays', count: '892' },
+                { value: 'poetry', label: 'Poetry', description: 'Verse and collections', count: '213' },
+                { value: 'reference', label: 'Reference', description: 'Dictionaries and encyclopedias', count: '156' }
+            ];
+        </script>
+    {% endcall %}
+    {% call ex.example("Custom trigger", "Supply your own trigger when the default button doesn't fit. The component still handles open/close, ARIA wiring, and keyboard navigation (arrows, Home/End, Escape).") %}
+        <ol-options-popover id="demo-options-custom" label="Sort by" selected="newest" aria-label="Sort order">
+            <button slot="trigger" class="demo-btn">Sort results</button>
+        </ol-options-popover>
+        <script>
+            document.getElementById('demo-options-custom').items = [
+                { value: 'relevance', label: 'Relevance' },
+                { value: 'newest', label: 'Date added (newest)' },
+                { value: 'oldest', label: 'Date added (oldest)' },
+                { value: 'title', label: 'Title (A–Z)' }
+            ];
+        </script>
+    {% endcall %}
+{% endmacro %}

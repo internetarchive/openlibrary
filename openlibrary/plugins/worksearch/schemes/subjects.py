@@ -51,7 +51,7 @@ class SubjectSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
-        solr_internals_params: "SolrInternalsParams | None" = None,
+        solr_internals_params: SolrInternalsParams | None = None,
     ) -> list[tuple[str, str]]:
         return [
             ("q", q),

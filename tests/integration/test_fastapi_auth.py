@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.14"
 # dependencies = [
 #     "pytest",
 #     "requests",

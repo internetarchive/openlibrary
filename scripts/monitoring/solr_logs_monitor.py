@@ -32,7 +32,6 @@ class RequestLogEntry(SolrLogEntry):
     thread_info: str
     context: str
     class_handler: str
-    webapp: str
     path: str
     params: str
     status: int
@@ -73,7 +72,7 @@ class RequestLogEntry(SolrLogEntry):
         return label
 
     @staticmethod
-    def parse_log_entry(match: re.Match) -> "RequestLogEntry":
+    def parse_log_entry(match: re.Match) -> RequestLogEntry:
         fields = {kvp.split("=", 1)[0]: kvp.split("=", 1)[1] for kvp in match.group("message").split(" ")}
         return RequestLogEntry(
             timestamp=match.group("timestamp"),
@@ -82,16 +81,15 @@ class RequestLogEntry(SolrLogEntry):
             context=match.group("context"),
             class_handler=match.group("class_handler"),
             message=match.group("message"),
-            webapp=fields["webapp"],
             path=fields["path"],
             params=fields["params"],
             status=int(fields["status"]),
             qtime=int(fields["QTime"]),
-            other_fields={k: v for k, v in fields.items() if k not in {"webapp", "path", "params", "status", "QTime"}},
+            other_fields={k: v for k, v in fields.items() if k not in {"path", "params", "status", "QTime"}},
         )
 
 
-def parse_log_entry(log_line: str) -> "SolrLogEntry":
+def parse_log_entry(log_line: str) -> SolrLogEntry:
     log_pattern = re.compile(r"^(?P<timestamp>\S+ \S+) (?P<log_level>\S+) +\((?P<thread_info>.*?)\) \[(?P<context>.*?)\] (?P<class_handler>\S+) (?P<message>.*)$")
 
     match = log_pattern.match(log_line)
@@ -115,7 +113,7 @@ def groupby_buffered[T, U](
     iterable: Iterable[T],
     key_func: Callable[[T], U],
     buffer_size: int = 0,
-) -> Generator[list[T], None, None]:
+) -> Generator[list[T]]:
     current_group: list[T] = []
     current_key: U | None = None
     skipped: list[T] = []
@@ -166,7 +164,7 @@ def groupby_buffered[T, U](
             yield list(grp)
 
 
-def stream_docker_logs(container_name: str) -> Generator[str, None, None]:
+def stream_docker_logs(container_name: str) -> Generator[str]:
     process = subprocess.Popen(
         ["docker", "logs", "--tail=0", "-f", container_name],
         stdout=subprocess.PIPE,

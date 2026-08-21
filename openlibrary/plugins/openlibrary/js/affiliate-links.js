@@ -14,12 +14,13 @@ export function initAffiliateLinks(affiliateLinksSections) {
     if (isLoading) {
         // Replace loading indicators with fetched partials
 
-        const title = affiliateLinksSections[0].dataset.title;
-        const opts = JSON.parse(affiliateLinksSections[0].dataset.opts);
-        const args = [title, opts];
-        const d = {args: args};
+        const section = affiliateLinksSections[0];
+        const title = section.dataset.title;
+        const isbn = section.dataset.isbn || '';
+        const asin = section.dataset.asin || '';
+        const prices = section.dataset.prices === 'true';
 
-        getPartials(d, affiliateLinksSections);
+        getPartials(title, isbn, asin, prices, affiliateLinksSections);
     }
 }
 
@@ -49,10 +50,15 @@ function showLoadingIndicators(linkSections) {
  * @param {NodeList<HTMLElement>} affiliateLinksSections
  * @returns {Promise}
  */
-async function getPartials(data, affiliateLinksSections) {
-    const dataString = JSON.stringify(data);
+async function getPartials(title, isbn, asin, prices, affiliateLinksSections) {
+    const params = {
+        title: title,
+        isbn: isbn,
+        asin: asin,
+        prices: prices,
+    };
 
-    return fetch(buildPartialsUrl('AffiliateLinks', {data: dataString}))
+    return fetch(buildPartialsUrl('AffiliateLinks', params))
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
@@ -83,7 +89,7 @@ async function getPartials(data, affiliateLinksSections) {
                     const retryAffordance = section.querySelector('.affiliate-links-section__retry');
                     retryAffordance.addEventListener('click', () => {
                         retryAffordance.classList.add('hidden');
-                        getPartials(data, affiliateLinksSections);
+                        getPartials(title, isbn, asin, prices, affiliateLinksSections);
                     });
                 }
             }

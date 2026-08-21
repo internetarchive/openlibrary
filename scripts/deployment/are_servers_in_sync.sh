@@ -19,13 +19,6 @@ for REPO_DIR in $REPO_DIRS; do
     echo "---"
 done
 
-echo "/opt/booklending_utils"
-for SERVER in $POLICY_SERVERS; do
-    echo -ne $(printf "%-10s" $(echo $SERVER | cut -f1 -d '.'))"\t"
-    ssh $SERVER "cd /opt/booklending_utils; sudo git rev-parse HEAD"
-done
-echo "---"
-
 for SERVER in $SERVERS; do
     echo -ne $(printf "%-10s" $(echo $SERVER | cut -f1 -d '.'))"\t"
     ssh $SERVER 'docker image ls | grep olbase | grep latest'

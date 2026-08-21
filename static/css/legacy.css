@@ -1,7 +1,5 @@
 /* stylelint-disable no-descending-specificity */
 
-@charset "utf-8";
-
 /**
  * This file exists for historic reasons and will be deleted
  * at the first available opportunity.
@@ -46,6 +44,59 @@
 @import "components/mybooks-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
+
+/* SITE DEFAULTS */
+@import "base/common.css";
+@import "components/buttonCta.css";
+@import "components/buttonsAndLinks.css";
+@import "components/buttonLink.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "base/dl.css";
+@import "base/helpers-common.css";
+@import "base/helpers-misc.css";
+@import "markdown.css";
+@import "components/widget-box.css";
+@import "base/headings.css";
+/* LAYOUT */
+@import "layout/index.css";
+@import "components/page-heading-search-box.css";
+@import "components/form.olform.css";
+@import "components/edit-toolbar.css";
+/* FOOTER */
+@import "components/footer.css";
+/* LANGUAGE DROPDOWN */
+@import "components/language.css";
+@import "components/link-box.css";
+/* HOME PAGE */
+/* NEW HOME PAGE */
+/* HOME PAGE CAROUSEL SKIN */
+@import "components/home.css";
+@import "components/search-result-item.css";
+@import "components/fulltext-snippet.css";
+@import "components/search-results-container.css";
+/* Work sub-imports */
+@import "components/compact-title.css";
+@import "components/nav-bar.css";
+@import "components/librarian-dashboard.css";
+@import "components/cover.css";
+@import "components/readerStats.css";
+@import "components/check-in.css";
+@import "components/reading-goal.css";
+@import "components/work-title-and-author.css";
+@import "components/work.css";
+@import "components/navEdition.css";
+@import "components/illustration.css";
+@import "components/page-history.css";
+/* TABS */
+/* Skin */
+@import "components/chart-stats.css";
+/* CHARTING */
+@import "components/chart.css";
+@import "components/merge-form.css";
+@import "components/listLists.css";
+@import "components/rating-form.css";
+@import "components/searchResultItemCta.css";
 
 table {
   border-collapse: collapse;
@@ -92,8 +143,8 @@ table#pageHistory td.number {
 /* openlibrary/templates/admin/people/edits.html */
 table#pageHistory th,
 table.changeHistory th {
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  color: var(--brown);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-heading);
   text-transform: uppercase !important;
   font-size: 0.6875em;
   padding: var(--spacing-inset-sm);
@@ -101,10 +152,10 @@ table.changeHistory th {
 
 table#pageHistory td,
 table.changeHistory td {
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-sm);
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 table.changeHistory {
@@ -130,14 +181,14 @@ table.changeHistory .comment__cover {
 /* https://openlibrary.org/help/markdown */
 table.help {
   margin: 20px 0;
-  border-top: 1px solid var(--grey-e7e7e7);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 table.help th {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
   vertical-align: top;
   background-color: var(--lightest-grey);
@@ -146,8 +197,8 @@ table.help th {
 table.help td {
   font-size: 0.75em;
   font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
   vertical-align: top;
 }
@@ -216,19 +267,6 @@ em {
   font-style: italic;
 }
 
-/* SITE DEFAULTS */
-
-@import "base/common.css";
-@import "components/buttonCta.css";
-@import "components/buttonsAndLinks.css";
-@import "components/buttonLink.css";
-@import "components/buttonGhost.css";
-@import "components/buttonBtn.css";
-@import "base/dl.css";
-@import "base/helpers-common.css";
-@import "base/helpers-misc.css";
-@import "markdown.css";
-
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */
 /* openlibrary/templates/showmarc.html */
@@ -245,8 +283,6 @@ em {
 
 /* TYPOGRAPHY */
 
-@import "components/widget-box.css";
-
 div.unordered {
   margin-top: var(--spacing-stack-sm);
   line-height: var(--line-height-list);
@@ -255,11 +291,9 @@ div.unordered {
 div.superNav {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-xs);
 }
-
-@import "base/headings.css";
 
 span.link {
   font-size: var(--font-size-label-medium);
@@ -271,7 +305,7 @@ span.link {
 
 span.tools {
   font-size: var(--font-size-label-medium);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal !important;
   font-family: var(--font-family-body);
 }
@@ -295,7 +329,7 @@ span.tools span.list {
 
 span.tag {
   font-size: 13px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 span.count {
@@ -313,7 +347,7 @@ span.merge {
 
 span.resultTitle {
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 span.resultTitle span.resultType {
@@ -325,7 +359,7 @@ span.resultTitle span.resultType {
 span.resultTitle .bookauthor,
 span.resultTitle .resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   font-weight: normal;
 }
@@ -394,8 +428,8 @@ input.repeat-add {
 }
 
 input.invalid {
-  border-color: var(--red);
-  color: var(--dark-grey);
+  border-color: var(--color-border-error);
+  color: var(--color-text);
 }
 
 input.highlight {
@@ -418,17 +452,24 @@ input.highlight {
   overflow-x: auto;
 }
 
+/* Filters lead the row; sort and layout only shape the results, so they sit at
+   the far end. Mirrors .search-filter-row__tools on the search page. The auto
+   margin collapses on its own once the row overflows and starts scrolling. */
+.search-results-stats__tools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+
 /* Search v2 */
 /* openlibrary/macros/SearchResultsWork.html */
 .serp-extras {
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   background-color: var(--white);
   padding: 0 10px 10px;
   margin-top: var(--spacing-stack-sm);
 }
-
-/* LAYOUT */
-@import "layout/index.css";
 
 /* openlibrary/data/sitemap.py */
 div#placement {
@@ -447,7 +488,7 @@ div#content {
   width: 958px;
   background-color: var(--white);
   border-radius: 5px;
-  border: 1px solid var(--dark-beige);
+  border: 1px solid var(--color-border-muted);
 }
 
 div#content div.contentLists {
@@ -460,7 +501,7 @@ div#content div.contentLists {
 div#content div#contentLists {
   float: left;
   position: relative;
-  border-top: 1px solid var(--lighter-grey);
+  border-top: 1px solid var(--color-border-subtle);
   background: var(--white) url(/static/images/back_results.png) repeat-x;
 }
 /* stylelint-enable selector-max-specificity */
@@ -489,7 +530,7 @@ div.note {
   margin: 0 auto;
   padding: var(--spacing-inset-sm);
   text-align: left;
-  border: 1px solid var(--dark-yellow);
+  border: 1px solid var(--color-warning-border);
 }
 
 /* openlibrary/templates/lib/not_logged.html */
@@ -597,8 +638,6 @@ fieldset.home legend {
 }
 
 /* ACCOUNT FORMS */
-@import "components/page-heading-search-box.css";
-@import "components/form.olform.css";
 
 /* openlibrary/templates/account/notifications.html */
 form#notifications input[type="radio"] {
@@ -674,7 +713,7 @@ div.siteSearch input[type="text"] {
 .searchPlus {
   font-family: var(--font-family-body);
   font-size: 0.75em;
-  color: var(--dark-grey);
+  color: var(--color-text);
   padding: var(--spacing-inset-md) 0;
 }
 
@@ -708,7 +747,6 @@ div.cclicense {
 }
 
 /* TOOLS ACCORDION */
-@import "components/edit-toolbar.css";
 
 /* openlibrary/macros/databarDiff.html */
 /* openlibrary/macros/databarEdit.html */
@@ -774,17 +812,9 @@ div.verify span {
 
 .forgot-email-form label {
   font-family: var(--font-family-body);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: 600;
 }
-
-/* FOOTER */
-@import "components/footer.css";
-
-/* LANGUAGE DROPDOWN */
-@import "components/language.css";
-
-@import "components/link-box.css";
 
 /* Various templates */
 .contentQuarter {
@@ -829,13 +859,6 @@ div.verify span {
 }
 /* stylelint-enable selector-max-specificity */
 
-/* HOME PAGE */
-
-/* NEW HOME PAGE */
-
-/* HOME PAGE CAROUSEL SKIN */
-@import "components/home.css";
-
 /* SEARCH RESULTS */
 
 div#searchResults,
@@ -843,7 +866,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -884,25 +907,12 @@ div#searchResults .SRPCoverBlank a {
   text-decoration: none;
 }
 
-/* openlibrary/templates/work_search.html */
-/* openlibrary/templates/type/author/view.html */
-.mode-options {
-  font-size: 0.7em;
-  font-family: var(--font-family-body);
-}
-
-.mode-options input {
-  margin-left: 15px;
-  margin-right: 4px;
-  position: relative;
-}
-
 /* openlibrary/macros/AvailabilityButton.html */
 .waitlist-msg {
   font-family: var(--font-family-body);
   font-size: 0.7em;
   margin-bottom: -1.5em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: 0.2em;
 }
 
@@ -916,12 +926,86 @@ div#searchResults .SRPCoverBlank a {
   margin-bottom: 1.5em;
   max-width: 800px;
   font-size: 1em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 .authorList .cover {
   max-width: 120px;
   border-radius: 4px;
+}
+
+/* Section labels ("Authors"/"Books") shown above the work search result */
+/* groups when the query names an author. */
+/* openlibrary/templates/work_search.html */
+.search-results-section-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-inline-md);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  font-size: 0.75em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* The result count rides the "Books" label but reads as data, not a label. */
+.search-results-section-label__count {
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Author suggestion row shown above work search results. */
+/* openlibrary/macros/SearchAuthorSuggestion.html */
+.search-author-suggestion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-stack-sm);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.search-author-suggestion li {
+  margin-bottom: 0;
+  max-width: none;
+  gap: var(--spacing-inline-lg);
+  /* Keep the avatar to the left of the name on mobile too; the shared */
+  /* .searchResultItem stacks (flex-direction: column) below the tablet */
+  /* breakpoint, which would center the avatar on top. */
+  flex-direction: row;
+}
+
+/* Avatar: a person-icon placeholder layered behind the author photo. The photo */
+/* covers it when it loads; a missing photo (?default=false 404) is hidden by */
+/* index.js, revealing the icon. Mirrors the modal's .result__avatar. */
+.search-author-suggestion .sas-avatar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  background: var(--lightest-grey);
+  border-radius: var(--border-radius-avatar);
+}
+
+.search-author-suggestion .sas-avatar__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.search-author-suggestion .sas-avatar__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* openlibrary/templates/languages/index.html */
@@ -934,13 +1018,9 @@ div#searchResults .SRPCoverBlank a {
 
 /* SEARCH FACETS */
 
-@import "components/search-result-item.css";
-@import "components/fulltext-snippet.css";
-@import "components/search-results-container.css";
-
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
-  width: 220px;
+  width: var(--search-facets-width);
   padding: 0 15px;
 }
 
@@ -979,7 +1059,6 @@ div.facetMoreLess a {
 
 /* RESULTS */
 
-/* openlibrary/templates/lib/message_addbook.html */
 /* openlibrary/templates/lists/widget.html */
 div.list {
   float: left;
@@ -1005,7 +1084,7 @@ div.list .copy {
 div.list h5 {
   font-family: var(--font-family-serif);
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin-bottom: var(--spacing-stack-xs);
 }
 
@@ -1017,29 +1096,18 @@ div.list h5 span {
 div.list .tags {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin-bottom: var(--spacing-stack-xs);
 }
 
 div.list .owner {
   font-family: var(--font-family-body);
   font-size: 0.6875em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   text-align: right;
 }
 
 /* BOOKS */
-/* Work sub-imports */
-@import "components/compact-title.css";
-@import "components/nav-bar.css";
-@import "components/librarian-dashboard.css";
-@import "components/cover.css";
-@import "components/readerStats.css";
-@import "components/check-in.css";
-@import "components/reading-goal.css";
-@import "components/work-title-and-author.css";
-@import "components/work.css";
-@import "components/navEdition.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 /* openlibrary/templates/type/work/view.html */
@@ -1078,8 +1146,6 @@ div.workHelp {
 .workCover .illustration .SRPCoverBlank {
   margin: 0 auto;
 }
-
-@import "components/illustration.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 div.books {
@@ -1134,11 +1200,11 @@ div.books .BookTitle {
   margin-left: -31px;
   height: 93px;
   margin-top: -46px;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 div.books .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
@@ -1177,8 +1243,8 @@ div.excerpt .attribution {
 /* openlibrary/templates/books/edit/edition.html */
 /* openlibrary/templates/admin/imports-add.html */
 .identifiers td {
-  color: var(--dark-grey);
-  border-bottom: 1px solid var(--lighter-grey);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: var(--spacing-inset-xs);
 }
 
@@ -1258,8 +1324,6 @@ ul.clean li span.resultTitle {
   margin-top: 0;
 }
 
-@import "components/page-history.css";
-
 /* openlibrary/macros/CoverImage.html */
 /* openlibrary/templates/covers/book_cover.html */
 .BookTitle {
@@ -1271,14 +1335,14 @@ ul.clean li span.resultTitle {
   height: 100px;
   margin-top: -50px;
   vertical-align: middle;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
   line-height: normal;
 }
 
 /* openlibrary/templates/covers/book_cover.html */
 .Author {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-style: italic;
   padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: var(--font-size-label-small);
@@ -1396,7 +1460,7 @@ ul.list-books .resultTitle {
   display: block;
   margin: 0 !important;
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 
 /* `span.resultTitle .bookauthor` is used in: */
@@ -1407,7 +1471,7 @@ ul.list-books .resultTitle {
 ul.list-books .resultTitle .bookauthor,
 ul.list-books span.resultPublisher {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
 }
 
@@ -1519,11 +1583,6 @@ div.popAlert {
   font-size: 0.75em;
 }
 
-/* TABS */
-
-/* Skin */
-@import "components/chart-stats.css";
-
 /* PAGE HISTORY */
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media screen and (max-width: 960px) {
@@ -1555,9 +1614,6 @@ div.popAlert {
   }
 }
 
-/* CHARTING */
-@import "components/chart.css";
-
 /* MERGING */
 /* Merge button */
 /* openlibrary/templates/search/authors.html */
@@ -1567,8 +1623,6 @@ div.mergeThis {
   margin-left: 15px;
   background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
-
-@import "components/merge-form.css";
 
 /* openlibrary/templates/recentchanges/default/view.html */
 /* openlibrary/templates/recentchanges/merge-authors/view.html */
@@ -1594,7 +1648,7 @@ div.postSubmit {
 /* openlibrary/templates/type/list/exports.html */
 #listTools ul {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   margin: 0 0 20px !important;
 }
@@ -1625,8 +1679,6 @@ div.postSubmit {
 #listTools li span.alert {
   background-position: -56px 0;
 }
-
-@import "components/listLists.css";
 
 /* openlibrary/templates/lists/widget.html */
 .heart-adjust {
@@ -1709,7 +1761,7 @@ div#subjectLists p {
   background: inherit;
   border: none;
   padding: 0;
-  color: var(--link-blue);
+  color: var(--color-link);
   border-bottom: 1px solid var(--link-blue);
   margin-bottom: var(--spacing-stack-md);
 }
@@ -1729,9 +1781,6 @@ div#subjectLists p {
 .account-settings-menu {
   display: flex;
 }
-
-@import "components/rating-form.css";
-@import "components/searchResultItemCta.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @media only screen and (min-width: 768px) {
@@ -1764,19 +1813,6 @@ div#subjectLists p {
     -webkit-box-ordinal-group: 4;
     -ms-flex-order: 3;
     order: 3;
-  }
-
-  .header-bar .search-component .search-bar-component {
-    width: 300px;
-  }
-
-  .header-bar .search-component .search-justify-right {
-    min-width: 210px;
-  }
-
-  .header-bar .search-component .search-bar {
-    width: auto;
-    max-width: 310px;
   }
 
   .header-bar .header-dropdown .account__icon {
@@ -1853,12 +1889,13 @@ div#subjectLists p {
   }
 
   .header-bar .logo-component {
-    /* border-right: 1px solid var(--dark-beige); */
+    /* border-right: 1px solid var(--color-border-muted); */
     padding-right: 15px;
   }
 
   .header-bar .navigation-component {
     display: flex;
+    align-items: center;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;
@@ -1869,7 +1906,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component .dropdown-menu {
     border-radius: 3px;
-    border: 1px solid var(--dark-beige);
+    border: 1px solid var(--color-border-muted);
   }
 
   .header-bar .navigation-component li .dropdown-menu {
@@ -1877,12 +1914,31 @@ div#subjectLists p {
     white-space: nowrap;
   }
 
+  /* Mirrors header-bar--desktop.css: restores the wide "Search 🔍" bar
+     with its faux-input chrome at desktop. Mobile/touch widths keep the
+     bare icon-only button. */
   .header-bar .search-component .search-bar-component {
     width: 100%;
+    background-color: var(--grey-fafafa);
+    border: 1px solid var(--color-border-muted);
+    border-radius: 6px;
   }
 
-  .header-bar .search-component .search-bar {
-    max-width: 100%;
+  .header-bar .search-bar-trigger {
+    flex: 1;
+    min-width: 0;
+    justify-content: space-between;
+    gap: var(--spacing-inline-sm);
+    padding: 0 var(--spacing-inset-md);
+  }
+
+  .header-bar .search-bar-trigger__label {
+    display: block;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-bar .hamburger-component {

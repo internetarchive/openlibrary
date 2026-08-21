@@ -87,3 +87,138 @@ export function buildPartialsUrl(component, params = {}) {
 
     return url;
 }
+
+/**
+ * Returns an `HTMLElement` that was created using the given `markup`.
+ *
+ * `markup` is expected to be well-formed, and only have a single root
+ * element.
+ *
+ * @param {string} markup HTML markup for a single element
+ * @returns {HTMLElement}
+ */
+export function createElementFromMarkup(markup) {
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    return template.content.children[0];
+}
+
+/**
+ * Waits until the given element is visible in the viewport, then resolves.
+ *
+ * @param {HTMLElement} elem
+ * @param {IntersectionObserverInit} options
+ * @returns {Promise<void>}
+ */
+export async function whenVisible(elem, options = {}) {
+    return new Promise((resolve) => {
+        const intersectionObserver = new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    }
+
+                    // Stop observing once the element is visible
+                    observer.unobserve(entry.target);
+                    observer.disconnect();
+                    resolve();
+                });
+            },
+            Object.assign({
+                root: null,
+                rootMargin: '200px',
+                threshold: 0
+            }, options)
+        );
+
+        intersectionObserver.observe(elem);
+    });
+}
+
+/**
+ * Once `elem` is visible, fetches `component`'s real markup (keyed off
+ * `elem.dataset.key`) and replaces `elem` with it.
+ *
+ * On failure, `elem`'s loading indicator(s) (`.loadingIndicator`) are hidden
+ * and its pre-rendered `.async-partial-retry` prompt is shown instead (see
+ * e.g. RawQueryCarousel.html/PublishingHistory.html for the expected markup).
+ * Clicking retry restores the loading indicator(s) and re-attempts the fetch.
+ *
+ * @param {HTMLElement} elem Root element of an async-loaded partial component
+ * @param {string} component Partial component name (e.g. 'SubjectRelated')
+ * @param {(newElem: HTMLElement) => void} [onSwap] Called every time `elem`
+ *   is successfully replaced with fetched markup -- including on a later
+ *   retry, unlike the returned promise below.
+ * @returns {Promise<HTMLElement | null>} The element that replaced `elem` on
+ *   the first attempt, or null if that attempt failed
+ */
+export async function fetchAndSwap(elem, component, onSwap) {
+    if (elem.dataset.asyncLoad !== 'true') {
+        return null;
+    }
+    const key = JSON.parse(elem.dataset.key);
+    await whenVisible(elem);
+    return attemptFetchAndSwap(elem, component, key, onSwap);
+}
+
+/**
+ * @param {HTMLElement} elem Element to replace with the fetched markup (or,
+ *   on failure, show a retry prompt inside)
+ * @param {string} component
+ * @param {string} key
+ * @param {(newElem: HTMLElement) => void} [onSwap]
+ * @returns {Promise<HTMLElement | null>}
+ */
+async function attemptFetchAndSwap(elem, component, key, onSwap) {
+    try {
+        const resp = await fetch(buildPartialsUrl(component, {key}));
+        if (!resp.ok) {
+            throw new Error(`Failed to fetch ${component} partial. Status code: ${resp.status}`);
+        }
+        const data = await resp.json();
+        const newElem = createElementFromMarkup(data.partials);
+        elem.replaceWith(newElem);
+        onSwap?.(newElem);
+        return newElem;
+    } catch {
+        showRetryPrompt(elem, () => attemptFetchAndSwap(elem, component, key, onSwap));
+        return null;
+    }
+}
+
+/**
+ * Hides `elem`'s loading indicator(s) and shows its pre-rendered retry
+ * prompt. Clicking retry restores the loading indicator(s) and calls
+ * `onRetry`.
+ *
+ * @param {HTMLElement} elem
+ * @param {() => void} onRetry
+ */
+function showRetryPrompt(elem, onRetry) {
+    const loadingIndicators = elem.querySelectorAll('.loadingIndicator');
+    const retryPrompt = elem.querySelector('.async-partial-retry');
+
+    loadingIndicators.forEach(indicator => indicator.classList.add('hidden'));
+    retryPrompt.classList.remove('hidden');
+
+    retryPrompt.querySelector('.retry-btn').addEventListener('click', function onClick(e) {
+        e.preventDefault();
+        e.currentTarget.removeEventListener('click', onClick);
+        retryPrompt.classList.add('hidden');
+        loadingIndicators.forEach(indicator => indicator.classList.remove('hidden'));
+        onRetry();
+    });
+}
+
+export function queueAction(actionName, itemName, targetUrl, itemType) {
+    const data = {
+        name: itemName,
+        url: targetUrl,
+        action: actionName,
+        type: itemType || 'item'
+    };
+
+    const cookieValue = encodeURIComponent(JSON.stringify(data));
+    document.cookie = `pending_action=${cookieValue}; path=/; max-age=129600; samesite=lax`;
+}

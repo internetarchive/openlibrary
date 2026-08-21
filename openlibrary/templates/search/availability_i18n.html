@@ -1,0 +1,13 @@
+$def with ()
+$# Translated availability labels for the header search modal's "Readable Only"
+$# toggle (lib/nav_head.html). Rendered into a `data-i18n` attribute and read
+$# client-side by search-modal/constants.js (availabilityOptionsFromElement).
+$# The English source strings here must match the fallback AVAILABILITY_OPTIONS
+$# in that same file.
+$ availability_i18n = {
+$     "all":        {"label": _("All books")},
+$     "readable":   {"label": _("Readable Only")},
+$     "open":       {"label": _("Free to read now")},
+$     "borrowable": {"label": _("Borrow online")},
+$ }
+$json_encode(availability_i18n)

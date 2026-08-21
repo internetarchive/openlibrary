@@ -34,7 +34,7 @@ class LogLine:
     page_key: str
 
     @staticmethod
-    def from_line(line: str) -> "LogLine":
+    def from_line(line: str) -> LogLine:
         parts = line.split(" ")
         return LogLine(
             ip=parts[0],
@@ -133,7 +133,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     session.headers.update({"User-Agent": "OpenLibrary Trending Updater"})
     # The API doesn't support POST requests, so need to use smaller batches
     # to avoid hitting the URL length limit.
-    for i, batch in enumerate(itertools.batched(book_keys, batch_size)):
+    for i, batch in enumerate(itertools.batched(book_keys, batch_size, strict=False)):
         print(f"\rBatch {i + 1}/{batch_count} ...", end="", flush=True)
         resp = session.get(
             "https://openlibrary.org/query.json",
@@ -224,7 +224,9 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
         resp = execute_solr_query(
             "/export",
             {
-                "q": " OR ".join(f'key:"{key}"' for key in keys_to_fetch),
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key counts.
+                "q": "{!terms f=key}" + ",".join(keys_to_fetch),
                 "fl": ",".join(solr_fields),
                 "sort": "key asc",
             },

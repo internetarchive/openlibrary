@@ -39,7 +39,7 @@ from infogami import config
 from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
 from infogami.infobase.common import parse_query
-from infogami.utils import delegate, features, stats, view
+from infogami.utils import delegate, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
 from infogami.utils.view import (
@@ -209,21 +209,11 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ""
-    included = web.ctx.setdefault("included-components", [])
 
-    if not included:
-        # Support for legacy browsers (see vite.config.mjs)
-        polyfills_url = static_url("build/components/production/ol-polyfills-legacy.js")
-        html += f'<script nomodule src="{polyfills_url}" defer></script>'
-
-    if name not in included:
+    if name not in (included := web.ctx.setdefault("included-components", [])):
         url = static_url("build/components/production/ol-%s.js" % name)
         script_attrs = "" if not asyncDefer else "async defer"
         html += f'<script type="module" {script_attrs} src="{url}"></script>'
-
-        legacy_url = static_url("build/components/production/ol-%s-legacy.js" % name)
-        html += f'<script nomodule src="{legacy_url}" defer></script>'
-
         included.append(name)
 
     html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
@@ -265,7 +255,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         if page.get("do_not_cache") == "True":
             mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return "<span>Failed to render macro</span>"
 
 
@@ -302,13 +292,13 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d, indent=0) -> str:
-    return json.dumps(d, indent=indent)
+def json_encode(d, indent: int | str | None = None, sort_keys: bool = False) -> str:
+    if isinstance(d, Nothing):
+        d = []
 
-
-@public
-def is_feature_enabled(feature_name: str) -> bool:
-    return features.is_enabled(feature_name)
+    # Escape < and > so the output is safe inside <script> tags with unescaped $: output.
+    # </> are valid JSON unicode escapes; all parsers decode them correctly.
+    return json.dumps(d, indent=indent, sort_keys=sort_keys).replace("<", "\\u003c").replace(">", "\\u003e")
 
 
 def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
@@ -486,7 +476,7 @@ def get_changes(query: dict[str, str | int], revision: int | None = None) -> lis
 
 
 @public
-def get_history(page: "Work | Author | Edition") -> Storage:
+def get_history(page: Work | Author | Edition) -> Storage:
     h = Storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
         h.recent = get_changes({"key": page.key, "limit": 5}, revision=page.revision)
@@ -511,7 +501,7 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: "Work") -> "Thing | None":
+def get_recent_author(doc: Work) -> Thing | None:
     versions = get_changes_v1({"key": doc.key, "limit": 1, "offset": 0}, revision=doc.revision)
     if versions:
         return versions[0].author
@@ -645,6 +635,18 @@ def set_share_links(url: str = "#", title: str = "", view_context: InfogamiConte
         view_context.share_links = links
 
 
+@public
+def get_preserve_intent_attrs(action: str, title: str, item_type: str = "book", resume_url: str = "") -> str:
+    """
+    Generates data attributes for login-intent buttons.
+    Used for intent-preservation across login redirects.
+    """
+    attr = f'data-action="{web.websafe(action)}" data-title="{web.websafe(title)}" data-type="{web.websafe(item_type)}"'
+    if resume_url:
+        attr += f' data-resumeurl="{web.websafe(resume_url)}"'
+    return attr
+
+
 def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy
@@ -657,7 +659,7 @@ def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     try:
         return func()
-    except (KeyError, IndexError, TypeError):
+    except KeyError, IndexError, TypeError:
         return default
 
 
@@ -694,7 +696,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
     """
 
-    def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
+    def get_names_to_try(lang: dict) -> Generator[str | None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
         user_lang = request_context.req_context.get().lang or "en"
@@ -763,7 +765,18 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
     return target_abbrev
 
 
-def get_language(lang_or_key: str) -> "None | Thing | Nothing":
+def is_safe_redirect(url: str) -> bool:
+    if not url:
+        return False
+    parsed = urlparse(url)
+    if parsed.netloc or parsed.scheme:
+        return False
+    if not url.startswith("/"):
+        return False
+    return not url.startswith(("//", "/\\"))
+
+
+def get_language(lang_or_key: str) -> Thing | Nothing | None:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -1124,7 +1137,7 @@ def get_marc21_language(language: str) -> str | None:
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing", user_lang: str) -> Nothing | str:
+def get_language_name(lang_or_key: Nothing | str | Thing, user_lang: str) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:

@@ -345,11 +345,14 @@ time {
 table.main {
   border-collapse: collapse;
   min-width: 100%;
+  /* Contain the sticky header/footer's stacking. A shadow root is not a stacking
+     context, so without this their z-index competes with the whole page. */
+  isolation: isolate;
 }
 table.main thead,
 table.main tfoot {
   position: sticky;
-  z-index: 300;
+  z-index: var(--z-index-local-1);
 }
 table.main > thead {
   top: 0;

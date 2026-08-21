@@ -103,3 +103,45 @@ stats.ol-covers.http_status.http_302 5 1741054377
 stats.ol-covers.http_status.http_200 2 1741054377
             """.strip()
             assert f.read().strip() == expected_output
+
+
+def test_log_top_response_times():
+    with (
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
+    ):
+        aliases_fp.write(f"""
+                obfi_in_docker() {{
+                    cat scripts/monitoring/tests/sample_covers_nginx_logs.log
+                }}
+                export -f obfi_in_docker
+
+                nc() {{
+                    # Read stdin and write to nc_fp
+                    cat >> {nc_fp.name}
+                }}
+                export -f nc
+
+                date() {{
+                    echo "1741054377"
+                }}
+            """)
+        aliases_fp.close()
+        nc_fp.close()
+
+        bash_run(
+            "log_top_response_times stats.ol-covers.response_times",
+            sources=["../obfi.sh", aliases_fp.name, "utils.sh"],
+        )
+
+        with open(nc_fp.name) as f:
+            expected_output = """
+stats.ol-covers.response_times.10ms 1 1741054377
+stats.ol-covers.response_times.100ms 3 1741054377
+stats.ol-covers.response_times.1000ms 1 1741054377
+stats.ol-covers.response_times.5000ms 1 1741054377
+stats.ol-covers.response_times.10000ms 1 1741054377
+stats.ol-covers.response_times.20000ms 0 1741054377
+stats.ol-covers.response_times.LONG 0 1741054377
+            """.strip()
+            assert f.read().strip() == expected_output

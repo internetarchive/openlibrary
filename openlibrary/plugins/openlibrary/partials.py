@@ -11,11 +11,12 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
-    get_amazon_metadata,
+    get_amazon_metadata_async,
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
@@ -308,7 +309,7 @@ class AffiliateLinksPartial:
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not bwb_metadata or not bwb_metadata.get("market_price"):
-                amz_metadata = get_amazon_metadata(isbn, resources="prices")
+                amz_metadata = await get_amazon_metadata_async(isbn, resources="prices")
 
         if bwb_metadata and "error" in bwb_metadata:
             bwb_metadata = None
@@ -317,8 +318,11 @@ class AffiliateLinksPartial:
 
         primary_stores = build_primary_stores(ctx)
         more_stores = build_more_stores(ctx)
-        macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
-        return {"partials": str(macro)}
+
+        template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
+        html = template.render(primary_stores=primary_stores, more_stores=more_stores)
+
+        return {"partials": html}
 
 
 class SearchFacetsPartial:
@@ -327,7 +331,7 @@ class SearchFacetsPartial:
     @classmethod
     async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
         user = get_current_user()
-        show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
+        show_merge_authors = user and user.is_librarian_or_higher()
 
         path = data.get("path")
         query = data.get("query", "")
@@ -372,6 +376,50 @@ class SearchFacetsPartial:
             "title": active_facets.title,
             "activeFacets": str(active_facets).strip(),
         }
+
+
+class SubjectPublishingHistoryPartial:
+    """Handler for the subject page's publishing-history chart."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=[{"name": "publish_year", "limit": -1}],
+            request_label="SUBJECT_PUBLISHING_HISTORY",
+        )
+        macro = render_macro(
+            "PublishingHistory",
+            (),
+            publishing_history=subject.get("publishing_history", []),
+            async_load=False,
+            key=key,
+        )
+        return {"partials": str(macro["__body__"])}
+
+
+class SubjectRelatedPartial:
+    """Handler for the subject page's related subjects/places/people/times widget."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
+            request_label="SUBJECT_RELATED",
+        )
+        macro = render_macro(
+            "RelatedSubjects",
+            (),
+            page=subject,
+            async_load=False,
+            key=key,
+        )
+        return {"partials": str(macro["__body__"])}
 
 
 @dataclass

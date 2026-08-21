@@ -1,19 +1,19 @@
 $def with (selected_layout)
 
-$code:
-  default_layout = 'details'
-  layout_options = [
-    { 'layout': 'details', 'name': _("Details"), 'ga_key': 'Details' },
-    { 'layout': 'grid', 'name': _("Grid"), 'ga_key': 'Grid' },
-  ]
+$# Must match the first segment: the control resolves an unknown value to it.
+$ default_layout = 'details'
 
-<span class="tools--layout tool-button tool-button--group" title="$_('View as: ')">
-  $for layout_option in layout_options:
-    $ is_selected = layout_option['layout'] == selected_layout or (selected_layout is None and layout_option['layout'] == default_layout)
-    <a
-      class="tool-button $cond(is_selected, 'active', '')"
-      data-value="$layout_option['layout']"
-      href="$changequery(layout=cond(layout_option['layout'] == default_layout, None, layout_option['layout']))"
-      data-ol-link-track="SearchLayout|$layout_option['ga_key']"
-    >$layout_option['name']</a>
-</span>
+$# `label` is both the accessible name and the hover tooltip. list_books.js
+$# owns what a change does; ?layout= is still resolved server-side.
+<ol-segmented-control
+  class="tools--layout"
+  value="$(selected_layout or default_layout)"
+  accessible-label="$_('View as')"
+>
+  <ol-segment value="details" label="$_('List')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+  </ol-segment>
+  <ol-segment value="grid" label="$_('Grid')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+  </ol-segment>
+</ol-segmented-control>

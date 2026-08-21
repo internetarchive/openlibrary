@@ -74,7 +74,7 @@ $code:
           $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
 	  /></a>
       $if ocaid:
-        $:macros.BookPreview(ocaid, show_only=False)
+        $:macros.BookPreview(ocaid)
     </span>
 
     <div class="details">
@@ -123,9 +123,9 @@ $code:
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
         <span class="resultStats">
-          $ ratings_count = doc.get('ratings_count', None)
+          $ ratings_count = doc.get('ratings_count') or 0
           $ ratings_avg = doc.get('ratings_average', None)
-          $ want_to_read_count = doc.get('want_to_read_count', None)
+          $ want_to_read_count = doc.get('want_to_read_count') or 0
           $:macros.StarRatingsByline(ratings_count, ratings_avg, want_to_read_count)
           $if show_librarian_extras and doc.get('trending_z_score') is not None:
             $:macros.TrendingBadge(doc)
@@ -266,7 +266,8 @@ $code:
               $ edition_key = doc.get('logged_edition')
             $else:
               $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
-              $ edition_key = '/books/%s' % edition_key
+              $if edition_key:
+                $ edition_key = '/books/%s' % edition_key
           $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:

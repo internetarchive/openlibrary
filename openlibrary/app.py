@@ -1,10 +1,13 @@
 """Utilities to build the app."""
 
-from web.template import TemplateResult
+from typing import TYPE_CHECKING
 
 from infogami.utils import app as _app
 from infogami.utils.macro import macro
 from infogami.utils.view import public, render
+
+if TYPE_CHECKING:
+    from web.template import TemplateResult
 
 
 class view(_app.page):

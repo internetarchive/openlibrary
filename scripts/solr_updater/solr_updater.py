@@ -9,17 +9,18 @@ Changes:
 
 import asyncio
 import datetime
+import itertools
 import json
 import logging
 import re
 import socket
 import sys
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from pathlib import Path
+from typing import TypedDict, cast
 
 import aiofiles
 import requests
-import web
 
 import infogami
 from infogami import config
@@ -45,6 +46,19 @@ def read_state_file(path, initial_state: str | None = None):
 
 def get_default_offset():
     return datetime.date.today().isoformat() + ":0"
+
+
+class InfobaseLogRecord(TypedDict):
+    action: str
+    timestamp: str
+    data: dict
+    site: str
+
+
+class InfobaseLogResponse(TypedDict):
+    data: list[InfobaseLogRecord]
+    offset: str
+    """E.g. '2023-02-11:0'"""
 
 
 class InfobaseLog:
@@ -82,7 +96,7 @@ class InfobaseLog:
                 raise
 
             try:
-                d = resp.json()
+                d: InfobaseLogResponse = resp.json()
             except:
                 logger.error("Bad JSON: %s", resp.text)
                 raise
@@ -142,7 +156,7 @@ def find_keys(d: dict | list) -> Iterator[str]:
         return
 
 
-def parse_log(records, load_ia_scans: bool):
+def parse_log(records: Iterable[InfobaseLogRecord], load_ia_scans: bool):
     for rec in records:
         action = rec.get("action")
 
@@ -151,7 +165,7 @@ def parse_log(records, load_ia_scans: bool):
             old_docs = changeset.get("old_docs", [])
             new_docs = changeset.get("docs", [])
             for before, after in zip(old_docs, new_docs):
-                yield after["key"]
+                yield cast(str, after["key"])
                 # before is None if the item is new
                 if before:
                     before_keys = set(find_keys(before))
@@ -174,11 +188,11 @@ def parse_log(records, load_ia_scans: bool):
             data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
             if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = data.get("book_key")
+                edition_key = cast(str | None, data.get("book_key"))
                 if edition_key:
                     yield edition_key
             elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
-                identifier = data.get("identifier")
+                identifier = cast(str | None, data.get("identifier"))
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
 
@@ -187,11 +201,12 @@ def parse_log(records, load_ia_scans: bool):
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
             elif key == "solr-force-update":
-                keys = data.get("keys")
+                keys = cast(list[str], data.get("keys", []))
                 yield from keys
 
         elif action == "store.delete":
-            key = rec.get("data", {}).get("key")
+            data = rec.get("data", {})
+            key = cast(str, data.get("key"))
             # An ia-scan key is deleted when that book is deleted/darked from IA.
             # Delete it from OL solr by updating that key
             if key.startswith("ia-scan/"):
@@ -199,30 +214,28 @@ def parse_log(records, load_ia_scans: bool):
                 yield ol_key
 
 
-def is_allowed_itemid(identifier):
+def is_allowed_itemid(identifier: str):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = config.get("ia_ignore_prefixes", [])
+    ignore_prefixes = cast(list[str], config.get("ia_ignore_prefixes", []))
     return all(not identifier.startswith(prefix) for prefix in ignore_prefixes)
 
 
-async def update_keys(keys):
-    if not keys:
-        return 0
-
+async def update_keys(keys: Iterable[str]):
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     logger.debug("Args: %s" % str(args))
     update.load_configs(args["ol_url"], args["ol_config"], "default")
 
     keys = [k for k in keys if update.can_update_key(k)]
+    if not keys:
+        return 0
 
     count = 0
-    for chunk in web.group(keys, 100):
-        chunk = list(chunk)
+    for chunk in itertools.batched(keys, 100, strict=False):
         count += len(chunk)
-        await update.do_updates(chunk)
+        await update.update_keys(list(chunk), commit=False)
 
         # Caches should not persist between different calls to update_keys!
         update.data_provider.clear_cache()
@@ -239,7 +252,7 @@ async def main(
     debugger: bool = False,
     state_file: str = "solr-update.state",
     exclude_edits_containing: str | None = None,
-    ol_url="http://openlibrary.org/",
+    ol_url="http://openlibrary.org/",  # Has side effects, is read globally
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
@@ -270,11 +283,6 @@ async def main(
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
     socket.setdefaulttimeout(socket_timeout)
-
-    # set OL URL when running on a dev-instance
-    if ol_url:
-        host = ol_url.removeprefix("http://").strip("/")
-        update.set_query_host(host)
 
     set_osp_dump_location(osp_dump)
 

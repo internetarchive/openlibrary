@@ -6,15 +6,18 @@
  * subsequent pages from cache. Same pattern as tokens.css.
  *
  * What belongs here: CSS that needs to be in the document outside any
- * shadow root — i.e. styles for light-DOM web components (e.g.
- * <ol-button>) and pre-hydration FOUC fixes for shadow-DOM components
- * (reserving height before Lit upgrades them).
+ * shadow root — i.e. styles for light-DOM web components (<ol-banner>)
+ * and pre-upgrade rules for shadow-DOM components: reserving height
+ * before Lit upgrades them, or painting the resting state on the host
+ * tag so a server-rendered control looks right on first paint
+ * (<ol-button>, keyed on :not(:defined)).
  *
  * What does NOT belong here: page-specific styles, shadow-DOM component
  * internals (those ship inside the component's JS).
  */
 
 @import "components/ol-button.css";
+@import "components/ol-banner.css";
 
 /* Pre-hydration sizing for shadow-DOM web components. These rules apply
    only until the component upgrades and renders its own shadow root. */
@@ -39,4 +42,34 @@ ol-chip:not(:defined) {
 
 ol-chip[size="small"]:not(:defined) {
   height: 24px;
+}
+
+/* <ol-segment> elements are pure declarative data for <ol-segmented-control>:
+   the control reads their value/label on connect and renders its own radios in
+   the shadow root, so the light-DOM children should never be visible. */
+ol-segment {
+  display: none;
+}
+
+/* Reserve height for ol-segmented-control before Lit hydrates, matching the
+   rendered track height per size, to prevent layout shift. */
+ol-segmented-control:not(:defined) {
+  display: inline-block;
+  height: var(--control-height-medium);
+}
+
+ol-segmented-control[size="small"]:not(:defined) {
+  height: var(--control-height-small);
+}
+
+ol-segmented-control[size="large"]:not(:defined) {
+  height: var(--control-height-large);
+}
+
+/* Before ol-popover upgrades, its default-slot content (the panel) renders
+   in the light DOM. Hide everything except the trigger so the popover body
+   doesn't flash on page load; the upgraded component manages it in its
+   shadow root. */
+ol-popover:not(:defined) > :not([slot="trigger"]) {
+  display: none;
 }

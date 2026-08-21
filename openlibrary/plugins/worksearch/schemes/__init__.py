@@ -3,8 +3,6 @@ import typing
 from collections.abc import Callable
 from types import MappingProxyType
 
-import luqum.tree
-import web
 from luqum.exceptions import ParseError
 
 from openlibrary.solr.query_utils import (
@@ -12,8 +10,11 @@ from openlibrary.solr.query_utils import (
     fully_escape_query,
     luqum_parser,
 )
+from openlibrary.utils.request_context import get_request_lang
 
 if typing.TYPE_CHECKING:
+    import luqum.tree
+
     from openlibrary.fastapi.models import SolrInternalsParams
 
 
@@ -41,8 +42,7 @@ class SearchScheme:
     lang: str
 
     def __init__(self, lang: str | None = None):
-        # Fall back to web.ctx.lang until we move away from it
-        self.lang = lang or getattr(web.ctx, "lang", None) or "en"
+        self.lang = lang or get_request_lang()
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
@@ -133,7 +133,7 @@ class SearchScheme:
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
-        solr_internals_params: "SolrInternalsParams | None" = None,
+        solr_internals_params: SolrInternalsParams | None = None,
     ) -> list[tuple[str, str]]:
         return [("q", q)]
 

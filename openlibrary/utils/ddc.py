@@ -169,4 +169,4 @@ def choose_sorting_ddc(normalized_ddcs: Iterable[str]) -> str:
     # Prefer unprefixed DDCs (so they sort correctly)
     preferred_ddcs = [ddc for ddc in normalized_ddcs if ddc[0] in "0123456789"]
     # Choose longest; theoretically most precise?
-    return sorted(preferred_ddcs or normalized_ddcs, key=len, reverse=True)[0]
+    return max(preferred_ddcs or normalized_ddcs, key=len)

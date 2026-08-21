@@ -19,12 +19,14 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
+from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
+    site,
 )
 
 from . import helpers as h
@@ -76,6 +78,7 @@ config_http_request_timeout = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
 config_fts_context = None
+config_ia_s3_loan_url = None  # S3-based loan endpoint; falls back to S3_LOAN_URL % bookreader_host
 
 
 def setup(config):
@@ -86,11 +89,12 @@ def setup(config):
     global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
     global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
     global config_ia_users_loan_history, config_ia_loan_api_developer_key
-    global config_ia_domain, config_fts_context
+    global config_ia_domain, config_fts_context, config_ia_s3_loan_url
 
     config_bookreader_host = config.get("bookreader_host", "archive.org")
     config_ia_domain = config.get("ia_base_url", "https://archive.org")
     config_ia_loan_api_url = config.get("ia_loan_api_url")
+    config_ia_s3_loan_url = config.get("ia_s3_loan_url")
     config_ia_availability_api_v2_url = cast(str, config.get("ia_availability_api_v2_url"))
     config_ia_xauth_api_url = config.get("ia_xauth_api_url")
     config_ia_access_secret = config.get("ia_access_secret")
@@ -113,7 +117,6 @@ def compose_ia_url(
     query=None,
     sorts=None,
     advanced: bool = True,
-    rate_limit_exempt: bool = True,
     safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
@@ -175,7 +178,8 @@ def compose_ia_url(
         ("page", page),
         ("output", "json"),
     ]
-    if rate_limit_exempt:
+    if not get_ol_env().LOCAL_DEV:
+        # This flag is only available on prod
         params.append(("service", "metadata__unlimited"))
     if not sorts or not isinstance(sorts, list):
         sorts = [""]
@@ -195,7 +199,7 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
-    url = S3_LOAN_URL % config_bookreader_host
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     timeout = 2 if os.getenv("LOCAL_DEV") else 5
     try:
         response = httpx.post(url + params, data=s3_keys, timeout=timeout)
@@ -229,7 +233,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
     """
     fields = {"identifier": ocaid, "action": action}
     params = "?" + "&".join([f"{k}={v}" for (k, v) in fields.items() if v])
-    url = S3_LOAN_URL % config_bookreader_host
+    url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
 
     data = s3_keys | kwargs
 
@@ -298,7 +302,7 @@ async def get_available_async(
         for item in items:
             if item.get("openlibrary_work"):
                 results[item["openlibrary_work"]] = item["openlibrary_edition"]
-        books = web.ctx.site.get_many([f"/books/{olid}" for olid in results.values()])
+        books = site.get().get_many([f"/books/{olid}" for olid in results.values()])
         books = await add_availability_async(books)
         return books
     except Exception:  # TODO: Narrow exception scope
@@ -574,7 +578,7 @@ def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
     ocaid_availability = get_availability("identifier", ocaids)
-    editions = web.ctx.site.get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
+    editions = site.get().get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
 
     # Attach availability
     for edition in editions:
@@ -623,7 +627,7 @@ def get_loan(identifier: str, user_key: str | None = None):
         else:
             account = OpenLibraryAccount.get_by_key(user_key)
 
-    d = web.ctx.site.store.get("loan-" + identifier)
+    d = site.get().store.get("loan-" + identifier)
     if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
         loan = Loan(d)
         if loan.is_expired():
@@ -658,7 +662,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
+    loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
     loans = [Loan(d) for d in loandata]
     if account and account.itemname:
         loans += _get_ia_loans_of_user(account.itemname)
@@ -787,7 +791,7 @@ class EBookRecord(dict):
     @staticmethod
     def find(identifier: str) -> EBookRecord:
         key = "ebooks/" + identifier
-        d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
+        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
 
     def update(self, **kwargs):
@@ -799,7 +803,7 @@ class EBookRecord(dict):
             return
 
         dict.update(self, **kwargs)
-        web.ctx.site.store[self["_key"]] = self
+        site.get().store[self["_key"]] = self
 
 
 class Loan(dict):
@@ -901,7 +905,7 @@ class Loan(dict):
         if self.get("stored_at") == "ia":
             return
 
-        web.ctx.site.store[self["_key"]] = self
+        site.get().store[self["_key"]] = self
 
         # Inform listers that a loan is created/updated
         eventer.trigger("loan-created", self)
@@ -932,7 +936,7 @@ class Loan(dict):
             if account and account.itemname:
                 ia_lending_api.delete_loan(self["ocaid"], account.itemname)
         else:
-            web.ctx.site.store.delete(self["_key"])
+            site.get().store.delete(self["_key"])
 
         sync_loan(self["ocaid"])
         # Inform listers that a loan is completed
@@ -941,7 +945,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier: str) -> str | None:
     """Returns the OL book key for given IA identifier."""
-    if keys := web.ctx.site.things({"type": "/type/edition", "ocaid": identifier}):
+    if keys := site.get().things({"type": "/type/edition", "ocaid": identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
@@ -1041,3 +1045,84 @@ class IA_Lending_API:
 
 
 ia_lending_api = IA_Lending_API()
+
+
+@public
+def get_lending_state(doc, user=None, check_loan_status=False) -> str:
+    """Resolves the user-facing lending/availability state of a document (Work, Edition, or Solr dict).
+
+    Returns one of: "borrowed", "partner", "open", "printdisabled", "borrowable", "waitlist", "checkedout", "preview_only", "locate"
+    """
+    availability = doc.availability if hasattr(doc, "availability") else (doc.get("availability") if hasattr(doc, "get") else None)
+    if not availability:
+        availability = {}
+
+    ocaid = doc.get("ocaid") if hasattr(doc, "get") else getattr(doc, "ocaid", None)
+    if not ocaid and hasattr(availability, "get"):
+        ocaid = availability.get("identifier")
+
+    # 1. Cheap check: Active loan already in doc
+    user_loan = doc.get("loan") if hasattr(doc, "get") else getattr(doc, "loan", None)
+    if user_loan:
+        return "borrowed"
+
+    # 2. Cheap check: Book provider is not IA
+    from openlibrary.book_providers import get_book_provider
+
+    book_provider = get_book_provider(doc)
+    bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
+    if book_provider and bp_short_name != "ia":
+        return "partner"
+
+    # 3. Cheap check: Book is open/publicly readable
+    if availability.get("is_readable") or availability.get("status") == "open":
+        return "open"
+
+    # 4. Defer checking DB for user active loan
+    if not user_loan and check_loan_status and ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+
+            user = get_current_user()
+        if user:
+            user_loan = user.get_loan_for(ocaid, use_cache=True)
+            if user_loan:
+                return "borrowed"
+
+    # 5. Check print-disabled user
+    if ocaid:
+        if user is None:
+            from openlibrary.accounts import get_current_user
+
+            user = get_current_user()
+        if user and user.is_printdisabled():
+            return "printdisabled"
+
+    # 6. Check lendable books
+    if availability.get("is_lendable"):
+        if availability.get("available_to_borrow") or availability.get("available_to_browse"):
+            return "borrowable"
+
+        is_waiting = False
+        if not availability.get("available_to_waitlist") and check_loan_status and ocaid:
+            if user is None:
+                from openlibrary.accounts import get_current_user
+
+                user = get_current_user()
+            if user:
+                waiting_loan = user.get_user_waiting_loans(ocaid, use_cache=True)
+                if waiting_loan:
+                    status = waiting_loan.get("status") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "status", None)
+                    position = waiting_loan.get("position") if hasattr(waiting_loan, "get") else getattr(waiting_loan, "position", None)
+                    is_waiting = not (status == "available" and position == 1)
+
+        if availability.get("available_to_waitlist") or is_waiting:
+            return "waitlist"
+        else:
+            return "checkedout"
+
+    # 7. Check previewable
+    if ocaid and availability.get("is_previewable") and book_provider and bp_short_name == "ia":
+        return "preview_only"
+
+    return "locate"

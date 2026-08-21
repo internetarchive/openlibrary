@@ -1,0 +1,48 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro cards(count) %}
+    {% for i in range(1, count + 1) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
+{% endmacro %}
+{% macro demos() %}
+    <p class="ds-lead">
+        A paged, Netflix-style horizontal carousel. Items are direct children; the component sets their width from responsive breakpoints and provides arrow buttons, edge peek, and bar-segment page indicators. The viewport is a native scroll container with CSS scroll snapping, so swipe momentum, overscroll, and trackpad and wheel scrolling all behave exactly as the operating system does elsewhere.
+    </p>
+    {% call ex.example("Basic usage", "Pass each item as a direct child. Set an accessible label for the carousel region.",
+        code='<ol-carousel label="Trending">\n  <div>...item...</div>\n  <div>...item...</div>\n</ol-carousel>') %}
+        <ol-carousel label="Trending">
+            {{ cards(15) }}
+        </ol-carousel>
+    {% endcall %}
+    {% call ex.example("Page indicators", "Hidden by default; show-indicators displays the page indicator bar.",
+        code='<ol-carousel label="New releases" show-indicators>\n  ...items...\n</ol-carousel>') %}
+        <ol-carousel label="New releases" show-indicators>
+            {{ cards(12) }}
+        </ol-carousel>
+    {% endcall %}
+    {% call ex.example("Page-change event", "Fires ol-carousel-page-change after each transition, with { page, totalPages } in event.detail.",
+        code='<ol-carousel id="demo-carousel" label="Popular">\n  ...items...\n</ol-carousel>\n\n<script>\n  carousel.addEventListener(\'ol-carousel-page-change\', (e) => {\n    console.log(e.detail.page, e.detail.totalPages);\n  });\n</script>') %}
+        <ol-carousel id="demo-carousel" label="Popular">
+            {{ cards(18) }}
+        </ol-carousel>
+        <p>Page <strong id="demo-carousel-page">1</strong> of <strong id="demo-carousel-total">?</strong></p>
+        <script>
+            (() => {
+                const carousel = document.getElementById('demo-carousel');
+                const setLabel = () => {
+                    document.getElementById('demo-carousel-page').textContent = carousel.page + 1;
+                    document.getElementById('demo-carousel-total').textContent = carousel.totalPages;
+                };
+                // Seed once the component has upgraded and measured its width.
+                customElements.whenDefined('ol-carousel').then(() => carousel.updateComplete.then(setLabel));
+                carousel.addEventListener('ol-carousel-page-change', setLabel);
+            })();
+        </script>
+{% endcall %}
+<div class="ds-notes">
+    <p>
+        <b>Images.</b> Give every image its real URL in <code>src</code> and mark it <code>loading="lazy"</code>. The viewport is a scroll container, so it clips its overflow and the browser never fetches an off-page cover until you scroll toward it. Don't ship a placeholder <code>src</code> with the real URL parked in a data attribute — that convention predates <code>loading</code>, needs JS to undo, and leaves the browser deferring a placeholder that is already inline.
+    </p>
+    <p>
+        <b>Labels.</b> Every string the component renders is an attribute with an English default — <code>label</code>, <code>label-previous</code>, <code>label-next</code>, <code>label-pages</code>, <code>label-go-to-page</code>. Pass translated values in from the template; <code>label-go-to-page</code> takes <code>{page}</code> and <code>{total}</code> placeholders so a translation can reorder them.
+    </p>
+</div>
+{% endmacro %}

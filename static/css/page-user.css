@@ -32,20 +32,47 @@
  * - /read
  * - /recentchanges
  * - /search/authors
+ * - /status
  * - /subjects
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
 @import "components/flash-messages.css";
 @import "components/provider-table.css";
+@import "components/ol-message.css";
+/* Import styles for fulltext-search-suggestion card */
+@import "components/fulltext-search-suggestion.css";
+/* Import styles for fulltext-search-suggestion card item */
+@import "components/fulltext-search-suggestion-item.css";
+/* Import styles for fulltext-search-suggestion card item snippet */
+@import "components/fulltext-snippet.css";
+/* Import styles for author infobox */
+@import "components/author-infobox.css";
+/* Import all common components */
+@import "legacy.css";
+/* Import styles specific to the BorrowTable for user pages */
+@import "legacy-borrowTable-adminUser.css";
+/* Import styles for notes and observations views */
+@import "components/notes-view.css";
+/* Import styles for community merge request views */
+@import "components/merge-request-table.css";
+/* Import styles for want-to-read buttons */
+@import "legacy-tools.css";
+@import "components/generic-dropper.css";
+@import "components/mybooks-dropper.css";
+/* Import styles for search box */
+@import "components/searchbox.css";
+/* Import styles for sort options */
+@import "components/sort-dropper.css";
+@import "components/pagination.css";
 
 body {
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-disable selector-max-specificity */
 div#background {
   width: 100%;
-  background-color: var(--beige);
+  background-color: var(--color-background);
 }
 /* stylelint-enable selector-max-specificity */
 div.message {
@@ -66,6 +93,80 @@ div.siteSearch {
 div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
+}
+/* Stack the search box, filter row, selected-facet chips, and results stats */
+/* with a single gap; the rows carry no vertical margins of their own. */
+.search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+/* The chips container renders empty (whitespace, then an empty async wrapper) */
+/* when no facets are selected; drop it so it doesn't claim a gap slot. */
+.search-controls
+  .selected-search-facets-container:not(:has(.selected-search-facets)) {
+  display: none;
+}
+
+/* Spacing between the rows is owned by the parent's gap. */
+.search-controls > form {
+  margin-bottom: 0;
+}
+
+/* The stats line labels the results below it, so it sits closer to them than
+   to the controls above — the filter row's margin-bottom below owns that split.
+   padding-left matches .searchResultItem's inset so the text starts on the
+   result card's content edge rather than its outer box. */
+.search-controls .search-results-stats {
+  padding-bottom: 0;
+  padding-left: var(--spacing-inset-sm);
+}
+
+/* Exception to the gap-owns-spacing rule above: the filters are the last
+   control before the results, so they need a block-level break rather than the
+   tighter row gap — most visible against the "Authors" section heading. */
+.search-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: 0 0 var(--spacing-stack-md);
+}
+
+/* Own row on narrow screens: wrapping to the end of a half-empty line reads
+   as misaligned. */
+.search-filter-row__tools {
+  display: flex;
+  flex-basis: 100%;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* From tablet up, share the filters' row. margin-left rather than
+   space-between so the filters stay packed together. */
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+  .search-filter-row__tools {
+    flex-basis: auto;
+    margin-left: auto;
+  }
+}
+
+/* Where the sidebar moves beside the results, reserve its width so the
+   right-aligned tools land on the results column's edge, not the page's. */
+@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
+  .search-filter-row {
+    padding-right: var(--search-facets-width);
+  }
+}
+
+/* On the search page, enlarge the in-page search box to match the header
+   search bar. */
+.search-page .searchbox {
+  height: 47px;
+  border-radius: 6px;
+  padding-left: var(--spacing-inset-md);
 }
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
@@ -98,7 +199,7 @@ div.lists {
 }
 
 th.toggle-all {
-  background: var(--primary-blue);
+  background: var(--color-primary);
 }
 
 .div-class {
@@ -229,30 +330,3 @@ textarea.toc-editor {
     margin-bottom: 4px;
   }
 }
-
-@import "components/ol-message.css";
-/* Import styles for fulltext-search-suggestion card */
-@import "components/fulltext-search-suggestion.css";
-/* Import styles for fulltext-search-suggestion card item */
-@import "components/fulltext-search-suggestion-item.css";
-/* Import styles for fulltext-search-suggestion card item snippet */
-@import "components/fulltext-snippet.css";
-/* Import styles for author infobox */
-@import "components/author-infobox.css";
-/* Import all common components */
-@import "legacy.css";
-/* Import styles specific to the BorrowTable for user pages */
-@import "legacy-borrowTable-adminUser.css";
-/* Import styles for notes and observations views */
-@import "components/notes-view.css";
-/* Import styles for community merge request views */
-@import "components/merge-request-table.css";
-/* Import styles for want-to-read buttons */
-@import "legacy-tools.css";
-@import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
-/* Import styles for search box */
-@import "components/searchbox.css";
-/* Import styles for sort options */
-@import "components/sort-dropper.css";
-@import "components/pagination.css";

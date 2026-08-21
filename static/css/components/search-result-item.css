@@ -39,7 +39,7 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -78,7 +78,7 @@
   display: block;
   margin: 0;
   padding: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.1em;
   font-weight: 700;
   font-family: var(--font-family-title);
@@ -97,7 +97,7 @@
 
 .searchResultItem .resultStats {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   display: block;
 }
@@ -209,23 +209,23 @@
 }
 
 .search-result-item__preview-covers :nth-child(1) {
-  z-index: var(--z-index-level-5);
+  z-index: var(--z-index-local-5);
 }
 
 .search-result-item__preview-covers :nth-child(2) {
-  z-index: var(--z-index-level-4);
+  z-index: var(--z-index-local-4);
 }
 
 .search-result-item__preview-covers :nth-child(3) {
-  z-index: var(--z-index-level-3);
+  z-index: var(--z-index-local-3);
 }
 
 .search-result-item__preview-covers :nth-child(4) {
-  z-index: var(--z-index-level-2);
+  z-index: var(--z-index-local-2);
 }
 
 .search-result-item__preview-covers :nth-child(5) {
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-local-1);
 }
 
 .srw__chapters {
@@ -266,7 +266,7 @@
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
   transition: color 0.2s;
@@ -279,11 +279,11 @@
 
 @media (hover: hover) and (pointer: fine) {
   .search-result-item__preview-covers :hover {
-    z-index: var(--z-index-level-5);
+    z-index: var(--z-index-local-5);
   }
 
   .search-result-item__preview-covers :hover img {
-    border-color: var(--primary-blue);
+    border-color: var(--color-primary);
   }
 }
 
@@ -292,7 +292,7 @@
 }
 
 .search-result-item__preview-covers :focus-visible {
-  z-index: var(--z-index-level-5);
+  z-index: var(--z-index-local-5);
   box-shadow: var(--box-shadow-focus);
   border-radius: var(--border-radius-thumbnail);
   outline: none;

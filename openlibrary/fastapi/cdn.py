@@ -23,7 +23,7 @@ async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
         async with httpx.AsyncClient(timeout=10.0) as client:
             upstream = await client.get(UPSTREAM_BASE + filename)
             upstream.raise_for_status()  # upstream 4xx/5xx → 502 (intentional: upstream problem)
-    except (httpx.HTTPStatusError, httpx.RequestError):
+    except httpx.HTTPStatusError, httpx.RequestError:
         # HTTPStatusError: upstream returned 4xx/5xx (including 404 — upstream problem, not bad path)
         # RequestError:    network failure — timeout, DNS error, connection refused
         raise HTTPException(status_code=502, detail="Upstream fetch failed")

@@ -5,17 +5,23 @@ This module provides utilities for managing request-scoped context variables
 and parsing request data for both web.py and FastAPI frameworks.
 """
 
+from __future__ import annotations
+
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from urllib.parse import unquote
 
 import web
-from fastapi import Request
 
 from infogami import config
-from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site
+
+if TYPE_CHECKING:
+    from fastapi import Request
+
+    from infogami.infobase.client import Site
 
 
 @dataclass(frozen=True)
@@ -271,3 +277,15 @@ def web_ctx_ip(ip: str = "127.0.0.1"):
         yield
     finally:
         web.ctx.ip = original_ip
+
+
+def get_request_lang() -> str:
+    """The request's UI language, safe to call from templates rendered on
+    either the legacy web.py server or the FastAPI server. The Templetor
+    global `get_lang()` reads `web.ctx.lang` directly, which isn't populated
+    by FastAPI — partials rendered there would AttributeError. Reading from
+    the unified `req_context` works on both. Falls back to 'en'."""
+    try:
+        return req_context.get().lang or "en"
+    except LookupError:
+        return "en"

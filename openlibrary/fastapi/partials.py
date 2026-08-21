@@ -22,6 +22,8 @@ from openlibrary.plugins.openlibrary.partials import (
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
+    SubjectPublishingHistoryPartial,
+    SubjectRelatedPartial,
 )
 
 router = APIRouter()
@@ -51,31 +53,42 @@ async def search_facets_partial(
     return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes")
 
 
+@router.get("/partials/SubjectPublishingHistory.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_publishing_history_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's publishing-history chart HTML.
+    """
+    return await SubjectPublishingHistoryPartial.generate_async(key=key)
+
+
+@router.get("/partials/SubjectRelated.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def subject_related_partial(
+    key: Annotated[str, Query(description="Subject key (e.g. /subjects/cooking)")],
+) -> dict:
+    """
+    Get the subject page's related subjects/places/people/times widget HTML.
+    """
+    return await SubjectRelatedPartial.generate_async(key=key)
+
+
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def affiliate_links_partial(
-    data: Annotated[str, Query(description="JSON-encoded data with book information")],
+    title: Annotated[str, Query(description="Book title")],
+    isbn: Annotated[str | None, Query(description="ISBN-13 or ISBN-10")] = None,
+    asin: Annotated[str | None, Query(description="Amazon ASIN")] = None,
+    prices: Annotated[bool, Query(description="Whether to fetch live prices")] = False,
 ) -> dict:
     """
     Get affiliate links HTML for a book.
-
-    The data parameter should contain:
-    - args: list with [title, opts] where opts is a dict with optional isbn
     """
-    try:
-        parsed_data = json.loads(data)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
-
-    args = parsed_data.get("args", [])
-    if len(args) < 2:
-        raise HTTPException(status_code=400, detail="Expected at least 2 arguments")
-
-    title, opts = args[0], args[1]
     return await AffiliateLinksPartial.generate_async(
         title=title,
-        isbn=opts.get("isbn", None),
-        asin=opts.get("asin", None),
-        prices=opts.get("prices", False),
+        isbn=isbn,
+        asin=asin,
+        # Temporarily disabled due to amazon request timing out
+        prices=False,
     )
 
 

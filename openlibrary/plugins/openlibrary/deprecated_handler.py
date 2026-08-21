@@ -8,14 +8,14 @@ This is temporary while we migrate to fastapi and have two containers running.
 import httpx
 import web
 
-import infogami
 from infogami.utils import delegate
+from openlibrary.core.env import get_ol_env
 
 
 def handle_deprecated_request():
     """Handle the deprecated endpoint request."""
     # Check if we're in dev environment
-    if "dev" in infogami.config.features:
+    if get_ol_env().LOCAL_DEV:
         return proxy_to_fastapi()
     else:
         # Raise a loud error in production
@@ -100,4 +100,42 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/api/volumes/(.+)", "json"),
     (r"/api/volumes/(.+)", None),
     (r"/prices", "json"),
+    (r"/works/OL(\d+)W/awards", "json"),
+    (r"/awards/count", "json"),
+    (r"/cdn/archive.org/(.+)", None),
+    (r"/check-ins/(\d+)", None),
+    # FastAPI /status/testing.json (testing-environment status)
+    (r"/status/testing", "json"),
+    (r"/people/[^/]+/follows", "json"),
+    (r"/works/OL\d+W/lists", "json"),
+    (r"/people/[^/]+/lists", "json"),
+    (r"/books/OL\d+M/lists", "json"),
+    (r"/authors/OL\d+A/lists", "json"),
+    (r"/subjects/[^/]+/lists", "json"),
+    (r"/people/[^/]+/lists/OL\d+L", "json"),
+    (r"/lists/OL\d+L", "json"),
+    (r"/series/OL\d+L", "json"),
+    (r"/people/[^/]+/lists/OL\d+L/delete", "json"),
+    (r"/lists/OL\d+L/delete", "json"),
+    (r"/people/[^/]+/lists/OL\d+L/editions", "json"),
+    (r"/lists/OL\d+L/editions", "json"),
+    (r"/series/OL\d+L/editions", "json"),
+    (r"/authors/merge", "json"),
+    (r"/import/preview", "json"),
+    (r"/people/[^/]+/books/(?:want-to-read|currently-reading|already-read|stopped-reading)", "json"),
+    (r"/people/[^/]+/lists/OL\d+L/seeds", "json"),
+    (r"/lists/OL\d+L/seeds", "json"),
+    (r"/series/OL\d+L/seeds", "json"),
+    (r"/people/[^/]+/lists/OL\d+L/subjects", "json"),
+    (r"/lists/OL\d+L/subjects", "json"),
+    (r"/series/OL\d+L/subjects", "json"),
+    # Works endpoints migrated to FastAPI
+    (r"/works/OL(\d+)W/check-ins", "json"),
+    (r"/works/OL(\d+)W/bookshelves", "json"),
+    (r"(/works/OL\d+W)/editions", "json"),
+    (r"(/authors/OL\d+A)/works", "json"),
+    (r"/hide_banner", None),
+    (r"/api/link", "json"),
+    (r"/api/monthly_logins", "json"),
+    (r"/qrcode", None),
 ]

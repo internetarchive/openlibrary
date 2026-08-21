@@ -1,4 +1,4 @@
-$def with(primary_button, dropdown_content, classes='', data={})
+$def with(primary_button, dropdown_content, classes='', data={}, dropdown_label=None)
 
 $ data_str = ''
 $for k, v in data.items():
@@ -11,7 +11,7 @@ $for k, v in data.items():
       <div class="generic-dropper__primary">
         $:primary_button
       </div>
-      <a class="generic-dropper__dropclick" href="javascript:;">
+      <a class="generic-dropper__dropclick" href="javascript:;" aria-label="$(dropdown_label or _('More options'))">
         <div class="arrow"></div>
       </a>
     </div>

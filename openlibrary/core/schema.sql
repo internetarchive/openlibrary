@@ -17,6 +17,17 @@ CREATE TABLE follows (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (subscriber, publisher)
 );
+CREATE TABLE likes (
+    username    TEXT        NOT NULL,
+    key         TEXT        NOT NULL,   -- full infogami key, e.g. /works/OL123W
+    value       SMALLINT    NOT NULL DEFAULT 1 CHECK (value IN (1, -1)),
+    created     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified    TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, key)
+);
+CREATE INDEX likes_key_idx      ON likes (key);
+CREATE INDEX likes_username_idx ON likes (username);
+
 CREATE INDEX subscriber_idx ON follows (subscriber);
 CREATE INDEX publisher_idx ON follows (publisher);
 
@@ -56,6 +67,7 @@ CREATE INDEX bookshelves_books_created_idx ON bookshelves_books (created);
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
+INSERT INTO bookshelves (name, description) VALUES ('Stopped Reading', 'A list of books I have stopped reading');
 
 CREATE TABLE bookshelves_events (
     id serial primary key,
@@ -130,3 +142,20 @@ CREATE TABLE bestbooks (
 CREATE INDEX bestbooks_username ON bestbooks (username);
 CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
+
+CREATE TABLE acquisitions (
+    id serial primary key,
+    work_id integer not null,
+    edition_id integer not null,
+    provider_name text not null,
+    local_id text not null,
+    -- provider metadata blob: prices, formats, urls, etc.
+    data jsonb not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (local_id, provider_name)
+);
+
+CREATE INDEX acquisitions_work_id_idx ON acquisitions (work_id);
+CREATE INDEX acquisitions_edition_id_idx ON acquisitions (edition_id);
+CREATE INDEX acquisitions_updated_idx ON acquisitions (updated);

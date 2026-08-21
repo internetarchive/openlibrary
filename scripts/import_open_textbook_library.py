@@ -14,7 +14,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 FEED_URL = "https://open.umn.edu/opentextbooks/textbooks.json?"
 
 
-def get_feed() -> Generator[dict[str, Any], None, None]:
+def get_feed() -> Generator[dict[str, Any]]:
     """Fetches and yields each book in the feed."""
     next_url = FEED_URL
 

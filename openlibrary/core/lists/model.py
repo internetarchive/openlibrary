@@ -300,7 +300,7 @@ class List(Thing):
                 d[kind].append(s)
         return d
 
-    def get_seeds(self, sort=False, resolve_redirects=False) -> list["Seed"]:
+    def get_seeds(self, sort=False, resolve_redirects=False) -> list[Seed]:
         seeds: list[Seed] = []
         for s in self.seeds:
             seed = Seed.from_db(self, s)
@@ -411,7 +411,7 @@ class Seed:
             self.value = value
 
     @staticmethod
-    def from_db(list: List, seed: Thing | SeedSubjectString) -> "Seed":
+    def from_db(list: List, seed: Thing | SeedSubjectString) -> Seed:
         if isinstance(seed, str):
             return Seed(list, seed)
         # If there is a cache miss, `seed` is a client.Thing.
@@ -476,7 +476,7 @@ class Seed:
         else:
             return {"key": self.key}
 
-    def copy_with(self, thing: Thing | SeedSubjectString) -> "Seed":
+    def copy_with(self, thing: Thing | SeedSubjectString) -> Seed:
         new_seed = cast(AnnotatedSeed, self.to_annotated_seed() | {"thing": thing})
         return Seed(self._list, new_seed)
 
@@ -663,7 +663,7 @@ class Series(List):
         return [seed.to_db() for seed in self.get_seeds()]
 
     @typing.override
-    def get_seeds(self, sort=False, resolve_redirects=False) -> list["Seed"]:
+    def get_seeds(self, sort=False, resolve_redirects=False) -> list[Seed]:
         # Need to query for a series' seeds
         work_keys = web.ctx.site.things(
             {

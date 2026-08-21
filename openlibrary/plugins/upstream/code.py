@@ -31,6 +31,7 @@ from openlibrary.plugins.upstream import (
     checkins,
     covers,
     edits,
+    likes,  # noqa: F401 side effects may be needed
     merge_authors,
     models,
     recentchanges,  # noqa: F401 side effects may be needed
@@ -128,12 +129,12 @@ class merge_work(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
+        has_access = user and user.is_librarian_or_higher()
         if not has_access:
             raise web.forbidden()
 
         optional_kwargs = {}
-        if not (user.is_admin() or user.is_super_librarian()):
+        if not user.is_super_librarian_or_higher():
             optional_kwargs["can_merge"] = "false"
 
         return render_template("merge/works", mrid=i.mrid, primary=i.primary, **optional_kwargs)
@@ -244,11 +245,6 @@ def reload():
     all_js().reload()
 
 
-def user_can_revert_records():
-    user = web.ctx.site.get_user()
-    return user and (user.is_admin() or user.is_super_librarian())
-
-
 @public
 def get_document(key, limit_redirs=5):
     doc = None
@@ -274,7 +270,8 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        if not web.ctx.site.can_write(key) or not user_can_revert_records():
+        user = web.ctx.site.get_user()
+        if not web.ctx.site.can_write(key) or not (user and user.is_super_librarian_or_higher()):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)

@@ -18,6 +18,63 @@ def test_olmarkdown():
     assert md("a\nb") == p("a<br/>\n   b")
 
 
+def test_olmarkdown_no_br_leak_into_reference_block():
+    """Regression: a hard line break must not be glued onto a line that
+    immediately precedes a markdown link-reference definition.
+
+    LineBreaksPreprocessor runs before REFERENCE_PREPROCESSOR strips the
+    ``[id]: url`` definitions, so a ``<br />`` appended to the line above a
+    reference block gets orphaned inside it and leaks into the rendered page
+    as literal markup. This was visible at the bottom of /help/faq/editing
+    (internetarchive/openlibrary#13074), where a wrapped/malformed footnote
+    block rendered ``...Tortilla<br /> [24]:`` etc.
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    # Text line immediately followed by a reference definition: no <br>.
+    assert md("foo\n  [1]: https://example.com") == "<p>foo\n</p>"
+
+    # A wrapped reference value (continuation line sitting between two
+    # definitions, carrying the editor's "\" hard-break marker) must come out
+    # clean: no leaked <br /> and no stray backslash.
+    body = (
+        "intro\n\n"
+        "  [23]: https://openlibrary.org/works/OL23185W/Short_Novels\n"
+        "(Cannery_Row_Of_Mice_and_Men_Tortilla\\\n"
+        "  [24]: https://openlibrary.org/works/OL14876179W/Adventures\n"
+    )
+    rendered = md(body)
+    assert "<br" not in rendered
+    assert "\\" not in rendered
+
+    # Sanity: an ordinary line break between two plain lines is untouched.
+    assert md("a\nb") == "<p>a<br/>\n   b\n</p>"
+
+
+def test_olmarkdown_commonmark_hard_break_does_not_leak_br():
+    """Regression: a CommonMark hard break (trailing ``\\``) must render as a
+    line break, not the literal text ``<br />``.
+
+    The Tiptap WYSIWYG editor serializes hard breaks as ``\\`` + newline. With
+    no handling, OLMarkdown appends its own ``<br />`` right after the
+    backslash, the backslash escapes the ``<``, and readers see the literal
+    string ``<br />`` (internetarchive/openlibrary#13074).
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    out = md("first line\\\nsecond line")
+    assert "&lt;br" not in out  # no escaped/literal <br /> shown to the reader
+    assert "\\" not in out  # the hard-break backslash is consumed
+    assert out == "<p>first line<br/>\n   second line\n</p>"
+
+    # A genuine escaped backslash (``\\``) is preserved, not swallowed.
+    assert "\\" in md("a\\\\b\nc")
+
+
 def test_fenced_code_preprocessor():
     pre = FencedCodePreprocessor()
 
@@ -102,3 +159,47 @@ def test_olmarkdown_fenced_code():
     # The broken render-shape from the bug report must not appear.
     assert "`<br" not in out
     assert "`\n" not in out
+
+
+def test_olmarkdown_link_url_with_parentheses():
+    """Regression: a ``[text](url)`` link whose URL contains parentheses must
+    render as a link, not as raw markdown source.
+
+    The vendored ``LINK_RE`` (``\\(([^\\)]*)\\)``) stops at the first ``)``, so a
+    URL such as ``..._Kennedy_(sinologist)`` cut the link short, and the
+    backslash-escaped form the Tiptap WYSIWYG editor saves
+    (``..._Kennedy_\\(sinologist\\)``) matched nothing at all. The editor showed
+    a link while the saved author page showed literal markdown
+    (internetarchive/openlibrary#13202).
+    """
+
+    def md(text):
+        return OLMarkdown(text).convert().strip()
+
+    def p(html):
+        # markdown always wraps the result in <p>.
+        return "<p>%s\n</p>" % html
+
+    wiki = "https://en.wikipedia.org/wiki/George_A._Kennedy_(sinologist)"
+    anchor = '<a href="%s" rel="nofollow">George A. Kennedy</a>' % wiki
+
+    # The three forms named in the issue render identically, as they do in
+    # CommonMark and on GitHub: as typed, backslash-escaped (what the editor
+    # saves), and percent-encoded.
+    assert md("[George A. Kennedy](%s)" % wiki) == p(anchor)
+    assert md(r"[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\))") == p(anchor)
+    assert md("[George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29)") == p(
+        '<a href="https://en.wikipedia.org/wiki/George_A._Kennedy_%28sinologist%29" rel="nofollow">George A. Kennedy</a>'
+    )
+
+    # The link ends at its own closing paren: surrounding prose, including
+    # later parentheses, stays outside the anchor.
+    body = r"spouse of [George A. Kennedy](https://en.wikipedia.org/wiki/George_A._Kennedy_\(sinologist\)), a scholar."
+    assert md(body) == p("spouse of %s, a scholar." % anchor)
+    assert md("[link](https://example.com/a(b)) then (unrelated) text.") == p('<a href="https://example.com/a(b)" rel="nofollow">link</a> then (unrelated) text.')
+
+    # Links without parentheses, titled links, and parenthesised prose are
+    # unaffected.
+    assert md("[plain](https://example.com/foo)") == p('<a href="https://example.com/foo" rel="nofollow">plain</a>')
+    assert md('[a link](https://example.com/foo "a title")') == p('<a href="https://example.com/foo" title="a title" rel="nofollow">a link</a>')
+    assert md("no link here (just parens) at all") == p("no link here (just parens) at all")

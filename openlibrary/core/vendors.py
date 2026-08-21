@@ -23,6 +23,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -367,7 +368,6 @@ class AmazonCreatorsAPI:
         country: str = "US",
         throttling: float = 0.9,
         proxy_url: str = "",
-        proxy_creds: str = "",
     ) -> None:
         """
         :param str credential_id: Creators API key / credential ID (OAuth 2.0)
@@ -379,7 +379,8 @@ class AmazonCreatorsAPI:
             Minimum inter-call gap is ``1 / throttling`` seconds (same semantics as
             AmazonAPI).  The library's internal throttle is disabled so this class
             is the sole source of rate-limiting.
-        :param str proxy_url: HTTP proxy URL for environments without direct internet access
+        :param str proxy_url: HTTP proxy URL with embedded credentials for environments
+            without direct internet access (e.g. ``http://user:pass@squid:3128``)
         """
         self.tag = tag
         self.throttling = throttling
@@ -389,6 +390,11 @@ class AmazonCreatorsAPI:
         # (e.g. test runners that don't have the package). Importing here means the
         # rest of vendors.py loads fine; only AmazonCreatorsAPI instantiation fails.
         from amazon_creatorsapi import AmazonCreatorsApi, Country
+
+        # The SDK's rest.py (urllib3 HTTPS CONNECT leg) and oauth2_token_manager.py
+        # (requests OAuth2 leg) both accept credentials embedded in the URL, so a
+        # single URL string (e.g. http://user:pass@squid:3128) is sufficient.
+        _proxy = proxy_url or None
 
         # Pass throttling=0 to the library so it never sleeps internally.
         # We own the throttle loop in get_products (1/throttling semantics),
@@ -401,33 +407,8 @@ class AmazonCreatorsAPI:
             tag=tag,
             country=getattr(Country, country),
             throttling=0,
+            **({"proxy": _proxy} if _proxy else {}),
         )
-
-        # Inject proxy into underlying SDK rest client, mirroring the PA-API approach.
-        # Required for ol-home0 which has no direct internet access. See #10310.
-        if proxy_url:
-            try:
-                from creatorsapi_python_sdk.configuration import (
-                    Configuration as CreatorsConfig,
-                )
-                from creatorsapi_python_sdk.rest import (
-                    RESTClientObject as CreatorsRESTClient,
-                )
-                from urllib3 import make_headers
-
-                configuration = CreatorsConfig()
-                configuration.proxy = proxy_url
-                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
-                rest_client = CreatorsRESTClient(configuration=configuration)
-                # _api_client is the ApiClient instance stored directly on
-                # AmazonCreatorsApi; replace its rest_client to route all
-                # outbound HTTP through the proxy.
-                self.api._api_client.rest_client = rest_client
-            except (ImportError, AttributeError):
-                logger.warning(
-                    "AmazonCreatorsAPI: could not inject proxy — falling back to environment-level proxy (HTTPS_PROXY)",
-                    exc_info=True,
-                )
 
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
         if products := self.get_products([asin], **kwargs):
@@ -605,42 +586,30 @@ class AmazonCreatorsAPI:
         return book
 
 
-def get_amazon_metadata(
+@cache.memoize(
+    engine="memcache",
+    key="get_amazon_metadata_async",
+    expires=dateutil.WEEK_SECS,
+    cacheable=lambda key, value: value is not None,
+)
+async def get_amazon_metadata_async(
     id_: str,
     id_type: Literal["asin", "isbn"] = "isbn",
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-) -> dict | None:
-    """Main interface to Amazon LookupItem API. Will cache results.
-
-    :param str id_: The item id: isbn (10/13), or Amazon ASIN.
-    :param str id_type: 'isbn' or 'asin'.
-    :param bool high_priority: Priority in the import queue. High priority
-           goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
-    :return: A single book item's metadata, or None.
-    """
-    return cached_get_amazon_metadata(
-        id_,
-        id_type=id_type,
-        resources=resources,
-        high_priority=high_priority,
-        stage_import=stage_import,
-    )
-
-
-def _get_amazon_metadata(
-    id_: str,
-    id_type: Literal["asin", "isbn"] = "isbn",
-    resources: Any = None,
-    high_priority: bool = False,
-    stage_import: bool = True,
-    timeout: float = 4.0,
+    timeout: float = 10.0,  # noqa: ASYNC109
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://webservices.amazon.com/paapi5/documentation/get-items.html
+
+    Canonical async implementation: makes the HTTP round-trip to the affiliate
+    server with the shared httpx ``async_session`` so it never blocks the event
+    loop. Results are cached in memcache for a week; bare ``None`` results
+    (e.g. a 503 throttle from the affiliate server) are not cached, so the next
+    call retries — matching the historical "only the value None will cause
+    re-cache" behaviour.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
@@ -648,7 +617,9 @@ def _get_amazon_metadata(
            See https://webservices.amazon.com/paapi5/documentation/get-items.html
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
-    param bool stage_import: stage the id_ for import if not in the cache.
+    :param bool stage_import: stage the id_ for import if not in the cache.
+    :param float timeout: Per-request timeout in seconds for the affiliate
+           server call.
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
@@ -668,7 +639,7 @@ def _get_amazon_metadata(
     try:
         priority = "true" if high_priority else "false"
         stage = "true" if stage_import else "false"
-        r = session.get(
+        r = await async_session.get(
             f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
             timeout=timeout,
         )
@@ -677,11 +648,15 @@ def _get_amazon_metadata(
             return data
         else:
             return None
-    except requests.exceptions.ConnectionError:
-        logger.exception("Affiliate Server unreachable")
-    except requests.exceptions.HTTPError:
+    except httpx.HTTPStatusError:
         logger.exception(f"Affiliate Server: id {id_} not found")
+    except httpx.TransportError:
+        logger.exception("Affiliate Server unreachable")
     return None
+
+
+# Sync wrapper for backward compatibility.
+get_amazon_metadata = async_bridge.wrap(get_amazon_metadata_async)
 
 
 def stage_bookworm_metadata(identifier: str | None) -> dict | None:
@@ -785,29 +760,6 @@ def create_edition_from_amazon_metadata(id_: str, id_type: Literal["asin", "isbn
             if reply and reply.get("success"):
                 return reply["edition"].get("key")
     return None
-
-
-def cached_get_amazon_metadata(*args, **kwargs):
-    """If the cached data is `None`, it's likely a 503 throttling occurred on
-    Amazon's side. Try again to fetch the value instead of using the
-    cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the Amazon API call
-    succeeds but the book has no price data, then {"price": None} will
-    be cached as to not trigger a re-cache (only the value `None`
-    will cause re-cache)
-    """
-
-    # fetch/compose a cache controller obj for
-    # "upstream.code._get_amazon_metadata"
-    memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata,
-        "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS,
-    )
-    # fetch cached value from this controller
-    result = memoized_get_amazon_metadata(*args, **kwargs)
-    # if no result, then recache / update this controller's cached value
-    return result or memoized_get_amazon_metadata.update(*args, **kwargs)[0]
 
 
 class BetterWorldBooksMetadata(TypedDict):

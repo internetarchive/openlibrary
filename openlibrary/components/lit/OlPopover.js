@@ -1,16 +1,43 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
+import { getDeepActiveElement, getTabbableFromSlot } from './utils/focus-utils.js';
+import { topLayerAttr, promoteToTopLayer, demoteFromTopLayer } from './utils/top-layer.js';
 
 let _idCounter = 0;
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/**
+ * How long to wait for the exit `transitionend` before finishing the close
+ * ourselves. Comfortably past the longest exit transition (150ms panel, 200ms
+ * tray) so it never truncates a real animation.
+ */
+const CLOSE_FALLBACK_MS = 400;
+
+/**
+ * Open popovers, topmost (most recently shown) last. Escape is a document-level
+ * listener, so every open popover sees the keypress; consulting this stack lets
+ * only the innermost popover close, dismissing one layer at a time when popovers
+ * are nested (rather than collapsing the whole stack on a single Escape).
+ * @type {OlPopover[]}
+ */
+const _openPopoverStack = [];
+
+/** Drop `el` from the open-popover stack if present. */
+function _removeFromOverlayStack(el) {
+    const i = _openPopoverStack.indexOf(el);
+    if (i !== -1) _openPopoverStack.splice(i, 1);
+}
 
 /**
  * A reusable popover component that anchors to a trigger element.
  *
  * Renders a trigger slot and a popover panel that opens/closes with animation.
- * The popover uses `position: fixed` to escape overflow clipping and animates
- * from the trigger's location using `transform-origin`.
+ * The panel is promoted to the top layer via the Popover API so it escapes
+ * overflow clipping, ancestor transforms and z-index stacking, falling back to
+ * plain `position: fixed` on browsers without it. It animates from the trigger's
+ * location using `transform-origin`. The `popover` type is `manual`, not `auto`:
+ * this component owns its Escape, outside-click and nesting behaviour, and
+ * `auto` would force-close sibling popovers outside the ancestor chain.
  *
  * Self-manages open state by default — clicking the slotted trigger toggles
  * the popover, Escape and outside-click close it. Consumers can drive `open`
@@ -21,9 +48,11 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * Repositions on scroll and resize. On mobile viewports, renders as a bottom
  * tray with a drag handle, swipe-to-dismiss, and body scroll locking.
  *
- * Traps focus within the popover while open and restores focus to the
- * previously-focused element on close. The host's `aria-label` is forwarded
- * to the inner dialog as its accessible name.
+ * Non-modal: while open it keeps focus within the panel, but Tab/Shift+Tab off
+ * either edge closes it and returns focus to the trigger (a keyboard user must
+ * be able to Tab out — the page behind stays interactive, so we don't set
+ * `aria-modal`). Restores focus to the previously-focused element on close. The
+ * host's `aria-label` is forwarded to the inner dialog as its accessible name.
  *
  * @element ol-popover
  *
@@ -42,7 +71,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @fires ol-popover-close - Cancelable. Fired when the popover requests to
  *     close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss
  *     close fires after the gesture completes and is not cancelable.
- *     detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' }
+ *     detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' | 'tab' }
  *
  * @slot trigger - The trigger element (button, icon, etc.)
  * @slot - Default slot for popover content
@@ -80,13 +109,28 @@ export class OlPopover extends LitElement {
 
         .panel {
             position: fixed;
-            z-index: 1000;
+            z-index: var(--z-index-dropdown);
             background: var(--white);
             border-radius: var(--border-radius-overlay);
-            box-shadow: 0 8px 24px var(--boxshadow-black);
+            box-shadow: var(--box-shadow-overlay);
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;
+        }
+
+        /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
+           border, padding, overflow, system colors) so the top-layer panel is
+           laid out purely by the inline top/left we compute. Must precede
+           .panel.tray, which restates its own inset and margin. */
+        .panel[popover] {
+            inset: auto;
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+            overflow: visible;
+            color: inherit;
         }
 
         .panel[data-state="preparing"],
@@ -122,19 +166,27 @@ export class OlPopover extends LitElement {
         .backdrop {
             position: fixed;
             inset: 0;
-            z-index: 999;
+            z-index: var(--z-index-dropdown);
+            /* Undo the UA [popover] defaults. width/height matter most: the UA's
+               fit-content beats inset: 0, collapsing the backdrop to 0x0 and
+               taking the dimming layer and its tap-to-dismiss target with it. */
+            width: auto;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
             background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
         }
 
         .backdrop[data-state="entering"],
         .backdrop[data-state="open"] {
             opacity: 1;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: auto;
         }
 
@@ -147,8 +199,8 @@ export class OlPopover extends LitElement {
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
             transition:
                 opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
@@ -255,11 +307,11 @@ export class OlPopover extends LitElement {
         this._transformOrigin = 'top left';
         this._animState = 'closed';
         this._mobile = false;
+        this._scrollLocked = false;
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
+        this._closeFallbackId = null;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -285,16 +337,29 @@ export class OlPopover extends LitElement {
                 ${this._mobile ? html`
                     <div
                         class="backdrop"
+                        popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"
                     ></div>
                 ` : nothing}
+                <!-- Sentinels bracket the panel (rather than nesting inside it)
+                     so focus reaching one means the user has Tabbed past the
+                     panel's edge. A popover is non-modal, so that closes it (see
+                     _onSentinelFocus) rather than wrapping — Tab must be able to
+                     leave. They're only reached by a genuine boundary crossing. -->
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="start"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
                 <div
                     id="${this._panelId}"
                     class="panel ${this._mobile ? 'tray' : ''}"
+                    popover="${ifDefined(topLayerAttr())}"
                     data-state="${this._animState}"
                     role="dialog"
-                    aria-modal="true"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
@@ -304,27 +369,20 @@ export class OlPopover extends LitElement {
                     `}"
                     @transitionend="${this._onTransitionEnd}"
                 >
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="start"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                     ${this._mobile ? html`
                         <div class="tray-handle" aria-hidden="true">
                             <div class="tray-handle-bar"></div>
                         </div>
                     ` : nothing}
                     <slot></slot>
-                    <span
-                        class="focus-sentinel"
-                        tabindex="0"
-                        aria-hidden="true"
-                        data-edge="end"
-                        @focus="${this._onSentinelFocus}"
-                    ></span>
                 </div>
+                <span
+                    class="focus-sentinel"
+                    tabindex="0"
+                    aria-hidden="true"
+                    data-edge="end"
+                    @focus="${this._onSentinelFocus}"
+                ></span>
             ` : nothing}
         `;
     }
@@ -348,16 +406,30 @@ export class OlPopover extends LitElement {
     // ── Show / Hide ─────────────────────────────────────────────
 
     _show() {
-        this._prevFocus = document.activeElement;
+        // Reopening mid-exit cancels the pending close rather than letting its
+        // timer fire into the reopened popover.
+        this._clearCloseFallback();
+        this._prevFocus = getDeepActiveElement();
 
         document.addEventListener('click', this._onOutsideClick, true);
         document.addEventListener('keydown', this._onKeydownGlobal);
 
+        // Become the topmost overlay for Escape handling. Remove any stale entry
+        // first so a re-show can't leave us in the stack twice.
+        _removeFromOverlayStack(this);
+        _openPopoverStack.push(this);
+
+        // Keep 767px (--width-breakpoint-tablet - 1px) in sync with the tray
+        // media queries in header-bar.css / OlSelectPopover.js.
         this._mobile = window.matchMedia('(max-width: 767px)').matches;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        if (this._mobile) {
-            this._lockBodyScroll();
+        // Guard on _scrollLocked: reopening during the exit transition would take
+        // a second refcount that the single _releaseScrollLock() never gives
+        // back, pinning <body> for good.
+        if (this._mobile && !this._scrollLocked) {
+            lockBodyScroll();
+            this._scrollLocked = true;
         }
 
         // On desktop, render panel off-screen first so we can measure it.
@@ -370,6 +442,12 @@ export class OlPopover extends LitElement {
         this.updateComplete.then(() => {
             const panel = this.shadowRoot.querySelector('.panel');
             if (!panel) return;
+
+            // Promote to the top layer before measuring — a [popover] element is
+            // `display: none` until shown, so offsetWidth/Height would read 0.
+            // Backdrop first: within the top layer, later-shown paints on top.
+            promoteToTopLayer(this.shadowRoot.querySelector('.backdrop'));
+            promoteToTopLayer(panel);
 
             // Desktop: measure and position relative to trigger.
             // Use offsetWidth/Height — getBoundingClientRect includes the
@@ -422,6 +500,36 @@ export class OlPopover extends LitElement {
         }
 
         this._animState = 'exiting';
+        this._armCloseFallback();
+    }
+
+    /**
+     * `transitionend` drives the whole close path — top-layer demotion, listener
+     * removal, scroll unlock, focus restore — so a transition that never runs
+     * strands the panel in the top layer, above the page, holding focus inside a
+     * `role="dialog"` whose trigger already reports `aria-expanded="false"`.
+     *
+     * Two ways to miss the event: a backgrounded tab paints no frames, so the
+     * transition never starts; and closing while still in "preparing" changes no
+     * property at all (preparing and exiting both compute to `opacity: 0` with
+     * the same transform), so nothing transitions. Finish the close on a timer
+     * when the event doesn't arrive.
+     */
+    _armCloseFallback() {
+        this._clearCloseFallback();
+        this._closeFallbackId = setTimeout(() => {
+            this._closeFallbackId = null;
+            if (this._animState !== 'exiting') return;
+            this._animState = 'closed';
+            this._cleanup();
+        }, CLOSE_FALLBACK_MS);
+    }
+
+    _clearCloseFallback() {
+        if (this._closeFallbackId) {
+            clearTimeout(this._closeFallbackId);
+            this._closeFallbackId = null;
+        }
     }
 
     _onTransitionEnd(e) {
@@ -440,8 +548,11 @@ export class OlPopover extends LitElement {
      * Removes all global listeners, unlocks scroll, and restores focus.
      */
     _cleanup() {
+        this._clearCloseFallback();
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.panel'));
+        demoteFromTopLayer(this.shadowRoot?.querySelector('.backdrop'));
         this._restoreFocus();
     }
 
@@ -466,28 +577,37 @@ export class OlPopover extends LitElement {
         }
     }
 
-    // ── Focus trap ──────────────────────────────────────────────
+    // ── Focus containment (non-modal: Tab out closes) ───────────
 
     _getFocusableElements() {
-        const slot = this.shadowRoot?.querySelector('.panel slot:not([name])');
-        if (!slot) return [];
-        const elements = [];
-        for (const node of slot.assignedElements({ flatten: true })) {
-            if (node.matches?.(FOCUSABLE)) elements.push(node);
-            elements.push(...node.querySelectorAll(FOCUSABLE));
-        }
-        return elements;
+        // Deep, shadow-piercing collection of the panel's slotted content, so a
+        // custom element in the panel contributes its real inner focusable (a
+        // plain querySelectorAll would stop at its shadow boundary).
+        return getTabbableFromSlot(this.shadowRoot?.querySelector('.panel slot:not([name])'));
     }
 
+    /**
+     * Focus reached a bracketing sentinel → the user Tabbed past the panel's
+     * edge. A popover is non-modal, so we close it and let focus return to the
+     * trigger (via _restoreFocus) instead of wrapping back into the panel — a
+     * keyboard user must be able to Tab out. The sentinels detect the boundary
+     * crossing robustly regardless of the panel's internal tab semantics (e.g.
+     * a native radio group, which is a single tab stop), which an index-based
+     * edge check could not.
+     *
+     * If a consumer cancels the close (`ol-popover-close` is cancelable), fall
+     * back to wrapping so focus never sticks on the hidden sentinel.
+     */
     _onSentinelFocus(e) {
         const edge = e.target.dataset.edge;
+        this._requestClose('tab');
+        if (!this.open) return; // closed as expected — focus restored to trigger
+
+        // Close was vetoed: keep focus usable by wrapping within the panel.
         const focusable = this._getFocusableElements();
         if (focusable.length === 0) {
-            // No focusable children — keep focus on the panel itself
             this.shadowRoot.querySelector('.panel')?.focus({ preventScroll: true });
-            return;
-        }
-        if (edge === 'start') {
+        } else if (edge === 'start') {
             focusable[focusable.length - 1].focus({ preventScroll: true });
         } else {
             focusable[0].focus({ preventScroll: true });
@@ -647,6 +767,9 @@ export class OlPopover extends LitElement {
 
     _onKeydownGlobal(e) {
         if (e.key === 'Escape' && this.open) {
+            // Only the innermost open popover responds, so nested popovers close
+            // one layer per Escape instead of all at once.
+            if (_openPopoverStack[_openPopoverStack.length - 1] !== this) return;
             e.preventDefault();
             this._requestClose('escape');
         }
@@ -669,13 +792,34 @@ export class OlPopover extends LitElement {
         const handle = this.shadowRoot.querySelector('.tray-handle');
         const panel = this.shadowRoot.querySelector('.panel');
         const touch = e.touches[0];
+        const path = e.composedPath();
 
         this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
         this._lastDragY = 0;
-        this._isHandleDrag = !!(handle && e.composedPath().includes(handle));
-        this._touchScrollTop = panel?.scrollTop ?? 0;
+        this._isHandleDrag = !!(handle && path.includes(handle));
+        // Read scroll position from the actual scroll container under the touch,
+        // not the panel — consumers like ol-select-popover scroll an inner
+        // element, so panel.scrollTop stays 0 and would wrongly read as
+        // "scrolled to top", triggering swipe-to-dismiss mid-list.
+        this._touchScrollTop = this._scrollableInPath(path, panel)?.scrollTop ?? 0;
+    }
+
+    /**
+     * Walk the touch's composed path (which includes slotted light-DOM content)
+     * up to and including the panel, returning the first vertically scrollable
+     * element. Falls back to the panel itself.
+     */
+    _scrollableInPath(path, panel) {
+        for (const el of path) {
+            if (el instanceof HTMLElement && el.scrollHeight > el.clientHeight) {
+                const overflowY = getComputedStyle(el).overflowY;
+                if (overflowY === 'auto' || overflowY === 'scroll') return el;
+            }
+            if (el === panel) break;
+        }
+        return panel;
     }
 
     _onTouchMove(e) {
@@ -741,6 +885,10 @@ export class OlPopover extends LitElement {
                 this._clearDragStyles();
                 this._animState = 'closed';
                 this._cleanup();
+                // Sync the `open` property so the trigger toggles correctly on
+                // the next tap. _animState is already 'closed', so the _hide()
+                // this triggers early-returns without re-animating.
+                this.open = false;
                 this.dispatchEvent(new CustomEvent('ol-popover-close', {
                     bubbles: true, composed: true,
                     detail: { reason: 'swipe' },
@@ -789,33 +937,12 @@ export class OlPopover extends LitElement {
 
     // ── Body scroll lock ────────────────────────────────────────
 
-    _lockBodyScroll() {
-        // If another popover already holds the lock, don't trample its saved styles.
-        if (document.body.style.position === 'fixed') return;
-
-        this._savedScrollY = window.scrollY;
-        this._savedBodyStyle = {
-            position: document.body.style.position,
-            top: document.body.style.top,
-            left: document.body.style.left,
-            right: document.body.style.right,
-            width: document.body.style.width,
-            overflow: document.body.style.overflow,
-        };
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${this._savedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-    }
-
-    _unlockBodyScroll() {
-        if (!this._savedBodyStyle) return;
-        Object.assign(document.body.style, this._savedBodyStyle);
-        window.scrollTo(0, this._savedScrollY);
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
+    /** Releases the body scroll lock if this popover holds one. Idempotent. */
+    _releaseScrollLock() {
+        if (this._scrollLocked) {
+            unlockBodyScroll();
+            this._scrollLocked = false;
+        }
     }
 
     // ── Listener management ─────────────────────────────────────
@@ -823,6 +950,7 @@ export class OlPopover extends LitElement {
     _removeListeners() {
         document.removeEventListener('click', this._onOutsideClick, true);
         document.removeEventListener('keydown', this._onKeydownGlobal);
+        _removeFromOverlayStack(this);
         this._removeScrollResizeListeners();
 
         // Remove touch listeners from panel
@@ -836,9 +964,12 @@ export class OlPopover extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._clearCloseFallback();
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
     }
 }
 
-customElements.define('ol-popover', OlPopover);
+if (!customElements.get('ol-popover')) {
+    customElements.define('ol-popover', OlPopover);
+}

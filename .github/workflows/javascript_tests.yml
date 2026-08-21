@@ -20,7 +20,7 @@ jobs:
   javascript_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           # Should match what's in our Dockerfile
@@ -38,6 +38,8 @@ jobs:
           key: ${{ runner.os }}-node24-${{ hashFiles('**/package-lock.json') }}
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm install --no-audit
+      - name: Ensure node_modules timestamp is up to date
+        run: touch node_modules
       - run: npm run lint
       - run: make git
       - run: npx concurrently --group 'make js' 'make css' 'make components'

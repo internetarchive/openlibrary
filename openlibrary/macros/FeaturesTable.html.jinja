@@ -1,0 +1,16 @@
+<table>
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in features_table %}
+            <tr>
+                <td>{{ row['feature'] }}</td>
+                <td>{{ row['infogami'] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

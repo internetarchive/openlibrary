@@ -15,6 +15,30 @@ $var title: $header_title
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
   <div class="mybooks-details $css">
 
+    $if ctx.user:
+      $ pending_action_msg = mb.get_pending_action_banner()
+      $if pending_action_msg:
+        <ol-banner dismissible id="pending-action-container" class="pending-action-container">
+          <span>$:pending_action_msg</span>
+        </ol-banner>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              var container = document.getElementById('pending-action-container');
+              if (container) {
+                  var link = container.querySelector('.pending-action-link');
+                  if (link) {
+                      link.setAttribute('data-ol-link-track', 'PreserveIntent|Continue');
+                      link.addEventListener('click', function() {
+                          document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                      });
+                  }
+                  container.addEventListener('ol-banner-dismiss', (e) => {
+                    document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                  })
+              }
+          });
+        </script>
+
     $ mb.component_times['Details header'] = time()
     <header>
       <div class="breadcrumb-wrapper">
@@ -37,7 +61,7 @@ $var title: $header_title
       </div>
 
       $if not mb.is_my_page and mb.is_subscribed != -1:
-        $:macros.Follow(mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
+        $:render_template('follow/follow', mb.username, following=mb.is_subscribed, link_track='MyBooksPageHeader|Follow')
 
       $if 'followers' in mb.counts:
         <div class="social-wrapper">

@@ -11,8 +11,12 @@ usr/
 static/build/
 static/css/page-dev.less
 build/
+# Custom Elements Manifest — generated from component JSDoc by `npx cem analyze`,
+# which `make lit-components` runs. Read at runtime by plugins/openlibrary/design.py.
+openlibrary/components/lit/custom-elements.json
 *.local
 /.local
+CLAUDE.local.md
 *.tgz
 *.tar.gz
 *.org
@@ -53,3 +57,14 @@ manifest-checksum.txt
 
 # Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
 docs/wiki/
+
+# uv lockfile (we resolve from requirements*.txt; not tracked)
+uv.lock
+
+# Playwright output (npm run test:e2e)
+playwright-report/
+test-results/
+
+# Local dev state for /status testing-environment (deploy table)
+/_testing-prs.json
+/_dev-merged_status.txt

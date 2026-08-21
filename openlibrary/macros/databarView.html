@@ -11,10 +11,7 @@ $else:
 
 <div id="editTools" class="edit">
     <div id="editInfo">
-        $if "superfast" in ctx.features:
-            $ author = page.get_most_recent_change().author
-        $else:
-            $ author = get_recent_author(page)
+        $ author = page.get_most_recent_change().author
         $if author:
             <div class="brown smaller sansserif">$:_('Last edited by %(author_link)s', author_link=author.render_link())</div>
         $else:

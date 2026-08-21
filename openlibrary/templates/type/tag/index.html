@@ -23,7 +23,7 @@ $code:
         $ all_types = get_tag_types()
         <a href="/tags" class="$('selected' if not tag_type else '')">$_("All")</a>
         $for t in all_types:
-            <a href="/tags?type=$t" class="$('selected' if tag_type == t else '')">$t</a>
+            <a href="/tags?type=$(t)" class="$('selected' if tag_type == t else '')">$(t)</a>
     </nav>
 </div>
 

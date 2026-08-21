@@ -1,0 +1,51 @@
+name: pm_on_call_notification
+
+on:
+  schedule:  # 08:30 UTC, Monday and Tuesday
+    - cron: '30 8 * * 1,2'
+
+permissions:
+  contents: read
+
+jobs:
+  build_message:
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    runs-on: ubuntu-latest
+    outputs:
+      message: ${{ steps.build.outputs.result }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: build
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs');
+            const { onCallNotificationJob: { personnel } } = JSON.parse(
+              fs.readFileSync('.github/workflows/config/pm_config.json', 'utf8')
+            );
+
+            const daysSinceEpoch = Math.floor(Date.now() / 86400000);
+            const weekIndex = Math.floor(daysSinceEpoch / 7);
+            const lead = personnel[weekIndex % personnel.length].slackId;
+            const secondary = personnel[(weekIndex + 1) % personnel.length].slackId;
+
+            // getUTCDay(): 0=Sun, 1=Mon, 2=Tue, ...
+            const dow = { 1: 'monday', 2: 'tuesday' }[new Date().getUTCDay()] ?? 'none';
+
+            if (dow === 'monday') {
+              return `${lead} is on-call this week.  ${secondary} is the back-up.`;
+            } else if (dow === 'tuesday') {
+              return `Reminder: ${lead} will lead this week's deployment.`;
+            }
+            return '';
+
+  publish:
+    needs: build_message
+    if: ${{ needs.build_message.outputs.message != '' }}
+    uses: ./.github/workflows/notify_slack.yml
+    with:
+      message: ${{ needs.build_message.outputs.message }}
+    secrets:
+      slack_token: ${{ secrets.SLACK_TOKEN }}
+      channel: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}

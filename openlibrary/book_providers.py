@@ -8,12 +8,14 @@ from urllib import parse
 
 import web
 from web import uniq
-from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+
+if typing.TYPE_CHECKING:
+    from web.template import TemplateResult
 
 logger = logging.getLogger("openlibrary.book_providers")
 
@@ -32,14 +34,14 @@ class EbookAccess(OrderedEnum):
         return self.name.lower()
 
     @staticmethod
-    def from_solr_str(literal: str) -> "EbookAccess":
+    def from_solr_str(literal: str) -> EbookAccess:
         try:
             return EbookAccess[literal.upper()]
         except KeyError:
             raise ValueError(f"Unknown access literal: {literal}")
 
     @staticmethod
-    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> "EbookAccess":
+    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> EbookAccess:
         if literal == "sample":
             # We need to update solr to handle these! Requires full reindex
             return EbookAccess.PRINTDISABLED
@@ -85,7 +87,7 @@ class Acquisition:
         return EbookAccess.from_acquisition_access(self.access)
 
     @staticmethod
-    def from_json(json: dict) -> "Acquisition":
+    def from_json(json: dict) -> Acquisition:
         if "href" in json:
             # OPDS-style provider
             return Acquisition.from_opds_json(json)
@@ -113,7 +115,15 @@ class Acquisition:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
 
     @staticmethod
-    def from_opds_json(json: dict) -> "Acquisition":
+    def from_json_safe(json: dict) -> Acquisition | None:
+        try:
+            return Acquisition.from_json(json)
+        except ValueError as e:
+            logger.warning(f"Failed to parse acquisition from json: {json} with error {e}")
+            return None
+
+    @staticmethod
+    def from_opds_json(json: dict) -> Acquisition:
         if json.get("properties", {}).get("indirectAcquisition", None):
             mimetype = json["properties"]["indirectAcquisition"][0]["type"]
         else:
@@ -264,7 +274,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         if providers := ed_or_solr.get("providers", []):
-            return [Acquisition.from_json(dict(p)) for p in providers]
+            return [acq for p in providers if (acq := Acquisition.from_json_safe(dict(p)))]
         else:
             return []
 
@@ -571,7 +581,9 @@ class DirectProvider(AbstractBookProvider):
         in the solr request. (Note: this field is populated from db)
         """
         if providers := ed_or_solr.get("providers", []):
-            identifiers = [provider.url for provider in map(Acquisition.from_json, providers) if provider.ebook_access >= EbookAccess.PRINTDISABLED]
+            identifiers = [
+                provider.url for provider in map(Acquisition.from_json_safe, providers) if provider and provider.ebook_access >= EbookAccess.PRINTDISABLED
+            ]
             to_remove = set()
             for tbp in PROVIDER_ORDER:
                 # Avoid infinite recursion.
@@ -601,7 +613,9 @@ class DirectProvider(AbstractBookProvider):
         Return the access level of the edition.
         """
         # For now assume 0 is best
-        return EbookAccess.from_acquisition_access(Acquisition.from_json(edition["providers"][0]).access)
+        if acq := Acquisition.from_json_safe(edition["providers"][0]):
+            return EbookAccess.from_acquisition_access(acq.access)
+        return EbookAccess.NO_EBOOK
 
 
 class WikisourceProvider(AbstractBookProvider):

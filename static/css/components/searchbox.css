@@ -1,14 +1,17 @@
+/* Border, radius, height, and text inset track ol-button so the searchbox
+   reads as part of the same control family as the filter/sort buttons beside
+   it. The right padding stays tight — the submit icon carries its own inset. */
 .searchbox {
   background-color: var(--white);
-  border: 1px solid var(--dark-beige);
-  border-radius: 5px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
   position: relative;
   display: inline-flex;
   align-items: center;
   padding: 2px;
-  padding-left: 5px;
+  padding-left: var(--spacing-md);
   width: 50%;
-  height: 30px;
+  height: var(--control-height-medium);
 }
 
 .searchbox__btn-icon {
@@ -22,11 +25,16 @@
   margin: 0 !important;
   border: 0;
   background: transparent;
-  color: var(--grey) !important;
+  color: var(--color-text-secondary) !important;
   flex-grow: 1;
   font-size: 1em !important;
   min-width: 0;
   outline: none;
+}
+
+.searchbox__input::-webkit-search-cancel-button,
+.searchbox__input::-webkit-search-decoration {
+  appearance: none;
 }
 
 .searchbox:focus-within {
