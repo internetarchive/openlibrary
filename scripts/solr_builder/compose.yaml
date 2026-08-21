@@ -137,6 +137,9 @@ services:
       # Required; JCasC seeds the admin user's password from it at first boot.
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD to seed the Jenkins admin user}
       JENKINS_URL: ${JENKINS_URL:-http://localhost:8080}
+      # Which branch of internetarchive/openlibrary the solr-builder job tracks.
+      # Defaults to master. E.g.: SEED_BRANCH=chore/pinned-jenkins-solr-builder
+      SEED_BRANCH: ${SEED_BRANCH:-}
     volumes:
       - "jenkins-data:/var/jenkins_home"
       # Host-path bind (NOT a second named-volume mount): the Jenkinsfile maps
