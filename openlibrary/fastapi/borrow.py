@@ -23,6 +23,7 @@ from openlibrary.plugins.upstream.borrow import (
     BorrowRedirect,
     handle_borrow_async,
 )
+from openlibrary.utils.request_context import site
 
 router = APIRouter()
 
@@ -32,6 +33,16 @@ def _borrow_params_from_request(request: Request) -> BorrowParams:
     params, the same way openlibrary.fastapi.models.SolrInternalsParams is
     built via its own from_request()."""
     return BorrowParams.model_validate(request.query_params)
+
+
+def _resolve_ocaid_to_olid(ocaid: str) -> str | None:
+    """Resolves an IA identifier to its canonical OL edition OLID, or None
+    if there's no such edition."""
+    ia_edition = site.get().get(f"/books/ia:{ocaid}")
+    if not ia_edition:
+        return None
+    edition = site.get().get(ia_edition.location)
+    return edition.key.removeprefix("/books/")
 
 
 @router.get("/books/{olid}/{slug}/borrow")
@@ -78,3 +89,35 @@ async def borrow(
             # the presentation it gets, since no site stylesheet/JS bundle
             # is loaded here.
             return HTMLResponse(str(result))
+
+
+@router.get("/borrow/ia/{ocaid}")
+async def checkout_with_ocaid_get(ocaid: str, request: Request) -> Response:
+    """Redirect shim: translates an IA identifier into the canonical OL
+    /borrow URL. Mirrors the legacy web.py checkout_with_ocaid.GET, which
+    redirects rather than forwarding in-process -- unlike POST below, this
+    is browser-navigable, so it should land on (and become bookmarkable at)
+    the canonical URL rather than staying on this one.
+    """
+    olid = _resolve_ocaid_to_olid(ocaid)
+    if olid is None:
+        raise HTTPException(status_code=404)
+    url = f"/books/{olid}/x/borrow"
+    query = str(request.query_params)
+    if query:
+        url += f"?{query}"
+    return RedirectResponse(url=url, status_code=303)
+
+
+@router.post("/borrow/ia/{ocaid}")
+async def checkout_with_ocaid_post(ocaid: str, request: Request) -> Response:
+    """Forwards a borrow request to the canonical /borrow route above.
+    Mirrors the legacy web.py checkout_with_ocaid.POST, which does the same
+    in-process (calling borrow().POST(...) directly) rather than
+    redirecting -- a POST isn't bookmarked, so there's nothing to gain by
+    round-tripping through the browser first.
+    """
+    olid = _resolve_ocaid_to_olid(ocaid)
+    if olid is None:
+        raise HTTPException(status_code=404)
+    return await borrow(request, olid=olid, slug="x", params=_borrow_params_from_request(request))

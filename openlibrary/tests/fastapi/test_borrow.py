@@ -73,3 +73,46 @@ class TestBorrowRoute:
             )
 
         assert mock_core.call_args.kwargs["s3_cookie"] == "encrypted-token"
+
+
+class TestCheckoutWithOcaidRoute:
+    def test_get_unresolvable_ocaid_returns_404(self, fastapi_client):
+        with patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value=None):
+            response = fastapi_client.get("/borrow/ia/nonexistent", follow_redirects=False)
+
+        assert response.status_code == 404
+
+    def test_get_redirects_to_canonical_borrow_url_with_query_preserved(self, fastapi_client):
+        with patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value="OL1M"):
+            response = fastapi_client.get("/borrow/ia/someocaid?action=read", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert response.headers["location"] == "/books/OL1M/x/borrow?action=read"
+
+    def test_get_redirect_with_no_query_omits_question_mark(self, fastapi_client):
+        with patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value="OL1M"):
+            response = fastapi_client.get("/borrow/ia/someocaid", follow_redirects=False)
+
+        assert response.headers["location"] == "/books/OL1M/x/borrow"
+
+    def test_post_unresolvable_ocaid_returns_404(self, fastapi_client):
+        with patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value=None):
+            response = fastapi_client.post("/borrow/ia/nonexistent", follow_redirects=False)
+
+        assert response.status_code == 404
+
+    def test_post_delegates_to_the_canonical_borrow_route(self, fastapi_client):
+        """POST forwards in-process to borrow() (unlike GET, which redirects
+        the browser instead) -- same outcome/flash/cookie handling, just
+        resolved from an ocaid instead of an olid+slug in the URL."""
+        outcome = BorrowRedirect("/some/target", flash=("success", "Returned!"))
+        with (
+            patch("openlibrary.fastapi.borrow._resolve_ocaid_to_olid", return_value="OL1M"),
+            patch("openlibrary.fastapi.borrow.handle_borrow_async", return_value=outcome) as mock_core,
+        ):
+            response = fastapi_client.post("/borrow/ia/someocaid?action=return", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert response.headers["location"] == "/some/target"
+        called_key = mock_core.call_args.args[0]
+        assert called_key == "/books/OL1M"
