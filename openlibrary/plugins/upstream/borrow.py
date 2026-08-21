@@ -1,7 +1,6 @@
 """Handlers for borrowing books"""
 
 import contextlib
-import copy
 import hashlib
 import hmac
 import json
@@ -342,34 +341,6 @@ def get_bookreader_stream_url(itemid: str) -> str:
 # ######### Helper Functions
 
 
-def get_all_store_values(**query) -> list:
-    """Get all values by paging through all results. Note: adds store_key with the row id."""
-    query = copy.deepcopy(query)
-    if "limit" not in query:
-        query["limit"] = 500
-    query["offset"] = 0
-    values = []
-    got_all = False
-
-    while not got_all:
-        # new_values = site.get().store.values(**query)
-        new_items = site.get().store.items(**query)
-        for new_item in new_items:
-            new_item[1].update({"store_key": new_item[0]})
-            # XXX-Anand: Handling the existing loans
-            new_item[1].setdefault("ocaid", None)
-            values.append(new_item[1])
-        if len(new_items) < query["limit"]:
-            got_all = True
-        query["offset"] += len(new_items)
-    return values
-
-
-def get_all_loans() -> list:
-    # return web.ctx.site.store.values(type='/type/loan')
-    return get_all_store_values(type="/type/loan")
-
-
 def get_loans(user):
     return lending.get_loans_of_user(user.key)
 
@@ -453,27 +424,6 @@ def is_admin() -> bool:
     """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
     return user is not None and user.key in [m.key for m in site.get().get("/usergroup/admin").members]
-
-
-def return_resource(resource_id):
-    """Return the book to circulation!  This object is invalid and should not be used after
-    this is called.  Currently only possible for bookreader loans."""
-    loan_key = get_loan_key(resource_id)
-    if not loan_key:
-        raise Exception("Asked to return %s but no loan recorded" % resource_id)
-
-    loan = site.get().store.get(loan_key)
-
-    delete_loan(loan_key, loan)
-
-
-def delete_loan(loan_key, loan=None) -> None:
-    if not loan:
-        loan = site.get().store.get(loan_key)
-        if not loan:
-            raise Exception("Could not find store record for %s", loan_key)
-
-    loan.delete()
 
 
 def ia_hash(token_data: str) -> str:

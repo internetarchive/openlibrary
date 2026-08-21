@@ -6,7 +6,6 @@ import datetime
 import logging
 import os
 import time
-import uuid
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
@@ -788,51 +787,6 @@ class Loan(dict):
     """Model for loan."""
 
     @staticmethod
-    def new(
-        identifier: str,
-        resource_type: Literal["bookreader"],
-        user_key: str,
-        book_key: str | None = None,
-    ) -> Loan:
-        """Creates a new loan object.
-
-        The caller is expected to call save method to save the loan.
-        """
-        if book_key is None:
-            book_key = "/books/ia:" + identifier
-        _uuid = uuid.uuid4().hex
-        loaned_at = time.time()
-
-        if resource_type == "bookreader":
-            resource_id = "bookreader:" + identifier
-            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
-        else:
-            raise Exception("No longer supporting ACS borrows directly from Open Library. Please go to Archive.org")
-
-        if not resource_id:
-            raise Exception(f"Could not find resource_id for {identifier} - {resource_type}")
-
-        key = "loan-" + identifier
-        return Loan(
-            {
-                "_key": key,
-                "_rev": 1,
-                "type": "/type/loan",
-                "fulfilled": 1,
-                "user": user_key,
-                "book": book_key,
-                "ocaid": identifier,
-                "expiry": expiry,
-                "uuid": _uuid,
-                "loaned_at": loaned_at,
-                "resource_type": resource_type,
-                "resource_id": resource_id,
-                "loan_link": loan_link,
-            }
-        )
-
-    @staticmethod
     def from_ia_loan(data: dict) -> Loan:
         if data["userid"].startswith("ol:"):
             user_key = "/people/" + data["userid"][len("ol:") :]
@@ -876,17 +830,6 @@ class Loan(dict):
     def is_ol_loan(self) -> bool:
         # self['user'] will be None for IA loans
         return self["user"] is not None
-
-    def save(self) -> None:
-        # loans stored at IA are not supposed to be saved at OL.
-        # This call must have been made in mistake.
-        if self.get("stored_at") == "ia":
-            return
-
-        site.get().store[self["_key"]] = self
-
-        # Inform listers that a loan is created/updated
-        eventer.trigger("loan-created", self)
 
     def is_expired(self) -> bool:
         return self["expiry"] and self["expiry"] < datetime.datetime.utcnow().isoformat()
