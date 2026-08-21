@@ -1,6 +1,7 @@
 """ """
 
 import base64
+import contextlib
 import datetime
 import hashlib
 import hmac
@@ -120,6 +121,26 @@ def parse_s3_cookie(s3_cookie: str | None) -> dict | None:
         return {"access": access, "secret": secret}
     except InvalidToken:
         return None
+
+
+def get_s3_keys(account, s3_cookie: str | None = None) -> dict | None:
+    """Return S3 keys from the session cookie, falling back to the account store.
+
+    New logins set an encrypted ``s3`` cookie; this fallback handles sessions
+    that predate the cookie-based approach.
+    """
+    if s3_cookie and (keys := parse_s3_cookie(s3_cookie)):
+        return keys
+
+    with contextlib.suppress(AttributeError, KeyError):
+        if (token := web.cookies().get("s3")) and (keys := parse_s3_cookie(token)):
+            return keys
+
+    if account_key := getattr(account, "_key", None):
+        return web.ctx.site.store.get(account_key, {}).get("s3_keys")
+    if isinstance(account, dict):
+        return account.get("s3_keys")
+    return None
 
 
 def create_verification_cookie_value() -> str:
