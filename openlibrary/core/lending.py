@@ -593,7 +593,7 @@ def is_loaned_out(identifier: str) -> bool:
 
     This doesn't worry about waiting lists.
     """
-    return is_loaned_out_on_ol(identifier) or (is_loaned_out_on_ia(identifier) is True)
+    return bool(get_loan(identifier)) or (is_loaned_out_on_ia(identifier) is True)
 
 
 def is_loaned_out_on_ia(identifier: str) -> bool | None:
@@ -605,12 +605,6 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
         return None
-
-
-def is_loaned_out_on_ol(identifier: str) -> bool:
-    """Returns True if the item is checked out on Open Library."""
-    loan = get_loan(identifier)
-    return bool(loan)
 
 
 def get_loan(identifier: str, user_key: str | None = None):
@@ -665,7 +659,8 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
     loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
     loans = [Loan(d) for d in loandata]
     if account and account.itemname:
-        loans += _get_ia_loans_of_user(account.itemname)
+        ia_loans = ia_lending_api.find_loans(userid=account.itemname)
+        loans += [Loan.from_ia_loan(d) for d in ia_loans]
     # Set patron's loans in cache w/ now timestamp
     get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
     return loans
@@ -703,23 +698,6 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
     key_prefix="waitinglist.user_waiting_loans",
     timeout=10 * dateutil.MINUTE_SECS,
 )
-
-
-def _get_ia_loans_of_user(userid: str) -> list[Loan]:
-    ia_loans = ia_lending_api.find_loans(userid=userid)
-    return [Loan.from_ia_loan(d) for d in ia_loans]
-
-
-def create_loan(identifier: str, resource_type: str, user_key: str, book_key: str | None = None) -> Loan | None:
-    """Creates a loan and returns it."""
-    ia_loan = ia_lending_api.create_loan(identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key)
-
-    if ia_loan:
-        loan = Loan.from_ia_loan(ia_loan)
-        eventer.trigger("loan-created", loan)
-        sync_loan(identifier)
-        return loan
-    return None
 
 
 NOT_INITIALIZED = object()
@@ -954,20 +932,6 @@ def resolve_identifier(identifier: str) -> str | None:
 def userkey2userid(user_key: str) -> str:
     username = user_key.rsplit("/", maxsplit=1)[-1]
     return "ol:" + username
-
-
-def update_loan_status(identifier):
-    """Update the loan status in OL. Used to check for early returns."""
-    loan = get_loan(identifier)
-
-    # if the loan is from ia, it is already updated when getting the loan
-    if loan is None or loan.get("from_ia"):
-        return
-
-    if loan["resource_type"] == "bookreader":
-        if loan.is_expired():
-            loan.delete()
-        return
 
 
 class IA_Lending_API:
