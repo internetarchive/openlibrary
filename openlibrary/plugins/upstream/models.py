@@ -755,10 +755,20 @@ class Work(models.Work):
         # 2022-03 Once we know the availability-type of editions (e.g. open)
         # via editions-search, we can sidestep get_availability to only
         # check availability for borrowable editions
-        ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability("identifier", ocaids)
+        # ocaids = [ed.ocaid for ed in editions if ed.ocaid]
+        # availability = lending.get_availability("identifier", ocaids)
+        # for ed in editions:
+        #     ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+        from openlibrary.book_providers import EbookAccess
+
+        edition_ebook_access = {
+            doc["key"]: EbookAccess.from_solr_str(doc["ebook_access"])
+            for doc in get_solr().get_many([ed.key for ed in editions], fields=["key", "ebook_access"])
+            if doc.get("ebook_access")
+        }
         for ed in editions:
-            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+            if ed.ocaid:
+                ed.availability = lending.get_ebook_access_availability(ed.ocaid, edition_ebook_access.get(ed.key, EbookAccess.NO_EBOOK))
 
         return editions
 
