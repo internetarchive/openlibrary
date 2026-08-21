@@ -362,7 +362,7 @@ export class OlBooksDisplay extends LitElement {
             margin-top: auto;
         }
 
-        /* Corner save button: "+" until the book is on a shelf, then a filled check.
+        /* Corner save button: an outlined bookmark until the book is on a shelf, then filled.
            Signed in, the button is slotted into <ol-book-actions>, whose popover host
            is position: relative — so the wrapper takes the corner and the button
            goes static inside it. */
@@ -996,7 +996,7 @@ export class OlBooksDisplay extends LitElement {
         return html`
             <div class="obd-row__rating">
                 <span class="obd-stars" role="img" aria-label=${this.t('ratingsAverage', { average: avg.toFixed(1) })}>
-                    ${[1, 2, 3, 4, 5].map(n => html`<ol-icon class="obd-icon" name=${n <= rounded ? 'star-filled' : 'star'}></ol-icon>`)}
+                    ${[1, 2, 3, 4, 5].map(n => html`<ol-icon class="obd-icon" name="star" ?filled=${n <= rounded}></ol-icon>`)}
                 </span>
                 <span class="obd-row__rating-text">${avg.toFixed(1)} · ${this.t(doc.ratings_count === 1 ? 'ratingsOne' : 'ratingsMany', { count })}</span>
             </div>
@@ -1049,7 +1049,7 @@ export class OlBooksDisplay extends LitElement {
                 class="obd-save ${classMap({ 'obd-save--on': saved })}"
                 aria-label=${saved ? this.t('saved', { title: doc.title }) : this.t('save', { title: doc.title })}
                 @click=${this.userKey ? undefined : e => this._onLoggedOutAction(e, doc)}
-            ><ol-icon class="obd-icon" name=${saved ? 'check' : 'plus'}></ol-icon></button>
+            ><ol-icon class="obd-icon" name="bookmark" ?filled=${saved}></ol-icon></button>
         `;
         if (!this.userKey) return button;
         return html`

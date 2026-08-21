@@ -576,7 +576,7 @@ export class OlBookActions extends LitElement {
                             @focus=${() => { this._hoverRating = n; }}
                             @blur=${() => { this._hoverRating = 0; }}
                             @click=${() => this._onRate(n)}
-                        ><ol-icon class="obd-icon" name=${n <= shown ? 'star-filled' : 'star'}></ol-icon></button>
+                        ><ol-icon class="obd-icon" name="star" ?filled=${n <= shown}></ol-icon></button>
                     `)}
                 </span>
                 ${caption}
