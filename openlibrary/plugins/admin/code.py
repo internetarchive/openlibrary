@@ -764,7 +764,7 @@ class imports_by_date:
     def GET(self, date):
         stats = imports.Stats()
         summary = stats.get_items_summary(date)
-        items = stats.get_items(date)
+        items = list(stats.get_items(date))
         return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 

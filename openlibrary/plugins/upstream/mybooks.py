@@ -104,9 +104,6 @@ class mybooks_home(delegate.page):
 
             docs |= {"want-to-read": want_to_read, "currently-reading": currently_reading, "already-read": already_read, "stopped-reading": stopped_reading}
 
-        # Precompute reading goal for the mobile sidebar
-        current_goal = get_reading_goals(year=current_year()) if mb.is_my_page else None
-
         return render["account/mybooks"](
             mb.user,
             docs,
@@ -116,7 +113,7 @@ class mybooks_home(delegate.page):
             counts=mb.counts,
             lists=mb.lists,
             component_times=mb.component_times,
-            current_goal=current_goal,
+            current_goal=mb.current_goal,
         )
 
 
@@ -394,6 +391,10 @@ class MyBooksTemplate:
 
         self.component_times: dict = {}
 
+        # Precompute reading goal once so both mybooks.html (mobile) and sidebar.html (desktop)
+        # can render without blocking I/O in templates; avoids duplicate DB queries per request.
+        self.current_goal = get_reading_goals(year=current_year()) if self.is_my_page else None
+
     def render_sidebar(self) -> TemplateResult:
         return render["account/sidebar"](
             self.username,
@@ -403,6 +404,7 @@ class MyBooksTemplate:
             self.counts,
             self.lists,
             self.component_times,
+            self.current_goal,
         )
 
     def render(self, template: TemplateResult, header_title: str, page: List | None = None) -> TemplateResult:
