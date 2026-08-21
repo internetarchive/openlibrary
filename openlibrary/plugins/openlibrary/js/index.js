@@ -1,3 +1,4 @@
+import { addEntry } from './my-books/store/readingHistory';
 import initSentry from './sentry';
 import 'jquery';
 import { exposeGlobally } from './jsdef';
@@ -34,6 +35,37 @@ document.addEventListener('click', function(e) {
         }
     }
 }, true);
+
+// Phase 2 — client-side read history: capture every Read/Borrow CTA click
+// site-wide and store a lightweight record in localStorage (ol_read_history).
+// No PII is stored — only public book metadata embedded by the server in
+// data-ol-action / data-ol-book attributes on the CTA link itself.
+document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (!(target instanceof Element)) return;
+    const btn = target.closest('[data-ol-action="read"], [data-ol-action="borrow"]');
+    if (!btn) return;
+
+    let book = {};
+    try {
+        book = JSON.parse(btn.dataset.olBook || '{}');
+    } catch { /* ignore corrupt attribute value */ }
+
+    const workKey = book.workKey || '';
+    const olid = workKey.split('/').filter(Boolean).pop();
+    if (!olid || !workKey) return;
+
+    addEntry({
+        olid,
+        workKey,
+        title: book.title || '',
+        coverId: book.coverId || null,
+        coverEditionKey: book.coverEditionKey || null,
+        ocaid: book.ocaid || null,
+        authorNames: Array.isArray(book.authorNames) ? book.authorNames : [],
+        timestamp: Date.now(),
+    });
+});
 
 initSentry();
 

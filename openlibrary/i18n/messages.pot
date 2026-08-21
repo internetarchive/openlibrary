@@ -1195,11 +1195,11 @@ msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
 msgstr[1] ""
 
-#: account/loans.html
+#: account/loans.html books/custom_carousel_card.html
 msgid "Not yet downloaded."
 msgstr ""
 
-#: account/loans.html
+#: account/loans.html books/custom_carousel_card.html
 msgid "Download Now"
 msgstr ""
 
@@ -3111,6 +3111,25 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/custom_carousel_card.html
+#, python-format
+msgid "1 person waiting"
+msgid_plural "%(count)d people waiting"
+msgstr[0] ""
+msgstr[1] ""
+
+#: books/custom_carousel_card.html
+msgid "Return via ADE"
+msgstr ""
+
+#: ReturnForm.html books/custom_carousel_card.html
+msgid "Really return this book?"
+msgstr ""
+
+#: ReturnForm.html books/custom_carousel_card.html
+msgid "Return book"
 msgstr ""
 
 #: books/daisy.html
@@ -7180,14 +7199,6 @@ msgstr ""
 
 #: RelatedSubjects.html
 msgid "Related..."
-msgstr ""
-
-#: ReturnForm.html
-msgid "Really return this book?"
-msgstr ""
-
-#: ReturnForm.html
-msgid "Return book"
 msgstr ""
 
 #: SearchResultsWork.html
