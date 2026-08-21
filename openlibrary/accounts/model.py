@@ -1,6 +1,7 @@
 """ """
 
 import base64
+import contextlib
 import datetime
 import hashlib
 import hmac
@@ -112,15 +113,21 @@ def get_s3_keys(account) -> dict | None:
     New logins set an encrypted ``s3`` cookie; this fallback handles sessions
     that predate the cookie-based approach.
     """
-    if token := web.cookies().get("s3"):
-        try:
-            from cryptography.fernet import InvalidToken
+    with contextlib.suppress(AttributeError, KeyError):
+        if token := web.cookies().get("s3"):
+            try:
+                from cryptography.fernet import InvalidToken
 
-            access, secret = decrypt_s3_keys(token)
-            return {"access": access, "secret": secret}
-        except InvalidToken:
-            pass  # tampered or stale cookie; fall through to store
-    return web.ctx.site.store.get(account._key, {}).get("s3_keys")
+                access, secret = decrypt_s3_keys(token)
+                return {"access": access, "secret": secret}
+            except InvalidToken:
+                pass  # tampered or stale cookie; fall through to store
+
+    if account_key := getattr(account, "_key", None):
+        return web.ctx.site.store.get(account_key, {}).get("s3_keys")
+    if isinstance(account, dict):
+        return account.get("s3_keys")
+    return None
 
 
 def create_verification_cookie_value() -> str:

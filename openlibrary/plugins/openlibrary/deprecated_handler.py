@@ -24,7 +24,13 @@ def handle_deprecated_request():
 
 
 def proxy_to_fastapi():
-    """Proxy the current request to the FastAPI container."""
+    """Proxy the current request to the FastAPI container.
+
+    TODO: Proxying binary multipart form streams (e.g. avatar file uploads) from
+    web.py to FastAPI is a temporary bridge while web.py handles ingress. In the
+    medium term, FastAPI will act as primary ingress proxying down to web.py,
+    allowing this custom stream extraction logic to be removed.
+    """
     # Internal Docker URL for fast_web service
     base_url = "http://fast_web:8080"
     url = base_url + web.ctx.fullpath

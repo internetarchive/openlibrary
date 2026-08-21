@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
-from openlibrary.accounts.model import audit_accounts, decrypt_s3_keys, generate_login_code_for_user
+from openlibrary.accounts.model import audit_accounts, decrypt_s3_keys, generate_login_code_for_user, get_s3_keys
 from openlibrary.core import cache, stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
@@ -414,36 +414,11 @@ class AvatarUploadResponse(BaseModel):
     message: str = Field(description="User-facing status message")
 
 
-@router.post(
-    "/account/avatar",
-    response_model=AvatarUploadResponse,
-    summary="Upload profile picture to Internet Archive",
-    description="Allows authenticated user to upload and sanitize a profile picture for their account.",
-    tags=["account"],
-)
-async def upload_avatar(  # noqa: PLR0915
-    request: Request,
-    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    file: Annotated[UploadFile | None, File()] = None,
-) -> AvatarUploadResponse:
-    if file is None:
-        try:
-            form = await request.form()
-            uploaded = form.get("file")
-            if isinstance(uploaded, UploadFile):
-                file = uploaded
-        except Exception:  # noqa: BLE001
-            pass
-
-    if not file or not file.filename:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file provided")
-
-    # Read and check file size (max 5 MB)
-    contents = await file.read()
+def sanitize_image(contents: bytes, username: str) -> io.BytesIO:
+    """Validate, sanitize, resize (max 500x500), and re-encode avatar image bytes to JPEG."""
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File size exceeds 5MB limit")
 
-    # Validate image format and sanitize using Pillow
     try:
         image = Image.open(io.BytesIO(contents))
         image.verify()  # Validate image headers/structure
@@ -466,11 +441,58 @@ async def upload_avatar(  # noqa: PLR0915
         out_buffer = io.BytesIO()
         image.save(out_buffer, format="JPEG", quality=85)
         out_buffer.seek(0)
+        return out_buffer
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Image processing failed for user {user.username}: {e}")
+        logger.error(f"Image processing failed for user {username}: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or corrupt image file")
+
+
+def invalidate_avatar_cache(username: str, avatar_updated: int | None = None) -> str:
+    """Update or clear avatar_updated timestamp on account store and invalidate Memcached."""
+    account_key = f"account/{username}"
+    account_data = site.get().store.get(account_key, {})
+
+    if avatar_updated is not None:
+        account_data["avatar_updated"] = avatar_updated
+    else:
+        account_data.pop("avatar_updated", None)
+
+    site.get().store[account_key] = account_data
+
+    with contextlib.suppress(Exception):
+        cache.memcache_cache.delete(f"user-avatar-{username}")
+
+    return models.User.get_avatar_url(username)
+
+
+@router.post(
+    "/account/avatar",
+    response_model=AvatarUploadResponse,
+    summary="Upload profile picture to Internet Archive",
+    description="Allows authenticated user to upload and sanitize a profile picture for their account.",
+    tags=["account"],
+)
+async def upload_avatar(
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    file: Annotated[UploadFile | None, File()] = None,
+) -> AvatarUploadResponse:
+    if file is None:
+        try:
+            form = await request.form()
+            uploaded = form.get("file")
+            if isinstance(uploaded, UploadFile):
+                file = uploaded
+        except Exception:  # noqa: BLE001
+            pass
+
+    if not file or not file.filename:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file provided")
+
+    contents = await file.read()
+    out_buffer = sanitize_image(contents, user.username)
 
     # Retrieve account details and S3 keys
     ol_account = OpenLibraryAccount.get_by_username(user.username)
@@ -484,7 +506,7 @@ async def upload_avatar(  # noqa: PLR0915
             detail="User account is missing Internet Archive item identifier",
         )
 
-    # Decrypt S3 keys from request session cookie or account store
+    # Resolve S3 keys from cookie or store helper
     s3_keys = None
     if s3_cookie := request.cookies.get("s3"):
         try:
@@ -493,13 +515,11 @@ async def upload_avatar(  # noqa: PLR0915
         except InvalidToken:
             pass
 
-    if not s3_keys and isinstance(ol_account, dict):
-        s3_keys = ol_account.get("s3_keys")
-    elif not s3_keys and hasattr(ol_account, "_key"):
-        s3_keys = site.get().store.get(ol_account._key, {}).get("s3_keys")
+    if not s3_keys:
+        s3_keys = get_s3_keys(ol_account)
 
     is_mock = s3_keys and s3_keys.get("access", "").startswith("mock_")
-    is_local_dev = os.getenv("LOCAL_DEV") is not None or is_mock
+    is_local_dev = get_ol_env().LOCAL_DEV or is_mock
     if is_local_dev and (not s3_keys or not s3_keys.get("access") or is_mock):
         logger.info(f"[LOCAL_DEV] Mocking Internet Archive avatar S3 upload for user {user.username}")
     else:
@@ -522,7 +542,7 @@ async def upload_avatar(  # noqa: PLR0915
                 secret_key=s3_keys["secret"],
                 queue_derive=True,
                 retries=1,
-                verify=False,
+                verify=not get_ol_env().LOCAL_DEV,
             )
         except Exception as err:  # noqa: BLE001
             logger.error(f"Internet Archive S3 upload failed for user {user.username}: {err}")
@@ -532,20 +552,8 @@ async def upload_avatar(  # noqa: PLR0915
                     detail=f"Failed to upload profile picture to Internet Archive: {err}",
                 )
 
-    # Save avatar_updated timestamp on account and invalidate Memcached
     timestamp = int(time.time())
-
-    # Save timestamp in store
-    account_key = f"account/{user.username}"
-    account_data = site.get().store.get(account_key, {})
-    account_data["avatar_updated"] = timestamp
-    site.get().store[account_key] = account_data
-
-    # Invalidate Memcached user-avatar cache
-    with contextlib.suppress(Exception):
-        cache.memcache_cache.delete(f"user-avatar-{user.username}")
-
-    new_avatar_url = models.User.get_avatar_url(user.username)
+    new_avatar_url = invalidate_avatar_cache(user.username, avatar_updated=timestamp)
 
     return AvatarUploadResponse(
         status="success",
@@ -571,14 +579,8 @@ async def delete_avatar(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No custom profile picture exists to remove",
         )
-    account_data.pop("avatar_updated", None)
-    site.get().store[account_key] = account_data
 
-    # Invalidate Memcached user-avatar cache
-    with contextlib.suppress(Exception):
-        cache.memcache_cache.delete(f"user-avatar-{user.username}")
-
-    new_avatar_url = models.User.get_avatar_url(user.username)
+    new_avatar_url = invalidate_avatar_cache(user.username, avatar_updated=None)
 
     return AvatarUploadResponse(
         status="success",
