@@ -2,7 +2,6 @@
 
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
-import datetime
 import logging
 import os
 import time
@@ -42,14 +41,7 @@ logger = logging.getLogger(__name__)
 
 S3_LOAN_URL = "https://%s/services/loans/loan/"
 
-LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
-
-# How long bookreader loans should last
-BOOKREADER_LOAN_DAYS = 14
-
-BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
 DEFAULT_IA_RESULTS = 42
-MAX_IA_RESULTS = 1000
 
 
 class PatronAccessException(Exception):
@@ -626,12 +618,6 @@ def get_loan(identifier: str, user_key: str | None = None):
         else:
             account = OpenLibraryAccount.get_by_key(user_key)
 
-    d = site.get().store.get("loan-" + identifier)
-    if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
-        loan = Loan(d)
-        if loan.is_expired():
-            loan.delete()
-            return None
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception:  # TODO: Narrow exception scope
@@ -740,8 +726,8 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     # The loan known to us is deleted
     is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
 
-    # When the current loan is a OL loan, remember the loan_data
-    if loan and loan.is_ol_loan():
+    # Only remember the loan_data if we could resolve an OL user for it
+    if loan and loan["user"] is not None:
         ebook_loan_data = loan_data
     else:
         ebook_loan_data = None
@@ -827,45 +813,8 @@ class Loan(dict):
             "resource_type": data["format"],
             "resource_id": data["resource_id"],
             "loan_link": data["loan_link"],
-            "stored_at": "ia",
         }
         return Loan(d)
-
-    def is_ol_loan(self) -> bool:
-        # self['user'] will be None for IA loans
-        return self["user"] is not None
-
-    def is_expired(self) -> bool:
-        return self["expiry"] and self["expiry"] < datetime.datetime.utcnow().isoformat()
-
-    def is_yet_to_be_fulfilled(self) -> bool:
-        """Returns True if the loan is not yet fulfilled and fulfillment time
-        is not expired.
-        """
-        return self["expiry"] is None and (time.time() - self["loaned_at"]) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
-
-    def return_loan(self) -> bool:
-        logger.info("*** return_loan ***")
-        if self["resource_type"] == "bookreader":
-            self.delete()
-            return True
-        else:
-            return False
-
-    def delete(self) -> None:
-        loan = dict(self, returned_at=time.time())
-        user_key = self["user"]
-        account = OpenLibraryAccount.get_by_key(user_key)
-        if self.get("stored_at") == "ia":
-            ia_lending_api.delete_loan(self["ocaid"], userkey2userid(user_key))
-            if account and account.itemname:
-                ia_lending_api.delete_loan(self["ocaid"], account.itemname)
-        else:
-            site.get().store.delete(self["_key"])
-
-        sync_loan(self["ocaid"])
-        # Inform listers that a loan is completed
-        eventer.trigger("loan-completed", loan)
 
 
 def resolve_identifier(identifier: str) -> str | None:
