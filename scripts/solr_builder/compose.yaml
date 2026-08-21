@@ -110,10 +110,44 @@ services:
       - solr-access
       - db-access
 
+  # Pinned, code-defined Jenkins controller that runs this pipeline.
+  # All config lives in ./jenkins/ (Dockerfile, plugins.txt, JCasC, seed job).
+  # Start with: ADMIN_PASSWORD=... docker compose --profile jenkins up -d jenkins
+  jenkins:
+    profiles:
+      - jenkins
+    build:
+      context: ./jenkins
+    image: openlibrary/solr-builder-jenkins:2.568.2
+    restart: unless-stopped
+    # Legacy deployments ran the controller as root; docker-workflow starts
+    # build containers with the same uid, and the pipeline's docker CLI needs a
+    # writable HOME/config dir (otherwise `mkdir /.docker: permission denied`).
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      # Required; JCasC seeds the admin user's password from it at first boot.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD to seed the Jenkins admin user}
+      JENKINS_URL: ${JENKINS_URL:-http://localhost:8080}
+    volumes:
+      - "jenkins-data:/var/jenkins_home"
+      # Host-path bind (NOT a second named-volume mount): the Jenkinsfile maps
+      # its workspace onto /var/lib/docker/volumes/jenkins-data/_data/... so
+      # that `docker run/compose` commands see the same files as the controller.
+      - "/var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data"
+      - "/storage:/storage"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 volumes:
   postgres-data:
   solr-data:
   ol-vendor:
+  # The exact name matters: the Jenkinsfile runs
+  # `docker volume inspect --format=... jenkins-data` on the host.
+  jenkins-data:
+    name: jenkins-data
 
 networks:
   db-access:
