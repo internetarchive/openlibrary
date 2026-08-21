@@ -651,7 +651,6 @@ def _get_ia_loan(identifier: str, userid: str | None = None):
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
-    """TODO: Remove inclusion of local data; should only come from IA"""
     if "env" not in web.ctx:
         """For the get_cached_user_loans to call the API if no cache is present,
         we have to fakeload the web.ctx
@@ -661,11 +660,10 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
-    loans = [Loan(d) for d in loandata]
+    loans = []
     if account and account.itemname:
         ia_loans = ia_lending_api.find_loans(userid=account.itemname)
-        loans += [Loan.from_ia_loan(d) for d in ia_loans]
+        loans = [Loan.from_ia_loan(d) for d in ia_loans]
     # Set patron's loans in cache w/ now timestamp
     get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
     return loans
