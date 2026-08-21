@@ -1635,6 +1635,73 @@ def subject_name_to_key(subject: str, prefix="") -> str:
     return f"/subjects/{prefix}{normalize_subject_name(subject)}"
 
 
+# The unused-template test reads this literal as ListCarousel's only static
+# reference; renaming or deleting it flips the macro to "unused".
+LIST_CAROUSEL_RE = re.compile(r"""\{\{ListCarousel\(\s*["']([^"']+)["']""")
+
+
+@public
+def get_collection_book_count(page) -> int:
+    """Number of books a /collections/* page holds, summed over the lists its
+    ListCarousel macros point at. Zero when it has no such macro (e.g. it only
+    embeds search-query carousels), so callers can drop the count.
+    """
+    body = page.get("body") or ""
+    # Each key arrives with a display slug appended: /people/x/lists/OL1L/Name.
+    keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
+    # A deleted list still resolves to a Thing, and a non-list key to one with no
+    # seed_count, so both would otherwise count as a list holding zero books.
+    lists = web.ctx.site.get_many(sorted(keys))
+    return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
+
+
+# The image carries its <a> wrapper into the figure, since a linked image can only
+# be written as raw HTML here — OL's markdown leaves [![alt](img)](url) as brackets.
+LEADING_IMAGE = r"<a\b[^>]*>\s*<img\b[^>]*>\s*</a>|<img\b[^>]*>"
+LEADING_IMAGE_RE = re.compile(rf"<p>\s*({LEADING_IMAGE})\s*(?:<br\s*/?>)?\s*(.*?)\s*</p>", re.DOTALL)
+CAPTION_RE = re.compile(r"^<small>(.*)</small>$", re.DOTALL)
+
+
+@public
+def promote_leading_images(html: str) -> str:
+    """Give an image that opens a paragraph its own ``<figure>``.
+
+    Markdown wraps a standalone image in a paragraph, and OL's flavor turns the
+    newline after it into a ``<br>``, so the image ends up sharing that paragraph
+    with whatever came next in the source — its caption, or the opening prose::
+
+        <p><img src="a.png"/><br/>
+        <small>Graphic by Sam</small></p>
+        <p><img src="b.png"/><br/>
+        From 1861 to 1865, the war...</p>
+
+    Both are wrong on a collections page. Nested in a ``<p>`` the image is capped
+    at the reading measure instead of breaking wider, and the drop cap disappears
+    entirely: ``::first-letter`` skips a first line that opens with an image, and
+    the prose that should have taken it is no longer ``p:first-of-type``.
+    Promoting gives each part the element it should have had::
+
+        <figure><img src="a.png"/><figcaption>Graphic by Sam</figcaption></figure>
+        <figure><img src="b.png"/></figure><p>From 1861 to 1865, the war...</p>
+
+    A ``<small>`` tail becomes the caption; anything else goes back to being a
+    paragraph of its own. An image wrapped in a link is promoted with its link.
+    """
+
+    def split(match: re.Match) -> str:
+        image, tail = match.group(1), match.group(2).strip()
+        caption = ""
+        if inner := CAPTION_RE.match(tail):
+            caption, tail = inner.group(1).strip(), ""
+        figcaption = f"<figcaption>{caption}</figcaption>" if caption else ""
+        return f"<figure>{image}{figcaption}</figure>" + (f"<p>{tail}</p>" if tail else "")
+
+    # Re-run until stable so a paragraph stacking several images splits them all.
+    while (promoted := LEADING_IMAGE_RE.sub(split, html)) != html:
+        html = promoted
+    return html
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 

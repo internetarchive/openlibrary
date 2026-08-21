@@ -53,11 +53,22 @@
      Alpha is on the --ink-overlay hue, and stays literal — var() can't carry it. */
   --box-shadow-raised: 0 1px 1px hsla(44, 60%, 18%, 0.07);
 
-  /* Floating surfaces — popovers, dialogs, menus. Same ink, more spread. */
-  --box-shadow-overlay: 0 8px 24px hsla(44, 60%, 18%, 0.16);
-
   /* Floating-control drop shadow — a control that sits over content (a save
      button on cover art) rather than on the page. Pair with the same inline
      specular highlight as above; see ol-button[elevation="floating"]. */
   --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
+
+  /* Overlay surface — the floating panel behind popovers, menus, and dialogs.
+     The hairline border draws the edge that a soft shadow alone loses against
+     a white page; because the border carries the definition, the shadow can
+     stay light and read as depth rather than as a smudge. Shares the divider
+     tone, so an overlay's edge and the rules inside it are the same value. */
+  --border-overlay: 1px solid var(--color-border-subtle);
+  --box-shadow-overlay: 0 1px 2px hsla(44, 60%, 18%, 0.04), 0 8px 24px hsla(44, 60%, 18%, 0.09);
+
+  /* The scrim behind a modal overlay — the dialog's ::backdrop and the
+     popover's mobile tray, which should read as the same gesture. The blur is
+     what pushes the page back; the dim is what makes it inert. */
+  --overlay-backdrop-color: hsla(0, 0%, 0%, 0.32);
+  --overlay-backdrop-blur: 3px;
 }

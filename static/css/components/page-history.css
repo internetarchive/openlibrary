@@ -9,7 +9,17 @@
   margin-top: 30px;
 }
 
-.pageHistory__list {
+/* An end-of-page footnote, not a section heading — keep it quiet. */
+.pageHistory__heading {
+  font-size: var(--font-size-title-medium);
+}
+
+/* `ul` default indent would leave a gulf after the heading; a single inline
+   gap keeps the two on one line. Needs the id to beat `.markdown-content ul`. */
+/* stylelint-disable-next-line selector-max-specificity */
+#pageHistory .pageHistory__list {
+  padding-left: 0;
+  margin-left: var(--spacing-inline-md);
   font-size: 0.8em;
 }
 
@@ -35,11 +45,14 @@ table.history {
   border-top: var(--border-table);
 }
 
-table.history tr:last-child {
-  background: var(--lightest-grey);
+/* Plain rows: clears the site-wide `tbody tr` tint so the rules alone
+   separate the revisions. */
+table.history tr {
+  background: transparent;
 }
 
 table.history td {
+  padding: var(--spacing-inset-sm);
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   color: var(--color-text-secondary);
@@ -47,13 +60,16 @@ table.history td {
 }
 
 table.history td.timestamp {
-  padding: 10px;
   white-space: nowrap;
 }
 
 table.history td.detail {
-  padding: 10px;
   width: 100%;
+}
+
+/* Flush left so the timestamps line up with the heading above. */
+table.history td:first-child {
+  padding-left: 0;
 }
 
 /* History page redesign - #12628 */

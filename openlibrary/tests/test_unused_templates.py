@@ -28,7 +28,6 @@ from openlibrary.utils.template_usage import (
 # entry just keeps the test failing (safe).  Stale entries fail the staleness
 # test below.
 DB_USED_EXCLUSIONS: dict[str, str] = {
-    "ListCarousel": "{{ListCarousel(...)}} markdown in live /collections/* db pages (verified on prod)",
     "SubjectSearch": "{{SubjectSearch()}} in db-stored /subjects wiki pages (f7b9ae436)",
 }
 

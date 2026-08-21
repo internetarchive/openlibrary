@@ -9,17 +9,50 @@ $if title.startswith("i18n::") and title.count(':') == 3:
 
 $var title: $title
 
+$# Curated collections get their own bundle: Literata titles and a centered reading column.
+$# /type/i18n_page renders the translated doc, so /collections arrives here as /collections.en.
+$ key = page.key.split('.', 1)[0]
+$ is_collection = key == '/collections' or key.startswith('/collections/')
+$# The index page lists collections rather than being one, so it gets no back link or label.
+$ is_collection_page = is_collection and key != '/collections'
+$if is_collection:
+    $ _x = ctx.setdefault('cssfile', 'collections')
+    $ bodyclass = ctx.setdefault('bodyclass', [])
+    $ bodyclass.append('collections-page')
+
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
-        $:macros.databarView(page)
+        $# A collection page shares its top row with a link back up to the index.
+        $if is_collection:
+            <div class="collection-topbar">
+                $if is_collection_page:
+                    <a class="collection-back" href="/collections">
+                        $# Chevron matching OlPagination's: stroked, so it takes the link's color.
+                        <svg class="collection-back__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+                        $_("Collections")
+                    </a>
+                $:macros.databarView(page)
+            </div>
+        $else:
+            $:macros.databarView(page)
         $if page.key.startswith("/community/"):
             <div class="superNav">
                 <a href="/community">$_("Community")</a> /
             </div>
+        $if is_collection_page:
+            $ book_count = get_collection_book_count(page)
+            <p class="collection-eyebrow">
+                <span>$_("Collection")</span>
+                $if book_count:
+                    <span class="collection-eyebrow__separator" aria-hidden="true">&middot;</span>
+                    <span>$ungettext("%(count)s book", "%(count)s books", book_count, count=commify(book_count))</span>
+            </p>
         <h1>$title</h1>
     </div>
 
 $ text = format(page.body)
+$if is_collection:
+    $ text = promote_leading_images(text)
 
 <div id="contentBody" class="markdown-content">
 
