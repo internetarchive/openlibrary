@@ -5,19 +5,24 @@ or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
 
+import sys as _sys
+import traceback as _tb
+
 import httpx
 import web
 
 from infogami.utils import delegate
 from openlibrary.core.env import get_ol_env
 
-import sys as _sys
-import traceback as _tb
 _orig_rawinput = web.webapi.rawinput
+
+
 def _traced_rawinput(method=None):
     if web.ctx.get("env", {}).get("REQUEST_METHOD") == "POST":
         print("[RAWINPUT] method=%r\n%s" % (method, "".join(_tb.format_stack()[-12:])), file=_sys.stderr, flush=True)
     return _orig_rawinput(method)
+
+
 web.webapi.rawinput = _traced_rawinput
 web.rawinput = _traced_rawinput
 
@@ -46,7 +51,12 @@ def proxy_to_fastapi():
         headers["Content-Type"] = web.ctx.environ["CONTENT_TYPE"]
 
     import sys
-    print(f"[PROXYDEBUG] ct={web.ctx.environ.get('CONTENT_TYPE')!r} cl={web.ctx.environ.get('CONTENT_LENGTH')!r} datalen={len(web.data())} has_fieldstorage={'_fieldstorage' in web.ctx} ctxdata={'data' in web.ctx}", file=sys.stderr, flush=True)
+
+    print(
+        f"[PROXYDEBUG] ct={web.ctx.environ.get('CONTENT_TYPE')!r} cl={web.ctx.environ.get('CONTENT_LENGTH')!r} datalen={len(web.data())} has_fieldstorage={'_fieldstorage' in web.ctx} ctxdata={'data' in web.ctx}",
+        file=sys.stderr,
+        flush=True,
+    )
     try:
         with httpx.Client(follow_redirects=False, timeout=60.0) as client:
             resp = client.request(
