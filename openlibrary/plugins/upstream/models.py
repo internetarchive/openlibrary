@@ -235,15 +235,12 @@ class Edition(models.Edition):
         return self._ia_meta_fields
 
     def get_current_and_available_loans(self):
-        current_loans = borrow.get_edition_loans(self)
+        current_loans = self.get_loans()
         current_and_available_loans = (
             current_loans,
             self._get_available_loans(current_loans),
         )
         return current_and_available_loans
-
-    def get_current_loans(self):
-        return borrow.get_edition_loans(self)
 
     def get_available_loans(self):
         """
@@ -878,7 +875,7 @@ class User(models.User):
             return 0
 
     def get_loan_count(self) -> int:
-        return len(borrow.get_loans(self))
+        return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
         self.update_loan_status()

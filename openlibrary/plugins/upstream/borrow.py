@@ -239,7 +239,7 @@ class borrow(delegate.page):
 
             # Look for loans for this book
             user.update_loan_status()
-            loans = get_loans(user)
+            loans = lending.get_loans_of_user(user.key)
             for loan in loans:
                 if loan["book"] == edition.key:
                     raise web.seeother(
@@ -341,18 +341,6 @@ def get_bookreader_stream_url(itemid: str) -> str:
 # ######### Helper Functions
 
 
-def get_loans(user):
-    return lending.get_loans_of_user(user.key)
-
-
-def get_edition_loans(edition):
-    if edition.ocaid:
-        loan = lending.get_loan(edition.ocaid)
-        if loan:
-            return [loan]
-    return []
-
-
 def get_loan_key(resource_id: str):
     """Get the key for the loan associated with the resource_id"""
     # Find loan in OL
@@ -383,10 +371,6 @@ def is_loaned_out(resource_id: str) -> bool | None:
     # Find the loan and check if it has expired
     loan = site.get().store.get(loan_key)
     return bool(loan and datetime_from_isoformat(loan["expiry"]) < datetime.utcnow())
-
-
-def is_loaned_out_from_status(status) -> bool:
-    return status and status["returned"] != "T"
 
 
 def user_can_borrow_edition(user, edition) -> Literal["borrow", "browse", False]:
