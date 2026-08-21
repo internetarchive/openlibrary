@@ -14,6 +14,7 @@ git+https://github.com/ArchiveLabs/pyopds2_openlibrary.git@e18e79f9a06afeaabe59d
 git+https://github.com/webpy/webpy.git@2598dfe693ff931a9c67196f0b904b13637ec19f
 gunicorn==23.0.0
 httpx==0.28.1
+icukit-pyicu==78.3.0
 ijson==3.5.0
 internetarchive==5.9.0
 isbnlib==3.10.14
@@ -26,7 +27,6 @@ prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.12
 pydantic==2.13.4
 pydantic-settings==2.9.1
-PyICU==2.16.2
 pymarc==5.3.1
 python-amazon-paapi @ git+https://github.com/mekarpeles/python-amazon-paapi@proxy-support
 python-dateutil==2.9.0.post0
