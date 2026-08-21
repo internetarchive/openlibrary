@@ -3,6 +3,7 @@
 from __future__ import annotations  # Needed for 'Loan' return types early on
 
 import datetime
+import json
 import logging
 import os
 import time
@@ -652,8 +653,43 @@ def get_loan(identifier: str, user_key: str | None = None):
     return _loan
 
 
+async def get_loan_async(identifier: str, user_key: str | None = None):
+    """Async twin of get_loan — network via _get_ia_loan_async, store stays sync (ok to block per short-term decision)."""
+
+    _loan = None
+    account = None
+    if user_key:
+        if user_key.startswith("@"):
+            account = OpenLibraryAccount.get_by_link(user_key)
+        else:
+            account = OpenLibraryAccount.get_by_key(user_key)
+
+    d = site.get().store.get("loan-" + identifier)
+    if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
+        loan = Loan(d)
+        if loan.is_expired():
+            loan.delete()
+            return None
+    try:
+        _loan = await _get_ia_loan_async(identifier, account and userkey2userid(account.username))
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception(f"get_loan({identifier}) 1 of 2")
+
+    try:
+        _loan = await _get_ia_loan_async(identifier, account and account.itemname)
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception(f"get_loan({identifier}) 2 of 2")
+
+    return _loan
+
+
 def _get_ia_loan(identifier: str, userid: str | None = None):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
+    return ia_loan and Loan.from_ia_loan(ia_loan)
+
+
+async def _get_ia_loan_async(identifier: str, userid: str | None = None):
+    ia_loan = await ia_lending_api.get_loan_async(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
 
@@ -674,6 +710,23 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         loans += _get_ia_loans_of_user(account.itemname)
     # Set patron's loans in cache w/ now timestamp
     get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
+    return loans
+
+
+async def get_loans_of_user_async(user_key: str) -> list[Loan]:
+    """Async twin — store/memcache stays sync (ok to block), IA fetch via async."""
+
+    if "env" not in web.ctx:
+        delegate.fakeload()
+        set_context_from_legacy_web_py()
+
+    account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
+
+    loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
+    loans = [Loan(d) for d in loandata]
+    if account and account.itemname:
+        loans += await _get_ia_loans_of_user_async(account.itemname)
+    get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())
     return loans
 
 
@@ -713,6 +766,11 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
 
 def _get_ia_loans_of_user(userid: str) -> list[Loan]:
     ia_loans = ia_lending_api.find_loans(userid=userid)
+    return [Loan.from_ia_loan(d) for d in ia_loans]
+
+
+async def _get_ia_loans_of_user_async(userid: str) -> list[Loan]:
+    ia_loans = await ia_lending_api.find_loans_async(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
 
@@ -791,6 +849,56 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         _d = dict(ebook["loan"], returned_at=time.time())
         eventer.trigger("loan-completed", _d)
     logger.info("END sync_loan %s", identifier)
+
+
+async def sync_loan_async(identifier, loan=NOT_INITIALIZED):
+    """Async twin — availability + IA loan via async, store stays sync (ok to block)."""
+
+    logger.info("BEGIN sync_loan_async %s %s", identifier, loan)
+
+    if loan is NOT_INITIALIZED:
+        loan = await get_loan_async(identifier)
+
+    loan_data = loan and {
+        "uuid": loan["uuid"],
+        "loaned_at": loan["loaned_at"],
+        "resource_type": loan["resource_type"],
+        "ocaid": loan["ocaid"],
+        "book": loan["book"],
+    }
+
+    responses = await get_availability_async("identifier", [identifier])
+    response = responses[identifier] if responses else {}
+    if response:
+        num_waiting = int(response.get("num_waitlist", 0) or 0)
+    else:
+        num_waiting = 0
+
+    ebook = EBookRecord.find(identifier)
+
+    is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
+
+    if loan and loan.is_ol_loan():
+        ebook_loan_data = loan_data
+    else:
+        ebook_loan_data = None
+
+    kwargs = {
+        "type": "ebook",
+        "identifier": identifier,
+        "loan": ebook_loan_data,
+        "borrowed": str(response.get("status") not in ["open", "borrow_available"]).lower() if response else "false",
+        "wl_size": num_waiting,
+    }
+    try:
+        ebook.update(**kwargs)
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("failed to update ebook for %s", identifier)
+
+    if is_loan_completed and ebook.get("loan"):
+        _d = dict(ebook["loan"], returned_at=time.time())
+        eventer.trigger("loan-completed", _d)
+    logger.info("END sync_loan_async %s", identifier)
 
 
 class EBookRecord(dict):
@@ -986,10 +1094,23 @@ class IA_Lending_API:
         if loans := self._post(**params).get("result", []):
             return loans[0]
 
+    async def get_loan_async(self, identifier: str, userid: str | None = None):
+        params = {"method": "loan.query", "identifier": identifier}
+        if userid:
+            params["userid"] = userid
+        if loans := (await self._post_async(**params)).get("result", []):
+            return loans[0]
+
     def find_loans(self, **kw):
         try:
             return self._post(method="loan.query", **kw).get("result", [])
         except JSONDecodeError:
+            return []
+
+    async def find_loans_async(self, **kw):
+        try:
+            return (await self._post_async(method="loan.query", **kw)).get("result", [])
+        except JSONDecodeError, json.JSONDecodeError:
             return []
 
     def create_loan(self, identifier, userid, format, ol_key):
@@ -1003,30 +1124,66 @@ class IA_Lending_API:
         if response["status"] == "ok":
             return response["result"]["loan"]
 
+    async def create_loan_async(self, identifier, userid, format, ol_key):
+        response = await self._post_async(
+            method="loan.create",
+            identifier=identifier,
+            userid=userid,
+            format=format,
+            ol_key=ol_key,
+        )
+        if response["status"] == "ok":
+            return response["result"]["loan"]
+
     def delete_loan(self, identifier, userid):
         self._post(method="loan.delete", identifier=identifier, userid=userid)
+
+    async def delete_loan_async(self, identifier, userid):
+        await self._post_async(method="loan.delete", identifier=identifier, userid=userid)
 
     def get_waitinglist_of_book(self, identifier):
         return self.query(identifier=identifier)
 
+    async def get_waitinglist_of_book_async(self, identifier):
+        return await self.query_async(identifier=identifier)
+
     def get_waitinglist_of_user(self, userid):
         return self.query(userid=userid)
+
+    async def get_waitinglist_of_user_async(self, userid):
+        return await self.query_async(userid=userid)
 
     def join_waitinglist(self, identifier, userid):
         return self._post(method="waitinglist.join", identifier=identifier, userid=userid)
 
+    async def join_waitinglist_async(self, identifier, userid):
+        return await self._post_async(method="waitinglist.join", identifier=identifier, userid=userid)
+
     def leave_waitinglist(self, identifier, userid):
         return self._post(method="waitinglist.leave", identifier=identifier, userid=userid)
 
+    async def leave_waitinglist_async(self, identifier, userid):
+        return await self._post_async(method="waitinglist.leave", identifier=identifier, userid=userid)
+
     def update_waitinglist(self, identifier, userid, **kwargs):
         return self._post(method="waitinglist.update", identifier=identifier, userid=userid, **kwargs)
+
+    async def update_waitinglist_async(self, identifier, userid, **kwargs):
+        return await self._post_async(method="waitinglist.update", identifier=identifier, userid=userid, **kwargs)
 
     def query(self, **params):
         response = self._post(method="waitinglist.query", **params)
         return response.get("result")
 
+    async def query_async(self, **params):
+        response = await self._post_async(method="waitinglist.query", **params)
+        return response.get("result")
+
     def request(self, method, **arguments):
         return self._post(method=method, **arguments)
+
+    async def request_async(self, method, **arguments):
+        return await self._post_async(method=method, **arguments)
 
     def _post(self, **payload):
         logger.info("POST %s %s", config_ia_loan_api_url, payload)
@@ -1043,6 +1200,28 @@ class IA_Lending_API:
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:
+            logger.exception("POST failed to openlibrary.php, no json")
+            return {}
+        except Exception:  # TODO: Narrow exception scope
+            logger.exception("POST failed")
+            raise
+
+    async def _post_async(self, **payload):
+        logger.info("POST %s %s", config_ia_loan_api_url, payload)
+        if config_ia_loan_api_developer_key:
+            payload["developer"] = config_ia_loan_api_developer_key
+        payload["token"] = config_ia_ol_shared_key
+
+        try:
+            response = await ia.async_session.post(
+                config_ia_loan_api_url,
+                data=payload,
+                timeout=config_http_request_timeout,
+            )
+            jsontext = response.json()
+            logger.info("POST response: %s", jsontext)
+            return jsontext
+        except JSONDecodeError, json.JSONDecodeError:
             logger.exception("POST failed to openlibrary.php, no json")
             return {}
         except Exception:  # TODO: Narrow exception scope

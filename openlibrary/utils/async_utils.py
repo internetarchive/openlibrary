@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import contextvars
 import threading
 from collections.abc import Callable, Coroutine
@@ -25,6 +26,17 @@ class AsyncBridge:
         self._thread.start()
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
+        # Guard against re-entrancy deadlock: calling run() from the loop's own thread would wedge.
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop is self._loop or threading.current_thread() is self._thread:
+            # Close the never-scheduled coroutine to silence RuntimeWarning
+            with contextlib.suppress(Exception):
+                coro.close()
+            raise RuntimeError("AsyncBridge deadlock: sync call from async loop thread")
+
         ctx = contextvars.copy_context()
 
         async def _in_ctx() -> T:

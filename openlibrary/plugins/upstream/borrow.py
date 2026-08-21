@@ -233,8 +233,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         with contextlib.suppress(lending.PatronAccessException):
             await lending.s3_loan_api_async(s3_keys, ocaid=edition.ocaid, action="return_loan")
 
-        edition.update_loan_status()
-        user.update_loan_status()
+        await edition.update_loan_status_async()
+        await user.update_loan_status_async()
         title = edition.title or _("this book")
 
         if user.has_borrowed(edition):
@@ -281,8 +281,8 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
             bookPath += "?_autoReadAloud=show"
 
         # Look for loans for this book
-        user.update_loan_status()
-        loans = get_loans(user)
+        await user.update_loan_status_async()
+        loans = await get_loans_async(user)
         for loan in loans:
             if loan["book"] == edition.key:
                 return BorrowRedirect(
@@ -454,6 +454,10 @@ def get_all_loans() -> list:
 
 def get_loans(user):
     return lending.get_loans_of_user(user.key)
+
+
+async def get_loans_async(user):
+    return await lending.get_loans_of_user_async(user.key)
 
 
 def get_edition_loans(edition):

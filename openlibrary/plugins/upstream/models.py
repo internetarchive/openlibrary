@@ -283,6 +283,11 @@ class Edition(models.Edition):
         if self.ocaid:
             lending.sync_loan(self.ocaid)
 
+    async def update_loan_status_async(self):
+        """Async twin — uses sync_loan_async to avoid bridge deadlock on loop."""
+        if self.ocaid:
+            await lending.sync_loan_async(self.ocaid)
+
     def _process_identifiers(self, config_, names, values):
         id_map = {}
         for id in config_:
@@ -889,6 +894,12 @@ class User(models.User):
         loans = lending.get_loans_of_user(self.key)
         for loan in loans:
             lending.sync_loan(loan["ocaid"])
+
+    async def update_loan_status_async(self):
+        """Async twin — store sync ok to block, IA + availability via async."""
+        loans = await lending.get_loans_of_user_async(self.key)
+        for loan in loans:
+            await lending.sync_loan_async(loan["ocaid"])
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()
