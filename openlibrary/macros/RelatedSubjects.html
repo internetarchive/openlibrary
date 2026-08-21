@@ -1,11 +1,12 @@
-$def with (page=None, async_load=False, key=None)
+$def with (page=None, async_load=False, key=None, limit=12)
 
-$ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
+$ subject_list = [('subjects', _('Subjects')), ('places', _('Places')), ('people', _('People')), ('times', _('Times'))]
 
+$# Solr returns facets count-ordered, so slicing keeps the top-N per category.
 $def renderSubjects(subjects):
-    $if len(subjects) > 0:
+    $if subjects:
         <ol-chip-group gap="small">
-        $for s in subjects:
+        $for s in subjects[:limit]:
             <ol-chip size="small" href="$s.key">$s.name</ol-chip>
         </ol-chip-group>
     $else:
@@ -16,13 +17,13 @@ $def renderSubjects(subjects):
       <h2>$_("Related...")</h2>
     </div>
 
-    $for category, label, limit in subject_list:
+    $for category, label in subject_list:
         <div class="contentQuarter link-box link-box--with-header">
           <h3 class="black collapse uppercase">$label</h3>
           $if async_load:
               <span class="small loadingIndicator">$_("Loading...")</span>
           $else:
-              $:renderSubjects(page[category][:limit])
+              $:renderSubjects(page.get(category, []))
         </div>
     $if async_load:
         <span class="small async-partial-retry hidden">$_("Something went wrong.") <a href="#" class="retry-btn">$_("Retry")</a></span>

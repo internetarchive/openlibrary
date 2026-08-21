@@ -7,7 +7,9 @@ import web
 
 from openlibrary.plugins.worksearch.subjects import (
     MAX_NOTABLE_AUTHORS,
+    MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM,
     SubjectEngine,
+    _filtered_publishing_year_range,
     merge_notable_authors,
     normalize_author_name,
 )
@@ -580,3 +582,103 @@ class TestNormalizeAuthorName:
     def test_non_latin_scripts_still_dedupe(self):
         assert normalize_author_name("Лев Толстой") == normalize_author_name("лев толстой")
         assert normalize_author_name("Лев Толстой") != normalize_author_name("Антон Чехов")
+
+
+class TestFilteredPublishingYearRange:
+    """The masthead's publication-year span."""
+
+    @staticmethod
+    def _dense(start: int, end: int, count: int = 2) -> list[list[int]]:
+        """A year-by-year run, so nothing in it looks disconnected."""
+        return [[year, count] for year in range(start, end + 1)]
+
+    def test_no_history_returns_nothing(self):
+        assert _filtered_publishing_year_range([]) == (None, None)
+
+    def test_zero_counts_return_nothing(self):
+        assert _filtered_publishing_year_range([[1990, 0], [1991, 0]]) == (None, None)
+
+    def test_single_year_is_its_own_range(self):
+        assert _filtered_publishing_year_range([[1985, 40]]) == (1985, 1985)
+
+    def test_dense_history_is_untouched(self):
+        assert _filtered_publishing_year_range(self._dense(1950, 2020)) == (1950, 2020)
+
+    def test_unsorted_input_still_ordered(self):
+        assert _filtered_publishing_year_range([[2020, 30], [1950, 30]]) == (1950, 2020)
+
+    def test_disconnected_stray_year_is_trimmed(self):
+        """The case this exists for: one reprint mis-tagged 1500."""
+        history = [[1500, 1], *self._dense(1950, 2020)]
+        assert _filtered_publishing_year_range(history) == (1950, 2020)
+
+    def test_stray_year_at_the_top_is_trimmed(self):
+        history = [*self._dense(1950, 2020), [2200, 1]]
+        assert _filtered_publishing_year_range(history) == (1950, 2020)
+
+    def test_genuine_early_edition_survives(self):
+        """Decades ahead of the next year is normal for a first edition."""
+        history = [[1897, 1], *self._dense(1951, 2020)]
+        assert _filtered_publishing_year_range(history) == (1897, 2020)
+
+    def test_well_represented_early_year_survives_a_wide_gap(self):
+        """Enough editions to clear the cut, so the gap alone can't trim it."""
+        history = [[1600, 40], *self._dense(1950, 2020)]
+        assert _filtered_publishing_year_range(history) == (1600, 2020)
+
+    def test_small_subject_is_never_trimmed(self):
+        """Under the floor a lone edition is the record, not noise."""
+        history = [[1500, 1], [1990, 2], [2020, 2]]
+        assert sum(count for _year, count in history) < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM
+        assert _filtered_publishing_year_range(history) == (1500, 2020)
+
+
+class TestDecorateWithPublishYearRange:
+    """Tests for subjects.decorate_with_publish_year_range.
+
+    The masthead's year span is read from get_cached_publishing_history
+    (memcache_memoize-wrapped) rather than faceted on the page's own query --
+    see the method's docstring for why. Memcache round-trips through JSON, so
+    the tuple written goes in as a tuple and comes back as a list.
+    """
+
+    def _make_handler(self):
+        return subjects_handler()
+
+    def _patch_cache(self, **kwargs):
+        return patch("openlibrary.plugins.worksearch.subjects.get_cached_publishing_history", **kwargs)
+
+    def test_rehydrates_cached_list_into_a_tuple(self):
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={"publish_year_range": [1902, 2026]}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range == (1902, 2026)
+
+    def test_missing_range_is_none(self):
+        """A subject whose history was all bad dates caches a null range."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={"publish_year_range": None}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None
+
+    def test_payload_in_an_older_shape_is_survivable(self):
+        """Entries are written without an expiry, so one can outlive the deploy that changed its shape."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(return_value={}):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None
+
+    def test_a_failed_lookup_does_not_take_down_the_page(self):
+        """One stat in the masthead. A cold miss touches solr and memcache; neither should 500 the page."""
+        subject = web.storage(key="/subjects/science_fiction")
+
+        with self._patch_cache(side_effect=OSError("solr is having a day")):
+            self._make_handler().decorate_with_publish_year_range(subject)
+
+        assert subject.publish_year_range is None

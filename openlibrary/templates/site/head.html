@@ -16,6 +16,12 @@ $def with (title)
         <link rel="preconnect" href="https://athena.archive.org">
         <link rel="preconnect" href="https://apollo.archive.org">
 
+    $# Covers are a separate origin and nearly every page loads a screenful of
+    $# them, so the connection is worth opening before the markup asks for one.
+    $# No crossorigin: plain <img> loads don't use the CORS connection pool, so
+    $# an anonymous preconnect would warm a connection nothing then reuses.
+    <link rel="preconnect" href="$get_coverstore_public_url()">
+
     <link rel="search" type="application/opensearchdescription+xml" title="Open Library" href="/static/opensearch.xml">
     <link rel="manifest" href="$static_url('manifest.json')">
 

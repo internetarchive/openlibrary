@@ -1,0 +1,238 @@
+/* Page-level wrapper for the masthead + edit button. Positioned so the
+   edit button can pin to its top-right corner. */
+.subject-page__header {
+  position: relative;
+}
+
+.subject-masthead {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3xl);
+  background: var(--color-surface-header);
+  padding: var(--spacing-inset-xl);
+  /* Top corners follow the page container (#test-body-mobile: 5px radius
+       inside a 1px border, so 4px concentric). Bottom stays square. */
+  border-radius: 4px 4px 0 0;
+}
+
+/* Keeps the old inset the header wrapper used to provide. */
+.subject-page__header .disambiguations {
+  padding: var(--spacing-inset-xl);
+}
+
+.subject-masthead__body {
+  position: relative;
+  z-index: var(--z-index-base);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.subject-masthead__title {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-display-small);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 var(--spacing-stack-xs);
+  color: var(--color-text);
+  /* Subject names arrive lowercased from Solr ("england"); title-case for display only. */
+  text-transform: capitalize;
+}
+
+.subject-masthead__blurb {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-large);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 58ch;
+  margin: 0 0 var(--spacing-stack-sm);
+  /* Tag descriptions aren't length-capped, and an over-long one would push the
+     stats and the whole page below the fold. */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+/* format() wraps the blurb in its own <p>; drop its default margins so the block gap above stays intact. */
+.subject-masthead__blurb p {
+  margin: 0;
+}
+
+/* A multi-paragraph description would otherwise run together as one block. */
+.subject-masthead__blurb p + p {
+  margin-top: var(--spacing-stack-xs);
+}
+
+.subject-masthead__stats {
+  display: flex;
+  gap: var(--spacing-3xl);
+  flex-wrap: wrap;
+}
+
+.subject-masthead__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The link wraps both the value and its label, so it has to be the column. */
+.subject-masthead__stat-link {
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-masthead__stat-link:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+.subject-masthead__stat-value {
+  font-size: var(--font-size-title-large);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* :is() lifts specificity past the global a:link underline. */
+.subject-masthead__stat-link:is(:link, :visited, :hover) {
+  text-decoration: none;
+}
+
+.subject-masthead__stat-value a,
+.subject-masthead__stat-link .subject-masthead__stat-value {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.subject-masthead__stat-link:hover .subject-masthead__stat-value {
+  color: var(--color-link-hover);
+}
+
+.subject-masthead__stat-label {
+  font-size: var(--font-size-label-small);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-3xs);
+}
+
+/* --- Edit button ------------------------------------------------------
+   Pinned to the masthead's top-right corner (upstream ships .subjectTagEdit
+   as a float; the scoped selector outranks it regardless of load order). */
+.subject-page__header .subjectTagEdit {
+  position: absolute;
+  float: none;
+  top: var(--spacing-2xl);
+  right: var(--spacing-2xl);
+  padding: 0;
+  z-index: var(--z-index-raised);
+}
+
+@media (max-width: 700px) {
+  .subject-masthead {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--spacing-3xl) var(--spacing-2xl);
+  }
+
+  .subject-masthead__title {
+    font-size: var(--font-size-headline-medium);
+  }
+
+  .subject-masthead__stats {
+    gap: var(--spacing-2xl);
+  }
+}
+
+/* --- Below-masthead columns --------------------------------------------
+   Main content (carousels, publishing history) on the left, notable authors
+   in a sidebar on the right. Related subjects sit below this band and span
+   the full width, so it isn't part of the grid. */
+.subject-page__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3xl);
+  align-items: start;
+}
+
+/* The sidebar is conditional -- SubjectAuthors renders nothing when a subject
+   has no notable authors -- so the track it sits in has to be too, or those
+   pages get a blank gutter and needlessly narrow carousels. */
+.subject-page__sidebar:not(:has(> *)) {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .subject-page__columns:has(.subject-page__sidebar > *) {
+    grid-template-columns: minmax(0, 1fr) 282px;
+  }
+}
+
+.subject-page__main {
+  min-width: 0;
+  padding-top: var(--spacing-stack-lg);
+}
+
+/* Availability toggle above the carousel; mirrors .search-filter-row. */
+.subject-page__filters {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  /* A block gap, not a label gap: the toggle governs the carousels below it
+     rather than labelling the one it sits on. */
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+/* The searchbox ships at 50% of its container; here it's one control in a row
+   beside the toggle, so pin it to a comfortable measure and let it take the
+   full width once the row wraps. */
+.subject-page__search .searchbox {
+  width: 280px;
+}
+
+/* The submit button takes its height from an empty value -- 15.5px, which
+   crops the 18px icon top and bottom. Size the glass down to fit rather than
+   growing the control past the toggle's height. */
+.subject-page__search .searchbox__btn-icon {
+  background-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .subject-page__filters {
+    flex-wrap: wrap;
+  }
+
+  .subject-page__search {
+    flex: 1 1 100%;
+  }
+
+  .subject-page__search .searchbox {
+    width: 100%;
+  }
+}
+
+.subject-page__sidebar {
+  padding-top: var(--spacing-stack-lg);
+}
+
+/* Carousels ship with a tinted "decorated" band (carousel.css); on this
+   page they sit on the plain surface, so drop it (and the matching
+   lazy-load placeholder tint). */
+.subject-page__main .carousel-container-decorated,
+.subject-page__main .lazy-carousel {
+  background: transparent;
+  border-top: 0;
+  border-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* .widget-box floats at 282px on tablet+ (widget-box.css); inside the
+   sidebar the grid track already sets the width, so undo the float. */
+.subject-page__sidebar .widget-box {
+  float: none;
+  width: auto;
+}

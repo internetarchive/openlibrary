@@ -698,20 +698,47 @@ msgstr ""
 msgid "See all works"
 msgstr ""
 
-#: merge/authors.html publishers/view.html subjects.html type/author/view.html
-#, python-format
-msgid "%(count)d work"
-msgid_plural "%(count)d works"
+#: search/subjects.html subjects.html
+msgid "work"
+msgid_plural "works"
 msgstr[0] ""
 msgstr[1] ""
 
 #: subjects.html
-#, python-format
-msgid "Search for books with subject %(name)s."
+msgid "See all readable works"
+msgstr ""
+
+#: subjects.html
+msgid "readable now"
+msgstr ""
+
+#: subjects.html
+msgid "published"
+msgstr ""
+
+#: subjects.html
+msgid "years published"
 msgstr ""
 
 #: subjects.html
 msgid "Disambiguations"
+msgstr ""
+
+#: subjects.html
+#, python-format
+msgid "Search %(subject)s books"
+msgstr ""
+
+#: subjects.html
+msgid "Show Readable Only"
+msgstr ""
+
+#: account/reading_log.html subjects.html type/author/view.html work_search.html
+msgid "Filter by availability"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py subjects.html trending.html
+msgid "Trending Books"
 msgstr ""
 
 #: trending.html
@@ -736,10 +763,6 @@ msgstr ""
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
-msgid "Trending Books"
 msgstr ""
 
 #: trending.html
@@ -867,10 +890,6 @@ msgstr ""
 
 #: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
 msgid "Readable Only"
-msgstr ""
-
-#: account/reading_log.html type/author/view.html work_search.html
-msgid "Filter by availability"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
@@ -4987,6 +5006,13 @@ msgstr ""
 msgid "Visit this author's page in a new window"
 msgstr ""
 
+#: merge/authors.html publishers/view.html type/author/view.html
+#, python-format
+msgid "%(count)d work"
+msgid_plural "%(count)d works"
+msgstr[0] ""
+msgstr[1] ""
+
 #: merge/authors.html
 msgid "Comment:"
 msgstr ""
@@ -5892,10 +5918,6 @@ msgstr ""
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
-
-#: search/subjects.html
-msgid "work"
 msgstr ""
 
 #: search/work_search_facets.html

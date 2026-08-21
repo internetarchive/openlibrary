@@ -19,51 +19,69 @@ export function loadEditionsGraph() {
     var data, options, placeholder,
         plot, dateFrom, dateTo, previousPoint;
     data = [{data: JSON.parse(document.getElementById('graph-json-chartPubHistory').textContent)}];
+    placeholder = $('#chartPubHistory');
+    // Flot's color parser only reads rgb()/hex, and our tokens are hsl() until
+    // the CSS minifier folds them -- so unminified dev builds plot black. Round-
+    // trip each through a probe element's computed `color`, always normalized.
+    const probe = document.createElement('span');
+    probe.style.display = 'none';
+    placeholder[0].appendChild(probe);
+    const token = (name) => {
+        probe.style.color = `var(${name})`;
+        return getComputedStyle(probe).color;
+    };
+    const barColor = token('--color-text-muted');
+    const gridColor = token('--color-border-subtle');
+    const accentColor = token('--color-primary');
+    const surfaceColor = token('--color-surface');
+    const tooltipBg = token('--color-text');
+    const tooltipFg = token('--color-text-inverse');
+    probe.remove();
     options = {
         series: {
             bars: {
                 show: true,
-                fill: 0.6,
-                color: '#615132',
+                fill: 1,
+                fillColor: barColor,
+                lineWidth: 0,
+                barWidth: 0.7,
                 align: 'center'
             },
             points: {
-                show: true
+                show: false
             },
-            color: '#615132'
+            color: barColor
         },
         grid: {
             hoverable: true,
             clickable: true,
             autoHighlight: true,
-            tickColor: '#d9d9d9',
-            borderWidth: 1,
-            borderColor: '#d9d9d9',
-            backgroundColor: '#fff'
+            tickColor: gridColor,
+            borderWidth: {top: 0, right: 0, bottom: 1, left: 0},
+            borderColor: gridColor,
+            backgroundColor: surfaceColor
         },
-        xaxis: { tickDecimals: 0 },
-        yaxis: { tickDecimals: 0 },
-        selection: { mode: 'xy', color: '#00636a' },
+        xaxis: { tickDecimals: 0, tickLength: 0, tickColor: 'transparent' },
+        yaxis: { tickDecimals: 0, tickLength: 0 },
+        selection: { mode: 'xy', color: accentColor },
         crosshair: {
             mode: 'xy',
-            color: 'rgba(000, 099, 106, 0.4)',
+            color: gridColor,
             lineWidth: 1
         }
     };
 
-    placeholder = $('#chartPubHistory');
     function showTooltip(x, y, contents) {
         $(`<div id="chartLabel">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
             left: x + 12,
-            border: '1px solid #615132',
-            padding: '2px',
-            'background-color': '#fffdcd',
-            color: '#615132',
+            padding: '2px 6px',
+            'border-radius': '3px',
+            'background-color': tooltipBg,
+            color: tooltipFg,
             'font-size': '11px',
-            opacity: 0.90,
             'z-index': 100
         }).appendTo('body').fadeIn(200);
     }

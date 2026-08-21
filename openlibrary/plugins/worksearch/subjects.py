@@ -46,12 +46,33 @@ DEFAULT_FACET_FIELDS: list[FacetSpec] = [
     "has_fulltext",
 ]
 
+# Trimming outliers off the publish-year span. Purely proportional trimming is a
+# no-op on small subjects (1% of 40 editions is under one edition) -- exactly
+# where one bad date shows most -- hence the absolute floor.
+PUBLISH_YEAR_TRIM_PCT = 0.01
+MIN_PUBLISH_YEAR_TRIM_EDITIONS = 2
+# Under this many editions a single edition is signal, not noise: trimming would
+# throw away a genuine earliest or latest year.
+MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM = 25
+# A gap this wide between the outermost year and the next one inward means the
+# outer year is disconnected from the distribution rather than the start of it.
+# Deliberately generous: a mis-dated edition usually lands centuries off (a
+# modern reprint tagged 1500), while a genuine first edition sitting decades
+# ahead of the next one is common and must survive.
+MAX_PUBLISH_YEAR_GAP = 100
+
 # Works sampled per signal; 8 unique authors reliably appear in the first 40 rows.
 NOTABLE_AUTHORS_SAMPLE_SIZE = 40
 MAX_NOTABLE_AUTHORS = 8
 # Reading-log surfaces a subject's contemporary authors, syllabus assignments its
 # canonical ones; neither is dense enough alone. Reading-log leads because the
 # first sort owns the most visible slot.
+# Long TTL is safe: memcache_memoize is stale-while-revalidate. Not longer,
+# though -- entries are written without an expiry under a key_prefix that's
+# stable across deploys, so the timeout doubles as the window in which a
+# payload in an old shape gets replaced. See get_cached_publishing_history.
+PUBLISHING_HISTORY_CACHE_TIMEOUT = 12 * 60 * 60  # 12h
+
 NOTABLE_AUTHORS_SORTS = ("readinglog", "osp_count desc")
 # Works with no signal at all can only be tie-broken arbitrarily. Excluding them
 # shrinks the scanned corpus 3-84x depending on the subject.
@@ -69,14 +90,25 @@ class subjects(delegate.page):
 
         # this needs to be updated to include:
         # q=public_scan_b:true+OR+lending_edition_s:*
-        # No facets, no docs: subjects.html doesn't render `works` (the on-page
-        # carousel runs its own query via `page.solr_query`), and every facet it
-        # used is now fetched by the PublishingHistory/RelatedSubjects partials
-        # instead (see SubjectPublishingHistoryPartial/SubjectRelatedPartial).
-        # This leaves just a plain work_count query.
+        # Related/people/places/times facets are fetched by the RelatedSubjects
+        # partial (see SubjectRelatedPartial). Nothing on the page reads the
+        # works themselves -- the carousels run their own searches and notable
+        # authors are cached separately -- so this asks for none: rows=0 keeps
+        # the count and the facets while skipping a large docs payload and the
+        # availability lookup that decorating them would trigger.
+        #
+        # ebook_access only. It's single-valued and 4 buckets, so it's cheap
+        # enough to ride along on the query the page can't render without.
+        # (ebook_access, not the has_fulltext facet: that one includes
+        # printdisabled-only scans, so it over-counts vs the /search "Readable
+        # Only" filter it links to.) The masthead's other stat needs the
+        # publish_year facet, which is neither cheap nor safe to couple to this
+        # query -- that one is cached, see decorate_with_publish_year_range.
         subj = get_subject(
             key,
+            details=True,
             limit=0,
+            facet_fields=["ebook_access"],
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -88,6 +120,7 @@ class subjects(delegate.page):
         else:
             self.decorate_with_tags(subj)
             self.decorate_with_notable_authors(subj)
+            self.decorate_with_publish_year_range(subj)
             page = render_template("subjects", page=subj)
 
         return page
@@ -120,6 +153,12 @@ class subjects(delegate.page):
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
+                # Short masthead blurb. Description only -- the body is
+                # already rendered in full as the page's main content, so
+                # falling back to it would print the same text twice. None
+                # when unset: the template hides the blurb line entirely.
+                blurb = subject.tag.get("tag_description")
+                subject.blurb = blurb.strip() if blurb else None
 
             for tag in subject.disambiguations:
                 slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
@@ -157,6 +196,35 @@ class subjects(delegate.page):
             # A cold miss touches solr, memcache and infobase; none of them
             # should be able to take down a page whose main content is ready.
             logger.exception("Failed to load notable authors for %s", subject.key)
+
+    def decorate_with_publish_year_range(self, subject) -> None:
+        """
+        Adds the masthead's "years published" span.
+
+        Fetched separately from the page's own query rather than as another
+        facet on it. The publish_year facet is multi-valued (a value per
+        edition, not per work) and asks for every distinct year, which makes it
+        the most expensive question the page asks -- and the page's query is the
+        one that yields work_count, without which there is no page at all. Left
+        coupled, a facet slow enough to hit the solr timeout on a large subject
+        would take the whole page down rather than one line of the masthead.
+
+        Cached because the answer moves on the scale of months, and shared with
+        the publishing-history chart, which needs the same facet -- see
+        SubjectPublishingHistoryPartial.
+        """
+        try:
+            history = get_cached_publishing_history(subject.key)
+            # Defensive read: memcache entries are written without an expiry
+            # under a key_prefix that's stable across deploys, so a payload in
+            # an older shape can outlive the deploy that changed it.
+            year_range = history.get("publish_year_range")
+            # JSON round-trips the tuple to a list; the template unpacks either.
+            subject.publish_year_range = tuple(year_range) if year_range else None
+        except Exception:
+            # One stat in the masthead. Not worth a 500.
+            logger.exception("Failed to load publishing history for %s", subject.key)
+            subject.publish_year_range = None
 
 
 def normalize_author_name(name: str) -> str:
@@ -363,6 +431,87 @@ async def get_subject_async(
 get_subject = async_bridge.wrap(get_subject_async)
 
 
+def _compute_publishing_history(key: SubjectPseudoKey) -> dict:
+    """
+    Sync seam for memcache_memoize -- see _compute_notable_authors.
+
+    Returns both the year-by-year counts the chart plots and the trimmed span
+    the masthead prints, so the one facet serves both.
+    """
+    if "site" not in web.ctx:
+        # The background refresh thread has no request ctx. Same guard as
+        # core/lending.get_user_waiting_loans.
+        delegate.fakeload()
+
+    subject = async_bridge.run(
+        get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=[{"name": "publish_year", "limit": -1}],
+            request_label="SUBJECT_PUBLISHING_HISTORY",
+        )
+    )
+    return {
+        "publishing_history": subject.get("publishing_history", []),
+        "publish_year_range": subject.get("publish_year_range"),
+    }
+
+
+get_cached_publishing_history = cache.memcache_memoize(
+    _compute_publishing_history,
+    key_prefix="subjects.publishing_history",
+    timeout=PUBLISHING_HISTORY_CACHE_TIMEOUT,
+    hash_args=True,  # long subject slugs would overflow memcache's 250-char key limit
+)
+
+
+def _trim_outlier_end_year(ordered: list[list[int]], cut: float) -> int:
+    """Walk in from one end of a year-sorted distribution to the first real year.
+
+    A year is skipped only when it is both a sliver of the data (the editions
+    seen so far stay under `cut`) and separated from the next year inward by
+    more than MAX_PUBLISH_YEAR_GAP. Requiring both means a genuine lone first
+    edition close to the bulk survives while a disconnected stray does not.
+    """
+    running = 0
+    for (year, count), (next_year, _next_count) in itertools.pairwise(ordered):
+        running += count
+        if running >= cut or abs(next_year - year) <= MAX_PUBLISH_YEAR_GAP:
+            return year
+    return ordered[-1][0]
+
+
+def _filtered_publishing_year_range(publishing_history: list[list[int]]) -> tuple[int, int] | tuple[None, None]:
+    """The span of publication years for a subject, with outliers trimmed.
+
+    The 1000 < year <= current_year+1 check in get_subject_async already kills
+    obviously broken years. This handles the sneakier case: a single mis-dated
+    but *plausible-looking* edition (say, a reprint tagged 1500) that still
+    drags the span out to "1500-2025".
+    """
+    if not publishing_history:
+        return None, None
+
+    ordered = sorted(publishing_history, key=lambda pair: pair[0])
+    total = sum(count for _year, count in ordered)
+    if total == 0:
+        return None, None
+    if len(ordered) == 1:
+        return ordered[0][0], ordered[0][0]
+    # Too little data to tell an outlier from the record itself.
+    if total < MIN_EDITIONS_FOR_PUBLISH_YEAR_TRIM:
+        return ordered[0][0], ordered[-1][0]
+
+    cut = max(MIN_PUBLISH_YEAR_TRIM_EDITIONS, total * PUBLISH_YEAR_TRIM_PCT)
+    start_year = _trim_outlier_end_year(ordered, cut)
+    end_year = _trim_outlier_end_year(ordered[::-1], cut)
+    # Trimming from both ends can cross over on a sparse, gappy distribution.
+    if start_year > end_year:
+        return ordered[0][0], ordered[-1][0]
+    return start_year, end_year
+
+
 @dataclass
 class SubjectEngine:
     name: str
@@ -459,7 +608,18 @@ class SubjectEngine:
 
             # A facet_fields caller may omit any of these; default rather
             # than assume every key is present.
-            if has_fulltext_counts := result.facet_counts.get("has_fulltext"):
+            if ebook_access_counts := result.facet_counts.get("ebook_access"):
+                # Same threshold as the /search has_fulltext=true filter.
+                # Local import: book_providers imports upstream.models, which
+                # circles back here at plugin load time.
+                from openlibrary.book_providers import EbookAccess
+                from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
+
+                min_access = EbookAccess.from_solr_str(get_fulltext_min())
+                subject.ebook_count = sum(
+                    count for key, count in cast(list[tuple[str, int]], ebook_access_counts) if EbookAccess.from_solr_str(key) >= min_access
+                )
+            elif has_fulltext_counts := result.facet_counts.get("has_fulltext"):
                 subject.ebook_count = next(
                     (
                         count
@@ -480,11 +640,10 @@ class SubjectEngine:
             subject.publishers = result.facet_counts.get("publisher_facet", [])
             subject.languages = result.facet_counts.get("language", [])
 
-            # Phase 1 (epic #13135): "Notable authors" is computed and
+            # "Notable authors" is computed and
             # cached separately -- see get_cached_notable_authors and
             # subjects.decorate_with_notable_authors -- rather than fetched
             # unconditionally here on every request.
-
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = date.today().year
@@ -496,6 +655,12 @@ class SubjectEngine:
                 )
                 if 1000 < year <= current_year + 1
             ]
+
+            # Masthead publication-year span, outlier-filtered so one bad date
+            # doesn't blow up the range. The template formats it: a span and a
+            # lone year need different labels.
+            start_year, end_year = _filtered_publishing_year_range(subject.publishing_history)
+            subject.publish_year_range = None if start_year is None else (start_year, end_year)
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[self.key]):
@@ -568,7 +733,7 @@ class SubjectEngine:
                 name=value,
                 count=count,
             )
-        elif facet == "has_fulltext":
+        elif facet in ("has_fulltext", "ebook_access"):
             return [value, count]
         else:
             return web.storage(name=value, count=count)

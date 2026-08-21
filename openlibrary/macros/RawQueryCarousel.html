@@ -52,8 +52,13 @@ $else:
       </form>
 
     $code:
-      # Don't need fields in the search UI url, since they don't do anything there
-      url = url or "/search?" + urlencode({'q': query, 'sort': sort})
+      # Don't need fields in the search UI url, since they don't do anything there.
+      # has_fulltext carries the carousel's readable-only scope through to /search,
+      # so its "Readable Only" toggle arrives already on.
+      search_params = {'q': query, 'sort': sort}
+      if has_fulltext_only:
+        search_params['has_fulltext'] = 'true'
+      url = url or "/search?" + urlencode(search_params)
 
       if books_data is not None:
         # Data was pre-fetched by LazyCarouselPartial in Python — skip Solr.
