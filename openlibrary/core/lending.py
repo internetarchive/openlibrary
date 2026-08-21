@@ -668,7 +668,7 @@ async def get_loan_async(identifier: str, user_key: str | None = None):
     if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
         loan = Loan(d)
         if loan.is_expired():
-            loan.delete()
+            await loan.delete_async()
             return None
     try:
         _loan = await _get_ia_loan_async(identifier, account and userkey2userid(account.username))
@@ -1053,6 +1053,23 @@ class Loan(dict):
             site.get().store.delete(self["_key"])
 
         sync_loan(self["ocaid"])
+        # Inform listers that a loan is completed
+        eventer.trigger("loan-completed", loan)
+
+    async def delete_async(self) -> None:
+        """Async twin — uses async IA + availability, store stays sync (ok to block per short-term decision)."""
+
+        loan = dict(self, returned_at=time.time())
+        user_key = self["user"]
+        account = OpenLibraryAccount.get_by_key(user_key)
+        if self.get("stored_at") == "ia":
+            await ia_lending_api.delete_loan_async(self["ocaid"], userkey2userid(user_key))
+            if account and account.itemname:
+                await ia_lending_api.delete_loan_async(self["ocaid"], account.itemname)
+        else:
+            site.get().store.delete(self["_key"])
+
+        await sync_loan_async(self["ocaid"])
         # Inform listers that a loan is completed
         eventer.trigger("loan-completed", loan)
 
