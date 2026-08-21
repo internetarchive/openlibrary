@@ -149,3 +149,22 @@ Apply these once the whole setup is verified working, so the README reflects rea
   `optimize=true` → `"status":0`, `Finished: SUCCESS`
 
 (appended as steps complete)
+
+## Live rebuild log (build #5 era)
+
+- Filtered dump built (35% of works + their editions/authors, all redirects,
+  half of lists; orphans & deletes skipped): 42.2M lines / 7.1G replacing the
+  17G full dump. Composition: 19M editions, 14.4M works, 6.8M authors.
+- Build #5: imports+verify+indices all green (covers fixed by NULL '\N').
+  Works indexing ran until the storage migration window killed its runners;
+  Jenkins stage failed and deleteDir() wiped the workspace.
+- Mid-run migration executed: postgres (46G) + solr (9.5G) volumes rsynced to
+  /mnt/HC_Volume_106672133/openlibrary/ ; containers recreated on TB binds;
+  integrity verified (42,227,438 pg rows; solr committed 7.7M docs on shutdown).
+- Scheduler loop had hung on a dead fetch-end TCP connection during the window;
+  killed it, added INITIAL_START env support to index-type.sh, relaunched from
+  /works/OL21524512W as standalone container ol_run_works2 (17 runners).
+- KNOWN GAPS: ~19 chunk ranges lost across outage/kill (chunks 239, 368-384+).
+  Plan: after works completes, run an idempotent full-range re-pass (id-check
+  enabled) to fill them, then authors/lists/subjects jobs, per-type commits,
+  final optimize=true&maxSegments=1.
