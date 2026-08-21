@@ -76,6 +76,10 @@ def _create_validation_env() -> jinja2.Environment:
 
         env.globals["render_templetor_template"] = _stub
 
+    # Stubbed: this env only validates template structure, and the real macro
+    # needs infogami's template globals.
+    env.globals["icon"] = lambda *a, **kw: ""
+
     # The TestingEnvironment macro renders a Vue component via
     # render_component(); this env has no component build output, so stub it
     # the same way render_templetor_template is stubbed above.
@@ -137,6 +141,13 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert "_" in env.globals
         assert callable(env.globals["_"])
+
+    def test_has_icon_global(self):
+        """Should expose the icon macro as a global, since Jinja has no
+        ``macros`` namespace."""
+        env = get_jinja_env()
+        assert "icon" in env.globals
+        assert callable(env.globals["icon"])
 
     def test_has_autoescape_enabled(self):
         """Should have autoescaping enabled."""

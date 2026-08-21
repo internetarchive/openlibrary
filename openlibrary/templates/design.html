@@ -6,4 +6,4 @@ $# Everything below the shell lives in openlibrary/templates/design/.
 $# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
 
-$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, api=data.api, token_categories=data.token_categories, undocumented=data.undocumented, user_key=data.user_key)
+$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, api=data.api, token_categories=data.token_categories, user_key=data.user_key, icons=data.icons)

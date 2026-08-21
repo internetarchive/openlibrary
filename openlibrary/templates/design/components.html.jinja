@@ -16,13 +16,6 @@
             </ul>
         </div>
     {% endfor %}
-    {% if undocumented %}
-        <div class="ds__nav-group">
-            <ul class="ds__nav-list">
-                <li><a href="#undocumented">Undocumented ({{ undocumented | length }})</a></li>
-            </ul>
-        </div>
-    {% endif %}
 {% endmacro %}
 {% macro body() %}
     {% for group, members in groups %}
@@ -30,27 +23,10 @@
             <h2 class="ds-section__title ds-section__title--eyebrow">{{ group }}</h2>
             {% for component in members %}
                 {% import component.partial as partial with context %}
-                {% call ex.component_article(component, api.get(component.tag) if component.tag else none) %}
+                {% call ex.component_article(component, api.get(component.tag) if component.tag and component.api_table else none) %}
                     {{ partial.demos() }}
                 {% endcall %}
             {% endfor %}
         </section>
     {% endfor %}
-    {#
-      Coverage. CSS components are hand-documented, so the page lists what it
-      hasn't covered rather than implying it covered everything.
-    #}
-    {% if undocumented %}
-        <section class="ds-section" id="undocumented">
-            <h2 class="ds-section__title ds-section__title--eyebrow">Not yet documented</h2>
-            <p class="ds-section__blurb">
-                {{ undocumented | length }} files in <code>static/css/components/</code> that no entry above covers.
-                Page-specific styles and vendor overrides are excluded (see <code>NOT_COMPONENTS</code> in
-                <code>design.py</code>); everything here is a genuine gap.
-            </p>
-            <ul class="ds-undocumented">
-                {% for name in undocumented %}<li><code>{{ name }}.css</code></li>{% endfor %}
-            </ul>
-        </section>
-    {% endif %}
 {% endmacro %}
