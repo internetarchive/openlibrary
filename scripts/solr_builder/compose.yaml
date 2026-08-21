@@ -8,7 +8,10 @@ services:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
     volumes:
-      - "postgres-data:/var/lib/postgresql/data"
+      # postgres:18+ stores data in major-version-specific subdirectories of
+      # /var/lib/postgresql; mounting the legacy .../data path makes the
+      # entrypoint refuse to start ("unused mount/volume").
+      - "postgres-data:/var/lib/postgresql"
       - ".:/solr_builder"
       - "/storage:/storage"
     networks:
