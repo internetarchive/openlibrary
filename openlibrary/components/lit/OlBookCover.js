@@ -43,7 +43,7 @@ export class OlBookCover extends LitElement {
         authors: { type: String },
         year: { type: String },
         href: { type: String },
-        size: { type: String },
+        size: { type: String, reflect: true },
         tooltip: { type: Boolean },
         labels: { type: Object },
     };
@@ -83,7 +83,7 @@ export class OlBookCover extends LitElement {
             justify-content: space-between;
             height: 100%;
             box-sizing: border-box;
-            padding: var(--spacing-inset-md);
+            padding: var(--spacing-inset-sm);
             background: linear-gradient(160deg, var(--neutral-600), var(--neutral-800));
             color: var(--color-text-inverse);
             text-align: center;
@@ -92,12 +92,22 @@ export class OlBookCover extends LitElement {
         .blank__title {
             font-family: var(--font-family-heading);
             font-size: var(--font-size-title-medium);
-            font-weight: 700;
+            font-weight: 500;
             line-height: var(--line-height-tight);
             overflow: hidden;
             display: -webkit-box;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 4;
+        }
+
+        /* A 72px cover has room for neither the padding nor the type of a
+           full-size one. */
+        :host([size="small"]) .blank {
+            padding: var(--spacing-inset-xs);
+        }
+
+        :host([size="small"]) .blank__title {
+            font-size: var(--font-size-label-medium);
         }
 
         .blank__author {
