@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 root = os.path.dirname(__file__)
 OVERRIDES = {
-    "type": "Literal['work', 'author', 'subject']",
+    "type": "Literal['work', 'author', 'subject', 'edition']",
     "public_scan_b": "Optional[bool]",
     "printdisabled_s": "Optional[str]",
     "lending_edition_s": "Optional[str]",
@@ -31,6 +31,7 @@ def generate():
         type_map = {
             "pdate": "str",
             "pint": "int",
+            "plong": "int",
             "string": "str",
             "text_en_splitting": "str",
             "text_general": "str",
