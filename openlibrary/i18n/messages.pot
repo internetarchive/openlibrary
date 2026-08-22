@@ -6823,6 +6823,18 @@ msgid "Currently Editing:"
 msgstr ""
 
 #: type/user/edit.html
+msgid "Profile Picture"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Upload Photo"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Remove Photo"
+msgstr ""
+
+#: type/user/edit.html
 msgid "Display Name"
 msgstr ""
 

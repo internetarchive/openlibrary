@@ -24,7 +24,13 @@ def handle_deprecated_request():
 
 
 def proxy_to_fastapi():
-    """Proxy the current request to the FastAPI container."""
+    """Proxy the current request to the FastAPI container.
+
+    TODO: Proxying binary multipart form streams (e.g. avatar file uploads) from
+    web.py to FastAPI is a temporary bridge while web.py handles ingress. In the
+    medium term, FastAPI will act as primary ingress proxying down to web.py,
+    allowing this custom stream extraction logic to be removed.
+    """
     # Internal Docker URL for fast_web service
     base_url = "http://fast_web:8080"
     url = base_url + web.ctx.fullpath
@@ -35,15 +41,75 @@ def proxy_to_fastapi():
     if "CONTENT_TYPE" in web.ctx.environ:
         headers["Content-Type"] = web.ctx.environ["CONTENT_TYPE"]
 
+    body = web.data()
+    if not body and "wsgi.input" in web.ctx.environ:
+        try:
+            stream = web.ctx.environ["wsgi.input"]
+            if hasattr(stream, "seek"):
+                stream.seek(0)
+            body = stream.read()
+        except Exception:  # noqa: BLE001
+            pass
+
+    files = None
+    data = None
+    if "multipart/form-data" in headers.get("Content-Type", ""):
+        try:
+            inp = getattr(web.ctx, "_input", None)
+            if inp is None:
+                inp = web.input(file={})
+
+            files = {}
+            data = {}
+            for k, v in inp.items():
+                filename = getattr(v, "filename", None)
+                content = None
+                file_type = getattr(v, "content_type", getattr(v, "type", "application/octet-stream"))
+
+                if filename:
+                    if hasattr(v, "file") and v.file is not None:
+                        try:
+                            if hasattr(v.file, "seek"):
+                                v.file.seek(0)
+                            content = v.file.read()
+                        except Exception:  # noqa: BLE001
+                            pass
+                    elif hasattr(v, "raw") and v.raw is not None:
+                        content = v.raw
+
+                if filename and content is not None:
+                    files[k] = (filename or "file", content, file_type)
+                else:
+                    try:
+                        data[k] = v.value if not filename else str(v)
+                    except Exception:  # noqa: BLE001
+                        data[k] = str(v)
+
+            if files:
+                headers.pop("Content-Type", None)
+                headers.pop("Content-Length", None)
+        except Exception:  # noqa: BLE001
+            pass
+
     try:
         with httpx.Client(follow_redirects=False, timeout=60.0) as client:
-            resp = client.request(
-                method=web.ctx.method,
-                url=url,
-                headers=headers,
-                content=web.data(),
-                cookies=web.cookies(),
-            )
+            if files:
+                resp = client.request(
+                    method=web.ctx.method,
+                    url=url,
+                    headers=headers,
+                    data=data,
+                    files=files,
+                    cookies=web.cookies(),
+                )
+            else:
+                resp = client.request(
+                    method=web.ctx.method,
+                    url=url,
+                    headers=headers,
+                    content=body,
+                    cookies=web.cookies(),
+                )
     except (httpx.RequestError, httpx.HTTPStatusError) as e:
         raise web.internalerror(f"Proxy request failed: {e}")
 
@@ -84,6 +150,7 @@ class DeprecatedJSONEndpointHandler(DeprecatedEndpointHandler):
 
 # List of deprecated paths and encodings
 DEPRECATED_PATHS: list[tuple[str, str | None]] = [
+    (r"/account/avatar", None),
     (r"/search", "json"),
     (r"/search/lists", "json"),
     (r"/search/subjects", "json"),
