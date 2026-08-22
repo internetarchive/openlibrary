@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
 import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
@@ -65,7 +66,7 @@ export function resetListsCache() {
  * @prop {Number} rating   - Current rating (1–5) or null
  * @prop {String} userKey  - "/people/<username>", needed to create lists
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
- * @prop {String} placement - ol-popover placement (default "bottom-center")
+ * @prop {String} placement - ol-popover placement; unset uses its default
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
@@ -474,7 +475,6 @@ export class OlBookActions extends LitElement {
         this.rating = null;
         this.userKey = '';
         this.labels = {};
-        this.placement = 'bottom-center';
         this._pane = 'main';
         this._snap = false;
         this._trackHeight = 0;
@@ -501,7 +501,7 @@ export class OlBookActions extends LitElement {
         const title = this.book.title || '';
         return html`
             <ol-popover
-                placement=${this.placement}
+                placement=${ifDefined(this.placement)}
                 offset="6"
                 aria-label=${this.t('actionsFor', { title })}
                 @ol-popover-open=${this._onOpen}

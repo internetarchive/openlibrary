@@ -3,22 +3,54 @@
     <p class="ds-lead">
         The control that puts a book on a reading-log shelf, in the two shapes the site needs. Both open the same <a href="#book-actions">Book Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, either shape sends the visitor to log in with the intent remembered.
     </p>
-    {% call ex.example("Split", "For a row, where there is width for a label. The main half toggles the shown shelf; the chevron opens the popover.", output_style="display: flex; gap: 12px; width: 420px;") %}
-        <ol-shelf-button work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;">
+    {% call ex.example("Split", "For a row, where there is width for a label. The main half toggles the shown shelf; the chevron opens the popover. Signed in, this demo opens on your real state for The Secret Garden and saves every change to your account.",
+        code="<ol-shelf-button\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>",
+        output_style="display: flex; gap: 12px; width: 420px;") %}
+        <ol-shelf-button class="demo-secret-garden" user-key="{{ user_key|default('', true) }}" work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;">
         </ol-shelf-button>
     {% endcall %}
-    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork.", output_style="display: flex; gap: 16px; width: 300px;") %}
+    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork. Same book as above, so the two stay in step.",
+        code="<ol-book-cover src=\"https://covers.openlibrary.org/b/id/12622062-M.jpg\"\n               book-title=\"The Secret Garden\"\n               authors=\"Frances Hodgson Burnett\"\n               href=\"/works/OL69612W\">\n  <ol-shelf-button slot=\"overlay\" variant=\"icon\"\n                   user-key=\"/people/you\"\n                   work-key=\"/works/OL69612W\"\n                   book-title=\"The Secret Garden\">\n  </ol-shelf-button>\n</ol-book-cover>",
+        output_style="display: flex; gap: 16px; width: 300px;") %}
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
-            <ol-shelf-button slot="overlay" variant="icon" work-key="/works/OL69612W" book-title="The Secret Garden">
+            <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key|default('', true) }}" work-key="/works/OL69612W" book-title="The Secret Garden">
             </ol-shelf-button>
         </ol-book-cover>
     {% endcall %}
-    {% call ex.example("On a shelf", "Both shapes show which shelf the book is on. Clicking the main half of a book already on a shelf takes it off.", output_style="display: flex; flex-direction: column; gap: 12px; width: 220px;") %}
-        <ol-shelf-button work-key="/works/OL1W" book-title="Demo" shelf="1">
+    <script>
+        (function () {
+            const buttons = document.querySelectorAll('.demo-secret-garden');
+            if (!buttons.length) return;
+            // The demos are stateless like the real thing: one listener applies
+            // every change to both, which is also what keeps them in step.
+            const apply = (shelf, rating) => buttons.forEach((el) => {
+                el.shelf = shelf ?? null;
+                el.rating = rating ?? null;
+            });
+            buttons.forEach((el) => el.addEventListener('ol-book-state-change', (e) => {
+                apply(e.detail.shelf, e.detail.rating);
+            }));
+            // Open on the reader's real shelf and rating — this demo writes to
+            // their actual reading log, so it should show what's there. The
+            // attribute, not the property: the element upgrades later.
+            if (buttons[0].getAttribute('user-key')) {
+                fetch('/reading-state.json?work_ids=OL69612W', { credentials: 'same-origin' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((state) => {
+                        if (state) apply(state.shelves.OL69612W, state.ratings.OL69612W);
+                    })
+                    .catch(() => {});
+            }
+        })();
+    </script>
+    {% call ex.example("On a shelf", "Both shapes show which shelf the book is on. Clicking the main half of a book already on a shelf takes it off.",
+        code="<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL1W\" book-title=\"Demo\" shelf=\"1\"></ol-shelf-button>\n<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL2W\" book-title=\"Demo\" shelf=\"2\"></ol-shelf-button>\n<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL3W\" book-title=\"Demo\" shelf=\"3\"></ol-shelf-button>",
+        output_style="display: flex; flex-direction: column; gap: 12px; width: 220px;") %}
+        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL1W" book-title="Demo" shelf="1">
         </ol-shelf-button>
-        <ol-shelf-button work-key="/works/OL2W" book-title="Demo" shelf="2">
+        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL2W" book-title="Demo" shelf="2">
         </ol-shelf-button>
-        <ol-shelf-button work-key="/works/OL3W" book-title="Demo" shelf="3">
+        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL3W" book-title="Demo" shelf="3">
         </ol-shelf-button>
     {% endcall %}
     <div class="ds-notes">
@@ -26,7 +58,7 @@
             <b>Stateless on purpose.</b> It never writes its own <code>shelf</code>. It emits <code>ol-book-state-change</code> — optimistically on click, and again with the old value if the write fails — and the surface that owns the book applies it, which then flows back down. That is what keeps two cards for the same work in step, and it makes an optimistic update and its rollback the same code path.
         </p>
         <p>
-            <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login.
+            <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log — the shelves shown in "On a shelf" are fixed for illustration, but clicking one changes your account.
         </p>
     </div>
 {% endmacro %}

@@ -59,7 +59,9 @@ function _removeFromOverlayStack(el) {
  * @prop {Boolean} open - Whether the popover is currently open
  * @prop {String} placement - Preferred placement relative to the trigger.
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
- *     "start", "center", or "end". Default: "bottom-center"
+ *     "start", "center", or "end". Default: "bottom-start" — a panel is
+ *     usually wider than the control that opens it, and aligning their leading
+ *     edges keeps it under the trigger instead of straddling it.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
@@ -300,7 +302,7 @@ export class OlPopover extends LitElement {
     constructor() {
         super();
         this.open = false;
-        this.placement = 'bottom-center';
+        this.placement = 'bottom-start';
         this.offset = 4;
         this.autoClose = true;
         this._position = { top: 0, left: 0 };
@@ -698,9 +700,9 @@ export class OlPopover extends LitElement {
     }
 
     _parsePlacement(placement) {
-        const parts = (placement || 'bottom-center').split('-');
+        const parts = (placement || 'bottom-start').split('-');
         const side = parts[0] === 'top' ? 'top' : 'bottom';
-        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'center';
+        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'start';
         return [side, align];
     }
 

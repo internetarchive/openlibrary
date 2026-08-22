@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
 import { SHELF, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
@@ -49,7 +50,8 @@ const SHELF_LABEL = {
  *     popover and echoed on every state change
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
- * @prop {String} placement - ol-popover placement for the actions panel
+ * @prop {String} placement - ol-popover placement for the actions panel;
+ *     unset uses its default
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
@@ -232,7 +234,6 @@ export class OlShelfButton extends LitElement {
         this.shelf = null;
         this.rating = null;
         this.userKey = '';
-        this.placement = 'bottom-center';
         this.labels = {};
     }
 
@@ -261,7 +262,7 @@ export class OlShelfButton extends LitElement {
                 .rating=${this.rating}
                 .labels=${this.labels}
                 user-key=${this.userKey}
-                placement=${this.placement}
+                placement=${ifDefined(this.placement)}
             >${trigger}</ol-book-actions>
         `;
     }

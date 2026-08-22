@@ -167,7 +167,6 @@ export class OlMenuPopover extends LitElement {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label=${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}
                 @ol-popover-open=${this._onPopoverOpen}
             >
