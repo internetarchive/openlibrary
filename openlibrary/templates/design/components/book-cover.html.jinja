@@ -17,9 +17,11 @@
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" year="1911" href="/works/OL69612W" tooltip style="width: 128px;">
         </ol-book-cover>
     {% endcall %}
-    {% call ex.example("Overlay", "Anything slotted into overlay takes the top-right corner, over the artwork and outside the link — so hovering the control is not hovering the cover, and clicking it does not navigate.", output_style="display: flex; gap: 16px; width: 420px;") %}
+    {% call ex.example("Overlay", "Anything slotted into overlay takes the top-right corner, over the artwork and outside the link — so hovering the control is not hovering the cover, and clicking it does not navigate.",
+        code="<ol-book-cover src=\"https://covers.openlibrary.org/b/id/12622062-M.jpg\"\n               book-title=\"The Secret Garden\"\n               authors=\"Frances Hodgson Burnett\"\n               href=\"/works/OL69612W\">\n  <ol-shelf-button slot=\"overlay\" variant=\"icon\"\n                   user-key=\"/people/you\"\n                   work-key=\"/works/OL69612W\"\n                   book-title=\"The Secret Garden\">\n  </ol-shelf-button>\n</ol-book-cover>",
+        output_style="display: flex; gap: 16px; width: 420px;") %}
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
-            <ol-shelf-button slot="overlay" variant="icon" work-key="/works/OL69612W" book-title="The Secret Garden">
+            <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key|default('', true) }}" work-key="/works/OL69612W" book-title="The Secret Garden">
             </ol-shelf-button>
         </ol-book-cover>
     {% endcall %}
