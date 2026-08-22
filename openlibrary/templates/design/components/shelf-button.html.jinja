@@ -43,22 +43,12 @@
             }
         })();
     </script>
-    {% call ex.example("On a shelf", "Both shapes show which shelf the book is on. Clicking the main half of a book already on a shelf takes it off.",
-        code="<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL1W\" book-title=\"Demo\" shelf=\"1\"></ol-shelf-button>\n<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL2W\" book-title=\"Demo\" shelf=\"2\"></ol-shelf-button>\n<ol-shelf-button user-key=\"/people/you\" work-key=\"/works/OL3W\" book-title=\"Demo\" shelf=\"3\"></ol-shelf-button>",
-        output_style="display: flex; flex-direction: column; gap: 12px; width: 220px;") %}
-        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL1W" book-title="Demo" shelf="1">
-        </ol-shelf-button>
-        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL2W" book-title="Demo" shelf="2">
-        </ol-shelf-button>
-        <ol-shelf-button user-key="{{ user_key|default('', true) }}" work-key="/works/OL3W" book-title="Demo" shelf="3">
-        </ol-shelf-button>
-    {% endcall %}
     <div class="ds-notes">
         <p>
             <b>Stateless on purpose.</b> It never writes its own <code>shelf</code>. It emits <code>ol-book-state-change</code> — optimistically on click, and again with the old value if the write fails — and the surface that owns the book applies it, which then flows back down. That is what keeps two cards for the same work in step, and it makes an optimistic update and its rollback the same code path.
         </p>
         <p>
-            <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log — the shelves shown in "On a shelf" are fixed for illustration, but clicking one changes your account.
+            <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log.
         </p>
     </div>
 {% endmacro %}
