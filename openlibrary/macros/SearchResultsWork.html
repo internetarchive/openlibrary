@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, use_shelf_button=False, reading_state=None, shelf_labels=None, hide_rating=False)
 
 $code:
   max_rendered_authors = 9
@@ -268,7 +268,10 @@ $code:
               $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
               $if edition_key:
                 $ edition_key = '/books/%s' % edition_key
-          $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
+          $if use_shelf_button:
+            $:render_template('my_books/shelf_button', doc, edition_key=edition_key, reading_state=reading_state, labels=shelf_labels, hide_rating=hide_rating)
+          $else:
+            $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:
           $:rating

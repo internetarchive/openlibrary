@@ -16,7 +16,7 @@ from openlibrary.accounts.model import (
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
@@ -25,6 +25,7 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
@@ -324,6 +325,47 @@ def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
     work_id = extract_numeric_id_from_olid(work_key)
     status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
     return status_id
+
+
+@public
+def get_patrons_reading_states(work_keys: list[str]) -> dict[str, dict]:
+    """Shelf, rating and check-in presence for a batch of works.
+
+    `my_books/dropper` resolves these one work at a time, so a page of twenty
+    search results pays forty round-trips before it renders. `SearchResultsWork`
+    asks once instead and hands each `<ol-shelf-button>` its state as attributes.
+
+    Returns `{work_key: {"shelf", "rating", "last_read_date", "event_id"}}`,
+    with only the works that have some state present.
+    """
+    user = accounts.get_current_user()
+    if not user or not work_keys:
+        return {}
+
+    username = user.key.split("/")[-1]
+    ids_by_key = {key: int(extract_numeric_id_from_olid(key)) for key in work_keys if key}
+    if not ids_by_key:
+        return {}
+    work_ids = list(ids_by_key.values())
+
+    shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, work_ids)}
+    ratings = Ratings.get_users_ratings_of_works(username, work_ids)
+    check_ins = BookshelvesEvents.get_latest_event_dates_for_works(username, work_ids, BookshelfEvent.FINISH)
+
+    states = {}
+    for key, work_id in ids_by_key.items():
+        shelf = shelves.get(work_id)
+        rating = ratings.get(work_id)
+        check_in = check_ins.get(work_id)
+        if shelf or rating or check_in:
+            states[key] = {
+                "shelf": shelf,
+                "rating": rating,
+                # The check-in prompt needs both to render its existing date.
+                "last_read_date": check_in["event_date"] if check_in else None,
+                "event_id": check_in["id"] if check_in else None,
+            }
+    return states
 
 
 @public

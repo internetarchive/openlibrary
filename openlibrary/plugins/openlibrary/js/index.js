@@ -418,6 +418,16 @@ jQuery(function() {
             });
     }
 
+    // <ol-shelf-button> is stateless: the page owns the book state it emits,
+    // and the check-in prompt has to follow the shelf the button just set.
+    const shelfButtons = document.querySelectorAll('ol-shelf-button[work-key]');
+    if (shelfButtons.length) {
+        import(/* webpackChunkName: "my-books" */ './my-books')
+            .then((module) => {
+                module.initShelfButtons(shelfButtons);
+            });
+    }
+
     // TODO: Make these selectors a consistent interface
     const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
     if ($dialogs.length) {

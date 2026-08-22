@@ -1,0 +1,42 @@
+$def with (page, edition_key=None, reading_state=None, labels=None, hide_rating=False)
+
+$# The reading-log control for one search-result row: <ol-shelf-button> in its
+$# split shape, replacing my_books/dropper on surfaces that have opted in.
+$#
+$# Everything user-specific is a server-rendered attribute — these pages are not
+$# user-cached, so there is nothing to hydrate client-side. `reading_state` is
+$# the batch from get_patrons_reading_states(); passing it in avoids the
+$# per-result queries the old dropper pays.
+
+$ work = page if page.key.startswith('/works/') else (page.works[0] if page.get('works') else None)
+
+$if work:
+  $ work_key = work.key
+  $ title = work.get('title', '') or page.get('title', '')
+  $ state = (reading_state or {}).get(work_key) or {}
+  $ shelf = state.get('shelf')
+  $ rating = state.get('rating')
+  $ labels = labels if labels is not None else render_template('my_books/book_actions_i18n')
+
+  <ol-shelf-button
+    class="sri__shelf-button"
+    variant="split"
+    work-key="$work_key"
+    book-title="$title"
+    $if edition_key:
+      edition-key="$edition_key"
+    $if ctx.user:
+      user-key="$ctx.user.key"
+    $if shelf:
+      shelf="$shelf"
+    $if rating:
+      rating="$rating"
+    $if hide_rating:
+      hide-rating
+    labels="$:labels"
+  ></ol-shelf-button>
+
+  $# The check-in prompt is a sibling, as it was under the dropper —
+  $# js/my-books/shelf-button-check-ins.js keeps it in step with the button.
+  $if ctx.user:
+    $:render_template('my_books/check_ins/check_in_prompt', work_key, shelf, edition_key=edition_key, last_read_date=state.get('last_read_date'), event_id=state.get('event_id'))
