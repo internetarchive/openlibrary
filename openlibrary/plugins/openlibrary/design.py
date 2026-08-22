@@ -22,6 +22,7 @@ from pathlib import Path
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from openlibrary import accounts
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 
 logger = logging.getLogger("openlibrary.design")
@@ -246,6 +247,25 @@ COMPONENTS = (
         tag="ol-icon",
         api_table=False,
     ),
+    # --- Books -----------------------------------------------------------
+    # The domain layer: everything here knows what a book is. Generic pieces
+    # they compose (Button, Popover) stay in their own sections.
+    Component(
+        "shelf-button",
+        "Shelf Button",
+        "Putting a book on a reading-log shelf: a split button for a row, a bookmark for a cover.",
+        "design/components/shelf-button.html.jinja",
+        group="Books",
+        tag="ol-shelf-button",
+    ),
+    Component(
+        "book-actions",
+        "Book Actions",
+        "Per-book shelf, rating and add-to-list actions in a popover.",
+        "design/components/book-actions.html.jinja",
+        group="Books",
+        tag="ol-book-actions",
+    ),
 )
 
 # Icon sources, one SVG per icon, grouped into folders by provenance. The file
@@ -369,12 +389,16 @@ class DesignContext:
     groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
+    # The book demos write to the signed-in reader's real reading log and
+    # lists, so they need their key; empty sends the demo to log in instead.
+    user_key: str = ""
     icons: list[str] = field(default_factory=list)
 
 
 def build_context(section_id: str) -> DesignContext:
     section = next(candidate for candidate in SECTIONS if candidate.id == section_id)
-    context = DesignContext(section=section)
+    user = accounts.get_current_user()
+    context = DesignContext(section=section, user_key=user.key if user else "")
     if section_id == "foundations":
         context.token_categories = load_token_categories()
     elif section_id == "components":
