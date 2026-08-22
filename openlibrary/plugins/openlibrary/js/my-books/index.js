@@ -5,6 +5,8 @@ import { getListPartials } from '../lists/ListService';
 import { ShowcaseItem, createActiveShowcaseItem, toggleActiveShowcaseItems } from '../lists/ShowcaseItem';
 import { removeChildren } from '../utils';
 
+export { initShelfButtons } from './shelf-buttons';
+
 // XXX : jsdoc
 // XXX : decompose
 export function initMyBooksAffordances(dropperElements, showcaseElements) {

@@ -84,9 +84,11 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     processClick(clickEvent) {
-        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
+        // If there is text selection or the click is on a link that isn't a select handle, don't do anything.
+        // `ol-shelf-button` is named explicitly: a click inside a shadow root
+        // retargets to the host, so the <button> it wraps is invisible to closest().
         if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
-            ($(clickEvent.target).closest('a, button, details').length > 0 &&
+            ($(clickEvent.target).closest('a, button, details, ol-shelf-button').length > 0 &&
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
