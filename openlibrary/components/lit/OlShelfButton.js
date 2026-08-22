@@ -232,7 +232,7 @@ export class OlShelfButton extends LitElement {
         this.shelf = null;
         this.rating = null;
         this.userKey = '';
-        this.placement = 'bottom-end';
+        this.placement = 'bottom-center';
         this.labels = {};
     }
 

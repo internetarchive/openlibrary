@@ -65,7 +65,7 @@ export function resetListsCache() {
  * @prop {Number} rating   - Current rating (1–5) or null
  * @prop {String} userKey  - "/people/<username>", needed to create lists
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
- * @prop {String} placement - ol-popover placement (default "bottom-end")
+ * @prop {String} placement - ol-popover placement (default "bottom-center")
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
@@ -474,7 +474,7 @@ export class OlBookActions extends LitElement {
         this.rating = null;
         this.userKey = '';
         this.labels = {};
-        this.placement = 'bottom-end';
+        this.placement = 'bottom-center';
         this._pane = 'main';
         this._snap = false;
         this._trackHeight = 0;
