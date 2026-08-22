@@ -191,7 +191,10 @@ describe('ol-shelf-button signed out', () => {
         q(el, '.main').dispatchEvent(event);
         expect(event.defaultPrevented).toBe(true);
         expect(pendingAction()).toEqual({
-            name: 'The Two Towers', url: '/works/OL1W', action: 'Want to Read', type: 'book',
+            // The resume target is the page they were on — jsdom's '/' here.
+            // On a list of results the book's own page would strand them
+            // somewhere they never asked to go.
+            name: 'The Two Towers', url: '/', action: 'Want to Read', type: 'book',
         });
     });
 
@@ -200,7 +203,7 @@ describe('ol-shelf-button signed out', () => {
         const event = new MouseEvent('click', { bubbles: true, cancelable: true });
         q(el, '.more').dispatchEvent(event);
         expect(event.defaultPrevented).toBe(true);
-        expect(pendingAction().url).toBe('/works/OL1W');
+        expect(pendingAction().name).toBe('The Two Towers');
     });
 
     test('no write is attempted', async() => {
@@ -209,5 +212,19 @@ describe('ol-shelf-button signed out', () => {
         q(el, '.main').click();
         await new Promise(r => setTimeout(r, 0));
         expect(fetchCalls).toHaveLength(0);
+    });
+});
+
+describe('ol-shelf-button pass-through to the popover', () => {
+    test('hands hide-rating to ol-book-actions', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', hideRating: true });
+        expect(q(el, 'ol-book-actions').hideRating).toBe(true);
+    });
+
+    test('it defaults to off', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester' });
+        expect(q(el, 'ol-book-actions').hideRating).toBe(false);
     });
 });

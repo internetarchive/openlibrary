@@ -5,6 +5,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
 import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
+import { trackEvent } from './utils/analytics.js';
 // Re-exported: several components were importing `fmt` from here before it
 // moved to the shared helper.
 export { fmt } from './utils/labels.js';
@@ -41,6 +42,14 @@ const SHELF_ROWS = [
     { id: SHELF.ALREADY_READ, icon: 'circle-check', label: 'alreadyRead' },
     { id: SHELF.STOPPED_READING, icon: 'circle-pause', label: 'stoppedReading' },
 ];
+
+/** Matomo action names, kept identical to the legacy dropper's `data-ol-link-track`. */
+const SHELF_EVENT = {
+    [SHELF.WANT_TO_READ]: 'WantToRead',
+    [SHELF.CURRENTLY_READING]: 'CurrentlyReading',
+    [SHELF.ALREADY_READ]: 'AlreadyRead',
+    [SHELF.STOPPED_READING]: 'StoppedReading',
+};
 
 // One in-flight lists request shared by every popover on the page.
 let _listsPromise = null;
@@ -81,6 +90,7 @@ export class OlBookActions extends LitElement {
         userKey: { type: String, attribute: 'user-key' },
         labels: { type: Object },
         placement: { type: String },
+        hideRating: { type: Boolean, attribute: 'hide-rating' },
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
@@ -475,6 +485,7 @@ export class OlBookActions extends LitElement {
         this.rating = null;
         this.userKey = '';
         this.labels = {};
+        this.hideRating = false;
         this._pane = 'main';
         this._snap = false;
         this._trackHeight = 0;
@@ -543,9 +554,11 @@ export class OlBookActions extends LitElement {
                     </button>
                 `)}
             </div>
-            <div class="group rating">
-                ${this._renderStars()}
-            </div>
+            ${this.hideRating ? nothing : html`
+                <div class="group rating">
+                    ${this._renderStars()}
+                </div>
+            `}
             <div class="group lists-entry">
                 <button type="button" class="row" @click=${this._openLists}>
                     <ol-icon class="obd-icon" name="list-plus"></ol-icon>
@@ -721,11 +734,13 @@ export class OlBookActions extends LitElement {
 
     async _onShelfClick(shelfId) {
         const previous = this.shelf;
-        this.shelf = previous === shelfId ? null : shelfId;
+        const removing = previous === shelfId;
+        this.shelf = removing ? null : shelfId;
         this._busy = true;
         try {
             // Posting the current shelf toggles it off server-side.
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
+            trackEvent('ReadingLog', removing ? 'RemoveFromShelf' : SHELF_EVENT[shelfId]);
             this._emitState();
         } catch (error) {
             this.shelf = previous;
@@ -747,6 +762,7 @@ export class OlBookActions extends LitElement {
         this._busy = true;
         try {
             await setRating(this.book.key, next, { editionKey: this.book.editionKey });
+            trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
             this._emitState();
         } catch (error) {
             this.rating = previous;
@@ -804,6 +820,7 @@ export class OlBookActions extends LitElement {
         this.requestUpdate();
         try {
             await (checked ? addToList(listKey, this._seedKey) : removeFromList(listKey, this._seedKey));
+            trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
         } catch (error) {
             list.members = before;
             this.requestUpdate();
@@ -830,6 +847,7 @@ export class OlBookActions extends LitElement {
         this._createBusy = true;
         try {
             const created = await createList(this.userKey, name, this._seedKey);
+            trackEvent('Lists', 'CreateList');
             // Prepend so the new list is visible immediately; the shared cache
             // is the same object, so sibling popovers see it too.
             this._lists = { [created.key]: { listName: name, members: [this._seedKey] }, ...this._lists };

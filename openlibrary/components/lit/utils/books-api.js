@@ -23,7 +23,16 @@ async function request(url, init) {
         error.status = response.status;
         throw error;
     }
-    return response.json();
+    const data = await response.json();
+    // `bookshelves.json` answers a rejected write with 200 and an `error` key,
+    // so checking the status alone would let a failed write look like a save.
+    if (data && data.error) {
+        const error = new Error(`${init?.method || 'GET'} ${url} → ${data.error}`);
+        error.status = response.status;
+        error.body = data;
+        throw error;
+    }
+    return data;
 }
 
 function form(data) {

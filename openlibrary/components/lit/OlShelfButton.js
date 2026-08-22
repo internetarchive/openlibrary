@@ -4,6 +4,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
 import { SHELF, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
+import { trackEvent } from './utils/analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import './OlBookActions.js';
 import './OlIcon.js';
@@ -52,6 +53,8 @@ const SHELF_LABEL = {
  *     visitor to log in instead of opening the popover
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
+ * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
+ *     already show a rating control for the same book
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
@@ -68,6 +71,7 @@ export class OlShelfButton extends LitElement {
         userKey: { type: String, attribute: 'user-key' },
         placement: { type: String },
         labels: { type: Object },
+        hideRating: { type: Boolean, attribute: 'hide-rating' },
     };
 
     static styles = css`
@@ -235,6 +239,7 @@ export class OlShelfButton extends LitElement {
         this.rating = null;
         this.userKey = '';
         this.labels = {};
+        this.hideRating = false;
     }
 
     t(key, vars) {
@@ -263,6 +268,7 @@ export class OlShelfButton extends LitElement {
                 .labels=${this.labels}
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
+                ?hide-rating=${this.hideRating}
             >${trigger}</ol-book-actions>
         `;
     }
@@ -313,7 +319,10 @@ export class OlShelfButton extends LitElement {
 
     _onLoggedOut(e) {
         e.preventDefault();
-        redirectToLogin({ action: this.t('wantToRead'), title: this.bookTitle, resumeUrl: this.workKey });
+        // No resumeUrl: come back to the page they were on. On a book page that
+        // is the same thing, but from a list of results it is not — the legacy
+        // dropper returned them to their results too.
+        redirectToLogin({ action: this.t('wantToRead'), title: this.bookTitle });
     }
 
     async _onMainClick(e) {
@@ -326,6 +335,7 @@ export class OlShelfButton extends LitElement {
         this._emitState(next, rating);
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });
+            trackEvent('ReadingLog', next === null ? 'RemoveFromShelf' : 'WantToRead');
         } catch (error) {
             this._emitState(previous, rating);
             if (error?.status === 401) return this._onLoggedOut(e);

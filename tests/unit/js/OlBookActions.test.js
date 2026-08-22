@@ -242,3 +242,35 @@ describe('ol-book-actions lists pane', () => {
         expect(popover.open).toBe(false);
     });
 });
+
+describe('ol-book-actions hide-rating', () => {
+    test('drops the stars but keeps shelves and lists', async() => {
+        stubFetch();
+        const el = await mount({ hideRating: true });
+        expect(q(el, '.group.rating')).toBeNull();
+        expect(qa(el, '.group.shelves .row')).toHaveLength(4);
+        expect(q(el, '.group.lists-entry')).not.toBeNull();
+    });
+
+    test('renders the stars by default', async() => {
+        stubFetch();
+        const el = await mount();
+        expect(q(el, '.group.rating')).not.toBeNull();
+    });
+});
+
+describe('ol-book-actions rejected writes', () => {
+    // bookshelves.json answers a rejected write with 200 and an `error` key,
+    // so a status-only check would let the optimistic update stand.
+    test('a 200 carrying `error` rolls the shelf back', async() => {
+        stubFetch();
+        global.fetch = jest.fn(async(url, init) => {
+            calls.push({ url, init });
+            return { ok: true, status: 200, json: async() => ({ error: 'Invalid bookshelf' }) };
+        });
+        const el = await mount();
+        qa(el, '.group.shelves .row')[0].click();
+        await tick(el);
+        expect(el.shelf).toBeNull();
+    });
+});
