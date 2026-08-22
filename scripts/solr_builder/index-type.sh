@@ -23,6 +23,10 @@ INITIAL_START=${INITIAL_START:-}
 
 EXTRA_ARGS=""
 if [ "$SKIP_IA_METADATA" = "1" ]; then EXTRA_ARGS="--skip-ia-metadata"; fi
+# Optional extra flags forwarded verbatim to solr_builder.py, e.g.
+#   SOLR_BUILDER_EXTRA_ARGS="--no-skip-solr-id-check" ./index-type.sh work 18 works
+# for idempotent gap-filling re-passes over already-indexed ranges.
+EXTRA_ARGS="$EXTRA_ARGS ${SOLR_BUILDER_EXTRA_ARGS:-}"
 
 done="false"
 next_start="${INITIAL_START:-//}"
