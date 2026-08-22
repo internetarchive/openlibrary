@@ -3,7 +3,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
-import { SHELF, setShelf, setRating, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
+import { SHELF, setShelf, setRating, setCheckIn, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from './utils/analytics.js';
 // Re-exported: several components were importing `fmt` from here before it
@@ -34,6 +34,14 @@ export const DEFAULT_LABELS = {
     itemsInList: '%(count)s items',
     inLists: 'In %(count)s of your lists',
     errorGeneric: 'Something went wrong. Please try again.',
+    whenFinished: 'When did you finish this book?',
+    today: 'Today',
+    inYear: 'In %(year)s',
+    otherDate: 'Other date',
+    year: 'Year',
+    month: 'Month',
+    day: 'Day',
+    saveDate: 'Save',
 };
 
 const SHELF_ROWS = [
@@ -50,6 +58,23 @@ const SHELF_EVENT = {
     [SHELF.ALREADY_READ]: 'AlreadyRead',
     [SHELF.STOPPED_READING]: 'StoppedReading',
 };
+
+/**
+ * The panes in the track, in order. The track's width and slide are both
+ * derived from this, so a new pane is an entry here plus a `_render*`.
+ */
+const PANES = ['main', 'lists', 'checkIn'];
+
+let _months = null;
+/** Month names in the page's language. Cached: the list never changes. */
+function MONTHS() {
+    if (!_months) {
+        const lang = document.documentElement.lang || 'en';
+        const format = new Intl.DateTimeFormat(lang, { month: 'long' });
+        _months = Array.from({ length: 12 }, (_, i) => format.format(new Date(2000, i, 1)));
+    }
+    return _months;
+}
 
 // One in-flight lists request shared by every popover on the page.
 let _listsPromise = null;
@@ -101,6 +126,9 @@ export class OlBookActions extends LitElement {
         _createBusy: { state: true },
         _hoverRating: { state: true },
         _busy: { state: true },
+        _pickingDate: { state: true },
+        _dateBusy: { state: true },
+        _date: { state: true },
     };
 
     static styles = css`
@@ -152,6 +180,7 @@ export class OlBookActions extends LitElement {
            reads as a panel edge. */
         .header::after,
         .lists-header::after,
+        .pane-header::after,
         .group.rating::before,
         .group.lists-entry::before {
             content: "";
@@ -162,25 +191,23 @@ export class OlBookActions extends LitElement {
         }
 
         .header::after,
-        .lists-header::after {
+        .lists-header::after,
+        .pane-header::after {
             bottom: 0;
         }
 
-        /* Two panes side by side in a track twice the panel width; the track
-           slides to reveal the second one. Its height is set inline to the
-           active pane's height (measured), so the panel doesn't stretch to
-           the taller pane. */
+        /* Panes side by side in a track --pane-count panels wide; the track
+           slides to bring one into view. Its height is set inline to the active
+           pane's height (measured), so the panel doesn't stretch to the tallest
+           one. Both the width and the slide come from --pane-count, so adding a
+           pane to PANES is the whole change. */
         .track {
             display: flex;
             align-items: flex-start;
-            width: 200%;
+            width: calc(100% * var(--pane-count));
             transition:
                 transform 220ms cubic-bezier(0.165, 0.84, 0.44, 1),
                 height 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .track.pane-lists {
-            transform: translateX(-50%);
         }
 
         /* Reset to the main pane on close without a visible slide. */
@@ -195,8 +222,8 @@ export class OlBookActions extends LitElement {
         }
 
         .pane {
-            width: 50%;
-            flex: 0 0 50%;
+            width: calc(100% / var(--pane-count));
+            flex: 0 0 calc(100% / var(--pane-count));
             box-sizing: border-box;
         }
 
@@ -352,8 +379,61 @@ export class OlBookActions extends LitElement {
             border-radius: var(--border-radius-sm);
         }
 
+        /* Check-in pane */
+
+        /* The question, not a heading: the rows under it are the answer. */
+        .caption {
+            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-medium);
+        }
+
+        /* Three selects on one line only fit at small size — the same height
+           and radius the small web-component controls use. */
+        .date-fields {
+            display: flex;
+            gap: var(--spacing-inline-sm);
+            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+        }
+
+        .select {
+            flex: 1;
+            min-width: 0;
+            height: var(--control-height-small);
+            box-sizing: border-box;
+            padding: 0 var(--spacing-inset-xs);
+            border: var(--border-input);
+            border-radius: var(--border-radius-input);
+            background: var(--color-surface);
+            color: inherit;
+            font: inherit;
+            font-size: var(--font-size-label-medium);
+        }
+
+        /* Year is the only one that is always meaningful, so it gets the room. */
+        .select.year {
+            flex: 0 0 84px;
+        }
+
+        .select:focus {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -1px;
+        }
+
+        .select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .date-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm);
+        }
+
         /* Lists pane */
-        .lists-header {
+        .lists-header,
+        .pane-header {
             position: relative;
             display: flex;
             align-items: center;
@@ -496,6 +576,21 @@ export class OlBookActions extends LitElement {
         this._createBusy = false;
         this._hoverRating = 0;
         this._busy = false;
+        this._pickingDate = false;
+        this._dateBusy = false;
+        this._date = { year: '', month: '', day: '' };
+    }
+
+    get _paneIndex() {
+        const index = PANES.indexOf(this._pane);
+        return index === -1 ? 0 : index;
+    }
+
+    /** @param {string} name */
+    _renderPane(name) {
+        if (name === 'lists') return this._renderLists();
+        if (name === 'checkIn') return this._renderCheckIn();
+        return this._renderMain();
     }
 
     /** @param {string} key */
@@ -510,6 +605,11 @@ export class OlBookActions extends LitElement {
     render() {
         if (!this.book) return html`<slot name="trigger"></slot>`;
         const title = this.book.title || '';
+        const track = {
+            '--pane-count': String(PANES.length),
+            transform: `translateX(${(-100 / PANES.length) * this._paneIndex}%)`,
+            height: this._trackHeight ? `${this._trackHeight}px` : null,
+        };
         return html`
             <ol-popover
                 placement=${ifDefined(this.placement)}
@@ -521,11 +621,12 @@ export class OlBookActions extends LitElement {
                 <slot name="trigger" slot="trigger"></slot>
                 <div class="panel">
                     <div
-                        class="track ${classMap({ 'pane-lists': this._pane === 'lists', snap: this._snap })}"
-                        style=${styleMap({ height: this._trackHeight ? `${this._trackHeight}px` : null })}
+                        class="track ${classMap({ snap: this._snap })}"
+                        style=${styleMap(track)}
                     >
-                        <div class="pane" ?inert=${this._pane !== 'main'}>${this._renderMain()}</div>
-                        <div class="pane" ?inert=${this._pane !== 'lists'}>${this._renderLists()}</div>
+                        ${PANES.map(name => html`
+                            <div class="pane" ?inert=${this._pane !== name}>${this._renderPane(name)}</div>
+                        `)}
                     </div>
                 </div>
             </ol-popover>
@@ -599,10 +700,76 @@ export class OlBookActions extends LitElement {
         `;
     }
 
+    /**
+     * Asked straight after the reader marks a book read. Two one-tap answers
+     * cover most cases; "Other date" swaps in the selects rather than taking a
+     * fourth pane, the same way the lists pane swaps in its create form.
+     *
+     * A year on its own is a valid check-in, which is what makes "In 2026"
+     * offerable at all.
+     */
+    _renderCheckIn() {
+        const thisYear = new Date().getFullYear();
+        return html`
+            <div class="pane-header">
+                <button type="button" class="back" @click=${this._backToMain}>
+                    <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
+                </button>
+            </div>
+            <div class="caption">${this.t('whenFinished')}</div>
+            ${this._pickingDate ? this._renderDateFields() : html`
+                <div class="group" role="group">
+                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._onToday}>
+                        <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
+                        <span class="label">${this.t('today')}</span>
+                    </button>
+                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._onThisYear}>
+                        <ol-icon class="obd-icon" name="calendar"></ol-icon>
+                        <span class="label">${this.t('inYear', { year: thisYear })}</span>
+                    </button>
+                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._startPickingDate}>
+                        <ol-icon class="obd-icon" name="calendar-days"></ol-icon>
+                        <span class="label">${this.t('otherDate')}</span>
+                        <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
+                    </button>
+                </div>
+            `}
+        `;
+    }
+
+    /** Year → month → day, each enabled by the one before it. */
+    _renderDateFields() {
+        const { year, month, day } = this._date;
+        const thisYear = new Date().getFullYear();
+        const years = Array.from({ length: 121 }, (_, i) => thisYear - i);
+        const days = month ? new Date(Number(year), Number(month), 0).getDate() : 31;
+        return html`
+            <form @submit=${this._onSaveDate}>
+                <div class="date-fields">
+                    <select class="select year" aria-label=${this.t('year')} .value=${year} @change=${e => this._setDatePart('year', e.target.value)}>
+                        <option value="">${this.t('year')}</option>
+                        ${years.map(y => html`<option value=${y}>${y}</option>`)}
+                    </select>
+                    <select class="select" aria-label=${this.t('month')} ?disabled=${!year} .value=${month} @change=${e => this._setDatePart('month', e.target.value)}>
+                        <option value="">${this.t('month')}</option>
+                        ${MONTHS().map((name, i) => html`<option value=${i + 1}>${name}</option>`)}
+                    </select>
+                    <select class="select" aria-label=${this.t('day')} ?disabled=${!month} .value=${day} @change=${e => this._setDatePart('day', e.target.value)}>
+                        <option value="">${this.t('day')}</option>
+                        ${Array.from({ length: days }, (_, i) => i + 1).map(d => html`<option value=${d}>${d}</option>`)}
+                    </select>
+                </div>
+                <div class="date-actions">
+                    <ol-button type="submit" variant="primary" size="small" ?disabled=${!year || this._dateBusy}>${this.t('saveDate')}</ol-button>
+                </div>
+            </form>
+        `;
+    }
+
     _renderLists() {
         return html`
             <div class="lists-header">
-                <button type="button" class="back" @click=${this._closeLists}>
+                <button type="button" class="back" @click=${this._backToMain}>
                     <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
                 </button>
                 ${this._creating ? nothing : html`
@@ -682,7 +849,7 @@ export class OlBookActions extends LitElement {
 
     /** Size the track to the active pane so the panel doesn't stretch to the taller one. */
     _syncTrackHeight() {
-        const pane = this.shadowRoot.querySelector(`.pane:nth-child(${this._pane === 'lists' ? 2 : 1})`);
+        const pane = this.shadowRoot.querySelector(`.pane:nth-child(${this._paneIndex + 1})`);
         // 0 means the popover is hidden; keep the last real height.
         if (pane?.offsetHeight) this._trackHeight = pane.offsetHeight;
     }
@@ -693,6 +860,7 @@ export class OlBookActions extends LitElement {
         this._pane = 'main';
         this._snap = false;
         this._creating = false;
+        this._pickingDate = false;
         this._listFilter = '';
         // Prefetch so the "in N lists" count is right on the first open, not
         // only after a trip to the lists pane. One request per page — every
@@ -701,10 +869,10 @@ export class OlBookActions extends LitElement {
     }
 
     _onCloseRequest(e) {
-        // Escape from the lists pane goes back a step instead of closing.
-        if (e.detail?.reason === 'escape' && this._pane === 'lists') {
+        // Escape from a sub-pane goes back a step instead of closing.
+        if (e.detail?.reason === 'escape' && this._pane !== 'main') {
             e.preventDefault();
-            this._closeLists();
+            this._backToMain();
             return;
         }
         // Reset to the main pane now, so the next open doesn't slide back from
@@ -712,6 +880,7 @@ export class OlBookActions extends LitElement {
         this._snap = true;
         this._pane = 'main';
         this._creating = false;
+        this._pickingDate = false;
     }
 
     _emitState() {
@@ -742,6 +911,12 @@ export class OlBookActions extends LitElement {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
             trackEvent('ReadingLog', removing ? 'RemoveFromShelf' : SHELF_EVENT[shelfId]);
             this._emitState();
+            // Only on the way in, and only when they chose the shelf themselves:
+            // rating moves a book to Already Read too, and interrupting that
+            // would turn one tap into two.
+            if (!removing && shelfId === SHELF.ALREADY_READ && previous !== SHELF.ALREADY_READ) {
+                this._openCheckIn();
+            }
         } catch (error) {
             this.shelf = previous;
             this._fail(error);
@@ -773,18 +948,77 @@ export class OlBookActions extends LitElement {
         }
     }
 
+    // ── Check-in ─────────────────────────────────────────────
+
+    async _openCheckIn() {
+        this._pane = 'checkIn';
+        this._pickingDate = false;
+        this._date = { year: '', month: '', day: '' };
+        await this.updateComplete;
+        this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('checkIn') + 1}) .row`)?.focus({ preventScroll: true });
+    }
+
+    async _startPickingDate() {
+        this._pickingDate = true;
+        await this.updateComplete;
+        this.shadowRoot.querySelector('.select.year')?.focus({ preventScroll: true });
+    }
+
+    /** Clearing a coarser part clears the finer ones, which the selects disable. */
+    _setDatePart(part, value) {
+        const next = { ...this._date, [part]: value };
+        if (part === 'year' && !value) next.month = next.day = '';
+        if (part === 'month') next.day = value ? next.day : '';
+        this._date = next;
+    }
+
+    _onToday() {
+        const now = new Date();
+        return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() });
+    }
+
+    _onThisYear() {
+        return this._saveCheckIn({ year: new Date().getFullYear() });
+    }
+
+    _onSaveDate(e) {
+        e.preventDefault();
+        const { year, month, day } = this._date;
+        if (!year) return;
+        return this._saveCheckIn({
+            year: Number(year),
+            month: month ? Number(month) : null,
+            day: day ? Number(day) : null,
+        });
+    }
+
+    async _saveCheckIn(date) {
+        if (this._dateBusy) return;
+        this._dateBusy = true;
+        try {
+            await setCheckIn(this.book.key, { ...date, editionKey: this.book.editionKey });
+            trackEvent('CheckInPrompt', date.day ? 'SetDateDay' : date.month ? 'SetDateMonth' : 'SetDateYear');
+            this._backToMain();
+        } catch (error) {
+            this._fail(error);
+        } finally {
+            this._dateBusy = false;
+        }
+    }
+
     // ── Lists ────────────────────────────────────────────────
 
     async _openLists() {
         this._pane = 'lists';
         await this.updateComplete;
-        this.shadowRoot.querySelector('.pane:nth-child(2) .input')?.focus({ preventScroll: true });
+        this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('lists') + 1}) .input`)?.focus({ preventScroll: true });
         this._loadLists();
     }
 
-    async _closeLists() {
+    async _backToMain() {
         this._pane = 'main';
         this._creating = false;
+        this._pickingDate = false;
         await this.updateComplete;
         this.shadowRoot.querySelector('.pane:nth-child(1) .group:last-child .row')?.focus({ preventScroll: true });
     }

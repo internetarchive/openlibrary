@@ -165,7 +165,9 @@ describe('ol-book-actions lists pane', () => {
         q(el, '.group:last-child .row').click();
         await tick(el);
         expect(el._pane).toBe('lists');
-        expect(q(el, '.track').classList.contains('pane-lists')).toBe(true);
+        // The track is translated by one panel width per pane index, so the
+        // slide is derived rather than a per-pane class.
+        expect(q(el, '.track').style.transform).toMatch(/^translateX\(-33\.3/);
         expect(calls.some(c => c.url.endsWith('/partials/MyBooksDropperLists.json'))).toBe(true);
         const rows = qa(el, '.list-row');
         expect(rows.map(r => r.querySelector('.name').textContent)).toEqual(['Summer 2026', 'Sci-fi to reread']);
@@ -272,5 +274,150 @@ describe('ol-book-actions rejected writes', () => {
         qa(el, '.group.shelves .row')[0].click();
         await tick(el);
         expect(el.shelf).toBeNull();
+    });
+});
+
+const checkInWrites = () => calls.filter(c => c.url.includes('/check-ins'));
+const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
+const paneRows = el => [...checkInPane(el).querySelectorAll('.row')];
+
+describe('ol-book-actions check-in pane', () => {
+    test('marking a book read slides the date question in', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        expect(el._pane).toBe('checkIn');
+        expect(paneRows(el).map(r => r.textContent.trim())).toEqual([
+            'Today', `In ${new Date().getFullYear()}`, 'Other date',
+        ]);
+    });
+
+    test('the other three shelves do not', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[1].click();
+        await tick(el);
+        expect(el._pane).toBe('main');
+    });
+
+    test('a book already on the shelf does not ask again', async() => {
+        stubFetch();
+        // Clicking the shelf it is on removes it; that is not a finish event.
+        const el = await mount({ shelf: SHELF.ALREADY_READ });
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        expect(el._pane).toBe('main');
+    });
+
+    test('rating a book does not, even though the server moves it to Already Read', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(el.shelf).toBe(SHELF.ALREADY_READ);
+        expect(el._pane).toBe('main');
+    });
+
+    test('a failed shelf write asks nothing', async() => {
+        stubFetch({ failWith: 500 });
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        expect(el._pane).toBe('main');
+    });
+
+    test('Today posts a full date', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        paneRows(el)[0].click();
+        await tick(el);
+        const now = new Date();
+        expect(JSON.parse(checkInWrites()[0].init.body)).toEqual({
+            event_type: 3,
+            year: now.getFullYear(),
+            month: now.getMonth() + 1,
+            day: now.getDate(),
+            edition_key: 'OL9M',
+        });
+        expect(el._pane).toBe('main');
+    });
+
+    test('this year posts a year on its own', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        paneRows(el)[1].click();
+        await tick(el);
+        const body = JSON.parse(checkInWrites()[0].init.body);
+        expect(body.year).toBe(new Date().getFullYear());
+        expect(body.month).toBeNull();
+        expect(body.day).toBeNull();
+    });
+
+    test('other date reveals the selects, month and day gated in turn', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        paneRows(el)[2].click();
+        await tick(el);
+
+        const selects = () => [...checkInPane(el).querySelectorAll('.select')];
+        expect(selects()).toHaveLength(3);
+        expect(selects()[1].disabled).toBe(true);
+        expect(selects()[2].disabled).toBe(true);
+
+        el._setDatePart('year', '2024');
+        await tick(el);
+        expect(selects()[1].disabled).toBe(false);
+        expect(selects()[2].disabled).toBe(true);
+
+        el._setDatePart('month', '2');
+        await tick(el);
+        expect(selects()[2].disabled).toBe(false);
+        // 2024 is a leap year, so February has to offer the 29th.
+        expect(selects()[2].querySelectorAll('option')).toHaveLength(30);
+    });
+
+    test('clearing the year clears what it gated', async() => {
+        stubFetch();
+        const el = await mount();
+        el._setDatePart('year', '2024');
+        el._setDatePart('month', '6');
+        el._setDatePart('day', '15');
+        el._setDatePart('year', '');
+        expect(el._date).toEqual({ year: '', month: '', day: '' });
+    });
+
+    test('a partial date saves as a partial date', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        paneRows(el)[2].click();
+        await tick(el);
+        el._setDatePart('year', '2024');
+        el._setDatePart('month', '6');
+        await tick(el);
+        checkInPane(el).querySelector('form').dispatchEvent(new Event('submit', { cancelable: true }));
+        await tick(el);
+        const body = JSON.parse(checkInWrites()[0].init.body);
+        expect([body.year, body.month, body.day]).toEqual([2024, 6, null]);
+    });
+
+    test('Escape from the pane goes back rather than closing', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        const event = new CustomEvent('ol-popover-close', { detail: { reason: 'escape' }, cancelable: true });
+        q(el, 'ol-popover').dispatchEvent(event);
+        await tick(el);
+        expect(event.defaultPrevented).toBe(true);
+        expect(el._pane).toBe('main');
     });
 });

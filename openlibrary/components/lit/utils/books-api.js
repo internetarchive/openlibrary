@@ -67,6 +67,24 @@ export function setRating(workKey, rating, { editionKey } = {}) {
     return request(`/works/${olid(workKey)}/ratings.json`, form({ rating, edition_id: editionKey }));
 }
 
+/** Reading-log event types (BookshelfEvent). */
+export const EVENT = Object.freeze({ START: 1, UPDATE: 2, FINISH: 3 });
+
+/**
+ * POST /works/OL..W/check-ins — when the reader finished the book.
+ * `month` and `day` are optional: a year alone, or a year and month, are both
+ * valid check-ins, which is what lets the UI offer "in 2026".
+ */
+export function setCheckIn(workKey, { year, month = null, day = null, editionKey } = {}) {
+    return request(`/works/${olid(workKey)}/check-ins`, json({
+        event_type: EVENT.FINISH,
+        year,
+        month,
+        day,
+        edition_key: editionKey || null,
+    }));
+}
+
 /**
  * The user's lists with membership: `{ [listKey]: { listName, members: [seedKey…] } }`.
  * Reuses the dropper partial so the list-modelling stays in one place.
