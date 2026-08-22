@@ -1,0 +1,50 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        The per-book action popover: the four reading-log shelves, a star rating, an "Add to list" pane that slides in with a filter and inline list creation, and a check-in pane that asks when the reader finished the book. It composes <a href="#popover">Popover</a> for the shell; you supply the trigger. State is optimistic — the UI updates first, an error toast rolls it back — and every accepted change fires <code>ol-book-state-change</code> so the surrounding card can follow. Only render it for signed-in readers; send everyone else to log in.
+    </p>
+    {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). book takes JSON in the attribute, or the object itself if you set the .book property from JS; shelf and rating are plain numbers. The trigger is whatever you slot in. Signed in, this demo opens on your real state for The Lord of the Rings and saves every change to your account.",
+        code="<ol-book-actions\n  user-key=\"/people/you\"\n  shelf=\"1\"\n  book='{\"key\": \"/works/OL27448W\",\n         \"title\": \"The Lord of the Rings\",\n         \"firstPublishYear\": 1954}'>\n  <button slot=\"trigger\">Save</button>\n</ol-book-actions>") %}
+        <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}'>
+            <ol-button slot="trigger">
+                Save
+            </ol-button>
+        </ol-book-actions>
+        <p>Last change: <strong id="demo-book-actions-out">—</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-book-actions');
+                el.addEventListener('ol-book-state-change', (e) => {
+                    document.getElementById('demo-book-actions-out').textContent = JSON.stringify(e.detail);
+                });
+                // Open on the reader's real shelf and rating — this demo writes
+                // to their actual reading log, so it should show what's there.
+                // The attribute, not the property: the element upgrades later.
+                if (el.getAttribute('user-key')) {
+                    fetch('/reading-state.json?work_ids=OL27448W', { credentials: 'same-origin' })
+                        .then((r) => (r.ok ? r.json() : null))
+                        .then((state) => {
+                            if (!state) return;
+                            el.shelf = state.shelves.OL27448W ?? null;
+                            el.rating = state.ratings.OL27448W ?? null;
+                        })
+                        .catch(() => {});
+                }
+            })();
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Shelf ids.</b> 1 Want to Read, 2 Currently Reading, 3 Already Read, 4 Stopped Reading — the same ids as <code>Bookshelves.PRESET_BOOKSHELVES</code> and the <code>bookshelf_id</code> the endpoint takes. From JS, import <code>SHELF</code> from <code>lit/utils/books-api.js</code> instead of writing the number.
+        </p>
+        <p>
+            <b>Requests.</b> Shelves post to <code>/works/OL…W/bookshelves.json</code>, ratings to <code>/works/OL…W/ratings.json</code>, check-ins to <code>/works/OL…W/check-ins</code>, lists through <code>/partials/MyBooksDropperLists.json</code> (read) and the lists/seeds endpoints (write). A 401 on any of them redirects to login.
+        </p>
+        <p>
+            <b>Check-ins.</b> Choosing Already Read slides in "When did you finish this book?" — because a year on its own is a valid check-in, "In 2026" is one tap, and "Other date" swaps in year/month/day selects where each enables the next. Only an explicit shelf choice opens it: rating a book moves it to Already Read server-side too, and interrupting that would turn one tap into two.
+        </p>
+        <p>
+            <b>Panes.</b> The track's width and slide are both derived from the <code>PANES</code> list, so a new pane is an entry there plus a <code>_render*</code> method. Escape in any sub-pane goes back to the main one; a second Escape closes the popover.
+        </p>
+    </div>
+{% endmacro %}
