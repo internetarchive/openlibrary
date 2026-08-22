@@ -1037,7 +1037,15 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
     from openlibrary.bookworm.registry import FeedRegistry
     from openlibrary.core.acquisitions import Acquisition
 
-    registered = FeedRegistry.provider_names()
+    # Fail soft: the edition is already saved at this point, so a registry-read or
+    # upsert failure must not 500 an otherwise-successful import. Acquisitions are
+    # idempotent and re-submitted on the next harvest, so skipping here is safe.
+    try:
+        registered = FeedRegistry.provider_names()
+    except Exception:
+        logger.exception("Skipping acquisitions: could not read feed registry")
+        return
+
     work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     for acq in acquisitions:
@@ -1049,13 +1057,16 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
         if provider_name not in registered:
             logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
             continue
-        Acquisition.upsert(
-            work_id=work_id,
-            edition_id=edition_id,
-            provider_name=provider_name,
-            local_id=local_id,
-            data=acq.get("data") or {},
-        )
+        try:
+            Acquisition.upsert(
+                work_id=work_id,
+                edition_id=edition_id,
+                provider_name=provider_name,
+                local_id=local_id,
+                data=acq.get("data") or {},
+            )
+        except Exception:
+            logger.exception("Failed to upsert acquisition %s:%s", provider_name, local_id)
 
 
 def _load(
