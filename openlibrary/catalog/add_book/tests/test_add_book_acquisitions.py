@@ -1,15 +1,21 @@
 """The catalog writes provider acquisitions during import (#12844)."""
 
+import json
+from pathlib import Path
 from typing import Final
 
 import pytest
 import web
 
+from openlibrary.bookworm import opds
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import load
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
+from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 from openlibrary.utils import extract_numeric_id_from_olid
+
+SAMPLES: Final = Path(__file__).parents[3] / "bookworm" / "tests" / "samples"
 
 
 @pytest.fixture
@@ -152,3 +158,30 @@ def test_load_drops_acquisitions_for_unregistered_provider(mock_site, add_langua
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
     rows = Acquisition.get_by_edition(edition_id)
     assert [row.provider_name for row in rows] == ["lenny"]  # evilcorp dropped, lenny kept
+
+
+def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_languages, ia_writeback, acquisitions_db):
+    """Full seam: OPDS publication -> import record -> /api/import validation -> edition + acquisition.
+
+    Exercises the real path a harvested feed record takes: parser output ->
+    import_edition_builder (which runs import_validator, incl. the registered-feed
+    exemption for non-ISBN feeds) -> add_book.load -> edition created + acquisition
+    upserted. Lenny is the hard case (no ISBN, no publisher).
+    """
+    lenny = opds.Feed(provider_name="lenny", id_strategy="self_link")
+    pub = opds.Publication(**json.loads((SAMPLES / "lenny.json").read_text())[0])
+    rec = opds.to_import_record(pub, lenny)
+    assert rec is not None
+    assert rec["acquisitions"]  # parser produced a record carrying an acquisition
+
+    # The /api/import seam: build + validate the edition dict, then load it.
+    edition = import_edition_builder(init_dict=rec).get_dict()
+    reply = load(edition)
+    assert reply["success"] is True
+
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    rows = Acquisition.get_by_edition(edition_id)
+    assert len(rows) == 1
+    assert rows[0].provider_name == "lenny"
+    assert rows[0].local_id == rec["acquisitions"][0]["local_id"]
+    assert rows[0].data["access"] == "open-access"
