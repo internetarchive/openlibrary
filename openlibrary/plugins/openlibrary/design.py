@@ -251,6 +251,14 @@ COMPONENTS = (
     # The domain layer: everything here knows what a book is. Generic pieces
     # they compose (Button, Popover) stay in their own sections.
     Component(
+        "book-cover",
+        "Book Cover",
+        "A book's cover at a fixed 2:3 ratio, with a blank-cover fallback and a corner for one control.",
+        "design/components/book-cover.html.jinja",
+        group="Books",
+        tag="ol-book-cover",
+    ),
+    Component(
         "shelf-button",
         "Shelf Button",
         "Putting a book on a reading-log shelf: a split button for a row, a bookmark for a cover.",

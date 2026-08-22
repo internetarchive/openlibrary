@@ -7,32 +7,11 @@
         <ol-shelf-button work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;">
         </ol-shelf-button>
     {% endcall %}
-    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork.", output_style="display: flex; gap: 16px; width: 300px;",
-        code='<ol-shelf-button variant="icon"\n                 work-key="/works/OL69612W"\n                 book-title="The Secret Garden">\n</ol-shelf-button>') %}
-        <style>
-            .ds-demo-cover {
-                position: relative;
-                width: 128px;
-            }
-
-            .ds-demo-cover img {
-                display: block;
-                width: 100%;
-                border-radius: var(--border-radius-media);
-            }
-
-            .ds-demo-cover ol-shelf-button {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-            }
-        </style>
-        <div class="ds-demo-cover">
-            <img src="https://covers.openlibrary.org/b/id/12622062-M.jpg"
-                 alt="The Secret Garden">
-            <ol-shelf-button variant="icon" work-key="/works/OL69612W" book-title="The Secret Garden">
+    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork.", output_style="display: flex; gap: 16px; width: 300px;") %}
+        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
+            <ol-shelf-button slot="overlay" variant="icon" work-key="/works/OL69612W" book-title="The Secret Garden">
             </ol-shelf-button>
-        </div>
+        </ol-book-cover>
     {% endcall %}
     {% call ex.example("On a shelf", "Both shapes show which shelf the book is on. Clicking the main half of a book already on a shelf takes it off.", output_style="display: flex; flex-direction: column; gap: 12px; width: 220px;") %}
         <ol-shelf-button work-key="/works/OL1W" book-title="Demo" shelf="1">
