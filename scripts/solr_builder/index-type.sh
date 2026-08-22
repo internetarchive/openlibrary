@@ -13,9 +13,23 @@ INSTANCES="$2"
 LOG_DIR="$3"
 CHUNK_SIZE=${CHUNK_SIZE:-10000}
 CHUNK_ETA=${CHUNK_ETA:-90}
+# Set SKIP_IA_METADATA=1 to skip fetching edition metadata from archive.org
+# (testing only; ia_* fields will be empty in the resulting solr docs)
+SKIP_IA_METADATA=${SKIP_IA_METADATA:-0}
+# Resume key: first chunk starts at this key instead of the beginning.
+# Used to recover interrupted runs, e.g.
+#   INITIAL_START=/works/OL21524512W ./index-type.sh work 18 works
+INITIAL_START=${INITIAL_START:-}
+
+EXTRA_ARGS=""
+if [ "$SKIP_IA_METADATA" = "1" ]; then EXTRA_ARGS="--skip-ia-metadata"; fi
+# Optional extra flags forwarded verbatim to solr_builder.py, e.g.
+#   SOLR_BUILDER_EXTRA_ARGS="--no-skip-solr-id-check" ./index-type.sh work 18 works
+# for idempotent gap-filling re-passes over already-indexed ranges.
+EXTRA_ARGS="$EXTRA_ARGS ${SOLR_BUILDER_EXTRA_ARGS:-}"
 
 done="false"
-next_start="//"
+next_start="${INITIAL_START:-//}"
 
 runner_id=0
 
@@ -30,13 +44,14 @@ while [ $done != "true" ]; do
     touch {logs,progress}/$LOG_DIR/$RUN_SIG.txt
     # Run in parallel in a subshell
     (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "${TYPE}s" \
-      --start-at "/$next_start" \
+      --start-at "$next_start" \
       --limit $CHUNK_SIZE \
       --osp-dump /storage/openlibrary/osp_totals.db \
       --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
+      $EXTRA_ARGS \
     &)
 
-    next_start=$(python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
+    next_start=$(python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "$next_start" --limit $CHUNK_SIZE)
     if [ "$next_start" = "" ]; then done="true"; fi
 
     # Stagger starting of the runners so they don't all request a lot of
