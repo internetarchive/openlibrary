@@ -107,11 +107,10 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     # FastAPI /status/testing.json (testing-environment status)
     (r"/status/testing", "json"),
     (r"/people/[^/]+/follows", "json"),
-    (r"/works/OL\d+W/lists", "json"),
-    (r"/people/[^/]+/lists", "json"),
-    (r"/books/OL\d+M/lists", "json"),
-    (r"/authors/OL\d+A/lists", "json"),
-    (r"/subjects/[^/]+/lists", "json"),
+    # `pages` is keyed by the regex text, so this has to match lists.py's path
+    # string exactly; an equivalent spelled differently registers alongside the
+    # old GET-only handler instead of replacing it.
+    (r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists", "json"),
     (r"/people/[^/]+/lists/OL\d+L", "json"),
     (r"/lists/OL\d+L", "json"),
     (r"/series/OL\d+L", "json"),
@@ -129,9 +128,13 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/people/[^/]+/lists/OL\d+L/subjects", "json"),
     (r"/lists/OL\d+L/subjects", "json"),
     (r"/series/OL\d+L/subjects", "json"),
+    # The reader's shelf/rating for a batch of works, for book components
+    # rendered client-side.
+    (r"/reading-state", "json"),
     # Works endpoints migrated to FastAPI
     (r"/works/OL(\d+)W/check-ins", "json"),
     (r"/works/OL(\d+)W/bookshelves", "json"),
+    (r"/works/OL(\d+)W/ratings", "json"),
     (r"(/works/OL\d+W)/editions", "json"),
     (r"(/authors/OL\d+A)/works", "json"),
     (r"/hide_banner", None),
