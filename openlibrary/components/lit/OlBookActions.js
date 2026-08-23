@@ -549,6 +549,17 @@ export class OlBookActions extends LitElement {
         }
 
         /* Lists pane */
+
+        /* Header and field each hold a small control at most, and swap what
+           they show when creating a list; a fixed height keeps the list below
+           from jumping when they do. */
+        .lists-header,
+        .pane-header,
+        .field {
+            box-sizing: border-box;
+            height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
+        }
+
         .lists-header,
         .pane-header {
             position: relative;
@@ -579,8 +590,9 @@ export class OlBookActions extends LitElement {
 
         .field {
             display: flex;
+            align-items: center;
             gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            padding: 0 var(--spacing-inset-md);
             margin-bottom: var(--spacing-stack-xs);
         }
 
