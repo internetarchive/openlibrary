@@ -1,4 +1,5 @@
 import json
+import logging
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
@@ -36,6 +37,8 @@ if TYPE_CHECKING:
 
     from openlibrary.core.lists.model import List
     from openlibrary.plugins.upstream.models import Work
+
+logger = logging.getLogger("openlibrary.mybooks")
 
 RESULTS_PER_PAGE: Final = 25
 
@@ -102,8 +105,13 @@ class mybooks_home(delegate.page):
                 try:
                     history_data = get_loan_history_data(mb.username, page=1)
                     history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
-                except Exception:  # noqa: BLE001
-                    history_books = []
+                except Exception:
+                    # Deliberately non-fatal: My Books must still render its
+                    # active loans and every other shelf if IA is unreachable.
+                    # But log it -- swallowing this silently makes a missing
+                    # history section indistinguishable from an empty one, with
+                    # nothing in the logs to tell them apart.
+                    logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
 
             for book in history_books:
                 works = getattr(book, "works", None)
