@@ -17,7 +17,7 @@ from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
@@ -1126,3 +1126,88 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
         return "preview_only"
 
     return "locate"
+
+
+RESULTS_PER_PAGE: int = 25
+
+
+def get_loan_history_data(username: str, page: int) -> dict:
+    """Fetch loan history data for a user.
+
+    This will use a patron's S3 keys to query the IA loan history API,
+    get the IA IDs, get the OLIDs if available, and then convert this
+    into editions and IA-only items for display in the loan history.
+
+    This returns both editions and IA-only items because the loan history API
+    includes items that are not in Open Library, and displaying only IA
+    items creates pagination and navigation issues. For further discussion,
+    see https://github.com/internetarchive/openlibrary/pull/8375.
+    """
+    from infogami.utils.view import render
+
+    if not (account := OpenLibraryAccount.get_by_username(username)):
+        raise render.notfound("Account not found for %s" % username, create=False)
+
+    s3_keys = get_s3_keys(account)
+    limit = RESULTS_PER_PAGE
+    offset = page * limit - limit
+
+    # get_s3_keys() is `dict | None`: it returns None for a patron with no `s3`
+    # session cookie and no `s3_keys` in the account store. s3_loan_api() would
+    # then evaluate `s3_keys | kwargs` and raise
+    # `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
+    # /account/loans renders this history inline with no try/except of its own,
+    # so that TypeError takes down the whole page -- including the active-loans
+    # table, which has nothing to do with IA history. Degrade to an empty
+    # history instead, and say so in the log rather than failing silently.
+    if not s3_keys:
+        logger.warning("No IA S3 keys for %s; returning empty loan history", username)
+        return {"docs": [], "show_next": False, "limit": limit, "page": page}
+
+    response = s3_loan_api(
+        s3_keys=s3_keys,
+        action="user_borrow_history",
+        limit=limit + 1,
+        offset=offset,
+        newest=True,
+    ).json()
+    history = response.get("history") or {}
+    loan_history = history.get("items") or []
+
+    # We request limit+1 to see if there is another page of history to display,
+    # and then pop the +1 off if it's present.
+    show_next = len(loan_history) == limit + 1
+    if show_next:
+        loan_history.pop()
+
+    ocaids = [loan_record["identifier"] for loan_record in loan_history]
+    loan_history_map = {loan_record["identifier"]: loan_record for loan_record in loan_history}
+
+    # Get editions and attach their loan history.
+    editions_map = get_items_and_add_availability(ocaids=ocaids)
+    for edition in editions_map.values():
+        if edition_loan_history := loan_history_map.get(edition.get("ocaid")):
+            edition["last_loan_date"] = edition_loan_history.get("updatedate", "")
+        else:
+            edition["last_loan_date"] = ""
+
+    # Create 'placeholders' dicts for items in the Internet Archive loan history,
+    # but absent from Open Library, and then add loan history.
+    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
+    # loan. No apparently way to distinguish between current and past loans with
+    # this API call.
+    ia_only_loans = [{"ocaid": ocaid} for ocaid in ocaids if ocaid not in editions_map]
+    for ia_only_loan in ia_only_loans:
+        loan_data = loan_history_map[ia_only_loan["ocaid"]]
+        ia_only_loan["last_loan_date"] = loan_data.get("updatedate", "")
+        ia_only_loan["ia_only"] = True  # type: ignore[typeddict-unknown-key]
+
+    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
+    editions_and_ia_loans.sort(key=lambda item: item.get("last_loan_date", ""), reverse=True)
+
+    return {
+        "docs": editions_and_ia_loans,
+        "show_next": show_next,
+        "limit": limit,
+        "page": page,
+    }
