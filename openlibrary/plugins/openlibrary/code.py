@@ -1159,7 +1159,6 @@ def setup():
         sentry,
         stats,
         status,
-        swagger,
     )
 
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
@@ -1174,7 +1173,6 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
-    swagger.setup()
     partials.setup()
     import_ui.setup()
 
