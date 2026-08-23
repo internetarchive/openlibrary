@@ -91,11 +91,19 @@ class mybooks_home(delegate.page):
                         loaned_at = loan.get("loaned_at") or 0.0
                         merged_books[work_key] = (book, float(loaned_at), True)
 
-            try:
-                history_data = get_loan_history_data(mb.username, page=1)
-                history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
-            except Exception:  # noqa: BLE001
-                history_books = []
+            # Ownership gate, not just "is logged in": mb.username comes from the
+            # URL, while mb.me is the session. get_loan_history_data() resolves S3
+            # credentials for whichever username it is handed, so this must run
+            # only on the patron's own page. The carousel is already rendered for
+            # owners only, but that guard lives in the template -- keep the fetch
+            # itself gated too rather than relying on the view layer.
+            history_books = []
+            if mb.is_my_page:
+                try:
+                    history_data = get_loan_history_data(mb.username, page=1)
+                    history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
+                except Exception:  # noqa: BLE001
+                    history_books = []
 
             for book in history_books:
                 works = getattr(book, "works", None)
