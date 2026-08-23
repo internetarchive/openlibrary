@@ -19,6 +19,7 @@ export const DEFAULT_LABELS = {
     currentlyReading: 'Currently Reading',
     alreadyRead: 'Already Read',
     stoppedReading: 'Stopped Reading',
+    removeFromShelf: 'Remove from shelf',
     rateThisBook: 'Rate this book',
     rateStar: 'Rate %(rating)s of 5',
     clearRating: 'Clear rating',
@@ -188,6 +189,9 @@ export class OlBookActions extends LitElement {
             /* A fixed measure: the popover shrink-wraps its content, and the
                title would otherwise size the panel per book. */
             width: 300px;
+            /* One height for every row, so the panel never shifts as rows
+               re-render (the rating caption swaps between a span and a button). */
+            --_row-height: calc(var(--font-size-body-medium) * var(--line-height-body) + 2 * var(--spacing-inset-sm));
             /* Keeps the first and last rows off the rounded corners. */
             padding-block: var(--spacing-inset-xs);
             color: var(--color-text);
@@ -303,6 +307,7 @@ export class OlBookActions extends LitElement {
             align-items: center;
             gap: var(--spacing-inline-md);
             box-sizing: border-box;
+            min-height: var(--_row-height);
             margin: 0;
             margin-inline: var(--spacing-inset-xs);
             padding-block: var(--spacing-inset-sm);
@@ -394,7 +399,14 @@ export class OlBookActions extends LitElement {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            box-sizing: border-box;
+            height: var(--_row-height);
+            padding: 0 var(--spacing-inset-md);
+        }
+
+        .star-buttons,
+        .stars .caption {
+            line-height: 1;
         }
 
         .star-buttons {
@@ -613,12 +625,13 @@ export class OlBookActions extends LitElement {
             }
         }
 
-        /* 20px like the main pane's row icons, so both panes share one row
-           height and one label column. */
+        /* 16px like the other popover controls, but sitting in a 20px slot so
+           it lines up with the main pane's row icons — one row height, one
+           label column across both panes. */
         .list-row input {
-            width: 20px;
-            height: 20px;
-            margin: 0;
+            width: 16px;
+            height: 16px;
+            margin-inline: 2px;
             accent-color: var(--color-primary);
             flex: 0 0 auto;
         }
@@ -759,6 +772,12 @@ export class OlBookActions extends LitElement {
                         ${this._renderShelfTrail(row)}
                     </button>
                 `)}
+                ${this.shelf ? html`
+                    <button type="button" class="row" ?disabled=${this._busy} @click=${this._removeFromShelf}>
+                        <ol-icon class="obd-icon" name="trash"></ol-icon>
+                        <span class="label">${this.t('removeFromShelf')}</span>
+                    </button>
+                ` : nothing}
             </div>
             ${this.hideRating ? nothing : html`
                 <div class="group rating">
@@ -1096,15 +1115,25 @@ export class OlBookActions extends LitElement {
         const previous = this.shelf;
         // Already Read leads to the date pane — that is what its chevron says,
         // and it is the only way to change a date once given. Coming off the
-        // shelf is the main button's job.
+        // shelf is the "Remove from shelf" row's job.
         if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
             return this._openCheckIn();
         }
+        return this._postShelf(shelfId);
+    }
+
+    /** Takes the book off whichever shelf it is on. Also what the main button does. */
+    _removeFromShelf() {
+        if (this.shelf) return this._postShelf(this.shelf);
+    }
+
+    /** Posting the current shelf toggles it off server-side; any other shelf moves the book. */
+    async _postShelf(shelfId) {
+        const previous = this.shelf;
         const removing = previous === shelfId;
         this.shelf = removing ? null : shelfId;
         this._busy = true;
         try {
-            // Posting the current shelf toggles it off server-side.
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
             trackEvent('ReadingLog', removing ? 'RemoveFromShelf' : SHELF_EVENT[shelfId]);
             this._emitState();
