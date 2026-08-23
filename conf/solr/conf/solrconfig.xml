@@ -546,7 +546,7 @@
          warming searcher and use it.  If "false" then all requests
          will block until the first searcher is done warming.
       -->
-    <useColdSearcher>false</useColdSearcher>
+    <useColdSearcher>true</useColdSearcher>
     <maxWarmingSearchers>4</maxWarmingSearchers>
   </query>
 

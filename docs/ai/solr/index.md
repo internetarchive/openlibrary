@@ -362,7 +362,7 @@ On every new searcher open, Solr runs warming queries from the `newSearcher` lis
 fq=type:work&facet=true&facet.field=language&facet.field=subject_facet&facet.limit=25&rows=0
 ```
 
-`useColdSearcher=false` — blocks all requests until the new searcher finishes warming (protects against cold-cache spikes at the cost of momentary queuing on commit).
+`useColdSearcher=true` — immediately registers a still-warming searcher and uses it for incoming requests instead of blocking (avoids request queuing on commit at the cost of momentarily colder caches).
 
 `maxWarmingSearchers=4` — up to 4 searchers can warm in parallel.
 
