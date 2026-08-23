@@ -108,6 +108,9 @@ def test_details_json_found(client, monkeypatch, row):
     assert data["last_modified"] == "2026-01-02T03:04:05.678910"
     assert data["deleted"] is False
     assert next(iter(data.keys())) == "id"
+    # FastAPI serializer output (compact), datetime as ISO
+    assert b'"created":"2026-01-02T03:04:05.678910"' in resp.content
+    assert b', "id"' not in resp.content  # no legacy json.dumps spacing
 
 
 def test_details_json_missing_double_content_type(client, monkeypatch):
@@ -118,7 +121,7 @@ def test_details_json_missing_double_content_type(client, monkeypatch):
     resp = client.get("/b/id/999999999.json")
     assert resp.status_code == 404
     assert resp.text == "not found"
-    assert resp.headers.get_list("content-type") == ["application/json", "text/html; charset=utf-8"]
+    assert resp.headers.get_list("content-type") == ["text/html; charset=utf-8"]
 
 
 def test_details_json_db_error_dual_content_type(client, monkeypatch):
@@ -129,7 +132,7 @@ def test_details_json_db_error_dual_content_type(client, monkeypatch):
     resp = client.get("/b/id/not-a-number.json")
     assert resp.status_code == 500
     assert resp.text == "internal server error"
-    assert resp.headers.get_list("content-type") == ["application/json", "text/html"]
+    assert resp.headers.get_list("content-type") == ["text/html"]
 
 
 def test_details_other_key_miss_returns_404_body(client, monkeypatch):
@@ -216,7 +219,7 @@ def test_query_cmd_ids(client, patch_db_query):
 
 def test_query_callback_jsonp(client, patch_db_query):
     resp = client.get("/b/query?callback=cb&limit=1")
-    assert resp.text == "cb([2, 1]);"
+    assert resp.text == "cb([2,1]);"
 
 
 def test_query_param_handling(client, patch_db_query):
@@ -301,15 +304,17 @@ def test_upload_bad_image_redirects_errcode_3(client, monkeypatch):
     assert resp.headers["location"] == "http://testserver/?errcode=3&errmsg=Invalid+Image"
 
 
-def test_upload2_success_bare_json(client, patch_save_image):
+def test_upload2_success_json_response(client, patch_save_image):
     resp = client.post(
         "/b/upload2",
         data={"olid": "OL9M"},
         files={"data": ("a.png", b"PNGDATA", "image/png")},
     )
     assert resp.status_code == 200
-    assert resp.content == b'{"ok": "true", "id": 99}'
-    assert "content-type" not in resp.headers
+    assert resp.headers["content-type"] == "application/json"
+    assert resp.json() == {"ok": "true", "id": 99}
+    # ok stays the legacy string literal "true" for consumer compatibility
+    assert b'"ok":"true"' in resp.content
     assert patch_save_image["data"] == b"PNGDATA"
 
 

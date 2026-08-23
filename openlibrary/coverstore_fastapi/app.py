@@ -15,9 +15,11 @@ import json
 import logging
 import os
 import urllib.parse
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, Path, Request, Response
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 from starlette.convertors import Convertor, register_url_convertor
 from starlette.datastructures import FormData, UploadFile
@@ -87,6 +89,46 @@ INDEX_HTML = (
 Category = Annotated[str, Path()]
 Key = Annotated[str, Path()]
 Value = Annotated[str, Path()]
+
+
+class CoverDetailsResponse(BaseModel):
+    """A cover row; field order matches the cover table columns."""
+
+    id: int
+    category_id: int | None = None
+    olid: str | None = None
+    filename: str | None = None
+    filename_s: str | None = None
+    filename_m: str | None = None
+    filename_l: str | None = None
+    author: str | None = None
+    ip: str | None = None
+    source_url: str | None = None
+    source: str | None = None
+    isbn: str | None = None
+    width: int | None = None
+    height: int | None = None
+    failed: bool | None = None
+    archived: bool | None = None
+    uploaded: bool | None = None
+    deleted: bool | None = None
+    created: datetime.datetime
+    last_modified: datetime.datetime
+
+
+class CoverQueryDetail(BaseModel):
+    id: int
+    olid: str | None = None
+    created: datetime.datetime
+    last_modified: datetime.datetime
+    source_url: str | None = None
+    width: int | None = None
+    height: int | None = None
+
+
+class Upload2Success(BaseModel):
+    ok: Literal["true"]
+    id: int
 
 
 def form_str(form: FormData, name: str) -> str | None:
@@ -226,33 +268,15 @@ async def cover(category: Category, key: Key, value: Value, request: Request) ->
 @app.get("/{category:legacyseg}/{key:legacykey}/{value:legacyvalue}.json")
 async def cover_details(request: Request, category: Category, key: Key, value: Value) -> Response:
     if key == "id":
-        # Legacy quirk: code.py sets the application/json content type before
-        # looking up the row, so a db error (e.g. non-numeric id) yields a 500
-        # carrying both content types.
         try:
             d = await db.details(value)
         except Exception:
-            resp = Response(content="internal server error", status_code=500)
-            resp.headers.append("content-type", "application/json")
-            resp.headers.append("content-type", "text/html")
-            return resp
+            return html_response("internal server error", status_code=500)
         if d:
-            d = dict(d)
-            if isinstance(d["created"], datetime.datetime):
-                d["created"] = d["created"].isoformat()
-                d["last_modified"] = d["last_modified"].isoformat()
-            return Response(
-                content=json.dumps(d),
-                media_type="application/json",
-            )
+            details = CoverDetailsResponse.model_validate(dict(d))
+            return JSONResponse(content=details.model_dump(mode="json"))
         else:
-            # Legacy quirk: this 404 carries two Content-Type headers because
-            # code.py set application/json before raising web.notfound(""),
-            # and the raised error renders its default "not found" message.
-            resp = Response(content="not found", status_code=404)
-            resp.headers.append("content-type", "application/json")
-            resp.headers.append("content-type", "text/html; charset=utf-8")
-            return resp
+            return html_response("not found", status_code=404, charset=True)
     else:
         cover_id = await lookup.query_cover_id(category, key, value)
         if cover_id is None:
@@ -280,29 +304,19 @@ async def query(category: Category, request: Request) -> Response:
         olid_param = olid
     result = await db.query(category, olid_param, offset=offset, limit=limit)
 
-    json_data: Any
+    payload: Any
     if cmd == "ids":
-        json_data = json.dumps({r["olid"]: r["id"] for r in result})
+        payload = {r["olid"]: r["id"] for r in result}
     elif not details:
-        json_data = json.dumps([r["id"] for r in result])
+        payload = [r["id"] for r in result]
     else:
+        payload = [CoverQueryDetail.model_validate(dict(r)).model_dump(mode="json") for r in result]
 
-        def process(r):
-            return {
-                "id": r["id"],
-                "olid": r["olid"],
-                "created": r["created"].isoformat(),
-                "last_modified": r["last_modified"].isoformat(),
-                "source_url": r["source_url"],
-                "width": r["width"],
-                "height": r["height"],
-            }
-
-        json_data = json.dumps([process(r) for r in result])
+    data = json.dumps(payload, separators=(",", ":"))  # FastAPI/JSONResponse style
     if callback:
-        return Response(content=f"{callback}({json_data});", headers={"content-type": "text/javascript"})
+        return Response(content=f"{callback}({data});", headers={"content-type": "text/javascript"})
     else:
-        return Response(content=json_data, headers={"content-type": "text/javascript"})
+        return JSONResponse(content=payload, headers={"content-type": "text/javascript"})
 
 
 @app.post("/{category:legacyseg}/upload")
@@ -402,7 +416,8 @@ async def upload2(category: Category, request: Request) -> Response:
     except ValueError:
         return error(ERROR_BAD_IMAGE)
 
-    return bare(json.dumps({"ok": "true", "id": d["id"]}))
+    ok = Upload2Success(ok="true", id=d["id"])
+    return JSONResponse(content=ok.model_dump())
 
 
 @app.post("/{category:legacyseg}/touch")
