@@ -1,9 +1,11 @@
 """The FastAPI coverstore application.
 
-A 100% API-compatible reimplementation of openlibrary/coverstore/code.py.
-Response quirks of the legacy web.py server (missing Content-Type headers on
-plain responses, "text/html" vs "text/html; charset=utf-8", exact redirect
-statuses, etc.) are intentionally reproduced.
+An API-compatible reimplementation of openlibrary/coverstore/code.py built on
+modern FastAPI patterns (Pydantic responses, async DB/HTTP). Legacy behavior
+is reproduced exactly -- redirect statuses/bodies, cache validation, error
+codes, CORS everywhere -- except where it was an outright defect: duplicate
+Content-Type headers on .json error pages are fixed (in both implementations),
+and JSON goes through FastAPI's serializer.
 """
 
 import array
@@ -601,8 +603,8 @@ def get_tarindex_path(index: int, size: str) -> str:
 
 def parse_tarindex(file: io.TextIOBase) -> tuple[array.array, array.array]:
     """Takes tarindex file as file objects and returns arrays of offsets and sizes. The size of the returned arrays will be 10000."""
-    array_offset = array.array("L", [0 for _ in range(10000)])
-    array_size = array.array("L", [0 for _ in range(10000)])
+    array_offset = array.array("L", [0] * 10000)
+    array_size = array.array("L", [0] * 10000)
 
     for line in file:
         line = line.strip()

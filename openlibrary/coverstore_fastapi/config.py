@@ -9,7 +9,6 @@ from typing import Any
 
 import yaml
 
-image_engine = "pil"
 image_sizes: dict[str, tuple[int, int]] = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
 
 default_image: str | None = None
@@ -29,10 +28,6 @@ blocked_covers: list[int] = []
 # Covers with id < IMAGES_PER_ITEM * max_coveritem_index are assumed to be
 # moved to the archive.org cluster.
 max_coveritem_index = 0
-
-
-def get(name: str, default=None):
-    return globals().get(name, default)
 
 
 def load_config(configfile: str) -> None:

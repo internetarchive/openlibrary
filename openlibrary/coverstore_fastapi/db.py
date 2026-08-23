@@ -88,20 +88,9 @@ async def get_category_id(category: str) -> int | None:
     return _categories.get(category)
 
 
-async def new(
-    category: str,
-    olid: str | None,
-    filename: str,
-    filename_s: str,
-    filename_m: str,
-    filename_l: str,
-    author: str | None,
-    ip: str | None,
-    source_url: str | None,
-    width: int,
-    height: int,
-) -> int:
-    category_id = await get_category_id(category)
+async def new(row: dict[str, Any]) -> int:
+    """Inserts a cover row (+ log entry) from a covers.save_image payload."""
+    category_id = await get_category_id(row["category"])
     now = utils.utcnow()
 
     async with _connection() as conn, conn.cursor() as cur:
@@ -113,16 +102,16 @@ async def new(
             " RETURNING id",
             (
                 category_id,
-                filename,
-                filename_s,
-                filename_m,
-                filename_l,
-                olid,
-                author,
-                ip,
-                source_url,
-                width,
-                height,
+                row["filename"],
+                row["filename_s"],
+                row["filename_m"],
+                row["filename_l"],
+                row["olid"],
+                row["author"],
+                row["ip"],
+                row["source_url"],
+                row["width"],
+                row["height"],
                 now,
                 now,
             ),

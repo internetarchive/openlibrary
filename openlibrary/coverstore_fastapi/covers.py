@@ -15,8 +15,6 @@ from openlibrary.coverstore_fastapi.utils import random_string
 
 logger = getLogger("openlibrary.coverstore_fastapi.covers")
 
-__all__ = ["read_file", "read_image", "save_image"]
-
 
 async def save_image(data: bytes, category: str, olid: str | None, author=None, ip=None, source_url=None) -> dict[str, Any]:
     """Save the provided image data, create thumbnails and add a db entry.
@@ -43,19 +41,7 @@ async def save_image(data: bytes, category: str, olid: str | None, author=None, 
     d["filename_s"] = prefix + "-S.jpg"
     d["filename_m"] = prefix + "-M.jpg"
     d["filename_l"] = prefix + "-L.jpg"
-    d["id"] = await db.new(
-        category=d["category"],
-        olid=d["olid"],
-        filename=d["filename"],
-        filename_s=d["filename_s"],
-        filename_m=d["filename_m"],
-        filename_l=d["filename_l"],
-        author=d["author"],
-        ip=d["ip"],
-        source_url=d["source_url"],
-        width=d["width"],
-        height=d["height"],
-    )
+    d["id"] = await db.new(d)
     return d
 
 
