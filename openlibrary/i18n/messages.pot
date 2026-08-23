@@ -1165,14 +1165,6 @@ msgstr ""
 msgid "No ISBN"
 msgstr ""
 
-#: account/loan_history.html account/loans.html
-msgid "No loans found in your borrow history."
-msgstr ""
-
-#: account/loan_history.html account/loans.html
-msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
-
 #: account/loans.html
 #, python-format
 msgid "Active Loan (%(count)d)"
@@ -1277,6 +1269,14 @@ msgstr ""
 
 #: account/loans.html
 msgid "Loan History"
+msgstr ""
+
+#: account/loans.html
+msgid "No loans found in your borrow history."
+msgstr ""
+
+#: account/loans.html
+msgid "<a href=\"/search\">Search for a book</a> to borrow."
 msgstr ""
 
 #: account/loans.html
