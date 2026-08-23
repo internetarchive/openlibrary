@@ -1151,6 +1151,19 @@ def get_loan_history_data(username: str, page: int) -> dict:
     s3_keys = get_s3_keys(account)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
+
+    # get_s3_keys() is `dict | None`: it returns None for a patron with no `s3`
+    # session cookie and no `s3_keys` in the account store. s3_loan_api() would
+    # then evaluate `s3_keys | kwargs` and raise
+    # `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
+    # /account/loans renders this history inline with no try/except of its own,
+    # so that TypeError takes down the whole page -- including the active-loans
+    # table, which has nothing to do with IA history. Degrade to an empty
+    # history instead, and say so in the log rather than failing silently.
+    if not s3_keys:
+        logger.warning("No IA S3 keys for %s; returning empty loan history", username)
+        return {"docs": [], "show_next": False, "limit": limit, "page": page}
+
     response = s3_loan_api(
         s3_keys=s3_keys,
         action="user_borrow_history",
