@@ -199,6 +199,8 @@ identifiers:
     notes: ''
     url: http://www.magcloud.com/browse/Issue/@@@
     website: http://www.magcloud.com
+-   label: MD5
+    name: md5
 -   label: MusicBrainz
     name: musicbrainz
     url: https://musicbrainz.org/release/@@@
