@@ -16,6 +16,8 @@ $if work:
   $ state = (reading_state or {}).get(work_key) or {}
   $ shelf = state.get('shelf')
   $ rating = state.get('rating')
+  $ last_read_date = state.get('last_read_date')
+  $ event_id = state.get('event_id')
   $ labels = labels if labels is not None else render_template('my_books/book_actions_i18n')
 
   <ol-shelf-button
@@ -31,12 +33,11 @@ $if work:
       shelf="$shelf"
     $if rating:
       rating="$rating"
+    $if last_read_date:
+      read-date="$last_read_date"
+    $if event_id:
+      event-id="$event_id"
     $if hide_rating:
       hide-rating
     labels="$:labels"
   ></ol-shelf-button>
-
-  $# The check-in prompt is a sibling, as it was under the dropper —
-  $# js/my-books/shelf-button-check-ins.js keeps it in step with the button.
-  $if ctx.user:
-    $:render_template('my_books/check_ins/check_in_prompt', work_key, shelf, edition_key=edition_key, last_read_date=state.get('last_read_date'), event_id=state.get('event_id'))

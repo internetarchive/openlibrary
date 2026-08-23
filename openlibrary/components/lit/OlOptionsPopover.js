@@ -149,7 +149,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             width: 16px;
             height: 16px;
             margin: 2px 0 0;
-            accent-color: var(--primary-blue);
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 

@@ -88,7 +88,7 @@ export class CheckInComponents {
 
     initialize() {
         this.checkInPrompt.initialize();
-        this.checkInPrompt.getRootElement().addEventListener('submit-check-in', (event) => {
+        this.checkInPrompt.getRootElement()?.addEventListener('submit-check-in', (event) => {
             const year = event.detail.year;
             const month = event.detail.month;
             const day = event.detail.day;
@@ -342,17 +342,22 @@ export class CheckInComponents {
  * Adds functionality to the component containing the "When did you finish this book?"
  * prompt.
  *
+ * Surfaces that ask for the date somewhere else render the container without a
+ * prompt, so every method here has to survive a missing root element.
+ *
  * @class
  */
 class CheckInPrompt {
     /**
-     * @param {HTMLElement} checkInPrompt
+     * @param {HTMLElement|null} checkInPrompt
      */
     constructor(checkInPrompt) {
         this.rootElem = checkInPrompt;
     }
 
     initialize() {
+        if (!this.rootElem) return;
+
         const yearLink = this.rootElem.querySelector('.prompt-current-year');
         yearLink.addEventListener('click', () => {
             // Get the current year
@@ -388,26 +393,26 @@ class CheckInPrompt {
                 day: day
             }
         });
-        this.rootElem.dispatchEvent(submitEvent);
+        this.rootElem?.dispatchEvent(submitEvent);
     }
 
     /**
      * Hides this check-in prompt.
      */
     hide() {
-        this.rootElem.classList.add('hidden');
+        this.rootElem?.classList.add('hidden');
     }
 
     /**
      * Shows this check-in prompt.
      */
     show() {
-        this.rootElem.classList.remove('hidden');
+        this.rootElem?.classList.remove('hidden');
     }
 
     /**
      * Returns reference to the root element of this check-in prompt.
-     * @returns {HTMLElement}
+     * @returns {HTMLElement|null}
      */
     getRootElement() {
         return this.rootElem;

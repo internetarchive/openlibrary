@@ -1,4 +1,4 @@
-$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None)
+$def with (work_key, read_status, edition_key=None, last_read_date=None, event_id=None, show_prompt=True)
 
 $# work_key : str : The work key
 $# read_status : int | None : Number representing which shelf this work is on.
@@ -11,6 +11,9 @@ $#    None : Work is not on the patron's shelf
 $# edition_key : str | None : The edition key
 $# last_read_date : str | None : Date that the patron last read the book
 $# event_id : str | None : ID of record for this event
+$# show_prompt : bool : Whether to ask for a date here. False where the surface
+$#    asks somewhere else — <ol-book-actions> asks inside its own popover — and
+$#    only the "Read <date>" display and its edit form are wanted.
 
 $code:
   work_olid = work_key.split('/')[-1]
@@ -38,16 +41,17 @@ $code:
       </span>
     </div>
 
-    $ display_prompt = read_status == 3
-    <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
-      <span class="prompt-copy">$_("When did you finish this book?")</span>
-      <span class="prompt-options">
-        $ year = current_year()
-        <a class="prompt-current-year use-local-year" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCurrentYear" data-server-year="$year">$year</a>
-        <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
-        <a class="prompt-custom check-in-trigger dialog--open" href="javascript:;" aria-controls="$modal_id" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
-      </span>
-    </div>
+    $if show_prompt:
+      $ display_prompt = read_status == 3
+      <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
+        <span class="prompt-copy">$_("When did you finish this book?")</span>
+        <span class="prompt-options">
+          $ year = current_year()
+          <a class="prompt-current-year use-local-year" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCurrentYear" data-server-year="$year">$year</a>
+          <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
+          <a class="prompt-custom check-in-trigger dialog--open" href="javascript:;" aria-controls="$modal_id" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
+        </span>
+      </div>
     $if render_once("check-in-form-template"):
       <div class="hidden">
         <div id="check-in-form-modal" class="floaterAdd">

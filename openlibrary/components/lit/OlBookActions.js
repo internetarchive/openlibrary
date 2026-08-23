@@ -76,6 +76,40 @@ function MONTHS() {
     return _months;
 }
 
+/**
+ * A check-in date for display. The schema stores partial dates, so "2026",
+ * "2026-08" and "2026-08-22" are all valid and each shows only what is known.
+ */
+function formatReadDate(value) {
+    const [year, month, day] = String(value).split('-').map(Number);
+    if (!year) return '';
+    const lang = document.documentElement.lang || 'en';
+    const options = month
+        ? (day ? { year: 'numeric', month: 'short', day: 'numeric' } : { year: 'numeric', month: 'short' })
+        : null;
+    if (!options) return String(year);
+    return new Intl.DateTimeFormat(lang, options).format(new Date(year, month - 1, day || 1));
+}
+
+/**
+ * The years offered as one tap. For the first 30 days of a new year the year
+ * just gone stays on offer: that is when a reader is most likely logging
+ * something they finished before the turn, and "In 2025" on 25 January saves
+ * them the date picker.
+ */
+export function quickYears(now = new Date()) {
+    const year = now.getFullYear();
+    const daysIn = Math.floor((now - new Date(year, 0, 1)) / 86400000);
+    return daysIn < 30 ? [year, year - 1] : [year];
+}
+
+/** The inverse: `{year, month, day}` as the schema stores it. */
+function partialDate({ year, month, day }) {
+    const pad = n => String(n).padStart(2, '0');
+    if (!month) return String(year);
+    return day ? `${year}-${pad(month)}-${pad(day)}` : `${year}-${pad(month)}`;
+}
+
 // One in-flight lists request shared by every popover on the page.
 let _listsPromise = null;
 /** Drop the shared lists cache (tests, or after a mutation elsewhere). */
@@ -98,12 +132,23 @@ export function resetListsCache() {
  * @prop {Object} book     - `{ key, title, firstPublishYear?, editionKey? }`
  * @prop {Number} shelf    - Current shelf id (1–4) or null
  * @prop {Number} rating   - Current rating (1–5) or null
+ * @prop {String} readDate - The check-in date, whole or partial ("2026",
+ *     "2026-08", "2026-08-22"), or null when the reader has not given one
+ * @prop {Number} eventId - Id of that check-in, so changing the date edits it
+ *     rather than recording a second finish
  * @prop {String} userKey  - "/people/<username>", needed to create lists
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
+ * @fires ol-book-check-in - After a finish date is accepted by the server, so
+ *     the surface can hand it back. detail: { key, date, eventId } — `date` is
+ *     whole or partial, as stored.
+ * @fires ol-list-created - After the inline form creates a list, so sibling
+ *     popovers and any legacy droppers on the page can add the row. The legacy
+ *     side dispatches the same event on `document` when it creates one.
+ *     detail: { key, name, seedKey }
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -112,6 +157,8 @@ export class OlBookActions extends LitElement {
         book: { type: Object },
         shelf: { type: Number },
         rating: { type: Number },
+        readDate: { type: String, attribute: 'read-date' },
+        eventId: { type: Number, attribute: 'event-id' },
         userKey: { type: String, attribute: 'user-key' },
         labels: { type: Object },
         placement: { type: String },
@@ -297,6 +344,32 @@ export class OlBookActions extends LitElement {
             }
         }
 
+        /* Press feedback, the same tactile squeeze <ol-button> gives: colour
+           changes are instant, only the scale animates. A row has no resting
+           fill, so the press paints one — on touch, where :hover never runs,
+           there would otherwise be nothing to squeeze. */
+        .row,
+        .list-row {
+            transition: transform 0.08s;
+        }
+
+        .row:active,
+        .list-row:active {
+            background: var(--color-hover-overlay);
+            transform: scale(0.97);
+        }
+
+        /* Except the shelf rows: clicking one re-renders it — label weight and
+           colour change, a check mark appears — and re-laying out mid-scale
+           reads as a flicker. They keep the press fill, not the squeeze. */
+        .group.shelves .row {
+            transition: none;
+        }
+
+        .group.shelves .row:active {
+            transform: none;
+        }
+
         .row:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             outline-offset: -2px;
@@ -349,6 +422,16 @@ export class OlBookActions extends LitElement {
             color: var(--gold);
         }
 
+        /* Icon-only, so 3% would be sub-pixel — <ol-button> presses its icon
+           shapes harder for the same reason. */
+        .star {
+            transition: transform 0.08s;
+        }
+
+        .star:active {
+            transform: scale(0.93);
+        }
+
         .star:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             border-radius: var(--border-radius-sm);
@@ -386,6 +469,28 @@ export class OlBookActions extends LitElement {
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
+        }
+
+        /* A disclosure, not a link onwards: the chevron points down at the
+           fields the row opens and flips once they are showing. */
+        .date-toggle .trail {
+            transition: transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .date-toggle[aria-expanded='true'] .trail {
+            transform: rotate(180deg);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .date-toggle .trail {
+                transition: none;
+            }
+        }
+
+        /* Sits directly under the row that opened it, so the gap reads as a
+           seam between row and fields rather than a new section. */
+        .date-form {
+            padding-top: var(--spacing-inset-xs);
         }
 
         /* Three selects on one line only fit at small size — the same height
@@ -651,7 +756,7 @@ export class OlBookActions extends LitElement {
                     >
                         <ol-icon class="obd-icon" name=${row.icon}></ol-icon>
                         <span class="label">${this.t(row.label)}</span>
-                        ${this.shelf === row.id ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+                        ${this._renderShelfTrail(row)}
                     </button>
                 `)}
             </div>
@@ -669,6 +774,21 @@ export class OlBookActions extends LitElement {
                 </button>
             </div>
         `;
+    }
+
+    /**
+     * The end of a shelf row. Already Read carries the date it holds and a
+     * chevron, because it leads to the date pane; the others only mark the
+     * shelf the book is on.
+     */
+    _renderShelfTrail(row) {
+        if (row.id === SHELF.ALREADY_READ) {
+            return html`
+                ${this.readDate ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
+                <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
+            `;
+        }
+        return this.shelf === row.id ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing;
     }
 
     _renderStars() {
@@ -701,15 +821,31 @@ export class OlBookActions extends LitElement {
     }
 
     /**
+     * Which row the recorded date is, so the pane shows the answer it already
+     * holds instead of reading as unanswered. Anything that is neither exactly
+     * today nor one of the offered years — a partial date included — belongs
+     * to "Other date".
+     */
+    get _answeredBy() {
+        if (!this.readDate) return null;
+        const now = new Date();
+        if (this.readDate === partialDate({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() })) return 'today';
+        if (quickYears(now).some(y => this.readDate === String(y))) return this.readDate;
+        return 'other';
+    }
+
+    /**
      * Asked straight after the reader marks a book read. Two one-tap answers
-     * cover most cases; "Other date" swaps in the selects rather than taking a
-     * fourth pane, the same way the lists pane swaps in its create form.
+     * cover most cases; "Other date" discloses the selects underneath itself
+     * rather than replacing the rows or taking a fourth pane, so the two quick
+     * answers stay one tap away and the row you pressed stays on screen as the
+     * anchor. The track measures the pane, so the growth animates for free.
      *
      * A year on its own is a valid check-in, which is what makes "In 2026"
      * offerable at all.
      */
     _renderCheckIn() {
-        const thisYear = new Date().getFullYear();
+        const answered = this._answeredBy;
         return html`
             <div class="pane-header">
                 <button type="button" class="back" @click=${this._backToMain}>
@@ -717,23 +853,47 @@ export class OlBookActions extends LitElement {
                 </button>
             </div>
             <div class="caption">${this.t('whenFinished')}</div>
-            ${this._pickingDate ? this._renderDateFields() : html`
-                <div class="group" role="group">
-                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._onToday}>
-                        <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
-                        <span class="label">${this.t('today')}</span>
-                    </button>
-                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._onThisYear}>
+            <div class="group" role="group">
+                <button
+                    type="button"
+                    class="row"
+                    aria-current=${answered === 'today' ? 'true' : 'false'}
+                    ?disabled=${this._dateBusy}
+                    @click=${this._onToday}
+                >
+                    <ol-icon class="obd-icon" name="calendar-check"></ol-icon>
+                    <span class="label">${this.t('today')}</span>
+                    ${answered === 'today' ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+                </button>
+                ${quickYears().map(year => html`
+                    <button
+                        type="button"
+                        class="row year"
+                        aria-current=${answered === String(year) ? 'true' : 'false'}
+                        ?disabled=${this._dateBusy}
+                        @click=${() => this._onYear(year)}
+                    >
                         <ol-icon class="obd-icon" name="calendar"></ol-icon>
-                        <span class="label">${this.t('inYear', { year: thisYear })}</span>
+                        <span class="label">${this.t('inYear', { year })}</span>
+                        ${answered === String(year) ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
                     </button>
-                    <button type="button" class="row" ?disabled=${this._dateBusy} @click=${this._startPickingDate}>
-                        <ol-icon class="obd-icon" name="calendar-days"></ol-icon>
-                        <span class="label">${this.t('otherDate')}</span>
-                        <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
-                    </button>
-                </div>
-            `}
+                `)}
+                <button
+                    type="button"
+                    class="row date-toggle"
+                    aria-current=${answered === 'other' ? 'true' : 'false'}
+                    aria-expanded=${this._pickingDate}
+                    aria-controls="date-fields"
+                    ?disabled=${this._dateBusy}
+                    @click=${this._toggleDatePicker}
+                >
+                    <ol-icon class="obd-icon" name="calendar-days"></ol-icon>
+                    <span class="label">${this.t('otherDate')}</span>
+                    ${answered === 'other' ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
+                    <ol-icon class="obd-icon trail" name="chevron-down"></ol-icon>
+                </button>
+            </div>
+            ${this._pickingDate ? this._renderDateFields() : nothing}
         `;
     }
 
@@ -744,19 +904,28 @@ export class OlBookActions extends LitElement {
         const years = Array.from({ length: 121 }, (_, i) => thisYear - i);
         const days = month ? new Date(Number(year), Number(month), 0).getDate() : 31;
         return html`
-            <form @submit=${this._onSaveDate}>
+            <form
+                id="date-fields"
+                class="date-form"
+                @submit=${this._onSaveDate}
+                @keydown=${e => { if (e.key === 'Escape') { e.stopPropagation(); this._toggleDatePicker(); } }}
+            >
+                <!-- Selection rides on each option's .selected rather than the
+                     select's .value: Lit commits the select's own bindings
+                     before its children, so a .value set from a seeded date
+                     lands on an empty select and is dropped. -->
                 <div class="date-fields">
-                    <select class="select year" aria-label=${this.t('year')} .value=${year} @change=${e => this._setDatePart('year', e.target.value)}>
-                        <option value="">${this.t('year')}</option>
-                        ${years.map(y => html`<option value=${y}>${y}</option>`)}
+                    <select class="select year" aria-label=${this.t('year')} @change=${e => this._setDatePart('year', e.target.value)}>
+                        <option value="" .selected=${!year}>${this.t('year')}</option>
+                        ${years.map(y => html`<option value=${y} .selected=${String(y) === year}>${y}</option>`)}
                     </select>
-                    <select class="select" aria-label=${this.t('month')} ?disabled=${!year} .value=${month} @change=${e => this._setDatePart('month', e.target.value)}>
-                        <option value="">${this.t('month')}</option>
-                        ${MONTHS().map((name, i) => html`<option value=${i + 1}>${name}</option>`)}
+                    <select class="select" aria-label=${this.t('month')} ?disabled=${!year} @change=${e => this._setDatePart('month', e.target.value)}>
+                        <option value="" .selected=${!month}>${this.t('month')}</option>
+                        ${MONTHS().map((name, i) => html`<option value=${i + 1} .selected=${String(i + 1) === month}>${name}</option>`)}
                     </select>
-                    <select class="select" aria-label=${this.t('day')} ?disabled=${!month} .value=${day} @change=${e => this._setDatePart('day', e.target.value)}>
-                        <option value="">${this.t('day')}</option>
-                        ${Array.from({ length: days }, (_, i) => i + 1).map(d => html`<option value=${d}>${d}</option>`)}
+                    <select class="select" aria-label=${this.t('day')} ?disabled=${!month} @change=${e => this._setDatePart('day', e.target.value)}>
+                        <option value="" .selected=${!day}>${this.t('day')}</option>
+                        ${Array.from({ length: days }, (_, i) => i + 1).map(d => html`<option value=${d} .selected=${String(d) === day}>${d}</option>`)}
                     </select>
                 </div>
                 <div class="date-actions">
@@ -842,10 +1011,32 @@ export class OlBookActions extends LitElement {
         if (changed.has('_pane')) this._syncTrackHeight();
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        document.addEventListener('ol-list-created', this._onListCreatedElsewhere);
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback();
         this._resizeObserver?.disconnect();
+        document.removeEventListener('ol-list-created', this._onListCreatedElsewhere);
     }
+
+    /**
+     * A list created elsewhere on the page — a sibling popover or the legacy
+     * dropper — folded into this popover's pane so it stays honest without a
+     * refetch. Legacy creations also drop the shared cache: popovers that have
+     * not loaded yet must not resolve from a promise that predates the list.
+     */
+    _onListCreatedElsewhere = (e) => {
+        if (e.target === this) return;
+        const { key, name, seedKey } = e.detail || {};
+        if (!key) return;
+        if (e.target?.tagName !== 'OL-BOOK-ACTIONS') resetListsCache();
+        if (this._lists && !(key in this._lists)) {
+            this._lists = { [key]: { listName: name, members: seedKey ? [seedKey] : [] }, ...this._lists };
+        }
+    };
 
     /** Size the track to the active pane so the panel doesn't stretch to the taller one. */
     _syncTrackHeight() {
@@ -903,6 +1094,12 @@ export class OlBookActions extends LitElement {
 
     async _onShelfClick(shelfId) {
         const previous = this.shelf;
+        // Already Read leads to the date pane — that is what its chevron says,
+        // and it is the only way to change a date once given. Coming off the
+        // shelf is the main button's job.
+        if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
+            return this._openCheckIn();
+        }
         const removing = previous === shelfId;
         this.shelf = removing ? null : shelfId;
         this._busy = true;
@@ -952,16 +1149,25 @@ export class OlBookActions extends LitElement {
 
     async _openCheckIn() {
         this._pane = 'checkIn';
-        this._pickingDate = false;
-        this._date = { year: '', month: '', day: '' };
+        // A date the shortcuts cannot express would otherwise sit unseen
+        // behind a collapsed row, so the pane opens on it. Focus still lands
+        // on the first row: the reader is being shown their answer, not asked
+        // to retype it.
+        this._pickingDate = this._answeredBy === 'other';
+        // Seeded from the date already given, so "Other date" opens on it
+        // rather than making the reader re-enter what they are amending.
+        const [year = '', month = '', day = ''] = (this.readDate || '').split('-');
+        this._date = { year, month: month.replace(/^0/, ''), day: day.replace(/^0/, '') };
         await this.updateComplete;
         this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('checkIn') + 1}) .row`)?.focus({ preventScroll: true });
     }
 
-    async _startPickingDate() {
-        this._pickingDate = true;
+    /** Focus follows the disclosure: into the selects, and back to the row on collapse. */
+    async _toggleDatePicker() {
+        this._pickingDate = !this._pickingDate;
         await this.updateComplete;
-        this.shadowRoot.querySelector('.select.year')?.focus({ preventScroll: true });
+        const target = this._pickingDate ? '.select.year' : '.date-toggle';
+        this.shadowRoot.querySelector(target)?.focus({ preventScroll: true });
     }
 
     /** Clearing a coarser part clears the finer ones, which the selects disable. */
@@ -977,8 +1183,8 @@ export class OlBookActions extends LitElement {
         return this._saveCheckIn({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() });
     }
 
-    _onThisYear() {
-        return this._saveCheckIn({ year: new Date().getFullYear() });
+    _onYear(year) {
+        return this._saveCheckIn({ year });
     }
 
     _onSaveDate(e) {
@@ -996,8 +1202,13 @@ export class OlBookActions extends LitElement {
         if (this._dateBusy) return;
         this._dateBusy = true;
         try {
-            await setCheckIn(this.book.key, { ...date, editionKey: this.book.editionKey });
+            const saved = await setCheckIn(this.book.key, { ...date, editionKey: this.book.editionKey, eventId: this.eventId });
             trackEvent('CheckInPrompt', date.day ? 'SetDateDay' : date.month ? 'SetDateMonth' : 'SetDateYear');
+            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.book.key, date: partialDate(date), eventId: saved?.id ?? this.eventId ?? null },
+            }));
             this._backToMain();
         } catch (error) {
             this._fail(error);
@@ -1082,11 +1293,16 @@ export class OlBookActions extends LitElement {
         try {
             const created = await createList(this.userKey, name, this._seedKey);
             trackEvent('Lists', 'CreateList');
-            // Prepend so the new list is visible immediately; the shared cache
-            // is the same object, so sibling popovers see it too.
+            // Prepend so the new list is visible immediately. Sibling popovers
+            // and the legacy dropper hear about it through `ol-list-created`.
             this._lists = { [created.key]: { listName: name, members: [this._seedKey] }, ...this._lists };
             _listsPromise = Promise.resolve(this._lists);
             this._creating = false;
+            this.dispatchEvent(new CustomEvent('ol-list-created', {
+                bubbles: true,
+                composed: true,
+                detail: { key: created.key, name, seedKey: this._seedKey },
+            }));
         } catch (error) {
             this._fail(error);
         } finally {

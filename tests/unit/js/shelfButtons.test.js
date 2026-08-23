@@ -5,24 +5,9 @@
  * is written to the server and then dropped on the floor: the label keeps
  * showing whatever the server rendered. These tests pin that, plus the two
  * things that only work because the state is applied centrally — duplicate
- * cards for one work staying in step, and the check-in prompt following along.
+ * cards for one work staying in step, and the finish date the popover shows.
  */
 import { initShelfButtons } from '../../../openlibrary/plugins/openlibrary/js/my-books/shelf-buttons';
-
-const instances = [];
-
-jest.mock('../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents', () => ({
-    CheckInComponents: jest.fn().mockImplementation(function() {
-        this.readDate = false;
-        this.initialize = jest.fn();
-        this.hasReadDate = jest.fn(() => this.readDate);
-        this.showCheckInPrompt = jest.fn();
-        this.hideCheckInPrompt = jest.fn();
-        this.hideCheckInDisplay = jest.fn();
-        this.resetForm = jest.fn();
-        instances.push(this);
-    }),
-}));
 
 /** A stand-in for the upgraded element: the module only sets properties. */
 function button(workKey) {
@@ -34,23 +19,20 @@ function button(workKey) {
     return el;
 }
 
-function checkInContainer(olid) {
-    const el = document.createElement('div');
-    el.id = `check-in-container-${olid}`;
-    document.body.appendChild(el);
-    return el;
-}
-
 function change(key, shelf, rating = null) {
     document.dispatchEvent(new CustomEvent('ol-book-state-change', {
         bubbles: true, composed: true, detail: { key, shelf, rating },
     }));
 }
 
+function checkIn(key, date, eventId = 7) {
+    document.dispatchEvent(new CustomEvent('ol-book-check-in', {
+        bubbles: true, composed: true, detail: { key, date, eventId },
+    }));
+}
+
 afterEach(() => {
     document.body.innerHTML = '';
-    instances.length = 0;
-    jest.clearAllMocks();
 });
 
 describe('applying reported state', () => {
@@ -87,48 +69,36 @@ describe('applying reported state', () => {
     });
 });
 
-describe('keeping the check-in prompt in step', () => {
-    test('reaching Already Read with no date asks for one', () => {
+describe('keeping the read date in step', () => {
+    test('a date saved in the popover lands on the button', () => {
         const el = button('/works/OL1W');
-        checkInContainer('OL1W');
         initShelfButtons([el]);
-        change('/works/OL1W', 3);
-        expect(instances[0].showCheckInPrompt).toHaveBeenCalled();
+        checkIn('/works/OL1W', '2026-08-22', 12);
+        expect(el.readDate).toBe('2026-08-22');
+        expect(el.eventId).toBe(12);
     });
 
-    test('reaching Already Read with a date already recorded does not', () => {
+    test('a date for another work is left alone', () => {
         const el = button('/works/OL1W');
-        checkInContainer('OL1W');
         initShelfButtons([el]);
-        instances[0].readDate = true;
-        change('/works/OL1W', 3);
-        expect(instances[0].showCheckInPrompt).not.toHaveBeenCalled();
+        checkIn('/works/OL2W', '2026');
+        expect(el.readDate).toBeUndefined();
     });
 
-    test('coming off a shelf clears the prompt, the date and the form', () => {
+    test('coming off a shelf clears the date, which the server deletes too', () => {
         const el = button('/works/OL1W');
-        checkInContainer('OL1W');
         initShelfButtons([el]);
+        checkIn('/works/OL1W', '2026');
         change('/works/OL1W', null);
-        expect(instances[0].hideCheckInPrompt).toHaveBeenCalled();
-        expect(instances[0].hideCheckInDisplay).toHaveBeenCalled();
-        expect(instances[0].resetForm).toHaveBeenCalled();
+        expect(el.readDate).toBeNull();
+        expect(el.eventId).toBeNull();
     });
 
-    test('another shelf just hides the prompt', () => {
+    test('moving between shelves leaves the date alone', () => {
         const el = button('/works/OL1W');
-        checkInContainer('OL1W');
         initShelfButtons([el]);
+        checkIn('/works/OL1W', '2026');
         change('/works/OL1W', 2);
-        expect(instances[0].hideCheckInPrompt).toHaveBeenCalled();
-        expect(instances[0].hideCheckInDisplay).not.toHaveBeenCalled();
-    });
-
-    test('signed out there is no container, and state still applies', () => {
-        const el = button('/works/OL1W');
-        initShelfButtons([el]);
-        change('/works/OL1W', 1);
-        expect(instances).toHaveLength(0);
-        expect(el.shelf).toBe(1);
+        expect(el.readDate).toBe('2026');
     });
 });

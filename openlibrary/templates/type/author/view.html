@@ -165,8 +165,12 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
+                      $# One batch for the whole page: the shelf buttons would otherwise
+                      $# resolve shelf, rating and check-in per result.
+                      $ reading_state = get_patrons_reading_states([doc.key for doc in books.docs])
+                      $ shelf_labels = render_template('my_books/book_actions_i18n')
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0, use_shelf_button=True, reading_state=reading_state, shelf_labels=shelf_labels)
                     </ul>
                 </div>
 

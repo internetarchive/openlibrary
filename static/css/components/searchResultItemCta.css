@@ -20,7 +20,7 @@
    column, so the popover it opens lines up with the CTA above it. */
 .searchResultItemCTA .sri__shelf-button {
   display: block;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-sm);
 }
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {
