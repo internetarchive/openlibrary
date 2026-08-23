@@ -5154,6 +5154,10 @@ msgid "comments"
 msgstr ""
 
 #: my_books/book_actions_i18n.html
+msgid "Remove from shelf"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
 #, python-format
 msgid "Actions for %(title)s"
 msgstr ""
