@@ -28,10 +28,15 @@ from openlibrary.coverstore_fastapi import config, covers, db, lookup, oldb, uti
 logger = logging.getLogger("coverstore")
 
 
-class _LegacySegConvertor(Convertor):
-    """Legacy URL segment pattern ([^ /]*) -- allows empty segments."""
+class _RegexConvertor(Convertor):
+    """Path convertor whose regex comes from the constructor.
 
-    regex = r"[^ /]*"
+    Subclassed only to satisfy the Convertor protocol -- its parent declares
+    ``regex`` as a ClassVar, hence the type: ignore.
+    """
+
+    def __init__(self, regex: str) -> None:
+        self.regex = regex  # type: ignore[misc]
 
     def convert(self, value: str) -> str:
         return value
@@ -40,24 +45,15 @@ class _LegacySegConvertor(Convertor):
         return value
 
 
-class _LegacyKeyConvertor(_LegacySegConvertor):
-    regex = r"[a-zA-Z]*"
-
-
-class _LegacyValueConvertor(_LegacySegConvertor):
-    regex = r".*"
-
-
-class _SMLConvertor(_LegacySegConvertor):
-    regex = r"[SML]"
-
-
-# These constraints must be part of the route regex itself so that
-# non-matching URLs fall through to the next route exactly like web.py.
-register_url_convertor("legacyseg", _LegacySegConvertor())
-register_url_convertor("legacykey", _LegacyKeyConvertor())
-register_url_convertor("legacyvalue", _LegacyValueConvertor())
-register_url_convertor("sml", _SMLConvertor())
+# These patterns must live in the ROUTE regex itself so that non-matching URLs
+# fall through to the next route exactly like web.py's ordered url patterns.
+for _name, _pattern in {
+    "legacyseg": r"[^ /]*",  # category: any segment without spaces/slashes (may be empty)
+    "legacykey": r"[a-zA-Z]*",
+    "legacyvalue": r".*",  # value may span slashes and be empty
+    "sml": r"[SML]",  # cover size suffix
+}.items():
+    register_url_convertor(_name, _RegexConvertor(_pattern))
 
 
 @contextlib.asynccontextmanager
