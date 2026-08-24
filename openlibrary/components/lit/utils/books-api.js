@@ -16,8 +16,13 @@ export function olid(key) {
     return key.split('/').pop();
 }
 
+// testing.openlibrary.org only routes already-launched paths to FastAPI, but
+// exposes the whole FastAPI app under /_fast/ — so new endpoints work there
+// before their olsystem nginx routes exist. Production has no /_fast.
+const API_PREFIX = window.location.hostname === 'testing.openlibrary.org' ? '/_fast' : '';
+
 async function request(url, init) {
-    const response = await fetch(url, { credentials: 'same-origin', ...init });
+    const response = await fetch(API_PREFIX + url, { credentials: 'same-origin', ...init });
     if (!response.ok) {
         const error = new Error(`${init?.method || 'GET'} ${url} → ${response.status}`);
         error.status = response.status;
