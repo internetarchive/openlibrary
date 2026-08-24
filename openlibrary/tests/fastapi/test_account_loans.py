@@ -149,7 +149,8 @@ class TestAccountLoansJson:
 
         with (
             patch("openlibrary.core.lending.OpenLibraryAccount.get_by_username", return_value=mock_account),
-            patch("openlibrary.core.lending.get_s3_keys", return_value={"access": "acc", "secret": "sec"}),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "acc", "secret": "sec"}),
             patch("openlibrary.core.lending.s3_loan_api", return_value=mock_response) as mock_s3_loan_api,
             patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}) as mock_availability,
         ):

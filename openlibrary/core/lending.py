@@ -17,7 +17,7 @@ from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys
+from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
@@ -195,14 +195,14 @@ def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
 
-def get_groundtruth_availability(ocaid, s3_keys=None):
+async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else 5
+    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
     try:
-        response = httpx.post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.async_session.post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
     except httpx.TimeoutException:
         if os.getenv("LOCAL_DEV"):
@@ -222,7 +222,10 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return data
 
 
-def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
+get_groundtruth_availability = async_bridge.wrap(get_groundtruth_availability_async)
+
+
+async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
     """Uses patrons s3 credentials to initiate or return a browse or
     borrow loan on Archive.org.
 
@@ -237,7 +240,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = requests.post(url + params, data=data)
+    response = await ia.async_session.post(url + params, data=data, timeout=config_http_request_timeout)
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -245,6 +248,9 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
         raise PatronAccessException
     response.raise_for_status()
     return response
+
+
+s3_loan_api = async_bridge.wrap(s3_loan_api_async)
 
 
 async def get_available_async(
@@ -1145,17 +1151,16 @@ def get_loan_history_data(username: str, page: int) -> dict:
     """
     from infogami.utils.view import render
 
-    if not (account := OpenLibraryAccount.get_by_username(username)):
+    if not OpenLibraryAccount.get_by_username(username):
         raise render.notfound("Account not found for %s" % username, create=False)
 
-    s3_keys = get_s3_keys(account)
+    s3_keys = parse_s3_cookie(web.cookies().get("s3"))
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
 
-    # get_s3_keys() is `dict | None`: it returns None for a patron with no `s3`
-    # session cookie and no `s3_keys` in the account store. s3_loan_api() would
-    # then evaluate `s3_keys | kwargs` and raise
-    # `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
+    # parse_s3_cookie() is `dict | None`: it returns None for a patron with no
+    # `s3` session cookie. s3_loan_api() would then evaluate `s3_keys | kwargs`
+    # and raise `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
     # /account/loans renders this history inline with no try/except of its own,
     # so that TypeError takes down the whole page -- including the active-loans
     # table, which has nothing to do with IA history. Degrade to an empty
