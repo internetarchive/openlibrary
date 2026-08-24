@@ -94,10 +94,11 @@ def map_data(record: dict[str, Any]) -> dict[str, Any]:
     if subtitle := normalize_whitespace(record.get("subtitle", "")):
         import_record["subtitle"] = subtitle
 
-    if subjects := [normalize_whitespace(subject) for subject in record.get("subjects", [])]:
-        # ITAN repeats subjects with inconsistent spacing; dedupe while keeping order.
-        import_record["subjects"] = list(dict.fromkeys(subject for subject in subjects if subject))
-
+    subjects = [normalize_whitespace(subject) for subject in record.get("subjects", [])]
+    # ITAN repeats subjects with inconsistent spacing; dedupe while keeping order.
+    subjects = list(dict.fromkeys(subject for subject in subjects if subject))
+    if subjects:
+        import_record["subjects"] = subjects
     if contributions := [strip_author_role(name) for name in record.get("contributions", [])]:
         import_record["contributions"] = contributions
 
