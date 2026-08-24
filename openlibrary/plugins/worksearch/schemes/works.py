@@ -382,7 +382,6 @@ class WorkSearchScheme(SearchScheme):
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 "edition_key": "key",
-                "text": "text",
                 # Display data
                 "title": "title",
                 "title_suggest": "title_suggest",
