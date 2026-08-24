@@ -1,8 +1,9 @@
-"""Cover management (a web.py-free port of openlibrary/coverstore/coverlib.py)."""
+"""Cover management: resolving cover keys and reading/writing image files."""
 
 import contextlib
 import datetime
 import os
+from dataclasses import dataclass
 from io import BytesIO
 from logging import getLogger
 from typing import Any
@@ -10,10 +11,62 @@ from typing import Any
 from PIL import Image, ImageOps
 from starlette.concurrency import run_in_threadpool
 
-from openlibrary.coverstore_fastapi import config, db
-from openlibrary.coverstore_fastapi.utils import random_string
+from openlibrary.coverstore_fastapi import config, db, lookup, tar_index
+from openlibrary.coverstore_fastapi.utils import random_string, safeint
 
 logger = getLogger("openlibrary.coverstore_fastapi.covers")
+
+
+@dataclass
+class CoverRef:
+    """Result of resolving a cover-key URL segment to a cover."""
+
+    id: int | None = None
+    ia_url: str | None = None  # archive.org scan page for "ia"-keyed requests
+
+    @property
+    def missing(self) -> bool:
+        return self.id is None and self.ia_url is None
+
+
+async def resolve_cover(category: str, key: str, value: str, size: str) -> CoverRef:
+    """Resolves a cover-key URL segment using the legacy strategy.
+
+    Keys are "id" (numeric cover id), "isbn" (hyphens stripped, matched via
+    OL properties), "ia" (archive.org item scan) or any OL property name
+    ("olid", "oclc", ...).
+    """
+    if key == "ia":
+        return CoverRef(ia_url=await lookup.get_ia_cover_url(value, size))
+
+    if key == "isbn":
+        value = value.replace("-", "").strip()  # strip hyphens from ISBN
+
+    if key == "id":
+        cover_id: int | None = safeint(value)
+    else:
+        cover_id = await lookup.query_cover_id(category, key, value)
+
+    if cover_id is None or cover_id in config.blocked_covers:
+        return CoverRef()
+    return CoverRef(id=cover_id)
+
+
+async def get_details(coverid: int, size: str = "") -> dict[str, Any] | None:
+    """Locates a cover's metadata: tar-ball index first, database second."""
+    d = await run_in_threadpool(tar_index.find_cover, coverid, size.lower())
+    if d:
+        return d
+
+    return await db.details(coverid)
+
+
+def is_cover_in_cluster(coverid: int) -> bool:
+    """Returns True if the cover is served from the archive.org cluster."""
+    try:
+        return coverid < lookup.IMAGES_PER_ITEM * config.max_coveritem_index
+    except TypeError, ValueError:
+        return False
 
 
 async def save_image(data: bytes, category: str, olid: str | None, author=None, ip=None, source_url=None) -> dict[str, Any]:

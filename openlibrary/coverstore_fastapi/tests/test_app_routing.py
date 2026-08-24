@@ -74,7 +74,7 @@ def test_default_false_gives_404(client, monkeypatch):
     async def no_row(coverid, size=""):
         return None
 
-    monkeypatch.setattr("openlibrary.coverstore_fastapi.app.get_details", no_row)
+    monkeypatch.setattr("openlibrary.coverstore_fastapi.covers.get_details", no_row)
     resp = client.get("/b/id/999999999.jpg?default=false")
     assert resp.status_code == 404
     assert resp.text == "404 Not Found"
@@ -87,7 +87,7 @@ def test_default_url_redirects(client, monkeypatch):
     async def no_row(coverid, size=""):
         return None
 
-    monkeypatch.setattr("openlibrary.coverstore_fastapi.app.get_details", no_row)
+    monkeypatch.setattr("openlibrary.coverstore_fastapi.covers.get_details", no_row)
     resp = client.get("/b/id/999999999.jpg?default=http://example.com/x.png")
     assert resp.status_code == 303
     assert resp.headers["location"] == "http://example.com/x.png"

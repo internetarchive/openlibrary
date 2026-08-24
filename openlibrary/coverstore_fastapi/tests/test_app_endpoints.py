@@ -2,7 +2,6 @@ import datetime
 
 import pytest
 
-from openlibrary.coverstore_fastapi import app as app_module
 from openlibrary.coverstore_fastapi import covers, db, lookup
 from openlibrary.coverstore_fastapi.utils import httpdate
 
@@ -17,7 +16,7 @@ def patch_cover_row(monkeypatch, row):
     def fake_read_image(d, size):  # sync: invoked via run_in_threadpool
         return b"IMAGEBYTES"
 
-    monkeypatch.setattr("openlibrary.coverstore_fastapi.app.get_details", fake_get_details)
+    monkeypatch.setattr("openlibrary.coverstore_fastapi.covers.get_details", fake_get_details)
     monkeypatch.setattr(covers, "read_image", fake_read_image)
 
 
@@ -73,7 +72,7 @@ def test_cover_non_id_no_etag(client, patch_cover_row, monkeypatch):
 
 
 def test_cluster_redirect_original_size(client, patch_cover_row, monkeypatch):
-    monkeypatch.setattr("openlibrary.coverstore_fastapi.app.is_cover_in_cluster", lambda coverid: True)
+    monkeypatch.setattr("openlibrary.coverstore_fastapi.covers.is_cover_in_cluster", lambda coverid: True)
     resp = client.get("/b/id/777001.jpg")
     assert resp.status_code == 302
     assert resp.headers["location"] == "http://archive.org/download/olcovers77/olcovers77.zip/777001.jpg"
@@ -85,7 +84,7 @@ def test_archive_redirect_for_uploaded_big_ids(client, monkeypatch, row):
     async def fake_details(coverid, size=""):
         return dict(big)
 
-    monkeypatch.setattr(app_module, "get_details", fake_details)
+    monkeypatch.setattr(covers, "get_details", fake_details)
     resp = client.get("/b/id/8123456.jpg")
     assert resp.status_code == 302
     assert resp.headers["location"] == "http://archive.org/download/covers_0008/covers_0008_12.zip/0008123456.jpg"

@@ -23,7 +23,7 @@ from starlette.convertors import Convertor, register_url_convertor
 from starlette.datastructures import FormData, UploadFile
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from openlibrary.coverstore_fastapi import config, covers, db, lookup, oldb, tar_index, utils
+from openlibrary.coverstore_fastapi import config, covers, db, lookup, oldb, utils
 
 logger = logging.getLogger("coverstore")
 
@@ -460,30 +460,21 @@ async def _cover(request: Request, category: str, key: str, value: str, size: st
         else:
             return html_response("404 Not Found", status_code=404, charset=True)
 
-    cover_id: int | None = None
-    if key == "isbn":
-        normalized_isbn = value.replace("-", "").strip()  # strip hyphens from ISBN
-        cover_id = await lookup.query_cover_id(category, key, normalized_isbn)
-    elif key == "ia":
-        if ia_url := await lookup.get_ia_cover_url(value, size):
-            return found(ia_url)
-        else:
-            cover_id = None  # notfound or redirect to default. handled later.
-    elif key != "id":
-        cover_id = await lookup.query_cover_id(category, key, value)
-    else:
-        cover_id = utils.safeint(value)
-
-    if cover_id is None or cover_id in config.blocked_covers:
+    ref = await covers.resolve_cover(category, key, value, size)
+    if ref.missing:
         return await notfound()
+    if ref.ia_url:
+        return found(ref.ia_url)
 
+    # not missing and not an ia redirect -> a resolved numeric cover id
+    assert ref.id is not None
     protocol = request.url.scheme  # http or https
 
     # redirect to archive.org cluster for large size and original images whenever possible
-    if size in ("L", "") and is_cover_in_cluster(cover_id):
-        return found(lookup.zipview_url_from_id(cover_id, size, protocol))
+    if size in ("L", "") and covers.is_cover_in_cluster(ref.id):
+        return found(lookup.zipview_url_from_id(ref.id, size, protocol))
 
-    d = await get_details(cover_id, size.lower())
+    d = await covers.get_details(ref.id, size.lower())
     if not d:
         return await notfound()
 
@@ -535,21 +526,3 @@ def _not_modified(request: Request, date: datetime.datetime, etag: str) -> bool:
 def trim_microsecond(date: datetime.datetime) -> datetime.datetime:
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
-
-
-def is_cover_in_cluster(coverid: int) -> bool:
-    """Returns True if the cover is moved to archive.org cluster."""
-    try:
-        return coverid < lookup.IMAGES_PER_ITEM * config.max_coveritem_index
-    except TypeError, ValueError:
-        return False
-
-
-async def get_details(coverid: int, size: str = "") -> dict[str, Any] | None:
-    # Covers archived into local tar balls have no DB row; their index file
-    # tells us where the bytes live. Everything else comes from the database.
-    d = await run_in_threadpool(tar_index.find_cover, coverid, size.lower())
-    if d:
-        return d
-
-    return await db.details(coverid)
