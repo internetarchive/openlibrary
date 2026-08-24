@@ -540,7 +540,7 @@ class WorkSearchScheme(SearchScheme):
                 # See qf in work_query. Edition docs only carry a subset of
                 # the work-level fields (see EditionSolrBuilder.build()), so
                 # this only lists fields that are actually populated on them.
-                qf="title subtitle publisher isbn oclc lccn ia key alternative_title^4 author_name^4 chapter^4",
+                qf="title subtitle publisher isbn oclc lccn ia key author_key alternative_title^4 author_name^4 author_alternative_name^4 chapter^4",
                 # Reading from the url parameter userEdQuery. This lets us avoid
                 # having to try to escape the query in order to fit inside this
                 # other query.
