@@ -17,7 +17,7 @@ from simplejson.errors import JSONDecodeError
 
 from infogami.utils import delegate
 from infogami.utils.view import public
-from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
@@ -195,14 +195,14 @@ def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
 
-def get_groundtruth_availability(ocaid, s3_keys=None):
+async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
     params = "?action=availability&identifier=" + ocaid
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
-    timeout = 2 if os.getenv("LOCAL_DEV") else 5
+    timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
     try:
-        response = httpx.post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.async_session.post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
     except httpx.TimeoutException:
         if os.getenv("LOCAL_DEV"):
@@ -222,7 +222,10 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return data
 
 
-def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
+get_groundtruth_availability = async_bridge.wrap(get_groundtruth_availability_async)
+
+
+async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
     """Uses patrons s3 credentials to initiate or return a browse or
     borrow loan on Archive.org.
 
@@ -237,7 +240,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = requests.post(url + params, data=data)
+    response = await ia.async_session.post(url + params, data=data, timeout=config_http_request_timeout)
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -245,6 +248,9 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
         raise PatronAccessException
     response.raise_for_status()
     return response
+
+
+s3_loan_api = async_bridge.wrap(s3_loan_api_async)
 
 
 async def get_available_async(
@@ -1126,3 +1132,87 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
         return "preview_only"
 
     return "locate"
+
+
+RESULTS_PER_PAGE: int = 25
+
+
+def get_loan_history_data(username: str, page: int) -> dict:
+    """Fetch loan history data for a user.
+
+    This will use a patron's S3 keys to query the IA loan history API,
+    get the IA IDs, get the OLIDs if available, and then convert this
+    into editions and IA-only items for display in the loan history.
+
+    This returns both editions and IA-only items because the loan history API
+    includes items that are not in Open Library, and displaying only IA
+    items creates pagination and navigation issues. For further discussion,
+    see https://github.com/internetarchive/openlibrary/pull/8375.
+    """
+    from infogami.utils.view import render
+
+    if not OpenLibraryAccount.get_by_username(username):
+        raise render.notfound("Account not found for %s" % username, create=False)
+
+    s3_keys = parse_s3_cookie(web.cookies().get("s3"))
+    limit = RESULTS_PER_PAGE
+    offset = page * limit - limit
+
+    # parse_s3_cookie() is `dict | None`: it returns None for a patron with no
+    # `s3` session cookie. s3_loan_api() would then evaluate `s3_keys | kwargs`
+    # and raise `TypeError: unsupported operand type(s) for |: 'NoneType' and 'dict'`.
+    # /account/loans renders this history inline with no try/except of its own,
+    # so that TypeError takes down the whole page -- including the active-loans
+    # table, which has nothing to do with IA history. Degrade to an empty
+    # history instead, and say so in the log rather than failing silently.
+    if not s3_keys:
+        logger.warning("No IA S3 keys for %s; returning empty loan history", username)
+        return {"docs": [], "show_next": False, "limit": limit, "page": page}
+
+    response = s3_loan_api(
+        s3_keys=s3_keys,
+        action="user_borrow_history",
+        limit=limit + 1,
+        offset=offset,
+        newest=True,
+    ).json()
+    history = response.get("history") or {}
+    loan_history = history.get("items") or []
+
+    # We request limit+1 to see if there is another page of history to display,
+    # and then pop the +1 off if it's present.
+    show_next = len(loan_history) == limit + 1
+    if show_next:
+        loan_history.pop()
+
+    ocaids = [loan_record["identifier"] for loan_record in loan_history]
+    loan_history_map = {loan_record["identifier"]: loan_record for loan_record in loan_history}
+
+    # Get editions and attach their loan history.
+    editions_map = get_items_and_add_availability(ocaids=ocaids)
+    for edition in editions_map.values():
+        if edition_loan_history := loan_history_map.get(edition.get("ocaid")):
+            edition["last_loan_date"] = edition_loan_history.get("updatedate", "")
+        else:
+            edition["last_loan_date"] = ""
+
+    # Create 'placeholders' dicts for items in the Internet Archive loan history,
+    # but absent from Open Library, and then add loan history.
+    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
+    # loan. No apparently way to distinguish between current and past loans with
+    # this API call.
+    ia_only_loans = [{"ocaid": ocaid} for ocaid in ocaids if ocaid not in editions_map]
+    for ia_only_loan in ia_only_loans:
+        loan_data = loan_history_map[ia_only_loan["ocaid"]]
+        ia_only_loan["last_loan_date"] = loan_data.get("updatedate", "")
+        ia_only_loan["ia_only"] = True  # type: ignore[typeddict-unknown-key]
+
+    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
+    editions_and_ia_loans.sort(key=lambda item: item.get("last_loan_date", ""), reverse=True)
+
+    return {
+        "docs": editions_and_ia_loans,
+        "show_next": show_next,
+        "limit": limit,
+        "page": page,
+    }
