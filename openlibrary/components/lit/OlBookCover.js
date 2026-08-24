@@ -15,8 +15,8 @@ export const DEFAULT_LABELS = {
  * title. `overlay` is the slot the save button goes in; the component owns the
  * corner position so a consumer never has to.
  *
- * With `tooltip`, a pointer gets a hover card carrying the title, year and
- * author. `ol-tooltip` arms on the same media query a cover-card layout uses to
+ * A pointer gets a hover card carrying the title, year and author.
+ * `ol-tooltip` arms on the same media query a cover-card layout uses to
  * hide that text below the cover, so exactly one of the two shows.
  *
  * @element ol-book-cover
@@ -29,7 +29,6 @@ export const DEFAULT_LABELS = {
  * @prop {String} href - Link target; empty renders the cover unlinked
  * @prop {String} size - "medium" (default) or "small"; small drops the author
  *     from the blank cover, which has no room for it
- * @prop {Boolean} tooltip - Show the title/year/author hover card on pointer devices
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @slot overlay - Pinned to the cover's top-right corner, over the artwork
@@ -44,7 +43,6 @@ export class OlBookCover extends LitElement {
         year: { type: String },
         href: { type: String },
         size: { type: String, reflect: true },
-        tooltip: { type: Boolean },
         labels: { type: Object },
     };
 
@@ -157,7 +155,6 @@ export class OlBookCover extends LitElement {
         this.year = '';
         this.href = '';
         this.size = 'medium';
-        this.tooltip = false;
         this.labels = {};
     }
 
@@ -173,11 +170,8 @@ export class OlBookCover extends LitElement {
         const art = this.href
             ? html`<a class="link" href=${this.href} @click=${this._onClick}>${this._renderArt()}</a>`
             : this._renderArt();
-        const cover = this.tooltip
-            ? html`<ol-tooltip placement="top" arrow>${art}${this._renderTip()}</ol-tooltip>`
-            : art;
         return html`
-            ${cover}
+            <ol-tooltip placement="top" arrow>${art}${this._renderTip()}</ol-tooltip>
             <slot name="overlay"></slot>
         `;
     }

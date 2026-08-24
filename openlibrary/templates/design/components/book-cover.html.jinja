@@ -13,8 +13,8 @@
         <ol-book-cover size="small" book-title="The Fellowship of the Ring" authors="J.R.R. Tolkien" style="width: 72px;">
         </ol-book-cover>
     {% endcall %}
-    {% call ex.example("Hover card", "With tooltip, a pointer gets the title, year and author over the cover. Meant for layouts that have no room to print them underneath — ol-tooltip arms on the same media query those layouts hide their caption with, so exactly one of the two ever shows.", output_style="display: flex; gap: 16px; width: 420px; padding-top: 48px;") %}
-        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" year="1911" href="/works/OL69612W" tooltip style="width: 128px;">
+    {% call ex.example("Hover card", "A pointer gets the title, year and author over the cover. ol-tooltip arms on the same media query cover-card layouts hide their caption with, so exactly one of the two ever shows.", output_style="display: flex; gap: 16px; width: 420px; padding-top: 48px;") %}
+        <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" year="1911" href="/works/OL69612W" style="width: 128px;">
         </ol-book-cover>
     {% endcall %}
     {% call ex.example("Overlay", "Anything slotted into overlay takes the top-right corner, over the artwork and outside the link — so hovering the control is not hovering the cover, and clicking it does not navigate.",

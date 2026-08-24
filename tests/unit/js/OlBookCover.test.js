@@ -85,13 +85,8 @@ describe('ol-book-cover link and hover card', () => {
         expect(q(el, '.img')).not.toBeNull();
     });
 
-    test('no tooltip by default', async() => {
-        const el = await mount({ src: '/c.jpg', href: '/works/OL1W' });
-        expect(q(el, 'ol-tooltip')).toBeNull();
-    });
-
     test('the hover card carries title, year and author, and wraps the link only', async() => {
-        const el = await mount({ src: '/c.jpg', href: '/works/OL1W', year: '1954', tooltip: true });
+        const el = await mount({ src: '/c.jpg', href: '/works/OL1W', year: '1954' });
         const tip = q(el, 'ol-tooltip');
         expect(tip.querySelector('.link')).not.toBeNull();
         expect(tip.querySelector('[slot="content"]').textContent.replace(/\s+/g, ' ').trim())
@@ -99,7 +94,7 @@ describe('ol-book-cover link and hover card', () => {
     });
 
     test('a book with no year shows the title alone in the hover card', async() => {
-        const el = await mount({ src: '/c.jpg', href: '/w', tooltip: true, authors: '' });
+        const el = await mount({ src: '/c.jpg', href: '/w', authors: '' });
         expect(q(el, '.tip__year')).toBeNull();
         expect(q(el, '.tip__byline')).toBeNull();
         expect(q(el, '.tip__title').textContent).toBe('The Two Towers');
@@ -109,7 +104,7 @@ describe('ol-book-cover link and hover card', () => {
 describe('ol-book-cover overlay', () => {
     test('slotted content takes the corner and stays outside the link', async() => {
         const el = await mount(
-            { src: '/c.jpg', href: '/w', tooltip: true },
+            { src: '/c.jpg', href: '/w' },
             '<button slot="overlay">Save</button>',
         );
         const slot = q(el, 'slot[name="overlay"]');

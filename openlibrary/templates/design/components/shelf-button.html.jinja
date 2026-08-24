@@ -45,9 +45,6 @@
     </script>
     <div class="ds-notes">
         <p>
-            <b>Stateless on purpose.</b> It never writes its own <code>shelf</code>. It emits <code>ol-book-state-change</code> — optimistically on click, and again with the old value if the write fails — and the surface that owns the book applies it, which then flows back down. That is what keeps two cards for the same work in step, and it makes an optimistic update and its rollback the same code path.
-        </p>
-        <p>
             <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log.
         </p>
     </div>
