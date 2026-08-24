@@ -14,8 +14,8 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
         <div class="language-component header-dropdown iabar-mobile">
         <details>
           <summary>
-            <span>$active_ui_lang['localized'] ($active_ui_lang['code'])</span>
-            <img class="translate-icon" src="/static/images/language-icon.svg" title="$_('Change Website Language')" alt="$_('Change Website Language')"/>
+            <span>$active_ui_lang['localized']</span>
+            $:macros.icon("globe", size="sm", label=_('Change Website Language'))
           </summary>
           <div class="language-dropdown-component">
             $:render_template('languages/language_list', classes="dropdown-menu")

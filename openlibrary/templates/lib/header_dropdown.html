@@ -8,8 +8,9 @@ $# @property {string|null} subheading that will appear below the link text
 $#
 $# @param {Object} props template properties
 $# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
-$# @param {string} props.label for menu, also used as alt text for dropdown icon when props.image is set
-$# @param {string|null} props.image URL for image (optional)
+$# @param {string} props.label for menu, also the accessible name of the dropdown icon when props.icon is set
+$# @param {string|null} props.icon sprite icon name, e.g. "menu" (optional)
+$# @param {string|null} props.image-class class applied to that icon (optional)
 $# @param {DropdownLink[]} props.links
 $ singleton = len(props.get('links', [])) == 1
 $ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
@@ -29,9 +30,9 @@ $ is_privileged_user = ctx.user and ctx.user.is_super_librarian_or_higher()
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
             $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
               <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
-            <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
-        $elif 'image' in props:
-            <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
+            $:macros.icon(props['icon'], size="lg", label=props['label'], extra_class='%s logged' % props['image-class'])
+        $elif 'icon' in props:
+            $:macros.icon(props['icon'], size="lg", label=props['label'], extra_class=props['image-class'])
         $elif 'label' in props:
             $(props['label'])
             <span class="shift">$_('Menu')</span>

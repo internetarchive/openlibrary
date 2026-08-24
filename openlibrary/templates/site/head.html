@@ -31,6 +31,10 @@ $def with (title)
         $# Env-specific favicons (green "D" / orange "T") so dev and testing tabs stand out
         <link href="/static/images/openlibrary-$(ol_env)-192x192.png" rel="icon" sizes="192x192" />
         <link href="/static/images/openlibrary-$(ol_env)-128x128.png" rel="icon" sizes="128x128" />
+    $# Icon sprite: one cacheable asset behind every <use href="…#icon-*">, and where
+    $# client JS (<ol-icon>) reads the hashed URL from. Deliberately not a rel=preload:
+    $# an as=image preload isn't credited against the <use> fetch, so it double-fetches.
+    <meta name="ol-icon-sprite" content="$icon_sprite_url()">
     $# Loaded separately from page-*.css so they cache once and serve every page from cache.
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
     <link href="$static_url('build/css/ol-components.css')" rel="stylesheet" type="text/css" />
