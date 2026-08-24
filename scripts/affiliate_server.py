@@ -58,6 +58,7 @@ from openlibrary.plugins.upstream.utils import setup_requests
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
+    isbn_13_to_isbn_10,
     normalize_identifier,
 )
 
@@ -421,9 +422,25 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
     each product in memcache using amazon_product_{isbn_13 or b_asin} as the cache key.
     """
     logger.info(f"process_amazon_batch(): {len(asins)} items")
+    # Identifiers that are ISBN-13s with no ISBN-10 equivalent (979-prefix) have no ASIN
+    # for `get_items` to look up and must be resolved by keyword search, one call each.
+    # Gate on isbn_13_to_isbn_10() rather than a raw startswith("979") so ISBN structural
+    # knowledge stays inside the isbn utils.
+    search_isbns = {pi.identifier for pi in asins if len(pi.identifier) == 13 and pi.identifier.isdigit() and not isbn_13_to_isbn_10(pi.identifier)}
+    identifiers = [pi.identifier for pi in asins if pi.identifier not in search_isbns]
+
+    # Maps a search-resolved product's Amazon ASIN back to the ISBN-13 that was queued
+    # for it. Needed because `source_records` holds the ASIN while the caller asked by
+    # ISBN-13, and the stage_import filter below compares against queued identifiers.
+    asin_to_queued_isbn: dict[str, str] = {}
+
     try:
-        identifiers = [prioritized_identifier.identifier for prioritized_identifier in asins]
-        products = web.amazon_api.get_products(identifiers, serialize=True)
+        products = (web.amazon_api.get_products(identifiers, serialize=True) or []) if identifiers else []
+        for isbn_13 in search_isbns:
+            if product := web.amazon_api.get_product_by_isbn_13(isbn_13, serialize=True):
+                if source_records := product.get("source_records"):
+                    asin_to_queued_isbn[source_records[0].split(":")[1]] = isbn_13
+                products.append(product)
         # stats_ol_affiliate_amazon_imports - Open Library - Dashboards - Grafana
         # http://graphite.us.archive.org Metrics.stats.ol...
         stats.increment(
@@ -448,7 +465,11 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
     # Skip staging no_import_identifiers for for import by checking AMZ source record.
     no_import_identifiers = {identifier.identifier for identifier in asins if not identifier.stage_import}
 
-    books = [clean_amazon_metadata_for_load(product) for product in products if product.get("source_records")[0].split(":")[1] not in no_import_identifiers]
+    books = [
+        clean_amazon_metadata_for_load(product)
+        for product in products
+        if (pid := product.get("source_records")[0].split(":")[1]) and asin_to_queued_isbn.get(pid, pid) not in no_import_identifiers
+    ]
 
     if books:
         stats.increment(
@@ -566,13 +587,12 @@ class Submit:
         stage_import = input.get("stage_import") != "false"
 
         b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
-        key = isbn_10 or b_asin
+        # An ISBN-13 with no ISBN-10 equivalent (i.e. a 979-prefix ISBN) cannot be
+        # fetched by `get_items`, which is an exact-id lookup; the background worker
+        # resolves those by keyword search instead. Queue it under the ISBN-13 (#13316).
+        key = isbn_10 or b_asin or isbn_13
 
-        # For ISBN 13, conditionally go straight to Google Books.
-        if not key and isbn_13 and priority == Priority.HIGH and stage_import:
-            return json.dumps({"status": "success"}) if stage_from_google_books(isbn=isbn_13) else json.dumps({"status": "not found"})
-
-        if not (key := isbn_10 or b_asin):
+        if not key:
             return json.dumps({"error": "rejected_isbn", "identifier": identifier})
 
         # Cache lookup by isbn_13 or b_asin. If there's a hit return the product to
@@ -597,6 +617,12 @@ class Submit:
             web.amazon_queue.qsize(),
             rate=0.2,
         )
+
+        # A 979 ISBN has no ASIN to look up directly, so its queue entry costs an extra
+        # search round trip. Never make the caller wait on that (#13277) — answer from
+        # Google Books now; the Amazon result lands in the cache for the next request.
+        if isbn_13 and not (isbn_10 or b_asin) and priority == Priority.HIGH and stage_import:
+            return json.dumps({"status": "success"}) if stage_from_google_books(isbn=isbn_13) else json.dumps({"status": "not found"})
 
         # Check the cache a few times for product data to return to the client,
         # or otherwise return.

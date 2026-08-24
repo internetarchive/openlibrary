@@ -1,6 +1,6 @@
 import importlib
 from dataclasses import dataclass, field
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -913,3 +913,164 @@ def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
 def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
     """Without isbn or asin, function returns None."""
     assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
+# ---- AmazonCreatorsAPI.search_items() / get_product_by_isbn_13() ------------
+#
+# Real 979-prefix ISBN-13 with its real Amazon ASIN, from the #6572 work. A 979 ISBN
+# has no ISBN-10 equivalent, so Amazon assigns an arbitrary ASIN unrelated to it.
+
+ISBN_979 = "9798776159572"
+ASIN_979 = "B09MJ3TKX3"
+
+
+def _make_979_item(isbn_13: str = ISBN_979, asin: str = ASIN_979) -> CItem:
+    """A Creators API item for a 979-prefix book: arbitrary B* ASIN, true ISBN-13 in eans."""
+    item = _make_creators_item()
+    item.asin = asin
+    assert item.item_info is not None
+    item.item_info.external_ids = CExtIds(eans=CEans([isbn_13]))
+    return item
+
+
+def _creators_api_stub(search_return) -> AmazonCreatorsAPI:
+    """An AmazonCreatorsAPI with __init__ bypassed and a stubbed underlying client.
+
+    __init__ requires live OAuth credentials and imports the vendored SDK, neither of
+    which exist in the test environment.
+    """
+    api = AmazonCreatorsAPI.__new__(AmazonCreatorsAPI)
+    api.tag = "test-tag"
+    api.throttling = 0.9
+    api.last_query_time = 0.0
+    api.api = MagicMock()
+    if isinstance(search_return, Exception):
+        api.api.search_items.side_effect = search_return
+    else:
+        api.api.search_items.return_value = search_return
+    return api
+
+
+def test_creators_search_items_returns_products() -> None:
+    """Happy path: SearchResult.items are returned and Books is the default index."""
+    item = _make_979_item()
+    api = _creators_api_stub(MagicMock(items=[item]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        products = api.search_items(keywords=ISBN_979)
+
+    assert products == [item]
+    assert api.api.search_items.call_count == 1
+    assert api.api.search_items.call_args.kwargs["keywords"] == ISBN_979
+    assert api.api.search_items.call_args.kwargs["search_index"] == "Books"
+
+
+def test_creators_search_items_serializes_when_asked() -> None:
+    """serialize=True runs results through serialize(), matching get_products()."""
+    api = _creators_api_stub(MagicMock(items=[_make_979_item()]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        products = api.search_items(keywords=ISBN_979, serialize=True)
+
+    assert products is not None
+    assert products[0]["isbn_13"] == [ISBN_979]
+    assert products[0]["source_records"] == [f"amazon:{ASIN_979}"]
+    assert products[0]["isbn_10"] == []  # a B* ASIN is not an ISBN-10
+
+
+def test_creators_search_items_no_results_returns_empty_list() -> None:
+    """An empty result set yields [] — distinct from the None returned on failure."""
+    api = _creators_api_stub(MagicMock(items=None))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        assert api.search_items(keywords=ISBN_979) == []
+
+
+def test_creators_search_items_fails_soft() -> None:
+    """Library exceptions (e.g. ItemsNotFoundError) are swallowed, as in get_products()."""
+    api = _creators_api_stub(RuntimeError("ItemsNotFoundError"))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        assert api.search_items(keywords=ISBN_979) is None
+
+
+def test_creators_search_items_throttles() -> None:
+    """search_items respects the same 1/throttling gap as get_products."""
+    api = _creators_api_stub(MagicMock(items=[]))
+    api.last_query_time = 1000.0
+
+    with (
+        patch("openlibrary.core.vendors.time.time", return_value=1000.0),
+        patch("openlibrary.core.vendors.time.sleep") as mock_sleep,
+    ):
+        api.search_items(keywords=ISBN_979)
+
+    mock_sleep.assert_called_once()
+    assert mock_sleep.call_args.args[0] == pytest.approx(1 / 0.9, rel=1e-3)
+
+
+def test_get_product_by_isbn_13_accepts_verified_match() -> None:
+    """A result whose eans contains the requested ISBN is accepted."""
+    api = _creators_api_stub(MagicMock(items=[_make_979_item()]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        product = api.get_product_by_isbn_13(ISBN_979)
+
+    assert product is not None
+    assert product.asin == ASIN_979
+
+
+def test_get_product_by_isbn_13_rejects_wrong_book() -> None:
+    """The safety property: a hit for a *different* book is rejected, not returned.
+
+    Keyword search is not an exact-match lookup. Without this check we would cache and
+    stage the wrong book's metadata under the requested ISBN.
+    """
+    wrong = _make_979_item(isbn_13="9791111111111", asin="B000WRONG1")
+    api = _creators_api_stub(MagicMock(items=[wrong]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        assert api.get_product_by_isbn_13(ISBN_979) is None
+
+
+def test_get_product_by_isbn_13_picks_correct_item_from_mixed_results() -> None:
+    """The verified item is found even when Amazon returns unrelated hits alongside it."""
+    wrong = _make_979_item(isbn_13="9791111111111", asin="B000WRONG1")
+    api = _creators_api_stub(MagicMock(items=[wrong, _make_979_item()]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        product = api.get_product_by_isbn_13(ISBN_979)
+
+    assert product is not None
+    assert product.asin == ASIN_979
+
+
+def test_get_product_by_isbn_13_rejects_item_with_no_eans() -> None:
+    """An item with no external_ids cannot be verified, so it is rejected."""
+    unverifiable = _make_979_item()
+    assert unverifiable.item_info is not None
+    unverifiable.item_info.external_ids = None
+    api = _creators_api_stub(MagicMock(items=[unverifiable]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        assert api.get_product_by_isbn_13(ISBN_979) is None
+
+
+def test_get_product_by_isbn_13_serializes_when_asked() -> None:
+    """serialize=True returns the dict form of the verified match."""
+    api = _creators_api_stub(MagicMock(items=[_make_979_item()]))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        product = api.get_product_by_isbn_13(ISBN_979, serialize=True)
+
+    assert product is not None
+    assert product["isbn_13"] == [ISBN_979]
+    assert product["source_records"] == [f"amazon:{ASIN_979}"]
+
+
+def test_get_product_by_isbn_13_returns_none_on_search_error() -> None:
+    """A failed search resolves to None rather than raising."""
+    api = _creators_api_stub(RuntimeError("boom"))
+
+    with patch("openlibrary.core.vendors.time.sleep"):
+        assert api.get_product_by_isbn_13(ISBN_979) is None
