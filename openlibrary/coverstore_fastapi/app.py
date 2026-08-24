@@ -8,14 +8,10 @@ Content-Type headers on .json error pages are fixed (in both implementations),
 and JSON goes through FastAPI's serializer.
 """
 
-import array
 import contextlib
 import datetime
-import functools
-import io
 import json
 import logging
-import os
 import urllib.parse
 from typing import Annotated, Any, Literal
 
@@ -27,7 +23,7 @@ from starlette.convertors import Convertor, register_url_convertor
 from starlette.datastructures import FormData, UploadFile
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from openlibrary.coverstore_fastapi import config, covers, db, lookup, oldb, utils
+from openlibrary.coverstore_fastapi import config, covers, db, lookup, oldb, tar_index, utils
 
 logger = logging.getLogger("coverstore")
 
@@ -550,68 +546,10 @@ def is_cover_in_cluster(coverid: int) -> bool:
 
 
 async def get_details(coverid: int, size: str = "") -> dict[str, Any] | None:
-    # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
-    if coverid < 6_000_000 and size in "sml":
-        path = await run_in_threadpool(get_tar_filename, coverid, size)
-
-        if path:
-            key = f"filename_{size}" if size else "filename"
-            return {
-                "id": coverid,
-                key: path,
-                "created": datetime.datetime(2010, 1, 1),
-            }
+    # Covers archived into local tar balls have no DB row; their index file
+    # tells us where the bytes live. Everything else comes from the database.
+    d = await run_in_threadpool(tar_index.find_cover, coverid, size.lower())
+    if d:
+        return d
 
     return await db.details(coverid)
-
-
-def get_tar_filename(coverid: int, size: str) -> str | None:
-    """Returns tarfile:offset:size for given coverid."""
-    tarindex = coverid // 10000
-    index = coverid % 10000
-    array_offset, array_size = get_tar_index(tarindex, size)
-
-    offset = array_offset and array_offset[index]
-    imgsize = array_size and array_size[index]
-
-    prefix = f"{size}_covers" if size else "covers"
-
-    if imgsize:
-        name = "%010d" % coverid
-        return f"{prefix}_{name[:4]}_{name[4:6]}.tar:{offset}:{imgsize}"
-    return None
-
-
-@functools.cache
-def get_tar_index(tarindex: int, size: str) -> tuple[array.array, array.array] | tuple[None, None]:
-    path = os.path.join(config.data_root or "", get_tarindex_path(tarindex, size))
-    if not os.path.exists(path):
-        return None, None
-
-    with open(path) as f:
-        return parse_tarindex(f)
-
-
-def get_tarindex_path(index: int, size: str) -> str:
-    name = "%06d" % index
-    prefix = f"{size}_covers" if size else "covers"
-
-    itemname = f"{prefix}_{name[:4]}"
-    filename = f"{prefix}_{name[:4]}_{name[4:6]}.index"
-    return os.path.join("items", itemname, filename)
-
-
-def parse_tarindex(file: io.TextIOBase) -> tuple[array.array, array.array]:
-    """Takes tarindex file as file objects and returns arrays of offsets and sizes. The size of the returned arrays will be 10000."""
-    array_offset = array.array("L", [0] * 10000)
-    array_size = array.array("L", [0] * 10000)
-
-    for line in file:
-        line = line.strip()
-        if line:
-            name, offset, imgsize = line.split("\t")
-            coverid = int(name[:10])  # First 10 chars is coverid, followed by ".jpg"
-            index = coverid % 10000
-            array_offset[index] = int(offset)
-            array_size[index] = int(imgsize)
-    return array_offset, array_size
