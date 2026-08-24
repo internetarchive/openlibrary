@@ -49,6 +49,9 @@ const SHELF_LABEL = {
  * @prop {Number} shelf - Current shelf id (1–4), or null when on none
  * @prop {Number} rating - Current rating (1–5), or null. Passed through to the
  *     popover and echoed on every state change
+ * @prop {String} readDate - Check-in date, whole or partial, shown on the
+ *     popover's Already Read row. Applied by the surface, like shelf and rating
+ * @prop {Number} eventId - Id of that check-in, so editing the date amends it
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
  * @prop {String} placement - ol-popover placement for the actions panel;
@@ -59,6 +62,8 @@ const SHELF_LABEL = {
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or
  *     rolled back. detail: { key, shelf, rating }
+ * @fires ol-book-check-in - Re-fired from the popover when a finish date is
+ *     saved. detail: { key, date, eventId }
  */
 export class OlShelfButton extends LitElement {
     static properties = {
@@ -68,6 +73,8 @@ export class OlShelfButton extends LitElement {
         bookTitle: { type: String, attribute: 'book-title' },
         shelf: { type: Number },
         rating: { type: Number },
+        readDate: { type: String, attribute: 'read-date' },
+        eventId: { type: Number, attribute: 'event-id' },
         userKey: { type: String, attribute: 'user-key' },
         placement: { type: String },
         labels: { type: Object },
@@ -88,17 +95,28 @@ export class OlShelfButton extends LitElement {
 
         /* ── Split variant ────────────────────────────────────────── */
 
+        /* Same surface as ol-button: raised shadow plus the inset specular top edge. */
         .split {
             display: flex;
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             overflow: hidden;
             background: var(--white);
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
         }
 
         .split--on {
             border-color: var(--color-control-selected-border);
             background: var(--color-control-selected-bg);
+            --control-surface: var(--color-control-selected-surface);
         }
 
         .main,
@@ -113,7 +131,7 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 600;
+            line-height: var(--line-height-control);
             cursor: pointer;
         }
 
@@ -148,9 +166,32 @@ export class OlShelfButton extends LitElement {
             color: var(--color-link);
         }
 
-        .main:hover,
-        .more:hover {
-            background: var(--color-hover-overlay);
+        /* Hover mirrors ol-button secondary/selected: the hovered half takes the
+           fill, and the outline darkens in step so the shape reads as one. */
+        @media (hover: hover) and (pointer: fine) {
+            .main:hover,
+            .more:hover {
+                background: var(--color-control-hover);
+            }
+
+            .split:has(.main:hover, .more:hover) {
+                border-color: var(--color-border-muted);
+                --control-surface: var(--color-control-hover);
+            }
+
+            .split--on .main:hover,
+            .split--on .more:hover {
+                background: var(--color-control-selected-bg-hover);
+            }
+
+            .split--on:has(.main:hover, .more:hover) {
+                border-color: var(--color-control-selected-border-hover);
+                --control-surface: var(--color-control-selected-surface-hover);
+            }
+
+            .split--on:has(.main:hover, .more:hover) .more {
+                border-left-color: var(--color-control-selected-border-hover);
+            }
         }
 
         .main:focus-visible,
@@ -265,6 +306,8 @@ export class OlShelfButton extends LitElement {
                 .book=${{ key: this.workKey, title: this.bookTitle, editionKey: this.editionKey }}
                 .shelf=${this.shelf}
                 .rating=${this.rating}
+                .readDate=${this.readDate}
+                .eventId=${this.eventId}
                 .labels=${this.labels}
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}

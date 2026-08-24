@@ -74,14 +74,19 @@ export const EVENT = Object.freeze({ START: 1, UPDATE: 2, FINISH: 3 });
  * POST /works/OL..W/check-ins — when the reader finished the book.
  * `month` and `day` are optional: a year alone, or a year and month, are both
  * valid check-ins, which is what lets the UI offer "in 2026".
+ *
+ * `eventId` edits that check-in in place. Without it the server records another
+ * one, which would count as a second book finished — so pass it whenever the
+ * reader is changing a date they already gave.
  */
-export function setCheckIn(workKey, { year, month = null, day = null, editionKey } = {}) {
+export function setCheckIn(workKey, { year, month = null, day = null, editionKey, eventId = null } = {}) {
     return request(`/works/${olid(workKey)}/check-ins`, json({
         event_type: EVENT.FINISH,
         year,
         month,
         day,
         edition_key: editionKey || null,
+        event_id: eventId || null,
     }));
 }
 

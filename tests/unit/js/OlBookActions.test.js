@@ -3,7 +3,7 @@
  * updates, the state-change event, and the add-to-list pane (load, filter,
  * toggle, create). Network is stubbed at `fetch`.
  */
-import { OlBookActions, resetListsCache, fmt } from '../../../openlibrary/components/lit/OlBookActions.js';
+import { OlBookActions, quickYears, resetListsCache, fmt } from '../../../openlibrary/components/lit/OlBookActions.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 
 const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear: 2021, editionKey: 'OL9M' };
@@ -23,6 +23,7 @@ function stubFetch({ failWith } = {}) {
         let body = {};
         if (url.endsWith('/partials/MyBooksDropperLists.json')) body = { dropper: '', listData };
         if (url.endsWith('/lists.json') && init?.method === 'POST') body = { key: '/people/tester/lists/OL3L', revision: 1 };
+        if (url.includes('/check-ins')) body = { status: 'ok', id: 42 };
         return { ok: true, status: 200, json: async() => body };
     });
 }
@@ -245,6 +246,62 @@ describe('ol-book-actions lists pane', () => {
     });
 });
 
+describe('ol-book-actions list-created bridge', () => {
+    async function createList(el, name) {
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        q(el, '.lists-header ol-button').click();
+        await el.updateComplete;
+        const form = q(el, 'form.field');
+        form.querySelector('input').value = name;
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+        await tick(el);
+    }
+
+    test('creating a list announces it with ol-list-created', async() => {
+        stubFetch();
+        const el = await mount();
+        const seen = [];
+        document.addEventListener('ol-list-created', e => seen.push(e), { once: true });
+        await createList(el, 'Gothic autumn');
+        expect(seen).toHaveLength(1);
+        expect(seen[0].detail).toEqual({ key: '/people/tester/lists/OL3L', name: 'Gothic autumn', seedKey: '/works/OL1W' });
+    });
+
+    test('a sibling popover picks up the new list without refetching', async() => {
+        stubFetch();
+        const el = await mount();
+        const sibling = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        await tick(sibling);
+        const fetches = () => calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
+        const before = fetches();
+        await createList(el, 'Gothic autumn');
+        expect(Object.values(sibling._lists).map(l => l.listName)).toContain('Gothic autumn');
+        // Unchecked for the sibling: only the creator's seed is on the list.
+        sibling.shadowRoot.querySelector('.group:last-child .row').click();
+        await tick(sibling);
+        expect(qa(sibling, '.list-row')[0].querySelector('input').checked).toBe(false);
+        expect(fetches()).toBe(before);
+    });
+
+    test('a legacy creation merges in and drops the shared cache', async() => {
+        stubFetch();
+        const el = await mount();
+        await tick(el);
+        document.dispatchEvent(new CustomEvent('ol-list-created', {
+            detail: { key: '/people/tester/lists/OL9L', name: 'From the dropper', seedKey: '/works/OL5W' },
+        }));
+        expect(Object.values(el._lists).map(l => l.listName)).toContain('From the dropper');
+        // The shared promise predates the list, so a popover that has not
+        // loaded yet must fetch fresh rather than resolve from it.
+        const before = calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
+        const late = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        await tick(late);
+        const after = calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
+        expect(after).toBe(before + 1);
+    });
+});
+
 describe('ol-book-actions hide-rating', () => {
     test('drops the stars but keeps shelves and lists', async() => {
         stubFetch();
@@ -280,6 +337,23 @@ describe('ol-book-actions rejected writes', () => {
 const checkInWrites = () => calls.filter(c => c.url.includes('/check-ins'));
 const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
 const paneRows = el => [...checkInPane(el).querySelectorAll('.row')];
+const yearRows = el => [...checkInPane(el).querySelectorAll('.row.year')];
+const otherDateRow = el => checkInPane(el).querySelector('.row.date-toggle');
+
+describe('quickYears', () => {
+    test('one year once the new year has bedded in', () => {
+        expect(quickYears(new Date(2026, 7, 22))).toEqual([2026]);
+    });
+
+    test('the year just gone stays on offer for the first 30 days', () => {
+        expect(quickYears(new Date(2026, 0, 25))).toEqual([2026, 2025]);
+        expect(quickYears(new Date(2026, 0, 1))).toEqual([2026, 2025]);
+    });
+
+    test('and drops off after them', () => {
+        expect(quickYears(new Date(2026, 0, 31))).toEqual([2026]);
+    });
+});
 
 describe('ol-book-actions check-in pane', () => {
     test('marking a book read slides the date question in', async() => {
@@ -289,7 +363,7 @@ describe('ol-book-actions check-in pane', () => {
         await tick(el);
         expect(el._pane).toBe('checkIn');
         expect(paneRows(el).map(r => r.textContent.trim())).toEqual([
-            'Today', `In ${new Date().getFullYear()}`, 'Other date',
+            'Today', ...quickYears().map(y => `In ${y}`), 'Other date',
         ]);
     });
 
@@ -301,13 +375,15 @@ describe('ol-book-actions check-in pane', () => {
         expect(el._pane).toBe('main');
     });
 
-    test('a book already on the shelf does not ask again', async() => {
+    test('a book already on the shelf opens the pane to amend its date', async() => {
         stubFetch();
-        // Clicking the shelf it is on removes it; that is not a finish event.
+        // What the row's chevron promises — and the only way to change a date
+        // once given. Coming off the shelf is the main button's job.
         const el = await mount({ shelf: SHELF.ALREADY_READ });
         qa(el, '.group.shelves .row')[2].click();
         await tick(el);
-        expect(el._pane).toBe('main');
+        expect(el._pane).toBe('checkIn');
+        expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json')).toBeUndefined();
     });
 
     test('rating a book does not, even though the server moves it to Already Read', async() => {
@@ -327,6 +403,35 @@ describe('ol-book-actions check-in pane', () => {
         expect(el._pane).toBe('main');
     });
 
+    test('the date already given rides on the Already Read row', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026' });
+        const row = qa(el, '.group.shelves .row')[2];
+        expect(row.querySelector('.count').textContent).toBe('2026');
+        // A chevron, not a check: the row leads to the date pane.
+        expect(row.querySelector('.trail').getAttribute('name')).toBe('chevron-right');
+    });
+
+    test('a partial date shows only what is known', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026-08' });
+        expect(qa(el, '.group.shelves .row')[2].querySelector('.count').textContent).toBe('Aug 2026');
+    });
+
+    test('amending a date edits the same check-in rather than adding one', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+        const events = [];
+        el.addEventListener('ol-book-check-in', e => events.push(e.detail));
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        yearRows(el)[0].click();
+        await tick(el);
+        const body = JSON.parse(checkInWrites()[0].init.body);
+        expect(body.event_id).toBe(12);
+        expect(events).toEqual([{ key: '/works/OL1W', date: String(new Date().getFullYear()), eventId: 42 }]);
+    });
+
     test('Today posts a full date', async() => {
         stubFetch();
         const el = await mount();
@@ -341,6 +446,7 @@ describe('ol-book-actions check-in pane', () => {
             month: now.getMonth() + 1,
             day: now.getDate(),
             edition_key: 'OL9M',
+            event_id: null,
         });
         expect(el._pane).toBe('main');
     });
@@ -350,7 +456,7 @@ describe('ol-book-actions check-in pane', () => {
         const el = await mount();
         qa(el, '.group.shelves .row')[2].click();
         await tick(el);
-        paneRows(el)[1].click();
+        yearRows(el)[0].click();
         await tick(el);
         const body = JSON.parse(checkInWrites()[0].init.body);
         expect(body.year).toBe(new Date().getFullYear());
@@ -363,11 +469,14 @@ describe('ol-book-actions check-in pane', () => {
         const el = await mount();
         qa(el, '.group.shelves .row')[2].click();
         await tick(el);
-        paneRows(el)[2].click();
+        otherDateRow(el).click();
         await tick(el);
 
         const selects = () => [...checkInPane(el).querySelectorAll('.select')];
         expect(selects()).toHaveLength(3);
+        // Disclosed under the row, not in place of it: the one-tap answers
+        // stay on screen.
+        expect(paneRows(el)).toHaveLength(2 + yearRows(el).length);
         expect(selects()[1].disabled).toBe(true);
         expect(selects()[2].disabled).toBe(true);
 
@@ -381,6 +490,106 @@ describe('ol-book-actions check-in pane', () => {
         expect(selects()[2].disabled).toBe(false);
         // 2024 is a leap year, so February has to offer the 29th.
         expect(selects()[2].querySelectorAll('option')).toHaveLength(30);
+    });
+
+    // The pane is as often amending a date as asking for one, so it has to show
+    // what it already holds — otherwise three unmarked rows read as unanswered.
+    describe('a date already recorded', () => {
+        const pad = n => String(n).padStart(2, '0');
+        const now = new Date();
+        const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+        const openPane = async readDate => {
+            stubFetch();
+            const el = await mount({ shelf: SHELF.ALREADY_READ, readDate });
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            return el;
+        };
+        const marked = el => paneRows(el)
+            .filter(r => r.getAttribute('aria-current') === 'true')
+            .map(r => r.querySelector('.label').textContent);
+
+        test('today\'s date marks Today', async() => {
+            expect(marked(await openPane(today))).toEqual(['Today']);
+        });
+
+        test('a bare current year marks that year', async() => {
+            expect(marked(await openPane(String(now.getFullYear())))).toEqual([`In ${now.getFullYear()}`]);
+        });
+
+        test('anything else marks Other date and shows the date on the row', async() => {
+            const el = await openPane('1998-03-14');
+            expect(marked(el)).toEqual(['Other date']);
+            expect(q(el, '.date-toggle .count').textContent).toBe('Mar 14, 1998');
+        });
+
+        test('no date marks nothing', async() => {
+            expect(marked(await openPane(null))).toEqual([]);
+        });
+
+        // A date the shortcuts cannot express is invisible behind a collapsed
+        // row, so the pane opens on it.
+        test('a date no shortcut can express opens the selects, seeded', async() => {
+            const el = await openPane('1998-03-14');
+            expect(el._pickingDate).toBe(true);
+            expect(qa(el, '.select').map(s => s.value)).toEqual(['1998', '3', '14']);
+        });
+
+        test('a partial date seeds only the parts it knows', async() => {
+            const el = await openPane('1998-03');
+            expect(qa(el, '.select').map(s => s.value)).toEqual(['1998', '3', '']);
+        });
+
+        test('a date a shortcut covers leaves them closed', async() => {
+            expect((await openPane(today))._pickingDate).toBe(false);
+            expect((await openPane(String(now.getFullYear())))._pickingDate).toBe(false);
+        });
+
+        // Lit commits a select's own bindings before its children, so seeding
+        // through the select's .value silently dropped; the selection rides on
+        // each option instead. Clearing has to survive the same round trip.
+        test('clearing the year blanks the selects it gated', async() => {
+            const el = await openPane('1998-03-14');
+            el._setDatePart('year', '');
+            await tick(el);
+            expect(qa(el, '.select').map(s => s.value)).toEqual(['', '', '']);
+        });
+    });
+
+    test('other date is a disclosure, so pressing it again closes the selects', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+
+        const toggle = () => checkInPane(el).querySelector('.date-toggle');
+        // A down chevron, not a right one: nothing is being navigated to.
+        expect(toggle().querySelector('.trail').getAttribute('name')).toBe('chevron-down');
+        expect(toggle().getAttribute('aria-expanded')).toBe('false');
+
+        toggle().click();
+        await tick(el);
+        expect(toggle().getAttribute('aria-expanded')).toBe('true');
+
+        toggle().click();
+        await tick(el);
+        expect(toggle().getAttribute('aria-expanded')).toBe('false');
+        expect(checkInPane(el).querySelectorAll('.select')).toHaveLength(0);
+        // Closing the fields stays on the pane rather than backing out of it.
+        expect(el._pane).toBe('checkIn');
+    });
+
+    test('Today still answers while the selects are open', async() => {
+        stubFetch();
+        const el = await mount();
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        otherDateRow(el).click();
+        await tick(el);
+        paneRows(el)[0].click();
+        await tick(el);
+        expect(JSON.parse(checkInWrites()[0].init.body).day).toBe(new Date().getDate());
     });
 
     test('clearing the year clears what it gated', async() => {
@@ -398,7 +607,7 @@ describe('ol-book-actions check-in pane', () => {
         const el = await mount();
         qa(el, '.group.shelves .row')[2].click();
         await tick(el);
-        paneRows(el)[2].click();
+        otherDateRow(el).click();
         await tick(el);
         el._setDatePart('year', '2024');
         el._setDatePart('month', '6');

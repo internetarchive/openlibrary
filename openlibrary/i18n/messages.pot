@@ -718,7 +718,7 @@ msgstr ""
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html my_books/check_ins/check_in_prompt.html trending.html
+#: admin/graphs.html admin/index.html my_books/book_actions_i18n.html my_books/check_ins/check_in_form.html my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
 msgstr ""
 
@@ -751,13 +751,13 @@ msgid "Earliest trending data is from October 2017"
 msgstr ""
 
 #. Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
-#: account/mybooks.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html my_books/book_actions_i18n.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
 #. Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/book_actions_i18n.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Currently Reading"
 msgstr ""
 
@@ -768,7 +768,7 @@ msgstr ""
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
 #. Label for the reading log shelf for books the user stopped reading (bookshelf ID 4). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/book_actions_i18n.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr ""
 
@@ -1293,7 +1293,7 @@ msgstr ""
 
 #. Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/book_actions_i18n.html my_books/dropdown_content.html my_books/primary_action.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
 msgstr ""
 
@@ -1395,7 +1395,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html
+#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html my_books/book_actions_i18n.html
 msgid "Save"
 msgstr ""
 
@@ -1652,7 +1652,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html type/list/edit.html type/series/edit.html
+#: account/sidebar.html my_books/book_actions_i18n.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -3113,7 +3113,7 @@ msgstr ""
 msgid " by %(name)s"
 msgstr ""
 
-#: books/daisy.html
+#: books/daisy.html my_books/book_actions_i18n.html
 msgid "Back"
 msgstr ""
 
@@ -5153,6 +5153,110 @@ msgstr ""
 msgid "comments"
 msgstr ""
 
+#: my_books/book_actions_i18n.html
+msgid "Remove from shelf"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "Actions for %(title)s"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "Save %(title)s to your reading log"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "%(title)s is on your reading log"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "More options for %(title)s"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Rate this book"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "Rate %(rating)s of 5"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Clear rating"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Add to list"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "List name"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Create"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Filter lists…"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "You have no lists yet."
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "No lists match."
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Loading lists…"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "%(count)s items"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "In %(count)s of your lists"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: my_books/book_actions_i18n.html my_books/check_ins/check_in_prompt.html
+msgid "When did you finish this book?"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+#, python-format
+msgid "In %(year)s"
+msgstr ""
+
+#: my_books/book_actions_i18n.html
+msgid "Other date"
+msgstr ""
+
+#: my_books/book_actions_i18n.html my_books/check_ins/check_in_form.html
+msgid "Year"
+msgstr ""
+
+#: my_books/book_actions_i18n.html my_books/check_ins/check_in_form.html
+msgid "Month"
+msgstr ""
+
+#: my_books/book_actions_i18n.html my_books/check_ins/check_in_form.html
+msgid "Day"
+msgstr ""
+
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
 msgstr ""
@@ -5263,23 +5367,11 @@ msgid "Year:"
 msgstr ""
 
 #: my_books/check_ins/check_in_form.html
-msgid "Year"
-msgstr ""
-
-#: my_books/check_ins/check_in_form.html
 msgid "Month:"
 msgstr ""
 
 #: my_books/check_ins/check_in_form.html
-msgid "Month"
-msgstr ""
-
-#: my_books/check_ins/check_in_form.html
 msgid "Day:"
-msgstr ""
-
-#: my_books/check_ins/check_in_form.html
-msgid "Day"
 msgstr ""
 
 #: my_books/check_ins/check_in_form.html
@@ -5297,10 +5389,6 @@ msgstr ""
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
-
-#: my_books/check_ins/check_in_prompt.html
-msgid "When did you finish this book?"
 msgstr ""
 
 #: my_books/check_ins/check_in_prompt.html

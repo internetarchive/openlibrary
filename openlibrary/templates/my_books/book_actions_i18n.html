@@ -1,0 +1,53 @@
+$def with ()
+$code:
+    # Translated strings for ol-shelf-button and the ol-book-actions popover it
+    # opens. The components merge this over their own English DEFAULT_LABELS, so
+    # a key missing here is not fatal.
+    #
+    # The output is HTML-escaped by json_encode, so callers insert it raw:
+    #   labels="$:render_template('my_books/book_actions_i18n')"
+    # Render it once per request and reuse the string -- every book on a page
+    # wants the same one.
+    # NOTE: Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
+    want_to_read = _("Want to Read")
+    # NOTE: Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
+    currently_reading = _("Currently Reading")
+    # NOTE: Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
+    already_read = _("Already Read")
+    # NOTE: Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
+    stopped_reading = _("Stopped Reading")
+    labels = {
+        "wantToRead": want_to_read,
+        "currentlyReading": currently_reading,
+        "alreadyRead": already_read,
+        "stoppedReading": stopped_reading,
+        "removeFromShelf": _("Remove from shelf"),
+        "actionsFor": _("Actions for %(title)s"),
+        "save": _("Save %(title)s to your reading log"),
+        "saved": _("%(title)s is on your reading log"),
+        "shelfMenu": _("More options for %(title)s"),
+        "rateThisBook": _("Rate this book"),
+        "rateStar": _("Rate %(rating)s of 5"),
+        "clearRating": _("Clear rating"),
+        "addToList": _("Add to list"),
+        "back": _("Back"),
+        "createList": _("Create a list"),
+        "listName": _("List name"),
+        "create": _("Create"),
+        "filterLists": _("Filter lists…"),
+        "noLists": _("You have no lists yet."),
+        "noMatchingLists": _("No lists match."),
+        "loadingLists": _("Loading lists…"),
+        "itemsInList": _("%(count)s items"),
+        "inLists": _("In %(count)s of your lists"),
+        "errorGeneric": _("Something went wrong. Please try again."),
+        "whenFinished": _("When did you finish this book?"),
+        "today": _("Today"),
+        "inYear": _("In %(year)s"),
+        "otherDate": _("Other date"),
+        "year": _("Year"),
+        "month": _("Month"),
+        "day": _("Day"),
+        "saveDate": _("Save"),
+    }
+$json_encode(labels)

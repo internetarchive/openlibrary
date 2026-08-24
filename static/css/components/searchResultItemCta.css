@@ -15,6 +15,13 @@
 .searchResultItemCTA .generic-dropper-wrapper {
   margin-top: 5px;
 }
+
+/* Same slot the dropper occupied. The button is display:block and fills the
+   column, so the popover it opens lines up with the CTA above it. */
+.searchResultItemCTA .sri__shelf-button {
+  display: block;
+  margin-top: var(--spacing-stack-sm);
+}
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {
   .searchResultItem .searchResultItemCTA {

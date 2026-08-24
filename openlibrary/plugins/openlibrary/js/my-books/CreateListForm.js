@@ -81,7 +81,8 @@ export class CreateListForm {
      */
     async createNewList() {
         // Construct seed object for first list item:
-        const listTitle = websafe(this.listTitleInput.value);
+        const rawListTitle = this.listTitleInput.value;
+        const listTitle = websafe(rawListTitle);
         const listDescription = websafe(this.listDescriptionInput.value);
 
         const openDropper = myBooksStore.getOpenDropper();
@@ -102,6 +103,13 @@ export class CreateListForm {
 
                 // Update all droppers with new list data
                 this.updateDroppersOnListCreation(data['key'], listTitle, data['key']);
+
+                // Any <ol-book-actions> popovers on the page cache the list
+                // set; tell them so their pane shows the new list too. Raw
+                // name: the popover renders through Lit, which escapes itself.
+                document.dispatchEvent(new CustomEvent('ol-list-created', {
+                    detail: { key: data['key'], name: rawListTitle, seedKey: seed }
+                }));
 
                 // Clear list creation form fields, nullify seed
                 this.resetForm();

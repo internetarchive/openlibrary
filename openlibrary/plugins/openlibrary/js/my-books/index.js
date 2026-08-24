@@ -4,6 +4,9 @@ import myBooksStore from './store';
 import { getListPartials } from '../lists/ListService';
 import { ShowcaseItem, createActiveShowcaseItem, toggleActiveShowcaseItems } from '../lists/ShowcaseItem';
 import { removeChildren } from '../utils';
+import { websafe } from '../jsdef';
+
+export { initShelfButtons } from './shelf-buttons';
 
 // XXX : jsdoc
 // XXX : decompose
@@ -39,6 +42,19 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
     const userKey = droppers[0].readingLists.userKey;
     myBooksStore.setUserKey(userKey);
     myBooksStore.setDroppers(droppers);
+
+    // A mixed page: a list created inside an <ol-book-actions> popover has to
+    // appear in these droppers too. CreateListForm's own creations dispatch on
+    // `document` and already update the droppers, so only bubbled events —
+    // whose target is the popover — are handled here.
+    document.addEventListener('ol-list-created', (e) => {
+        if (e.target === document) return;
+        // The name is patron text and the row is built with innerHTML.
+        const listTitle = websafe(e.detail.name);
+        for (const dropper of myBooksStore.getDroppers()) {
+            dropper.readingLists.onListCreationSuccess(e.detail.key, listTitle, false, '');
+        }
+    });
 
     getListPartials()
         .then(response => response.json())
