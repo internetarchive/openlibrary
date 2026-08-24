@@ -17,22 +17,24 @@ PATTERN = re.compile(r"=\s*httpx\.AsyncClient\(")
 
 
 def main(files: list[str]) -> int:
-    hits: list[str] = []
+    found = False
     for filename in files:
         with open(filename, encoding="utf-8") as f:
-            hits += (f"{filename}:{i}:{line.rstrip()}" for i, line in enumerate(f, 1) if PATTERN.search(line))
+            for i, line in enumerate(f, 1):
+                if PATTERN.search(line):
+                    found = True
+                    sys.stderr.write(f"{filename}:{i}:{line.rstrip()}\n")
 
-    if not hits:
-        return 0
+    if found:
+        sys.stderr.write(
+            "\nhttpx.AsyncClient() assigned directly is unsafe to share across "
+            "this codebase's event loops (AsyncBridge's background loop vs. a "
+            "caller's own loop). Wrap it with cache_per_event_loop instead, e.g.:\n"
+            "    get_async_session = cache_per_event_loop(httpx.AsyncClient)\n"
+        )
+        return 1
 
-    sys.stderr.write("\n".join(hits))
-    sys.stderr.write(
-        "\nhttpx.AsyncClient() assigned directly is unsafe to share across "
-        "this codebase's event loops (AsyncBridge's background loop vs. a "
-        "caller's own loop). Wrap it with cache_per_event_loop instead, e.g.:\n"
-        "    get_async_session = cache_per_event_loop(httpx.AsyncClient)\n"
-    )
-    return 1
+    return 0
 
 
 if __name__ == "__main__":
