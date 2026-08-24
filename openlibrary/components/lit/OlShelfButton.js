@@ -88,17 +88,36 @@ export class OlShelfButton extends LitElement {
 
         /* ── Split variant ────────────────────────────────────────── */
 
+        /* The two halves are one fused shape, so the container carries the
+           secondary ol-button treatment: raised shadow, inset specular edge,
+           and the press-scale (:active propagates up from either half). */
         .split {
             display: flex;
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             overflow: hidden;
             background: var(--white);
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+            transition: transform 0.08s;
+        }
+
+        .split:active {
+            transform: scale(0.97);
         }
 
         .split--on {
             border-color: var(--color-control-selected-border);
             background: var(--color-control-selected-bg);
+            /* Opaque twin of the tint, so the specular edge tones to it. */
+            --control-surface: var(--color-control-selected-surface);
         }
 
         .main,
@@ -113,7 +132,6 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            font-weight: 600;
             cursor: pointer;
         }
 
