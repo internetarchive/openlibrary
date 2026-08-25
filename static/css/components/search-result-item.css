@@ -298,54 +298,29 @@
   outline: none;
 }
 
-/* Remove/delete button appears on https://openlibrary.org/people/jdlrobson/lists */
+/* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
 .listDelete {
+  white-space: nowrap;
+  max-width: 150px;
+  line-height: 28px;
   display: flex;
   margin-bottom: var(--spacing-stack-xs);
 }
 
-/* On a list's page the remove button belongs at the bottom of the CTA column,
-   under the lending button and dropper, with one gap owning the rhythm. */
-.list-seeds .searchResultItemCTA {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-stack-sm);
+.listDelete a span {
+  margin-right: var(--spacing-inline-sm);
+  background-image: url(/static/images/back_list-trash.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  height: 28px;
+  width: 21px;
+  display: inline-block;
+  position: relative;
+  top: 5px;
 }
 
-.list-seeds .searchResultItemCTA .decorations {
-  order: 1;
-}
-
-.list-seeds .listDelete {
-  margin: 0;
-}
-
-/* The gap can only measure what the children actually occupy, so drop the
-   dropper's ad-hoc margin and its 50px reservation for the absolutely
-   positioned control -- let the actions row size the wrapper and hang the
-   dropdown off the wrapper instead. */
-.list-seeds .searchResultItemCTA .generic-dropper-wrapper {
-  margin-top: 0;
-  min-height: 0;
-}
-
-.list-seeds .searchResultItemCTA .generic-dropper {
-  position: static;
-}
-
-.list-seeds .searchResultItemCTA .generic-dropper__dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-}
-
-/* Same for a check-in container with nothing rendered in it: normally its parts
-   carry .hidden, but grid layout hides the prompt outright. */
-.list-seeds .check-in-container:not(:has(> :not(.hidden))),
-.list-seeds:where(.list-books--grid)
-  .check-in-container:not(:has(> :not(.hidden, .check-in-prompt))) {
-  display: none;
+.listDelete a:hover span {
+  background-position: -21px 0;
 }
 
 .trending-badge {

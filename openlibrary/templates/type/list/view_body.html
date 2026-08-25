@@ -49,11 +49,8 @@ $if not is_owner:
 $def remove_item_link():
     $ owner = list.get_owner()
     $if owner and ctx.user and ctx.user.key == owner.key:
-        <span class="listDelete">
-            <ol-button size="small" full-width data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')">
-                $:macros.icon("trash", size="sm", slot="icon-start")
-                $_('Remove this item?')
-            </ol-button>
+        <span class="listDelete sansserif smaller">
+            <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
         </span>
 
 $def seed_meta_line(seed):
@@ -106,7 +103,7 @@ $def seed_attrs(seed):
         $:macros.OlPagination(page+1, ceil(len(list.seeds) / page_size))
         <div class="clearfix"></div>
 
-        <ul id="listResults" class="list-books list-seeds clearfix $cond(layout == 'grid', 'list-books--grid')">
+        <ul id="listResults" class="list-books clearfix $cond(layout == 'grid', 'list-books--grid')">
             $ component_times['get_seeds'] = time()
             $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
