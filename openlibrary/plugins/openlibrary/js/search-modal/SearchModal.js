@@ -1628,9 +1628,12 @@ export class SearchModal extends LitElement {
     // The footer button shows the actual hit count once a search lands
     // (e.g. "See all 1,234 results"); the bare "See all results" label is
     // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
-    // or fetch error).
+    // or fetch error). A search that settled on zero hits instead gets a
+    // destination label ("Go to full search") — the button still usefully leads
+    // to /search, but "See results" would promise results that aren't there.
     _seeAllLabel() {
         const n = this._numFound;
+        if (this._hasSearched && n === 0) return this._i18n.seeNone;
         if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
         // "all" is only meaningful when there are more matches than we render
         // inline. Once every hit is shown, drop "all" (and "all 1" never made

@@ -74,6 +74,10 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
     // the there's-more case (always plural, since a lone result is always shown).
     seeAll: 'See results',
+    // Shown once a search has settled on zero hits — the button still leads to
+    // /search (facets, advanced search, Search Inside rescue band), so it gets
+    // a destination label instead of promising results that aren't there.
+    seeNone: 'Go to full search',
     seeOne: 'See %s result',
     seeMany: 'See %s results',
     seeAllMany: 'See all %s results',

@@ -6021,6 +6021,10 @@ msgid "See results"
 msgstr ""
 
 #: search/search_modal_i18n.html
+msgid "Go to full search"
+msgstr ""
+
+#: search/search_modal_i18n.html
 #, python-format
 msgid "See %s result"
 msgstr ""
