@@ -89,6 +89,10 @@ class status_add(delegate.page):
             raise web.badrequest()
         state = _load_testing_state() or TestingState(last_deploy_at="", prs=[])
         existing = {p.pr for p in state.prs}
+        # Re-adding a PR whose removal is staged is an undo, not a new add.
+        for p in state.prs:
+            if p.pr in pr_numbers:
+                p.pending_remove = False
         user = get_current_user()
         failed = []
         for pr_number in pr_numbers:
@@ -130,9 +134,39 @@ class status_remove(delegate.page):
             raise web.unauthorized()
         i = web.input(prs=[])
         to_remove = {int(p) for p in i.prs}
-        if state := _load_testing_state():
-            state.prs = [p for p in state.prs if p.pr not in to_remove]
-            _save_testing_state(state)
+        state = _load_testing_state()
+        if not state or not to_remove:
+            return _json_ok()
+        # Removing a live PR stages the removal — the deploy deletes the row —
+        # so restore is a true undo: the pin and toggle state survive. A PR
+        # that never reached the box has nothing to undo and drops outright.
+        kept = []
+        for p in state.prs:
+            if p.pr in to_remove:
+                if not _live_now(state, p):
+                    continue
+                p.pending_remove = True
+            kept.append(p)
+        state.prs = kept
+        _save_testing_state(state)
+        return _json_ok()
+
+
+class status_restore(delegate.page):
+    path = "/status/restore"
+
+    def POST(self):
+        if not _is_maintainer():
+            raise web.unauthorized()
+        i = web.input(prs=[])
+        to_restore = {int(p) for p in i.prs}
+        state = _load_testing_state()
+        if not state or not to_restore:
+            return _json_ok()
+        for p in state.prs:
+            if p.pr in to_restore:
+                p.pending_remove = False
+        _save_testing_state(state)
         return _json_ok()
 
 
@@ -201,11 +235,15 @@ class status_deploy(delegate.page):
         state = _load_testing_state()
         if not state:
             return _json_ok()
-        # Drop merged/closed PRs on the *un-mutated* state; persist=False so the
-        # drift metadata refresh can never write staged changes before Jenkins
-        # accepts the build.
+        # Drop staged removals and merged/closed PRs on the *un-mutated* state;
+        # persist=False so the drift metadata refresh can never write staged
+        # changes before Jenkins accepts the build.
         drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [p for p in state.prs if not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)]
+        state.prs = [
+            p
+            for p in state.prs
+            if not p.pending_remove and not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)
+        ]
         # Apply all pending changes before deploying
         for p in state.prs:
             if p.pull_latest_sha:
@@ -262,6 +300,18 @@ def _is_deploying(state: TestingState) -> bool:
     return False
 
 
+def _live_now(state: TestingState, p: TestingPR) -> bool:
+    """Whether the last deploy put this PR on the box.
+
+    A populated ``deployed`` record is authoritative. The record postdates most
+    state files, so an empty one means "pre-record" rather than "nothing was
+    ever deployed": anything added before the last deploy was part of it.
+    """
+    if state.deployed:
+        return p.pr in state.deployed
+    return bool(state.last_deploy_at and p.added_at <= state.last_deploy_at)
+
+
 def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChange]:
     """The plan: what deploying would change, one entry per staged change.
 
@@ -270,9 +320,10 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     without merging — is dropped on deploy regardless of what else is staged on
     it, so it yields one ``remove`` and nothing more.
 
-    Removal is the one action that stages nothing: it deletes the row. Those are
-    recovered at the end by diffing ``state.deployed`` — what the last deploy
-    built — against what is left.
+    Removal is staged like everything else: ``pending_remove`` marks the row
+    and the deploy deletes it. Rows removed outright by code that predates the
+    flag survive only in ``state.deployed``; those are recovered at the end by
+    diffing it — what the last deploy built — against what is left.
     """
     last_deploy = state.last_deploy_at
     changes: list[PendingChange] = []
@@ -283,6 +334,11 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
         if drift_info.get(p.pr, {}).get("closed", False):
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="closed", detail=""))
             continue
+        if p.pending_remove:
+            # A staged removal drops the row on deploy, so nothing else staged
+            # on it matters. No reason: this one the maintainer asked for.
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", detail=""))
+            continue
         if not last_deploy or p.added_at > last_deploy:
             # A pin staged on a PR that isn't live yet isn't a separate change:
             # it's just the SHA the PR lands at, so report the effective one.
@@ -291,9 +347,10 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="pin", detail=p.short_pull_latest))
         if (toggle := p.pending_toggle) is not None:
             changes.append(PendingChange(pr=p.pr, title=p.title, kind="enable" if toggle else "disable", detail=""))
-    # Deployed but no longer in the set: removed, and still on the box until the
-    # next deploy drops it. State files written before `deployed` existed start
-    # empty here, so their first deploy is what makes removals visible.
+    # Deployed but no longer in the set: removed outright by pre-`pending_remove`
+    # code, and still on the box until the next deploy drops it. State files
+    # written before `deployed` existed start empty here, so their first deploy
+    # is what makes removals visible.
     # ``reason`` separates these from the merged ones above, which are the same
     # kind for a different cause and must not borrow each other's wording.
     remaining = {p.pr for p in state.prs}
@@ -383,6 +440,7 @@ class TestingPR(BaseModel):
     added_by: str = ""  # OL username
     pull_latest_sha: str = ""  # pending SHA from "Fetch Latest"; applied on deploy
     pending_active: bool | None = None  # pending enable/disable; applied on deploy
+    pending_remove: bool = False  # staged removal; the deploy deletes the row
     author: str = ""  # GitHub login of PR author
     author_avatar: str = ""  # GitHub avatar URL (append &s=N for sizing)
     assignee: str = ""  # GitHub login of assignee, empty if unassigned
@@ -423,9 +481,9 @@ class TestingState(BaseModel):
     prs: list[TestingPR] = Field(default_factory=list)
     # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
     deploy_started_at: str = ""
-    # {pr number: title} of what the last deploy actually built. Removing a PR
-    # deletes it from `prs` outright, so this is the only record that the box is
-    # still running it — without it a removal is invisible and undeployable.
+    # {pr number: title} of what the last deploy actually built — what
+    # `live_now` renders from. Rows removed outright by code that predates
+    # `pending_remove` survive only here, as read-only dropped rows.
     deployed: dict[int, str] = Field(default_factory=dict)
 
 
@@ -508,12 +566,6 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     for change in pending_changes:
         actions.setdefault(change.pr, change.kind)
     remaining = {p.pr for p in state.prs}
-    # The `deployed` record postdates most state files, so an empty one means
-    # "pre-record" rather than "nothing was ever deployed": infer what the last
-    # deploy built the same way _pending_changes does — anything added before it
-    # was part of it. A populated record is authoritative (it also catches PRs
-    # deployed then removed, which no longer exist in prs).
-    deployed_record = bool(state.deployed)
     prs = [
         TestingPRStatus(
             **p.model_dump(),
@@ -521,7 +573,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
             drift=drift_info.get(p.pr, {}).get("drift", -1),
             merged=drift_info.get(p.pr, {}).get("merged", False),
             is_new=bool(last_deploy and p.added_at > last_deploy),
-            live_now=p.pr in state.deployed or (not deployed_record and bool(last_deploy and p.added_at <= last_deploy)),
+            live_now=_live_now(state, p),
             merge_conflict=p.pr in merge_conflicts,
             closed=drift_info.get(p.pr, {}).get("closed", False),
             action=actions.get(p.pr, ""),
@@ -529,8 +581,9 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
         )
         for p in state.prs
     ]
-    # Deployed but no longer in the set: the deploy drops them from the box, so
-    # they get a read-only row flagged for removal rather than vanishing.
+    # Deployed but no longer in the set (removed outright by pre-`pending_remove`
+    # code): the deploy drops them from the box, so they get a read-only row
+    # flagged for removal rather than vanishing.
     for pr, title in state.deployed.items():
         if pr not in remaining:
             prs.append(
@@ -543,6 +596,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
                     added_by="",
                     pull_latest_sha="",
                     pending_active=None,
+                    pending_remove=False,
                     author="",
                     author_avatar="",
                     assignee="",

@@ -276,6 +276,19 @@ def test_pending_changes_closed_pr_yields_only_a_removal():
     assert [(c.kind, c.reason) for c in changes] == [("remove", "closed")]
 
 
+def test_pending_changes_staged_removal_yields_only_a_removal():
+    """A staged removal drops the row on deploy, so nothing else staged on it matters."""
+    pr = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_remove = True
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+
+    changes = status_module._pending_changes(state, {})
+
+    # No reason: unlike merged/closed, this removal the maintainer asked for.
+    assert [(c.kind, c.reason) for c in changes] == [("remove", "")]
+
+
 def test_build_testing_status_marks_closed_prs():
     """A closed PR carries the closed flag and reads as a pending removal."""
     pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
@@ -331,6 +344,27 @@ def test_deploy_drops_closed_prs():
         status_module.status_deploy().POST()
 
     assert state.prs == []
+
+
+def test_deploy_drops_staged_removals():
+    """Deploying deletes rows whose removal is staged; the rest survive."""
+    doomed = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    doomed.pending_remove = True
+    survivor = _make_pr(pr_number=13238, added_at="2026-08-01T10:00:00+00:00")
+    state = _make_state(prs=[doomed, survivor])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+    ):
+        status_module.status_deploy().POST()
+
+    assert [p.pr for p in state.prs] == [13238]
+    assert state.deployed == {13238: survivor.title}
 
 
 def test_pending_changes_folds_a_pin_into_an_unlanded_add():
@@ -407,6 +441,20 @@ def test_payload_action_mirrors_the_plan_kinds():
     actions = {p.pr: p.action for p in result.prs}
 
     assert actions == {13269: "add", 13238: "pin", 13240: "disable"}
+
+
+def test_payload_marks_a_staged_removal():
+    """The row stays in the set with its state intact, reading as a pending removal."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_remove = True
+    state = _make_state(prs=[pr])
+    state.deployed = {pr.pr: pr.title}
+
+    result = status_module.build_testing_status(state, {})
+    row = result.prs[0]
+
+    assert (row.pending_remove, row.in_set, row.action) == (True, True, "remove")
+    assert result.has_pending is True
 
 
 def test_payload_includes_dropped_prs_as_readonly_rows():
@@ -568,6 +616,87 @@ def test_add_skips_pr_and_marks_failure_when_github_errors():
     assert state.prs == []
 
 
+def test_remove_stages_a_removal_for_a_live_pr():
+    """Removing a deployed PR stages it: the row survives with its pin and toggle."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pull_latest_sha = "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    state = _make_state(prs=[pr])
+    state.deployed = {pr.pr: pr.title}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("web.input", return_value=web.storage(prs=["13269"])),
+    ):
+        response = status_module.status_remove().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert [p.pr for p in state.prs] == [13269]
+    assert state.prs[0].pending_remove is True
+    assert state.prs[0].pull_latest_sha == "9f8e7d6c5b4a39281706f5e4d3c2b1a098765432"
+    mock_save.assert_called_once_with(state)
+
+
+def test_remove_deletes_a_never_deployed_pr_outright():
+    """A PR that never reached the box has nothing to undo, so no staged removal."""
+    pr = _make_pr()  # added after last deploy
+    state = _make_state(prs=[pr])
+    state.deployed = {13238: "Other PR"}
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("web.input", return_value=web.storage(prs=["13269"])),
+    ):
+        status_module.status_remove().POST()
+
+    assert state.prs == []
+
+
+def test_restore_clears_a_staged_removal():
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_remove = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
+        patch("web.input", return_value=web.storage(prs=["13269"])),
+    ):
+        response = status_module.status_restore().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert state.prs[0].pending_remove is False
+    mock_save.assert_called_once_with(state)
+
+
+def test_add_cancels_a_staged_removal():
+    """Re-adding a PR whose removal is staged is an undo, not a duplicate row."""
+    pr = _make_pr(added_at="2026-08-01T10:00:00+00:00")
+    pr.pending_remove = True
+    state = _make_state(prs=[pr])
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_pr_info") as mock_info,
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
+        patch("web.input", return_value=web.storage(pr="13269")),
+    ):
+        response = status_module.status_add().POST()
+
+    assert json.loads(response["rawtext"]) == {"ok": True}
+    assert [p.pr for p in state.prs] == [13269]
+    assert state.prs[0].pending_remove is False
+    # Already in the set: no GitHub fetch, no fresh row.
+    mock_info.assert_not_called()
+
+
 def test_deploy_unconfigured_answers_error_but_advances_state():
     """Local dev (no Jenkins token): state advances so the UI is exercisable,
     but the response says nothing was actually deployed."""
@@ -706,6 +835,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "added_by": "openlibrary",
                 "pull_latest_sha": "",
                 "pending_active": None,
+                "pending_remove": False,
                 "author": "author",
                 "author_avatar": "",
                 "assignee": "assignee",

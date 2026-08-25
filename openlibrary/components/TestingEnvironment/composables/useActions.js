@@ -67,9 +67,10 @@ export function useActions({ busy, loadStatus, setToast, strings }) {
         runAction('/status/remove', { prs: [pr.pr] });
     }
 
-    // Undo a removal: re-add via /status/add (the same path the add box uses).
+    // Undo a staged removal: the server just clears the flag, so the row's
+    // pinned commit and toggle state come back untouched.
     function restorePr(pr) {
-        runAction('/status/add', { pr: String(pr.pr) });
+        runAction('/status/restore', { prs: [pr.pr] });
     }
 
     async function deploy() {

@@ -30,6 +30,10 @@ const emit = defineEmits(['toggle', 'update', 'remove', 'restore']);
 
 const inSet = computed(() => props.pr.in_set !== false);
 
+// A staged removal makes the row read-only until deploy or restore: the
+// deploy drops it, so its toggle and pin controls would change nothing.
+const removalStaged = computed(() => props.pr.pending_remove === true);
+
 const liveNow = computed(() => props.pr.live_now === true);
 
 const mergeConflict = computed(() => props.pr.merge_conflict === true);
@@ -50,7 +54,7 @@ const isActive = computed(() => effectiveActive(props.pr));
 // `action`; any non-empty value means a change is staged for it.
 const pending = computed(() => Boolean(props.pr.action));
 
-const canUpdatePr = computed(() => canUpdate(props.pr));
+const canUpdatePr = computed(() => !removalStaged.value && canUpdate(props.pr));
 
 const pill = computed(() => driftPill(props.pr, props.strings));
 
@@ -68,7 +72,7 @@ function text(key, ...args) {
       class="testing-env__col-toggle"
     >
       <button
-        v-if="inSet"
+        v-if="inSet && !removalStaged"
         type="button"
         class="testing-env__switch"
         :aria-pressed="isActive ? 'true' : 'false'"
@@ -187,7 +191,7 @@ function text(key, ...args) {
       class="testing-env__col-actions"
     >
       <button
-        v-if="inSet"
+        v-if="inSet && !removalStaged"
         type="button"
         class="testing-env__row-action testing-env__row-action--danger"
         :title="strings.remove"
@@ -223,7 +227,7 @@ function text(key, ...args) {
         </svg>
       </button>
       <button
-        v-else
+        v-else-if="inSet"
         type="button"
         class="testing-env__row-action testing-env__row-action--restore"
         :title="strings.restore"
