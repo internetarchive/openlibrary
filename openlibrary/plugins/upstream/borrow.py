@@ -386,7 +386,6 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(json.dumps(d), content_type="application/json")
 
 
-@public
 def get_borrow_status(itemid):
     """Returns borrow status for this IA identifier."""
     loan = lending.get_loan(itemid)
