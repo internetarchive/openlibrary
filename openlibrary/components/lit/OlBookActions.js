@@ -3,7 +3,9 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, fetchUserLists, addToList, removeFromList, createList, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
+import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
+import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { translate } from './utils/labels.js';
@@ -57,59 +59,6 @@ const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id],
  */
 const PANES = ['main', 'lists', 'checkIn'];
 
-let _months = null;
-/** Month names in the page's language. Cached: the list never changes. */
-function MONTHS() {
-    if (!_months) {
-        const lang = document.documentElement.lang || 'en';
-        const format = new Intl.DateTimeFormat(lang, { month: 'long' });
-        _months = Array.from({ length: 12 }, (_, i) => format.format(new Date(2000, i, 1)));
-    }
-    return _months;
-}
-
-/**
- * A check-in date for display. The schema stores partial dates, so "2026",
- * "2026-08" and "2026-08-22" are all valid and each shows only what is known.
- */
-function formatReadDate(value) {
-    const [year, month, day] = String(value).split('-').map(Number);
-    if (!year) return '';
-    const lang = document.documentElement.lang || 'en';
-    const options = month
-        ? (day ? { year: 'numeric', month: 'short', day: 'numeric' } : { year: 'numeric', month: 'short' })
-        : null;
-    if (!options) return String(year);
-    return new Intl.DateTimeFormat(lang, options).format(new Date(year, month - 1, day || 1));
-}
-
-/**
- * The years offered as one tap. For the first 30 days of a new year the year
- * just gone stays on offer: that is when a reader is most likely logging
- * something they finished before the turn, and "In 2025" on 25 January saves
- * them the date picker.
- */
-export function quickYears(now = new Date()) {
-    const year = now.getFullYear();
-    const daysIn = Math.floor((now - new Date(year, 0, 1)) / 86400000);
-    return daysIn < 30 ? [year, year - 1] : [year];
-}
-
-/** The inverse: `{year, month, day}` as the schema stores it. */
-function partialDate({ year, month, day }) {
-    const pad = n => String(n).padStart(2, '0');
-    if (!month) return String(year);
-    return day ? `${year}-${pad(month)}-${pad(day)}` : `${year}-${pad(month)}`;
-}
-
-// One in-flight lists request shared by every popover on the page.
-let _listsPromise = null;
-/** Drop the shared lists cache (tests, or after a mutation elsewhere). */
-export function resetListsCache() {
-    _listsPromise = null;
-}
-
-
 /**
  * Per-book action popover: reading-log shelves, a star rating, and an
  * "Add to list" pane that slides in from the right. Composes `<ol-popover>`
@@ -138,8 +87,9 @@ export function resetListsCache() {
  *     component keeps its own copy (`readDate`/`eventId`); the event is for the
  *     surface to persist it across renders. detail: { key, date, eventId } —
  *     `date` is whole or partial, as stored.
- * @fires ol-list-created - After the inline form creates a list, so sibling
- *     popovers on the page can add the row. detail: { key, name, seedKey }
+ * @fires ol-list-created - After the inline form creates a list. Sibling
+ *     popovers share the lists store and need no event; this is for surfaces
+ *     outside the components. detail: { key, name, seedKey }
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -157,8 +107,8 @@ export class OlBookActions extends LitElement {
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
-        _lists: { state: true },
         _listsLoading: { state: true },
+        _listsFailed: { state: true },
         _listFilter: { state: true },
         _creating: { state: true },
         _createBusy: { state: true },
@@ -696,8 +646,8 @@ export class OlBookActions extends LitElement {
         this._pane = 'main';
         this._snap = false;
         this._trackHeight = 0;
-        this._lists = null;
         this._listsLoading = false;
+        this._listsFailed = false;
         this._listFilter = '';
         this._creating = false;
         this._createBusy = false;
@@ -1022,10 +972,11 @@ export class OlBookActions extends LitElement {
     }
 
     _renderListItems() {
-        if (this._listsLoading || this._lists === null) {
+        const lists = getLists();
+        if (this._listsLoading || (lists === null && !this._listsFailed)) {
             return html`<div class="loading" role="status"><ol-icon class="obd-icon spinner" name="loader"></ol-icon>${this.t('loadingLists')}</div>`;
         }
-        const entries = Object.entries(this._lists);
+        const entries = Object.entries(lists || {});
         if (!entries.length) return html`<div class="empty">${this.t('noLists')}</div>`;
         const filter = this._listFilter.trim().toLowerCase();
         const shown = filter ? entries.filter(([, l]) => l.listName.toLowerCase().includes(filter)) : entries;
@@ -1056,29 +1007,16 @@ export class OlBookActions extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        document.addEventListener('ol-list-created', this._onListCreatedElsewhere);
+        // The store notifies on every lists change, wherever it was made, so
+        // a create or toggle in a sibling popover re-renders this one too.
+        this._unsubscribeLists = subscribeToLists(() => this.requestUpdate());
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this._resizeObserver?.disconnect();
-        document.removeEventListener('ol-list-created', this._onListCreatedElsewhere);
+        this._unsubscribeLists?.();
     }
-
-    /**
-     * A list created elsewhere on the page — a sibling popover or the legacy
-     * dropper — folded into this popover's pane so it stays honest without a
-     * refetch. Legacy creations also drop the shared cache: popovers that have
-     * not loaded yet must not resolve from a promise that predates the list.
-     */
-    _onListCreatedElsewhere = (e) => {
-        if (e.target === this) return;
-        const { key, name, seedKey } = e.detail || {};
-        if (!key) return;
-        if (this._lists && !(key in this._lists)) {
-            this._lists = { [key]: { listName: name, members: seedKey ? [seedKey] : [] }, ...this._lists };
-        }
-    };
 
     /** Size the track to the active pane so the panel doesn't stretch to the taller one. */
     _syncTrackHeight() {
@@ -1098,7 +1036,7 @@ export class OlBookActions extends LitElement {
         this._listFilter = '';
         // Prefetch so the "in N lists" count is right on the first open, not
         // only after a trip to the lists pane. One request per page — every
-        // popover shares `_listsPromise`.
+        // popover reads the shared lists store.
         if (this.userKey) this._loadLists({ quiet: true });
     }
 
@@ -1290,22 +1228,23 @@ export class OlBookActions extends LitElement {
 
     /** How many of the user's (loaded) lists contain this book. */
     get _listCount() {
-        if (!this._lists) return 0;
-        return Object.values(this._lists).filter(l => l.members.includes(this._seedKey)).length;
+        const lists = getLists();
+        if (!lists) return 0;
+        return Object.values(lists).filter(l => l.members.includes(this._seedKey)).length;
     }
 
     /** `quiet` is for the open-time prefetch: no toast, no login bounce. */
     async _loadLists({ quiet = false } = {}) {
-        if (this._lists !== null && !this._listsLoading) return;
+        if (getLists()) return;
         this._listsLoading = true;
         try {
-            _listsPromise ||= fetchUserLists();
-            this._lists = await _listsPromise;
+            await loadLists();
+            this._listsFailed = false;
         } catch (error) {
-            _listsPromise = null;
-            // Leave `_lists` null so opening the pane retries and reports.
+            // A quiet failure keeps the pane on its spinner, so opening it
+            // retries and reports.
             if (quiet) return;
-            this._lists = {};
+            this._listsFailed = true;
             this._fail(error);
         } finally {
             this._listsLoading = false;
@@ -1313,16 +1252,12 @@ export class OlBookActions extends LitElement {
     }
 
     async _onListToggle(listKey, checked) {
-        const list = this._lists[listKey];
-        const before = list.members;
-        list.members = checked ? [...before, this._seedKey] : before.filter(k => k !== this._seedKey);
-        this.requestUpdate();
         try {
-            await (checked ? addToList(listKey, this._seedKey) : removeFromList(listKey, this._seedKey));
+            // The store applies the change optimistically and rolls it back
+            // for us on failure.
+            await toggleListSeed(listKey, this._seedKey, checked);
             trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
         } catch (error) {
-            list.members = before;
-            this.requestUpdate();
             this._fail(error);
         }
     }
@@ -1345,17 +1280,14 @@ export class OlBookActions extends LitElement {
         if (!name || this._createBusy) return;
         this._createBusy = true;
         try {
-            const created = await createList(this.userKey, name, this._seedKey);
+            // The store prepends the new list, so every popover shows it first.
+            const key = await createUserList(this.userKey, name, this._seedKey);
             trackEvent('Lists', 'CreateList');
-            // Prepend so the new list is visible immediately. Sibling popovers
-            // and the legacy dropper hear about it through `ol-list-created`.
-            this._lists = { [created.key]: { listName: name, members: [this._seedKey] }, ...this._lists };
-            _listsPromise = Promise.resolve(this._lists);
             this._creating = false;
             this.dispatchEvent(new CustomEvent('ol-list-created', {
                 bubbles: true,
                 composed: true,
-                detail: { key: created.key, name, seedKey: this._seedKey },
+                detail: { key, name, seedKey: this._seedKey },
             }));
         } catch (error) {
             this._fail(error);

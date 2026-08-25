@@ -3,9 +3,11 @@
  * updates, the state-change event, and the add-to-list pane (load, filter,
  * toggle, create). Network is stubbed at `fetch`.
  */
-import { OlBookActions, quickYears, resetListsCache } from '../../../openlibrary/components/lit/OlBookActions.js';
+import { OlBookActions } from '../../../openlibrary/components/lit/OlBookActions.js';
 import { fmt } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
+import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
+import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
 
 const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear: 2021, editionKey: 'OL9M' };
 
@@ -37,7 +39,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-    resetListsCache();
+    resetListsStore();
 });
 
 afterEach(() => {
@@ -157,7 +159,7 @@ describe('ol-book-actions lists pane', () => {
         stubFetch({ failWith: 500 });
         const el = await mount();
         await tick(el);
-        expect(el._lists).toBeNull();
+        expect(getLists()).toBeNull();
         expect(q(el, '.group:last-child .count')).toBeNull();
     });
 
@@ -247,7 +249,7 @@ describe('ol-book-actions lists pane', () => {
     });
 });
 
-describe('ol-book-actions list-created bridge', () => {
+describe('ol-book-actions shared lists', () => {
     async function createList(el, name) {
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -277,11 +279,13 @@ describe('ol-book-actions list-created bridge', () => {
         const fetches = () => calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
         const before = fetches();
         await createList(el, 'Gothic autumn');
-        expect(Object.values(sibling._lists).map(l => l.listName)).toContain('Gothic autumn');
-        // Unchecked for the sibling: only the creator's seed is on the list.
+        // The sibling reads the shared store, so the new list is already there.
         sibling.shadowRoot.querySelector('.group:last-child .row').click();
         await tick(sibling);
-        expect(qa(sibling, '.list-row')[0].querySelector('input').checked).toBe(false);
+        const firstRow = qa(sibling, '.list-row')[0];
+        expect(firstRow.querySelector('.name').textContent).toBe('Gothic autumn');
+        // Unchecked for the sibling: only the creator's seed is on the list.
+        expect(firstRow.querySelector('input').checked).toBe(false);
         expect(fetches()).toBe(before);
     });
 
