@@ -5,14 +5,45 @@ $def render_snippet(query, doc):
     $:macros.FulltextSnippet(query, doc=doc)
   </div>
 
+$# A hit whose scan didn't hydrate to an OL edition (record missing or lookup
+$# failed) degrades to the scan's own IA metadata instead of vanishing — the
+$# totals and pagination count it either way.
+$def render_ia_fallback(query, doc):
+  $ fields = doc.get('fields', {})
+  $ ia = fields.get('identifier', [''])[0]
+  $ title = fields.get('meta_title', [''])[0] or ia
+  $ creators = [c for c in fields.get('meta_creator', []) if c]
+  $ details_url = "https://archive.org/details/%s?%s" % (ia, urlencode(dict(q=query)))
+  <li class="searchResultItem sri--w-main">
+    <div class="sri__main">
+      <span class="bookcover">
+        <a href="$details_url">
+          <img src="https://archive.org/services/img/$ia" alt="$_('Cover of: %(title)s', title=title)" loading="lazy"/>
+        </a>
+      </span>
+      <div class="details">
+        <div class="resultTitle">
+          <h3 class="booktitle">
+            <a class="results" href="$details_url">$title</a>
+          </h3>
+        </div>
+        $if creators:
+          <span class="bookauthor">$_('by %(authors)s', authors=', '.join(creators[:3]))</span>
+        $:render_snippet(query, doc)
+      </div>
+    </div>
+  </li>
+
 $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
   <div id="searchResults">
     <ul class="list-books">
-      $ docs = (doc for doc in hits if doc.get('edition'))
-      $for doc in docs:
-        $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
+      $for doc in hits:
+        $if doc.get('edition'):
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
+        $elif doc.get('fields', {}).get('identifier'):
+          $:render_ia_fallback(query, doc)
     </ul>
     $:macros.OlPagination(page, ceil(num_found / results_per_page))
   </div>

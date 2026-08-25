@@ -1,6 +1,8 @@
-$def with (q, results, search_time, page=1, results_per_page=20, selected_language="")
+$def with (q, results, search_time, page=1, results_per_page=20, selected_languages=None, readable=False, readable_count=None, filter_url=None, facet_url=None)
 
 $var title: $_('Search Open Library for %s', q)
+
+$ selected_languages = selected_languages or []
 
 <div id="contentHead">
   <h1>$_("Search Inside")</h1>
@@ -11,8 +13,10 @@ $var title: $_('Search Open Library for %s', q)
   <div class="section">
     <form class="siteSearch olform" action="/search/inside">
       $:render_template("search/searchbox", q=q)
-      $if selected_language:
-        <input type="hidden" name="language" value="$selected_language"/>
+      $for lang in selected_languages:
+        <input type="hidden" name="language" value="$lang.code"/>
+      $if readable:
+        <input type="hidden" name="readable" value="true"/>
     </form>
   </div>
     $ num_found = 0
@@ -24,9 +28,33 @@ $var title: $_('Search Open Library for %s', q)
         $if 'error' in results:
             <div class="searchResultsError">$results['error']</div>
 
-        $if selected_language:
+        $# Same filter row as /search (work_search.html): the empty controls
+        $# are seeded and wired client-side by SearchFilterBar.js, which maps
+        $# them onto this page's readable/language params. No sort or layout
+        $# tools: the FTS backend only ranks by relevance, and snippet rows
+        $# have no grid form.
+        $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
+        <div class="search-filter-row" id="search-filter-row">
+          <ol-toggle
+            variant="button"
+            label="$_('Readable Only')"
+            accessible-label="$_('Filter by availability')"
+            sublabel="$readable_sublabel"
+          ></ol-toggle>
+          <ol-select-popover
+            label="$_('Language')"
+            placeholder="$_('Search languages…')"
+            unselected-heading="$_('Languages')"
+            aria-label="$_('Filter by language')"
+          ></ol-select-popover>
+        </div>
+
+        $if readable or selected_languages:
             <span class="selected-search-facets-container">
-              <ol-chip selected size="small" accessible-label="$_('Remove filter: %(language)s', language=selected_language)" href="/search/inside?$urlencode(dict(q=q))">$selected_language</ol-chip>
+              $if readable:
+                <ol-chip selected size="small" accessible-label="$_('Remove filter: %(filter)s', filter=_('Readable Only'))" href="$filter_url(readable=False)">$_("Readable Only")</ol-chip>
+              $for lang in selected_languages:
+                <ol-chip selected size="small" accessible-label="$_('Remove filter: %(language)s', language=lang.name)" href="$filter_url(languages=[l.code for l in selected_languages if l.code != lang.code])">$lang.name</ol-chip>
             </span>
 
         $if not num_found:
@@ -42,11 +70,12 @@ $var title: $_('Search Open Library for %s', q)
         <div class="resultsContainer search-results-container">
           $:macros.FulltextResults(q, results, page=page, results_per_page=results_per_page)
           $# Language facet sidebar, from the FTS response's aggregations.
-          $# Selecting a bucket reruns the search with an ANDed
-          $# languageSorter clause (see build_fulltext_query). Buckets for
-          $# the already-selected language are dropped — the chip above
-          $# owns removing it.
-          $ facet_buckets = [b for b in lang_buckets if b.get('key') and b['key'] != selected_language][:10]
+          $# Selecting a bucket reruns the search with the language added to
+          $# the ANDed languageSorter clause (see build_fulltext_query).
+          $# Buckets for already-selected languages are dropped — their
+          $# chips above own removing them.
+          $ selected_names = [l.name.casefold() for l in selected_languages]
+          $ facet_buckets = [b for b in lang_buckets if b.get('key') and b['key'].casefold() not in selected_names][:10]
           $if facet_buckets:
             <div id="searchFacets">
               <h3 class="collapse">$_("Zoom In")</h3>
@@ -54,7 +83,7 @@ $var title: $_('Search Open Library for %s', q)
                 <h4 class="facetHead">$_("Language")</h4>
                 $for bucket in facet_buckets:
                   <div class="facetEntry">
-                    <ol-chip size="small" href="/search/inside?$urlencode(dict(q=q, language=bucket['key']))" title="$_('Filter results for %(facet)s', facet=bucket['key'])" data-ol-link-track="SearchInsideFacet|Language" count="$commify(bucket['doc_count'])">$bucket['key']</ol-chip>
+                    <ol-chip size="small" href="$facet_url(bucket['key'])" title="$_('Filter results for %(facet)s', facet=bucket['key'])" data-ol-link-track="SearchInsideFacet|Language" count="$commify(bucket['doc_count'])">$bucket['key']</ol-chip>
                   </div>
               </div>
             </div>

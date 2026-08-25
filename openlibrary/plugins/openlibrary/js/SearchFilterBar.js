@@ -1,12 +1,13 @@
 /**
- * Wires the availability toggle + language filter popover on the search results
- * page (openlibrary/templates/work_search.html). They render empty from the
- * template; this module seeds them with the current selection, navigates to an
- * updated /search URL when a filter changes, and keeps the cross-page
- * sticky-filter state in sessionStorage so the header search modal and the
- * search-page filters stay in sync.
+ * Wires the availability toggle + language filter popover on the search
+ * results surfaces: /search (work_search.html) and /search/inside
+ * (search/inside.html), each with its own URL-param dialect (see SURFACES).
+ * The controls render empty from the template; this module seeds them with
+ * the current selection, navigates to an updated URL on the same page when a
+ * filter changes, and keeps the cross-page sticky-filter state in
+ * sessionStorage so the header search modal and the page filters stay in sync.
  *
- * Persistence model — URL is the source of truth on /search:
+ * Persistence model — URL is the source of truth on these pages:
  *
  *  - On init, if the URL carries any filter param (availability params or
  *    `language`), sessionStorage is mirrored from the URL. This way the modal
@@ -44,6 +45,29 @@ const AVAILABILITY_PARAM_KEYS = [
     ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
 ];
 
+// Per-surface param dialects for the shared filter row. /search speaks Solr
+// (has_fulltext/public_scan…); /search/inside speaks the FTS endpoint's single
+// readable=true param — its collections can't split open vs borrowable, so any
+// non-default stored availability maps to the broad readable filter there.
+const SURFACES = {
+    '/search': {
+        readAvailability: (params) => availabilityFromParams((name) => params.get(name)),
+        availabilityParamKeys: AVAILABILITY_PARAM_KEYS,
+        availabilityParams: (value) => AVAILABILITY_TO_PARAMS[value] || {},
+    },
+    '/search/inside': {
+        readAvailability: (params) =>
+            params.get('readable') === 'true' ? 'readable' : DEFAULT_AVAILABILITY,
+        availabilityParamKeys: ['readable'],
+        availabilityParams: (value) =>
+            value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' },
+    },
+};
+
+function currentSurface() {
+    return SURFACES[window.location.pathname] || SURFACES['/search'];
+}
+
 function writeStoredAvailability(value) {
     ssSet(SS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);
 }
@@ -54,8 +78,8 @@ function writeStoredLanguages(values) {
 
 // ── URL / sticky-filter helpers ────────────────────────────────────────────
 
-function urlHasAnyFilterParam(params) {
-    if (AVAILABILITY_PARAM_KEYS.some(k => params.has(k))) return true;
+function urlHasAnyFilterParam(surface, params) {
+    if (surface.availabilityParamKeys.some(k => params.has(k))) return true;
     if (params.has('language')) return true;
     return false;
 }
@@ -65,8 +89,8 @@ function urlHasAnyFilterParam(params) {
  * with the same selection next time. We always write both keys so removing a
  * filter via the popovers/sidebar clears the stored value too.
  */
-function syncSessionStorageFromUrl(params) {
-    writeStoredAvailability(availabilityFromParams(name => params.get(name)));
+function syncSessionStorageFromUrl(surface, params) {
+    writeStoredAvailability(surface.readAvailability(params));
     writeStoredLanguages(params.getAll('language'));
 }
 
@@ -77,8 +101,8 @@ function syncSessionStorageFromUrl(params) {
  *
  * `replace` is used so the unfiltered URL doesn't end up in the back-stack.
  */
-function maybeApplyStickyFilters(params) {
-    if (urlHasAnyFilterParam(params)) return false;
+function maybeApplyStickyFilters(surface, params) {
+    if (urlHasAnyFilterParam(surface, params)) return false;
 
     const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
     const storedLangs = readStoredLanguages();
@@ -87,15 +111,15 @@ function maybeApplyStickyFilters(params) {
     }
 
     const next = new URLSearchParams(params);
-    const mapped = AVAILABILITY_TO_PARAMS[storedAvail] || {};
+    const mapped = surface.availabilityParams(storedAvail);
     Object.entries(mapped).forEach(([key, value]) => next.set(key, value));
     storedLangs.forEach(code => next.append('language', code));
-    window.location.replace(`/search?${next.toString()}`);
+    window.location.replace(`${window.location.pathname}?${next.toString()}`);
     return true;
 }
 
 /**
- * Navigate to /search with the current query string mutated by `mutate`.
+ * Navigate to the current page with the query string mutated by `mutate`.
  * Pagination is reset because the result set changes.
  * @param {(params: URLSearchParams) => void} mutate
  */
@@ -103,7 +127,7 @@ function navigateWithParams(mutate) {
     const params = new URLSearchParams(window.location.search);
     mutate(params);
     params.delete('page');
-    window.location.assign(`/search?${params.toString()}`);
+    window.location.assign(`${window.location.pathname}?${params.toString()}`);
 }
 
 /**
@@ -111,18 +135,19 @@ function navigateWithParams(mutate) {
  * @param {HTMLElement} container - the `.search-filter-row` element
  */
 export function initSearchFilterBar(container) {
+    const surface = currentSurface();
     const currentParams = new URLSearchParams(window.location.search);
 
     // Sticky-filter handoff: if the URL has no filter params, apply whatever
     // the modal/popovers last stored. Returns true when it triggered a
     // replace-navigation; bail out so we don't bind handlers on a page that's
     // about to unload.
-    if (maybeApplyStickyFilters(currentParams)) return;
+    if (maybeApplyStickyFilters(surface, currentParams)) return;
 
     // URL is now the source of truth — mirror it into sessionStorage so the
     // modal sees the same filters next time it opens. Has to run *before* the
     // popovers are seeded so a stale sessionStorage doesn't leak into them.
-    syncSessionStorageFromUrl(currentParams);
+    syncSessionStorageFromUrl(surface, currentParams);
 
     const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
@@ -133,14 +158,14 @@ export function initSearchFilterBar(container) {
         // and "off" for the all-books default. Flipping it on applies the broad
         // `readable` filter; flipping it off clears every availability param.
         availabilityEl.checked =
-            availabilityFromParams((name) => currentParams.get(name)) !== DEFAULT_AVAILABILITY;
+            surface.readAvailability(currentParams) !== DEFAULT_AVAILABILITY;
         availabilityEl.addEventListener('ol-toggle-change', (e) => {
             const value = e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY;
             writeStoredAvailability(value);
             trackEvent('SearchFilter', e.detail.checked ? 'AvailabilityOn' : 'AvailabilityOff');
-            const mapped = AVAILABILITY_TO_PARAMS[value] || {};
+            const mapped = surface.availabilityParams(value);
             navigateWithParams((params) => {
-                AVAILABILITY_PARAM_KEYS.forEach((key) => params.delete(key));
+                surface.availabilityParamKeys.forEach((key) => params.delete(key));
                 Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
