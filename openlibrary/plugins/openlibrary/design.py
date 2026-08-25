@@ -24,6 +24,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -403,8 +404,9 @@ class DesignContext:
     # The book demos write to the signed-in reader's real reading log and
     # lists, so they need their key; empty sends the demo to log in instead.
     user_key: str = ""
-    # Their shelf/rating for the demo works, keyed by OLID, so the demos open
-    # on real state without a client fetch: {"OL69612W": {"shelf": 1, "rating": 4}}.
+    # Their shelf/rating/check-in for the demo works, keyed by OLID, so the
+    # demos open on real state without a client fetch:
+    # {"OL69612W": {"shelf": 3, "rating": 4, "read_date": "2026-08", "event_id": 7}}.
     reading_state: dict = field(default_factory=dict)
     icons: list[str] = field(default_factory=list)
 
@@ -414,11 +416,20 @@ DEMO_WORK_OLIDS = ("OL69612W", "OL27448W")
 
 
 def demo_reading_state(username: str) -> dict[str, dict]:
-    """The reader's shelf and rating for each demo work, keyed by OLID."""
+    """The reader's shelf, rating, and last finish date for each demo work, keyed by OLID."""
     numeric_ids = [int(extract_numeric_id_from_olid(olid)) for olid in DEMO_WORK_OLIDS]
     shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, numeric_ids)}
     ratings = Ratings.get_users_ratings_of_works(username, numeric_ids)
-    return {olid: {"shelf": shelves.get(work_id), "rating": ratings.get(work_id)} for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)}
+    check_ins = {work_id: BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH) for work_id in numeric_ids}
+    return {
+        olid: {
+            "shelf": shelves.get(work_id),
+            "rating": ratings.get(work_id),
+            "read_date": check_ins[work_id]["event_date"] if check_ins[work_id] else None,
+            "event_id": check_ins[work_id]["id"] if check_ins[work_id] else None,
+        }
+        for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)
+    }
 
 
 def build_context(section_id: str) -> DesignContext:

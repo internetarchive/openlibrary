@@ -8,7 +8,7 @@
         {# Server-rendered opening state — this demo writes to the reader's
            actual reading log, so it opens on what's there. #}
         {% set lotr = reading_state.get('OL27448W') or {} %}
-        <ol-book-actions id="demo-book-actions" user-key="{{ user_key }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %}>
+        <ol-book-actions id="demo-book-actions" user-key="{{ user_key }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %} {% if lotr.get('read_date') %}read-date="{{ lotr['read_date'] }}" event-id="{{ lotr['event_id'] }}"{% endif %}>
             <ol-button slot="trigger">
                 Save
             </ol-button>
@@ -17,9 +17,11 @@
         <script>
             (function () {
                 const el = document.getElementById('demo-book-actions');
-                el.addEventListener('ol-book-state-change', (e) => {
+                const show = (e) => {
                     document.getElementById('demo-book-actions-out').textContent = JSON.stringify(e.detail);
-                });
+                };
+                el.addEventListener('ol-book-state-change', show);
+                el.addEventListener('ol-book-check-in', show);
             })();
         </script>
     {% endcall %}

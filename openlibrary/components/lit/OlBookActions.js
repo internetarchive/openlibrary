@@ -134,9 +134,10 @@ export function resetListsCache() {
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
- * @fires ol-book-check-in - After a finish date is accepted by the server, so
- *     the surface can hand it back. detail: { key, date, eventId } — `date` is
- *     whole or partial, as stored.
+ * @fires ol-book-check-in - After a finish date is accepted by the server. The
+ *     component keeps its own copy (`readDate`/`eventId`); the event is for the
+ *     surface to persist it across renders. detail: { key, date, eventId } —
+ *     `date` is whole or partial, as stored.
  * @fires ol-list-created - After the inline form creates a list, so sibling
  *     popovers on the page can add the row. detail: { key, name, seedKey }
  *
@@ -1252,11 +1253,15 @@ export class OlBookActions extends LitElement {
         this._dateBusy = true;
         try {
             const saved = await setCheckIn(this.book.key, { ...date, editionKey: this.book.editionKey, eventId: this.eventId });
+            // Keep our own copy so the main pane's Already Read row shows the
+            // date, and re-saving amends this event instead of adding one.
+            this.readDate = partialDate(date);
+            this.eventId = saved?.id ?? this.eventId ?? null;
             trackEvent('CheckInPrompt', date.day ? 'SetDateDay' : date.month ? 'SetDateMonth' : 'SetDateYear');
             this.dispatchEvent(new CustomEvent('ol-book-check-in', {
                 bubbles: true,
                 composed: true,
-                detail: { key: this.book.key, date: partialDate(date), eventId: saved?.id ?? this.eventId ?? null },
+                detail: { key: this.book.key, date: this.readDate, eventId: this.eventId },
             }));
             this._backToMain();
         } catch (error) {
