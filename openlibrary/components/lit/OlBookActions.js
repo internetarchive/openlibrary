@@ -3,12 +3,9 @@ import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import './OlIcon.js';
-import { SHELF, setShelf, setRating, setCheckIn, fetchUserLists, addToList, removeFromList, createList } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, fetchUserLists, addToList, removeFromList, createList, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
-import { trackEvent } from './utils/analytics.js';
-// Re-exported: several components were importing `fmt` from here before it
-// moved to the shared helper.
-export { fmt } from './utils/labels.js';
+import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { translate } from './utils/labels.js';
 import './OlPopover.js';
 import './OLButton.js';
@@ -45,20 +42,14 @@ export const DEFAULT_LABELS = {
     saveDate: 'Save',
 };
 
-const SHELF_ROWS = [
-    { id: SHELF.WANT_TO_READ, icon: 'bookmark', label: 'wantToRead' },
-    { id: SHELF.CURRENTLY_READING, icon: 'book-open', label: 'currentlyReading' },
-    { id: SHELF.ALREADY_READ, icon: 'circle-check', label: 'alreadyRead' },
-    { id: SHELF.STOPPED_READING, icon: 'circle-pause', label: 'stoppedReading' },
-];
-
-/** Matomo action names, kept identical to the legacy dropper's `data-ol-link-track`. */
-const SHELF_EVENT = {
-    [SHELF.WANT_TO_READ]: 'WantToRead',
-    [SHELF.CURRENTLY_READING]: 'CurrentlyReading',
-    [SHELF.ALREADY_READ]: 'AlreadyRead',
-    [SHELF.STOPPED_READING]: 'StoppedReading',
+const SHELF_ICON = {
+    [SHELF.WANT_TO_READ]: 'bookmark',
+    [SHELF.CURRENTLY_READING]: 'book-open',
+    [SHELF.ALREADY_READ]: 'circle-check',
+    [SHELF.STOPPED_READING]: 'circle-pause',
 };
+
+const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
 
 /**
  * The panes in the track, in order. The track's width and slide are both
@@ -147,9 +138,7 @@ export function resetListsCache() {
  *     the surface can hand it back. detail: { key, date, eventId } — `date` is
  *     whole or partial, as stored.
  * @fires ol-list-created - After the inline form creates a list, so sibling
- *     popovers and any legacy droppers on the page can add the row. The legacy
- *     side dispatches the same event on `document` when it creates one.
- *     detail: { key, name, seedKey }
+ *     popovers on the page can add the row. detail: { key, name, seedKey }
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -450,6 +439,9 @@ export class OlBookActions extends LitElement {
         }
 
         .stars .caption {
+            /* The check-in pane's .caption padding would push this 16px
+               further from the stars than the Clear-rating button sits. */
+            padding: 0;
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
         }
@@ -696,6 +688,10 @@ export class OlBookActions extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this._warm = false;
+        // Capture-phase, so the panes exist before ol-popover's own trigger
+        // handling measures the panel.
+        this.addEventListener('click', this._warmUp, true);
         this._pane = 'main';
         this._snap = false;
         this._trackHeight = 0;
@@ -712,9 +708,22 @@ export class OlBookActions extends LitElement {
     }
 
     get _paneIndex() {
-        const index = PANES.indexOf(this._pane);
-        return index === -1 ? 0 : index;
+        return PANES.indexOf(this._pane);
     }
+
+    /**
+     * Build the pane DOM on the first click that could open the popover.
+     * Every book on a page carries one of these, so the three panes and their
+     * dozens of nested elements are only built for popovers someone opens.
+     * The update must be synchronous: ol-popover positions itself from the
+     * panel's measured size before it fires `ol-popover-open`.
+     */
+    _warmUp = () => {
+        if (this._warm) return;
+        this._warm = true;
+        this.requestUpdate();
+        this.performUpdate();
+    };
 
     /** @param {string} name */
     _renderPane(name) {
@@ -750,14 +759,16 @@ export class OlBookActions extends LitElement {
             >
                 <slot name="trigger" slot="trigger"></slot>
                 <div class="panel">
-                    <div
-                        class="track ${classMap({ snap: this._snap })}"
-                        style=${styleMap(track)}
-                    >
-                        ${PANES.map(name => html`
-                            <div class="pane" ?inert=${this._pane !== name}>${this._renderPane(name)}</div>
-                        `)}
-                    </div>
+                    ${this._warm ? html`
+                        <div
+                            class="track ${classMap({ snap: this._snap })}"
+                            style=${styleMap(track)}
+                        >
+                            ${PANES.map(name => html`
+                                <div class="pane" ?inert=${this._pane !== name}>${this._renderPane(name)}</div>
+                            `)}
+                        </div>
+                    ` : nothing}
                 </div>
             </ol-popover>
         `;
@@ -1063,7 +1074,6 @@ export class OlBookActions extends LitElement {
         if (e.target === this) return;
         const { key, name, seedKey } = e.detail || {};
         if (!key) return;
-        if (e.target?.tagName !== 'OL-BOOK-ACTIONS') resetListsCache();
         if (this._lists && !(key in this._lists)) {
             this._lists = { [key]: { listName: name, members: seedKey ? [seedKey] : [] }, ...this._lists };
         }
@@ -1079,6 +1089,7 @@ export class OlBookActions extends LitElement {
     // ── Popover lifecycle ────────────────────────────────────
 
     _onOpen() {
+        this._warmUp(); // for opens that arrive without a click
         this._pane = 'main';
         this._snap = false;
         this._creating = false;
@@ -1114,10 +1125,7 @@ export class OlBookActions extends LitElement {
     }
 
     _fail(error) {
-        if (error?.status === 401) {
-            window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-            return;
-        }
+        if (error?.status === 401) return redirectToLogin();
         showToast(this.t('errorGeneric'), { type: 'error' });
     }
 
@@ -1147,7 +1155,7 @@ export class OlBookActions extends LitElement {
         this._busy = true;
         try {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
-            trackEvent('ReadingLog', removing ? 'RemoveFromShelf' : SHELF_EVENT[shelfId]);
+            trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId]);
             this._emitState();
             // Only on the way in, and only when they chose the shelf themselves:
             // rating moves a book to Already Read too, and interrupting that

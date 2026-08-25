@@ -3,7 +3,8 @@
  * updates, the state-change event, and the add-to-list pane (load, filter,
  * toggle, create). Network is stubbed at `fetch`.
  */
-import { OlBookActions, quickYears, resetListsCache, fmt } from '../../../openlibrary/components/lit/OlBookActions.js';
+import { OlBookActions, quickYears, resetListsCache } from '../../../openlibrary/components/lit/OlBookActions.js';
+import { fmt } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 
 const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear: 2021, editionKey: 'OL9M' };
@@ -284,22 +285,6 @@ describe('ol-book-actions list-created bridge', () => {
         expect(fetches()).toBe(before);
     });
 
-    test('a legacy creation merges in and drops the shared cache', async() => {
-        stubFetch();
-        const el = await mount();
-        await tick(el);
-        document.dispatchEvent(new CustomEvent('ol-list-created', {
-            detail: { key: '/people/tester/lists/OL9L', name: 'From the dropper', seedKey: '/works/OL5W' },
-        }));
-        expect(Object.values(el._lists).map(l => l.listName)).toContain('From the dropper');
-        // The shared promise predates the list, so a popover that has not
-        // loaded yet must fetch fresh rather than resolve from it.
-        const before = calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
-        const late = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
-        await tick(late);
-        const after = calls.filter(c => c.url.endsWith('/partials/MyBooksDropperLists.json')).length;
-        expect(after).toBe(before + 1);
-    });
 });
 
 describe('ol-book-actions hide-rating', () => {

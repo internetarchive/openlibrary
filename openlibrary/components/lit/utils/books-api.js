@@ -4,11 +4,33 @@
  * branch on 401 (send to login) vs anything else (toast).
  */
 
+import { queueAction, buildPartialsUrl } from '../../../plugins/openlibrary/js/utils.js';
+
 export const SHELF = Object.freeze({
     WANT_TO_READ: 1,
     CURRENTLY_READING: 2,
     ALREADY_READ: 3,
     STOPPED_READING: 4,
+});
+
+/** Shelf id → key into the components' label objects. */
+export const SHELF_LABEL = Object.freeze({
+    [SHELF.WANT_TO_READ]: 'wantToRead',
+    [SHELF.CURRENTLY_READING]: 'currentlyReading',
+    [SHELF.ALREADY_READ]: 'alreadyRead',
+    [SHELF.STOPPED_READING]: 'stoppedReading',
+});
+
+/**
+ * Matomo action names, kept identical to the legacy dropper's
+ * `data-ol-link-track`. Indexed by shelf id; `null` (no shelf) is the removal.
+ */
+export const SHELF_EVENT = Object.freeze({
+    [SHELF.WANT_TO_READ]: 'WantToRead',
+    [SHELF.CURRENTLY_READING]: 'CurrentlyReading',
+    [SHELF.ALREADY_READ]: 'AlreadyRead',
+    [SHELF.STOPPED_READING]: 'StoppedReading',
+    null: 'RemoveFromShelf',
 });
 
 /** Work key "/works/OL1W" → "OL1W". */
@@ -60,8 +82,8 @@ export function setRating(workKey, rating, { editionKey } = {}) {
     return request(`/works/${olid(workKey)}/ratings.json`, form({ rating, edition_id: editionKey }));
 }
 
-/** Reading-log event types (BookshelfEvent). */
-export const EVENT = Object.freeze({ START: 1, UPDATE: 2, FINISH: 3 });
+/** BookshelfEvent.FINISH — the only event type this client records. */
+const FINISH_EVENT = 3;
 
 /**
  * POST /works/OL..W/check-ins — when the reader finished the book.
@@ -74,7 +96,7 @@ export const EVENT = Object.freeze({ START: 1, UPDATE: 2, FINISH: 3 });
  */
 export function setCheckIn(workKey, { year, month = null, day = null, editionKey, eventId = null } = {}) {
     return request(`/works/${olid(workKey)}/check-ins`, json({
-        event_type: EVENT.FINISH,
+        event_type: FINISH_EVENT,
         year,
         month,
         day,
@@ -88,7 +110,7 @@ export function setCheckIn(workKey, { year, month = null, day = null, editionKey
  * Reuses the dropper partial so the list-modelling stays in one place.
  */
 export async function fetchUserLists() {
-    const data = await request('/partials/MyBooksDropperLists.json');
+    const data = await request(String(buildPartialsUrl('MyBooksDropperLists')));
     return data.listData || {};
 }
 
@@ -111,20 +133,11 @@ function resumeTarget(resumeUrl) {
 }
 
 /**
- * Mirror of js/utils.js `queueAction` (that bundle can't be imported here):
- * remember what the visitor was doing so the page they land on after signing
- * in can pick it back up. Does not navigate — the caller decides whether the
- * click continues to its href or diverts to the login page.
+ * Queue the action (js/utils.js `queueAction`, so the page the visitor lands
+ * on after signing in can pick it back up), then send them to log in.
  */
-export function queuePendingAction({ action, title, type = 'book', resumeUrl } = {}) {
-    if (!action || !title) return;
-    const target = resumeTarget(resumeUrl);
-    const data = encodeURIComponent(JSON.stringify({ name: title, url: target, action, type }));
-    document.cookie = `pending_action=${data}; path=/; max-age=129600; samesite=lax`;
-}
-
-/** Queue the action, then send the visitor to log in. */
 export function redirectToLogin({ action, title, type = 'book', resumeUrl } = {}) {
-    queuePendingAction({ action, title, type, resumeUrl });
-    window.location.href = `/account/login?redirect=${encodeURIComponent(resumeTarget(resumeUrl))}`;
+    const target = resumeTarget(resumeUrl);
+    if (action && title) queueAction(action, title, target, type);
+    window.location.href = `/account/login?redirect=${encodeURIComponent(target)}`;
 }

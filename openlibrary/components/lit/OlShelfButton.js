@@ -2,9 +2,9 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, setShelf, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
-import { trackEvent } from './utils/analytics.js';
+import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
 import './OlBookActions.js';
 import './OlIcon.js';
@@ -14,13 +14,6 @@ export const DEFAULT_LABELS = {
     save: 'Save %(title)s to your reading log',
     saved: '%(title)s is on your reading log',
     shelfMenu: 'More options for %(title)s',
-};
-
-const SHELF_LABEL = {
-    [SHELF.WANT_TO_READ]: 'wantToRead',
-    [SHELF.CURRENTLY_READING]: 'currentlyReading',
-    [SHELF.ALREADY_READ]: 'alreadyRead',
-    [SHELF.STOPPED_READING]: 'stoppedReading',
 };
 
 /**
@@ -364,13 +357,12 @@ export class OlShelfButton extends LitElement {
         // On a shelf → clicking removes; otherwise → Want to Read.
         const target = previous ?? SHELF.WANT_TO_READ;
         const next = previous === null ? SHELF.WANT_TO_READ : null;
-        const rating = this.rating;
-        this._emitState(next, rating);
+        this._emitState(next);
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });
-            trackEvent('ReadingLog', next === null ? 'RemoveFromShelf' : 'WantToRead');
+            trackEvent('ReadingLog', SHELF_EVENT[next]);
         } catch (error) {
-            this._emitState(previous, rating);
+            this._emitState(previous);
             if (error?.status === 401) return this._onLoggedOut(e);
             showToast(this.t('errorGeneric'), { type: 'error' });
         }

@@ -2,21 +2,21 @@
 {% macro demos() %}
     {# Server-rendered opening state, like every real surface: the demos write
        to the reader's actual reading log, so they open on what's there. #}
-    {% set garden = (reading_state | default({}, true)).get('OL69612W') or {} %}
+    {% set garden = reading_state.get('OL69612W') or {} %}
     <p class="ds-lead">
         The control that puts a book on a reading-log shelf, in the two shapes the site needs. Both open the same <a href="#book-actions">Book Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, either shape sends the visitor to log in with the intent remembered.
     </p>
     {% call ex.example("Split", "For a row, where there is width for a label. The main half toggles the shown shelf; the chevron opens the popover. Signed in, this demo opens on your real state for The Secret Garden and saves every change to your account.",
         code="<ol-shelf-button\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>",
         output_style="display: flex; gap: 12px; width: 420px;") %}
-        <ol-shelf-button class="demo-secret-garden" user-key="{{ user_key|default('', true) }}" work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
+        <ol-shelf-button class="demo-secret-garden" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
         </ol-shelf-button>
     {% endcall %}
     {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork. Same book as above, so the two stay in step.",
         code="<ol-book-cover src=\"https://covers.openlibrary.org/b/id/12622062-M.jpg\"\n               book-title=\"The Secret Garden\"\n               authors=\"Frances Hodgson Burnett\"\n               href=\"/works/OL69612W\">\n  <ol-shelf-button slot=\"overlay\" variant=\"icon\"\n                   user-key=\"/people/you\"\n                   work-key=\"/works/OL69612W\"\n                   book-title=\"The Secret Garden\">\n  </ol-shelf-button>\n</ol-book-cover>",
         output_style="display: flex; gap: 16px; width: 300px;") %}
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">
-            <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key|default('', true) }}" work-key="/works/OL69612W" book-title="The Secret Garden" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
+            <ol-shelf-button class="demo-secret-garden" slot="overlay" variant="icon" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
             </ol-shelf-button>
         </ol-book-cover>
     {% endcall %}

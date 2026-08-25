@@ -7,8 +7,8 @@
         code="<ol-book-actions\n  user-key=\"/people/you\"\n  shelf=\"1\"\n  book='{\"key\": \"/works/OL27448W\",\n         \"title\": \"The Lord of the Rings\",\n         \"firstPublishYear\": 1954}'>\n  <button slot=\"trigger\">Save</button>\n</ol-book-actions>") %}
         {# Server-rendered opening state — this demo writes to the reader's
            actual reading log, so it opens on what's there. #}
-        {% set lotr = (reading_state | default({}, true)).get('OL27448W') or {} %}
-        <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %}>
+        {% set lotr = reading_state.get('OL27448W') or {} %}
+        <ol-book-actions id="demo-book-actions" user-key="{{ user_key }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %}>
             <ol-button slot="trigger">
                 Save
             </ol-button>

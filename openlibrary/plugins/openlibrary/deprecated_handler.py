@@ -11,6 +11,11 @@ import web
 from infogami.utils import delegate
 from openlibrary.core.env import get_ol_env
 
+# Shared with lists.py's handlers: delegate's `pages` dict is keyed by the raw
+# regex text, so the override below must match their path character for
+# character or the old GET-only handler survives alongside it.
+SEED_LISTS_PATH = r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+
 
 def handle_deprecated_request():
     """Handle the deprecated endpoint request."""
@@ -107,10 +112,7 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     # FastAPI /status/testing.json (testing-environment status)
     (r"/status/testing", "json"),
     (r"/people/[^/]+/follows", "json"),
-    # `pages` is keyed by the regex text, so this has to match lists.py's path
-    # string exactly; an equivalent spelled differently registers alongside the
-    # old GET-only handler instead of replacing it.
-    (r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists", "json"),
+    (SEED_LISTS_PATH, "json"),
     (r"/people/[^/]+/lists/OL\d+L", "json"),
     (r"/lists/OL\d+L", "json"),
     (r"/series/OL\d+L", "json"),

@@ -191,7 +191,7 @@ export class OlBookCover extends LitElement {
     _renderTip() {
         return html`
             <div slot="content" class="tip">
-                <div class="tip__heading">
+                <div>
                     <span class="tip__title">${this.bookTitle}</span>
                     ${this.year ? html`<span class="tip__year">(${this.year})</span>` : nothing}
                 </div>

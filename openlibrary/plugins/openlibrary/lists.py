@@ -32,6 +32,7 @@ from openlibrary.core.models import (
 )
 from openlibrary.coverstore.code import render_list_preview_image
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.deprecated_handler import SEED_LISTS_PATH
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -284,7 +285,7 @@ def convert_list(list):
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
@@ -591,7 +592,7 @@ class lists_json:
 
 
 class lists_yaml(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
     encoding = "yml"
     content_type = "text/yaml"
 
