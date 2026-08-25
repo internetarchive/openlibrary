@@ -1,71 +1,34 @@
 /**
- * ol-button — shared styles for the <ol-button> custom element.
+ * ol-button — pre-upgrade styles for the <ol-button> custom element.
  *
- * There are two phases in this element's life, and the CSS has to
- * handle both cleanly so the user never sees an unstyled or empty
- * button.
+ * <ol-button> renders and paints itself in shadow DOM (see OLButton.js). This
+ * sheet covers only the window before that JS runs: the browser sees
+ * <ol-button>foo</ol-button> in the server-rendered HTML with no definition
+ * yet, so we style the tag *itself* to look like a button. That way it is
+ * immediately correct even if JS is slow or blocked, and the upgrade is a
+ * no-op visually.
  *
- * Phase 1 — before the JS runs:
- *   The browser sees <ol-button>foo</ol-button> in the HTML but has no
- *   idea what it is yet (the class definition hasn't executed). So we
- *   style the <ol-button> tag *itself* to look like a button. That way
- *   it's immediately correct, even if JS is slow or blocked.
+ * Every rule is keyed on `ol-button:not(:defined)`. Once the class registers,
+ * these stop matching and the component's own styles take over — the
+ * component flushes its first render synchronously in the upgrade task, so
+ * there is no frame between the two.
  *
- * Phase 2 — after the JS runs:
- *   The component wakes up and renders a real <button> element inside
- *   the <ol-button> wrapper. Now we want the *inner* <button> to carry
- *   the visual styles, and the outer <ol-button> to become a plain
- *   invisible wrapper.
- *
- * We switch between the two phases using a `hydrated` attribute that
- * the component sets on itself after it inserts the inner <button>.
- * Every style rule below either targets:
- *   - `ol-button:not([hydrated])` (phase 1 — style the outer tag), or
- *   - `ol-button > button`        (phase 2 — style the inner button).
- *
- * We use a custom `hydrated` attribute instead of the built-in
- * `:defined` pseudo-class because `:defined` flips the moment the JS
- * class is registered, which is *before* the inner <button> has
- * actually been rendered. That would give you a brief frame where the
- * outer wrapper has collapsed but the inner button isn't painted yet —
- * a flash of nothing.
+ * Scope is deliberately the resting look only: box, sizes, shapes, variant
+ * fills. Hover, press, focus, loading and the disclosure chevron are omitted —
+ * the element isn't interactive before upgrade, and keeping this sheet small
+ * keeps it easy to hold in step with the recipe in OLButton.js.
  */
 
-ol-button {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-ol-button[full-width] {
-  display: block;
-  width: 100%;
-}
-
-/* Once hydrated, the host is just a wrapper — the inner <button> paints. */
-ol-button[hydrated] {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-}
-
-/* Disable pointer events on the host when disabled/loading so :hover
-   rules on the inner button don't fire. */
-ol-button[disabled],
-ol-button[loading] {
-  pointer-events: none;
-}
-
-/* Shared appearance: host pre-upgrade, inner button post-upgrade. */
-ol-button:not([hydrated]),
-ol-button > button {
+ol-button:not(:defined) {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-inline-md);
   box-sizing: border-box;
-  height: var(--control-height-medium);
+  vertical-align: middle;
+  --ol-button-height: var(--control-height-medium);
+  height: var(--ol-button-height);
   padding: 0 var(--spacing-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
@@ -75,9 +38,7 @@ ol-button > button {
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--border-radius-button);
   background-color: var(--white);
-  color: var(--dark-grey);
-  /* Strength of the specular top edge. Full on light fills (secondary); the
-     dark-filled variants (primary/destructive) dial it down — see below. */
+  color: var(--color-text);
   --control-highlight-strength: 35%;
   box-shadow:
     var(--box-shadow-raised),
@@ -89,251 +50,80 @@ ol-button > button {
       );
   cursor: pointer;
   user-select: none;
-  /* Hover color changes are instant (see docs/ai/design.md); only the
-     :active press-scale animates. */
-  transition: transform 0.08s;
 }
 
-/* Press feedback — tactile scale on activation. The raised shadow and
-   specular highlight stay put through the press. */
-ol-button > button:active {
-  transform: scale(0.97);
-}
-
-ol-button[full-width]:not([hydrated]),
-ol-button[full-width] > button {
+ol-button[full-width]:not(:defined) {
+  display: flex;
   width: 100%;
 }
 
+ol-button[disabled]:not(:defined) {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* Sizes */
-ol-button[size="small"]:not([hydrated]),
-ol-button[size="small"] > button {
-  height: var(--control-height-small);
+ol-button[size="small"]:not(:defined) {
+  --ol-button-height: var(--control-height-small);
   padding: 0 var(--spacing-sm);
   font-size: var(--font-size-label-medium);
 }
 
-ol-button[size="large"]:not([hydrated]),
-ol-button[size="large"] > button {
-  height: var(--control-height-large);
+ol-button[size="large"]:not(:defined) {
+  --ol-button-height: var(--control-height-large);
   padding: 0 var(--spacing-lg);
   font-size: var(--font-size-body-large);
 }
 
-/* Primary — opt-in via variant="primary". */
-ol-button[variant="primary"]:not([hydrated]),
-ol-button[variant="primary"] > button {
-  background-color: var(--primary-blue);
-  border-color: var(--primary-blue);
+/* Icon-only shapes: a square on the size's control height. */
+ol-button[shape="icon"]:not(:defined),
+ol-button[shape="circle"]:not(:defined) {
+  width: var(--ol-button-height);
+  padding: 0;
+}
+
+ol-button[shape="circle"]:not(:defined) {
+  border-radius: var(--border-radius-circle);
+}
+
+ol-button[elevation="floating"]:not(:defined) {
+  box-shadow:
+    var(--box-shadow-floating),
+    inset 0 1px 0
+      color-mix(
+        in srgb,
+        var(--white) var(--control-highlight-strength),
+        var(--control-surface)
+      );
+}
+
+/* Variants */
+ol-button[variant="primary"]:not(:defined) {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
   color: var(--white);
-  /* Tone the specular highlight to the blue fill instead of pure white, and
-     soften it — the white edge reads much louder on a dark fill than on white. */
-  --control-surface: var(--primary-blue);
+  --control-surface: var(--color-primary);
   --control-highlight-strength: 18%;
 }
 
-/* Secondary is the default (already set above). Explicit selector for clarity. */
-ol-button[variant="secondary"]:not([hydrated]),
-ol-button[variant="secondary"] > button {
-  background-color: var(--white);
-  border-color: var(--color-border-subtle);
-  color: var(--dark-grey);
-}
-
-/* Destructive — solid red fill, mirroring primary but in the danger hue. */
-ol-button[variant="destructive"]:not([hydrated]),
-ol-button[variant="destructive"] > button {
+ol-button[variant="destructive"]:not(:defined) {
   background-color: var(--red);
-  border-color: var(--red);
+  border-color: var(--color-border-error);
   color: var(--white);
-  /* Tone the specular highlight to the red fill and soften it, matching primary. */
   --control-surface: var(--red);
   --control-highlight-strength: 18%;
 }
 
-/* Selected — a neutral button carrying a selection, e.g. ol-select-popover's
-   trigger once a language is picked. Must stay after the variant fills, which
-   it ties on specificity. */
-ol-button[selected]:not([hydrated]),
-ol-button[selected] > button {
+ol-button[variant="ghost"]:not(:defined) {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Must stay after the variant fills, which it ties on specificity. */
+ol-button[selected]:not(:defined) {
   background-color: var(--color-control-selected-bg);
   border-color: var(--color-control-selected-border);
-  color: var(--link-blue);
-  /* Opaque twin of the tint — a translucent surface washes out the highlight. */
+  color: var(--color-link);
   --control-surface: var(--color-control-selected-surface);
-}
-
-/* Hover (only fires post-hydration because pointer-events is none on
-   disabled/loading hosts, and pre-hydration the inner <button> doesn't exist).
-   Hover changes the fill, so --control-surface moves with it — otherwise the
-   specular highlight stays toned to the resting color (e.g. a blown-out white
-   edge once destructive fills red). Keep --control-surface == background-color. */
-@media (hover: hover) and (pointer: fine) {
-  ol-button[variant="secondary"] > button:hover {
-    background-color: var(--color-control-hover);
-    /* Nudge the border a touch darker in step with the fill (both drop ~7%
-       in lightness) so the whole button reads as one shape on hover, rather
-       than the fill darkening inside a static outline. */
-    border-color: var(--light-grey);
-    --control-surface: var(--color-control-hover);
-  }
-
-  /* Deepens its tint rather than going grey. After the secondary hover rule,
-     which it ties on specificity. */
-  ol-button[selected] > button:hover {
-    background-color: var(--color-control-selected-bg-hover);
-    border-color: var(--color-control-selected-border-hover);
-    --control-surface: var(--color-control-selected-surface-hover);
-  }
-
-  /* The two solid, saturated fills lighten on hover — the mirror image of the
-     light secondary control darkening above, and matching the selected chip.
-     brightness() carries the fill, border, and inset specular edge together, so
-     there's no per-property override or --control-surface retoning to keep in
-     sync. The press-scale on :active still reads as the "down" step. */
-  ol-button[variant="primary"] > button:hover,
-  ol-button[variant="destructive"] > button:hover {
-    filter: brightness(1.1);
-  }
-}
-
-/* Focus ring */
-ol-button > button:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: var(--spacing-3xs);
-}
-
-/* Loading: the label and spinner crossfade. Both are always in the DOM so
-   the button width stays stable and we can animate between states. */
-ol-button[loading] > button {
-  cursor: progress;
-}
-
-/* Disabled — scoped away from [loading] so the loading state keeps
-   full-strength colors while still being non-interactive. */
-ol-button:not([loading]) > button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* Label: visible by default; shrinks, blurs, and fades out on loading. */
-ol-button > button > .ol-btn-label {
-  display: inline-block;
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s ease,
-    filter 0.24s ease;
-}
-
-ol-button[loading] > button > .ol-btn-label {
-  opacity: 0;
-  transform: scale(0.8);
-  filter: blur(2px);
-}
-
-/* Spinner wrapper: hidden by default; grows, sharpens, and fades in on
-   loading. Absolute so it doesn't affect layout. The rotation lives on
-   the inner ::before so it doesn't conflict with the scale transition. */
-ol-button > button > .ol-btn-spinner {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.4);
-  filter: blur(3px);
-  pointer-events: none;
-  transition:
-    opacity 0.24s ease,
-    transform 0.24s ease,
-    filter 0.24s ease;
-}
-
-ol-button > button > .ol-btn-spinner::before {
-  content: "";
-  display: block;
-  box-sizing: border-box;
-  width: 1em;
-  height: 1em;
-  border: 2px solid currentcolor;
-  border-right-color: transparent;
-  border-radius: 50%;
-}
-
-ol-button[loading] > button > .ol-btn-spinner {
-  opacity: 1;
-  transform: scale(1);
-  filter: blur(0);
-}
-
-ol-button[loading] > button > .ol-btn-spinner::before {
-  animation: ol-button-spin 0.7s linear infinite;
-}
-
-@keyframes ol-button-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Disclosure chevron. Hidden by default; shown only when the button is wired
-   as a popover/menu trigger — ol-popover / ol-select-popover set aria-haspopup
-   and aria-expanded directly on the trigger element, so the affordance is
-   automatic with no consumer markup. Opt out with the `no-chevron` attribute.
-   The glyph is a mask painted with currentcolor so it matches the label color. */
-ol-button > button > .ol-btn-chevron {
-  display: none;
-}
-
-ol-button[aria-haspopup] > button > .ol-btn-chevron {
-  /* Reference an external SVG file rather than an inline data URI: an unquoted
-     url() to a static path has no `+` or spaces for the CSS formatter to tokenize
-     and mangle (a data URI repeatedly got split on `image/svg+xml`). Mirrors the
-     mask pattern used in search-result-item.css / read-panel.css. */
-  --chevron: url(/static/images/icons/chevron-down.svg);
-
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  /* Tuck against the label and the edge; margins rather than gap/padding so the
-     per-size paddings still apply. Nets a 4px gap, 4/8/12px inset by size. */
-  margin-left: calc(var(--spacing-2xs) * -1);
-  margin-right: calc(var(--spacing-2xs) * -1);
-  background: currentcolor;
-  transition: transform 150ms ease-out;
-  -webkit-mask: var(--chevron) center / 16px no-repeat;
-  mask: var(--chevron) center / 16px no-repeat;
-}
-
-/* Opt out — stays hidden even when wired as a trigger. Comes after the show
-   rule (equal specificity) so it wins. */
-ol-button[no-chevron] > button > .ol-btn-chevron {
-  display: none;
-}
-
-/* Rotate 180° while the popover is open. aria-expanded="true" only appears on
-   disclosure triggers, so [aria-haspopup] is redundant here. */
-ol-button[aria-expanded="true"] > button > .ol-btn-chevron {
-  transform: rotate(180deg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ol-button > button > .ol-btn-label,
-  ol-button > button > .ol-btn-spinner,
-  ol-button[loading] > button > .ol-btn-label,
-  ol-button[loading] > button > .ol-btn-spinner {
-    transform: none;
-    filter: none;
-    transition-property: opacity;
-  }
-
-  ol-button[loading] > button > .ol-btn-spinner::before {
-    animation-duration: 2s;
-  }
-
-  ol-button[aria-haspopup] > button > .ol-btn-chevron {
-    transition: none;
-  }
 }

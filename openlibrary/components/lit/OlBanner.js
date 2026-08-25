@@ -1,4 +1,5 @@
 import { LitElement, html } from 'lit';
+import './OlIcon.js';
 
 /**
  * A callout-style announcement banner.
@@ -6,9 +7,9 @@ import { LitElement, html } from 'lit';
  * Renders into the **light DOM** (no shadow root) so the banner is fully
  * styled at first paint by `static/css/components/ol-banner.css` — before
  * the component JS runs — and degrades gracefully without JavaScript.
- * Banners are server-rendered page chrome, often above the fold, so
- * first-paint fidelity outranks style encapsulation here (see ol-button
- * for the same trade-off and hydration pattern).
+ * Banners are server-rendered page chrome, often above the fold, whose
+ * height matters for layout shift, so first-paint fidelity outranks style
+ * encapsulation here. This is the one light-DOM component in the Lit layer.
  *
  * The announcement content is server-rendered as children — already
  * translated via $_(), visible to search engines. On upgrade, the
@@ -96,8 +97,6 @@ export class OlBanner extends LitElement {
         danger: OlBanner._dangerIcon,
     };
 
-    /** Close (X) icon — the stroke-based glyph shared with ol-dialog / ol-toast */
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     constructor() {
         super();
@@ -169,7 +168,7 @@ export class OlBanner extends LitElement {
                     class="ol-banner__close"
                     aria-label=${this.labelClose}
                     @click=${() => this.dismiss()}
-                >${OlBanner._closeIcon}</button>
+                ><ol-icon name="x"></ol-icon></button>
             ` : ''}
         `;
     }

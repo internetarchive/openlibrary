@@ -12,7 +12,10 @@ import web
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
-from infogami.utils import stats  # noqa: F401 side effects may be needed
+from infogami.utils import (
+    stats,  # noqa: F401 side effects may be needed
+    types,
+)
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.models import (
@@ -330,8 +333,6 @@ class List(Thing):
                 return cover.id
 
     def get_default_cover(self):
-        from openlibrary.core.models import Image
-
         cover_id = self._get_default_cover_id()
         return Image(self._site, "b", cover_id)
 
@@ -693,7 +694,5 @@ def register_models():
 
 
 def register_types():
-    from infogami.utils import types
-
     types.register_type(r"^(/people/[^/]+)?/lists/OL\d+L$", "/type/list")
     types.register_type(r"^/series/OL\d+L$", "/type/series")

@@ -60,7 +60,7 @@
   padding: var(--spacing-inset-xs) 0;
   margin-top: -15px;
   margin-bottom: var(--spacing-stack-xs);
-  border: 1px solid var(--light-grey);
+  border: 1px solid var(--color-border-muted);
   font-size: var(--font-size-label-medium);
   text-align: center;
   background: linear-gradient(to bottom, transparent 80%, var(--lightest-grey));

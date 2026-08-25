@@ -4,6 +4,38 @@ import '../../../../../static/css/legacy-datatables.css';
 
 const DEFAULT_LENGTH = 3;
 const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
+// DataTables' default layout ('lfrtip') minus 'p' — <ol-pagination> is the pager.
+const DATATABLES_DOM = 'lfrti';
+
+/**
+ * Point the template-rendered <ol-pagination> at the DataTable's paging state.
+ * @param {object} table - DataTables API instance for #editions
+ */
+function initPagination(table) {
+    const wrapper = document.getElementById('editions-pagination');
+    if (!wrapper) {
+        return;
+    }
+    const pagination = wrapper.querySelector('ol-pagination');
+
+    // Attributes rather than properties, so the values survive if the custom
+    // element hasn't upgraded yet.
+    function syncPagination() {
+        const info = table.page.info();
+        pagination.setAttribute('total-pages', info.pages);
+        pagination.setAttribute('current-page', info.page + 1);
+        wrapper.hidden = info.pages < 2;
+    }
+
+    pagination.addEventListener('ol-pagination-change', function(e) {
+        // The component renders anchors; cancelling keeps paging client-side.
+        e.preventDefault();
+        table.page(e.detail.page - 1).draw('page');
+    });
+    $('#editions').on('draw.dt', syncPagination);
+    // The initializing draw already happened by the time we get here.
+    syncPagination();
+}
 
 export function initEditionsTable() {
     var rowCount;
@@ -31,29 +63,8 @@ export function initEditionsTable() {
         }
     });
 
-    function toggleSorting(e) {
-        $('#editions th span').html('');
-        $(e).find('span').html('&nbsp;&uarr;');
-        if ($(e).hasClass('sorting_asc')) {
-            $(e).find('span').html('&nbsp;&darr;');
-        } else if ($(e).hasClass('sorting_desc')) {
-            $(e).find('span').html('&nbsp;&uarr;');
-        }
-    }
-
-    $('#editions th.read span').html('&nbsp;&uarr;');
-    $('#editions th').on('mouseup', function() {
-        toggleSorting(this);
-    });
-
     $('#editions').on('length.dt', function(e, settings, length) {
         localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
-    });
-
-    $('#editions th').on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            toggleSorting(this);
-        }
     });
 
     rowCount = $('#editions tbody tr').length;
@@ -69,13 +80,13 @@ export function initEditionsTable() {
         });
     } else {
         currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
-        $('#editions').DataTable({
+        const table = $('#editions').DataTable({
             aoColumns: [{sType: 'html'}, null],
             order: [ [1, 'asc'] ],
             lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
+            dom: DATATABLES_DOM,
             bPaginate: true,
             bInfo: true,
-            sPaginationType: 'full_numbers',
             bFilter: true,
             bStateSave: false,
             bAutoWidth: false,
@@ -109,5 +120,6 @@ export function initEditionsTable() {
                 }
             }
         });
+        initPagination(table);
     }
 }

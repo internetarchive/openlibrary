@@ -3,7 +3,9 @@ from functools import cache as functools_cache
 from pathlib import Path
 from typing import Any
 
+import web
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
 
 
@@ -81,6 +83,21 @@ def get_jinja_env() -> Environment:
     from infogami.utils.view import render_template
 
     env.globals["render_templetor_template"] = render_template
+
+    def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
+        """Draw an icon from the icon sprite. See /developers/design/icons.
+
+        Jinja has no ``macros`` namespace, so without this global every template
+        wanting an icon must be handed the macro as a render kwarg. ``Markup``
+        because the macro emits trusted SVG and the env autoescapes.
+        """
+        macro = web.template.Template.globals["macros"]["icon"]
+        rendered = macro(name, size=size, label=label, extra_class=extra_class)
+        return Markup(str(rendered).strip())
+
+    # An exception to the "10 or more templates" rule below: an icon is a design
+    # system primitive any template may need.
+    env.globals["icon"] = _icon
 
     # A force-escape filter that works even under autoescape=True.
     # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping

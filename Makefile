@@ -9,11 +9,11 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
 
-all: git css js components lit-components i18n
+all: git css js components icons lit-components i18n
 
-frontend: css js components lit-components
+frontend: css js components icons lit-components
 
 node_modules: package-lock.json package.json
 ifeq ($(LOCAL_DEV),true)
@@ -44,7 +44,7 @@ components: node_modules
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
-lit-components: node_modules
+lit-components: node_modules icons
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new
@@ -52,6 +52,11 @@ lit-components: node_modules
 	mkdir -p $(BUILD)/lit-components
 	rm -rf $(BUILD)/lit-components
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
+
+icons:
+	# Build the icon sprite and the Lit glyph module from static/icons/src/.
+	# Neither is committed. No node_modules prerequisite — the script is pure Node.
+	node scripts/build_icon_sprite.mjs
 
 i18n:
 	python ./scripts/i18n-messages compile
@@ -81,7 +86,7 @@ lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
-PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+PYTEST_ARGS ?= . --doctest-modules
 
 test-py:
 	pytest $(PYTEST_ARGS)

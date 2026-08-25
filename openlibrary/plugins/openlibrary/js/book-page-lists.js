@@ -1,4 +1,4 @@
-import { buildPartialsUrl } from './utils';
+import { buildPartialsUrl, whenVisible } from './utils';
 import { initAsyncFollowing } from './following';
 
 /**
@@ -6,58 +6,41 @@ import { initAsyncFollowing } from './following';
  *
  * @param elem {HTMLElement} Container for book page lists section
  */
-export function initListsSection(elem) {
+export async function initListsSection(elem) {
     // Show loading indicator
     const loadingIndicator = elem.querySelector('.loadingIndicator');
     loadingIndicator.classList.remove('hidden');
 
     const ids = JSON.parse(elem.dataset.ids);
 
-    const intersectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                // Unregister intersection listener
-                intersectionObserver.unobserve(entries[0].target);
-                fetchPartials(ids.work, ids.edition)
-                    .then((resp) => {
-                        // Check response code, continue if not 4XX or 5XX
-                        return resp.json();
-                    })
-                    .then((data) => {
-                        // Replace loading indicator with partials
-                        const listSection = loadingIndicator.parentElement;
-                        const fragment = document.createDocumentFragment();
+    await whenVisible(elem);
 
-                        for (const htmlString of data.partials) {
-                            const template = document.createElement('template');
-                            template.innerHTML = htmlString;
-                            fragment.append(...template.content.childNodes);
-                        }
+    const data = await fetchPartials(ids.work, ids.edition).then(resp => resp.json());
 
-                        listSection.replaceChildren(fragment);
+    // Replace loading indicator with partials
+    const listSection = loadingIndicator.parentElement;
+    const fragment = document.createDocumentFragment();
 
-                        // Show "See All" link
-                        if (data.hasLists) {
-                            const showAllLink = elem.querySelector('.lists-heading a');
-                            if (showAllLink) {
-                                showAllLink.classList.remove('hidden');
-                            }
-                        }
-                        // Initialize private buttons after content is loaded
-                        initPrivateButtonsAfterLoad(listSection);
+    for (const htmlString of data.partials) {
+        const template = document.createElement('template');
+        template.innerHTML = htmlString;
+        fragment.append(...template.content.childNodes);
+    }
 
-                        const followForms = listSection.querySelectorAll('.follow-form');
-                        initAsyncFollowing(followForms);
-                    });
-            }
-        });
-    }, {
-        root: null,
-        rootMargin: '200px',
-        threshold: 0
-    });
+    listSection.replaceChildren(fragment);
 
-    intersectionObserver.observe(elem);
+    // Show "See All" link
+    if (data.hasLists) {
+        const showAllLink = elem.querySelector('.lists-heading a');
+        if (showAllLink) {
+            showAllLink.classList.remove('hidden');
+        }
+    }
+    // Initialize private buttons after content is loaded
+    initPrivateButtonsAfterLoad(listSection);
+
+    const followForms = listSection.querySelectorAll('.follow-form');
+    initAsyncFollowing(followForms);
 }
 
 /**

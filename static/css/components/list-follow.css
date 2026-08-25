@@ -100,7 +100,7 @@ a.list-follow-card__header {
 
 a.list-follow-card__username-link {
   text-decoration: none;
-  color: var(--dark-grey-two);
+  color: var(--color-text-secondary);
   padding-bottom: var(--spacing-inset-xs);
   text-overflow: ellipsis;
   overflow: hidden;

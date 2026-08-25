@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
 import './OlPopover.js';
 import './OLButton.js';
@@ -100,11 +101,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             font-family: var(--font-family-body);
         }
 
-        /* The default trigger is an <ol-button> injected into light DOM (see
-           _createDefaultTrigger), so it is styled by the global ol-button.css —
-           including the automatic disclosure chevron. No trigger styles live
-           here. A consumer-supplied trigger is likewise their own light-DOM
-           element. */
+        /* The default trigger is an <ol-button> injected as a light-DOM child
+           (see _createDefaultTrigger); it paints itself, including the automatic
+           disclosure chevron. No trigger styles live here. A consumer-supplied
+           trigger is likewise their own light-DOM element. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -137,7 +137,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         }
 
         .filter-input::placeholder {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .filter-input:focus {
@@ -158,7 +158,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             left: calc(var(--spacing-inset-sm) + 10px);
             width: 14px;
             height: 14px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             pointer-events: none;
             transform: translateY(-50%);
         }
@@ -192,7 +192,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -260,7 +260,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .empty-state {
             padding: var(--spacing-inset-md);
             text-align: center;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
         }
 
@@ -278,7 +278,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-large);
             font-weight: 500;
@@ -302,7 +302,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     `;
 
     /** Search icon for the filter input */
-    static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<ol-icon class="filter-icon" name="search"></ol-icon>`;
 
     constructor() {
         super();
@@ -418,22 +418,22 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     }
 
     /**
-     * Build the default trigger in *light* DOM, so the global ol-button.css can
-     * paint it — that sheet can't cross a shadow boundary. Injected on connect,
+     * Build the default trigger as a real light-DOM child. Injected on connect,
      * before the first render, so it's structurally identical to a
-     * consumer-supplied trigger. The chevron comes from ol-button.
+     * consumer-supplied trigger (slotted, focusable from the page). The chevron
+     * comes from ol-button.
      *
      * @returns {void}
      */
     _createDefaultTrigger() {
         const btn = document.createElement('ol-button');
         btn.setAttribute('slot', 'trigger');
-        // ol-button moves this span into its own label wrapper on upgrade, but
-        // the node identity survives, so label updates can mutate it in place.
+        // The span stays a light-DOM child (slotted into ol-button), so label
+        // updates can mutate it in place.
         const text = document.createElement('span');
         // ol-button is nowrap with no max-width, so clamp long labels here (MARC
-        // language names run long). Inline so it applies inside SearchModal's
-        // shadow root too, which the global sheet can't reach.
+        // language names run long). Inline: this element has no stylesheet of
+        // its own to reach a slotted node with.
         text.style.cssText = 'display:block;max-width:18ch;overflow:hidden;text-overflow:ellipsis';
         btn.appendChild(text);
         this._defaultTrigger = btn;

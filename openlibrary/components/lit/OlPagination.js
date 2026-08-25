@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import './OlIcon.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 
 /**
@@ -119,8 +120,7 @@ export class OlPagination extends LitElement {
             font-variant-numeric: tabular-nums;
         }
 
-        .pagination-item svg {
-            display: block;
+        .pagination-item ol-icon {
             width: var(--pagination-icon-size);
             height: var(--pagination-icon-size);
         }
@@ -173,11 +173,10 @@ export class OlPagination extends LitElement {
         }
     `;
 
-    /** Left chevron arrow icon. Sized by CSS. */
-    static _leftArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
+    /** Arrow icons. Sized by CSS. */
+    static _leftArrowIcon = html`<ol-icon name="chevron-left"></ol-icon>`;
 
-    /** Right chevron arrow icon. Sized by CSS. */
-    static _rightArrowIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
+    static _rightArrowIcon = html`<ol-icon name="chevron-right"></ol-icon>`;
 
     constructor() {
         super();

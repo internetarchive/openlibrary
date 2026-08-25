@@ -160,8 +160,15 @@ def create_app() -> FastAPI | None:
             raise
 
     app = FastAPI(
-        title="OpenLibrary ASGI",
-        version="0.0.1",
+        title="Open Library API",
+        description=(
+            "The Open Library API provides comprehensive access to library catalog data including "
+            "books, authors, works, lists, and user data. Supports both public and authenticated "
+            "endpoints with full data validation and type safety."
+        ),
+        version="1.0.0",
+        contact={"name": "Open Library Team", "url": "https://openlibrary.org", "email": "openlibrary@archive.org"},
+        license_info={"name": "AGPL-3.0", "url": "https://github.com/internetarchive/openlibrary/blob/master/LICENSE"},
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
         strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
@@ -216,6 +223,7 @@ def create_app() -> FastAPI | None:
 
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.books import router as books_router
+    from openlibrary.fastapi.borrow import router as borrow_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
     from openlibrary.fastapi.importapi import router as importapi_router
@@ -228,6 +236,7 @@ def create_app() -> FastAPI | None:
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.status import router as status_router
     from openlibrary.fastapi.subjects import router as subjects_router
     from openlibrary.fastapi.yearly_reading_goals import (
         router as yearly_reading_goals_router,
@@ -236,6 +245,7 @@ def create_app() -> FastAPI | None:
     # Include routers
     app.include_router(account_router)
     app.include_router(books_router)
+    app.include_router(borrow_router)
     app.include_router(cdn_router)
     app.include_router(checkins_router)
     app.include_router(importapi_router)
@@ -248,11 +258,14 @@ def create_app() -> FastAPI | None:
     app.include_router(public_my_books_router)
     app.include_router(publishers_router)
     app.include_router(search_router)
+    app.include_router(status_router)
     app.include_router(subjects_router)
     app.include_router(yearly_reading_goals_router)
 
     return app
 
 
-# The ASGI app instance Gunicorn/Uvicorn will serve
-app = create_app()
+# Use factory: ``uvicorn --factory openlibrary.asgi_app:create_app``
+# (keeps reloader parent light, per https://uvicorn.dev/#application-factories
+# For gunicorn prod, use ``openlibrary.asgi_app:create_app()`` (call via
+# gunicorn.util.import_app).

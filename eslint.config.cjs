@@ -16,6 +16,7 @@ module.exports = [
       "docker/",
       "infogami/",
       "node_modules/",
+      "openlibrary/components/lit/icons.generated.js",
       "scripts/",
       "static/build/",
       "build/",

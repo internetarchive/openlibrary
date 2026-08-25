@@ -13,7 +13,7 @@ $else:
 $if show_ol_shell:
   <div class="clearfix"></div>
 
-$if ol_features.stats and query_param('debug'):
+$if query_param('debug'):
     $:render_template("site/stats")
 
 $if show_ol_shell:
