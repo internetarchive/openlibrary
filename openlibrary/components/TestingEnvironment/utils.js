@@ -47,6 +47,7 @@ export const DEFAULT_STRINGS = {
     changeMany: '%s changes will be applied',
     nothingToDeploy: 'Nothing to deploy — testing matches the current set.',
     mergedToMaster: 'merged to master',
+    closedWithoutMerging: 'closed without merging',
     unknown: 'Drift unknown, pinned at %s',
     currentCommit: 'Up-to-date, pinned at %s',
     behindOne: '%s commit behind %s',

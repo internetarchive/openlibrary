@@ -239,11 +239,7 @@ class status_deploy(delegate.page):
         # persist=False so the drift metadata refresh can never write staged
         # changes before Jenkins accepts the build.
         drift_info, _ = _get_drift_info(state, persist=False)
-        state.prs = [
-            p
-            for p in state.prs
-            if not p.pending_remove and not drift_info.get(p.pr, {}).get("merged", False) and not drift_info.get(p.pr, {}).get("closed", False)
-        ]
+        state.prs = [p for p in state.prs if not p.pending_remove and not _drop_reason(drift_info.get(p.pr, {}))]
         # Apply all pending changes before deploying
         for p in state.prs:
             if p.pull_latest_sha:
@@ -312,6 +308,19 @@ def _live_now(state: TestingState, p: TestingPR) -> bool:
     return bool(state.last_deploy_at and p.added_at <= state.last_deploy_at)
 
 
+def _drop_reason(info: dict) -> str:
+    """Why the deploy drops a PR — ``merged`` or ``closed`` — or "" to keep it.
+
+    The deploy filter and the pending-change plan both consume this, so the
+    plan can never promise a drop the deploy doesn't perform, or vice versa.
+    """
+    if info.get("merged", False):
+        return "merged"
+    if info.get("closed", False):
+        return "closed"
+    return ""
+
+
 def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChange]:
     """The plan: what deploying would change, one entry per staged change.
 
@@ -328,11 +337,8 @@ def _pending_changes(state: TestingState, drift_info: dict) -> list[PendingChang
     last_deploy = state.last_deploy_at
     changes: list[PendingChange] = []
     for p in state.prs:
-        if drift_info.get(p.pr, {}).get("merged", False):
-            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="merged", detail=""))
-            continue
-        if drift_info.get(p.pr, {}).get("closed", False):
-            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason="closed", detail=""))
+        if reason := _drop_reason(drift_info.get(p.pr, {})):
+            changes.append(PendingChange(pr=p.pr, title=p.title, kind="remove", reason=reason, detail=""))
             continue
         if p.pending_remove:
             # A staged removal drops the row on deploy, so nothing else staged

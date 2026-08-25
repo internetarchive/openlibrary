@@ -7519,6 +7519,10 @@ msgid "merged to master"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "closed without merging"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 #, python-format
 msgid "Drift unknown, pinned at %(sha)s"
 msgstr ""
