@@ -728,7 +728,7 @@
   height: 36px;
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
-  color: var(--color-text);
+  color: var(--primary-blue);
 }
 
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
