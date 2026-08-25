@@ -45,7 +45,7 @@ const { toast, setToast } = useToast();
 // busy is a shared re-entrancy guard between status fetching and actions.
 const busy = shallowRef(false);
 const { view, payload, now, loadStatus, retry } = useTestingStatus(busy);
-const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, deploy, refresh, addPrs } = useActions({
+const { refreshing, adding, deploying, addInput, togglePr, updatePr, removePr, restorePr, deploy, refresh, addPrs } = useActions({
     busy,
     loadStatus,
     setToast,
@@ -209,6 +209,7 @@ onBeforeUnmount(() => syncDeployFavicon(false));
                 @toggle="togglePr"
                 @update="updatePr"
                 @remove="removePr"
+                @restore="restorePr"
               />
             </tbody>
           </table>

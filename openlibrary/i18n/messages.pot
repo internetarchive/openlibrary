@@ -7467,6 +7467,10 @@ msgid "Deploy failed (merge conflict)"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "This PR is already closed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 
@@ -7489,6 +7493,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Restore"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7515,6 +7523,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "closed without merging"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
