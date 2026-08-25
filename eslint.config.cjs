@@ -57,7 +57,7 @@ module.exports = [
       "vite-css.config.mjs",
       "vite-js.config.mjs",
       "vite-js-iife.config.mjs",
-      "vite-js-plugins.mjs",
+      "vite-js-chunk-names.mjs",
       "vite-js-shared.mjs",
     ],
     languageOptions: {

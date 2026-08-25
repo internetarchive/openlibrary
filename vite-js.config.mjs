@@ -15,7 +15,7 @@
  *                               neither code-splits).
  *
  * Shared options (outDir, sourcemaps, targets, AGPL license header/footer, …)
- * live in vite-js-shared.mjs and chunk naming in vite-js-plugins.mjs; this
+ * live in vite-js-shared.mjs and chunk naming in vite-js-chunk-names.mjs; this
  * file only wires them together. jquery-ui's AMD interop needs no plugin —
  * explicit wrapper modules handle it (openlibrary/plugins/openlibrary/js/jquery-ui-*).
  *
@@ -29,7 +29,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
-import { chunkName } from './vite-js-plugins.mjs';
+import { chunkName } from './vite-js-chunk-names.mjs';
 
 export default defineConfig(({ mode }) => ({
     // webpack `output.publicPath: "/static/build/js/"` parity. Without this the
