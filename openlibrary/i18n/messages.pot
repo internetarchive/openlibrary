@@ -6074,10 +6074,6 @@ msgstr ""
 msgid "We couldn't find any books about"
 msgstr ""
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr ""
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
@@ -7482,6 +7478,10 @@ msgid "Deploy failed (merge conflict)"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "This PR is already closed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 
@@ -7504,6 +7504,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Restore"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7530,6 +7534,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "closed without merging"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
