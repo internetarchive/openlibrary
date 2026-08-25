@@ -146,6 +146,8 @@
   font-size: 1em;
   color: var(--black);
   height: var(--height-blank-cover);
+  width: 130px;
+  box-sizing: border-box;
 }
 
 /* White border */
@@ -178,6 +180,7 @@
 
 .carousel--compact .book .book-cover {
   height: var(--height-cover-compact);
+  position: relative;
 }
 
 .carousel--compact .book .bookcover {
@@ -188,6 +191,8 @@
   height: var(--height-cover-compact);
   padding: 20% var(--spacing-inset-sm) var(--spacing-inset-sm);
   margin: 0 auto;
+  width: 130px;
+  box-sizing: border-box;
 }
 
 /* Styles for lazy-loading carousel placeholder element */
@@ -202,8 +207,9 @@
 
 .lazy-carousel .loadingIndicator {
   border: 1px var(--grey) solid;
-  width: 80%;
+  background: var(--lightest-grey);
   margin: 0 auto;
+  padding: var(--spacing-inset-lg);
 }
 
 .lazy-carousel-retry,
@@ -212,4 +218,76 @@
   background: var(--lightest-grey);
   margin: 0 auto;
   padding: var(--spacing-inset-lg);
+}
+
+.loan-overlay-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.65);
+  color: var(--white);
+  padding: 4px 0;
+  font-size: 0.7em;
+  line-height: 1.3;
+  z-index: var(--z-index-level-2);
+  text-align: center;
+  border-radius: 0 0 3px 3px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.loan-overlay-badge .local-date-time {
+  color: var(--white) !important;
+}
+
+.book-cover-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.loan-overlay-badge__waitlist {
+  color: var(--soft-green);
+  font-size: 0.9em;
+  margin-top: 2px;
+}
+
+.loan-overlay-badge__not-bookreader {
+  margin-top: 3px;
+  font-size: 0.9em;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 2px;
+  line-height: 1.3;
+}
+
+.loan-overlay-badge__not-downloaded {
+  color: var(--red-two);
+  font-weight: bold;
+}
+
+.loan-overlay-badge__download-link {
+  color: var(--button-hover-blue);
+  text-decoration: underline;
+}
+.ol-action-row {
+  display: flex;
+  gap: 4px;
+}
+.ol-action-row > * {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.ol-action-row .ol-macro-wrapper form {
+  flex: 1;
+  width: 100%;
+}
+.ol-action-row .ol-macro-wrapper .cta-button-group {
+  width: 100%;
+}
+.ol-return-wrapper {
+  flex: 0 0 39px;
+}
+.ol-return-wrapper .cta-btn {
+  height: 37px;
 }

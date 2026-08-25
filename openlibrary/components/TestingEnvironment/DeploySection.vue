@@ -183,6 +183,10 @@ function prUrl(pr) {
             class="testing-env__change-detail"
           >{{ strings.mergedToMaster }}</span>
           <span
+            v-else-if="change.reason === 'closed'"
+            class="testing-env__change-detail"
+          >{{ strings.closedWithoutMerging }}</span>
+          <span
             v-else-if="change.detail"
             class="testing-env__change-detail testing-env__change-detail--sha"
           >{{ change.detail }}</span>

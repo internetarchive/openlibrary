@@ -7160,10 +7160,6 @@ msgstr "Libros más calificados (de todos los tiempos)"
 msgid "We couldn't find any books about"
 msgstr "No hemos podido encontrar ningún libro sobre"
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
