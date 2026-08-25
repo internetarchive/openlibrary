@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -193,7 +193,8 @@ def create_app() -> FastAPI | None:
     async def add_fastapi_header(request: Request, call_next):
         """Middleware to add a header indicating the response came from FastAPI."""
         response = await call_next(request)
-        response.headers["X-Served-By"] = "FastAPI"
+        if "X-Served-By" not in response.headers:
+            response.headers["X-Served-By"] = "FastAPI"
         return response
 
     # Add prometheus metrics
@@ -261,6 +262,16 @@ def create_app() -> FastAPI | None:
     app.include_router(status_router)
     app.include_router(subjects_router)
     app.include_router(yearly_reading_goals_router)
+
+    from openlibrary.fastapi.proxy import proxy_to_webpy
+
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+    async def fallback(request: Request, path: str) -> Response:
+        if os.environ.get("LOCAL_DEV", "false").lower() != "true":
+            raise HTTPException(status_code=404)
+        if request.headers.get("X-Proxied-By") == "FastAPI":
+            raise HTTPException(status_code=404)
+        return await proxy_to_webpy(request)
 
     return app
 
