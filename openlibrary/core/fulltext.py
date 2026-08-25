@@ -56,8 +56,10 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
     }
     ia_results = await fulltext_search_api(params)
 
-    if "error" not in ia_results and ia_results["hits"]:
-        hits = ia_results["hits"].get("hits", [])
+    # Guard on the hits list itself: the old `ia_results["hits"]` check passed
+    # for a zero-hit response ({"hits": [], ...} is a truthy dict), running the
+    # whole hydration pipeline for nothing.
+    if "error" not in ia_results and (hits := ia_results.get("hits", {}).get("hits", [])):
         ocaids = [hit["fields"].get("identifier", [""])[0] for hit in hits]
         availability = await get_availability_async("identifier", ocaids)
         if "error" in availability:
@@ -65,11 +67,14 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
 
         edition_keys = list(site.get().things({"type": "/type/edition", "ocaid": ocaids, "limit": len(ocaids)}))
         editions = site.get().get_many(edition_keys)
-        for ed in editions:
-            idx = ocaids.index(ed.ocaid)
-            hit = ia_results["hits"]["hits"][idx]
-            hit["edition"] = format_book_data(ed, fetch_availability=False) if js else ed
-            hit["availability"] = availability.get(ed.ocaid, {})
+        # Keyed by ocaid rather than matched via ocaids.index(): index() finds
+        # only the first occurrence, so when two hits share an ocaid the second
+        # hit got no edition and was silently dropped by the templates.
+        editions_by_ocaid = {ed.ocaid: ed for ed in editions}
+        for hit, ocaid in zip(hits, ocaids):
+            if ed := editions_by_ocaid.get(ocaid):
+                hit["edition"] = format_book_data(ed, fetch_availability=False) if js else ed
+                hit["availability"] = availability.get(ocaid, {})
     return ia_results
 
 

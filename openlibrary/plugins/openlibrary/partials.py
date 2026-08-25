@@ -389,7 +389,11 @@ class FullTextSuggestionsPartial:
 
     @classmethod
     async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
-        data = await fulltext_search_async(query)
+        # The macro renders at most 4 suggestions (hits[:4]); fetch just a few
+        # spare hits to cover ones with no matching OL edition. Every fetched
+        # hit costs availability + Infobase hydration, so the old default of
+        # 100 hydrated ~96 hits per render that were never shown.
+        data = await fulltext_search_async(query, limit=10)
         hits = data.get("hits", {})
         if not hits.get("total"):
             macro = "<div></div>"

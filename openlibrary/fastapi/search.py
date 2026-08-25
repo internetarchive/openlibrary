@@ -227,14 +227,18 @@ async def search_json(
 async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
     q: Annotated[str, Query(title="Search query")],
+    facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
 ):
+    # facets=True is the historical default; lightweight callers (e.g. the
+    # header search modal's snippet band) pass facets=false to skip the
+    # aggregations work upstream.
     return await fulltext_search_async(
         q,
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
         js=True,
-        facets=True,
+        facets=facets,
     )
 
 

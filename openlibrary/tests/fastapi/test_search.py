@@ -460,3 +460,19 @@ class TestSearchFacetsEndpoint:
         fails so the endpoint doesn't silently 422 on (or miss) it.
         """
         assert set(get_args(FacetField)) == WorkSearchScheme.facet_fields
+
+
+class TestSearchInsideEndpoint:
+    """Tests for the /search/inside.json endpoint."""
+
+    def test_defaults(self, fastapi_client, mock_fulltext_search_async):
+        """Default call: limit 20, facets on (the historical behavior)."""
+        response = fastapi_client.get("/search/inside.json?q=hello")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True)
+
+    def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async):
+        """Lightweight callers (the header modal) skip aggregations upstream."""
+        response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False)
