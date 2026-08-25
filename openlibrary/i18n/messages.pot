@@ -4339,7 +4339,7 @@ msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html type/page/view.html
 msgid "Collections"
 msgstr ""
 
@@ -6689,6 +6689,17 @@ msgstr ""
 #: type/page/view.html
 msgid "Community"
 msgstr ""
+
+#: type/page/view.html
+msgid "Collection"
+msgstr ""
+
+#: type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: type/permission/edit.html
 msgid "Readers:"

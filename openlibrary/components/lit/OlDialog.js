@@ -45,6 +45,8 @@ import { slotHasContent } from './utils/slot-utils.js';
  *     or filter row that owns its own padding).
  * @cssprop --ol-dialog-border-radius - Corner radius (ignored in fullscreen mode).
  * @cssprop --ol-dialog-backdrop-color - Backdrop color.
+ * @cssprop --ol-dialog-backdrop-blur - Blur radius applied to the page behind
+ *     the backdrop. Set to `0` to dim without blurring.
  * @cssprop --ol-dialog-animation-duration - Open/close animation duration.
  * @cssprop --ol-dialog-top-offset - Distance from viewport top when
  *     `placement="top"`. Default `clamp(40px, 8vh, 96px)`.
@@ -91,14 +93,15 @@ export class OlDialog extends LitElement {
             --ol-dialog-padding: var(--spacing-xl);
             --ol-dialog-border-radius: var(--border-radius-overlay);
             --ol-dialog-animation-duration: 200ms;
-            --ol-dialog-backdrop-color: hsla(0, 0%, 0%, 0.25);
+            --ol-dialog-backdrop-color: var(--overlay-backdrop-color);
+            --ol-dialog-backdrop-blur: var(--overlay-backdrop-blur);
             --ol-dialog-top-offset: clamp(40px, 8vh, 96px);
 
             font-family: var(--font-family-body);
         }
 
         dialog {
-            border: none;
+            border: var(--border-overlay);
             border-radius: var(--ol-dialog-border-radius);
             padding: 0;
             max-width: 90vw;
@@ -126,8 +129,13 @@ export class OlDialog extends LitElement {
             animation: dialog-close var(--ol-dialog-animation-duration) ease-in;
         }
 
+        /* The blur does the separating, so the dim can stay light — enough to
+           mute the page without darkening the room. Both fade together: the
+           keyframes animate opacity, which carries the filter with it. */
         dialog::backdrop {
             background-color: var(--ol-dialog-backdrop-color);
+            backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
             animation: backdrop-fade-in var(--ol-dialog-animation-duration) ease-out;
         }
 
@@ -239,6 +247,7 @@ export class OlDialog extends LitElement {
                 height: 100dvh;
                 max-width: none;
                 max-height: none;
+                border: none;
                 border-radius: 0;
             }
 
