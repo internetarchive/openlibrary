@@ -3,7 +3,7 @@ import path from 'path';
 import {
     chunkName,
     CHUNK_NAME_MAP,
-} from 'vite-js-plugins.mjs';
+} from 'vite-js-chunk-names.mjs';
 
 describe('jquery-ui wrapper modules', () => {
     // The explicit jquery-ui-*.js bootstrap modules replace the old

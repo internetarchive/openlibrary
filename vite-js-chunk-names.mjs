@@ -4,8 +4,8 @@
  * chunk names). The jquery-ui AMD interop that used to live here was replaced
  * by explicit wrapper modules (openlibrary/plugins/openlibrary/js/jquery-ui-*).
  *
- * Extracted from vite-js.config.mjs so the plugins are unit-testable
- * (tests/unit/js/vite-js-plugins.test.js).
+ * Extracted from vite-js.config.mjs so the chunk-name contract is unit-testable
+ * (tests/unit/js/vite-js-chunk-names.test.js).
  */
 import { basename } from 'path';
 
