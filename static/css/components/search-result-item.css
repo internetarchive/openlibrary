@@ -343,7 +343,7 @@
 /* Same for a check-in container with nothing rendered in it: normally its parts
    carry .hidden, but grid layout hides the prompt outright. */
 .list-seeds .check-in-container:not(:has(> :not(.hidden))),
-.list-books--grid
+.list-seeds:where(.list-books--grid)
   .check-in-container:not(:has(> :not(.hidden, .check-in-prompt))) {
   display: none;
 }
