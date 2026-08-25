@@ -122,6 +122,18 @@ repos:
 
   - repo: local
     hooks:
+    - id: check-unused-templates
+      name: Check for unused templates and macros
+      description: >
+        Fails if any Templetor or Jinja template/macro has no code reference
+        anywhere in the repo (including vendor/infogami).
+      entry: python ./scripts/check_unused_templates.py
+      types_or: [python, html, jinja]
+      language: python
+      pass_filenames: false
+
+  - repo: local
+    hooks:
     - id: generate-pot
       name: Generate POT
       description: This hook generates the .pot file for internationalization.

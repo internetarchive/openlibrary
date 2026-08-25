@@ -10,7 +10,7 @@ Two template systems coexist:
 Every git-tracked source file is scanned; anything unreferenced is reported.
 The analysis errs conservative (a missed unused template beats a false
 positive).  Runtime name construction is covered by DYNAMIC_DISPATCH_RULES;
-database-only usage by the exclusion lists in the test file.
+database-only usage by the exclusion lists in scripts/check_unused_templates.py.
 """
 
 from __future__ import annotations
@@ -37,12 +37,13 @@ KIND_JINJA_MACRO = "jinja macro"
 # template rendered only from a test is still alive).
 CORPUS_SUFFIXES = frozenset({".py", ".js", ".ts", ".tsx", ".vue", ".html", ".jinja", ".yml", ".yaml", ".json"})
 
-# Never scanned: this module and its test mention template names verbatim, and
-# package-lock.json dependency names could rescue a template by coincidence.
+# Never scanned: this module and the hook script that wraps it mention
+# template names verbatim, and package-lock.json dependency names could
+# rescue a template by coincidence.
 CORPUS_SKIP_FILES = frozenset(
     {
         "openlibrary/utils/template_usage.py",
-        "openlibrary/tests/test_unused_templates.py",
+        "scripts/check_unused_templates.py",
         "package-lock.json",
     }
 )
