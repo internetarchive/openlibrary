@@ -10,7 +10,7 @@ $putctx("show_ol_shell", False)
     </div>
 
     <div class="imageSaved" data-image-id="$(image and image.id)">
-        <div class="saved">$_("Saved!")</div>
+        <div class="saved">$:macros.icon("circle-check", extra_class="saved__icon")$_("Saved!")</div>
         <div class="meta">
             $if showinfo:
                 <strong>$_("Notes:")</strong><br/>

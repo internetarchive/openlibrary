@@ -195,24 +195,7 @@
 
 .dropper-menu .btn-icon {
   display: inline-block;
-  filter: invert(1);
   margin-right: var(--spacing-inline-sm);
   width: 1.25em;
   height: 1.25em;
-}
-
-/* icons */
-.dropper-menu .listen {
-  background-image: url(/static/images/icons/icon_listen.png);
-}
-
-.dropper-menu .map {
-  background-image: url(/static/images/icons/icon_map.png);
-}
-
-.dropper-menu .listen,
-.dropper-menu .map {
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
 }

@@ -31,7 +31,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
               $ user_can_merge = ctx.user and ctx.user.is_librarian_or_higher()
               $if results.num_found >= 2 and user_can_merge:
                 $ keys = ','.join(doc['key'].split("/")[-1] for doc in results.docs)
-                <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?records=$keys">$_('Merge authors')</a></div>
+                <div class="mergeThis">$:macros.icon("git-merge", size="sm") $_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?records=$keys">$_('Merge authors')</a></div>
             </div>
         $else:
             <center>

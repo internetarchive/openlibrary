@@ -6,9 +6,9 @@ $if icon:
   <a class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
     data-ol-link-track="CTAClick|Locate">
 
-    <span class="btn-icon map"></span>
+    $:macros.icon("map-pin", size="sm", extra_class="btn-icon")
     <span class="btn-label">$_("Locate")</span>
   </a>
 $else:
   <a class="cta-btn cta-btn--available cta-btn--external" href="$locateUrl" target="_blank" rel="noopener noreferrer"
-    data-ol-link-track="CTAClick|Locate">$_('Locate')</a>
+    data-ol-link-track="CTAClick|Locate">$_('Locate')$:macros.icon("square-arrow-out-up-right", size="sm", extra_class="cta-btn__external-icon")</a>

@@ -130,9 +130,7 @@
 }
 .links__site,
 .links__book {
+  width: 35px;
   height: 35px;
-}
-.links__site {
-  filter: invert(32%) sepia(89%) saturate(5319%) hue-rotate(186deg)
-    brightness(96%) contrast(97%);
+  color: var(--color-primary);
 }

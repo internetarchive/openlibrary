@@ -35,8 +35,14 @@
 
   /* Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color */
   content: "";
-  -webkit-mask: url(/static/images/icons/open-book.svg);
-  mask: url(/static/images/icons/open-book.svg);
+  -webkit-mask: url(
+    data:image/svg + xml,
+    %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Cpathd="M12 5v16"/%3E%3Cpathd="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/%3E%3C/svg%3E
+  );
+  mask: url(
+    data:image/svg + xml,
+    %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Cpathd="M12 5v16"/%3E%3Cpathd="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/%3E%3C/svg%3E
+  );
   -webkit-mask-size: cover;
   mask-size: cover;
   background-color: var(--color-primary);

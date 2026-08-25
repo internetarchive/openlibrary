@@ -396,18 +396,12 @@ p.alert {
   font-size: 0.875em;
   color: var(--brown);
   background-color: var(--light-yellow);
-  background-position: 10px 50%;
-  background-repeat: no-repeat;
   margin: var(--spacing-stack-sm) auto 0;
-  padding: var(--spacing-inset-md) 52px;
+  padding: var(--spacing-inset-md);
 }
 
-p.info {
-  background-image: url(/static/images/icons/icon_info.png);
-}
-
-p.thanks {
-  background-image: url(/static/images/icons/icon_check.png);
+p.alert .ol-icon {
+  margin-right: var(--spacing-inline-xs);
 }
 
 input[type="text"],
@@ -536,37 +530,26 @@ div.note {
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
   margin-top: var(--spacing-stack-sm);
-  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
-    no-repeat 10px 50%;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  background: var(--light-yellow);
+  padding: var(--spacing-inset-sm);
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#preMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
-    10px 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#postMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_check.png) no-repeat
-    10px 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#errorMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
-    10px 10px;
+  padding: var(--spacing-inset-sm);
 }
 
 /* FORMS */
@@ -1534,7 +1517,6 @@ div.popAlert {
   width: 550px;
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   margin-bottom: var(--spacing-stack-md);
-  background: url(/static/images/icons/icon_alert.png) no-repeat;
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
@@ -1598,9 +1580,8 @@ div.popAlert {
 /* openlibrary/templates/search/authors.html */
 div.mergeThis {
   display: inline;
-  padding: var(--spacing-inset-md) 0 0 45px;
+  padding: var(--spacing-inset-md) 0 0;
   margin-left: 15px;
-  background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
 
 /* openlibrary/templates/recentchanges/default/view.html */

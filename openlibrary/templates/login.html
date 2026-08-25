@@ -12,6 +12,7 @@ $if get_ol_env().LOCAL_DEV:
     <div class="flash-messages" id="autofill-dev-credentials">
         <div class="info ol-signup-form__info-box">
             <span>
+                $:macros.icon("info", size="sm")
                 $_("This is a development instance, the default credentials are automatically filled.")
                 <br>
                 $_("email:") openlibrary@example.com $_("password:") admin123
@@ -49,6 +50,7 @@ $if get_ol_env().LOCAL_DEV:
                 <div class="flash-messages">
                     <div class="error ol-signup-form__info-box">
                         <span>
+                            $:macros.icon("triangle-alert", size="sm")
                             $:form.note
                         </span>
                     </div>

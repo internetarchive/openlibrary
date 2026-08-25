@@ -14,6 +14,7 @@ $else:
     $ guideline = _("Cover Guidelines")
 
 <div class="popAlert" id="errors">
+$:macros.icon("triangle-alert", size="sm")
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
     $elif status.code == 2: $_("Please provide an image URL.")

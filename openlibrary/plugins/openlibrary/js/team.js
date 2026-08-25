@@ -5,8 +5,6 @@ export function initTeamFilter() {
     // Photos
     const default_profile_image =
     '../../../static/images/openlibrary-180x180.png';
-    const bookUrlIcon = '../../../static/images/icons/icon_book-lg.png';
-    const personalUrlIcon = '../../../static/images/globe-solid.svg';
     const initialSearchParams = new URL(window.location.href).searchParams;
     const initialRole = initialSearchParams.get('role') || 'All';
     const initialDepartment = initialSearchParams.get('department') || 'All';
@@ -137,25 +135,25 @@ export function initTeamFilter() {
             descriptionLinks.classList = 'description__links';
             if (member.personal_url) {
                 const memberPersonalA = document.createElement('a');
-                const memberPersonalImg = document.createElement('img');
+                const memberPersonalIcon = document.createElement('ol-icon');
 
                 memberPersonalA.href = `${member.personal_url}`;
-                memberPersonalImg.src = personalUrlIcon;
-                memberPersonalImg.classList = 'links__site';
+                memberPersonalIcon.setAttribute('name', 'globe');
+                memberPersonalIcon.classList = 'links__site';
 
-                memberPersonalA.append(memberPersonalImg);
+                memberPersonalA.append(memberPersonalIcon);
                 descriptionLinks.append(memberPersonalA);
             }
 
             if (member.favorite_book_url) {
                 const memberBookA = document.createElement('a');
-                const memberBookImg = document.createElement('img');
+                const memberBookIcon = document.createElement('ol-icon');
 
                 memberBookA.href = `${member.favorite_book_url}`;
-                memberBookImg.src = bookUrlIcon;
-                memberBookImg.classList = 'links__book';
+                memberBookIcon.setAttribute('name', 'book-open');
+                memberBookIcon.classList = 'links__book';
 
-                memberBookA.append(memberBookImg);
+                memberBookA.append(memberBookIcon);
                 descriptionLinks.append(memberBookA);
             }
 

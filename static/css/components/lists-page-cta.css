@@ -1,8 +1,13 @@
 .lists-page-cta {
-  background-repeat: no-repeat;
-  background-image: url(/static/images/icons/icon_fav-big.png);
-  padding-top: 70px;
-  background-position: center 0;
+  position: relative;
+}
+
+.lists-page-cta .lists-page-cta__icon {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto var(--spacing-stack-sm);
+  color: var(--red);
 }
 .lists-page-cta h2 {
   font-size: 1.5em;
@@ -18,8 +23,14 @@
 /* @width-breakpoint-desktop */
 @media all and (min-width: 960px) {
   .lists-page-cta {
-    background-position: 35px 35px;
     padding-left: 130px;
     padding-right: 60px;
+  }
+
+  .lists-page-cta .lists-page-cta__icon {
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    margin: 0;
   }
 }

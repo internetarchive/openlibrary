@@ -29,11 +29,12 @@ $code:
 
 $def facet(header, label, counts):
     <div class="facet $header">
-        $ magic_wand_markup = ''
-        $if header == 'author_key' and len(counts) > 1 and show_merge_authors:
-            $ keys = ','.join(k for k, display, count in counts)
-            $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?records=%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
-        <h4 class="facetHead">$(label)$:(magic_wand_markup)</h4>
+        $ show_merge_wand = header == 'author_key' and len(counts) > 1 and show_merge_authors
+        <h4 class="facetHead">$(label)
+            $if show_merge_wand:
+                $ keys = ','.join(k for k, display, count in counts)
+                <span class="merge">$:macros.icon("git-merge", size="sm")<a href="/authors/merge?records=$keys" title="$_('Merge duplicate authors from this search')">$_("Merge duplicates")</a></span>
+        </h4>
         $ num = 0
         $for k, display, count in counts:
             $ num = num + 1

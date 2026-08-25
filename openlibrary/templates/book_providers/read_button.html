@@ -13,8 +13,9 @@ $if acquisition.access == 'open-access':
           target="_blank" rel="noopener noreferrer"
           $:analytics_attr('Listen')
       >
-        <span class="btn-icon read-aloud"></span>
+        $:macros.icon("headphones", size="sm", extra_class="btn-icon")
         <span class="btn-label">$_("Audiobook")</span>
+        $:macros.icon("square-arrow-out-up-right", size="sm", extra_class="cta-btn__external-icon")
       </a>
     $else:
       <a href="/books/${edition_key}/-/borrow?action=read"
@@ -22,7 +23,7 @@ $if acquisition.access == 'open-access':
           class="cta-btn cta-btn--available cta-btn--read cta-btn--external"
           target="_blank" rel="noopener noreferrer"
           $:analytics_attr('Read')
-      >$_('Read')</a>
+      >$_('Read')$:macros.icon("square-arrow-out-up-right", size="sm", extra_class="cta-btn__external-icon")</a>
   </div>
 $elif acquisition.access == 'sample':
   <div class="cta-button-group">
@@ -31,5 +32,5 @@ $elif acquisition.access == 'sample':
       data-ol-link-track="CTAClick|Preview"
       target="_blank" rel="noopener noreferrer"
       $:analytics_attr('Preview')
-    >$_('Preview')</a>
+    >$_('Preview')$:macros.icon("square-arrow-out-up-right", size="sm", extra_class="cta-btn__external-icon")</a>
   </div>

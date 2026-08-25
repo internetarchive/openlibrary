@@ -41,7 +41,7 @@ $if any(menu_items) and not is_carousel:
               title="$title using Read Aloud"
               $:analytics_attr(action.capitalize() + 'Listen')
               class="cta-btn cta-btn--available cta-btn--w-icon">
-              <span class="btn-icon listen"></span>
+              $:macros.icon("headphones", size="sm", extra_class="btn-icon")
               <span class="btn-label">$_("Listen")</span>
             </a>
           </li>

@@ -35,8 +35,28 @@ div#revertLink,
 .column {
   min-height: 90px;
   margin: 10px;
-  background-image: url(/static/images/back_sortable.png);
-  background-repeat: no-repeat;
+  position: relative;
+}
+/* Portlets are injected over this area, so the drag affordance has no
+   markup of its own; a masked pseudo-element stands in for the sprite. */
+.column::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-text-secondary);
+  -webkit-mask: url(
+      data:image/svg + xml,
+      %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Ccirclecx="9"cy="12"r="1"/%3E%3Ccirclecx="9"cy="5"r="1"/%3E%3Ccirclecx="9"cy="19"r="1"/%3E%3Ccirclecx="15"cy="12"r="1"/%3E%3Ccirclecx="15"cy="5"r="1"/%3E%3Ccirclecx="15"cy="19"r="1"/%3E%3C/svg%3E
+    )
+    no-repeat center / contain;
+  mask: url(
+      data:image/svg + xml,
+      %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Ccirclecx="9"cy="12"r="1"/%3E%3Ccirclecx="9"cy="5"r="1"/%3E%3Ccirclecx="9"cy="19"r="1"/%3E%3Ccirclecx="15"cy="12"r="1"/%3E%3Ccirclecx="15"cy="5"r="1"/%3E%3Ccirclecx="15"cy="19"r="1"/%3E%3C/svg%3E
+    )
+    no-repeat center / contain;
 }
 .trashCan {
   position: absolute;
@@ -44,9 +64,10 @@ div#revertLink,
   right: 32px;
   width: 32px;
   height: 42px;
-  background-image: url(/static/images/back_sort-trash.png);
-  background-repeat: no-repeat;
-  background-position: 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
   cursor: pointer;
 }
 .trashPosition {
@@ -54,7 +75,7 @@ div#revertLink,
   height: 90px;
 }
 .trashPosition:hover .trashCan {
-  background-position: -32px 0;
+  color: var(--red);
 }
 .trash {
   height: 90px;
@@ -100,13 +121,17 @@ div#revertLink,
   text-decoration: none;
 }
 .saved {
-  background: url(/static/images/icons/icon_saved.png) no-repeat;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
   font-size: 1.5em;
   font-weight: 700;
   color: var(--black);
-  padding: var(--spacing-inset-xs) 0 0 40px;
   min-height: 30px;
   margin: var(--spacing-stack-lg) 0 var(--spacing-stack-md);
+}
+.saved .saved__icon {
+  color: var(--color-success-fg);
 }
 .saved-image-container {
   display: flex;

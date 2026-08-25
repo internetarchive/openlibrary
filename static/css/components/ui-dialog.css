@@ -36,8 +36,29 @@
 .ui-dialog .ui-dialog-content p {
   min-height: 28px;
   padding: 6px 33px 0;
-  background: url(/static/images/icons/icon_alert.png) no-repeat 0 0;
   margin: 0;
+  position: relative;
+}
+/* jQuery UI generates this markup, so the alert glyph has no template to
+   live in; a masked pseudo-element stands in for $:macros.icon(). */
+.ui-dialog .ui-dialog-content p::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-text);
+  -webkit-mask: url(
+      data:image/svg + xml,
+      %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Cpathd="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/%3E%3Cpathd="M12 9v4"/%3E%3Cpathd="M12 17h.01"/%3E%3C/svg%3E
+    )
+    no-repeat center / contain;
+  mask: url(
+      data:image/svg + xml,
+      %3Csvgxmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"fill="none"stroke="currentColor"stroke-width="2"stroke-linecap="round"stroke-linejoin="round"%3E%3Cpathd="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/%3E%3Cpathd="M12 9v4"/%3E%3Cpathd="M12 17h.01"/%3E%3C/svg%3E
+    )
+    no-repeat center / contain;
 }
 .ui-dialog .ui-dialog-buttonpane {
   text-align: center;

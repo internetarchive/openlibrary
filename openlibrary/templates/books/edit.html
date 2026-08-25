@@ -51,7 +51,7 @@ $:macros.HiddenSaveButton("addWork")
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $if alert_message:
-        <p class="alert $alert_class">$:alert_message</p>
+        <p class="alert $alert_class">$:macros.icon("circle-check" if alert_class == "thanks" else "info", size="sm")$:alert_message</p>
 </div>
 
 <div id="contentBody">
@@ -102,7 +102,7 @@ $:macros.HiddenSaveButton("addWork")
                                         <div class="flash-messages">
                                             <noscript>
                                                 <p class="error">
-                                                <span>$:_('Author editing requires javascript')</span>
+                                                <span>$:macros.icon("triangle-alert", size="sm")$:_('Author editing requires javascript')</span>
                                                 </p>
                                             </noscript>
                                         </div>
