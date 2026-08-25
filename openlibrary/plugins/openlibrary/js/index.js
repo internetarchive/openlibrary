@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import jQuery from 'jquery';
 // API polyfills for the ESM browser floor (~Chrome 61 / Safari 11.1). Vite lowers
 // syntax only (Oxc); these replace babel `preset-env` `useBuiltIns: 'usage'` for
 // the ES2018+ APIs used in this codebase (see docs/ai/js-vite-migration-progress.md).
@@ -20,8 +19,8 @@ import { queueAction } from './utils';
 // we add them to the window object for backwards compatibility.
 exposeGlobally();
 
-window.jQuery = jQuery;
-window.$ = jQuery;
+window.jQuery = $;
+window.$ = $;
 
 // Global listener for login intent buttons
 document.addEventListener('click', function(e) {
@@ -53,7 +52,7 @@ initServiceWorker();
 initAnalytics();
 
 // Initialise some things
-jQuery(function() {
+$(function() {
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import('./tabs')
