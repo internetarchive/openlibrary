@@ -1,0 +1,24 @@
+{#
+  A pointer, not a write-up. Icons have their own section — repeating any of it
+  here would give it a second place to drift.
+#}
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        <code>&lt;ol-icon&gt;</code> is the client-side way to draw a glyph, for markup a component builds at
+        runtime. Server-rendered markup should use the <code>icon()</code> macro instead, and a glyph inside
+        another component's shadow root has to be inlined — <code>&lt;use&gt;</code> is unreliable there.
+        <a href="/developers/design/icons">The Icons section</a> has the gallery, all three techniques side by
+        side, and the <code>&lt;ol-icon&gt;</code> API.
+    </p>
+    {# Explicit `code`: the formatter breaks each empty tag over two lines. #}
+    {% call ex.example("", "Same sprite and same CSS as the macro; size is sm (16px), md (20px, default) or lg (24px).",
+        code='<ol-icon name="search" size="sm"></ol-icon>\n<ol-icon name="search"></ol-icon>\n<ol-icon name="search" size="lg"></ol-icon>') %}
+        <ol-icon name="search" size="sm">
+        </ol-icon>
+        <ol-icon name="search">
+        </ol-icon>
+        <ol-icon name="search" size="lg">
+        </ol-icon>
+    {% endcall %}
+{% endmacro %}

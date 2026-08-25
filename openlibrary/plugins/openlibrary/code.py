@@ -23,7 +23,6 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
-from openlibrary.core.features import features as ol_features
 from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
@@ -1031,7 +1030,7 @@ def internalerror():
     if sentry.enabled:
         sentry_event_id = sentry.capture_exception_webpy()
 
-    if features.is_enabled("debug"):
+    if get_ol_env().LOCAL_DEV or features.is_enabled("debug"):
         raise web.debugerror()
     else:
         msg = render.site(
@@ -1124,7 +1123,6 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
-            "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
@@ -1161,7 +1159,6 @@ def setup():
         sentry,
         stats,
         status,
-        swagger,
     )
 
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
@@ -1176,7 +1173,6 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
-    swagger.setup()
     partials.setup()
     import_ui.setup()
 

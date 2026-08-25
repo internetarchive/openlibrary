@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from types import MappingProxyType
-from typing import Any, Final, Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast
 
 import web
 
@@ -18,8 +18,6 @@ from openlibrary.utils.request_context import site
 from . import db
 
 logger = logging.getLogger(__name__)
-
-FILTER_BOOK_LIMIT: Final = 30_000
 
 
 class WorkReadingLogSummary(TypedDict):
@@ -282,9 +280,12 @@ class Bookshelves(db.CommonExtras):
                 solr_docs.append(web.storage({"key": key, "title": ""}))
 
         edition_keys_to_query = [work_to_edition_keys[key].split("/")[2] for key in missing_keys]
-        fq = f"edition_key:({' OR '.join(edition_keys_to_query)})"
         if not edition_keys_to_query:
             return
+
+        # {!terms f=edition_key} uses Solr's TermsQuery, which avoids the
+        # maxBooleanClauses limit an OR-joined query hits at large key counts.
+        fq = "{!terms f=edition_key}" + ",".join(edition_keys_to_query)
 
         solr_resp = await run_solr_query_async(
             scheme=WorkSearchScheme(),
@@ -409,7 +410,6 @@ class Bookshelves(db.CommonExtras):
         async def get_filtered_reading_log_books(
             q: str,
             query_params: dict[str, str | int | None],
-            filter_book_limit: int,
             fq: list[str] | None = None,
         ) -> LoggedBooksData:
             """
@@ -421,21 +421,18 @@ class Bookshelves(db.CommonExtras):
             Solr for more complete book information, and then put the logged info into
             the Solr response.
             """
-            # Filtering by query needs a larger limit as we need (ideally) all of a
-            # user's added works from the reading log DB. The logged work IDs are used
-            # to query Solr, which searches for matches related to those work IDs.
-            query_params["limit"] = filter_book_limit
-
-            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username LIMIT $limit"
+            # Filtering by query needs all of a user's added works from the reading
+            # log DB, not just a page of them. The logged work IDs are used to query
+            # Solr, which searches for matches related to those work IDs.
+            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username"
 
             reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
 
-            assert len(reading_log_books) <= filter_book_limit
-
             work_to_edition_keys = {"/works/OL%sW" % i["work_id"]: "/books/OL%sM" % i["edition_id"] for i in reading_log_books}
 
-            # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
-            filter_query = "key:(%s)" % " OR ".join('"%s"' % key for key in work_to_edition_keys)
+            # {!terms f=key} uses Solr's TermsQuery which is O(n) vs BooleanQuery's
+            # O(n log n) rewriting at 20k+ clauses. Keys are "/works/OL{n}W" — no commas.
+            filter_query = "{!terms f=key}" + ",".join(work_to_edition_keys)
 
             solr_resp = await run_solr_query_async(
                 scheme=WorkSearchScheme(),
@@ -444,8 +441,7 @@ class Bookshelves(db.CommonExtras):
                 rows=limit,
                 facet=False,
                 extra_params=[
-                    # Putting these in fq allows them to avoid user-query processing, which
-                    # can be (surprisingly) slow if we have ~20k OR clauses.
+                    # These must be in fq to avoid user-query sanitization
                     ("fq", filter_query),
                     *[("fq", f) for f in (fq or [])],
                 ],
@@ -544,7 +540,6 @@ class Bookshelves(db.CommonExtras):
             return await get_filtered_reading_log_books(
                 q=q,
                 query_params=query_params,
-                filter_book_limit=FILTER_BOOK_LIMIT,
                 fq=fq,
             )
         else:
