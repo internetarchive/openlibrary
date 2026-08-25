@@ -84,17 +84,3 @@ button.plain {
 button.plain:hover {
   color: var(--color-success-fg);
 }
-button.addAnother {
-  width: 32px;
-  height: 32px;
-  border: none;
-  vertical-align: middle;
-  cursor: pointer;
-  background-image: url(/static/images/icons/icon_add.png);
-  background-position: 0 0;
-  background-color: transparent;
-  display: none;
-}
-button.addAnother:hover {
-  background-position: -32px 0;
-}
