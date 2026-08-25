@@ -128,9 +128,6 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     (r"/people/[^/]+/lists/OL\d+L/subjects", "json"),
     (r"/lists/OL\d+L/subjects", "json"),
     (r"/series/OL\d+L/subjects", "json"),
-    # The reader's shelf/rating for a batch of works, for book components
-    # rendered client-side.
-    (r"/reading-state", "json"),
     # Works endpoints migrated to FastAPI
     (r"/works/OL(\d+)W/check-ins", "json"),
     (r"/works/OL(\d+)W/bookshelves", "json"),

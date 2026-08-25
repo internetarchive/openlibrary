@@ -5,7 +5,10 @@
     </p>
     {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). book takes JSON in the attribute, or the object itself if you set the .book property from JS; shelf and rating are plain numbers. The trigger is whatever you slot in. Signed in, this demo opens on your real state for The Lord of the Rings and saves every change to your account.",
         code="<ol-book-actions\n  user-key=\"/people/you\"\n  shelf=\"1\"\n  book='{\"key\": \"/works/OL27448W\",\n         \"title\": \"The Lord of the Rings\",\n         \"firstPublishYear\": 1954}'>\n  <button slot=\"trigger\">Save</button>\n</ol-book-actions>") %}
-        <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}'>
+        {# Server-rendered opening state — this demo writes to the reader's
+           actual reading log, so it opens on what's there. #}
+        {% set lotr = (reading_state | default({}, true)).get('OL27448W') or {} %}
+        <ol-book-actions id="demo-book-actions" user-key="{{ user_key|default('', true) }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %}>
             <ol-button slot="trigger">
                 Save
             </ol-button>
@@ -17,19 +20,6 @@
                 el.addEventListener('ol-book-state-change', (e) => {
                     document.getElementById('demo-book-actions-out').textContent = JSON.stringify(e.detail);
                 });
-                // Open on the reader's real shelf and rating — this demo writes
-                // to their actual reading log, so it should show what's there.
-                // The attribute, not the property: the element upgrades later.
-                if (el.getAttribute('user-key')) {
-                    fetch('/reading-state.json?work_ids=OL27448W', { credentials: 'same-origin' })
-                        .then((r) => (r.ok ? r.json() : null))
-                        .then((state) => {
-                            if (!state) return;
-                            el.shelf = state.shelves.OL27448W ?? null;
-                            el.rating = state.ratings.OL27448W ?? null;
-                        })
-                        .catch(() => {});
-                }
             })();
         </script>
     {% endcall %}

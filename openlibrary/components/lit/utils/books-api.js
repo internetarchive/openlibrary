@@ -16,13 +16,8 @@ export function olid(key) {
     return key.split('/').pop();
 }
 
-// testing.openlibrary.org only routes already-launched paths to FastAPI, but
-// exposes the whole FastAPI app under /_fast/ — so new endpoints work there
-// before their olsystem nginx routes exist. Production has no /_fast.
-const API_PREFIX = window.location.hostname === 'testing.openlibrary.org' ? '/_fast' : '';
-
 async function request(url, init) {
-    const response = await fetch(API_PREFIX + url, { credentials: 'same-origin', ...init });
+    const response = await fetch(url, { credentials: 'same-origin', ...init });
     if (!response.ok) {
         const error = new Error(`${init?.method || 'GET'} ${url} → ${response.status}`);
         error.status = response.status;
@@ -50,13 +45,6 @@ function form(data) {
 
 function json(data) {
     return { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } };
-}
-
-/** GET /reading-state.json — the current user's shelf + rating per work. */
-export function fetchReadingState(workKeys) {
-    if (!workKeys.length) return Promise.resolve({ shelves: {}, ratings: {} });
-    const ids = workKeys.map(olid).join(',');
-    return request(`/reading-state.json?work_ids=${encodeURIComponent(ids)}`);
 }
 
 /**
