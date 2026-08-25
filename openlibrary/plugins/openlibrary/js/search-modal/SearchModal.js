@@ -30,6 +30,7 @@ import {
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 import { deriveAuthors } from './authorSuggestion.js';
+import { parseSnippet, fulltextHitDisplay } from './fulltext.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -74,6 +75,10 @@ const READABLE_ACCESS = new Set(['public', 'borrowable']);
 const PRINT_DISABLED_ACCESS = 'printdisabled';
 
 const RESULTS_LIMIT     = 10;
+// Snippet rows in the "Found inside books" band. Small on purpose: every
+// fulltext hit costs availability + edition hydration server-side, and the
+// band is a teaser pointing at /search/inside, not a result list.
+const FULLTEXT_LIMIT    = 3;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
@@ -101,6 +106,8 @@ export class SearchModal extends LitElement {
         _langsLoading: { state: true },
         _navigatingKey: { state: true },
         _recentSearches: { state: true },
+        _ftHits: { state: true },
+        _ftTotal: { state: true },
     };
 
     static styles = css`
@@ -519,6 +526,37 @@ export class SearchModal extends LitElement {
             color: var(--accessible-grey);
             font-size: var(--font-size-body-medium);
             text-align: center;
+        }
+
+        /* ── "Found inside books" band ─────────────────────────────── */
+
+        /* Serif italic passage — deliberately a different species from the
+           metadata rows above, so the band reads as quotes from inside the
+           books rather than more book results. Clamped to two lines. */
+        .ft-quote {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            color: var(--darker-grey);
+            font-family: var(--font-family-serif);
+            font-style: italic;
+            line-height: 1.45;
+        }
+
+        /* The match keeps the browser's <mark> highlight; just bold it the
+           way the /search/inside page does (<mark><strong>). */
+        .ft-quote mark { font-weight: 600; font-style: inherit; }
+
+        /* Attribution line under the quote (title · author · page). */
+        .ft-result .result__author { margin-top: var(--spacing-3xs); }
+
+        /* Quiet footer link into /search/inside. Reuses .result for the
+           row hover/focus treatment and arrow-key navigation. */
+        .ft-see-all {
+            color: var(--link-blue);
+            font-size: var(--font-size-body-medium);
+            font-weight: 600;
         }
 
         /* Animated trailing dots on the "Searching" label. The three dots
@@ -990,6 +1028,16 @@ export class SearchModal extends LitElement {
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
+
+        // "Found inside books" band: up to FULLTEXT_LIMIT Search Inside
+        // snippet hits plus the total match count. Fetched on a slower
+        // debounce than the Solr search — the fulltext backend is an external
+        // service with much higher latency variance, so the band fills in
+        // after the instant results rather than gating them.
+        this._ftHits           = [];
+        this._ftTotal          = null;
+        this._ftFetchKey       = null;
+        this._debouncedFtFetch = debounce(() => this._fetchFulltext(), 800, false);
         this._allLangsLoaded = false;
         // Search-outcome analytics (NoResults / ResultsShown): keys already
         // counted this modal session, so re-settling the same query — a filter
@@ -1077,6 +1125,7 @@ export class SearchModal extends LitElement {
         this._seeAllLoading  = false;
         this._activeFetchKey = null;
         this._resetResults({ hasSearched: false });
+        this._clearFulltext();
         const input = this.renderRoot.querySelector('.search-input');
         if (input) {
             input.value = '';
@@ -1245,7 +1294,12 @@ export class SearchModal extends LitElement {
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            return html`<div class="results"><div class="empty">${this._i18n.noResults}</div></div>`;
+            // The fulltext band doubles as a no-results rescue: nothing in the
+            // catalog matched, but the query may still appear inside books.
+            return html`<div class="results" @keydown=${this._onResultsKeydown}>
+                <div class="empty">${this._i18n.noResults}</div>
+                ${this._renderFulltextBand()}
+            </div>`;
         }
 
         return html`
@@ -1257,8 +1311,60 @@ export class SearchModal extends LitElement {
                 ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
                 <ul class="results-list">${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
+                ${this._renderFulltextBand()}
             </div>
         `;
+    }
+
+    // The "Found inside books" band: Search Inside snippet matches rendered
+    // after the metadata results (and as the no-results rescue). Hidden
+    // entirely until a fulltext response with hits lands — no spinner, no
+    // empty state: a secondary surface earns its space only when it has
+    // something to show.
+    _renderFulltextBand() {
+        if (this._ftHits.length === 0) return nothing;
+        const q = this._query.trim();
+        const seeAllHref = `/search/inside?${new URLSearchParams({ q }).toString()}`;
+        return html`
+            <h3 class="results-heading">${this._i18n.foundInside}</h3>
+            <ul class="results-list">
+                ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+            </ul>
+            ${typeof this._ftTotal === 'number' && this._ftTotal > this._ftHits.length ? html`
+                <a
+                    class="result ft-see-all"
+                    href=${seeAllHref}
+                    @click=${() => { this._track('FulltextSeeAll', 'band'); this._saveCurrentSearch(); }}
+                >${sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString())}</a>
+            ` : nothing}
+        `;
+    }
+
+    // One snippet row: cover, two-line serif quote with the match marked, and
+    // a title · author · page attribution line. The whole row deep-links to
+    // the passage — BookReader opens with the query highlighted via the
+    // #search/ anchor (the same link the /search/inside page uses).
+    _renderFulltextHit(hit, q, index = 0) {
+        const href = `https://archive.org/stream/${hit.ia}?ref=ol&access=1#search/${encodeURIComponent(q)}`;
+        const segments = parseSnippet(hit.snippet);
+        const attribution = [
+            hit.title,
+            hit.author,
+            hit.page !== null ? sprintf(this._i18n.ftPage, hit.page) : '',
+        ].filter(Boolean).join(' · ');
+        return html`<li>
+                <a
+                    class="result ft-result"
+                    href=${href}
+                    @click=${() => { this._track('FulltextClick', `rank:${index + 1}`); this._saveCurrentSearch(); }}
+                >
+                    <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                    <span class="result__meta">
+                        <span class="ft-quote">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                        ${attribution ? html`<span class="result__author">${attribution}</span>` : nothing}
+                    </span>
+                </a>
+            </li>`;
     }
 
     _renderRecentSearches() {
@@ -1303,6 +1409,7 @@ export class SearchModal extends LitElement {
         if (input) input.value = query;
         this._loading = true;
         this._debouncedFetch();
+        this._debouncedFtFetch();
     }
 
     // role="button" rows activate on Enter and Space. Keydowns bubbling up
@@ -1610,6 +1717,7 @@ export class SearchModal extends LitElement {
         if (this._shouldAutocomplete()) {
             this._loading = true;
             this._debouncedFetch();
+            this._debouncedFtFetch();
         }
     }
 
@@ -1618,6 +1726,7 @@ export class SearchModal extends LitElement {
         this._navigatingKey = null;
         if (!this._shouldAutocomplete()) {
             this._resetResults({ hasSearched: false });
+            this._clearFulltext();
             return;
         }
         // Drop the previous query's author suggestion immediately. Stale book
@@ -1628,6 +1737,7 @@ export class SearchModal extends LitElement {
         this._authorSuggestions = [];
         this._loading = true;
         this._debouncedFetch();
+        this._debouncedFtFetch();
     }
 
     _onInputKeydown(e) {
@@ -1804,6 +1914,44 @@ export class SearchModal extends LitElement {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._readableCount = null;
             });
+    }
+
+    // Fetches a few Search Inside snippet matches for the current query, for
+    // the "Found inside books" band. Independent of the Solr fetch: its own
+    // (slower) debounce, its own race key, and silent failure — the band
+    // simply doesn't render, because it's a secondary discovery surface, not
+    // the primary result list. facets=false skips the aggregations work
+    // upstream (see /search/inside.json).
+    _fetchFulltext() {
+        const trimmed = this._query.trim();
+        if (!this._shouldAutocomplete()) return;
+
+        const params = new URLSearchParams();
+        params.set('q', trimmed);
+        params.set('limit', String(FULLTEXT_LIMIT));
+        params.set('facets', 'false');
+        const url = `/search/inside.json?${params.toString()}`;
+        this._ftFetchKey = url;
+
+        fetch(url)
+            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Fulltext search failed: ${r.status}`)))
+            .then(data => {
+                if (this._ftFetchKey !== url) return;
+                const hits = (data && data.hits && data.hits.hits) || [];
+                this._ftHits  = hits.map(fulltextHitDisplay).filter(Boolean);
+                this._ftTotal = typeof data?.hits?.total === 'number' ? data.hits.total : null;
+            })
+            .catch(() => {
+                if (this._ftFetchKey !== url) return;
+                this._clearFulltext();
+            });
+    }
+
+    // Empties the fulltext band and invalidates any in-flight fetch.
+    _clearFulltext() {
+        this._ftFetchKey = null;
+        this._ftHits     = [];
+        this._ftTotal    = null;
     }
 
     // q + spellcheck shared by every /search.json request the modal makes;

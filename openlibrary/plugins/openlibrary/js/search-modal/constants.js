@@ -102,6 +102,12 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
+    // "Found inside books" band: snippet matches from Search Inside rendered
+    // under the top results. seeAllInside's %s is the total match count;
+    // ftPage's %s is the page number the passage appears on.
+    foundInside: 'Found inside books',
+    seeAllInside: 'See all %s Search Inside matches',
+    ftPage: 'Page %s',
 };
 
 /**
