@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
@@ -126,6 +127,49 @@ def setup_debugpy():
 sentry: Sentry | None = None
 
 
+def _include_routers(app: FastAPI) -> None:
+    """Include all FastAPI routers."""
+    from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.books import router as books_router
+    from openlibrary.fastapi.borrow import router as borrow_router
+    from openlibrary.fastapi.cdn import router as cdn_router
+    from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.importapi import router as importapi_router
+    from openlibrary.fastapi.internal.api import router as internal_router
+    from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.link import router as link_router
+    from openlibrary.fastapi.lists import router as lists_router
+    from openlibrary.fastapi.merge_authors import router as merge_authors_router
+    from openlibrary.fastapi.partials import router as partials_router
+    from openlibrary.fastapi.public_my_books import router as public_my_books_router
+    from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.status import router as status_router
+    from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.yearly_reading_goals import (
+        router as yearly_reading_goals_router,
+    )
+
+    app.include_router(account_router)
+    app.include_router(books_router)
+    app.include_router(borrow_router)
+    app.include_router(cdn_router)
+    app.include_router(checkins_router)
+    app.include_router(importapi_router)
+    app.include_router(internal_router)
+    app.include_router(languages_router)
+    app.include_router(link_router)
+    app.include_router(lists_router)
+    app.include_router(merge_authors_router)
+    app.include_router(partials_router)
+    app.include_router(public_my_books_router)
+    app.include_router(publishers_router)
+    app.include_router(search_router)
+    app.include_router(status_router)
+    app.include_router(subjects_router)
+    app.include_router(yearly_reading_goals_router)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
@@ -222,56 +266,15 @@ def create_app() -> FastAPI | None:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.account import router as account_router
-    from openlibrary.fastapi.books import router as books_router
-    from openlibrary.fastapi.borrow import router as borrow_router
-    from openlibrary.fastapi.cdn import router as cdn_router
-    from openlibrary.fastapi.checkins import router as checkins_router
-    from openlibrary.fastapi.importapi import router as importapi_router
-    from openlibrary.fastapi.internal.api import router as internal_router
-    from openlibrary.fastapi.languages import router as languages_router
-    from openlibrary.fastapi.link import router as link_router
-    from openlibrary.fastapi.lists import router as lists_router
-    from openlibrary.fastapi.merge_authors import router as merge_authors_router
-    from openlibrary.fastapi.partials import router as partials_router
-    from openlibrary.fastapi.public_my_books import router as public_my_books_router
-    from openlibrary.fastapi.publishers import router as publishers_router
-    from openlibrary.fastapi.search import router as search_router
-    from openlibrary.fastapi.status import router as status_router
-    from openlibrary.fastapi.subjects import router as subjects_router
-    from openlibrary.fastapi.yearly_reading_goals import (
-        router as yearly_reading_goals_router,
-    )
+    _include_routers(app)
 
-    # Include routers
-    app.include_router(account_router)
-    app.include_router(books_router)
-    app.include_router(borrow_router)
-    app.include_router(cdn_router)
-    app.include_router(checkins_router)
-    app.include_router(importapi_router)
-    app.include_router(internal_router)
-    app.include_router(languages_router)
-    app.include_router(link_router)
-    app.include_router(lists_router)
-    app.include_router(merge_authors_router)
-    app.include_router(partials_router)
-    app.include_router(public_my_books_router)
-    app.include_router(publishers_router)
-    app.include_router(search_router)
-    app.include_router(status_router)
-    app.include_router(subjects_router)
-    app.include_router(yearly_reading_goals_router)
+    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
 
-    from openlibrary.fastapi.proxy import proxy_to_webpy
-
-    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
-    async def fallback(request: Request, path: str) -> Response:
-        if os.environ.get("LOCAL_DEV", "false").lower() != "true":
-            raise HTTPException(status_code=404)
-        if request.headers.get("X-Proxied-By") == "FastAPI":
-            raise HTTPException(status_code=404)
-        return await proxy_to_webpy(request)
+        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+        async def fallback(request: Request, path: str) -> Response:
+            if request.headers.get("X-Proxied-By") == "FastAPI":
+                raise HTTPException(status_code=404)
+            return await proxy.proxy_to_webpy(request)
 
     return app
 
