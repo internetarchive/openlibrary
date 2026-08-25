@@ -66,6 +66,18 @@ repos:
 
   - repo: local
     hooks:
+      - id: generate-solr-types
+        name: Generate Solr types
+        description: >
+          Regenerates openlibrary/solr/solr_types.py from the Solr schema
+          whenever the schema or generator changes.
+        entry: python ./openlibrary/solr/generate_solr_types.py
+        language: python
+        files: ^(conf/solr/conf/(managed-schema|enumsConfig)\.xml|openlibrary/solr/(generate_solr_types|solr_types)\.py)$
+        pass_filenames: false
+
+  - repo: local
+    hooks:
       - id: no-bare-httpx-async-client
         name: No bare httpx.AsyncClient() assignments
         description: >
