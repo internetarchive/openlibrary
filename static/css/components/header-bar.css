@@ -780,13 +780,28 @@
   margin: 0;
 }
 
-.header-bar .browse-popover__link {
-  display: block;
+/* `.navigation-component` is in the selector to outrank the blanket
+   `.navigation-component li a { display: block }` above, which would otherwise
+   win on specificity and drop the row out of flex layout.
+   min-height rather than `height`: these rows are the one place in the panel a
+   label can wrap (the mobile tray narrows to the viewport), so the row grows
+   with its text instead of clipping it. */
+.header-bar .navigation-component .browse-popover__link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  min-height: var(--control-height-medium);
   padding: var(--spacing-2xs) var(--spacing-inset-sm);
   border-radius: var(--border-radius-md);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
+}
+
+/* These glyphs only echo the label they sit beside, so they stay on the
+   decorative tier rather than competing with the text. */
+.header-bar .browse-popover__link .ol-icon {
+  color: var(--color-icon-muted);
 }
 
 .header-bar .browse-popover__link:hover,

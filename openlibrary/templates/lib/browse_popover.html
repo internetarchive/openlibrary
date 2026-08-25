@@ -2,8 +2,8 @@ $def with (track_prefix=None)
 $# Browse menu rendered with the <ol-popover> web component (see
 $# openlibrary/components/lit/OlPopover.js) instead of a native <details>
 $# dropdown. The panel leads with a single column of featured destinations —
-$# each an icon + title + short description — above a divider, followed by a
-$# list of simple links for the remaining Browse items.
+$# each an icon tile + title + short description — above a divider, followed by
+$# a list of icon + label links for the remaining Browse items.
 $#
 $# Analytics: data-*-track = "category|action|label". category = track_prefix,
 $# which the two nav_head.html include sites set per surface (desktop "MainNav"
@@ -16,10 +16,10 @@ $#   data-ol-open-track — one event per open (pointer or keyboard), sent by th
 $#     browse-scoped ol-popover-open listener in index.js.
 $ pfx = track_prefix or "MainNav"
 $ simpleLinks = [
-$     { "href": "/collections", "text": _("Collections"), "track": "Collections", "rank": 5 },
-$     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library", "rank": 6 },
-$     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks", "rank": 7 },
-$     { "href": "/random", "text": _("Random Book"), "track": "RandomBook", "rank": 8 }
+$     { "href": "/collections", "icon": "library-big", "text": _("Collections"), "track": "Collections", "rank": 5 },
+$     { "href": "/k-12", "icon": "graduation-cap", "text": _("K-12 Student Library"), "track": "K12Library", "rank": 6 },
+$     { "href": "/booktalks", "icon": "mic", "text": _("Book Talks"), "track": "BookTalks", "rank": 7 },
+$     { "href": "/random", "icon": "dices", "text": _("Random Book"), "track": "RandomBook", "rank": 8 }
 $ ]
 <div class="browse-component header-dropdown">
   <ol-popover class="browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
@@ -87,7 +87,7 @@ $ ]
       <hr class="browse-popover__divider">
       <ul class="browse-popover__links">
         $for link in simpleLinks:
-          <li><a class="browse-popover__link" href="$(link['href'])" data-ol-link-track="$(pfx)|$(link['track'])|$(link['rank'])">$(link['text'])</a></li>
+          <li><a class="browse-popover__link" href="$(link['href'])" data-ol-link-track="$(pfx)|$(link['track'])|$(link['rank'])">$:macros.icon(link['icon'], size="sm")$(link['text'])</a></li>
       </ul>
     </div>
   </ol-popover>

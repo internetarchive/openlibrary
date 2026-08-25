@@ -1,38 +1,24 @@
 /**
  * Collections pages (/collections and its sub-pages)
  * =================================================
- * A long-form reading layout: one centered text column, with images allowed to
- * break out wider.
+ * Content runs the full width of the body, as it does on every other wiki page.
+ * What's left here is typography and vertical rhythm.
  */
 
-.collections-page {
-  /* rem, not em: an em measure would resolve against each element's own
-     font-size and widen the column under every heading. */
-  --collections-measure: 40rem;
-
-  /* Where a carousel's first cover starts, measured from the body's content
-     edge: -20px container pull + 16px container padding + 24px track padding
-     + 8px slide margin + 4px slide padding. Anything that belongs to a carousel
-     rather than to the prose sits on this edge. */
-  --collections-inset: 32px;
-}
-
-/* The layout hooks are ids owned by type/page/view.html, and the image rule has
-   to outrank layout/index.css's `div#contentBody img`. */
+/* The layout hooks are ids owned by type/page/view.html, and a couple of the
+   type rules have to outrank base stylesheets that target the same elements. */
 /* stylelint-disable selector-max-specificity */
 
-/* === centered column === */
+/* === head === */
 
-/* Full width — legacy.css caps the head 40px narrower than #contentBody, enough
-   to push the centered title off the body's axis. Column, not float, so the edit
-   metadata and the title can't overlap on a narrow screen. */
+/* Column, not float, so the edit metadata and the title can't overlap on a
+   narrow screen. legacy.css caps the head 40px narrower than #contentBody,
+   which leaves the edit metadata short of the body's right edge — the padding
+   itself stays legacy's, so the two still share a left edge. */
 .collections-page #contentHead {
   display: flex;
   flex-direction: column;
   max-width: none;
-  padding: var(--spacing-inset-md);
-  /* The head owns the gap down to the body, so nothing in the body needs a top
-     margin to clear the title. */
   padding-bottom: var(--spacing-stack-xl);
 }
 
@@ -44,7 +30,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--spacing-inline-md);
-  margin-bottom: var(--spacing-stack-2xl);
+  margin-bottom: var(--spacing-stack-xl);
 }
 
 /* Margin, not space-between, so it stays right on the index page, which has no
@@ -80,60 +66,18 @@
   font-size: var(--font-size-label-medium);
 }
 
-/* Cap each block rather than the body, so images can opt out and run wider. */
-.collections-page #contentBody > * {
-  max-width: var(--collections-measure);
-  margin-inline: auto;
-}
-
-/* Carousels run full body width. Three shapes reach the body: lazy placeholder,
-   the wrapper the loader swaps in, and a directly rendered section. */
-.collections-page
-  #contentBody
-  > :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section) {
-  max-width: none;
-}
-
-/* Headings that introduce a carousel belong to the carousel, not the prose:
-   centered on the measure they sit ~170px right of the first cover. The two hops
-   live in one relative selector (`:has()` can't nest inside `:has()`), so a
-   section head and its standfirst travel together — `h2 + h4 + carousel`, the
-   shape the search-within carousels use. */
-.collections-page
-  #contentBody
-  > :is(h1, h2, h3, h4, h5, h6):is(
-    :has(+ :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section)),
-    :has(
-      + :is(h1, h2, h3, h4, h5, h6)
-        + :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section)
-    )
-  ) {
-  max-width: none;
-  margin-inline: 0;
-  padding-left: var(--collections-inset);
-}
-
-/* The loader puts a search-within form above the band. Full width suits the
-   band, not the form: it joins the text column, and owns the gap to the band so
-   the two don't abut. */
-.collections-page #contentBody .lazy-carousel-loaded > form.pagesearchbox {
-  max-width: var(--collections-measure);
-  margin: 0 0 var(--spacing-stack-lg) var(--collections-inset);
-}
-
 /* === titles === */
 
 /* Kicker above the title. Uppercase and wide tracking let it read as a label at
-   a size that stays subordinate to the title. The topbar sets the gap above it;
-   it only carries the tight pairing gap down to the title. */
+   a size that stays subordinate to the title. No margins of its own: the topbar
+   sets the gap above, and the title's own line-height carries the rest. */
 .collections-page #contentHead .collection-eyebrow {
-  margin: 0 auto var(--spacing-stack-xs);
+  margin: 0;
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-large);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--color-text-muted);
-  text-align: center;
   text-transform: uppercase;
 }
 
@@ -141,19 +85,15 @@
   margin-inline: 0.35em;
 }
 
-/* The measure breaks a long title into a readable stack, not one wide line —
-   between text and image width: not a narrow stack, still short of the image. */
+/* No margins of its own: the eyebrow sets the gap above, and the head's padding
+   sets the gap down to the body. */
 .collections-page #contentHead h1 {
-  max-width: 48rem;
-  /* No margins of its own: the topbar (or the eyebrow) sets the gap above, and
-     the head's padding sets the gap to the body. */
-  margin: 0 auto;
+  margin: 0;
   font-family: var(--font-family-title);
   font-size: var(--font-size-display-medium);
   font-weight: 700;
   line-height: var(--line-height-display);
   color: var(--color-text);
-  text-align: center;
 }
 
 .collections-page #contentBody h2,
@@ -161,12 +101,11 @@
 .collections-page #contentBody h4,
 .collections-page #contentBody h5,
 .collections-page #contentBody h6 {
+  margin-block: 0 var(--spacing-stack-sm);
   font-family: var(--font-family-title);
   font-weight: 650;
   line-height: var(--line-height-heading);
   color: var(--color-text);
-  /* Block-only: the inline margins belong to the column rule above. */
-  margin-block: 0 var(--spacing-stack-sm);
 }
 
 /* markdown's `#` lands an h1 in the body too. Its typography is common.css's;
@@ -220,45 +159,10 @@
   margin-block: 0 var(--spacing-stack-xl);
 }
 
-/* === images === */
-
-/* Standalone images get the wider measure (promote_leading_images lifts a
-   paragraph-opening image into its own top-level <figure>). A cap, not a width,
-   so a small image sits at its own size. */
-.collections-page #contentBody > figure,
-.collections-page #contentBody > img {
-  /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
-  max-width: min(60rem, 1018px, 100%);
-  /* Explicit, to drop the UA's `1em 40px` on figure. */
-  margin-block: 0 var(--spacing-stack-xl);
-}
-
-/* Prose images only — covers sit deeper and keep their component styles. */
-.collections-page #contentBody > img,
-.collections-page #contentBody > figure img,
-.collections-page #contentBody > p img {
-  display: block;
-  margin-inline: auto;
-  border-radius: var(--border-radius-media);
-}
-
-/* Inline images carry their own gap; a figure's is set by the figure, so its
-   image only carries the pairing gap down to the caption. */
-.collections-page #contentBody > p img {
-  margin-bottom: var(--spacing-stack-xl);
-}
-
-.collections-page #contentBody > figure img {
-  margin-bottom: var(--spacing-stack-xs);
-}
-
-/* Held to the reading measure so captions stay readable under a wider image. */
-.collections-page #contentBody > figure figcaption {
-  max-width: var(--collections-measure);
-  margin-inline: auto;
-  font-size: var(--font-size-body-medium);
-  color: var(--color-text-muted);
-  text-align: center;
+/* The loader puts a search-within form above the band. It owns the gap down to
+   the covers, which would otherwise start right under the submit button. */
+.collections-page #contentBody .lazy-carousel-loaded > form.pagesearchbox {
+  margin-bottom: var(--spacing-stack-lg);
 }
 
 /* === space above headings and dividers === */

@@ -51,8 +51,6 @@ $if '<!--suppress-title-->' not in page.body:
     </div>
 
 $ text = format(page.body)
-$if is_collection:
-    $ text = promote_leading_images(text)
 
 <div id="contentBody" class="markdown-content">
 

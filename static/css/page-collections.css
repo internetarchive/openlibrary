@@ -5,7 +5,7 @@
  * - /collections/book-awards (and every other /collections/* wiki page)
  *
  * Same base as the default page-user bundle, plus the Literata webfont and the
- * centered reading layout.
+ * collections typography.
  */
 @import "page-user.css";
 @import "fonts/literata.css";

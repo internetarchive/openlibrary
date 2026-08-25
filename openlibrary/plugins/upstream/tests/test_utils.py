@@ -393,34 +393,3 @@ def test_json_encode():
     assert utils.json_encode({"description": "</script><script>alert('xss')</script>"}) == (
         '{"description": "\\u003c/script\\u003e\\u003cscript\\u003ealert(\'xss\')\\u003c/script\\u003e"}'
     )
-
-
-class TestPromoteLeadingImages:
-    """The shapes OL-flavored markdown actually produces for a standalone image."""
-
-    def test_a_lone_image_becomes_a_figure(self):
-        assert utils.promote_leading_images("<p><img src='a.png'/></p>") == "<figure><img src='a.png'/></figure>"
-
-    def test_a_small_tail_becomes_the_caption(self):
-        html = "<p><img src='a.png'/><br/>\n   <small>Graphic by <a href='#'>Sam</a></small>\n</p>"
-        assert utils.promote_leading_images(html) == "<figure><img src='a.png'/><figcaption>Graphic by <a href='#'>Sam</a></figcaption></figure>"
-
-    def test_an_empty_caption_is_dropped(self):
-        assert utils.promote_leading_images("<p><img src='a.png'/><br/>\n<small>\n</small></p>") == "<figure><img src='a.png'/></figure>"
-
-    def test_prose_sharing_the_paragraph_gets_its_own(self):
-        """Otherwise the opening prose stays trapped in the image's paragraph."""
-        html = "<p><img src='a.png'/><br/>\n   From 1861 to 1865, the war...</p>"
-        assert utils.promote_leading_images(html) == "<figure><img src='a.png'/></figure><p>From 1861 to 1865, the war...</p>"
-
-    def test_stacked_images_all_split_out(self):
-        html = "<p><img src='a.png'/><br/><img src='b.png'/></p>"
-        assert utils.promote_leading_images(html) == "<figure><img src='a.png'/></figure><figure><img src='b.png'/></figure>"
-
-    def test_an_image_inside_prose_is_left_alone(self):
-        html = "<p>See <img src='a.png'/> above.</p>"
-        assert utils.promote_leading_images(html) == html
-
-    def test_paragraphs_without_images_are_untouched(self):
-        html = "<p>One.</p>\n<p>Two.</p>"
-        assert utils.promote_leading_images(html) == html
