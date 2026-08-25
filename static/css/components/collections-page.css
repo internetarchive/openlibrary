@@ -9,6 +9,12 @@
   /* rem, not em: an em measure would resolve against each element's own
      font-size and widen the column under every heading. */
   --collections-measure: 40rem;
+
+  /* Where a carousel's first cover starts, measured from the body's content
+     edge: -20px container pull + 16px container padding + 24px track padding
+     + 8px slide margin + 4px slide padding. Anything that belongs to a carousel
+     rather than to the prose sits on this edge. */
+  --collections-inset: 32px;
 }
 
 /* The layout hooks are ids owned by type/page/view.html, and the image rule has
@@ -88,6 +94,33 @@
   max-width: none;
 }
 
+/* Headings that introduce a carousel belong to the carousel, not the prose:
+   centered on the measure they sit ~170px right of the first cover. The two hops
+   live in one relative selector (`:has()` can't nest inside `:has()`), so a
+   section head and its standfirst travel together — `h2 + h4 + carousel`, the
+   shape the search-within carousels use. */
+.collections-page
+  #contentBody
+  > :is(h1, h2, h3, h4, h5, h6):is(
+    :has(+ :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section)),
+    :has(
+      + :is(h1, h2, h3, h4, h5, h6)
+        + :is(.lazy-carousel, .lazy-carousel-loaded, .carousel-section)
+    )
+  ) {
+  max-width: none;
+  margin-inline: 0;
+  padding-left: var(--collections-inset);
+}
+
+/* The loader puts a search-within form above the band. Full width suits the
+   band, not the form: it joins the text column, and owns the gap to the band so
+   the two don't abut. */
+.collections-page #contentBody .lazy-carousel-loaded > form.pagesearchbox {
+  max-width: var(--collections-measure);
+  margin: 0 0 var(--spacing-stack-lg) var(--collections-inset);
+}
+
 /* === titles === */
 
 /* Kicker above the title. Uppercase and wide tracking let it read as a label at
@@ -132,15 +165,15 @@
   font-weight: 650;
   line-height: var(--line-height-heading);
   color: var(--color-text);
-  /* Tight to the text it introduces; `auto` keeps the centering from `> *`. */
-  margin: 0 auto var(--spacing-stack-sm);
+  /* Block-only: the inline margins belong to the column rule above. */
+  margin-block: 0 var(--spacing-stack-sm);
 }
 
 /* markdown's `#` lands an h1 in the body too. Its typography is common.css's;
    only the symmetric margins and the UA's bold need flipping — the latter so it
    sits at the same weight as the other body heads. */
 .collections-page #contentBody h1 {
-  margin: 0 auto var(--spacing-stack-sm);
+  margin-block: 0 var(--spacing-stack-sm);
   font-weight: 650;
 }
 
@@ -178,13 +211,13 @@
 
 /* The UA default is a symmetric `1em 0`; drop the top half. */
 .collections-page #contentBody > p {
-  margin: 0 auto var(--spacing-stack-md);
+  margin-block: 0 var(--spacing-stack-md);
 }
 
 /* A divider wants equal air on both sides, which the block above it supplies
    (see the last section); markdown.css's symmetric `2rem 0` would double it. */
 .collections-page #contentBody > hr {
-  margin: 0 auto var(--spacing-stack-xl);
+  margin-block: 0 var(--spacing-stack-xl);
 }
 
 /* === images === */
@@ -197,7 +230,7 @@
   /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
   max-width: min(60rem, 1018px, 100%);
   /* Explicit, to drop the UA's `1em 40px` on figure. */
-  margin: 0 auto var(--spacing-stack-xl);
+  margin-block: 0 var(--spacing-stack-xl);
 }
 
 /* Prose images only — covers sit deeper and keep their component styles. */
@@ -222,7 +255,7 @@
 /* Held to the reading measure so captions stay readable under a wider image. */
 .collections-page #contentBody > figure figcaption {
   max-width: var(--collections-measure);
-  margin: 0 auto;
+  margin-inline: auto;
   font-size: var(--font-size-body-medium);
   color: var(--color-text-muted);
   text-align: center;
