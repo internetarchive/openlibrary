@@ -7,7 +7,7 @@ services:
       - OL_COVERSTORE_PUBLIC_URL=${OL_COVERSTORE_PUBLIC_URL:-}
     command: docker/ol-web-start.sh
     ports:
-      - ${WEB_PORT:-8081}:8080
+      - ${WEB_PORT:-8080}:8080
     networks:
       - webnet
       - dbnet
@@ -23,7 +23,7 @@ services:
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
     command: docker/ol-web-fastapi-start.sh
     ports:
-      - ${FAST_WEB_PORT:-8080}:8080
+      - ${FAST_WEB_PORT:-18080}:8080
     networks:
       - webnet
       - dbnet
@@ -72,7 +72,7 @@ services:
     init: true
     environment:
       - OL_CONFIG=conf/openlibrary.yml
-      - OL_URL=http://fast_web:8080/
+      - OL_URL=http://web:8080/
       - STATE_FILE=solr-update.offset
       - TRENDING_OFFSET_FILE=trending-update.offset
     volumes:
