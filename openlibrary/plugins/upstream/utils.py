@@ -601,7 +601,6 @@ def add_metatag(tag: str = "meta", **attrs) -> None:
     context.metatags.append(Metatag(tag, **attrs))
 
 
-@public
 def url_quote(text: str | bytes) -> str:
     if isinstance(text, str):
         text = text.encode("utf8")
