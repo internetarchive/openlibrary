@@ -8,8 +8,9 @@ import web
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import storify
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import render_template
 from openlibrary.core import admin, cache, env, ia, lending
+from openlibrary.core.lending import compose_ia_url
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
@@ -19,6 +20,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
 from openlibrary.utils.request_context import (
+    get_request_lang,
     req_context,
     set_context_from_legacy_web_py,
 )
@@ -50,14 +52,88 @@ def get_homepage(devmode):
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
+    carousel_data = get_carousel_data()
     page = render_template(
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
         featured_subjects=featured_subjects,
+        carousel_data=carousel_data,
     )
     # Convert to a dict so it can be cached
     return dict(page)
+
+
+def get_carousel_data():
+    lang = get_request_lang()
+    marc_lang = convert_iso_to_marc(lang)
+    lang_filter = f" language:{marc_lang}" if marc_lang and marc_lang in get_populated_languages() else ""
+
+    staff_picks_query = 'languageSorter:("English")' + lang_filter
+    staff_picks_subject = "openlibrary_staff_picks"
+    staff_picks_sorts = ["lending___last_browse desc"]
+    staff_picks_limit = 18
+
+    staff_picks_books = generic_carousel(
+        query=staff_picks_query,
+        subject=staff_picks_subject,
+        sorts=staff_picks_sorts,
+        limit=staff_picks_limit,
+        safe_mode=True,
+    )
+    staff_picks_url = compose_ia_url(
+        query=staff_picks_query,
+        subject=staff_picks_subject,
+        sorts=staff_picks_sorts,
+        limit=staff_picks_limit,
+        advanced=False,
+        safe_mode=True,
+    )
+
+    recently_returned_query = "" + lang_filter
+    recently_returned_sorts = ["lending___last_browse desc"]
+    recently_returned_limit = 18
+
+    recently_returned_books = generic_carousel(
+        query=recently_returned_query,
+        sorts=recently_returned_sorts,
+        limit=recently_returned_limit,
+        safe_mode=True,
+    )
+    recently_returned_url = compose_ia_url(
+        query=recently_returned_query,
+        sorts=recently_returned_sorts,
+        limit=recently_returned_limit,
+        advanced=False,
+        safe_mode=True,
+    )
+
+    return {
+        "staff_picks": {
+            "books": staff_picks_books,
+            "url": staff_picks_url,
+            "load_more": {
+                "queryType": "BROWSE",
+                "q": staff_picks_query,
+                "subject": staff_picks_subject,
+                "sorts": ",".join(staff_picks_sorts),
+                "mode": "page",
+                "limit": staff_picks_limit,
+            },
+        },
+        "recently_returned": {
+            "books": recently_returned_books,
+            "url": recently_returned_url,
+            "load_more": {
+                "queryType": "BROWSE",
+                "q": recently_returned_query,
+                "subject": "",
+                "sorts": ",".join(recently_returned_sorts),
+                "mode": "page",
+                "limit": recently_returned_limit,
+            },
+        },
+    }
 
 
 def get_cached_homepage():
@@ -275,7 +351,6 @@ def get_cached_featured_subjects():
     )()
 
 
-@public
 def generic_carousel(
     query=None,
     subject=None,

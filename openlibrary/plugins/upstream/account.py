@@ -1278,6 +1278,11 @@ class account_loans(delegate.page):
         docs = get_loans_of_user(user.key)
         loan_history_data = get_loan_history_data(username, page=page)
         featured_subjects = get_cached_featured_subjects()
+
+        from openlibrary.plugins.openlibrary.home import get_carousel_data
+
+        staff_picks = get_carousel_data()["staff_picks"]
+
         template = render["account/loans"](
             user,
             docs,
@@ -1286,6 +1291,10 @@ class account_loans(delegate.page):
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
             featured_subjects=featured_subjects,
+            carousel_books=staff_picks["books"],
+            carousel_title=_("Books We Love"),
+            carousel_url=staff_picks["url"],
+            carousel_load_more=staff_picks["load_more"],
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 
