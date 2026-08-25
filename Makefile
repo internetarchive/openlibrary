@@ -88,13 +88,11 @@ lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
-PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
-
 test-py:
-	pytest $(PYTEST_ARGS)
+	pytest . --doctest-modules
 
 test-py-uv:
-	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
+	uv run --with-requirements requirements_test.txt pytest . --doctest-modules
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
