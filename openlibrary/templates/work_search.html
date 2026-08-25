@@ -4,6 +4,13 @@ $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('search-page')
 
+$# Lazily-loaded Search Inside suggestions (fulltext-search-suggestion.js
+$# fetches the cached FulltextSearchSuggestion partial into this div).
+$def fulltext_rescue(query):
+    <div id="fulltext-search-suggestion" data-query="$query">
+        $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+    </div>
+
 <div>
     <div id="contentHead">
       <h1>$_("Search Books")</h1>
@@ -119,9 +126,6 @@ $ bodyclass.append('search-page')
         $else:
             $ path_id = ctx.path.split('/')
         $ query = query_param('q')
-        $# Temporarily (2020-03-26) disable automatically showing full-text
-        $# results because of performance issues due to increased load. See
-        $# this commit to revert.
         <center>
           <div class="red">
             $:_('No <strong>%(path_id)s</strong> directly matched your search.', path_id=path_id)
@@ -129,9 +133,7 @@ $ bodyclass.append('search-page')
         </div>
           <hr>
         </center>
-        <div id="fulltext-search-suggestion" data-query="$query">
-            $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-        </div>
+        $:fulltext_rescue(query)
 
     $elif param and not search_response.error and len(search_response.docs):
         <div class="resultsContainer search-results-container">
@@ -147,6 +149,12 @@ $ bodyclass.append('search-page')
               $_("Books")
               <span class="search-results-section-label__count">$results_stats</span>
             </h2>
+          $ query = query_param('q')
+          $# ?debug_fulltext=true forces the Search Inside strip above the list
+          $# on any query — a debug switch for evaluating a blended results page
+          $# (fulltext alongside healthy metadata results) before any rollout.
+          $if query and query_param('debug_fulltext'):
+            $:fulltext_rescue(query)
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
@@ -161,6 +169,14 @@ $ bodyclass.append('search-page')
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
                 $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
           </ul>
+          $# Weak-result rescue: metadata search barely matched, so check
+          $# Search Inside too — the same module the zero-result branch shows.
+          $# (Automatic fulltext on *every* results page was rolled back on
+          $# 2020-03-26 for load reasons; this stays bounded to the queries
+          $# metadata search is failing, and the partial is now cached and
+          $# fetch-limited.)
+          $if query and not query_param('debug_fulltext') and search_response.num_found <= 3:
+            $:fulltext_rescue(query)
           $:macros.OlPagination(page, ceil(search_response.num_found / rows))
         </div>
 <!-- /results -->
