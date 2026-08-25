@@ -53,3 +53,16 @@
   font-size: larger;
   display: inline;
 }
+.fsi-snippet__pages {
+  padding: var(--spacing-inset-xs);
+  margin: 0 var(--spacing-inline-sm);
+  color: var(--dark-grey);
+  font-size: 0.875em;
+  list-style: none;
+}
+.fsi-snippet__pages .fsi-snippet__page-link {
+  margin-inline-start: var(--spacing-inline-sm);
+  font-family: var(--font-family-body);
+  color: var(--link-blue);
+  text-decoration: none;
+}

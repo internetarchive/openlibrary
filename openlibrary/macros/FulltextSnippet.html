@@ -5,6 +5,14 @@ $ ia_base_url = "https://archive.org"
 $ availability = doc.get('availability', {})
 $ snippets = doc.get('highlight', {}).get('text', [''])[:2]
 
+$# page_num arrives as a list of per-highlight lists (e.g. [[234], [250]]);
+$# flatten (dropping duplicates, keeping order) for the page links below.
+$ page_nums = []
+$for p in doc.get('fields', {}).get('page_num', []):
+    $for num in (p if isinstance(p, list) else [p]):
+        $if num not in page_nums:
+            $ page_nums.append(num)
+
 <ul class="fsi-snippet">
   $for snippet in snippets:
     $if snippet:
@@ -15,4 +23,10 @@ $ snippets = doc.get('highlight', {}).get('text', [''])[:2]
         </a>&nbsp;
         <div class="fsi-snippet__quotation-mark">$_('❞')</div>
       </li>
+  $if page_nums:
+    <li class="fsi-snippet__pages">
+      $_("Jump to page")
+      $for num in page_nums[:6]:
+        <a class="fsi-snippet__page-link" href="$ia_base_url/details/$(ia)/page/$(num)?$urlencode(dict(q=q))" data-ol-link-track="SearchInsideCard|PageClick">$num</a>
+    </li>
 </ul>

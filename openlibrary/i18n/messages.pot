@@ -950,6 +950,10 @@ msgstr ""
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
+#: search/authors.html search/lists.html search/subjects.html work_search.html
+msgid "Checking Search Inside matches"
+msgstr ""
+
 #: work_search.html
 msgid "Search Books"
 msgstr ""
@@ -974,7 +978,7 @@ msgstr ""
 msgid "Filter by availability"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/plugins/worksearch/code.py search/inside.html search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr ""
 
@@ -1023,10 +1027,6 @@ msgstr ""
 
 #: work_search.html
 msgid "Add a new book?"
-msgstr ""
-
-#: search/authors.html search/lists.html search/subjects.html work_search.html
-msgid "Checking Search Inside matches"
 msgstr ""
 
 #: SearchNavigation.html authors/index.html lib/nav_foot.html merge/authors.html publishers/view.html work_search.html
@@ -5936,6 +5936,11 @@ msgid "Search Inside"
 msgstr ""
 
 #: search/inside.html
+#, python-format
+msgid "Remove filter: %(language)s"
+msgstr ""
+
+#: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
 msgstr ""
 
@@ -5952,6 +5957,15 @@ msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
 msgstr[1] ""
+
+#: search/inside.html search/work_search_facets.html
+msgid "Zoom In"
+msgstr ""
+
+#: search/inside.html search/work_search_facets.html
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr ""
 
 #: search/layout_options.html
 msgid "View as"
@@ -6065,6 +6079,20 @@ msgstr ""
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Found inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s Search Inside matches"
+msgstr ""
+
+#: TableOfContents.html search/search_modal_i18n.html
+#, python-format
+msgid "Page %s"
 msgstr ""
 
 #: search/snippets.html
@@ -6205,11 +6233,6 @@ msgid "Less"
 msgstr ""
 
 #: search/work_search_facets.html
-#, python-format
-msgid "Filter results for %(facet)s"
-msgstr ""
-
-#: search/work_search_facets.html
 msgid "Filter results for ebook availability"
 msgstr ""
 
@@ -6219,10 +6242,6 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "no"
-msgstr ""
-
-#: search/work_search_facets.html
-msgid "Zoom In"
 msgstr ""
 
 #: search/work_search_facets.html
@@ -7317,6 +7336,10 @@ msgstr ""
 msgid "❞"
 msgstr ""
 
+#: FulltextSnippet.html
+msgid "Jump to page"
+msgstr ""
+
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
@@ -7712,11 +7735,6 @@ msgstr ""
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
-
-#: TableOfContents.html
-#, python-format
-msgid "Page %s"
 msgstr ""
 
 #: TrendingBadge.html
