@@ -178,6 +178,12 @@ export class OlShelfButton extends LitElement {
             background: var(--color-hover-overlay);
         }
 
+        /* When on, hover deepens the blue tint instead of graying it. */
+        .split--on .main:hover,
+        .split--on .more:hover {
+            background: var(--color-control-selected-bg-hover);
+        }
+
         .main:focus-visible,
         .more:focus-visible {
             outline: 2px solid var(--color-focus-ring);
