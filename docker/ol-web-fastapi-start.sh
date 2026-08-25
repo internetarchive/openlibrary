@@ -9,7 +9,7 @@ export OL_CONFIG="${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}"
 
 # In development, use uvicorn since gunicorn's auto-restart is unreliable with asgi
 if [ "${LOCAL_DEV:-false}" = "true" ]; then
-  # Factory keeps the reloader parent light (https://uvicorn.dev/#application-factories).
+  # --factory avoids importing openlibrary into the uvicorn reloader parent process (https://uvicorn.dev/#application-factories), which saves ~100 MB of RAM
   exec uvicorn \
     --factory \
     --reload \
