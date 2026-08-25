@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
@@ -268,7 +269,7 @@ def create_app() -> FastAPI | None:
 
     _include_routers(app)
 
-    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+    if get_ol_env().LOCAL_DEV:
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
