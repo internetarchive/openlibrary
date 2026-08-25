@@ -1672,7 +1672,6 @@ def setup() -> None:
         {
             "HTML": HTML,
             "request": Request(),
-            "logger": logging.getLogger("openlibrary.template"),
             "sum": sum,
             "websafe": web.websafe,
         }
