@@ -72,7 +72,7 @@ function get_seed_count() {
  * @returns {string} i18n cancel text
  */
 const getCancelButtonLabelText = () => {
-    return $('.listDelete a').data('cancel-text');
+    return $('.listDelete ol-button').data('cancel-text');
 };
 
 /**
@@ -80,12 +80,12 @@ const getCancelButtonLabelText = () => {
  * @returns {string} i18n confirmation text
  */
 const getConfirmButtonLabelText = () => {
-    return $('.listDelete a').data('confirm-text');
+    return $('.listDelete ol-button').data('confirm-text');
 };
 
-// Add listeners to each .listDelete link element
+// Add listeners to each .listDelete button element
 // Sometimes .listDelete is dynamically added to the DOM, so we'll add the listener to a parent element
-$('#listResults').on('click', '.listDelete a', function() {
+$('#listResults').on('click', '.listDelete ol-button', function() {
     if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
         $('#remove-seed-dialog')
             .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
