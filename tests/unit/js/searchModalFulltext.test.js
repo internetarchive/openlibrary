@@ -1,6 +1,8 @@
 import {
     fulltextHitDisplay,
+    isPassageQuery,
     parseSnippet,
+    solrLooksWeak,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
 
 describe('parseSnippet', () => {
@@ -89,5 +91,72 @@ describe('fulltextHitDisplay', () => {
     test('tolerates a flat page_num list', () => {
         const flat = { ...hit, fields: { ...hit.fields, page_num: [31, 88] } };
         expect(fulltextHitDisplay(flat).page).toBe(31);
+    });
+});
+
+describe('isPassageQuery', () => {
+    test('quoted phrases are passages, straight or curly', () => {
+        expect(isPassageQuery('"best of times"')).toBe(true);
+        expect(isPassageQuery('“best of times”')).toBe(true);
+    });
+
+    test('empty quotes are not a phrase', () => {
+        expect(isPassageQuery('"" dune')).toBe(false);
+    });
+
+    test('question-shaped queries are passages', () => {
+        expect(isPassageQuery('who coined meritocracy?')).toBe(true);
+    });
+
+    test('long queries are passages, short ones are lookups', () => {
+        expect(isPassageQuery('it was the best of times')).toBe(true);
+        expect(isPassageQuery('the secret garden')).toBe(false);
+        expect(isPassageQuery('dune')).toBe(false);
+    });
+
+    test('empty and non-string input are not passages', () => {
+        expect(isPassageQuery('')).toBe(false);
+        expect(isPassageQuery('   ')).toBe(false);
+        expect(isPassageQuery(undefined)).toBe(false);
+    });
+});
+
+describe('solrLooksWeak', () => {
+    const gatsby = { title: 'The Great Gatsby', author_name: ['F. Scott Fitzgerald'] };
+
+    test('no docs is weak', () => {
+        expect(solrLooksWeak([], 'anything')).toBe(true);
+        expect(solrLooksWeak(undefined, 'anything')).toBe(true);
+    });
+
+    test('a title match is not weak', () => {
+        expect(solrLooksWeak([gatsby], 'great gatsby')).toBe(false);
+    });
+
+    test('an author match is not weak', () => {
+        expect(solrLooksWeak([gatsby], 'fitzgerald')).toBe(false);
+    });
+
+    test('prefix overlap counts, diacritics folded', () => {
+        expect(solrLooksWeak([gatsby], 'gats')).toBe(false);
+        expect(solrLooksWeak([{ title: 'García Márquez reader' }], 'garcia')).toBe(false);
+    });
+
+    test('no overlap in the top docs is weak', () => {
+        expect(solrLooksWeak([gatsby], 'hobit')).toBe(true);
+    });
+
+    test('overlap must be word-initial', () => {
+        // "art" appears mid-word in "Bartleby" — that's not an answer.
+        expect(solrLooksWeak([{ title: 'Bartleby the Scrivener' }], 'art')).toBe(true);
+    });
+
+    test('stopword-only queries are treated as answered', () => {
+        expect(solrLooksWeak([gatsby], 'the and')).toBe(false);
+    });
+
+    test('only the top docs are scanned', () => {
+        const filler = { title: 'Unrelated', author_name: ['Nobody'] };
+        expect(solrLooksWeak([filler, filler, filler, gatsby], 'gatsby')).toBe(true);
     });
 });

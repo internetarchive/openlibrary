@@ -970,11 +970,11 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html type/author/view.html work_search.html
+#: account/reading_log.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html search/inside.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: account/reading_log.html type/author/view.html work_search.html
+#: account/reading_log.html search/inside.html type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
@@ -982,15 +982,15 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: search/search_modal_i18n.html work_search.html
+#: search/inside.html search/search_modal_i18n.html work_search.html
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html search/search_modal_i18n.html work_search.html
+#: books/edit/edition.html languages/index.html search/inside.html search/search_modal_i18n.html work_search.html
 msgid "Languages"
 msgstr ""
 
-#: work_search.html
+#: search/inside.html work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -3478,7 +3478,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: FulltextResults.html FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -5937,6 +5937,11 @@ msgstr ""
 
 #: search/inside.html
 #, python-format
+msgid "Remove filter: %(filter)s"
+msgstr ""
+
+#: search/inside.html
+#, python-format
 msgid "Remove filter: %(language)s"
 msgstr ""
 
@@ -6051,6 +6056,10 @@ msgid "No results found"
 msgstr ""
 
 #: search/search_modal_i18n.html
+msgid "No matching books or authors"
+msgstr ""
+
+#: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
 msgstr ""
@@ -6086,8 +6095,7 @@ msgid "Found inside books"
 msgstr ""
 
 #: search/search_modal_i18n.html
-#, python-format
-msgid "See all %s Search Inside matches"
+msgid "See more Search Inside matches"
 msgstr ""
 
 #: TableOfContents.html search/search_modal_i18n.html
@@ -7300,6 +7308,11 @@ msgstr ""
 
 #: FormatExpiry.html
 msgid "Expires"
+msgstr ""
+
+#: FulltextResults.html
+#, python-format
+msgid "by %(authors)s"
 msgstr ""
 
 #: FulltextSearchSuggestion.html

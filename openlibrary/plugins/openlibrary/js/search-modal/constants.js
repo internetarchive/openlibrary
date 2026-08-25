@@ -85,6 +85,10 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageHeading: 'Languages',
     searching: 'Searching…',
     noResults: 'No results found',
+    // Softer empty state used when the catalog search came back empty but the
+    // "Found inside books" band below has matches — a bare "No results found"
+    // above visible results would read as a contradiction.
+    noCatalogResults: 'No matching books or authors',
     // Screen-reader-only live announcement when results land: first %s = rows
     // shown in the modal, second %s = total matches. e.g. "Showing 7 of 134,731
     // results". Sighted users see the list appear; this gives assistive tech the
@@ -103,10 +107,10 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     // "Found inside books" band: snippet matches from Search Inside rendered
-    // under the top results. seeAllInside's %s is the total match count;
-    // ftPage's %s is the page number the passage appears on.
+    // under the top results. ftPage's %s is the page number the passage
+    // appears on.
     foundInside: 'Found inside books',
-    seeAllInside: 'See all %s Search Inside matches',
+    seeAllInside: 'See more Search Inside matches',
     ftPage: 'Page %s',
 };
 

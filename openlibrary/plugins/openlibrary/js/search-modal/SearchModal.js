@@ -30,7 +30,7 @@ import {
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { parseSnippet, fulltextHitDisplay } from './fulltext.js';
+import { parseSnippet, fulltextHitDisplay, isPassageQuery, solrLooksWeak } from './fulltext.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -530,23 +530,22 @@ export class SearchModal extends LitElement {
 
         /* ── "Found inside books" band ─────────────────────────────── */
 
-        /* Serif italic passage — deliberately a different species from the
-           metadata rows above, so the band reads as quotes from inside the
-           books rather than more book results. Clamped to two lines. */
+        /* Snippet passage from inside the book, clamped to two lines. */
         .ft-quote {
             display: -webkit-box;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
             overflow: hidden;
             color: var(--darker-grey);
-            font-family: var(--font-family-serif);
-            font-style: italic;
             line-height: 1.45;
         }
 
-        /* The match keeps the browser's <mark> highlight; just bold it the
-           way the /search/inside page does (<mark><strong>). */
-        .ft-quote mark { font-weight: 600; font-style: inherit; }
+        /* Subtle match treatment: no highlight, just bold. */
+        .ft-quote mark {
+            background: none;
+            color: inherit;
+            font-weight: 600;
+        }
 
         /* Attribution line under the quote (title · author · page). */
         .ft-result .result__author { margin-top: var(--spacing-3xs); }
@@ -556,7 +555,7 @@ export class SearchModal extends LitElement {
         .ft-see-all {
             color: var(--link-blue);
             font-size: var(--font-size-body-medium);
-            font-weight: 600;
+            font-weight: 500;
         }
 
         /* Animated trailing dots on the "Searching" label. The three dots
@@ -1030,14 +1029,21 @@ export class SearchModal extends LitElement {
         this._activeFetchKey = null;
 
         // "Found inside books" band: up to FULLTEXT_LIMIT Search Inside
-        // snippet hits plus the total match count. Fetched on a slower
-        // debounce than the Solr search — the fulltext backend is an external
-        // service with much higher latency variance, so the band fills in
-        // after the instant results rather than gating them.
+        // snippet hits plus the total match count. Fulltext is a rescue-and-
+        // passages surface, not an every-query one: passage-shaped queries
+        // (quotes, questions, long phrases — see isPassageQuery) fetch on this
+        // slower debounce, while everything else waits for the Solr response
+        // and fetches only when it came back weak (see _fetchResults). Title
+        // lookups that Solr answers well never hit the fulltext backend — an
+        // external service with much higher latency variance.
         this._ftHits           = [];
         this._ftTotal          = null;
         this._ftFetchKey       = null;
-        this._debouncedFtFetch = debounce(() => this._fetchFulltext(), 800, false);
+        // The passage check runs at fire time, not schedule time, so a timer
+        // scheduled under an older query can't fetch for the edited one.
+        this._debouncedFtFetch = debounce(() => {
+            if (isPassageQuery(this._query)) this._fetchFulltext();
+        }, 800, false);
         this._allLangsLoaded = false;
         // Search-outcome analytics (NoResults / ResultsShown): keys already
         // counted this modal session, so re-settling the same query — a filter
@@ -1296,8 +1302,11 @@ export class SearchModal extends LitElement {
         if (this._results.length === 0 && this._hasSearched) {
             // The fulltext band doubles as a no-results rescue: nothing in the
             // catalog matched, but the query may still appear inside books.
+            // When the band has hits, scope the empty message to the catalog —
+            // "No results found" above visible results would contradict itself.
+            const emptyLabel = this._ftHits.length ? this._i18n.noCatalogResults : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
-                <div class="empty">${this._i18n.noResults}</div>
+                <div class="empty">${emptyLabel}</div>
                 ${this._renderFulltextBand()}
             </div>`;
         }
@@ -1324,7 +1333,9 @@ export class SearchModal extends LitElement {
     _renderFulltextBand() {
         if (this._ftHits.length === 0) return nothing;
         const q = this._query.trim();
-        const seeAllHref = `/search/inside?${new URLSearchParams({ q }).toString()}`;
+        const seeAllParams = new URLSearchParams({ q });
+        this._appendFulltextFilterParams(seeAllParams);
+        const seeAllHref = `/search/inside?${seeAllParams.toString()}`;
         return html`
             <h3 class="results-heading">${this._i18n.foundInside}</h3>
             <ul class="results-list">
@@ -1335,12 +1346,12 @@ export class SearchModal extends LitElement {
                     class="result ft-see-all"
                     href=${seeAllHref}
                     @click=${() => { this._track('FulltextSeeAll', 'band'); this._saveCurrentSearch(); }}
-                >${sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString())}</a>
+                >${this._i18n.seeAllInside}</a>
             ` : nothing}
         `;
     }
 
-    // One snippet row: cover, two-line serif quote with the match marked, and
+    // One snippet row: cover, two-line quote with the match marked, and
     // a title · author · page attribution line. The whole row deep-links to
     // the passage — BookReader opens with the query highlighted via the
     // #search/ anchor (the same link the /search/inside page uses).
@@ -1789,7 +1800,8 @@ export class SearchModal extends LitElement {
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
         if (this._results.length === 0) {
-            return this._hasSearched && !this._loading ? this._i18n.noResults : '';
+            if (!this._hasSearched || this._loading) return '';
+            return this._ftHits.length ? this._i18n.noCatalogResults : this._i18n.noResults;
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
@@ -1824,6 +1836,7 @@ export class SearchModal extends LitElement {
         if (this._shouldAutocomplete()) {
             this._loading = true;
             this._debouncedFetch();
+            this._debouncedFtFetch();
         }
     }
 
@@ -1883,6 +1896,18 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                // Fulltext gate, non-passage half (passage queries fetch on
+                // their own debounce — leave that path alone): fetch when the
+                // catalog answer looks weak, so the band acts as a rescue;
+                // otherwise clear it, so a strong title match isn't trailed by
+                // a stale band from the previous query.
+                if (!isPassageQuery(trimmed)) {
+                    if (solrLooksWeak(this._results, trimmed)) {
+                        this._fetchFulltext();
+                    } else {
+                        this._clearFulltext();
+                    }
+                }
                 // Record the settled outcome — ResultsShown or NoResults —
                 // deferred so only a query the patron actually stops on counts
                 // (not each partial typed on the way). See _scheduleOutcomeTrack.
@@ -1894,6 +1919,9 @@ export class SearchModal extends LitElement {
                     hasSearched: true,
                     clearReadableCount: this._availability === 'readable',
                 });
+                // Solr itself failed — the fulltext band is the only rescue
+                // left, and it runs on a separate backend.
+                this._fetchFulltext();
             });
     }
 
@@ -1917,8 +1945,9 @@ export class SearchModal extends LitElement {
     }
 
     // Fetches a few Search Inside snippet matches for the current query, for
-    // the "Found inside books" band. Independent of the Solr fetch: its own
-    // (slower) debounce, its own race key, and silent failure — the band
+    // the "Found inside books" band. Reached two ways — the passage-query
+    // debounce set up in the constructor, or a weak/failed Solr response in
+    // _fetchResults — with its own race key and silent failure: the band
     // simply doesn't render, because it's a secondary discovery surface, not
     // the primary result list. facets=false skips the aggregations work
     // upstream (see /search/inside.json).
@@ -1930,6 +1959,7 @@ export class SearchModal extends LitElement {
         params.set('q', trimmed);
         params.set('limit', String(FULLTEXT_LIMIT));
         params.set('facets', 'false');
+        this._appendFulltextFilterParams(params);
         const url = `/search/inside.json?${params.toString()}`;
         this._ftFetchKey = url;
 
@@ -1999,6 +2029,17 @@ export class SearchModal extends LitElement {
         for (const [key, value] of Object.entries(availParams)) {
             params.append(key, value);
         }
+        for (const lang of this._languages) {
+            params.append('language', lang);
+        }
+    }
+
+    // The modal's filters, translated for /search/inside (page and .json).
+    // Any non-default availability maps to readable=true — the FTS index's
+    // collections can't split open vs borrowable more finely — and languages
+    // ride along as MARC codes the server maps onto languageSorter.
+    _appendFulltextFilterParams(params) {
+        if (this._availability !== DEFAULT_AVAILABILITY) params.set('readable', 'true');
         for (const lang of this._languages) {
             params.append('language', lang);
         }

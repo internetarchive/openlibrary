@@ -4,6 +4,68 @@
  * Kept free of Lit/DOM so they're unit-testable.
  */
 
+/** Word count at/above which an unquoted query reads as a passage, not a title. */
+export const PASSAGE_WORD_COUNT = 5;
+
+/** How many top Solr docs are checked for query-term overlap in solrLooksWeak. */
+export const WEAK_SCAN_LIMIT = 3;
+
+// Words too common to count as a real title/author overlap on their own.
+const OVERLAP_STOPWORDS = new Set([
+    'the', 'and', 'for', 'with', 'from', 'was', 'are', 'not', 'but',
+    'his', 'her', 'its', 'this', 'that', 'you', 'all',
+]);
+
+/** Lowercase and strip diacritics so "garcia" matches "García". */
+function fold(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * True when the query reads like a passage rather than a title/author lookup —
+ * the queries where fulltext search shines and metadata search shrugs:
+ *  - a quoted phrase (straight or curly quotes): someone hunting a quotation,
+ *  - a trailing question mark,
+ *  - or PASSAGE_WORD_COUNT+ words (titles are usually shorter).
+ *
+ * @param {string} query
+ * @returns {boolean}
+ */
+export function isPassageQuery(query) {
+    const q = (query || '').trim();
+    if (!q) return false;
+    if (/"[^"]+"|“[^”]+”/.test(q)) return true;
+    if (q.endsWith('?')) return true;
+    return q.split(/\s+/).filter(Boolean).length >= PASSAGE_WORD_COUNT;
+}
+
+/**
+ * True when the Solr response looks like it didn't really answer the query —
+ * no docs at all, or none of the top WEAK_SCAN_LIMIT docs' title/author share
+ * a meaningful word with the query. Matches on word-boundary prefixes (so
+ * "gatsby" matches "Gatsby", but "art" doesn't match "Bartleby"), meaning a
+ * misspelling like "hobit" finds no overlap and correctly reads as weak.
+ *
+ * Queries with no meaningful words (all short/stopwords) can't be judged and
+ * are treated as answered.
+ *
+ * @param {Array<{title?: string, author_name?: string[]}>} docs
+ * @param {string} query
+ * @returns {boolean}
+ */
+export function solrLooksWeak(docs, query) {
+    if (!Array.isArray(docs) || docs.length === 0) return true;
+    const tokens = fold(query).split(/\W+/)
+        .filter(t => t.length >= 3 && !OVERLAP_STOPWORDS.has(t));
+    if (tokens.length === 0) return false;
+    return !docs.slice(0, WEAK_SCAN_LIMIT).some(doc => {
+        const haystack = [doc && doc.title, ...((doc && doc.author_name) || [])]
+            .filter(Boolean).join(' ');
+        const words = fold(haystack).split(/\W+/).filter(Boolean);
+        return tokens.some(t => words.some(w => w.startsWith(t)));
+    });
+}
+
 /**
  * Split an IA fulltext snippet into segments. The API wraps each query match
  * in {{{ }}} markers; returning segments (rather than an HTML string) lets the
