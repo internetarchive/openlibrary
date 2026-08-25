@@ -175,6 +175,16 @@ class TestParseFile:
         category = _parse_file(write(tmp_path, "c.css", body))
         assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
 
+    def test_a_stray_comment_close_above_a_block_does_not_raise(self, tmp_path):
+        """A `*/` closing no comment stops the walk-back instead of killing the page.
+
+        load_token_categories() only catches OSError, so a KeyError here would 500
+        /developers/design rather than cost one lead-in comment.
+        """
+        body = "/* a */ */\n@media (max-width: 768px) {\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
 
 class TestRamps:
     def test_a_numeric_color_run_is_a_ramp_and_a_stray_sibling_stays_loose(self, tmp_path):

@@ -1674,11 +1674,10 @@ def promote_leading_images(html: str) -> str:
         <p><img src="b.png"/><br/>
         From 1861 to 1865, the war...</p>
 
-    Both are wrong on a collections page. Nested in a ``<p>`` the image is capped
-    at the reading measure instead of breaking wider, and the drop cap disappears
-    entirely: ``::first-letter`` skips a first line that opens with an image, and
-    the prose that should have taken it is no longer ``p:first-of-type``.
-    Promoting gives each part the element it should have had::
+    Both are wrong on a collections page: nested in a ``<p>`` the image is capped
+    at the reading measure instead of breaking wider, and a caption that should
+    read as one renders as ordinary prose. Promoting gives each part the element
+    it should have had::
 
         <figure><img src="a.png"/><figcaption>Graphic by Sam</figcaption></figure>
         <figure><img src="b.png"/></figure><p>From 1861 to 1865, the war...</p>

@@ -20,7 +20,7 @@
 #pageHistory .pageHistory__list {
   padding-left: 0;
   margin-left: var(--spacing-inline-md);
-  font-size: 0.8em;
+  font-size: var(--font-size-body-medium);
 }
 
 /* Rendered as a row at the end of author and book pages, after the floated
@@ -29,7 +29,7 @@
   display: block;
   clear: both;
   text-align: right;
-  font-size: 0.7em;
+  font-size: var(--font-size-label-medium);
   padding-top: var(--spacing-inset-sm);
   margin-bottom: calc(-1 * var(--spacing-sm));
 }
@@ -53,7 +53,7 @@ table.history tr {
 
 table.history td {
   padding: var(--spacing-inset-sm);
-  font-size: 0.6875em;
+  font-size: var(--font-size-body-small);
   font-family: var(--font-family-body);
   color: var(--color-text-secondary);
   border-bottom: var(--border-table);
@@ -76,6 +76,7 @@ table.history td:first-child {
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory thead tr th {
   font-weight: bold;
+  font-size: var(--font-size-label-small);
   padding: 10px 12px;
 }
 
@@ -87,6 +88,7 @@ table#pageHistory tbody td.number {
 /* Column sizing: When/Who hug their content, Comment absorbs the slack */
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory tbody td {
+  font-size: var(--font-size-body-small);
   padding: 10px 12px;
   vertical-align: top;
 }

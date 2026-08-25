@@ -25,15 +25,20 @@
   flex-direction: column;
   max-width: none;
   padding: var(--spacing-inset-md);
+  /* The head owns the gap down to the body, so nothing in the body needs a top
+     margin to clear the title. */
+  padding-bottom: var(--spacing-stack-xl);
 }
 
-/* Back link and edit metadata in opposite corners, wrapping on a phone. */
+/* Back link and edit metadata in opposite corners, wrapping on a phone.
+   The head stacks on bottom margins alone, so this row owns the whole gap down
+   to the title block. */
 .collections-page #contentHead .collection-topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--spacing-inline-md);
-  margin-bottom: var(--spacing-stack-lg);
+  margin-bottom: var(--spacing-stack-2xl);
 }
 
 /* Margin, not space-between, so it stays right on the index page, which has no
@@ -86,12 +91,13 @@
 /* === titles === */
 
 /* Kicker above the title. Uppercase and wide tracking let it read as a label at
-   a size that stays subordinate to the title. */
+   a size that stays subordinate to the title. The topbar sets the gap above it;
+   it only carries the tight pairing gap down to the title. */
 .collections-page #contentHead .collection-eyebrow {
-  margin: var(--spacing-stack-lg) auto 0;
+  margin: 0 auto var(--spacing-stack-xs);
   font-family: var(--font-family-body);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
+  font-size: var(--font-size-label-large);
+  font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--color-text-muted);
   text-align: center;
@@ -106,20 +112,15 @@
    between text and image width: not a narrow stack, still short of the image. */
 .collections-page #contentHead h1 {
   max-width: 48rem;
-  /* No bottom margin: the head's padding sets the gap to the body. */
-  margin: var(--spacing-stack-lg) auto 0;
+  /* No margins of its own: the topbar (or the eyebrow) sets the gap above, and
+     the head's padding sets the gap to the body. */
+  margin: 0 auto;
   font-family: var(--font-family-title);
   font-size: var(--font-size-display-medium);
-  font-weight: 600;
+  font-weight: 700;
   line-height: var(--line-height-display);
   color: var(--color-text);
   text-align: center;
-}
-
-/* The eyebrow owns the gap from the metadata, so the title only needs the tight
-   pairing gap. Pages without one keep the rule above. */
-.collections-page #contentHead .collection-eyebrow + h1 {
-  margin-top: var(--spacing-stack-xs);
 }
 
 .collections-page #contentBody h2,
@@ -128,10 +129,34 @@
 .collections-page #contentBody h5,
 .collections-page #contentBody h6 {
   font-family: var(--font-family-title);
-  font-weight: 700;
+  font-weight: 650;
   line-height: var(--line-height-heading);
   color: var(--color-text);
-  margin-top: var(--spacing-stack-xl);
+  /* Tight to the text it introduces; `auto` keeps the centering from `> *`. */
+  margin: 0 auto var(--spacing-stack-sm);
+}
+
+/* markdown's `#` lands an h1 in the body too. Its typography is common.css's;
+   only the symmetric margins and the UA's bold need flipping — the latter so it
+   sits at the same weight as the other body heads. */
+.collections-page #contentBody h1 {
+  margin: 0 auto var(--spacing-stack-sm);
+  font-weight: 650;
+}
+
+/* Sans below h2: the serif carries the title and the section heads, so the
+   smaller heads read as labels instead of competing with them. */
+.collections-page #contentBody h3,
+.collections-page #contentBody h4,
+.collections-page #contentBody h5,
+.collections-page #contentBody h6 {
+  font-family: var(--font-family-body);
+}
+
+/* h5 alone needs !important: base/headings.css pins every h5 on the site to the
+   serif with one of its own, which no amount of specificity can outrank. */
+.collections-page #contentBody h5 {
+  font-family: var(--font-family-body) !important;
 }
 
 /* === body text === */
@@ -151,19 +176,15 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Drop cap on the opening paragraph. A leading image is already promoted out to
-   a <figure> by now, so the first paragraph is prose. */
-.collections-page #contentBody > p:first-of-type::first-letter {
-  float: left;
-  font-family: var(--font-family-title);
-  /* Cap reaches the second baseline; the short line-height keeps the float
-     box to two lines so no third line indents. */
-  font-size: 3.15em;
-  font-weight: 500;
-  line-height: 0.86;
-  margin-top: 0.02em;
-  margin-right: 0.06em;
-  color: var(--color-text);
+/* The UA default is a symmetric `1em 0`; drop the top half. */
+.collections-page #contentBody > p {
+  margin: 0 auto var(--spacing-stack-md);
+}
+
+/* A divider wants equal air on both sides, which the block above it supplies
+   (see the last section); markdown.css's symmetric `2rem 0` would double it. */
+.collections-page #contentBody > hr {
+  margin: 0 auto var(--spacing-stack-xl);
 }
 
 /* === images === */
@@ -175,7 +196,8 @@
 .collections-page #contentBody > img {
   /* The px cap is all #contentBody can give; it only binds at scaled-up text. */
   max-width: min(60rem, 1018px, 100%);
-  margin-bottom: var(--spacing-stack-xl);
+  /* Explicit, to drop the UA's `1em 40px` on figure. */
+  margin: 0 auto var(--spacing-stack-xl);
 }
 
 /* Prose images only — covers sit deeper and keep their component styles. */
@@ -187,18 +209,49 @@
   border-radius: var(--border-radius-media);
 }
 
-/* Inline images carry their own gap; a figure's sits below the caption. */
+/* Inline images carry their own gap; a figure's is set by the figure, so its
+   image only carries the pairing gap down to the caption. */
 .collections-page #contentBody > p img {
   margin-bottom: var(--spacing-stack-xl);
+}
+
+.collections-page #contentBody > figure img {
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* Held to the reading measure so captions stay readable under a wider image. */
 .collections-page #contentBody > figure figcaption {
   max-width: var(--collections-measure);
-  margin: var(--spacing-stack-xs) auto 0;
+  margin: 0 auto;
   font-size: var(--font-size-body-medium);
   color: var(--color-text-muted);
   text-align: center;
+}
+
+/* === space above headings and dividers === */
+
+/* Bottom margins can't reach upward, so the block *before* a heading owns the
+   space above it. Section heads get the widest gap on the page; the smaller
+   heads, which read as labels, get less. Last in the file on purpose: these tie
+   on specificity with the per-element rules above and have to win. */
+.collections-page #contentBody > :has(+ :is(h1, h2)) {
+  margin-bottom: var(--spacing-stack-2xl);
+}
+
+.collections-page #contentBody > :has(+ :is(h3, h4, h5, h6)) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+.collections-page #contentBody > :has(+ hr) {
+  margin-bottom: var(--spacing-stack-xl);
+}
+
+/* Two heads in a row are a pair — a subhead under a section head — not a
+   section break, so they keep the tight gap. */
+.collections-page
+  #contentBody
+  > :is(h1, h2, h3, h4, h5, h6):has(+ :is(h1, h2, h3, h4, h5, h6)) {
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* stylelint-enable selector-max-specificity */

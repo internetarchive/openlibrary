@@ -409,7 +409,7 @@ class TestPromoteLeadingImages:
         assert utils.promote_leading_images("<p><img src='a.png'/><br/>\n<small>\n</small></p>") == "<figure><img src='a.png'/></figure>"
 
     def test_prose_sharing_the_paragraph_gets_its_own(self):
-        """Otherwise it stays off the reading measure and steals the drop cap."""
+        """Otherwise the opening prose stays trapped in the image's paragraph."""
         html = "<p><img src='a.png'/><br/>\n   From 1861 to 1865, the war...</p>"
         assert utils.promote_leading_images(html) == "<figure><img src='a.png'/></figure><p>From 1861 to 1865, the war...</p>"
 

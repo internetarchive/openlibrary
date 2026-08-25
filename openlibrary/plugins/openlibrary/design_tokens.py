@@ -288,10 +288,16 @@ def _mask_conditional(text: str) -> str:
         while end < len(scan) and depth:
             depth += {"{": 1, "}": -1}.get(scan[end], 0)
             end += 1
-        # Walk back over the comments stacked directly above, one per pass.
+        # Walk back over the comments stacked directly above, one per pass. A
+        # `*/` that closes no comment we matched — a stray one left by a bad
+        # edit — has no start to walk back to, so stop there rather than raise
+        # and take the whole page with it. `is None` because a comment opening
+        # the file starts at 0.
         start = match.start()
         while (lead := text[:start].rstrip()).endswith("*/"):
-            start = comment_starts[len(lead)]
+            if (comment_start := comment_starts.get(len(lead))) is None:
+                break
+            start = comment_start
         for index in range(start, end):
             if masked[index] != "\n":
                 masked[index] = " "
