@@ -728,7 +728,7 @@
   height: 36px;
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
-  color: var(--primary-blue);
+  color: var(--color-text);
 }
 
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
@@ -738,11 +738,6 @@
 .browse-feature:focus-visible .browse-feature__icon {
   background: var(--beige);
   transition: background-color 0.12s ease;
-}
-
-.header-bar .browse-feature__icon svg {
-  width: 20px;
-  height: 20px;
 }
 
 .header-bar .browse-feature__body {
