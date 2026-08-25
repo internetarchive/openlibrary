@@ -134,8 +134,7 @@ ol-banner > .ol-banner__close {
   cursor: pointer;
 }
 
-ol-banner > .ol-banner__close svg {
-  display: block;
+ol-banner > .ol-banner__close ol-icon {
   width: 20px;
   height: 20px;
 }

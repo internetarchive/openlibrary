@@ -69,14 +69,6 @@
   background: linear-gradient(to right, transparent, var(--white) 10px);
 }
 
-.nav-bar-wrapper .nav-arrow-right img {
-  max-width: unset !important;
-}
-
-.nav-bar-wrapper .nav-arrow-right--left img {
-  transform: rotate(180deg);
-}
-
 .nav-bar-wrapper .nav-arrow-left {
   border: none;
   position: absolute;
@@ -87,10 +79,6 @@
   z-index: var(--z-index-level-14);
   width: 44px;
   background: linear-gradient(to left, transparent, var(--white) 10px);
-}
-
-.nav-bar-wrapper .nav-arrow-left img {
-  transform: rotate(180deg);
 }
 
 .nav-bar-wrapper .nav-bar.work-menu {

@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 // Registers <ol-button> for the header close control.
 import './OLButton.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import './OlIcon.js';
 import { findFocusableIndex, getDeepActiveElement, getTabbableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
@@ -268,7 +269,7 @@ export class OlDialog extends LitElement {
 
         /* The close control is an <ol-button shape="icon" variant="ghost">, which
            paints itself; only the glyph size lives here. */
-        .close-button svg {
+        .close-button ol-icon {
             width: 20px;
             height: 20px;
         }
@@ -728,19 +729,7 @@ export class OlDialog extends LitElement {
                         aria-label="Close dialog"
                         @click=${this._handleCloseClick}
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <ol-icon name="x"></ol-icon>
                     </ol-button>
                 </header>
                 <slot name="header" @slotchange=${this._handleHeaderSlotChange}></slot>

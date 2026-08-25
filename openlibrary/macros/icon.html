@@ -1,0 +1,17 @@
+$def with (name, size="md", label="", extra_class="", slot="")
+$ classes = ("ol-icon ol-icon--%s %s" % (size, extra_class)).strip()
+$ sprite = icon_sprite_url()
+<svg
+    class="$classes"
+    focusable="false"
+    $if slot:
+        slot="$slot"
+    $if label:
+        role="img"
+        aria-label="$label"
+    $else:
+        aria-hidden="true"
+><use href="$sprite#icon-${name}"></use></svg>
+$# Docs: /developers/design#icon-usage. Comments stay below the output — Templetor emits a newline per line above it.
+$# `extra_class` is for the call site's own positioning/state hooks; size belongs in `size`.
+$# `slot` targets a named slot when the icon lives inside a shadow-DOM component (e.g. ol-button's icon-start).

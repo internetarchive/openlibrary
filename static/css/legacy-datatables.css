@@ -54,43 +54,6 @@
   margin-top: 20px;
 }
 
-.dataTables_paginate {
-  /* stylelint-disable declaration-block-no-duplicate-properties */
-  width: 44px;
-  *width: 50px;
-  /* stylelint-enable declaration-block-no-duplicate-properties */
-  text-align: right;
-  font-size: var(--font-size-label-medium);
-  color: var(--color-text-secondary);
-}
-
-/* Pagination nested */
-.paginate_disabled_previous,
-.paginate_enabled_previous,
-.paginate_disabled_next,
-.paginate_enabled_next {
-  height: 19px;
-  width: 19px;
-  margin-left: var(--spacing-inline-xs);
-  float: left;
-}
-
-.paginate_disabled_previous {
-  background-image: url(/static/images/back_disabled.png);
-}
-
-.paginate_enabled_previous {
-  background-image: url(/static/images/back_enabled.png);
-}
-
-.paginate_disabled_next {
-  background-image: url(/static/images/forward_disabled.png);
-}
-
-.paginate_enabled_next {
-  background-image: url(/static/images/forward_enabled.png);
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables display
  */
@@ -110,37 +73,11 @@ table.display thead th {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables sorting
+ *
+ * The .sort-indicator rules live in components/editions.css: they have to
+ * apply before this lazily-imported stylesheet lands, or the server-rendered
+ * icons stack up unstyled until the editions-table chunk loads.
  */
-
-.sorting_asc {
-  background-image: url(/static/images/sort_asc.png);
-  background-repeat: no-repeat;
-  background-position: 90% 10px;
-}
-
-.sorting_desc {
-  background-image: url(/static/images/sort_desc.png);
-  background-repeat: no-repeat;
-  background-position: 90% 10px;
-}
-
-.sorting {
-  background-image: url(/static/images/sort_both.png);
-  background-repeat: no-repeat;
-  background-position: 90% 10px;
-}
-
-.sorting_asc_disabled {
-  background-image: url(/static/images/sort_asc_disabled.png);
-  background-repeat: no-repeat;
-  background-position: 90% 10px;
-}
-
-.sorting_desc_disabled {
-  background-image: url(/static/images/sort_desc_disabled.png);
-  background-repeat: no-repeat;
-  background-position: 90% 10px;
-}
 
 .sorting:hover {
   text-decoration: none;
@@ -242,37 +179,6 @@ div.dataTables_filter {
   border-radius: var(--border-radius-input);
   padding: var(--spacing-inset-xs);
   border: 1px solid var(--grey);
-}
-
-.example_alt_pagination div.dataTables_info {
-  width: 60%;
-}
-
-.paging_full_numbers {
-  width: 100%;
-  margin-top: var(--spacing-stack-md);
-  line-height: 20px;
-}
-
-.paging_full_numbers .paginate_button,
-.paging_full_numbers .paginate_active {
-  font-family: var(--font-family-body);
-  font-size: var(--font-size-label-small);
-  padding: var(--spacing-inset-sm);
-  margin: 0 var(--spacing-inline-sm);
-  color: var(--color-link);
-  cursor: pointer;
-}
-
-.paging_full_numbers .paginate_button:hover {
-  background: var(--link-blue);
-  color: var(--white);
-  text-decoration: none;
-}
-
-.paging_full_numbers span.paginate_active {
-  color: var(--black);
-  background-color: var(--grey-f3f3f3);
 }
 
 table.display tr.even.row_selected td {
@@ -403,19 +309,9 @@ tr.even.gradeU td.sorting_3 {
 }
 
 @media only screen and (max-width: 768px) {
-  .dataTables_paginate.paging_full_numbers {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-  }
   div.dataTables_filter {
     float: none;
     text-align: left;
     margin: 5px 0 0;
-  }
-  span.number {
-    order: 4;
-    margin: var(--spacing-stack-sm) var(--spacing-inline-lg);
   }
 }
