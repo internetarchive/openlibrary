@@ -136,7 +136,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Gather delta and total counts
     # Total counts are simply computed and updated for the current day
     # Delta counts are computed by subtracting the current total from yesterday's total
-    today = datetime.datetime.now()
+    today = datetime.datetime.now(tz=datetime.UTC)
     yesterday = today - datetime.timedelta(days=1)
     data = {}
 
@@ -157,8 +157,8 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
     # The data will be stored as the counts of the current day.
-    end = datetime.datetime.now()  # - datetime.timedelta(days = 10)# Right now
-    start = datetime.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year)  # Beginning of the day
+    end = datetime.datetime.now(tz=datetime.UTC)  # - datetime.timedelta(days = 10)# Right now
+    start = datetime.datetime(hour=0, minute=0, second=0, day=end.day, month=end.month, year=end.year, tzinfo=datetime.UTC)  # Beginning of the day
     logger.info("Gathering range data")
     data = {}
     for i in range(int(ndays)):

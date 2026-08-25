@@ -215,7 +215,7 @@ def generate_login_code_for_user(username: str) -> str:
         that can be used as a session cookie value
     """
     user_key = "/people/" + username
-    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    t = datetime.datetime(*time.gmtime()[:6], tzinfo=datetime.UTC).isoformat()
     text = f"{user_key},{t}"
     return text + "," + generate_hash(get_secret_key(), text)
 
@@ -231,7 +231,7 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
     """
     code = generate_uuid()
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz=datetime.UTC)
     expires = now + datetime.timedelta(days=14)
 
     return {
@@ -255,11 +255,11 @@ def clear_cookies() -> None:
 class Link(web.storage):
     def get_expiration_time(self) -> datetime.datetime:
         d = self["expires_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.UTC)
 
     def get_creation_time(self) -> datetime.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.UTC)
 
     def delete(self) -> None:
         del site.get().store[self["_key"]]
@@ -296,7 +296,7 @@ class Account(web.storage):
 
     def creation_time(self) -> datetime.datetime:
         d = self["created_on"].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.UTC)
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
@@ -347,7 +347,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self["last_login"] = datetime.datetime.utcnow().isoformat()
+            self["last_login"] = datetime.datetime.now(tz=datetime.UTC).isoformat()
             self._save()
             return "ok"
 
@@ -680,7 +680,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = site.get().store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
+        last_login = datetime.datetime.now(tz=datetime.UTC).isoformat()
         _ol_account["last_login"] = last_login
         site.get().store[self._key] = _ol_account
         self.last_login = last_login

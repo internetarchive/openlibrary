@@ -4,7 +4,7 @@ import glob
 import itertools
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 import web
@@ -78,7 +78,7 @@ class MockSite:
         return doc
 
     def save(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
-        timestamp = timestamp or datetime.now()
+        timestamp = timestamp or datetime.now(tz=UTC)
 
         if author:
             author = {"key": author.key}
@@ -99,7 +99,7 @@ class MockSite:
         self.reindex(doc)
 
     def save_many(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
-        timestamp = timestamp or datetime.now()
+        timestamp = timestamp or datetime.now(tz=UTC)
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:

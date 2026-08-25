@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
@@ -8,8 +8,8 @@ FAKE_FOLLOWING = [
         "subscriber": "testuser",
         "publisher": "author1",
         "disabled": False,
-        "updated": datetime(2026, 1, 1, 12, 0, 0),
-        "created": datetime(2026, 1, 1, 12, 0, 0),
+        "updated": datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
+        "created": datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC),
     },
 ]
 

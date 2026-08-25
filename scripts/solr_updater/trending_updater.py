@@ -48,7 +48,7 @@ async def main(
         # If an offset file is specified, add an event listener to the scheduler
         # to update the offset file whenever a job is run.
         def update_offset(event):
-            new_offset = datetime.datetime.now().isoformat()
+            new_offset = datetime.datetime.now(tz=datetime.UTC).isoformat()
             print(f"Updating {trending_offset_file} to {new_offset}")
             trending_offset_file.write_text(new_offset + "\n")
 

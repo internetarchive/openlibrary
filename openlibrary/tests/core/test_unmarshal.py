@@ -1,3 +1,5 @@
+# ruff:  noqa: DTZ001
+
 import re
 from datetime import datetime
 

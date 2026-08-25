@@ -4,7 +4,7 @@ FastAPI endpoints for yearly reading goals.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, Query
@@ -110,7 +110,7 @@ async def update_reading_goal_endpoint(
     form: Annotated[ReadingGoalForm, Form()],
 ) -> ReadingGoalUpdateResponse:
     """Create or update a reading goal for the authenticated user."""
-    current_year = form.year or datetime.now().year
+    current_year = form.year or datetime.now(tz=UTC).year
     if form.is_update is not None:
         # year is guaranteed to be not None here due to model_validator
         assert form.year is not None

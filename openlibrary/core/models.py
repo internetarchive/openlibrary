@@ -5,7 +5,7 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
@@ -799,7 +799,7 @@ class Work(Thing):
         days: int = 1,
         batch_size: int = 1000,
         grace_period_days: int = 7,
-        cutoff_date: datetime = datetime(year=2017, month=1, day=1),
+        cutoff_date: datetime = datetime(year=2017, month=1, day=1, tzinfo=UTC),
         test: bool = False,
     ):
         """
@@ -811,8 +811,8 @@ class Work(Thing):
         """
         fixed = 0
         total = 0
-        current_date = datetime.today() - timedelta(days=grace_period_days)
-        cutoff_date = (current_date - timedelta(days)) if days else cutoff_date
+        current_date = datetime.now(tz=UTC) - timedelta(days=grace_period_days)
+        cutoff_date = (current_date - timedelta(days=days)) if days else cutoff_date
 
         while current_date > cutoff_date:
             has_more = True

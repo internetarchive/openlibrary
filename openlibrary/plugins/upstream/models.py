@@ -2,7 +2,7 @@ import logging
 import re
 import sys
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import cached_property
 from typing import cast
 
@@ -616,7 +616,7 @@ class Work(models.Work):
         last_modified_i = self._solr_data["last_modified_i"]
         if last_modified_i is None:
             raise ValueError("Work missing last_modified_i solr field")
-        return datetime.fromtimestamp(last_modified_i)
+        return datetime.fromtimestamp(last_modified_i, tz=UTC)
 
     def is_solr_data_outdated(self) -> bool:
         """

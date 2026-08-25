@@ -367,7 +367,7 @@ def is_published_in_future_year(book_item: Mapping[str, str | list]) -> bool:
     is high that this is bad data. So we don't want to import these.
     """
     publish_year = int(cast(str, book_item.get("publish_date", "0")[:4]))  # YYYY
-    this_year = datetime.datetime.now().year
+    this_year = datetime.datetime.now(tz=datetime.UTC).year
     return publish_year > this_year
 
 
@@ -418,7 +418,7 @@ def main(ol_config: str, batch_path: str):
     required_fields = requests.get(SCHEMA_URL).json()["required"]
 
     # Partner data is offset ~15 days from start of month
-    date = datetime.date.today() - datetime.timedelta(days=15)
+    date = datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(days=15)
     batch_name = "%s-%04d%02d" % ("bwb", date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(batch_path, batch)

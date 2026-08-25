@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -240,7 +240,7 @@ def test_published_in_future_year(years_from_today, expected) -> None:
 
     def get_datetime_for_years_from_now(years: int) -> datetime:
         """Get a datetime for now +/- x years."""
-        now = datetime.now()
+        now = datetime.now(tz=UTC)
         return now + timedelta(days=365 * years)
 
     year = get_datetime_for_years_from_now(years_from_today).year

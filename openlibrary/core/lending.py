@@ -834,7 +834,7 @@ class Loan(dict):
         if resource_type == "bookreader":
             resource_id = "bookreader:" + identifier
             loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
+            expiry = (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
         else:
             raise Exception("No longer supporting ACS borrows directly from Open Library. Please go to Archive.org")
 
@@ -917,7 +917,7 @@ class Loan(dict):
         eventer.trigger("loan-created", self)
 
     def is_expired(self) -> bool:
-        return self["expiry"] and self["expiry"] < datetime.datetime.utcnow().isoformat()
+        return self["expiry"] and self["expiry"] < datetime.datetime.now(tz=datetime.UTC).isoformat()
 
     def is_yet_to_be_fulfilled(self) -> bool:
         """Returns True if the loan is not yet fulfilled and fulfillment time

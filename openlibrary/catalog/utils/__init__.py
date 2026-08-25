@@ -346,7 +346,7 @@ def published_in_future_year(publish_year: int) -> bool:
     Some import sources have publication dates in a future year, and the
     likelihood is high that this is bad data. So we don't want to import these.
     """
-    return publish_year > datetime.datetime.now().year
+    return publish_year > datetime.datetime.now(tz=datetime.UTC).year
 
 
 def publication_too_old_and_not_exempt(rec: dict) -> bool:

@@ -255,9 +255,9 @@ def datetimestr_to_int(datestr):
         try:
             t = h.parse_datetime(datestr)
         except TypeError, ValueError:
-            t = datetime.datetime.now()
+            t = datetime.datetime.now(tz=datetime.UTC)
     else:
-        t = datetime.datetime.now()
+        t = datetime.datetime.now(tz=datetime.UTC)
 
     return int(time.mktime(t.timetuple()))
 

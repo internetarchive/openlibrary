@@ -29,7 +29,7 @@ def run_daily_update(timestamp: str | None = None, dry_run: bool = False):
     if timestamp:
         ts = datetime.datetime.fromisoformat(timestamp)
     else:
-        ts = datetime.datetime.now()
+        ts = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(hours=1)
     current_day = ts.weekday()
     work_data = fetch_works_trending_scores(current_day)
 

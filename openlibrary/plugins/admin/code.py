@@ -10,7 +10,7 @@ import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
-from datetime import date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import requests
 import web
@@ -558,7 +558,7 @@ def get_admin_stats():
             "members": sum(doc["members"] for doc in docs),
         }
 
-    current_date = date.today()
+    current_date = datetime.now(tz=UTC).date()
 
     if has_doc(current_date):
         today = f([current_date])

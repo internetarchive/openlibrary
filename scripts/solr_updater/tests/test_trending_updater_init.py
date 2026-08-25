@@ -39,8 +39,8 @@ class TestTrendingUpdaterInit:
         return calls
 
     def test_main_calls_hourly_and_daily_correctly(self):
-        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
-        start = datetime.datetime(2025, 6, 26, 0, 5, 0)
+        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0, tzinfo=datetime.UTC)
+        start = datetime.datetime(2025, 6, 26, 0, 5, 0, tzinfo=datetime.UTC)
         actual_calls = self._run_main(
             fake_now,
             {
@@ -56,7 +56,7 @@ class TestTrendingUpdaterInit:
         assert num_daily == 2
 
     def test_main_default_7_days(self):
-        fake_now = datetime.datetime(2025, 6, 27, 0, 0, 0)
+        fake_now = datetime.datetime(2025, 6, 27, 0, 0, 0, tzinfo=datetime.UTC)
         actual_calls = self._run_main(fake_now, {"dry_run": True})
         # There should be 168 hourly events (7 days * 24 hours) and 7 daily events
         num_hourly = sum(1 for call in actual_calls if call[0] == "hourly")
@@ -65,9 +65,9 @@ class TestTrendingUpdaterInit:
         assert num_daily == 7
 
     def test_main_less_than_one_hour(self):
-        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
+        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0, tzinfo=datetime.UTC)
         # Start is 2025-06-27 02:30:00, less than an hour before fake_now
-        start = datetime.datetime(2025, 6, 27, 2, 30, 0)
+        start = datetime.datetime(2025, 6, 27, 2, 30, 0, tzinfo=datetime.UTC)
         actual_calls = self._run_main(
             fake_now,
             {
@@ -77,12 +77,12 @@ class TestTrendingUpdaterInit:
             },
         )
 
-        expected_calls = [("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0).isoformat())]
+        expected_calls = [("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0, tzinfo=datetime.UTC).isoformat())]
         assert actual_calls == expected_calls
 
     def test_main_three_hours(self):
-        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0)
-        start = datetime.datetime(2025, 6, 27, 0, 30, 0)
+        fake_now = datetime.datetime(2025, 6, 27, 3, 0, 0, tzinfo=datetime.UTC)
+        start = datetime.datetime(2025, 6, 27, 0, 30, 0, tzinfo=datetime.UTC)
 
         actual_calls = self._run_main(
             fake_now,
@@ -93,10 +93,10 @@ class TestTrendingUpdaterInit:
             },
         )
         expected_calls = [
-            ("daily", datetime.datetime(2025, 6, 27, 0, 0, 0).isoformat()),
-            ("hourly", datetime.datetime(2025, 6, 27, 0, 5, 0).isoformat()),
-            ("hourly", datetime.datetime(2025, 6, 27, 1, 5, 0).isoformat()),
-            ("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0).isoformat()),
+            ("daily", datetime.datetime(2025, 6, 27, 0, 0, 0, tzinfo=datetime.UTC).isoformat()),
+            ("hourly", datetime.datetime(2025, 6, 27, 0, 5, 0, tzinfo=datetime.UTC).isoformat()),
+            ("hourly", datetime.datetime(2025, 6, 27, 1, 5, 0, tzinfo=datetime.UTC).isoformat()),
+            ("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0, tzinfo=datetime.UTC).isoformat()),
         ]
         assert actual_calls == expected_calls
 

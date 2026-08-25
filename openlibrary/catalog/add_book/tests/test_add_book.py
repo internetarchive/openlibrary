@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -1780,8 +1780,8 @@ class TestNormalizeImportRecord:
         ("year", "expected"),
         [
             ("2000-11-11", True),
-            (str(datetime.now().year), True),
-            (str(datetime.now().year + 1), False),
+            (str(datetime.now(tz=UTC).year), True),
+            (str(datetime.now(tz=UTC).year + 1), False),
             ("9999-01-01", False),
         ],
     )

@@ -75,7 +75,7 @@ class InvalidationProcessor:
         self.timeout = datetime.timedelta(0, timeout)
 
         self.cookie_name = cookie_name
-        self.last_poll_time = datetime.datetime.now()
+        self.last_poll_time = datetime.datetime.now(tz=datetime.UTC)
         self.last_update_time = self.last_poll_time
 
         # set expire_time slightly more than timeout
@@ -103,7 +103,7 @@ class InvalidationProcessor:
         return handler()
 
     def is_timeout(self):
-        t = datetime.datetime.now()
+        t = datetime.datetime.now(tz=datetime.UTC)
         dt = t - self.last_poll_time
         return dt > self.timeout
 
@@ -121,7 +121,7 @@ class InvalidationProcessor:
 
     def reload(self):
         """Triggers on_new_version event for all the documents modified since last_poll_time."""
-        t = datetime.datetime.now()
+        t = datetime.datetime.now(tz=datetime.UTC)
         reloaded = False
 
         keys = []

@@ -215,7 +215,7 @@ class upload2:
 
 def trim_microsecond(date):
     # ignore microseconds
-    return datetime.datetime(*date.timetuple()[:6])
+    return datetime.datetime(*date.timetuple()[:6], tzinfo=date.tzinfo)
 
 
 # Number of images stored in one archive.org item
@@ -338,7 +338,7 @@ class cover:
                         {
                             "id": coverid,
                             key: path,
-                            "created": datetime.datetime(2010, 1, 1),
+                            "created": datetime.datetime(2010, 1, 1, tzinfo=datetime.UTC),
                         }
                     ),
                 )
