@@ -17,14 +17,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from openlibrary.utils.template_usage import (
-    DYNAMIC_DISPATCH_RULES,
-    KIND_JINJA_MACRO,
-    KIND_JINJA_TEMPLATE,
-    KIND_TEMPLETOR_MACRO,
-    KIND_TEMPLETOR_TEMPLATE,
-    analyze,
-)
+from openlibrary.utils.template_usage import analyze
 
 # Templates/macros used only from *database* content (wiki templates/macros,
 # or {{Macro(...)}} in page bodies) -- invisible to static analysis. Verify
@@ -55,15 +48,12 @@ def main() -> int:
 
     # Guard against silently broken discovery (moved roots, renamed globs)
     # that would make the unused-template check below vacuously pass.
-    kinds = {t.kind for t in analysis.templates}
-    expected_kinds = {KIND_TEMPLETOR_TEMPLATE, KIND_TEMPLETOR_MACRO, KIND_JINJA_TEMPLATE, KIND_JINJA_MACRO}
-    if kinds != expected_kinds:
-        sys.stderr.write(f"template discovery looks broken (found kinds {kinds}, expected {expected_kinds})\n")
+    if analysis.missing_kinds:
+        sys.stderr.write(f"template discovery looks broken (no templates found of kind(s) {sorted(analysis.missing_kinds)})\n")
         ok = False
-    for rule_dir in DYNAMIC_DISPATCH_RULES:
-        if not any(t.rel_to_root.startswith(rule_dir) for t in analysis.templates):
-            sys.stderr.write(f"dynamic-dispatch rule {rule_dir!r} matches no template on disk (stale rule -- update or remove it)\n")
-            ok = False
+    for rule_dir in analysis.stale_dynamic_dispatch_rules:
+        sys.stderr.write(f"dynamic-dispatch rule {rule_dir!r} matches no template on disk (stale rule -- update or remove it)\n")
+        ok = False
 
     if analysis.unused:
         listing = "\n".join(f"  {t.kind}: {t.relpath}" for t in analysis.unused)

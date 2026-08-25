@@ -31,6 +31,7 @@ KIND_TEMPLETOR_TEMPLATE = "templetor template"
 KIND_TEMPLETOR_MACRO = "templetor macro"
 KIND_JINJA_TEMPLATE = "jinja template"
 KIND_JINJA_MACRO = "jinja macro"
+ALL_KINDS = frozenset({KIND_TEMPLETOR_TEMPLATE, KIND_TEMPLETOR_MACRO, KIND_JINJA_TEMPLATE, KIND_JINJA_MACRO})
 
 # Source files that may contain references.  Docs (*.md) are excluded (a
 # template mentioned in docs is not used by it); test files are included (a
@@ -80,7 +81,7 @@ class Template:
 
 @dataclass
 class Analysis:
-    """Result of the unused-template scan, plus the exclusion audit."""
+    """Result of the unused-template scan, plus the exclusion and discovery audits."""
 
     templates: list[Template]
     unused: list[Template]
@@ -89,6 +90,13 @@ class Analysis:
     used_exclusions: dict[str, str]
     # Exclusion entries matching no template/macro on disk.
     missing_exclusions: set[str]
+    # Kinds in ALL_KINDS matched by no template on disk -- a non-empty result
+    # means discovery is silently broken (moved roots, renamed globs), which
+    # would make the unused-template scan vacuously pass.
+    missing_kinds: frozenset[str]
+    # DYNAMIC_DISPATCH_RULES entries matching no template on disk (stale
+    # rule -- update or remove it).
+    stale_dynamic_dispatch_rules: list[str]
 
 
 def build_inventory() -> list[Template]:
@@ -284,9 +292,14 @@ def analyze(exclusions: Iterable[str] = ()) -> Analysis:
             if evidence := find_usage(t, index):
                 used_exclusions[name] = evidence
 
+    missing_kinds = ALL_KINDS - {t.kind for t in inventory}
+    stale_dynamic_dispatch_rules = [rule_dir for rule_dir in DYNAMIC_DISPATCH_RULES if not any(t.rel_to_root.startswith(rule_dir) for t in inventory)]
+
     return Analysis(
         templates=inventory,
         unused=unused,
         used_exclusions=used_exclusions,
         missing_exclusions=missing_exclusions,
+        missing_kinds=missing_kinds,
+        stale_dynamic_dispatch_rules=stale_dynamic_dispatch_rules,
     )

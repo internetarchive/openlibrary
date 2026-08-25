@@ -88,11 +88,13 @@ lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
+PYTEST_ARGS ?= . --doctest-modules
+
 test-py:
-	pytest . --doctest-modules
+	pytest $(PYTEST_ARGS)
 
 test-py-uv:
-	uv run --with-requirements requirements_test.txt pytest . --doctest-modules
+	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate

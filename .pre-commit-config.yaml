@@ -128,7 +128,8 @@ repos:
         Fails if any Templetor or Jinja template/macro has no code reference
         anywhere in the repo (including vendor/infogami).
       entry: python ./scripts/check_unused_templates.py
-      types_or: [python, html, jinja]
+      # Keep in sync with CORPUS_SUFFIXES in openlibrary/utils/template_usage.py.
+      types_or: [python, javascript, ts, tsx, vue, html, jinja, yaml, json]
       language: python
       pass_filenames: false
 
