@@ -114,7 +114,7 @@ export class SearchModal extends LitElement {
     static styles = css`
         :host {
             font-family: var(--font-family-body);
-            color: var(--darker-grey);
+            color: var(--color-text);
         }
 
         /* Visually hidden but available to screen readers (used by the
@@ -186,7 +186,7 @@ export class SearchModal extends LitElement {
             display: inline-flex;
             align-items: center;
             padding: var(--spacing-2xs) var(--spacing-sm);
-            background: var(--white);
+            background: var(--color-surface);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             color: var(--color-text-muted);
@@ -199,7 +199,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .esc-pill:hover { background: var(--lightest-grey); }
+            .esc-pill:hover { background: var(--color-control-hover); }
         }
 
         .esc-pill:focus-visible {
@@ -267,8 +267,8 @@ export class SearchModal extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .clear-btn:hover {
-                background: var(--lightest-grey);
-                color: var(--darker-grey);
+                background: var(--color-control-hover);
+                color: var(--color-text);
             }
         }
 
@@ -300,7 +300,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: 13px;
             font-weight: 600;
@@ -308,7 +308,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .clear-all:hover { background: var(--lightest-grey); }
+            .clear-all:hover { background: var(--color-control-hover); }
         }
 
         .clear-all:focus-visible {
@@ -397,14 +397,14 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .result:hover { background: var(--lightest-grey); }
+            .result:hover { background: var(--color-control-hover); }
         }
 
         /* Both the author suggestion and the work rows are single anchors, so
            the same focus highlight covers the whole row. */
         .result:focus-visible {
             outline: none;
-            background: var(--lightest-grey);
+            background: var(--color-control-hover);
             box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
         }
 
@@ -421,7 +421,7 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 50px;
             object-fit: cover;
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-thumbnail);
         }
 
@@ -439,7 +439,7 @@ export class SearchModal extends LitElement {
             height: 36px;
             overflow: hidden;
             color: var(--color-text-muted);
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-avatar);
         }
 
@@ -463,7 +463,7 @@ export class SearchModal extends LitElement {
         .result__title {
             display: block;
             overflow: hidden;
-            color: var(--darker-grey);
+            color: var(--color-text);
             font-weight: 600;
             text-decoration: none;
             text-overflow: ellipsis;
@@ -537,7 +537,7 @@ export class SearchModal extends LitElement {
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
             overflow: hidden;
-            color: var(--darker-grey);
+            color: var(--color-text);
             line-height: 1.45;
         }
 
@@ -668,7 +668,7 @@ export class SearchModal extends LitElement {
 
         .results.is-navigating .result.is-target {
             opacity: 1;
-            background: var(--lightest-grey);
+            background: var(--color-control-hover);
         }
 
         .result.is-target .result__cover,
@@ -731,7 +731,7 @@ export class SearchModal extends LitElement {
             .results { max-height: none; flex: 1; }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
-            .footer { background: var(--white); }
+            .footer { background: var(--color-surface); }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
