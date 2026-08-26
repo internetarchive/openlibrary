@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import functools
 from typing import TYPE_CHECKING
 
 import httpx
@@ -11,9 +10,10 @@ from fastapi.responses import StreamingResponse
 from openlibrary.utils.async_utils import cache_per_event_loop
 
 if TYPE_CHECKING:
-    from fastapi import Request, Response  # Streaming proxies can legitimately take a long time (large uploads/downloads),
-# so disable httpx's default timeout entirely.
-get_async_session = cache_per_event_loop(functools.partial(httpx.AsyncClient, follow_redirects=False, timeout=None))
+    from fastapi import Request, Response
+
+# This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
+get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(follow_redirects=False, timeout=None))
 
 
 async def proxy_to_webpy(request: Request) -> Response:
@@ -23,8 +23,6 @@ async def proxy_to_webpy(request: Request) -> Response:
     headers = dict(request.headers)
     headers.pop("host", None)
 
-    # Stream the request body to web.py as it arrives instead of buffering it,
-    # and stream the response back to the client chunk by chunk.
     client = get_async_session()
     resp = await client.send(
         client.build_request(
@@ -41,8 +39,7 @@ async def proxy_to_webpy(request: Request) -> Response:
     filtered_headers["X-Proxied-By"] = "FastAPI"
     filtered_headers["X-Served-By"] = "web.py"
 
-    location = resp.headers.get("location", "")
-    if location:
+    if location := resp.headers.get("location", ""):
         location = location.replace("http://web:8080", f"http://{request.headers.get('host', 'localhost:8080')}")
         filtered_headers["location"] = location
 
