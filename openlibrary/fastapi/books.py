@@ -12,11 +12,16 @@ import web
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field, TypeAdapter
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
 from openlibrary.plugins.books import dynlinks, readlinks
 from openlibrary.plugins.books.dynlinks import DynlinksOptions
 
 router = APIRouter()
+
+# Show the bare (non-``.json``) route aliases in the OpenAPI schema only in
+# local dev so scripts/gen_nginx_regex.py can discover them from openapi.json.
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
 
 
 class BooksAPIQueryParams(BaseModel):
@@ -37,7 +42,7 @@ class BooksAPIQueryParams(BaseModel):
 # When callback parameter is present, the function returns a Response object directly,
 # which should bypass response model validation. Setting response_model on the decorator
 # can interfere with Response object's content-type headers.
-@router.get("/api/books", include_in_schema=False)
+@router.get("/api/books", include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 @router.get("/api/books.json")
 async def get_books(
     request: Request,
@@ -94,7 +99,7 @@ async def get_books(
     return wrap_jsonp(request, result_str)
 
 
-@router.get("/api/volumes/{brief_or_full}/json/{req}", include_in_schema=False)
+@router.get("/api/volumes/{brief_or_full}/json/{req}", include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 @router.get("/api/volumes/{brief_or_full}/json/{req}.json")
 async def get_volumes_multiget(
     request: Request,
@@ -118,7 +123,7 @@ async def get_volumes_multiget(
 
 # Left without a strict response model since it can return either a VolumeResponse dict or an empty list [] for non-existent identifiers. Pydantic
 # can't represent this union cleanly without losing validation benefits.
-@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", include_in_schema=False)
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 @router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json")
 async def get_volume(
     request: Request,

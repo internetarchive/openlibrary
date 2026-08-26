@@ -8,11 +8,17 @@ from fastapi import APIRouter, Form, HTTPException, status
 from infogami.infobase.client import ClientException
 from openlibrary import accounts
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
+from openlibrary.core.env import get_ol_env
 from openlibrary.utils.request_context import req_context, site, web_ctx_ip
 
 logger = logging.getLogger("openlibrary.fastapi.link")
 
-router = APIRouter(tags=["link"], include_in_schema=False)
+# /api/link is an internal HMAC-authenticated endpoint; expose it in the
+# OpenAPI schema only in local dev so scripts/gen_nginx_regex.py can discover
+# it from openapi.json.
+SHOW_INTERNAL_IN_SCHEMA = get_ol_env().LOCAL_DEV
+
+router = APIRouter(tags=["link"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 
 
 @router.post("/api/link")
