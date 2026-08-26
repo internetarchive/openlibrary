@@ -86,7 +86,7 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	uvx ruff check .
+	uv run --with-requirements requirements_test.txt ruff check .
 
 PYTEST_ARGS ?= . --doctest-modules
 
