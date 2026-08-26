@@ -709,8 +709,6 @@ class list_view(delegate.page):
 
     def GET(self, key):
         if web.ctx.encoding:
-            # Only plain HTML is rendered here; JSON for this route is
-            # served by FastAPI. Keep web.py's 406 for other encodings.
             raise web.HTTPError("406 Not Acceptable", {})
 
         i = web.input(v=None, m=None)
