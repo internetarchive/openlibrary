@@ -14,9 +14,10 @@ from starlette.datastructures import URL
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template, require_login
+from infogami.utils.view import public, query_param, render_template, require_login, safeint
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, formats
+from openlibrary.core.lending import get_availabilities
 from openlibrary.core.lists.model import (
     AnnotatedSeedDict,
     List,
@@ -24,6 +25,7 @@ from openlibrary.core.lists.model import (
     Series,
     ThingReferenceDict,
 )
+from openlibrary.core.lists.model import Seed as ListSeed
 from openlibrary.core.models import (
     ThingKey,
     Work,
@@ -36,6 +38,7 @@ from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
+from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils import olid_to_key
 from openlibrary.utils.request_context import site
 
@@ -646,6 +649,84 @@ def get_list(key: str, raw: bool = False) -> dict | None:
             "last_modified": lst.last_modified.isoformat(),
         },
     }
+
+
+LIST_VIEW_PAGE_SIZE = 50
+
+
+def _resolve_list_view_items(seeds: list[ListSeed]) -> list[web.storage]:
+    """Batch-resolve a page of list/series seeds into renderable items.
+
+    Moves the seed -> Solr doc -> availability resolution that used to run
+    inside type/list/view_body.html into Python, so the template only
+    renders data that has already been fetched.
+    """
+    if not seeds:
+        return []
+
+    solr_works = get_solr_works({s.key for s in seeds if s.type == "work"}, editions=True)
+    work_key_to_solr_edition = {
+        key: work_doc["editions"]["docs"][0] for key, work_doc in solr_works.items() if work_doc and work_doc.get("editions", {}).get("docs", [])
+    }
+    availabilities = get_availabilities(
+        [work_key_to_solr_edition.get(seed.key) or solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ["edition", "work"]]
+    )
+
+    items = []
+    for seed in seeds:
+        if seed.type in ["edition", "work"]:
+            doc = solr_works.get(seed.key) or seed.document
+            availability = availabilities.get(work_key_to_solr_edition[seed.key]["key"]) if seed.key in work_key_to_solr_edition else availabilities.get(seed.key)
+            items.append(web.storage(seed=seed, doc=doc, availability=availability))
+        else:
+            items.append(web.storage(seed=seed, doc=None, availability=None))
+    return items
+
+
+class list_view(delegate.page):
+    """HTML view for a single list or series page.
+
+    Shares list_view_yaml's `path` below so both encodings coexist on the
+    same route (infogami keys page registrations by (path, encoding)); this
+    is the plain-HTML sibling, registered with no `encoding` (defaults to
+    None). Before this handler existed, this path had no OL-owned HTML
+    handler and fell through to Infogami's generic type-view dispatch,
+    which is where the Solr/availability I/O below used to live, inside
+    view_body.html.
+    """
+
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
+
+    def GET(self, key):
+        if web.ctx.encoding:
+            # Preserve the legacy web.py app's unsupported-encoding
+            # behavior (406) for anything that isn't plain HTML. Real JSON
+            # traffic for this path is served by FastAPI; this only guards
+            # the old web.py app in case a request reaches it directly.
+            raise web.HTTPError("406 Not Acceptable", {})
+
+        i = web.input(v=None)
+        if i.v is not None and safeint(i.v, None) is None:
+            raise web.seeother(web.changequery(v=None))
+
+        lst = site.get().get(key, i.v)
+        if lst is None:
+            raise web.notfound()
+        if lst.type.key == "/type/delete":
+            web.ctx.status = "404 Not Found"
+            return render_template("type/delete/view", lst)
+        if lst.type.key == "/type/redirect" and lst.location and not lst.location.startswith("http://") and not lst.location.startswith("://"):
+            web.redirect(lst.location)
+
+        page = safeint(query_param("page"), 1) - 1
+        sort = query_param("sort", None)
+        page_size = LIST_VIEW_PAGE_SIZE
+
+        seeds = lst.get_seeds(sort=(sort == "last_modified"), resolve_redirects=True)
+        page_seeds = seeds[page * page_size : page * page_size + page_size]
+        items = _resolve_list_view_items(page_seeds)
+
+        return render_template("type/list/view", lst, items, page, page_size, sort)
 
 
 class list_view_yaml(delegate.page):
