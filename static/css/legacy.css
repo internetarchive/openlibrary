@@ -259,7 +259,7 @@ abbr {
 /* DEFINE SOME DEFAULTS */
 b,
 strong {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 i,
@@ -1853,19 +1853,15 @@ div#subjectLists p {
   }
   /* inlined from components/edit-toolbar--tablet.css */
   /* stylelint-disable selector-max-specificity */
-  div#editTools,
-  div.editButton,
   div#editHistory {
     padding: 2px 5px 0 10px;
     margin-top: -5px;
     float: right;
   }
-  div#editInfo {
-    margin-top: 3px;
-    float: right;
-  }
+  /* #editTools sets its own padding in components/edit-toolbar.css, so it takes
+     only the float from here. Keep in step with edit-toolbar--tablet.css. */
   div#editTools {
-    display: flex;
+    float: right;
     margin-top: 1px;
     max-width: 280px;
   }

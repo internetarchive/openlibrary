@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -55,7 +56,11 @@ class TestGetAvailability:
         req_context.reset(token)
 
     def test_cache(self):
-        with patch("openlibrary.core.ia.async_session.get") as mock_get:
+        mock_get = AsyncMock()
+        with patch(
+            "openlibrary.core.ia.get_async_session",
+            return_value=SimpleNamespace(get=mock_get),
+        ):
             mock_response = AsyncMock()
             mock_response.json = Mock(
                 return_value={

@@ -4505,7 +4505,7 @@ msgstr ""
 msgid "Explore collections"
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py type/page/view.html
 msgid "Collections"
 msgstr ""
 
@@ -6058,10 +6058,6 @@ msgstr ""
 msgid "We couldn't find any books about"
 msgstr ""
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr ""
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
@@ -6677,6 +6673,17 @@ msgstr ""
 #: type/page/view.html
 msgid "Community"
 msgstr ""
+
+#: type/page/view.html
+msgid "Collection"
+msgstr ""
+
+#: type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: type/permission/edit.html
 msgid "Readers:"
@@ -7455,6 +7462,10 @@ msgid "Deploy failed (merge conflict)"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "This PR is already closed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 
@@ -7477,6 +7488,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Restore"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7503,6 +7518,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "closed without merging"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

@@ -265,5 +265,7 @@ def create_app() -> FastAPI | None:
     return app
 
 
-# The ASGI app instance Gunicorn/Uvicorn will serve
-app = create_app()
+# Use factory: ``uvicorn --factory openlibrary.asgi_app:create_app``
+# (keeps reloader parent light, per https://uvicorn.dev/#application-factories
+# For gunicorn prod, use ``openlibrary.asgi_app:create_app()`` (call via
+# gunicorn.util.import_app).

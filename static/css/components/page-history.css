@@ -9,8 +9,18 @@
   margin-top: 30px;
 }
 
-.pageHistory__list {
-  font-size: 0.8em;
+/* An end-of-page footnote, not a section heading — keep it quiet. */
+.pageHistory__heading {
+  font-size: var(--font-size-title-medium);
+}
+
+/* `ul` default indent would leave a gulf after the heading; a single inline
+   gap keeps the two on one line. Needs the id to beat `.markdown-content ul`. */
+/* stylelint-disable-next-line selector-max-specificity */
+#pageHistory .pageHistory__list {
+  padding-left: 0;
+  margin-left: var(--spacing-inline-md);
+  font-size: var(--font-size-body-medium);
 }
 
 /* Rendered as a row at the end of author and book pages, after the floated
@@ -19,7 +29,7 @@
   display: block;
   clear: both;
   text-align: right;
-  font-size: 0.7em;
+  font-size: var(--font-size-label-medium);
   padding-top: var(--spacing-inset-sm);
   margin-bottom: calc(-1 * var(--spacing-sm));
 }
@@ -35,31 +45,38 @@ table.history {
   border-top: var(--border-table);
 }
 
-table.history tr:last-child {
-  background: var(--lightest-grey);
+/* Plain rows: clears the site-wide `tbody tr` tint so the rules alone
+   separate the revisions. */
+table.history tr {
+  background: transparent;
 }
 
 table.history td {
-  font-size: 0.6875em;
+  padding: var(--spacing-inset-sm);
+  font-size: var(--font-size-body-small);
   font-family: var(--font-family-body);
   color: var(--color-text-secondary);
   border-bottom: var(--border-table);
 }
 
 table.history td.timestamp {
-  padding: 10px;
   white-space: nowrap;
 }
 
 table.history td.detail {
-  padding: 10px;
   width: 100%;
+}
+
+/* Flush left so the timestamps line up with the heading above. */
+table.history td:first-child {
+  padding-left: 0;
 }
 
 /* History page redesign - #12628 */
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory thead tr th {
   font-weight: bold;
+  font-size: var(--font-size-label-small);
   padding: 10px 12px;
 }
 
@@ -71,6 +88,7 @@ table#pageHistory tbody td.number {
 /* Column sizing: When/Who hug their content, Comment absorbs the slack */
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory tbody td {
+  font-size: var(--font-size-body-small);
   padding: 10px 12px;
   vertical-align: top;
 }
