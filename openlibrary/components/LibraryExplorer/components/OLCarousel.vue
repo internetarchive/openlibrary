@@ -57,6 +57,21 @@
         </div>
       </template>
     </BooksCarousel>
+    <!-- Skeleton placeholders while the shelf's results are still being fetched (before any
+         book elements exist), so a loading shelf shimmers gracefully instead of sitting
+         empty. Books' own cover slots shimmer separately once they render (see genre-mode
+         .book background). -->
+    <div
+      v-if="(status === 'Loading' || status === 'Start') && !results.length"
+      class="ol-carousel-skeleton"
+      aria-hidden="true"
+    >
+      <div
+        v-for="n in 12"
+        :key="n"
+        class="skeleton-book"
+      />
+    </div>
     <transition>
       <div
         v-if="status === 'Errored'"
@@ -210,6 +225,23 @@ export default {
         // otherwise Chrome seems to never fire isVisible sometimes.
         await waitUntil(() => this.$el.isConnected);
         this.intersectionObserver.observe(this.$el);
+
+        // A stronger version of the same Chrome flakiness mentioned above: when this
+        // element is inserted as part of an ongoing CSS transform transition (genre
+        // mode's cross-slide between bookcases), the observer's first callback can
+        // report intersectionRatio: 0 -- correct in that instant, since the slide hasn't
+        // settled yet -- and then simply never fire again even once the element is
+        // genuinely on-screen and the transition is long done, permanently stuck
+        // believing it's still offscreen. A direct geometry check well after the
+        // transition would have settled is a fallback that doesn't depend on the
+        // observer's callback firing again at all.
+        setTimeout(() => {
+            if (this.isVisible) return;
+            const rect = this.$el.getBoundingClientRect();
+            if (rect.bottom > 0 && rect.top < (window.innerHeight || document.documentElement.clientHeight)) {
+                this.isVisible = true;
+            }
+        }, 500);
     },
     beforeUnmount() {
         this.intersectionObserver.unobserve(this.$el);
@@ -251,7 +283,7 @@ export default {
                 offset,
                 limit: this.limit,
                 sort: this.sort,
-                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s,first_publish_year,edition_count,number_of_pages_median',
+                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s,first_publish_year,edition_count,number_of_pages_median,ratings_average,ratings_count',
             });
 
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
@@ -364,5 +396,33 @@ export default {
   overflow: hidden;
   overflow: clip;
   position: relative;
+}
+
+/* Skeleton placeholders shown while a shelf's results are being fetched. Warm-tinted so it
+   reads on both the light genre wall and the dark DDC/LCC bookcase; sits on the shelf line
+   (flex-end) with slightly varied heights so it looks like a row of books loading in. */
+.ol-carousel-skeleton {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  height: 285px;
+  padding: 0 16px;
+  overflow: hidden;
+}
+.skeleton-book {
+  flex: 0 0 auto;
+  width: 150px;
+  height: 232px;
+  border-radius: 3px;
+  background: linear-gradient(100deg,
+    rgba(120, 90, 50, .16) 26%, rgba(120, 90, 50, .05) 46%, rgba(120, 90, 50, .16) 66%);
+  background-size: 220% 100%;
+  animation: ol-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+.skeleton-book:nth-child(3n) { height: 206px; }
+.skeleton-book:nth-child(3n + 1) { height: 248px; }
+@keyframes ol-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>
