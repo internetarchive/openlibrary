@@ -82,7 +82,9 @@
   font-size: 1.1em;
   font-weight: 700;
   font-family: var(--font-family-title);
-  overflow: auto;
+  /* Not a scroll container: Literata's glyph metrics overrun the 1.35
+     line-height by ~1px, which overflow: auto turns into a scrollbar. */
+  overflow: visible;
   line-height: var(--line-height-heading);
 }
 
