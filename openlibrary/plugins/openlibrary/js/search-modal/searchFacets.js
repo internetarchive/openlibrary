@@ -6,7 +6,25 @@
  * Mirrors the fetchLanguageOptions() pattern in search-modal/languages.js.
  */
 
-const FACETS_URL = '/search/facets.json';
+const FACETS_PATH = '/search/facets.json';
+
+/**
+ * Return the same-origin facets endpoint for the current deployment.
+ *
+ * The endpoint only exists in FastAPI. Testing exposes that behind `/_fast`,
+ * while local dev proxies the unprefixed path through web.py. Everywhere else
+ * web.py answers the bare path with a 500 from its deprecated-endpoint handler,
+ * which fetchFacetCounts() would surface as a failed load and an uncounted
+ * dropper. Mirrors testingStatusUrl() in components/TestingEnvironment/utils.js.
+ *
+ * @param {Location} location - Defaults to the current page location.
+ * @returns {string}
+ */
+export function facetsUrl(location = window.location) {
+    return location.hostname === 'testing.openlibrary.org'
+        ? `/_fast${FACETS_PATH}`
+        : FACETS_PATH;
+}
 
 // Filter params to drop when counting a given field, where the param name isn't
 // just the field name: /search accepts either spelling of the author filter.
@@ -43,7 +61,7 @@ export async function fetchFacetCounts(field, searchParams) {
     }
     params.set('field', field);
 
-    const response = await fetch(`${FACETS_URL}?${params.toString()}`);
+    const response = await fetch(`${facetsUrl()}?${params.toString()}`);
     if (!response.ok) {
         throw new Error(`fetchFacetCounts: HTTP ${response.status} for field="${field}"`);
     }
