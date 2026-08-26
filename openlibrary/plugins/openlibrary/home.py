@@ -45,11 +45,17 @@ def get_homepage(devmode):
         logger.error("Error in getting stats", exc_info=True)
         stats = None
     blog_posts = get_blog_feeds()
+    featured_subjects = get_cached_featured_subjects()
 
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    page = render_template(
+        "home/index",
+        stats=stats,
+        blog_posts=blog_posts,
+        featured_subjects=featured_subjects,
+    )
     # Convert to a dict so it can be cached
     return dict(page)
 
@@ -260,7 +266,6 @@ def get_featured_subjects():
     return [{**subject, **(subjects.get_subject(subject["key"], limit=0) or {})} for subject in FEATURED_SUBJECTS]
 
 
-@public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
         get_featured_subjects,
