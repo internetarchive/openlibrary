@@ -1,5 +1,6 @@
 """Tests for the FastAPI → web.py fallback proxy (openlibrary/fastapi/proxy.py)."""
 
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -59,9 +60,18 @@ class FakeClient:
         self.closed = True
 
 
-def _proxy_client(fake_client):
-    with patch("openlibrary.fastapi.proxy.get_async_session", return_value=fake_client):
-        return TestClient(_make_app())
+@contextmanager
+def _proxy_client(fake_client, raise_server_exceptions=True):
+    """TestClient for the proxy handler with the shared client patched out.
+
+    The patch must stay active for the whole request, so this is a context
+    manager rather than a plain factory.
+    """
+    with (
+        patch("openlibrary.fastapi.proxy.get_async_session", return_value=fake_client),
+        TestClient(_make_app(), raise_server_exceptions=raise_server_exceptions) as client,
+    ):
+        yield client
 
 
 def test_request_body_is_streamed_not_buffered():
@@ -144,8 +154,8 @@ def test_upstream_failure_propagates():
 
     fake_client = FailingClient(FakeResponse([b""]))
 
-    with _proxy_client(fake_client) as client:
-        response = client.get("/", raise_server_exceptions=False)
+    with _proxy_client(fake_client, raise_server_exceptions=False) as client:
+        response = client.get("/")
 
     assert response.status_code == 500
     assert fake_client.closed is False
