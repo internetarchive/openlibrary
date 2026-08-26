@@ -10,6 +10,7 @@ import pytest
 
 from openlibrary.fastapi.search import FacetField, PublicQueryOptions
 from openlibrary.plugins.worksearch.code import WorkSearchScheme
+from openlibrary.utils.request_context import create_context_for_script, req_context
 
 
 @pytest.fixture
@@ -399,6 +400,14 @@ class TestOpenAPIDocumentation:
 class TestSearchFacetsEndpoint:
     """Tests for the /search/facets.json endpoint."""
 
+    @pytest.fixture(autouse=True)
+    def req_context_defaults(self):
+        """The endpoint reads solr_editions off req_context, which the test
+        client never populates (conftest patches out set_context_from_fastapi)."""
+        token = req_context.set(create_context_for_script())
+        yield
+        req_context.reset(token)
+
     def test_requires_field_param(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?q=tolkien")
         # FastAPI enforces required + min_length=1 on `field`, returns 422 when absent
@@ -446,6 +455,34 @@ class TestSearchFacetsEndpoint:
         assert "author_facet" in data
         assert "author_key" not in data
         assert data["author_facet"] == [{"value": "OL9A", "label": "J.R.R. Tolkien", "count": 123}]
+
+    def test_forwards_list_filters_to_solr(self, fastapi_client, mock_run_solr_query_async):
+        """Repeated list-valued filters must reach the Solr query.
+
+        Under `Depends()` FastAPI bound the params model but dropped every list field,
+        so counts silently ignored the language/subject/author filters the page had on.
+        """
+        fastapi_client.get("/search/facets.json?field=language&q=tolkien&subject_facet=Fiction&subject_facet=Fantasy&author_key=OL9A")
+        solr_query = mock_run_solr_query_async.call_args.args[1]
+        assert solr_query["subject_facet"] == ["Fiction", "Fantasy"]
+        assert solr_query["author_key"] == ["OL9A"]
+
+    def test_field_is_not_forwarded_as_a_filter(self, fastapi_client, mock_run_solr_query_async):
+        """`field` selects what to count; it is not part of the search context."""
+        fastapi_client.get("/search/facets.json?field=language&q=tolkien")
+        assert "field" not in mock_run_solr_query_async.call_args.args[1]
+
+    def test_requests_editions_block_join(self, fastapi_client, mock_run_solr_query_async):
+        """Counts must be faceted over the same result set the page renders.
+
+        The edition block-join in WorkSearchScheme only kicks in when `editions`
+        is among the requested fields; without it the facets are counted over a
+        wider set of works than /search shows.
+        """
+        fastapi_client.get("/search/facets.json?field=language&q=lord")
+        kwargs = mock_run_solr_query_async.call_args.kwargs
+        assert "editions" in kwargs["fields"]
+        assert mock_run_solr_query_async.call_args.args[0].solr_editions is True
 
     def test_empty_query_returns_valid_response(self, fastapi_client, mock_run_solr_query_async):
         """No q param should still return a valid (unfiltered) facet list."""

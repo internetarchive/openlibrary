@@ -87,6 +87,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageLabel: 'Language',
     languagePlaceholder: 'Search languages…',
     languageHeading: 'Languages',
+    languagesLoading: 'Loading…',
     searching: 'Searching…',
     noResults: 'No results found',
     // Softer empty state used when the catalog search came back empty but the

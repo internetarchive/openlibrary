@@ -39,6 +39,7 @@ from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.request_context import req_context
 
 router = APIRouter()
 
@@ -166,6 +167,24 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             query_fields |= set(WorkSearchScheme.field_name_map.keys())
             q = self.model_dump(include=query_fields, exclude_none=True)
             return q
+
+
+class FacetRequestParams(PublicQueryOptions):
+    """
+    Query params for /search/facets.json — the search context plus the field(s) to count.
+
+    `field` is a model field rather than a sibling parameter because FastAPI only expands a
+    Pydantic query model when nothing else in the signature is a list-typed `Query`. Declared
+    separately, the model binds as one scalar named "params" and every request 422s; under
+    `Depends()` it binds but the inherited list filters (language, subject_facet, ...) silently
+    arrive empty, so the counts ignore them.
+    """
+
+    field: list[FacetField] = Field(
+        ...,
+        min_length=1,
+        description="Facet field(s) to return. Repeat for multiple.",
+    )
 
 
 class FacetValue(BaseModel):
@@ -411,11 +430,7 @@ async def search_authors_json(
 )
 async def search_facets_json(
     request: Request,
-    params: Annotated[PublicQueryOptions, Depends()],
-    field: Annotated[
-        list[FacetField],
-        Query(min_length=1, description="Facet field(s) to return. Repeat for multiple."),
-    ],
+    params: Annotated[FacetRequestParams, Query()],
     solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
 ) -> dict[str, list[FacetValue]]:
     """
@@ -428,17 +443,18 @@ async def search_facets_json(
     Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
     """
     search_response = await run_solr_query_async(
-        WorkSearchScheme(lang=request.state.lang),
-        params.model_dump(exclude_none=True),
+        WorkSearchScheme(lang=request.state.lang, solr_editions=req_context.get().solr_editions),
+        params.model_dump(exclude={"field"}, exclude_none=True),
         rows=0,
         page=1,
-        facet=list(field),
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=list(params.field),
         highlight=False,
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,
     )
 
-    result: dict[str, list[FacetValue]] = {f: [] for f in field}
+    result: dict[str, list[FacetValue]] = {f: [] for f in params.field}
     if search_response.facet_counts:
         for facet_field, values in search_response.facet_counts.items():
             output_key = _FACET_INTERNAL_RENAME.get(facet_field, facet_field)

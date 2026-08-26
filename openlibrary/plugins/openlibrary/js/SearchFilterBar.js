@@ -22,6 +22,10 @@
  *    bar — the user gets the filters they last set in this session.
  *
  * The full language catalogue is fetched lazily on first popover open.
+ * Context-aware facet counts are fetched in parallel with the catalogue
+ * whenever there is an active search query. Counts and the merge into the
+ * catalogue live in searchFacets.js, shared with the header search modal —
+ * this file doesn't duplicate that logic.
  */
 
 import {
@@ -36,6 +40,7 @@ import {
     readStoredLanguages,
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
+import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './search-modal/searchFacets.js';
 import { trackEvent } from './ol.analytics.js';
 
 // Every query param the availability filter owns, across all of its values.
@@ -49,11 +54,15 @@ const AVAILABILITY_PARAM_KEYS = [
 // (has_fulltext/public_scan…); /search/inside speaks the FTS endpoint's single
 // readable=true param — its collections can't split open vs borrowable, so any
 // non-default stored availability maps to the broad readable filter there.
+// facetCounts marks the surfaces whose results actually come from Solr:
+// /search/facets.json counts Solr matches, which would misdescribe the FTS
+// result set on /search/inside.
 const SURFACES = {
     '/search': {
         readAvailability: (params) => availabilityFromParams((name) => params.get(name)),
         availabilityParamKeys: AVAILABILITY_PARAM_KEYS,
         availabilityParams: (value) => AVAILABILITY_TO_PARAMS[value] || {},
+        facetCounts: true,
     },
     '/search/inside': {
         readAvailability: (params) =>
@@ -61,12 +70,22 @@ const SURFACES = {
         availabilityParamKeys: ['readable'],
         availabilityParams: (value) =>
             value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' },
+        facetCounts: false,
     },
 };
 
 function currentSurface() {
     return SURFACES[window.location.pathname] || SURFACES['/search'];
 }
+
+// ── Facet field config ─────────────────────────────────────────────────────
+//
+// Maps each OlSelectPopover to its Solr facet field name (validated server-side
+// against WorkSearchScheme.facet_fields).
+/** @type {Map<HTMLElement, string>} */
+let POPOVER_FIELD_CONFIG;
+
+// ── sessionStorage helpers ─────────────────────────────────────────────────
 
 function writeStoredAvailability(value) {
     ssSet(SS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);
@@ -152,11 +171,18 @@ export function initSearchFilterBar(container) {
     const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
 
+    // Build the facet field config now that we have element references.
+    // Future filters: add an entry here.
+    POPOVER_FIELD_CONFIG = new Map([
+        ...(languageEl ? [[languageEl, 'language']] : []),
+    ]);
+
+    // True when the page has a meaningful search query — facet counts are only
+    // fetched in this case. An empty or whitespace-only q= is treated as no
+    // query (popularity-sorted catalogue, no per-query counts).
+    const hasQuery = (currentParams.get('q') || '').trim().length > 0;
+
     if (availabilityEl) {
-        // Binary availability: the toggle reads as "on" whenever any
-        // readable-scoped filter is in the URL (readable / open / borrowable),
-        // and "off" for the all-books default. Flipping it on applies the broad
-        // `readable` filter; flipping it off clears every availability param.
         availabilityEl.checked =
             surface.readAvailability(currentParams) !== DEFAULT_AVAILABILITY;
         availabilityEl.addEventListener('ol-toggle-change', (e) => {
@@ -169,8 +195,6 @@ export function initSearchFilterBar(container) {
                 Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
-        // The readable-count sublabel is rendered server-side (work_search.html),
-        // so it's already present on first paint — nothing to fetch here.
     }
 
     if (languageEl) {
@@ -179,17 +203,61 @@ export function initSearchFilterBar(container) {
         languageEl.items = DEFAULT_LANGUAGE_OPTIONS;
         languageEl.selected = currentParams.getAll('language');
 
-        // Defer fetching the full catalogue list until the popover first opens.
-        // Most searches never touch the language filter, so this avoids the
-        // /languages.json request entirely for them. ol-popover-open bubbles
-        // (composed) out of the popover's shadow root up to this host.
-        let languagesLoaded = false;
-        languageEl.addEventListener('ol-popover-open', () => {
-            if (languagesLoaded) return;
-            languagesLoaded = true;
-            fetchLanguageOptions().then((options) => {
-                languageEl.items = options;
-            });
+        // Defer fetching the full catalogue + context-aware counts until the
+        // popover is first asked to open. On later opens of the same dropper
+        // (same page load / same query) the counts are already merged into
+        // `items`; nothing to re-fetch, and `load` below resolves immediately.
+        let loaded = false;
+
+        /**
+         * Loads the catalogue + counts into languageEl.items. Passed to
+         * openWhenCountsReady() as the work to race against the open budget,
+         * so the panel opens once at its final size — no spinner-then-collapse
+         * jump under the pointer, and no stale position from a mid-open resize.
+         */
+        async function loadLanguageItems() {
+            if (loaded) return;
+            loaded = true;
+
+            const field = POPOVER_FIELD_CONFIG.get(languageEl);
+            languageEl.loading = true;
+
+            try {
+                // fetchFacetCounts() strips any existing filter on `field`
+                // itself before forwarding params — Solr ANDs an fq on the
+                // field being counted, so leaving e.g. language=eng in would
+                // zero out every other language. No manual stripping needed
+                // here; pass currentParams straight through.
+                const [options, counts] = await Promise.all([
+                    fetchLanguageOptions(),
+                    hasQuery && field && surface.facetCounts
+                        ? fetchFacetCounts(field, currentParams)
+                        : Promise.resolve([]),
+                ]);
+
+                languageEl.items = (hasQuery && counts.length > 0)
+                    ? mergeFacetCounts(options, counts, languageEl.selected || [])
+                    : options;
+            } catch (err) {
+                // Graceful degradation: keep DEFAULT_LANGUAGE_OPTIONS seeded at
+                // init. Filtering must never break (spec requirement).
+                // eslint-disable-next-line no-console
+                console.warn('SearchFilterBar: facet counts fetch failed, falling back to uncounted list', err);
+                // Allow a retry on the next open (e.g. flaky mobile network)
+                // instead of leaving the popover permanently stuck on the
+                // uncounted default list for the rest of the page's life.
+                loaded = false;
+            } finally {
+                languageEl.loading = false;
+            }
+        }
+
+        // Cancelable pre-open event: hold the panel shut, load, then show it
+        // once (openWhenCountsReady handles the 500ms open budget + calling
+        // popover.show()). Anything not listening for this event still opens
+        // instantly, unaffected.
+        languageEl.addEventListener('ol-select-popover-request-open', (e) => {
+            openWhenCountsReady(e, loadLanguageItems);
         });
 
         languageEl.addEventListener('ol-select-popover-change', (e) => {
