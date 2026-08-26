@@ -43,20 +43,16 @@
   background-color: var(--color-primary);
 }
 
-/* No Preview state - muted/disabled version of Preview link */
+/* No Preview state - muted placeholder, shown in grid layout only */
 .bookcover .cta-btn.cta-btn--no-preview {
-  color: var(--color-text-secondary);
-  cursor: default;
+  display: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
   pointer-events: none;
 }
 
-.bookcover .cta-btn.cta-btn--no-preview::before {
-  background-color: var(--color-text-secondary);
-  opacity: 0.5;
-}
-
-.bookcover .cta-btn.cta-btn--no-preview:hover {
-  text-decoration: none;
+.list-books--grid .bookcover .cta-btn.cta-btn--no-preview {
+  display: inline-block;
 }
 /* stylelint-enable selector-max-specificity */
 
