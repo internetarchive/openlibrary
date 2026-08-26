@@ -1,4 +1,4 @@
-$def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
+$def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={}, current_goal=None)
 
   $def year_span(year, use_local_year=False):
     $if use_local_year:
@@ -18,7 +18,6 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
     </ul>
     $if owners_page:
       $ year = current_year()
-      $ current_goal = get_reading_goals(year=year)
       $ hidden = 'hidden' if current_goal else ''
       <ul class="sidebar-section">
         <li class="section-header">$_("%(year)d Reading Goal", year=year)</li>
