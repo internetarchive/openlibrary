@@ -22,7 +22,7 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import render_macro
+from openlibrary.plugins.upstream.utils import entity_decode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
@@ -373,7 +373,9 @@ class SearchFacetsPartial:
 
         return {
             "sidebar": str(sidebar),
-            "title": active_facets.title,
+            # Templetor's `$var title:` HTML-escapes its value; unescape it
+            # since search.js assigns this straight to document.title (#9787).
+            "title": entity_decode(active_facets.title),
             "activeFacets": str(active_facets).strip(),
         }
 
