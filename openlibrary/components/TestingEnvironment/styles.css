@@ -410,6 +410,11 @@ a.testing-env__pill:focus-visible {
   justify-self: center;
 }
 
+/* A closed (not merged) PR reads in the same slot as the hourglass, muted. */
+.testing-env__closed {
+  color: var(--color-text-muted);
+}
+
 /* Icon-only row actions (update / remove): bordered buttons, blue for update,
    red for remove on hover; tooltips ride in the title attribute. */
 .testing-env__row-action {
@@ -441,6 +446,13 @@ a.testing-env__pill:focus-visible {
   border-color: var(--color-error-fg);
   background: var(--color-error-bg);
   color: var(--color-error-fg);
+}
+
+/* Restore (undo a removal): green tint to read as non-destructive. */
+.testing-env__row-action--restore:hover:not(:disabled) {
+  border-color: var(--color-success-fg);
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
 }
 
 /* Last of the row backgrounds: pointer feedback beats every state tint. */

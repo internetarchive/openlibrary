@@ -6769,10 +6769,6 @@ msgstr "Самые оцениваемые книги (за всё время)"
 msgid "We couldn't find any books about"
 msgstr "Мы не смогли найти ни одной книги о"
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"

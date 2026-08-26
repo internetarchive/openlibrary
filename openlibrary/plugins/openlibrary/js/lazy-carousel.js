@@ -63,6 +63,7 @@ function doFetchAndUpdate(target) {
         })
         .then(data => {
             const newElem = document.createElement('div');
+            newElem.className = 'lazy-carousel-loaded';
             newElem.innerHTML = data.partials.trim();
             const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced');
             loadingIndicator.classList.add('hidden');

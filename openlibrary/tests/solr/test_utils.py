@@ -84,7 +84,7 @@ class TestSolrUpdate:
 
     async def test_successful_response(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(return_value=self.sample_response_200())
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
@@ -95,7 +95,7 @@ class TestSolrUpdate:
 
     async def test_non_json_solr_503(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(return_value=self.sample_response_503())
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
@@ -106,7 +106,7 @@ class TestSolrUpdate:
 
     async def test_solr_offline(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(side_effect=ConnectError("", request=MagicMock()))
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
@@ -117,7 +117,7 @@ class TestSolrUpdate:
 
     async def test_invalid_solr_request(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(return_value=self.sample_global_error())
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
@@ -128,7 +128,7 @@ class TestSolrUpdate:
 
     async def test_bad_apple_in_solr_request(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(return_value=self.sample_individual_error())
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
@@ -139,7 +139,7 @@ class TestSolrUpdate:
 
     async def test_other_non_ok_status(self, monkeypatch, monkeytime):
         mock_post = AsyncMock(return_value=Response(500, request=MagicMock(), content="{}"))
-        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
+        monkeypatch.setattr(utils.get_httpx_client(), "post", mock_post)
 
         await solr_update(
             SolrUpdateRequest(commit=True),
