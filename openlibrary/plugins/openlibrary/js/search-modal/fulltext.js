@@ -101,7 +101,8 @@ export function parseSnippet(snippet) {
  * Normalize one fulltext API hit into the fields the band renders. Prefers
  * the hydrated OL edition (attached server-side when a matching OL record
  * exists for the scan) and falls back to the scan's own metadata fields, so
- * a hit without an OL edition still renders instead of being dropped.
+ * a hit without an OL edition still renders instead of being dropped. (With
+ * a language filter active such hits are already dropped server-side.)
  *
  * @param {Object} hit - one entry of the /search/inside.json hits.hits array
  * @returns {{ia: string, title: string, author: string, snippet: string,

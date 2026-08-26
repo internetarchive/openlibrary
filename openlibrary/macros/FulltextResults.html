@@ -7,7 +7,8 @@ $def render_snippet(query, doc):
 
 $# A hit whose scan didn't hydrate to an OL edition (record missing or lookup
 $# failed) degrades to the scan's own IA metadata instead of vanishing — the
-$# totals and pagination count it either way.
+$# totals and pagination count it either way. (With a language filter active
+$# these hits never arrive: filter_ol_linked drops them server-side.)
 $def render_ia_fallback(query, doc):
   $ fields = doc.get('fields', {})
   $ ia = fields.get('identifier', [''])[0]

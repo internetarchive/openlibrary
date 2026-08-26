@@ -54,8 +54,10 @@ def build_fulltext_query(q: str, languages: list[str] | None = None) -> str:
     Readability is deliberately not expressible here: any field clause
     switches the endpoint to its Lucene parser, which silently ignores
     ``olonly=true`` and searches all of archive.org. Language has to pay
-    that price to work at all; readability doesn't, so it's applied to the
-    fetched hits instead — see ``filter_readable``.
+    that price to work at all — ``fulltext_search_async`` claws it back by
+    dropping hits with no OL edition (``filter_ol_linked``). Readability
+    doesn't, so it's applied to the fetched hits instead — see
+    ``filter_readable``.
 
     >>> build_fulltext_query("moby dick")
     'moby dick'
@@ -78,6 +80,24 @@ def build_fulltext_query(q: str, languages: list[str] | None = None) -> str:
 def hit_ocaid(hit: dict) -> str:
     """The archive.org identifier a full-text hit was found in."""
     return hit.get("fields", {}).get("identifier", [""])[0]
+
+
+def filter_ol_linked(hits: list[dict], editions_by_ocaid: dict) -> list[dict]:
+    """Drop hits whose scan has no OL edition.
+
+    Applied when the query carries a field clause (a language filter): that
+    flips the FTS endpoint to its Lucene parser, which silently ignores
+    ``olonly=true`` and searches all of archive.org — magazines and unlinked
+    scans included. Hydration already looked every ocaid up, so this restores
+    the OL-only scope at no extra cost. ``total`` still counts the dropped
+    hits, so a filtered page can render short — same tradeoff as
+    ``filter_readable``.
+
+    >>> hits = [{"fields": {"identifier": ["linked"]}}, {"fields": {"identifier": ["unlinked"]}}]
+    >>> [hit_ocaid(hit) for hit in filter_ol_linked(hits, {"linked": "ed"})]
+    ['linked']
+    """
+    return [hit for hit in hits if hit_ocaid(hit) in editions_by_ocaid]
 
 
 def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
@@ -132,11 +152,16 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, languages=None):
     if offset is None:
         offset = (page - 1) * limit
+    query = build_fulltext_query(q, languages=languages)
+    # A changed query means a field clause was injected, which flips the
+    # endpoint to its Lucene parser and disables olonly — so the OL-only
+    # scope has to be restored client-side (see filter_ol_linked).
+    ol_only = query != q
     params = {
-        "q": q,
+        "q": query,
         "from": offset,
         "size": limit,
         **({"nofacets": "true"} if not facets else {}),
@@ -170,6 +195,10 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
         # only the first occurrence, so when two hits share an ocaid the second
         # hit got no edition and was silently dropped by the templates.
         editions_by_ocaid = {ed.ocaid: ed for ed in editions}
+        if ol_only:
+            hits = filter_ol_linked(hits, editions_by_ocaid)
+            ia_results["hits"]["hits"] = hits
+            ocaids = [hit_ocaid(hit) for hit in hits]
         for hit, ocaid in zip(hits, ocaids):
             if ed := editions_by_ocaid.get(ocaid):
                 hit["edition"] = format_book_data(ed, fetch_availability=False) if js else ed

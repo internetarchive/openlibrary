@@ -1,4 +1,4 @@
-from openlibrary.core.fulltext import build_fulltext_query, filter_readable
+from openlibrary.core.fulltext import build_fulltext_query, filter_ol_linked, filter_readable
 
 
 def test_no_filters_returns_query_unchanged():
@@ -53,3 +53,15 @@ def test_readable_fails_open_when_availability_lookup_failed():
     # Better a page of unfiltered results than an empty page.
     hits = [hit("public"), hit("restricted")]
     assert filter_readable(hits, {}) == hits
+
+
+def test_ol_linked_drops_hits_without_an_edition():
+    hits = [hit("linked"), hit("unlinked"), hit("also-linked")]
+    editions_by_ocaid = {"linked": "ed1", "also-linked": "ed2"}
+    assert [h["fields"]["identifier"][0] for h in filter_ol_linked(hits, editions_by_ocaid)] == ["linked", "also-linked"]
+
+
+def test_ol_linked_no_editions_drops_everything():
+    # No fail-open here, unlike filter_readable: an empty map means none of
+    # the scans have OL editions (a failed lookup raises instead).
+    assert filter_ol_linked([hit("a"), hit("b")], {}) == []

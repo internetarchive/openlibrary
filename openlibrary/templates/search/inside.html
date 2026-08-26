@@ -55,10 +55,11 @@ $ bodyclass.append('search-page')
         </div>
 
         $if num_found:
-            $# Totals are estimates, hence "about". With the readable filter on
-            $# they also count hits this page dropped, so the range would skip
-            $# numbers between pages — show the total on its own instead.
-            $if readable:
+            $# Totals are estimates, hence "about". With the readable or
+            $# language filter on they also count hits this page dropped
+            $# (unreadable / not OL-linked), so the range would skip numbers
+            $# between pages — show the total on its own instead.
+            $if readable or selected_languages:
                 <div class="search-results-stats">$ungettext('About %(total)s result', 'About %(total)s results', num_found, total=commify(num_found))</div>
             $else:
                 $# Count the hits actually rendered rather than assuming a full page.
@@ -70,10 +71,14 @@ $ bodyclass.append('search-page')
   $if q:
       $if not num_found:
           <div class="search-no-results">$_('No results found. Try a different word or phrase.')</div>
-      $elif readable and not hits:
+      $elif readable and not selected_languages and not hits:
           $# Every match on this page was filtered out — say so rather than
           $# leaving a result count above an empty list.
           <div class="search-no-results">$_('None of the matches on this page are readable online. Turn off Readable Only to see them all.')</div>
+      $elif selected_languages and not hits:
+          $# Language-filtered pages drop matches with no OL edition (and
+          $# unreadable ones too when Readable Only is also on).
+          <div class="search-no-results">$_('None of the matches on this page can be shown with these filters. Try another page or remove a filter.')</div>
 
       <div class="resultsContainer search-results-container">
         $:macros.FulltextResults(q, results, page=page, results_per_page=results_per_page)

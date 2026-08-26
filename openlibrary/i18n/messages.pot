@@ -5695,6 +5695,10 @@ msgstr ""
 msgid "None of the matches on this page are readable online. Turn off Readable Only to see them all."
 msgstr ""
 
+#: search/inside.html
+msgid "None of the matches on this page can be shown with these filters. Try another page or remove a filter."
+msgstr ""
+
 #: search/layout_options.html
 msgid "View as"
 msgstr ""

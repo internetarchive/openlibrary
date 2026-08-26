@@ -5,7 +5,6 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core.fulltext import (
-    build_fulltext_query,
     fulltext_search_async,
     language_name_maps,
 )
@@ -44,15 +43,18 @@ class search_inside(delegate.page):
 
         # Readability filters the fetched hits rather than the query: a readable
         # clause in `q` flips the FTS endpoint to its Lucene parser, which
-        # ignores olonly=true and searches all of archive.org.
+        # ignores olonly=true and searches all of archive.org. A language filter
+        # unavoidably does flip it — fulltext_search_async then drops the
+        # non-OL hits that leak in.
         results = (
             async_bridge.run(
                 fulltext_search_async(
-                    build_fulltext_query(query, languages=language_names),
+                    query,
                     page=page,
                     limit=RESULTS_PER_PAGE,
                     facets=False,
                     readable=readable,
+                    languages=language_names,
                 )
             )
             if query

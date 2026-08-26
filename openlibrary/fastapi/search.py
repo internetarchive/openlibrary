@@ -19,7 +19,6 @@ from pydantic import (
 )
 
 from openlibrary.core.fulltext import (
-    build_fulltext_query,
     fulltext_search_async,
     language_name_maps,
     normalize_language_name,
@@ -234,7 +233,10 @@ async def search_inside_json(
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
-    language: Annotated[list[str] | None, Query(description="Filter by language — MARC codes (e.g. fre) or language names.")] = None,
+    language: Annotated[
+        list[str] | None,
+        Query(description="Filter by language — MARC codes (e.g. fre) or language names. Also drops matches with no OL edition; hits.total still counts them."),
+    ] = None,
 ):
     # facets=True is the historical default; lightweight callers (e.g. the
     # header search modal's snippet band) pass facets=false to skip the
@@ -242,7 +244,7 @@ async def search_inside_json(
     code_to_name = language_name_maps()[0] if language else {}
     languages = [normalize_language_name(lang, code_to_name) for lang in language or []]
     return await fulltext_search_async(
-        build_fulltext_query(q, languages=languages),
+        q,
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -250,8 +252,11 @@ async def search_inside_json(
         facets=facets,
         # Readability filters the fetched hits, not the query: a readable
         # clause in `q` switches the FTS endpoint to its Lucene parser, which
-        # ignores olonly=true and searches all of archive.org.
+        # ignores olonly=true and searches all of archive.org. A language
+        # filter unavoidably does switch it — fulltext_search_async then
+        # drops the non-OL hits that leak in.
         readable=readable,
+        languages=languages,
     )
 
 
