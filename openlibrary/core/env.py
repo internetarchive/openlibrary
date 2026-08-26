@@ -20,8 +20,7 @@ def get_deployment_name() -> str:
     Drives dev-facing UI cues (favicon, logo badge) so localhost,
     testing.openlibrary.org, and production tabs are distinguishable.
     """
-    host = getattr(web.ctx, "host", "")
-    match host:
+    match web.ctx.host:
         case "openlibrary.org" | "www.openlibrary.org":
             return "production"
         case "testing.openlibrary.org":
