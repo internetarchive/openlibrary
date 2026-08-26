@@ -11,9 +11,9 @@ from fastapi.responses import StreamingResponse
 from openlibrary.utils.async_utils import cache_per_event_loop
 
 if TYPE_CHECKING:
-    from fastapi import Request, Response
-
-get_async_session = cache_per_event_loop(functools.partial(httpx.AsyncClient, follow_redirects=False, timeout=60.0))
+    from fastapi import Request, Response  # Streaming proxies can legitimately take a long time (large uploads/downloads),
+# so disable httpx's default timeout entirely.
+get_async_session = cache_per_event_loop(functools.partial(httpx.AsyncClient, follow_redirects=False, timeout=None))
 
 
 async def proxy_to_webpy(request: Request) -> Response:
