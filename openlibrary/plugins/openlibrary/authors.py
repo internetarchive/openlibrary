@@ -11,5 +11,4 @@ class author(delegate.page):
     path = "/authors"
 
     def GET(self):
-        results = random_author_search()
-        return render_template("authors/index.html", results)
+        return render_template("authors/index.html", random_author_search())
