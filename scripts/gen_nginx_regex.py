@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
-"""Generate nginx PCRE regex(es) that match every FastAPI endpoint.
+"""Generate an nginx PCRE regex that matches every FastAPI endpoint.
 
-Pulls the OpenAPI spec, converts each path template into a regex segment,
-and prints two bare PCRE regexes to stdout (no nginx wrapper). Routes
+Fetches the local FastAPI OpenAPI spec, converts each path template into
+a regex segment, and prints one fully anchored PCRE regex to stdout (no
+nginx wrapper — paste it directly into a ``location ~`` block). Routes
 hidden from the spec (registered with ``include_in_schema=False``) are
-merged in from ``HIDDEN_PATHS``:
+merged in from ``HIDDEN_PATHS``.
 
-  1. A regex for all ``.json`` endpoints
-  2. A regex for all non-``.json`` endpoints
+Paths are first split into ``.json`` and non-``.json`` blocks so each
+block can collapse more tightly (e.g. hoisting ``\\.json`` outside the
+alternation group), then the two block regexes are combined into a
+single alternation anchored as a whole (``^/(?:...)$``) so nginx's
+search semantics can't over-match unrelated URLs.
 
-Splitting by suffix lets each regex use tighter collapsing (e.g. the
-``.json`` regex can anchor every fragment with ``\\.json``) and keeps
-each regex short and readable.
-
-Behavior is fully driven by the hardcoded constants below. Diagnostic
-info (counts, warnings, verify result) is printed to stderr so stdout
-stays clean.
+Behavior is fully driven by the hardcoded constants below:
+``EXCLUDE_PATHS``/``EXCLUDE_PREFIXES`` drop routes from the regex,
+``COLLAPSE_PREFIXES`` (when ``ENABLE_COLLAPSING`` is set) replaces whole
+path families with a single wildcard branch, and enum-constrained path
+parameters become tight alternations. Diagnostic info (counts, warnings,
+verify result, path table) is printed to stderr so stdout stays clean.
+The script verifies the emitted regex against materialized sample URLs
+(including negative over-match probes) and exits nonzero on failure.
 """
 
 from __future__ import annotations
