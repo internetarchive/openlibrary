@@ -225,13 +225,13 @@ export default {
   contain: strict;
 }
 
-.shelf >>> .book {
+.shelf :deep(.book) {
   justify-content: flex-end;
   margin-bottom: 10px;
 }
 
-.shelf >>> .book:first-child .book-3d,
-.shelf >>> .book-end-start + .book .book-3d {
+.shelf :deep(.book:first-child .book-3d),
+.shelf :deep(.book-end-start + .book .book-3d) {
   margin-left: 20px;
 }
 
