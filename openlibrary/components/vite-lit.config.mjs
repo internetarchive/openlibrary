@@ -36,6 +36,11 @@ export default defineConfig({
             }
         },
 
+        // The vendored editor-core chunk is ~540 kB minified and is not
+        // meaningfully splittable, so lift the warning limit above it to keep
+        // the build output clean while still flagging genuinely oversized chunks.
+        chunkSizeWarningLimit: 600,
+
         // Minify the output
         minify: 'terser',
 
