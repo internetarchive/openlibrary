@@ -885,6 +885,10 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
+#: search/search_modal_i18n.html work_search.html
+msgid "Loading…"
+msgstr ""
+
 #: work_search.html
 msgid "Filter by language"
 msgstr ""

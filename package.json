@@ -4,7 +4,7 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "watch": "npx concurrently --names js,css,components --prefix-colors --kill-others npm:watch:js npm:watch:css npm:watch:components",
+    "watch": "npx concurrently --names js,css,components,lit --prefix-colors --kill-others npm:watch:js npm:watch:css npm:watch:components npm:watch:lit-components",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "npx vite build -c vite-css.config.mjs --watch --mode development",
