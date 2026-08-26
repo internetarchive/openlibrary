@@ -657,9 +657,8 @@ LIST_VIEW_PAGE_SIZE = 50
 def _resolve_list_view_items(seeds: list[ListSeed]) -> list[web.storage]:
     """Batch-resolve a page of list/series seeds into renderable items.
 
-    Moves the seed -> Solr doc -> availability resolution that used to run
-    inside type/list/view_body.html into Python, so the template only
-    renders data that has already been fetched.
+    Resolves each seed's Solr doc and availability in Python so the
+    template only renders data that has already been fetched.
     """
     if not seeds:
         return []
@@ -689,23 +688,18 @@ class list_view(delegate.page):
     Shares list_view_yaml's `path` below so both encodings coexist on the
     same route (infogami keys page registrations by (path, encoding)); this
     is the plain-HTML sibling, registered with no `encoding` (defaults to
-    None). Before this handler existed, this path had no OL-owned HTML
-    handler and fell through to Infogami's generic type-view dispatch,
-    which is where the Solr/availability I/O below used to live, inside
-    view_body.html.
+    None).
     """
 
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
 
     def GET(self, key):
         if web.ctx.encoding:
-            # Preserve the legacy web.py app's unsupported-encoding
-            # behavior (406) for anything that isn't plain HTML. Real JSON
-            # traffic for this path is served by FastAPI; this only guards
-            # the old web.py app in case a request reaches it directly.
+            # Only plain HTML is rendered here; JSON for this route is
+            # served by FastAPI. Keep web.py's 406 for other encodings.
             raise web.HTTPError("406 Not Acceptable", {})
 
-        i = web.input(v=None)
+        i = web.input(v=None, m=None)
         if i.v is not None and safeint(i.v, None) is None:
             raise web.seeother(web.changequery(v=None))
 
@@ -717,6 +711,10 @@ class list_view(delegate.page):
             return render_template("type/delete/view", lst)
         if lst.type.key == "/type/redirect" and lst.location and not lst.location.startswith("http://") and not lst.location.startswith("://"):
             web.redirect(lst.location)
+        if i.get("m") == "edit":
+            # Match the edit mode's ?m=edit redirect to the /edit page,
+            # since page dispatch shadows mode dispatch for this route.
+            raise safe_seeother(lst.url(suffix="/edit"))
 
         page = safeint(query_param("page"), 1) - 1
         sort = query_param("sort", None)

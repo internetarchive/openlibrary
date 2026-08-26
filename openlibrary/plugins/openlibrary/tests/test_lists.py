@@ -274,8 +274,7 @@ def _make_seed(key, type_, document=None):
 
 
 class TestResolveListViewItems:
-    """Unit tests for the Solr/availability batching moved out of
-    type/list/view_body.html (issue #13419, subtask 4)."""
+    """Unit tests for the seed -> Solr doc -> availability batching."""
 
     def test_empty_seeds_skips_solr_and_availability(self, monkeypatch):
         solr_mock = Mock()
@@ -379,7 +378,7 @@ class TestResolveListViewItems:
 
 
 class TestListViewGet:
-    """Tests for the list_view HTML handler added for issue #13419, subtask 4."""
+    """Tests for the list_view HTML handler."""
 
     def test_non_html_encoding_returns_406(self, monkeypatch):
         monkeypatch.setattr(web.ctx, "encoding", "json", raising=False)
@@ -450,12 +449,10 @@ class TestListViewGet:
         render_mock.assert_called_once_with("type/list/view", lst, [], 1, 50, None)
 
     def test_page_zero_query_param_preserves_preexisting_slicing_quirk(self, monkeypatch):
-        """`?page=0` -> page=-1 -> a negative-start slice.
+        """`?page=0` -> page=-1 -> a negative-start slice that yields no items.
 
-        This is a pre-existing quirk of the template code being hoisted here
-        (safeint(query_param('page'), 1) - 1 has no lower bound), not
-        something introduced by this change. It is deliberately preserved
-        byte-for-byte rather than "fixed" as a silent side effect.
+        safeint(query_param('page'), 1) - 1 has no lower bound; the quirk is
+        preserved intentionally rather than fixed as a silent side effect.
         """
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
         monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="0", sort=None))
@@ -480,9 +477,34 @@ class TestListViewGet:
             legacy_lists.list_view().GET("/lists/OL1L")
 
         # page=0 -> page=-1 -> seeds[-50:0], which Python clamps to an empty
-        # slice here (same as the old template code would have produced).
+        # slice here.
         resolve_mock.assert_called_once_with(all_seeds[-50:0])
         assert all_seeds[-50:0] == []
+
+    def test_edit_mode_redirects_to_edit_url(self, monkeypatch):
+        """/lists/OL1L?m=edit redirects to /lists/OL1L/edit, matching the
+        edit mode that page dispatch shadows for this route."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web.ctx, "path", "/lists/OL1L", raising=False)
+        monkeypatch.setattr(web.ctx, "home", "", raising=False)
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="edit"))
+
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            url=Mock(return_value="/lists/OL1L/edit"),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
+            mock_site_context.get.return_value = mock_site
+
+            with pytest.raises(web.HTTPError) as excinfo:
+                legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert excinfo.value.args[0] == "303 See Other"
+        assert any(h[0] == "Location" and h[1] == "/lists/OL1L/edit" for h in web.ctx.headers)
 
     def test_sort_last_modified_is_forwarded_to_get_seeds(self, monkeypatch):
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
