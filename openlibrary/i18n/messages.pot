@@ -5675,39 +5675,24 @@ msgstr ""
 
 #: search/inside.html
 #, python-format
-msgid "Remove filter: %(filter)s"
-msgstr ""
-
-#: search/inside.html
-#, python-format
-msgid "Remove filter: %(language)s"
-msgstr ""
-
-#: search/inside.html
-msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
-
-#: search/inside.html
-#, python-format
-msgid "About %(count)s result found"
-msgid_plural "About %(count)s results found"
+msgid "About %(total)s result"
+msgid_plural "About %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
 #: search/inside.html
 #, python-format
-msgid "in %(seconds)s second"
-msgid_plural "in %(seconds)s seconds"
+msgid "%(start)s - %(end)s of about %(total)s result"
+msgid_plural "%(start)s - %(end)s of about %(total)s results"
 msgstr[0] ""
 msgstr[1] ""
 
-#: search/inside.html search/work_search_facets.html
-msgid "Zoom In"
+#: search/inside.html
+msgid "No results found. Try a different word or phrase."
 msgstr ""
 
-#: search/inside.html search/work_search_facets.html
-#, python-format
-msgid "Filter results for %(facet)s"
+#: search/inside.html
+msgid "None of the matches on this page are readable online. Turn off Readable Only to see them all."
 msgstr ""
 
 #: search/layout_options.html
@@ -5838,11 +5823,6 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "See more Search Inside matches"
-msgstr ""
-
-#: TableOfContents.html search/search_modal_i18n.html
-#, python-format
-msgid "Page %s"
 msgstr ""
 
 #: search/sort_options.html
@@ -5978,6 +5958,11 @@ msgid "Less"
 msgstr ""
 
 #: search/work_search_facets.html
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr ""
+
+#: search/work_search_facets.html
 msgid "Filter results for ebook availability"
 msgstr ""
 
@@ -5987,6 +5972,10 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "no"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Zoom In"
 msgstr ""
 
 #: search/work_search_facets.html
@@ -7095,16 +7084,12 @@ msgstr ""
 msgid "See all %(results_count)s Search Inside Matches"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSuggestionSnippet.html
 msgid "❝"
 msgstr ""
 
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
+#: FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
-
-#: FulltextSnippet.html
-msgid "Jump to page"
 msgstr ""
 
 #: FulltextSuggestionSnippet.html
@@ -7454,6 +7439,11 @@ msgstr ""
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
+msgstr ""
+
+#: TableOfContents.html
+#, python-format
+msgid "Page %s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

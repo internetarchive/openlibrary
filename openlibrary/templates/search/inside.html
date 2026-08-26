@@ -1,8 +1,10 @@
-$def with (q, results, search_time, page=1, results_per_page=20, selected_languages=None, readable=False, readable_count=None, filter_url=None, facet_url=None)
+$def with (q, results, search_time, page=1, results_per_page=20, selected_languages=None, readable=False)
 
 $var title: $_('Search Open Library for %s', q)
 
 $ selected_languages = selected_languages or []
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('search-page')
 
 <div id="contentHead">
   <h1>$_("Search Inside")</h1>
@@ -10,21 +12,24 @@ $ selected_languages = selected_languages or []
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <div class="section">
-    <form class="siteSearch olform" action="/search/inside">
-      $:render_template("search/searchbox", q=q)
+  $ num_found = 0
+  $if q and results and 'error' not in results and results['hits']:
+      $ hits = results['hits'].get('hits', [])
+      $ num_found = results['hits'].get('total', 0)
+
+  $# Same stacked-controls structure as /search (work_search.html): the
+  $# .search-controls wrapper owns the vertical rhythm between the search box,
+  $# filter row, chips, and stats with a single gap.
+  <div class="search-controls">
+    <form class="siteSearch search-row olform" action="/search/inside">
+      $:render_template("search/searchbox", q=q, autofocus=True)
       $for lang in selected_languages:
         <input type="hidden" name="language" value="$lang.code"/>
       $if readable:
         <input type="hidden" name="readable" value="true"/>
     </form>
-  </div>
-    $ num_found = 0
-    $if q:
-        $if results and 'error' not in results and results['hits']:
-            $ hits = results['hits'].get('hits', [])
-            $ num_found = results['hits'].get('total', 0)
 
+    $if q:
         $if 'error' in results:
             <div class="searchResultsError">$results['error']</div>
 
@@ -33,13 +38,13 @@ $ selected_languages = selected_languages or []
         $# them onto this page's readable/language params. No sort or layout
         $# tools: the FTS backend only ranks by relevance, and snippet rows
         $# have no grid form.
-        $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
+        $# No count on the toggle: it would need a second query the FTS backend
+        $# parses differently, over a different corpus, with approximate totals.
         <div class="search-filter-row" id="search-filter-row">
           <ol-toggle
             variant="button"
             label="$_('Readable Only')"
             accessible-label="$_('Filter by availability')"
-            sublabel="$readable_sublabel"
           ></ol-toggle>
           <ol-select-popover
             label="$_('Language')"
@@ -49,43 +54,28 @@ $ selected_languages = selected_languages or []
           ></ol-select-popover>
         </div>
 
-        $if readable or selected_languages:
-            <span class="selected-search-facets-container">
-              $if readable:
-                <ol-chip selected size="small" accessible-label="$_('Remove filter: %(filter)s', filter=_('Readable Only'))" href="$filter_url(readable=False)">$_("Readable Only")</ol-chip>
-              $for lang in selected_languages:
-                <ol-chip selected size="small" accessible-label="$_('Remove filter: %(language)s', language=lang.name)" href="$filter_url(languages=[l.code for l in selected_languages if l.code != lang.code])">$lang.name</ol-chip>
-            </span>
+        $if num_found:
+            $# Totals are estimates, hence "about". With the readable filter on
+            $# they also count hits this page dropped, so the range would skip
+            $# numbers between pages — show the total on its own instead.
+            $if readable:
+                <div class="search-results-stats">$ungettext('About %(total)s result', 'About %(total)s results', num_found, total=commify(num_found))</div>
+            $else:
+                $# Count the hits actually rendered rather than assuming a full page.
+                $ range_start = (page - 1) * results_per_page + 1
+                $ range_end = range_start + len(hits) - 1
+                <div class="search-results-stats">$ungettext('%(start)s - %(end)s of about %(total)s result', '%(start)s - %(end)s of about %(total)s results', num_found, start=range_start, end=range_end, total=commify(num_found))</div>
+  </div>
 
-        $if not num_found:
-            <center>
-              <div class="red">$:_('No <strong>Search Inside</strong> text matched your search')</div>
-              <hr>
-            </center>
+  $if q:
+      $if not num_found:
+          <div class="search-no-results">$_('No results found. Try a different word or phrase.')</div>
+      $elif readable and not hits:
+          $# Every match on this page was filtered out — say so rather than
+          $# leaving a result count above an empty list.
+          <div class="search-no-results">$_('None of the matches on this page are readable online. Turn off Readable Only to see them all.')</div>
 
-        $else:
-            <p class="search-results-stats">$ungettext('About %(count)s result found', 'About %(count)s results found', num_found, count=commify(num_found)) $ungettext('in %(seconds)s second', 'in %(seconds)s seconds', search_time, seconds="%.2f" % search_time)</p>
-
-        $ lang_buckets = results.get('aggregations', {}).get('top-languages', {}).get('buckets', []) if results else []
-        <div class="resultsContainer search-results-container">
-          $:macros.FulltextResults(q, results, page=page, results_per_page=results_per_page)
-          $# Language facet sidebar, from the FTS response's aggregations.
-          $# Selecting a bucket reruns the search with the language added to
-          $# the ANDed languageSorter clause (see build_fulltext_query).
-          $# Buckets for already-selected languages are dropped — their
-          $# chips above own removing them.
-          $ selected_names = [l.name.casefold() for l in selected_languages]
-          $ facet_buckets = [b for b in lang_buckets if b.get('key') and b['key'].casefold() not in selected_names][:10]
-          $if facet_buckets:
-            <div id="searchFacets">
-              <h3 class="collapse">$_("Zoom In")</h3>
-              <div class="facet">
-                <h4 class="facetHead">$_("Language")</h4>
-                $for bucket in facet_buckets:
-                  <div class="facetEntry">
-                    <ol-chip size="small" href="$facet_url(bucket['key'])" title="$_('Filter results for %(facet)s', facet=bucket['key'])" data-ol-link-track="SearchInsideFacet|Language" count="$commify(bucket['doc_count'])">$bucket['key']</ol-chip>
-                  </div>
-              </div>
-            </div>
-        </div>
+      <div class="resultsContainer search-results-container">
+        $:macros.FulltextResults(q, results, page=page, results_per_page=results_per_page)
+      </div>
 </div>

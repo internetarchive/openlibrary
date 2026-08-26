@@ -442,6 +442,11 @@ input.highlight {
 }
 
 /* openlibrary/templates/search/inside.html */
+.search-no-results {
+  color: var(--color-text-muted);
+  padding: var(--spacing-lg) 0;
+}
+
 .search-results-stats {
   display: flex;
   gap: 10px;

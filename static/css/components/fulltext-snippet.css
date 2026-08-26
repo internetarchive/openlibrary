@@ -3,7 +3,7 @@
   width: 60%;
   padding: var(--spacing-inset-xs);
   margin: 0;
-  font-size: small;
+  font-size: var(--font-size-body-small);
 }
 /* --width-breakpoint-mobile: 450px */
 @media (min-width: 450px) {
@@ -15,7 +15,7 @@
 @media (min-width: 768px) {
   .fsi-snippet {
     width: auto;
-    font-size: medium;
+    font-size: var(--font-size-body-medium);
   }
 }
 .fsi-snippet__main {
@@ -49,20 +49,20 @@
 .fsi-snippet__full-results:last-child {
   border-bottom: none;
 }
+/* /search/inside rows match the search modal's band: plain body text,
+   no quotation marks, matched terms bold with no highlight. */
+.fsi-snippet__full-results .fsi-snippet__link:link,
+.fsi-snippet__full-results .fsi-snippet__link:visited {
+  font-family: var(--font-family-body);
+  color: var(--color-text);
+}
+.fsi-snippet__full-results .fsi-snippet__link:hover {
+  color: var(--color-link);
+}
+.fsi-snippet__full-results strong {
+  font-weight: 600;
+}
 .fsi-snippet__quotation-mark {
   font-size: larger;
   display: inline;
-}
-.fsi-snippet__pages {
-  padding: var(--spacing-inset-xs);
-  margin: 0 var(--spacing-inline-sm);
-  color: var(--dark-grey);
-  font-size: 0.875em;
-  list-style: none;
-}
-.fsi-snippet__pages .fsi-snippet__page-link {
-  margin-inline-start: var(--spacing-inline-sm);
-  font-family: var(--font-family-body);
-  color: var(--link-blue);
-  text-decoration: none;
 }

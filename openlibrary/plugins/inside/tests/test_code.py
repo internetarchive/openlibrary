@@ -1,10 +1,10 @@
-from openlibrary.core.fulltext import build_fulltext_query
+from openlibrary.core.fulltext import build_fulltext_query, filter_readable
 
 
 def test_no_filters_returns_query_unchanged():
     assert build_fulltext_query("moby dick") == "moby dick"
     assert build_fulltext_query('"exact phrase"') == '"exact phrase"'
-    assert build_fulltext_query("moby dick", languages=[], readable=False) == "moby dick"
+    assert build_fulltext_query("moby dick", languages=[]) == "moby dick"
 
 
 def test_language_adds_anded_clause():
@@ -29,12 +29,27 @@ def test_blank_language_values_dropped():
     assert build_fulltext_query("whale", ["", "  "]) == "whale"
 
 
-def test_readable_adds_collection_clause():
-    assert build_fulltext_query("whale", readable=True) == "(whale) AND (collection:(inlibrary) OR (!collection:(printdisabled)))"
+def hit(ocaid: str) -> dict:
+    return {"fields": {"identifier": [ocaid]}}
 
 
-def test_language_and_readable_compose():
-    assert (
-        build_fulltext_query("whale", ["French"], readable=True)
-        == '(whale) AND languageSorter:"French" AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
-    )
+def test_readable_keeps_public_and_borrowable():
+    hits = [hit("public"), hit("borrowable"), hit("restricted")]
+    availability = {
+        "public": {"is_readable": True, "is_lendable": False},
+        "borrowable": {"is_readable": False, "is_lendable": True},
+        "restricted": {"is_readable": False, "is_lendable": False, "is_printdisabled": True},
+    }
+    assert [h["fields"]["identifier"][0] for h in filter_readable(hits, availability)] == ["public", "borrowable"]
+
+
+def test_readable_drops_hits_with_no_availability_record():
+    # An unknown scan can't be shown as readable — but see the fail-open case
+    # below: that's about the lookup failing wholesale, not one missing entry.
+    assert filter_readable([hit("unknown")], {"other": {"is_readable": True}}) == []
+
+
+def test_readable_fails_open_when_availability_lookup_failed():
+    # Better a page of unfiltered results than an empty page.
+    hits = [hit("public"), hit("restricted")]
+    assert filter_readable(hits, {}) == hits

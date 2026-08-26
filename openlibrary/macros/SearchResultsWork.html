@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False)
 
 $code:
   max_rendered_authors = 9
@@ -52,6 +52,18 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
 
+  # Year shown after the title. Only data already on the record — never a
+  # second lookup: solr docs carry first_publish_year; infogami editions
+  # carry publish_date, from which we pull the 4-digit year.
+  title_year = None
+  if show_title_year:
+    if doc_type.startswith('solr_'):
+      title_year = doc.get('first_publish_year')
+    elif doc_type == 'infogami_edition':
+      title_year = extract_year(selected_ed.get('publish_date') or '') or None
+    elif doc_type == 'infogami_work':
+      title_year = extract_year(doc.get('first_publish_date') or '') or None
+
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
   $if 'log' in doc:
@@ -96,6 +108,8 @@ $code:
             </span>
           <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
+            $if title_year:
+              <span class="booktitle__year">($title_year)</span>
           </h3>
         </div>
         <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">

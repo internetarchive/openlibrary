@@ -34,6 +34,18 @@
 .nav-bar:not(.work-menu) li:hover a {
   border-bottom: 2px solid var(--link-blue);
 }
+
+.nav-bar.search-nav {
+  font-weight: 500;
+}
+
+.nav-bar.search-nav li {
+  font-size: var(--font-size-label-large);
+}
+
+.nav-bar.search-nav li.selected a {
+  font-weight: 650;
+}
 /* stylelint-enable selector-max-specificity */
 
 .nav-bar-wrapper {

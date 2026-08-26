@@ -233,7 +233,7 @@ async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
     q: Annotated[str, Query(title="Search query")],
     facets: Annotated[bool, Query(description="Include facet aggregations in the response.")] = True,
-    readable: Annotated[bool, Query(description="Restrict matches to readable (public or borrowable) scans.")] = False,
+    readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
     language: Annotated[list[str] | None, Query(description="Filter by language — MARC codes (e.g. fre) or language names.")] = None,
 ):
     # facets=True is the historical default; lightweight callers (e.g. the
@@ -242,12 +242,16 @@ async def search_inside_json(
     code_to_name = language_name_maps()[0] if language else {}
     languages = [normalize_language_name(lang, code_to_name) for lang in language or []]
     return await fulltext_search_async(
-        build_fulltext_query(q, languages=languages, readable=readable),
+        build_fulltext_query(q, languages=languages),
         page=pagination.page,
         offset=pagination.offset,
         limit=pagination.limit,
         js=True,
         facets=facets,
+        # Readability filters the fetched hits, not the query: a readable
+        # clause in `q` switches the FTS endpoint to its Lucene parser, which
+        # ignores olonly=true and searches all of archive.org.
+        readable=readable,
     )
 
 

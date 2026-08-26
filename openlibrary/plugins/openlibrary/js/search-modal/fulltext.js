@@ -105,8 +105,8 @@ export function parseSnippet(snippet) {
  *
  * @param {Object} hit - one entry of the /search/inside.json hits.hits array
  * @returns {{ia: string, title: string, author: string, snippet: string,
- *   page: (number|string|null), coverUrl: (string|null)}|null} null when the
- *   hit has no scan identifier or no snippet to show
+ *   coverUrl: (string|null)}|null} null when the hit has no scan identifier
+ *   or no snippet to show
  */
 export function fulltextHitDisplay(hit) {
     const fields = (hit && hit.fields) || {};
@@ -119,11 +119,6 @@ export function fulltextHitDisplay(hit) {
     const author = (edition && Array.isArray(edition.authors)
         ? edition.authors.map((a) => a && a.name).filter(Boolean).join(', ')
         : '');
-    // page_num arrives as a list of per-highlight lists (e.g. [[234]]);
-    // flatten and take the first as the passage's page.
-    const page = Array.isArray(fields.page_num)
-        ? [fields.page_num].flat(Infinity)[0] ?? null
-        : null;
     const coverUrl = (edition && edition.cover_url) || null;
-    return { ia, title, author, snippet, page, coverUrl };
+    return { ia, title, author, snippet, coverUrl };
 }

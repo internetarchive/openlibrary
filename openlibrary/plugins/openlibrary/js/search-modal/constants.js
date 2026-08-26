@@ -111,11 +111,9 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     // "Found inside books" band: snippet matches from Search Inside rendered
-    // under the top results. ftPage's %s is the page number the passage
-    // appears on.
+    // under the top results.
     foundInside: 'Found inside books',
     seeAllInside: 'See more Search Inside matches',
-    ftPage: 'Page %s',
 };
 
 /**

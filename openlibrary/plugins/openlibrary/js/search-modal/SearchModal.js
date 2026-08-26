@@ -1131,17 +1131,13 @@ export class SearchModal extends LitElement {
     }
 
     // One snippet row: cover, two-line quote with the match marked, and
-    // a title · author · page attribution line. The whole row deep-links to
+    // a title · author attribution line. The whole row deep-links to
     // the passage — BookReader opens with the query highlighted via the
     // #search/ anchor (the same link the /search/inside page uses).
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/stream/${hit.ia}?ref=ol&access=1#search/${encodeURIComponent(q)}`;
         const segments = parseSnippet(hit.snippet);
-        const attribution = [
-            hit.title,
-            hit.author,
-            hit.page !== null ? sprintf(this._i18n.ftPage, hit.page) : '',
-        ].filter(Boolean).join(' · ');
+        const attribution = [hit.title, hit.author].filter(Boolean).join(' · ');
         return html`<li>
                 <a
                     class="result ft-result"
@@ -1739,9 +1735,11 @@ export class SearchModal extends LitElement {
 
         const params = new URLSearchParams();
         params.set('q', trimmed);
-        params.set('limit', String(FULLTEXT_LIMIT));
         params.set('facets', 'false');
         this._appendFulltextFilterParams(params);
+        // The server drops unreadable hits from the page it fetched, so the
+        // readable filter needs headroom or the band thins out to a row or two.
+        params.set('limit', String(params.get('readable') ? FULLTEXT_LIMIT * 3 : FULLTEXT_LIMIT));
         const url = `/search/inside.json?${params.toString()}`;
         this._ftFetchKey = url;
 
@@ -1750,7 +1748,7 @@ export class SearchModal extends LitElement {
             .then(data => {
                 if (this._ftFetchKey !== url) return;
                 const hits = (data && data.hits && data.hits.hits) || [];
-                this._ftHits  = hits.map(fulltextHitDisplay).filter(Boolean);
+                this._ftHits  = hits.map(fulltextHitDisplay).filter(Boolean).slice(0, FULLTEXT_LIMIT);
                 this._ftTotal = typeof data?.hits?.total === 'number' ? data.hits.total : null;
             })
             .catch(() => {

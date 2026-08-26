@@ -86,6 +86,11 @@
   line-height: var(--line-height-heading);
 }
 
+/* Publish year in parentheses after the title — same size, not bold */
+.searchResultItem .booktitle__year {
+  font-weight: normal;
+}
+
 .searchResultItem .details {
   overflow: auto;
   display: inline;
@@ -357,6 +362,20 @@
   .list-results .searchResultItem .imageLg {
     width: 175px;
     text-align: right;
+  }
+
+  /* /search/inside: with no facets sidebar, flex gives the cover column the
+     full 175px basis. Cap it at the footprint the covers actually get on
+     /search's list view, where the sidebar shrinks the column to ~105px. */
+  .search-results-container .searchResultItem .bookcover {
+    width: 105px;
+    flex-shrink: 0;
+  }
+
+  .search-results-container .searchResultItem .bookcover :where(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: 170px;
   }
 }
 

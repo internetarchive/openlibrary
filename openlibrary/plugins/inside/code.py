@@ -1,6 +1,4 @@
-import asyncio
 from time import time
-from urllib.parse import urlencode
 
 import web
 
@@ -43,49 +41,24 @@ class search_inside(delegate.page):
                 continue
             selected_languages.append(web.storage(code=code, name=name))
         language_names = [sel.name for sel in selected_languages]
-        selected_codes = [sel.code for sel in selected_languages]
 
-        async def search_and_count():
-            """The results page plus the "Readable Only" toggle's count. When
-            the filter is off the count needs its own readable-scoped query —
-            run it concurrently with the main search."""
-            search_coro = fulltext_search_async(
-                build_fulltext_query(query, languages=language_names, readable=readable),
-                page=page,
-                limit=RESULTS_PER_PAGE,
-                # Aggregations feed the page's language facet sidebar.
-                facets=True,
+        # Readability filters the fetched hits rather than the query: a readable
+        # clause in `q` flips the FTS endpoint to its Lucene parser, which
+        # ignores olonly=true and searches all of archive.org.
+        results = (
+            async_bridge.run(
+                fulltext_search_async(
+                    build_fulltext_query(query, languages=language_names),
+                    page=page,
+                    limit=RESULTS_PER_PAGE,
+                    facets=False,
+                    readable=readable,
+                )
             )
-            if readable:
-                results = await search_coro
-                count = results.get("hits", {}).get("total") if "error" not in results else None
-                return results, count
-            count_coro = fulltext_search_async(
-                build_fulltext_query(query, languages=language_names, readable=True),
-                limit=0,
-                facets=False,
-            )
-            results, count_results = await asyncio.gather(search_coro, count_coro)
-            count = count_results.get("hits", {}).get("total") if "error" not in count_results else None
-            return results, count
-
-        results, readable_count = async_bridge.run(search_and_count()) if query else ({}, None)
+            if query
+            else {}
+        )
         search_time = time() - search_start
-
-        def filter_url(languages=selected_codes, readable=readable):
-            """/search/inside URL for the current query with a modified
-            filter set — used by the template's chips and facet links."""
-            params = [("q", query)]
-            params += [("language", code) for code in languages]
-            if readable:
-                params.append(("readable", "true"))
-            return "/search/inside?" + urlencode(params)
-
-        def facet_url(bucket_key):
-            """Add a language facet bucket (a languageSorter name) to the
-            current selection, as its MARC code where one is known."""
-            code = name_to_code.get(bucket_key.strip().casefold(), bucket_key)
-            return filter_url(languages=[*selected_codes, code])
 
         return render_template(
             "search/inside.tmpl",
@@ -96,9 +69,6 @@ class search_inside(delegate.page):
             results_per_page=RESULTS_PER_PAGE,
             selected_languages=selected_languages,
             readable=readable,
-            readable_count=readable_count,
-            filter_url=filter_url,
-            facet_url=facet_url,
         )
 
 

@@ -65,7 +65,6 @@ describe('fulltextHitDisplay', () => {
             title: 'Water Touching Stone',
             author: 'Eliot Pattison',
             snippet: 'But {{{Lokesh}}} had never seemed',
-            page: 214,
             coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
         });
     });
@@ -77,7 +76,6 @@ describe('fulltextHitDisplay', () => {
             title: 'Water touching stone',
             author: '',
             snippet: 'But {{{Lokesh}}} had never seemed',
-            page: 214,
             coverUrl: null,
         });
     });
@@ -86,11 +84,6 @@ describe('fulltextHitDisplay', () => {
         expect(fulltextHitDisplay({ fields: {}, highlight: { text: ['x'] } })).toBeNull();
         expect(fulltextHitDisplay({ fields: { identifier: ['id'] }, highlight: { text: [] } })).toBeNull();
         expect(fulltextHitDisplay(undefined)).toBeNull();
-    });
-
-    test('tolerates a flat page_num list', () => {
-        const flat = { ...hit, fields: { ...hit.fields, page_num: [31, 88] } };
-        expect(fulltextHitDisplay(flat).page).toBe(31);
     });
 });
 

@@ -2,31 +2,27 @@ $def with (q, doc=None)
 
 $ ia = doc.get('fields', {}).get('identifier', [''])[0]
 $ ia_base_url = "https://archive.org"
-$ availability = doc.get('availability', {})
-$ snippets = doc.get('highlight', {}).get('text', [''])[:2]
+$ snippets = doc.get('highlight', {}).get('text', [''])[:3]
 
-$# page_num arrives as a list of per-highlight lists (e.g. [[234], [250]]);
-$# flatten (dropping duplicates, keeping order) for the page links below.
-$ page_nums = []
-$for p in doc.get('fields', {}).get('page_num', []):
-    $for num in (p if isinstance(p, list) else [p]):
-        $if num not in page_nums:
-            $ page_nums.append(num)
+$# page_num is a list of per-highlight lists ([[234]]) aligned with the
+$# snippets — though today's API returns a page for the first highlight only.
+$ page_lists = doc.get('fields', {}).get('page_num', [])
 
 <ul class="fsi-snippet">
   $for snippet in snippets:
     $if snippet:
+      $ page = page_lists[loop.index0] if loop.index0 < len(page_lists) else None
+      $if isinstance(page, list):
+          $ page = page[0] if page else None
+      $# With a page, the quote deep-links straight to it (q keeps the term
+      $# highlighted); without one, fall back to BookReader's search view.
+      $if page is not None:
+          $ href = "%s/details/%s/page/%s?%s" % (ia_base_url, ia, page, urlencode(dict(q=q)))
+      $else:
+          $ href = "%s/stream/%s?ref=ol&access=1#search/%s" % (ia_base_url, ia, q)
       <li class="fsi-snippet__main fsi-snippet__full-results">
-        <div class="fsi-snippet__quotation-mark">$_('❝')</div>
-        <a class="fsi-snippet__link" href="$ia_base_url/stream/$(ia)?ref=ol&access=1#search/$(q)" data-ol-link-track="SearchInsideCard|QuoteClick">
-          &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
-        </a>&nbsp;
-        <div class="fsi-snippet__quotation-mark">$_('❞')</div>
+        <a class="fsi-snippet__link" href="$href" data-ol-link-track="SearchInsideCard|QuoteClick">
+          &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<strong>").replace("}}}", "</strong>"))&hellip;
+        </a>
       </li>
-  $if page_nums:
-    <li class="fsi-snippet__pages">
-      $_("Jump to page")
-      $for num in page_nums[:6]:
-        <a class="fsi-snippet__page-link" href="$ia_base_url/details/$(ia)/page/$(num)?$urlencode(dict(q=q))" data-ol-link-track="SearchInsideCard|PageClick">$num</a>
-    </li>
 </ul>

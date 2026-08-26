@@ -43,13 +43,19 @@ def normalize_language_name(lang: str, code_to_name: dict[str, str] | None = Non
     return code_to_name.get(lang.casefold(), lang)
 
 
-def build_fulltext_query(q: str, languages: list[str] | None = None, readable: bool = False) -> str:
+def build_fulltext_query(q: str, languages: list[str] | None = None) -> str:
     """Combine the user's query with filter clauses.
 
     The FTS endpoint parses ``q`` as a Lucene query, so filters are ANDed
     field clauses. The user query is parenthesized so its own OR/AND
     structure can't leak into the filters, and quotes are stripped from
     language values so they can't break out of their clause.
+
+    Readability is deliberately not expressible here: any field clause
+    switches the endpoint to its Lucene parser, which silently ignores
+    ``olonly=true`` and searches all of archive.org. Language has to pay
+    that price to work at all; readability doesn't, so it's applied to the
+    fetched hits instead — see ``filter_readable``.
 
     >>> build_fulltext_query("moby dick")
     'moby dick'
@@ -59,22 +65,40 @@ def build_fulltext_query(q: str, languages: list[str] | None = None, readable: b
     '(moby dick) AND (languageSorter:"French" OR languageSorter:"German")'
     >>> build_fulltext_query("whale", ['Fre"nch'])
     '(whale) AND languageSorter:"French"'
-    >>> build_fulltext_query("whale", readable=True)
-    '(whale) AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
     """
-    clauses = []
-    if names := [clean for lang in languages or [] if (clean := lang.replace('"', "").strip())]:
-        lang_clauses = [f'languageSorter:"{name}"' for name in names]
-        # A single field clause must stay bare: the FTS parser matches
-        # nothing for a lone parenthesized term like (languageSorter:"French").
-        clauses.append(lang_clauses[0] if len(lang_clauses) == 1 else "(" + " OR ".join(lang_clauses) + ")")
-    if readable:
-        # Readable = public or borrowable scans. Mirrors core.lending's
-        # collection heuristic: lendable (inlibrary) or not print-disabled-only.
-        clauses.append("(collection:(inlibrary) OR (!collection:(printdisabled)))")
-    if not clauses:
+    if not (names := [clean for lang in languages or [] if (clean := lang.replace('"', "").strip())]):
         return q
-    return " AND ".join([f"({q})", *clauses])
+    lang_clauses = [f'languageSorter:"{name}"' for name in names]
+    # A single field clause must stay bare: the FTS parser matches
+    # nothing for a lone parenthesized term like (languageSorter:"French").
+    clause = lang_clauses[0] if len(lang_clauses) == 1 else "(" + " OR ".join(lang_clauses) + ")"
+    return f"({q}) AND {clause}"
+
+
+def hit_ocaid(hit: dict) -> str:
+    """The archive.org identifier a full-text hit was found in."""
+    return hit.get("fields", {}).get("identifier", [""])[0]
+
+
+def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
+    """Drop hits the visitor can't actually open — print-disabled-only scans,
+    which are 20-70% of an unfiltered result page.
+
+    Uses the same test as the edition page (``is_readable`` for public domain,
+    ``is_lendable`` for borrowable) rather than guessing from the scan's IA
+    collections. Fails open: with no availability data at all, a whole page of
+    results would otherwise vanish.
+
+    >>> hits = [{"fields": {"identifier": ["open"]}}, {"fields": {"identifier": ["locked"]}}]
+    >>> availability = {"open": {"is_readable": True}, "locked": {"is_printdisabled": True}}
+    >>> [hit_ocaid(hit) for hit in filter_readable(hits, availability)]
+    ['open']
+    >>> len(filter_readable(hits, {}))
+    2
+    """
+    if not availability:
+        return hits
+    return [hit for hit in hits if (status := availability.get(hit_ocaid(hit), {})) and (status.get("is_readable") or status.get("is_lendable"))]
 
 
 async def fulltext_search_api(params):
@@ -108,7 +132,7 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False):
     if offset is None:
         offset = (page - 1) * limit
     params = {
@@ -124,10 +148,21 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
     # for a zero-hit response ({"hits": [], ...} is a truthy dict), running the
     # whole hydration pipeline for nothing.
     if "error" not in ia_results and (hits := ia_results.get("hits", {}).get("hits", [])):
-        ocaids = [hit["fields"].get("identifier", [""])[0] for hit in hits]
+        ocaids = [hit_ocaid(hit) for hit in hits]
         availability = await get_availability_async("identifier", ocaids)
         if "error" in availability:
             availability = {}
+
+        if readable:
+            # Filter before hydrating: the dropped hits then cost no Infobase
+            # lookup at all. `total` still counts them, so a filtered page can
+            # render fewer than `limit` rows — deliberate, and the reason the
+            # results line drops its "1 - 20 of" range when the filter is on.
+            hits = filter_readable(hits, availability)
+            ia_results["hits"]["hits"] = hits
+            if not hits:
+                return ia_results
+            ocaids = [hit_ocaid(hit) for hit in hits]
 
         edition_keys = list(site.get().things({"type": "/type/edition", "ocaid": ocaids, "limit": len(ocaids)}))
         editions = site.get().get_many(edition_keys)

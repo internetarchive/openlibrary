@@ -12,6 +12,7 @@ $def render_ia_fallback(query, doc):
   $ fields = doc.get('fields', {})
   $ ia = fields.get('identifier', [''])[0]
   $ title = fields.get('meta_title', [''])[0] or ia
+  $ year = fields.get('meta_year', [None])[0]
   $ creators = [c for c in fields.get('meta_creator', []) if c]
   $ details_url = "https://archive.org/details/%s?%s" % (ia, urlencode(dict(q=query)))
   <li class="searchResultItem sri--w-main">
@@ -25,6 +26,8 @@ $def render_ia_fallback(query, doc):
         <div class="resultTitle">
           <h3 class="booktitle">
             <a class="results" href="$details_url">$title</a>
+            $if year:
+              <span class="booktitle__year">($year)</span>
           </h3>
         </div>
         $if creators:
@@ -41,7 +44,7 @@ $if results and results.get('hits'):
     <ul class="list-books">
       $for doc in hits:
         $if doc.get('edition'):
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0, show_title_year=True)
         $elif doc.get('fields', {}).get('identifier'):
           $:render_ia_fallback(query, doc)
     </ul>
