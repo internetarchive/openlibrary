@@ -10,6 +10,8 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
 
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
+
 ## Build Commands
 
 Build targets are in the `Makefile`. Key dev workflow commands:
@@ -280,6 +282,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 

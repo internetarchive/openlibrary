@@ -111,6 +111,7 @@ export class OlPopover extends LitElement {
             position: fixed;
             z-index: var(--z-index-dropdown);
             background: var(--white);
+            border: var(--border-overlay);
             border-radius: var(--border-radius-overlay);
             box-shadow: var(--box-shadow-overlay);
             opacity: 0;
@@ -163,6 +164,9 @@ export class OlPopover extends LitElement {
 
         /* ── Mobile tray backdrop ── */
 
+        /* Same scrim as ol-dialog: the tray is modal, so it should push the
+           page back the same way. The blur is constant, so only opacity
+           animates. */
         .backdrop {
             position: fixed;
             inset: 0;
@@ -175,37 +179,27 @@ export class OlPopover extends LitElement {
             margin: 0;
             padding: 0;
             border: none;
-            background: hsla(0, 0%, 0%, 0.3);
+            background: var(--overlay-backdrop-color);
             opacity: 0;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
+            backdrop-filter: blur(var(--overlay-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--overlay-backdrop-blur));
             pointer-events: none;
         }
 
         .backdrop[data-state="entering"],
         .backdrop[data-state="open"] {
             opacity: 1;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
             pointer-events: auto;
         }
 
         .backdrop[data-state="entering"] {
-            transition:
-                opacity 280ms cubic-bezier(0.23, 1, 0.32, 1),
-                backdrop-filter 280ms cubic-bezier(0.23, 1, 0.32, 1),
-                -webkit-backdrop-filter 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
-            transition:
-                opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                backdrop-filter 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                -webkit-backdrop-filter 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         /* ── Mobile tray panel ── */
@@ -217,6 +211,7 @@ export class OlPopover extends LitElement {
             right: 0;
             width: auto;
             max-height: 85vh;
+            max-height: 85dvh;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin: 0 12px calc(12px + env(safe-area-inset-bottom));
