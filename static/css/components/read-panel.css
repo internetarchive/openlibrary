@@ -21,7 +21,7 @@
   margin-bottom: 10px;
   background-color: var(--white);
   border-radius: 5px;
-  border: 1px solid var(--lighter-grey);
+  border: 1px solid var(--color-border-subtle);
   margin-top: 0;
 }
 
@@ -72,7 +72,7 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -230,7 +230,7 @@ ul.ebook-download-options li {
   }
 
   .readers-stats__wrapper.mobile {
-    border: 1px solid var(--lighter-grey);
+    border: 1px solid var(--color-border-subtle);
     border-radius: 5px;
     padding: 10px 0;
   }
@@ -253,7 +253,7 @@ ul.ebook-download-options li {
   /* stylelint-disable max-nesting-depth*/
   /* stylelint-disable selector-max-specificity */
   .readers-stats__wrapper.mobile .readers-stats li {
-    border-right: 1px solid var(--lighter-grey);
+    border-right: 1px solid var(--color-border-subtle);
     display: flex;
     flex-direction: column-reverse;
     flex: 1 1 auto;
@@ -267,7 +267,7 @@ ul.ebook-download-options li {
   }
 
   .readers-stats__wrapper.mobile .readers-stats li + li {
-    border-right: solid 1px var(--lighter-grey);
+    border-right: solid 1px var(--color-border-subtle);
   }
 
   .readers-stats__wrapper.mobile .readers-stats li:last-child {

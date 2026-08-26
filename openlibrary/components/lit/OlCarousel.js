@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import './OlIcon.js';
 
 /**
  * A Netflix-style carousel component with page-based navigation.
@@ -7,8 +8,16 @@ import { LitElement, html, css, nothing } from 'lit';
  * based on responsive breakpoints, shows peek areas at the edges, and
  * provides arrow buttons and bar-segment indicators for navigation.
  *
- * All motion (button clicks, swipe release) uses spring physics via
- * requestAnimationFrame for natural momentum and deceleration.
+ * The viewport is a native scroll container: the component declares snap
+ * points and reports the settled page, the browser does everything else.
+ * Off-page items are deliberately not `inert` — in a scroll container they
+ * are legitimately reachable by tab, screen reader and find-in-page.
+ *
+ * Deferring off-page images is the browser's job: put the real URL in `src`
+ * and mark it `loading="lazy"`. A scroll container clips its overflow, so
+ * off-page items never intersect the viewport and are never fetched. Do not
+ * pass a placeholder `src` with the real URL parked in a data attribute —
+ * that is a pre-`loading` carousel-library convention and it defeats this.
  *
  * @element ol-carousel
  *
@@ -17,19 +26,26 @@ import { LitElement, html, css, nothing } from 'lit';
  * @prop {String} label - Accessible label for the carousel region (default: "Carousel")
  * @prop {String} labelPrevious - Aria-label for previous arrow (default: "Previous page")
  * @prop {String} labelNext - Aria-label for next arrow (default: "Next page")
+ * @prop {String} labelPages - Aria-label for the page indicator tablist (default: "Carousel pages")
+ * @prop {String} labelGoToPage - Aria-label template for each page indicator, use {page} and
+ *                                {total} as placeholders (default: "Go to page {page} of {total}")
  * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
- * @fires ol-carousel-page-change - Fired after page transition. detail: { page: Number, totalPages: Number }
+ * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail: { page: Number, totalPages: Number }
  *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
- * @cssprop [--ol-carousel-arrow-color=#333] - Colour of the arrow glyphs
- * @cssprop [--ol-carousel-arrow-icon-bg=#fff] - Background of the round arrow buttons
- * @cssprop [--ol-carousel-arrow-icon-border=hsl(55, 20%, 83%)] - Border of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
+ * @cssprop [--ol-carousel-arrow-icon-bg=var(--color-surface)] - Background of the round arrow buttons
+ * @cssprop [--ol-carousel-arrow-icon-border=var(--color-border-subtle)] - Border of the round arrow buttons
  * @cssprop [--ol-carousel-arrow-icon-size=36px] - Diameter of the round arrow buttons
- * @cssprop [--ol-carousel-indicator-color=#ccc] - Colour of the inactive page indicators
- * @cssprop [--ol-carousel-indicator-active=#333] - Colour of the active page indicator
+ * @cssprop [--ol-carousel-indicator-color=var(--neutral-300)] - Colour of the inactive page indicators
+ * @cssprop [--ol-carousel-indicator-active=var(--neutral-700)] - Colour of the active page indicator
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
+ *
+ * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
+ * load-bearing ones. scroll-behavior (15.4) and overscroll-behavior (16)
+ * degrade gracefully. scrollend is Safari 26.2, so it is feature-detected.
  *
  * @example
  * <ol-carousel label="Trending Books">
@@ -44,11 +60,15 @@ export class OlCarousel extends LitElement {
         label: { type: String },
         labelPrevious: { type: String, attribute: 'label-previous' },
         labelNext: { type: String, attribute: 'label-next' },
+        labelPages: { type: String, attribute: 'label-pages' },
+        labelGoToPage: { type: String, attribute: 'label-go-to-page' },
         showIndicators: { type: Boolean, attribute: 'show-indicators' },
         _page: { type: Number, state: true },
         _totalPages: { type: Number, state: true },
         _columns: { type: Number, state: true },
         _itemCount: { type: Number, state: true },
+        _atStart: { type: Boolean, state: true },
+        _atEnd: { type: Boolean, state: true },
     };
 
     static styles = css`
@@ -57,12 +77,12 @@ export class OlCarousel extends LitElement {
             /* A shadow root is not a stacking context — without this the
                edge fades' and arrows' z-index compete with the whole page. */
             isolation: isolate;
-            --_arrow-color: var(--ol-carousel-arrow-color, #333);
-            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, #fff);
-            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, hsl(55, 20%, 83%));
+            --_arrow-color: var(--ol-carousel-arrow-color, var(--neutral-700));
+            --_arrow-icon-bg: var(--ol-carousel-arrow-icon-bg, var(--color-surface));
+            --_arrow-icon-border: var(--ol-carousel-arrow-icon-border, var(--color-border-subtle));
             --_arrow-icon-size: var(--ol-carousel-arrow-icon-size, 36px);
-            --_indicator-color: var(--ol-carousel-indicator-color, #ccc);
-            --_indicator-active: var(--ol-carousel-indicator-active, #333);
+            --_indicator-color: var(--ol-carousel-indicator-color, var(--neutral-300));
+            --_indicator-active: var(--ol-carousel-indicator-active, var(--neutral-700));
             /* Breathing room inside the clipped viewport so slotted items can
                show a hover lift/shadow without it being cut off. Opt-in: 0 by
                default, set --ol-carousel-viewport-padding to enable. */
@@ -106,21 +126,40 @@ export class OlCarousel extends LitElement {
             background: var(--_indicator-active);
         }
 
-        /* ── Viewport ── */
-        .viewport {
+        /* ── Frame ──
+           Arrows and fades live here, not in the scroller — absolutely
+           positioned children of a scroll container scroll away. */
+        .frame {
             position: relative;
-            overflow: hidden;
-            padding-block: var(--_viewport-padding);
         }
 
-        /* ── Track ── */
-        .track {
+        /* ── Viewport (the scroll container) ── */
+        .viewport {
             display: flex;
             gap: var(--_gap, 4px);
-            will-change: transform;
-            touch-action: pan-y pinch-zoom;
-            user-select: none;
-            -webkit-user-select: none;
+            overflow-x: auto;
+            /* Can't stay visible beside a scrolling axis; padding-block gives
+               the hover lift room instead. */
+            overflow-y: hidden;
+            padding-block: var(--_viewport-padding);
+            scroll-snap-type: x mandatory;
+            /* Start padding is the edge peek; the end stays flush. */
+            scroll-padding-inline: calc(var(--_peek, 0.03) * 100%) 0;
+            scroll-behavior: smooth;
+            /* No macOS history swipe when the rail hits its end. */
+            overscroll-behavior-x: contain;
+            scrollbar-width: none;
+        }
+
+        /* scrollbar-width is Safari 18.2+; this covers older WebKit/Blink. */
+        .viewport::-webkit-scrollbar {
+            display: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .viewport {
+                scroll-behavior: auto;
+            }
         }
 
         /* ── Slotted items ── */
@@ -130,13 +169,6 @@ export class OlCarousel extends LitElement {
             box-sizing: border-box;
             margin: 0;
             -webkit-user-drag: none;
-        }
-
-        /* During drag, make children transparent to pointer events so the
-           browser's click (fired on pointerup) lands on the track, not on
-           any <a> inside the slotted children. */
-        :host(.dragging) ::slotted(*) {
-            pointer-events: none !important;
         }
 
         /* ── Edge gradients (always visible to hint at more content) ── */
@@ -231,17 +263,17 @@ export class OlCarousel extends LitElement {
             transform: scale(0.92);
         }
 
-        .arrow svg {
+        .arrow ol-icon {
             width: 28px;
             height: 28px;
+            /* Heavier stroke than the system default, to hold up against cover art. */
+            --ol-icon-stroke-width: 2.5;
         }
     `;
 
-    /** Left chevron SVG */
-    static _leftArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>`;
+    static _leftArrow = html`<ol-icon name="chevron-left"></ol-icon>`;
 
-    /** Right chevron SVG */
-    static _rightArrow = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+    static _rightArrow = html`<ol-icon name="chevron-right"></ol-icon>`;
 
     /** Breakpoints: [maxWidth, columns] sorted ascending. Last entry is the default. */
     static _breakpoints = [
@@ -252,114 +284,71 @@ export class OlCarousel extends LitElement {
         [Infinity, 8],
     ];
 
-    /** Spring physics constants */
-    static _spring = {
-        stiffness: 0.09, // Pull strength toward target; lower = gentler, higher = snappier
-        damping: 0.5, // Velocity retained per frame; lower = more friction/less bounce, higher = more oscillation
-        precision: 0.02, // Threshold to snap to final position; lower = smoother finish, higher = earlier cutoff
-    };
+    /** Safari only got `scrollend` in 26.2; without it we debounce `scroll`. */
+    static _supportsScrollEnd = typeof window !== 'undefined' && 'onscrollend' in window;
 
-    /** Apply rubber-band resistance when position exceeds bounds.
-     *  Uses an iOS-style formula: overscroll is dampened asymptotically
-     *  so the track resists increasingly as you drag further out.
-     *  Maximum visual overscroll is capped at one viewport width. */
-    static _rubberBand(pos, min, max, dimension) {
-        const c = 0.5;        // Rubber-band constant (lower = stiffer resistance)
-        const maxOver = 0.5; // Max overscroll as fraction of viewport width
-        if (pos > max) {
-            const overPx = ((pos - max) / 100) * dimension;
-            const dampedPx = dimension * maxOver * (1 - 1 / (overPx * c / dimension + 1));
-            return max + (dampedPx / dimension) * 100;
-        }
-        if (pos < min) {
-            const overPx = ((min - pos) / 100) * dimension;
-            const dampedPx = dimension * maxOver * (1 - 1 / (overPx * c / dimension + 1));
-            return min - (dampedPx / dimension) * 100;
-        }
-        return pos;
-    }
+    /** Idle gap (ms) standing in for `scrollend`. Long enough to outlast a
+     *  fling's momentum tail, short enough to still feel immediate. */
+    static _scrollEndFallbackDelay = 120;
 
     constructor() {
         super();
         this.peek = 0.03;
         this.gap = 8;
+        // Translatable label defaults (English). Consumers pass $_() values in.
         this.label = 'Carousel';
         this.labelPrevious = 'Previous page';
         this.labelNext = 'Next page';
+        this.labelPages = 'Carousel pages';
+        this.labelGoToPage = 'Go to page {page} of {total}';
         this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
         this._columns = 6;
         this._itemCount = 0;
+        this._atStart = true;
+        this._atEnd = false;
 
-        // Current track position in % (source of truth for rendering)
-        this._currentPos = 0;
+        // Resting scrollLeft per page, measured in _measurePageOffsets.
+        this._pageOffsets = [0];
+        this._maxScroll = 0;
+
+        // Keeps a settle that lands back on the same page from re-emitting.
+        this._lastEmittedPage = 0;
 
         /** @type {ResizeObserver|null} */
         this._resizeObserver = null;
+        this._scrollEndTimer = null;
 
-        // Pointer / drag state (non-reactive for zero-overhead drag)
-        this._dragging = false;
-        this._pointerStartX = 0;
-        this._pointerId = null;
-        this._dragDelta = 0;
-        this._velocity = 0;
-        this._pointerPrevX = 0;
-        this._pointerPrevTime = 0;
-
-        // Drag-click prevention: set true when a drag exceeds the movement
-        // threshold. Checked by the capture-phase click handler to suppress
-        // accidental link activation.
-        this._draggedPastThreshold = false;
-
-        // Spring animation state
-        this._animationFrame = null;
-        this._springVel = 0;
-
-        this._onPointerDown = this._onPointerDown.bind(this);
-        this._onPointerMove = this._onPointerMove.bind(this);
-        this._onPointerUp = this._onPointerUp.bind(this);
-        this._onClickCapture = this._onClickCapture.bind(this);
+        this._onScroll = this._onScroll.bind(this);
+        this._onScrollEnd = this._onScrollEnd.bind(this);
+        this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
     }
 
     connectedCallback() {
         super.connectedCallback();
-
-        // ── Drag-click prevention ──
-        // Intercept clicks in the CAPTURE phase on the host element.
-        // Composed click events from slotted light-DOM children (e.g. <a>
-        // tags) bubble up through the shadow boundary. By listening in
-        // capture on the host, we fire before the click reaches any <a>.
-        this.addEventListener('click', this._onClickCapture, true);
-
         this._resizeObserver = new ResizeObserver((entries) => {
             const width = entries[0]?.contentRect.width ?? this.clientWidth;
             this._updateColumns(width);
             this._applyTrackLayout();
-            // Recompute offset on resize (gap px correction depends on width)
-            if (!this._dragging && !this._animationFrame) {
-                this._currentPos = this._getOffsetForPage(this._page);
-                this._applyTransform(this._currentPos);
-            }
+            this._refreshGeometry();
         });
         this._resizeObserver.observe(this);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.removeEventListener('click', this._onClickCapture, true);
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
-        this._cancelAnimation();
+        clearTimeout(this._scrollEndTimer);
     }
 
     firstUpdated() {
         this._countItems();
+        this._updateColumns(this.clientWidth);
         this._recalculate();
         this._applyTrackLayout();
-        this._currentPos = this._getOffsetForPage(this._page);
-        this._applyTransform(this._currentPos);
-        this._updateInert();
+        this._refreshGeometry();
     }
 
     updated(changedProperties) {
@@ -367,13 +356,11 @@ export class OlCarousel extends LitElement {
             || changedProperties.has('peek') || changedProperties.has('gap')) {
             this._recalculate();
             this._applyTrackLayout();
-            this._currentPos = this._getOffsetForPage(this._page);
-            this._applyTransform(this._currentPos);
-            this._updateInert();
+            this._refreshGeometry();
         }
     }
 
-    // ── Public methods ──
+    // ── Public API ──
 
     /** Current page (0-indexed). Meaningful after `firstUpdated`/`updateComplete`. */
     get page() { return this._page; }
@@ -383,101 +370,40 @@ export class OlCarousel extends LitElement {
 
     /** Advance to the next page. */
     next() {
-        if (this._page < this._totalPages - 1) {
-            this._navigateToPage(this._page + 1);
-        }
+        this.goToPage(this._page + 1);
     }
 
     /** Go to the previous page. */
     prev() {
-        if (this._page > 0) {
-            this._navigateToPage(this._page - 1);
-        }
+        this.goToPage(this._page - 1);
     }
 
     /** Jump to a specific page (0-indexed). */
     goToPage(index) {
+        const scroller = this._scroller;
+        if (!scroller) return;
         const clamped = Math.max(0, Math.min(index, this._totalPages - 1));
-        if (clamped !== this._page) {
-            this._navigateToPage(clamped);
-        }
+        // Optimistic, so indicators move now; _syncFromScroll reconciles.
+        this._page = clamped;
+        // No `behavior`: defers to CSS scroll-behavior, so the reduced-motion
+        // media query covers both paths.
+        scroller.scrollTo({ left: this._pageOffsets[clamped] ?? 0 });
     }
 
-    // ── Navigation ──
+    // ── Geometry ──
 
-    _navigateToPage(targetPage, initialVelocity = 0) {
-        const targetPos = this._getOffsetForPage(targetPage);
-        this._page = targetPage;
-        this._updateInert();
-        this._animateSpring(this._currentPos, initialVelocity, targetPos, () => {
-            this._emitPageChange();
-        });
+    /** @returns {HTMLElement|null} the scroll container */
+    get _scroller() {
+        return this.shadowRoot?.querySelector('.viewport') ?? null;
     }
 
-    // ── Spring animation ──
-
-    _animateSpring(fromPos, initialVelocity, targetPos, onComplete) {
-        this._cancelAnimation();
-
-        const { stiffness, damping, precision } = OlCarousel._spring;
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        // Snap immediately for reduced-motion preference
-        if (reducedMotion) {
-            this._currentPos = targetPos;
-            this._applyTransform(targetPos);
-            if (onComplete) onComplete();
-            return;
-        }
-
-        let pos = fromPos;
-        // Convert velocity from %/ms to %/frame (~16ms)
-        let vel = initialVelocity * 16;
-
-        const step = () => {
-            const displacement = targetPos - pos;
-            vel += displacement * stiffness;
-            vel *= damping;
-            pos += vel;
-
-            this._currentPos = pos;
-            this._applyTransform(pos);
-
-            if (Math.abs(vel) < precision && Math.abs(displacement) < precision) {
-                this._currentPos = targetPos;
-                this._applyTransform(targetPos);
-                this._animationFrame = null;
-                if (onComplete) onComplete();
-                return;
-            }
-
-            this._animationFrame = requestAnimationFrame(step);
-        };
-
-        this._animationFrame = requestAnimationFrame(step);
+    /** @returns {Element[]} slotted carousel items */
+    get _items() {
+        return this.shadowRoot?.querySelector('slot')?.assignedElements() ?? [];
     }
-
-    _cancelAnimation() {
-        if (this._animationFrame) {
-            cancelAnimationFrame(this._animationFrame);
-            this._animationFrame = null;
-        }
-    }
-
-    _applyTransform(pos) {
-        const track = this.shadowRoot?.querySelector('.track');
-        if (track) {
-            track.style.transform = `translateX(${pos}%)`;
-        }
-    }
-
-    // ── Internals ──
 
     _countItems() {
-        const slot = this.shadowRoot?.querySelector('slot');
-        if (slot) {
-            this._itemCount = slot.assignedElements().length;
-        }
+        this._itemCount = this._items.length;
     }
 
     _updateColumns(width) {
@@ -505,81 +431,113 @@ export class OlCarousel extends LitElement {
         }
     }
 
-    /** Calculate the translateX offset (%) for a given page.
-     *  Uses pixel math to account for gap, then converts to % of track width
-     *  (track is a block-level flex container, so its width = viewport width). */
-    _getOffsetForPage(page) {
-        const count = this._itemCount;
-        const cols = this._columns;
-        const peek = this.peek;
-        const gap = this.gap;
-        const width = this.clientWidth || 1;
-
-        if (count <= 0 || cols <= 0 || page <= 0) return 0;
-
-        const itemFraction = (1 - peek * 2) / cols;
-        const itemWidthPx = itemFraction * width - gap + gap / cols;
-        const stepPx = itemWidthPx + gap; // item width + trailing gap
-
-        if (page >= this._totalPages - 1) {
-            // Align last item's right edge with the viewport's right edge
-            const totalPx = count * itemWidthPx + (count - 1) * gap;
-            return -((totalPx - width) / width) * 100;
-        }
-
-        // Position first item of this page at the peek offset
-        const itemPosPx = page * cols * stepPx;
-        const peekPx = peek * width;
-        return -((itemPosPx - peekPx) / width) * 100;
+    /** Re-derive everything layout-dependent after a resize or slot change. */
+    _refreshGeometry() {
+        this._applySnapPoints();
+        this._measurePageOffsets();
+        this._syncFromScroll();
     }
 
-    _updateInert() {
-        const slot = this.shadowRoot?.querySelector('slot');
-        if (!slot) return;
-        const items = slot.assignedElements();
+    /** Mark page boundaries; the browser owns landing on them. The last item
+     *  gets `end` so a short final page rests flush against the edge. */
+    _applySnapPoints() {
+        const items = this._items;
         const cols = this._columns;
-        const page = this._page;
-
-        let startVisible, endVisible;
-        if (page === 0) {
-            startVisible = 0;
-            endVisible = cols - 1;
-        } else if (page >= this._totalPages - 1) {
-            endVisible = items.length - 1;
-            startVisible = Math.max(0, items.length - cols);
-        } else {
-            startVisible = page * cols;
-            endVisible = startVisible + cols - 1;
-        }
-
+        const last = items.length - 1;
         items.forEach((item, i) => {
-            if (i >= startVisible && i <= endVisible) {
-                item.removeAttribute('inert');
-                item.setAttribute('aria-hidden', 'false');
+            if (i === last) {
+                item.style.scrollSnapAlign = 'end';
+            } else if (cols > 0 && i % cols === 0) {
+                item.style.scrollSnapAlign = 'start';
             } else {
-                item.setAttribute('inert', '');
-                item.setAttribute('aria-hidden', 'true');
+                item.style.scrollSnapAlign = '';
             }
         });
-
-        this._loadVisibleImages(items, endVisible);
     }
 
-    /** Swap cover `data-lazy` → `src` for the visible range plus a one-page
-     *  lookahead. Cards past the first page render with a placeholder src and
-     *  the real URL in `data-lazy` (see books/custom_carousel_card.html). The
-     *  legacy Slick carousel got this for free via `lazyLoad: 'ondemand'`;
-     *  <ol-carousel> uses a transform-based track (not native scroll), so it
-     *  must do the swap itself or paged-in covers never load. */
-    _loadVisibleImages(items, endVisible) {
-        const loadThrough = Math.min(items.length - 1, endVisible + this._columns);
-        for (let i = 0; i <= loadThrough; i++) {
-            const imgs = items[i].querySelectorAll?.('img[data-lazy]');
-            if (!imgs) continue;
-            imgs.forEach((img) => {
-                img.src = img.dataset.lazy;
-                img.removeAttribute('data-lazy');
-            });
+    /** Measure each page's resting scrollLeft from the DOM. Only needs to be
+     *  close enough to pick the right snap point — the browser corrects it. */
+    _measurePageOffsets() {
+        const scroller = this._scroller;
+        const items = this._items;
+        if (!scroller || !items.length) {
+            this._pageOffsets = [0];
+            this._maxScroll = 0;
+            return;
+        }
+
+        const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        const scrollerLeft = scroller.getBoundingClientRect().left;
+        const peekPx = this.peek * scroller.clientWidth;
+        const offsets = [];
+        // Cached so _syncFromScroll never forces a layout mid-scroll.
+        this._maxScroll = maxScroll;
+
+        for (let page = 0; page < this._totalPages; page++) {
+            // Matches the `scroll-snap-align: end` on the last item.
+            if (page === this._totalPages - 1) {
+                offsets.push(maxScroll);
+                continue;
+            }
+            const item = items[page * this._columns];
+            if (!item) {
+                offsets.push(maxScroll);
+                continue;
+            }
+            // Scroll-invariant distance from the scroller's start edge.
+            const itemLeft = item.getBoundingClientRect().left - scrollerLeft + scroller.scrollLeft;
+            offsets.push(Math.min(maxScroll, Math.max(0, itemLeft - peekPx)));
+        }
+
+        this._pageOffsets = offsets.length ? offsets : [0];
+    }
+
+    /** Nearest page to the scroller's current position. */
+    _pageFromScroll() {
+        const scroller = this._scroller;
+        if (!scroller) return 0;
+        const x = scroller.scrollLeft;
+        let best = 0;
+        let bestDist = Infinity;
+        this._pageOffsets.forEach((offset, page) => {
+            const dist = Math.abs(offset - x);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = page;
+            }
+        });
+        return best;
+    }
+
+    /** Pull page index and edge state off the live scroll position. Reads only
+     *  scrollLeft, so it is safe on every scroll event. */
+    _syncFromScroll() {
+        const scroller = this._scroller;
+        if (!scroller) return;
+        // 1px slack absorbs sub-pixel resting positions on fractional widths.
+        this._atStart = scroller.scrollLeft <= 1;
+        this._atEnd = scroller.scrollLeft >= this._maxScroll - 1;
+        this._page = this._pageFromScroll();
+    }
+
+    // ── Scroll tracking ──
+
+    _onScroll() {
+        // Keeps indicators, arrows and fades in step mid-scroll.
+        this._syncFromScroll();
+
+        if (!OlCarousel._supportsScrollEnd) {
+            clearTimeout(this._scrollEndTimer);
+            this._scrollEndTimer = setTimeout(this._onScrollEnd, OlCarousel._scrollEndFallbackDelay);
+        }
+    }
+
+    /** The only place page-change fires, so a multi-page fling reports once. */
+    _onScrollEnd() {
+        this._syncFromScroll();
+        if (this._page !== this._lastEmittedPage) {
+            this._lastEmittedPage = this._page;
+            this._emitPageChange();
         }
     }
 
@@ -591,195 +549,92 @@ export class OlCarousel extends LitElement {
         }));
     }
 
-    // ── Slot change ──
-
-    _onSlotChange() {
-        this._countItems();
-    }
-
-    // ── Drag-click prevention ──
-    //
-    // WHY the CSS-only approach (`:host(.dragging) ::slotted(*) { pointer-events: none }`)
-    // is insufficient:
-    //
-    // `pointer-events: none` only affects hit-testing for NEW events. When the
-    // user presses down on an <a>, the browser records that element as the
-    // mousedown target. Changing pointer-events to `none` mid-drag does NOT
-    // retroactively change the click target — the browser still fires `click`
-    // on the original <a> when the pointer is released.
-    //
-    // Additionally, with shadow DOM `setPointerCapture` on the track element,
-    // mousedown lands on the <a> (light DOM) while pointerup/mouseup go to the
-    // track (shadow DOM). Click target resolution across this boundary is
-    // browser-dependent and unreliable.
-    //
-    // SOLUTION: Capture-phase click listener on the host element.
-    // Composed click events from slotted children bubble through the shadow
-    // boundary, so a capture-phase listener on the host fires BEFORE the click
-    // reaches any <a>. If a drag occurred, we suppress it.
-
-    _onClickCapture(e) {
-        if (this._draggedPastThreshold) {
-            e.preventDefault();
-            e.stopPropagation();
-            this._draggedPastThreshold = false;
-            return;
-        }
-    }
-
-    // ── Pointer / swipe ──
-    //
-    // We intentionally do NOT use setPointerCapture(). Pointer capture on a
-    // shadow-DOM element (the track) causes the browser to retarget the
-    // synthesized click event to the host element instead of the original
-    // light-DOM target (e.g. an <a> tag inside a slotted child). This breaks
-    // normal click navigation entirely.
-    //
-    // Instead we use window-level pointermove/pointerup listeners, which:
-    //  - Track drag movement even when the pointer leaves the carousel
-    //  - Preserve native click target resolution so <a> tags work normally
-    //  - Work for both mouse and touch (touch has implicit capture anyway)
-
-    _onPointerDown(e) {
-        if (e.button !== 0) return;
-
-        // Interrupt any running animation and start from current position
-        this._cancelAnimation();
-
-        this._dragging = true;
-        this._draggedPastThreshold = false;
-        this._pointerStartX = e.clientX;
-        this._pointerId = e.pointerId;
-        this._dragDelta = 0;
-        this._velocity = 0;
-        this._pointerPrevX = e.clientX;
-        this._pointerPrevTime = performance.now();
-
-        // Use window-level listeners instead of pointer capture.
-        window.addEventListener('pointermove', this._onPointerMove);
-        window.addEventListener('pointerup', this._onPointerUp);
-        window.addEventListener('pointercancel', this._onPointerUp);
-    }
-
-    _onPointerMove(e) {
-        if (!this._dragging || e.pointerId !== this._pointerId) return;
-        this._dragDelta = e.clientX - this._pointerStartX;
-
-        // Mark that a real drag occurred (past the 5px dead zone).
-        // This flag is checked by _onClickCapture to suppress the click.
-        if (Math.abs(this._dragDelta) > 5) {
-            this._draggedPastThreshold = true;
-            this.classList.add('dragging');
-        }
-
-        // Track velocity from recent movement
-        const now = performance.now();
-        const dt = now - this._pointerPrevTime;
-        if (dt > 0) {
-            this._velocity = (e.clientX - this._pointerPrevX) / dt;
-        }
-        this._pointerPrevX = e.clientX;
-        this._pointerPrevTime = now;
-
-        // Direct DOM update — no Lit re-render overhead
-        const deltaPct = (this._dragDelta / this.clientWidth) * 100;
-        const rawPos = this._currentPos + deltaPct;
-
-        // Rubber-band when dragging past the first or last page
-        const minPos = this._getOffsetForPage(this._totalPages - 1);
-        const maxPos = this._getOffsetForPage(0); // 0
-        this._applyTransform(OlCarousel._rubberBand(rawPos, minPos, maxPos, this.clientWidth));
-    }
-
-    _onPointerUp(e) {
-        if (e.pointerId !== this._pointerId) return;
-        window.removeEventListener('pointermove', this._onPointerMove);
-        window.removeEventListener('pointerup', this._onPointerUp);
-        window.removeEventListener('pointercancel', this._onPointerUp);
-
-        this._dragging = false;
-
-        // Remove dragging class and clear the drag-click guard after the click
-        // event has been processed. rAF fires after event dispatch but before
-        // next paint, so the drag's own synthetic click is still suppressed by
-        // _onClickCapture, but the flag never lingers to eat a later click
-        // (e.g. when the drag was released off the carousel, or a touch swipe
-        // fires no synthetic click at all — see _onClickCapture).
-        requestAnimationFrame(() => {
-            this.classList.remove('dragging');
-            this._draggedPastThreshold = false;
-        });
-
-        const delta = this._dragDelta;
-        const velocity = this._velocity; // px/ms
-        const width = this.clientWidth;
-
-        // Current visual position after drag (with rubber-banding applied)
-        const rawPos = this._currentPos + (delta / width) * 100;
-        const minPos = this._getOffsetForPage(this._totalPages - 1);
-        const maxPos = this._getOffsetForPage(0);
-        const releasePos = OlCarousel._rubberBand(rawPos, minPos, maxPos, width);
-        this._currentPos = releasePos;
-
-        // When released out of bounds, zero out velocity so the spring
-        // snaps back cleanly without overshooting past the target page.
-        const outOfBounds = rawPos > maxPos || rawPos < minPos;
-        const velPct = outOfBounds ? 0 : (velocity / width) * 100;
-
-        // Project endpoint with momentum to decide target page
-        const projectedDelta = delta + velocity * 200;
-        const threshold = width * 0.1;
-
-        let targetPage = this._page;
-        if (Math.abs(projectedDelta) > threshold) {
-            if (projectedDelta < 0 && this._page < this._totalPages - 1) {
-                targetPage = this._page + 1;
-            } else if (projectedDelta > 0 && this._page > 0) {
-                targetPage = this._page - 1;
-            }
-        }
-
-        const targetPos = this._getOffsetForPage(targetPage);
-        this._page = targetPage;
-        this._updateInert();
-
-        // Spring from release position/velocity to target
-        this._animateSpring(releasePos, velPct, targetPos, () => {
-            this._emitPageChange();
-        });
-    }
-
     // ── Layout ──
 
     /** Set layout CSS custom properties on the host element.
-     *  These cascade into the shadow DOM for ::slotted(*) and .arrow sizing.
-     *  Kept separate from the track's inline style so Lit re-renders
-     *  never overwrite the imperatively-set transform. */
+     *  These cascade into the shadow DOM for ::slotted(*) and .arrow sizing. */
     _applyTrackLayout() {
         const cols = this._columns;
         const peek = this.peek;
         const gap = this.gap;
-        const itemFraction = (1 - peek * 2) / cols;
-        const itemPercent = itemFraction * 100;
+        const itemPercent = ((1 - peek * 2) / cols) * 100;
 
         this.style.setProperty('--_item-width', `calc(${itemPercent}% - ${gap}px + ${gap / cols}px)`);
         this.style.setProperty('--_peek', String(peek));
         this.style.setProperty('--_gap', `${gap}px`);
     }
 
+    // ── Slot change ──
+
+    _onSlotChange() {
+        this._countItems();
+        this._refreshGeometry();
+    }
+
+    // ── Keyboard ──
+
+    /** Arrow-key nav for the indicator tablist (APG "Tabs", horizontal).
+     *  Scoped to the indicators, not the region — hijacking ←/→ over the
+     *  scroller would steal the browser's own scroll keys. */
+    _onIndicatorKeydown(e) {
+        let target;
+        switch (e.key) {
+        case 'ArrowLeft':
+            target = this._page - 1;
+            break;
+        case 'ArrowRight':
+            target = this._page + 1;
+            break;
+        case 'Home':
+            target = 0;
+            break;
+        case 'End':
+            target = this._totalPages - 1;
+            break;
+        default:
+            return;
+        }
+        e.preventDefault();
+        const clamped = Math.max(0, Math.min(target, this._totalPages - 1));
+        if (clamped !== this._page) {
+            this.goToPage(clamped);
+        }
+        this._focusIndicator(clamped);
+    }
+
+    /** Focus by index, not by active state — a smooth scroll walks the active
+     *  page through the intermediate ones before it settles. */
+    _focusIndicator(index) {
+        this.updateComplete?.then?.(() => {
+            this.shadowRoot?.querySelectorAll('.indicator')?.[index]?.focus();
+        });
+    }
+
     // ── Render ──
+
+    /** Replace {key} placeholders in a translatable label template. Matches
+     *  the same helper in <ol-pagination>. */
+    _interpolateLabel(template, values) {
+        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+    }
 
     _renderIndicators() {
         if (!this.showIndicators || this._totalPages <= 1) return nothing;
         return html`
-            <div class="indicators" role="tablist" aria-label="Carousel pages">
+            <div
+                class="indicators"
+                role="tablist"
+                aria-label=${this.labelPages}
+                @keydown=${this._onIndicatorKeydown}
+            >
                 ${Array.from({ length: this._totalPages }, (_, i) => html`
                     <button
                         class="indicator"
                         role="tab"
-                        aria-label="Go to page ${i + 1} of ${this._totalPages}"
+                        aria-label=${this._interpolateLabel(this.labelGoToPage, { page: i + 1, total: this._totalPages })}
                         aria-current=${i === this._page ? 'true' : 'false'}
                         aria-selected=${i === this._page ? 'true' : 'false'}
+                        tabindex=${i === this._page ? '0' : '-1'}
                         @click=${() => this.goToPage(i)}
                     ></button>
                 `)}
@@ -788,8 +643,9 @@ export class OlCarousel extends LitElement {
     }
 
     render() {
-        const showPrev = this._page > 0;
-        const showNext = this._page < this._totalPages - 1;
+        const multiPage = this._totalPages > 1;
+        const showPrev = multiPage && !this._atStart;
+        const showNext = multiPage && !this._atEnd;
 
         return html`
             <section
@@ -799,11 +655,7 @@ export class OlCarousel extends LitElement {
                 aria-label=${this.label}
             >
                 ${this._renderIndicators()}
-                <div
-                    class="viewport"
-                    aria-live="polite"
-                    aria-atomic="false"
-                >
+                <div class="frame">
                     <div class="edge-fade prev" ?hidden=${!showPrev}></div>
                     <div class="edge-fade next" ?hidden=${!showNext}></div>
 
@@ -814,11 +666,7 @@ export class OlCarousel extends LitElement {
                         @click=${() => this.prev()}
                     ><span class="arrow-icon">${OlCarousel._leftArrow}</span></button>
 
-                    <div
-                        class="track"
-                        @pointerdown=${this._onPointerDown}
-                        @dragstart=${(e) => e.preventDefault()}
-                    >
+                    <div class="viewport" @scroll=${this._onScroll} @scrollend=${this._onScrollEnd}>
                         <slot @slotchange=${this._onSlotChange}></slot>
                     </div>
 

@@ -9,7 +9,7 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 import web
 
-from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -36,6 +36,10 @@ SolrRequestLabel = Literal[
     "SUBJECT_ENGINE_API",
     # Cached "Notable authors" widget on subject pages
     "SUBJECT_NOTABLE_AUTHORS",
+    # Async-loaded publishing-history chart on subject pages
+    "SUBJECT_PUBLISHING_HISTORY",
+    # Async-loaded related-subjects/places/people/times widget on subject pages
+    "SUBJECT_RELATED",
     # Used for the internal request made by solr to choose the best edition
     # during a normal book search
     "EDITION_MATCH",
@@ -56,7 +60,7 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.async_session = httpx.AsyncClient()
+        self.get_async_session = cache_per_event_loop(httpx.AsyncClient)
 
     @staticmethod
     def escape(query):
@@ -79,7 +83,7 @@ class Solr:
         """Get a specific item from solr"""
         logger.debug(f"solr /get: {key}, {fields}")
         resp = (
-            await self.async_session.get(
+            await self.get_async_session().get(
                 f"{self.base_url}/get",
                 # It's unclear how field=None is getting in here; a better fix would be at the source.
                 params={
@@ -105,7 +109,7 @@ class Solr:
             return []
         logger.debug(f"solr /get: {ids}, {fields}")
         resp = (
-            await self.async_session.post(
+            await self.get_async_session().post(
                 f"{self.base_url}/get",
                 data={
                     "ids": ",".join(ids),
@@ -123,7 +127,7 @@ class Solr:
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
         resp = (
-            await self.async_session.post(
+            await self.get_async_session().post(
                 f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
                 json=request,
                 timeout=_timeout,
@@ -227,11 +231,11 @@ class Solr:
             sep = "&" if "?" in url else "?"
             url = url + sep + payload
             logger.debug("solr request: %s", url)
-            return await self.async_session.get(url, timeout=_timeout)
+            return await self.get_async_session().get(url, timeout=_timeout)
         else:
             logger.debug("solr request: %s ...", url)
             headers = {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
-            return await self.async_session.post(url, data=payload, headers=headers, timeout=_timeout)
+            return await self.get_async_session().post(url, data=payload, headers=headers, timeout=_timeout)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result["response"]

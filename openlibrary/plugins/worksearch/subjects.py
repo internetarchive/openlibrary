@@ -7,7 +7,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import web
 
@@ -29,6 +29,22 @@ logger = logging.getLogger("openlibrary.worksearch")
 
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
+
+FacetSpec = str | dict[str, int | str]
+"""A bare Solr facet field name, or a {"name": ..., "sort"/"limit": ...} spec."""
+
+# Facets requested when details=True and no facet_fields override is given.
+DEFAULT_FACET_FIELDS: list[FacetSpec] = [
+    {"name": "author_facet", "sort": "count"},
+    "language",
+    "publisher_facet",
+    {"name": "publish_year", "limit": -1},
+    "subject_facet",
+    "person_facet",
+    "place_facet",
+    "time_facet",
+    "has_fulltext",
+]
 
 # Works sampled per signal; 8 unique authors reliably appear in the first 40 rows.
 NOTABLE_AUTHORS_SAMPLE_SIZE = 40
@@ -53,10 +69,14 @@ class subjects(delegate.page):
 
         # this needs to be updated to include:
         # q=public_scan_b:true+OR+lending_edition_s:*
+        # No facets, no docs: subjects.html doesn't render `works` (the on-page
+        # carousel runs its own query via `page.solr_query`), and every facet it
+        # used is now fetched by the PublishingHistory/RelatedSubjects partials
+        # instead (see SubjectPublishingHistoryPartial/SubjectRelatedPartial).
+        # This leaves just a plain work_count query.
         subj = get_subject(
             key,
-            details=True,
-            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+            limit=0,
             sort=web.input(sort="readinglog").sort,
             request_label="SUBJECT_ENGINE_PAGE",
         )
@@ -256,12 +276,14 @@ The key-like paths for a subject, eg:
 
 async def get_subject_async(
     key: SubjectPseudoKey,
-    details=False,
+    details: bool = False,
     offset=0,
     sort="editions",
     limit=DEFAULT_RESULTS,
     request_label: SolrRequestLabel = "UNLABELLED",
-    **filters,
+    *,
+    facet_fields: list[FacetSpec] | None = None,
+    **filters: Any,
 ) -> Subject:
     """Returns data related to a subject.
 
@@ -316,7 +338,10 @@ async def get_subject_async(
 
     Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
 
-    Optional arguments has_fulltext and published_in can be passed to filter the results.
+    Optional arguments has_fulltext and publish_year can be passed to filter the results.
+
+    By default, details=True requests every facet in DEFAULT_FACET_FIELDS. Pass
+    facet_fields to request a specific subset instead.
     """
     engine = next((e for e in SUBJECTS if key.startswith(e.prefix)), None)
 
@@ -329,6 +354,7 @@ async def get_subject_async(
         offset=offset,
         sort=sort,
         limit=limit,
+        facet_fields=facet_fields,
         request_label=request_label,
         **filters,
     )
@@ -348,12 +374,14 @@ class SubjectEngine:
     async def get_subject_async(
         self,
         key,
-        details=False,
+        details: bool = False,
         offset=0,
         limit=DEFAULT_RESULTS,
         sort="new",
         request_label: SolrRequestLabel = "UNLABELLED",
-        **filters,
+        *,
+        facet_fields: list[FacetSpec] | None = None,
+        **filters: Any,
     ):
         # Circular imports are everywhere -_-
         from openlibrary.plugins.worksearch.code import (
@@ -400,20 +428,7 @@ class SubjectEngine:
                 "lending_edition_s",
                 "lending_identifier_s",
             ],
-            facet=(
-                details
-                and [
-                    {"name": "author_facet", "sort": "count"},
-                    "language",
-                    "publisher_facet",
-                    {"name": "publish_year", "limit": -1},
-                    "subject_facet",
-                    "person_facet",
-                    "place_facet",
-                    "time_facet",
-                    "has_fulltext",
-                ]
-            ),
+            facet=(facet_fields if facet_fields is not None else details and DEFAULT_FACET_FIELDS),
             extra_params=[
                 ("facet.mincount", 1),
                 ("facet.limit", 25),
@@ -442,25 +457,28 @@ class SubjectEngine:
                 for facet_field, facet_counts in result.facet_counts.items()
             }
 
-            subject.ebook_count = next(
-                (
-                    count
-                    for key, count in cast(  # These are fetched in a different format, we need to fix the types
-                        list[tuple[str, int]], result.facet_counts["has_fulltext"]
-                    )
-                    if key == "true"
-                ),
-                0,
-            )
+            # A facet_fields caller may omit any of these; default rather
+            # than assume every key is present.
+            if has_fulltext_counts := result.facet_counts.get("has_fulltext"):
+                subject.ebook_count = next(
+                    (
+                        count
+                        for key, count in cast(  # These are fetched in a different format, we need to fix the types
+                            list[tuple[str, int]], has_fulltext_counts
+                        )
+                        if key == "true"
+                    ),
+                    0,
+                )
 
-            subject.subjects = result.facet_counts["subject_facet"]
-            subject.places = result.facet_counts["place_facet"]
-            subject.people = result.facet_counts["person_facet"]
-            subject.times = result.facet_counts["time_facet"]
+            subject.subjects = result.facet_counts.get("subject_facet", [])
+            subject.places = result.facet_counts.get("place_facet", [])
+            subject.people = result.facet_counts.get("person_facet", [])
+            subject.times = result.facet_counts.get("time_facet", [])
 
-            subject.authors = result.facet_counts["author_key"]
-            subject.publishers = result.facet_counts["publisher_facet"]
-            subject.languages = result.facet_counts["language"]
+            subject.authors = result.facet_counts.get("author_key", [])
+            subject.publishers = result.facet_counts.get("publisher_facet", [])
+            subject.languages = result.facet_counts.get("language", [])
 
             # Phase 1 (epic #13135): "Notable authors" is computed and
             # cached separately -- see get_cached_notable_authors and
@@ -474,7 +492,7 @@ class SubjectEngine:
                 [year, count]
                 for year, count in cast(  # These are fetched in a different format, we need to fix the types
                     list[tuple[int, int]],
-                    result.facet_counts["publish_year"],
+                    result.facet_counts.get("publish_year", []),
                 )
                 if 1000 < year <= current_year + 1
             ]

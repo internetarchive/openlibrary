@@ -21,6 +21,9 @@ export class ListBooks {
         const layout = event.detail.value;
         this.listBooks.classList.toggle('list-books--grid', layout === 'grid');
         document.cookie = `LBL=${layout}; path=/; max-age=31536000`;
+        const url = new URL(window.location.href);
+        url.searchParams.set('layout', layout);
+        window.history.replaceState(null, '', url);
         // Shadow root, so data-ol-link-track can't see it. Same keys as before,
         // but this reports to Matomo rather than Athena.
         trackEvent('SearchLayout', layout === 'grid' ? 'Grid' : 'Details');

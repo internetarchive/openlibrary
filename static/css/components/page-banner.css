@@ -8,7 +8,7 @@
   font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
-  border-bottom: 1px solid var(--beige);
+  border-bottom: 1px solid var(--color-border-subtle);
   z-index: var(--z-index-level-2);
 }
 .page-banner-mybooks {
@@ -70,7 +70,7 @@
   font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
-  border-bottom: 1px solid var(--beige);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .page-banner--dismissable-content {
   flex: 1;
