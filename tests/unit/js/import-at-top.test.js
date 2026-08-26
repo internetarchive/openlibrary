@@ -21,12 +21,8 @@ function lintImportAtTop(code) {
             '--allow-empty-input',
         ], {
             encoding: 'utf8',
-            // The fixtures deliberately fail lint, so stylelint's report and
-            // Node's deprecation warnings are expected output, not a problem
-            // to surface. execFileSync forwards the child's stderr to the
-            // parent by default, which printed ~59 lines of it into every
-            // `npm run test`. Piping both streams keeps them in the thrown
-            // error, which is where the assertion below already reads them.
+            // The fixtures fail lint on purpose; capture the report for the
+            // assertion below instead of letting execFileSync print it.
             stdio: ['ignore', 'pipe', 'pipe'],
         });
         return 0;
