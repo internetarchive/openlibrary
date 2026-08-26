@@ -32,6 +32,7 @@
  * - /read
  * - /recentchanges
  * - /search/authors
+ * - /status
  * - /subjects
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
@@ -198,7 +199,7 @@ div.lists {
 }
 
 th.toggle-all {
-  background: var(--primary-blue);
+  background: var(--color-primary);
 }
 
 .div-class {

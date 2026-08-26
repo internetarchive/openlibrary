@@ -1,5 +1,6 @@
 import importlib
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -310,7 +311,10 @@ def test_get_amazon_metadata() -> None:
         return MockResponse()
 
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
@@ -362,7 +366,10 @@ async def test_get_amazon_metadata_async() -> None:
     # Use the ISBN-13 form of the same book for a distinct cache key.
     isbn = "9780590353427"
     with (
-        patch("openlibrary.core.vendors.async_session.get", new=mock_async_get),
+        patch(
+            "openlibrary.core.vendors.get_async_session",
+            new=lambda: SimpleNamespace(get=mock_async_get),
+        ),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = await get_amazon_metadata_async(id_=isbn, id_type="isbn", timeout=5.0)

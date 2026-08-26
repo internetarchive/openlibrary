@@ -8101,11 +8101,6 @@ msgstr "Livres les plus notés (De tous les temps)"
 msgid "We couldn't find any books about"
 msgstr "Nous n'avons trouvé aucun livre au sujet de"
 
-#: swagger/swaggerui.html
-#, fuzzy
-msgid "OpenAPI"
-msgstr "Ouvert"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format

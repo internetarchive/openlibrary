@@ -220,6 +220,27 @@ def render_component(
     return html
 
 
+@public
+def icon_sprite_url() -> str:
+    """Return the content-hashed URL of the icon sprite asset.
+
+    Used by the ``$:macros.icon()`` macro; client JS reads the same URL off the
+    ``<meta name="ol-icon-sprite">`` tag in site/head instead. ``static_url``
+    hashes once per process, so a rebuild needs a web restart.
+
+    The sprite is generated, so a checkout that never ran ``make icons`` has no
+    file to hash. Fall back to the unhashed path: every icon draws blank, which
+    is obvious and cheap to fix, rather than 500ing every page that has one.
+    """
+    from openlibrary.plugins.upstream.code import static_url
+
+    try:
+        return static_url("icons/sprite.svg")
+    except OSError:
+        logger.warning("Icon sprite not found at static/icons/sprite.svg; run `make icons`")
+        return "/static/icons/sprite.svg"
+
+
 def render_macro(name, args, **kwargs):
     return dict(web.template.Template.globals["macros"][name](*args, **kwargs))
 
@@ -580,7 +601,6 @@ def add_metatag(tag: str = "meta", **attrs) -> None:
     context.metatags.append(Metatag(tag, **attrs))
 
 
-@public
 def url_quote(text: str | bytes) -> str:
     if isinstance(text, str):
         text = text.encode("utf8")
@@ -1614,6 +1634,26 @@ def subject_name_to_key(subject: str, prefix="") -> str:
     return f"/subjects/{prefix}{normalize_subject_name(subject)}"
 
 
+# The unused-template test reads this literal as ListCarousel's only static
+# reference; renaming or deleting it flips the macro to "unused".
+LIST_CAROUSEL_RE = re.compile(r"""\{\{ListCarousel\(\s*["']([^"']+)["']""")
+
+
+@public
+def get_collection_book_count(page) -> int:
+    """Number of books a /collections/* page holds, summed over the lists its
+    ListCarousel macros point at. Zero when it has no such macro (e.g. it only
+    embeds search-query carousels), so callers can drop the count.
+    """
+    body = page.get("body") or ""
+    # Each key arrives with a display slug appended: /people/x/lists/OL1L/Name.
+    keys = {"/".join(m.split("/")[:5]) for m in LIST_CAROUSEL_RE.findall(str(body))}
+    # A deleted list still resolves to a Thing, and a non-list key to one with no
+    # seed_count, so both would otherwise count as a list holding zero books.
+    lists = web.ctx.site.get_many(sorted(keys))
+    return sum(lst.seed_count for lst in lists if lst.type.key == "/type/list")
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 
@@ -1652,7 +1692,6 @@ def setup() -> None:
         {
             "HTML": HTML,
             "request": Request(),
-            "logger": logging.getLogger("openlibrary.template"),
             "sum": sum,
             "websafe": web.websafe,
         }

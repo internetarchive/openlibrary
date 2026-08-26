@@ -58,7 +58,7 @@ a.hoverlink {
 }
 
 .local-date-time {
-  color: var(--dark-green);
+  color: var(--color-success-fg);
   font-size: var(--font-size-label-small);
   text-align: center;
 }

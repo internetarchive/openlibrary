@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import './OlIcon.js';
 import './OlTooltip.js';
 
 /**
@@ -13,7 +14,7 @@ import './OlTooltip.js';
  *
  * Options are declared as light-DOM <ol-segment> children carrying a `value`
  * attribute; their content is the label — plain text, or markup such as an
- * <svg> icon. Icon-only segments must add a `label` attribute to name the radio
+ * <ol-icon>. Icon-only segments must add a `label` attribute to name the radio
  * (used as the aria-label and a hover tooltip). Children are read once on connect
  * and re-rendered as accessible radios in the shadow root, so the control needs
  * no per-option wiring from the consuming page.
@@ -44,8 +45,8 @@ import './OlTooltip.js';
  *
  * @example
  *   <ol-segmented-control value="grid" accessible-label="View">
- *     <ol-segment value="grid" label="Grid"><svg ...></svg></ol-segment>
- *     <ol-segment value="list" label="List"><svg ...></svg></ol-segment>
+ *     <ol-segment value="grid" label="Grid"><ol-icon name="layout-grid"></ol-icon></ol-segment>
+ *     <ol-segment value="list" label="List"><ol-icon name="list"></ol-icon></ol-segment>
  *   </ol-segmented-control>
  */
 export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
@@ -79,7 +80,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             width: 100%;
         }
 
-        :host([disabled]) {
+        :host(:disabled) {
             opacity: 0.55;
             cursor: not-allowed;
         }
@@ -145,10 +146,10 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         /* The selected segment's text. Doubled class (.segment.segment--ghost)
            so this beats the later, equal-specificity ".segment" color rule —
-           otherwise the cascade resolves the ghost to --accessible-grey and the
+           otherwise the cascade resolves the ghost to --color-text-muted and the
            selected segment looks dimmed instead of full-strength #333. */
         .segment.segment--ghost {
-            color: var(--dark-grey);
+            color: var(--color-text);
         }
 
         /* The sliding white pill — carries the raised look the selected segment
@@ -216,7 +217,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             background-color: transparent;
             /* Non-selected segments are dimmed so the selected one reads as
                active; hover and the selected pill darken back to full strength. */
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-control);
@@ -237,7 +238,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         /* Icon segments: size the glyph to the control and let it inherit the
-           segment's color so it tracks selected/hover states like text does. */
+           segment's color so it tracks selected/hover states like text does.
+           An outer-tree rule beats <ol-icon>'s own :host size, so this wins. */
+        .segment ol-icon,
         .segment svg {
             display: block;
             width: 18px;
@@ -246,7 +249,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
         @media (hover: hover) and (pointer: fine) {
             .segment:not([aria-checked="true"]):not(:disabled):hover {
-                color: var(--dark-grey);
+                color: var(--color-text);
             }
         }
 
@@ -279,6 +282,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             font-size: var(--font-size-label-medium);
         }
 
+        :host([size="small"]) .segment ol-icon,
         :host([size="small"]) .segment svg {
             width: 16px;
             height: 16px;
@@ -293,6 +297,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
             font-size: var(--font-size-body-large);
         }
 
+        :host([size="large"]) .segment ol-icon,
         :host([size="large"]) .segment svg {
             width: 20px;
             height: 20px;
@@ -521,7 +526,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                 aria-checked=${checked ? 'true' : 'false'}
                 aria-label=${labelAttr}
                 tabindex=${i === activeIndex ? '0' : '-1'}
-                ?disabled=${this.disabled || option.disabled}
+                ?disabled=${this.isDisabled || option.disabled}
                 @click=${() => this._select(option.value)}
             >${option.isMarkup ? unsafeHTML(option.content) : option.content}</button>
         `;

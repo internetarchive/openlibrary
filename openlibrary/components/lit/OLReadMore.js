@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import './OlIcon.js';
 
 /**
  * OLReadMore - A web component for expandable/collapsible content
@@ -24,7 +25,7 @@ import { LitElement, html, css } from 'lit';
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
  *
- * @cssprop [--ol-readmore-link-color=hsl(206, 95%, 30%)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-link-color=var(--color-link)] - Color of the more/less toggle button
  * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
  * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
@@ -53,7 +54,7 @@ export class OLReadMore extends LitElement {
         :host {
             display: block;
             position: relative;
-            --ol-readmore-link-color: hsl(206, 95%, 30%);
+            --ol-readmore-link-color: var(--color-link);
             --ol-readmore-gradient-color: white;
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
         }
@@ -113,6 +114,7 @@ export class OLReadMore extends LitElement {
             width: 1.2em;
             height: 1.2em;
             vertical-align: middle;
+            --ol-icon-stroke-width: 2.5;
         }
 
         .chevron.up {
@@ -235,7 +237,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleMoreClick}"
             >
                 ${this.moreText}
-                <svg class="chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron" name="chevron-down"></ol-icon>
             </button>
             <button
                 part="toggle-btn"
@@ -244,7 +246,7 @@ export class OLReadMore extends LitElement {
                 @click="${this._handleLessClick}"
             >
                 ${this.lessText}
-                <svg class="chevron up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ol-icon class="chevron up" name="chevron-down"></ol-icon>
             </button>
         `;
     }

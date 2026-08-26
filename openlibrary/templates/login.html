@@ -73,7 +73,7 @@ $if get_ol_env().LOCAL_DEV and not ctx.user:
                 <div class="input">
                     <input type="password" autocomplete="current-password" placeholder="$_('Password')" id="password" name="password" required />
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
-                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                        $:macros.icon("eye-off", label=_('Toggle Password Visibility'))
                     </a>
                 </div>
             </div>

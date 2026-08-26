@@ -15,6 +15,23 @@ def test_verify_hash():
     assert model.verify_hash(secret_key, b"foo", hash)
 
 
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_parse_s3_cookie_decrypts_a_valid_token(mock_secret_key):
+    token = model.encrypt_s3_keys("AKIA123", "secret456")
+
+    assert model.parse_s3_cookie(token) == {"access": "AKIA123", "secret": "secret456"}
+
+
+def test_parse_s3_cookie_returns_none_when_absent():
+    assert model.parse_s3_cookie(None) is None
+    assert model.parse_s3_cookie("") is None
+
+
+@mock.patch("openlibrary.accounts.model.get_secret_key", return_value="test-secret-key")
+def test_parse_s3_cookie_returns_none_for_tampered_token(mock_secret_key):
+    assert model.parse_s3_cookie("not-a-real-token") is None
+
+
 def test_xauth_http_error_without_json(monkeypatch):
     xauth = InternetArchiveAccount.xauth
     resp = Response()

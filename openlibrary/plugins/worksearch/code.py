@@ -20,7 +20,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.lending import add_availability, add_availability_async
+from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -899,7 +899,7 @@ class search(delegate.page):
         )
 
 
-def works_by_author(
+async def works_by_author_async(
     akey: str,
     sort="editions",
     page=1,
@@ -909,11 +909,12 @@ def works_by_author(
     query: str | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
 ):
+    """Search Solr for an author's works, enriched with availability."""
     param = {"q": query or "*:*"}
     if has_fulltext:
         param["has_fulltext"] = "true"
 
-    result = run_solr_query(
+    result = await run_solr_query_async(
         WorkSearchScheme(),
         param=param,
         page=page,
@@ -937,8 +938,11 @@ def works_by_author(
     )
 
     result.docs = [get_doc(doc) for doc in result.docs]
-    add_availability([(work.get("editions") or [None])[0] or work for work in result.docs])
+    await add_availability_async([(work.get("editions") or [None])[0] or work for work in result.docs])
     return result
+
+
+works_by_author = async_bridge.wrap(works_by_author_async)
 
 
 def top_books_from_author(akey: str, rows=5) -> SearchResponse:
