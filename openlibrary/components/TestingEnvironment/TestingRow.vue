@@ -26,9 +26,13 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['toggle', 'update', 'remove']);
+const emit = defineEmits(['toggle', 'update', 'remove', 'restore']);
 
 const inSet = computed(() => props.pr.in_set !== false);
+
+// A staged removal makes the row read-only until deploy or restore: the
+// deploy drops it, so its toggle and pin controls would change nothing.
+const removalStaged = computed(() => props.pr.pending_remove === true);
 
 const liveNow = computed(() => props.pr.live_now === true);
 
@@ -50,7 +54,7 @@ const isActive = computed(() => effectiveActive(props.pr));
 // `action`; any non-empty value means a change is staged for it.
 const pending = computed(() => Boolean(props.pr.action));
 
-const canUpdatePr = computed(() => canUpdate(props.pr));
+const canUpdatePr = computed(() => !removalStaged.value && canUpdate(props.pr));
 
 const pill = computed(() => driftPill(props.pr, props.strings));
 
@@ -68,7 +72,7 @@ function text(key, ...args) {
       class="testing-env__col-toggle"
     >
       <button
-        v-if="inSet"
+        v-if="inSet && !removalStaged"
         type="button"
         class="testing-env__switch"
         :aria-pressed="isActive ? 'true' : 'false'"
@@ -162,7 +166,14 @@ function text(key, ...args) {
             </svg>
           </button>
           <span
-            v-if="pending"
+            v-if="pr.closed"
+            class="testing-env__pending testing-env__closed"
+            role="img"
+            :title="strings.closed"
+            :aria-label="strings.closed"
+          >⛔</span>
+          <span
+            v-else-if="pending"
             class="testing-env__pending"
             role="img"
             :title="strings.changeOnDeploy"
@@ -180,7 +191,7 @@ function text(key, ...args) {
       class="testing-env__col-actions"
     >
       <button
-        v-if="inSet"
+        v-if="inSet && !removalStaged"
         type="button"
         class="testing-env__row-action testing-env__row-action--danger"
         :title="strings.remove"
@@ -213,6 +224,30 @@ function text(key, ...args) {
             x2="14"
             y2="17"
           />
+        </svg>
+      </button>
+      <button
+        v-else-if="inSet"
+        type="button"
+        class="testing-env__row-action testing-env__row-action--restore"
+        :title="strings.restore"
+        :aria-label="strings.restore"
+        @click="emit('restore', pr)"
+      >
+        <svg
+          class="testing-env__btn-icon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
         </svg>
       </button>
     </td>

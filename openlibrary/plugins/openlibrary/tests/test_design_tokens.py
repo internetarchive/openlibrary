@@ -156,6 +156,35 @@ class TestParseFile:
         category = _parse_file(write(tmp_path, "c.css", "/**\n * 2. Semantic tokens\n * ---\n */\n:root { }\n/* Text */\n:root { --color-text: red; }\n"))
         assert [(group.title, len(group.tokens)) for group in category.groups] == [("2. Semantic tokens", 0), ("Text", 1)]
 
+    def test_a_responsive_override_does_not_redeclare_its_token(self, tmp_path):
+        """One token, one row: the phone value is the same token, not a second one.
+
+        Its introducing comment goes with it, or it would head a group of nothing.
+        """
+        body = ":root { --size: 57px; }\n/* Steps down on phones. */\n@media (max-width: 768px) {\n  :root { --size: 45px; }\n}\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [(group.title, [token.name for token in group.tokens]) for group in category.groups] == [("", ["--size"])]
+
+    def test_a_brace_inside_a_comment_does_not_end_the_masked_block(self, tmp_path):
+        """Braces are counted off a comment-stripped copy, so prose can't close the block early.
+
+        breakpoints.css documents `@media (min-width: 768px) { ... }` in a comment;
+        counting that brace would swallow the real :root below and empty the category.
+        """
+        body = "@media (max-width: 768px) {\n  /* --color-{a,b} */\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
+    def test_a_stray_comment_close_above_a_block_does_not_raise(self, tmp_path):
+        """A `*/` closing no comment stops the walk-back instead of killing the page.
+
+        load_token_categories() only catches OSError, so a KeyError here would 500
+        /developers/design rather than cost one lead-in comment.
+        """
+        body = "/* a */ */\n@media (max-width: 768px) {\n  :root { --hidden: 1px; }\n}\n:root { --kept: 2px; }\n"
+        category = _parse_file(write(tmp_path, "c.css", body))
+        assert [token.name for group in category.groups for token in group.tokens] == ["--kept"]
+
 
 class TestRamps:
     def test_a_numeric_color_run_is_a_ramp_and_a_stray_sibling_stays_loose(self, tmp_path):

@@ -188,3 +188,8 @@ repos:
         # command which sqlfluff cannot parse.
         # See: https://github.com/internetarchive/openlibrary/issues/12245
         exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.29.0
+    hooks:
+      - id: zizmor

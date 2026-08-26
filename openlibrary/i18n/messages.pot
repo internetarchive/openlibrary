@@ -885,6 +885,10 @@ msgstr ""
 msgid "Languages"
 msgstr ""
 
+#: search/search_modal_i18n.html work_search.html
+msgid "Loading…"
+msgstr ""
+
 #: work_search.html
 msgid "Filter by language"
 msgstr ""
@@ -4339,7 +4343,7 @@ msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
+#: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html type/page/view.html
 msgid "Collections"
 msgstr ""
 
@@ -6690,6 +6694,17 @@ msgstr ""
 msgid "Community"
 msgstr ""
 
+#: type/page/view.html
+msgid "Collection"
+msgstr ""
+
+#: type/page/view.html
+#, python-format
+msgid "%(count)s book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
 #: type/permission/edit.html
 msgid "Readers:"
 msgstr ""
@@ -7467,6 +7482,10 @@ msgid "Deploy failed (merge conflict)"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
+msgid "This PR is already closed."
+msgstr ""
+
+#: TestingEnvironment.html.jinja
 msgid "OK"
 msgstr ""
 
@@ -7489,6 +7508,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "Disable"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "Restore"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7515,6 +7538,10 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 msgid "merged to master"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+msgid "closed without merging"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
