@@ -38,11 +38,10 @@ export function commonBuildOptions({ mode }) {
         sourcemap: true,
         minify: mode !== 'development',
         // Mirror package.json's browserslist. The binding constraint is Safari
-        // 11.1 / iOS 11.3 — Chrome/Edge/Firefox are "last 3 years" (116/117+),
-        // which never constrains anything Safari 11.1 doesn't already. Oxc lowers
-        // syntax (optional chaining, nullish coalescing, …) to that floor; API
-        // polyfills are covered by the explicit core-js import at the top of
-        // index.js (replaces babel useBuiltIns:'usage').
+        // 11.1 / iOS 11.3. Oxc lowers syntax (optional chaining, nullish
+        // coalescing, …) to that floor; API polyfills are covered by the explicit
+        // core-js import at the top of index.js (replaces babel
+        // useBuiltIns:'usage').
         target: ['safari11.1', 'ios11.3'],
         // Vite only warns about big chunks; `bundlesize` (CI) is the real gate,
         // replacing webpack's `performance.hints: 'error'`.
