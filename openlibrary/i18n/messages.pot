@@ -6994,6 +6994,10 @@ msgstr ""
 msgid "Preview Only"
 msgstr ""
 
+#: BookPreview.html
+msgid "No Preview"
+msgstr ""
+
 #: BookPreviewFloater.html
 msgid "Preview Book"
 msgstr ""
