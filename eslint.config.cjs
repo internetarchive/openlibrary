@@ -14,6 +14,12 @@ module.exports = [
       "conf/",
       "config/",
       "docker/",
+      // Gitignored MediaWiki/VitePress mirror that docker/ol-home-start.sh
+      // auto-clones (~460 MB, 12,652 JS files). ESLint v9 flat config does not
+      // read .gitignore, so without this any machine that has run
+      // `docker compose up` lints the clone's build output and dependency
+      // caches: ~566k problems, 58.5 MB of output, exit 1 (#13448).
+      "docs/wiki/",
       "infogami/",
       "node_modules/",
       "openlibrary/components/lit/icons.generated.js",
