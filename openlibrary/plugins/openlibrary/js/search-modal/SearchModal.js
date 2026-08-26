@@ -945,7 +945,6 @@ export class SearchModal extends LitElement {
                     --ol-dialog-top-offset: 54px;
                     --ol-dialog-animation-duration: 160ms;
                     --ol-dialog-width-large: min(680px, 92vw);
-                    --ol-dialog-backdrop-color: hsla(0,0%,0%,0.18);
                 "
                 @ol-after-open=${this._onDialogOpened}
                 @ol-after-close=${this._onDialogClosed}
