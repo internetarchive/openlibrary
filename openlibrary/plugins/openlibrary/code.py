@@ -54,7 +54,7 @@ from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
 from openlibrary.utils.sentry import get_sentry
 
 
@@ -1108,14 +1108,10 @@ def setup_template_globals():
             "next": next,
             "sorted": sorted,
             "zip": zip,
-            "tuple": tuple,
             "hash": hash,
             "urlquote": quote,
             "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
-            "isbn_10_to_isbn_13": isbn_10_to_isbn_13,
-            "NEWLINE": "\n",
             "random": random.Random(),
-            "choose_random_from": random.choice,
             "get_lang": lambda: web.ctx.lang,
             "get_supported_languages": get_supported_languages,
             "ceil": math.ceil,
@@ -1159,7 +1155,6 @@ def setup():
         sentry,
         stats,
         status,
-        swagger,
     )
 
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
@@ -1174,7 +1169,6 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
-    swagger.setup()
     partials.setup()
     import_ui.setup()
 

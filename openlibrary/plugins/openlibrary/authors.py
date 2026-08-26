@@ -1,5 +1,9 @@
+import web
+
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import query_param
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.code import random_author_search
 
 
@@ -11,5 +15,9 @@ class author(delegate.page):
     path = "/authors"
 
     def GET(self):
-        results = random_author_search()
-        return render_template("authors/index.html", results=results)
+        html = render_jinja_template(
+            "authors/index.html.jinja",
+            results=random_author_search(),
+            q=query_param("q", ""),
+        )
+        return web.template.TemplateResult(__body__=html, title=_("Authors"))

@@ -42,10 +42,7 @@ __all__ = [
     "format_decimal",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
-    "private_collection_in",
-    "private_collections",
     "safeint",  # function imported from elsewhere
-    "safesort",
     "sanitize",
     "sprintf",
     "texsafe",

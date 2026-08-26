@@ -17,9 +17,15 @@
  * fills. Hover, press, focus, loading and the disclosure chevron are omitted —
  * the element isn't interactive before upgrade, and keeping this sheet small
  * keeps it easy to hold in step with the recipe in OLButton.js.
+ *
+ * The one exception is `.ol-button-static` at the foot of the file: the same
+ * look on plain markup that can't be an <ol-button> at all. It joins the
+ * resting-look selector lists so the two can't drift, and carries its own
+ * interactive states — it never upgrades, so nothing in shadow DOM covers it.
  */
 
-ol-button:not(:defined) {
+ol-button:not(:defined),
+.ol-button-static {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -63,7 +69,8 @@ ol-button[disabled]:not(:defined) {
 }
 
 /* Sizes */
-ol-button[size="small"]:not(:defined) {
+ol-button[size="small"]:not(:defined),
+.ol-button-static--small {
   --ol-button-height: var(--control-height-small);
   padding: 0 var(--spacing-sm);
   font-size: var(--font-size-label-medium);
@@ -126,4 +133,42 @@ ol-button[selected]:not(:defined) {
   border-color: var(--color-control-selected-border);
   color: var(--color-link);
   --control-surface: var(--color-control-selected-surface);
+}
+
+/* Static twin — the secondary button's look on an element that can't be an
+   <ol-button>: chiefly a real <a href> that must navigate without JS, such as
+   the Edit link in the page databar. It borrows the resting look from the
+   selector lists above; the interactive states below are its own, because for
+   <ol-button> those live in shadow DOM (see OLButton.js) and never reach it. */
+a.ol-button-static:link,
+a.ol-button-static:visited {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.ol-button-static {
+  transition: transform 0.08s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Hover changes the fill, so --control-surface moves with it — otherwise the
+     specular highlight stays toned to the resting color. The border drops in
+     step with the fill (both ~7% in lightness) so the whole button reads as
+     one shape rather than the fill darkening inside a static outline. */
+  .ol-button-static:hover {
+    background-color: var(--color-control-hover);
+    border-color: var(--color-border-muted);
+    --control-surface: var(--color-control-hover);
+  }
+}
+
+/* Press feedback — tactile scale on activation. The raised shadow and
+   specular highlight stay put through the press. */
+.ol-button-static:active {
+  transform: scale(0.97);
+}
+
+.ol-button-static:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: var(--spacing-3xs);
 }
