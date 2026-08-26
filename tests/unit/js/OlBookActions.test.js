@@ -321,6 +321,38 @@ describe('ol-book-actions rejected writes', () => {
         await tick(el);
         expect(el.shelf).toBeNull();
     });
+
+    // A rating moves two properties, so rolling back the rating alone would
+    // leave the book on a shelf it was never put on.
+    test('a rejected rating rolls back the shelf it implied too', async() => {
+        stubFetch({ failWith: 500 });
+        const el = await mount({ shelf: SHELF.CURRENTLY_READING });
+        qa(el, '.star')[3].click();
+        expect(el.shelf).toBe(SHELF.ALREADY_READ);
+        await tick(el);
+        expect(el.rating).toBeNull();
+        expect(el.shelf).toBe(SHELF.CURRENTLY_READING);
+    });
+
+    test('a second write while one is in flight is dropped', async() => {
+        stubFetch();
+        let land;
+        global.fetch = jest.fn((url, init) => {
+            calls.push({ url, init });
+            return new Promise(resolve => { land = () => resolve({ ok: true, status: 200, json: async() => ({}) }); });
+        });
+        const el = await mount();
+
+        // Both land before the re-render that disables the stars, so the guard
+        // is what stops the second one.
+        qa(el, '.star')[2].click();
+        qa(el, '.star')[4].click();
+        await tick(el);
+
+        expect(calls.filter(c => c.url === '/works/OL1W/ratings.json')).toHaveLength(1);
+        expect(el.rating).toBe(3);
+        land();
+    });
 });
 
 const checkInWrites = () => calls.filter(c => c.url.includes('/check-ins'));

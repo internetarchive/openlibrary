@@ -138,6 +138,22 @@ describe('ol-shelf-button state changes', () => {
         expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.ALREADY_READ));
     });
 
+    test('a second click before the request lands is dropped', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester' });
+        const seen = [];
+        el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
+
+        q(el, '.main').click();
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+
+        // The surface has not applied the first change yet, so without the
+        // guard the second click would post the same toggle again.
+        expect(seen).toEqual([{ key: '/works/OL1W', shelf: SHELF.WANT_TO_READ, rating: null }]);
+        expect(fetchCalls.filter(c => c.url.endsWith('/works/OL1W/bookshelves.json'))).toHaveLength(1);
+    });
+
     test('never writes its own shelf — the surface owns it', async() => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });

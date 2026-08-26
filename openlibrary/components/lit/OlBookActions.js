@@ -1068,6 +1068,28 @@ export class OlBookActions extends LitElement {
         showToast(this.t('errorGeneric'), { type: 'error' });
     }
 
+    /**
+     * Applies `optimistic` to our own state, runs `action`, and puts every
+     * property it touched back if that throws — rolling back from a snapshot is
+     * what keeps a handler from restoring one property and forgetting another.
+     * The busy flag both disables the rows and drops a click that beats the
+     * re-render.
+     */
+    async _mutate(optimistic, action) {
+        if (this._busy) return;
+        const snapshot = Object.fromEntries(Object.keys(optimistic).map(key => [key, this[key]]));
+        Object.assign(this, optimistic);
+        this._busy = true;
+        try {
+            await action();
+        } catch (error) {
+            Object.assign(this, snapshot);
+            this._fail(error);
+        } finally {
+            this._busy = false;
+        }
+    }
+
     // ── Shelves ──────────────────────────────────────────────
 
     async _onShelfClick(shelfId) {
@@ -1090,9 +1112,7 @@ export class OlBookActions extends LitElement {
     async _postShelf(shelfId) {
         const previous = this.shelf;
         const removing = previous === shelfId;
-        this.shelf = removing ? null : shelfId;
-        this._busy = true;
-        try {
+        return this._mutate({ shelf: removing ? null : shelfId }, async() => {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
             trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId]);
             this._emitState();
@@ -1102,35 +1122,20 @@ export class OlBookActions extends LitElement {
             if (!removing && shelfId === SHELF.ALREADY_READ && previous !== SHELF.ALREADY_READ) {
                 this._openCheckIn();
             }
-        } catch (error) {
-            this.shelf = previous;
-            this._fail(error);
-        } finally {
-            this._busy = false;
-        }
+        });
     }
 
     // ── Rating ───────────────────────────────────────────────
 
     async _onRate(n) {
-        const previous = this.rating;
-        const previousShelf = this.shelf;
-        const next = previous === n ? null : n;
-        this.rating = next;
+        const next = this.rating === n ? null : n;
         // The server moves a rated book to Already Read.
-        if (next) this.shelf = SHELF.ALREADY_READ;
-        this._busy = true;
-        try {
+        const optimistic = next ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
+        return this._mutate(optimistic, async() => {
             await setRating(this.book.key, next, { editionKey: this.book.editionKey });
             trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
             this._emitState();
-        } catch (error) {
-            this.rating = previous;
-            this.shelf = previousShelf;
-            this._fail(error);
-        } finally {
-            this._busy = false;
-        }
+        });
     }
 
     // ── Check-in ─────────────────────────────────────────────

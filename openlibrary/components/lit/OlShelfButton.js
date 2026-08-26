@@ -59,6 +59,10 @@ export const DEFAULT_LABELS = {
  *     saved. detail: { key, date, eventId }
  */
 export class OlShelfButton extends LitElement {
+    /** A shelf change is in flight. Deliberately not reactive: it gates the
+        second click, it does not change how the button looks. */
+    _pending = false;
+
     static properties = {
         variant: { type: String, reflect: true },
         workKey: { type: String, attribute: 'work-key' },
@@ -353,11 +357,16 @@ export class OlShelfButton extends LitElement {
 
     async _onMainClick(e) {
         if (!this.userKey) return this._onLoggedOut(e);
+        // The shelf we emit only comes back down as a property a tick later, so
+        // a second click before the request lands would toggle twice on the
+        // server while the button shows one change.
+        if (this._pending) return;
         const previous = this.shelf ?? null;
         // On a shelf → clicking removes; otherwise → Want to Read.
         const target = previous ?? SHELF.WANT_TO_READ;
         const next = previous === null ? SHELF.WANT_TO_READ : null;
         this._emitState(next);
+        this._pending = true;
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });
             trackEvent('ReadingLog', SHELF_EVENT[next]);
@@ -365,6 +374,8 @@ export class OlShelfButton extends LitElement {
             this._emitState(previous);
             if (error?.status === 401) return this._onLoggedOut(e);
             showToast(this.t('errorGeneric'), { type: 'error' });
+        } finally {
+            this._pending = false;
         }
     }
 }
