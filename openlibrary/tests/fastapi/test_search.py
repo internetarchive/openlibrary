@@ -469,10 +469,20 @@ class TestSearchInsideEndpoint:
         """Default call: limit 20, facets on (the historical behavior)."""
         response = fastapi_client.get("/search/inside.json?q=hello")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True)
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, languages=[])
 
     def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async):
         """Lightweight callers (the header modal) skip aggregations upstream."""
         response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False)
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, languages=[])
+
+    def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, monkeypatch):
+        """`q` stays the patron's words: readable is applied to the fetched
+        hits, and languages are turned into a clause inside the search call."""
+        # The MARC code -> name map comes from the language catalogue, which
+        # needs a site context this test doesn't have.
+        monkeypatch.setattr("openlibrary.fastapi.search.language_name_maps", lambda: ({"ger": "German"}, {"german": "ger"}))
+        response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
+        assert response.status_code == 200
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, languages=["German"])
