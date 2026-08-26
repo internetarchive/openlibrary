@@ -202,7 +202,7 @@ async def get_groundtruth_availability_async(ocaid, s3_keys=None):
     url = config_ia_s3_loan_url or S3_LOAN_URL % config_bookreader_host
     timeout = 2 if os.getenv("LOCAL_DEV") else config_http_request_timeout
     try:
-        response = await ia.async_session.post(url + params, data=s3_keys, timeout=timeout)
+        response = await ia.get_async_session().post(url + params, data=s3_keys, timeout=timeout)
         response.raise_for_status()
     except httpx.TimeoutException:
         if os.getenv("LOCAL_DEV"):
@@ -240,7 +240,7 @@ async def s3_loan_api_async(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = await ia.async_session.post(url + params, data=data, timeout=config_http_request_timeout)
+    response = await ia.get_async_session().post(url + params, data=data, timeout=config_http_request_timeout)
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox
@@ -302,7 +302,7 @@ async def get_available_async(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = await ia.async_session.get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.get_async_session().get(url, headers=headers, timeout=config_http_request_timeout)
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -439,7 +439,7 @@ async def get_availability_async(
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = await ia.async_session.get(
+        resp = await ia.get_async_session().get(
             config_ia_availability_api_v2_url,
             params={
                 id_type: ",".join(ids_to_fetch),
