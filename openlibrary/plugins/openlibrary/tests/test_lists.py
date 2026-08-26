@@ -390,6 +390,7 @@ class TestListViewGet:
     def test_missing_list_raises_notfound(self, monkeypatch):
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
         monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None))
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
 
         mock_site = Mock()
         mock_site.get.return_value = None
