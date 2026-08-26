@@ -54,12 +54,17 @@ export const DEFAULT_STRINGS = {
     behindMany: '%s commits behind %s',
     neverDeployed: 'Never deployed',
     deployingStarted: 'Deploying, started %s',
+    deployingStartedBy: 'Deploying, started %s by %s',
     deployingStage: 'Deploying, started %s — %s',
+    deployingStageBy: 'Deploying, started %s — %s by %s',
     deploySucceeded: 'Deploy succeeded %s',
+    deploySucceededBy: 'Deploy succeeded %s by %s',
     deployFailed: 'Deploy failed %s',
+    deployFailedBy: 'Deploy failed %s by %s',
     deployFailedTrigger: 'Could not start the deploy — Jenkins did not accept the build.',
     deployUnconfigured: 'Deploy is not configured on this instance — nothing was deployed.',
     lastDeploy: 'Last deploy %s',
+    lastDeployBy: 'Last deploy %s by %s',
     viewJenkins: 'View Jenkins',
     noPrs: 'No PRs in testing set.'
 };

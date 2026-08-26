@@ -7576,7 +7576,17 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Deploying, started %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Deploying, started %(time)s — %(stage)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploying, started %(time)s — %(stage)s by %(user)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7586,7 +7596,17 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
+msgid "Deploy succeeded %(time)s by %(user)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
 msgid "Deploy failed %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Deploy failed %(time)s by %(user)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
@@ -7600,6 +7620,11 @@ msgstr ""
 #: TestingEnvironment.html.jinja
 #, python-format
 msgid "Last deploy %(time)s"
+msgstr ""
+
+#: TestingEnvironment.html.jinja
+#, python-format
+msgid "Last deploy %(time)s by %(user)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
