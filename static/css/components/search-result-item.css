@@ -5,7 +5,8 @@
 
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link with a book icon */
-.bookcover .cta-btn.cta-btn--preview {
+.bookcover .cta-btn.cta-btn--preview,
+.bookcover .cta-btn.cta-btn--no-preview {
   color: var(--primary-blue);
   text-decoration: none;
   position: relative;
@@ -40,6 +41,22 @@
   -webkit-mask-size: cover;
   mask-size: cover;
   background-color: var(--color-primary);
+}
+
+/* No Preview state - muted/disabled version of Preview link */
+.bookcover .cta-btn.cta-btn--no-preview {
+  color: var(--color-text-secondary);
+  cursor: default;
+  pointer-events: none;
+}
+
+.bookcover .cta-btn.cta-btn--no-preview::before {
+  background-color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.bookcover .cta-btn.cta-btn--no-preview:hover {
+  text-decoration: none;
 }
 /* stylelint-enable selector-max-specificity */
 
