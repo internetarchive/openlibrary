@@ -1,7 +1,9 @@
 import json
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+import web
 from starlette.datastructures import URL
 
 from openlibrary.plugins.openlibrary import lists as legacy_lists
@@ -265,3 +267,269 @@ def test_get_lists_data_uses_lists_json_path_for_pagination_links():
 
     assert data["links"]["self"] == "/people/alice"
     assert data["links"]["next"] == "/people/alice/lists.json?limit=50&offset=50"
+
+
+def _make_seed(key, type_, document=None):
+    return SimpleNamespace(key=key, type=type_, document=document, notes=None, last_update=None)
+
+
+class TestResolveListViewItems:
+    """Unit tests for the seed -> Solr doc -> availability batching."""
+
+    def test_empty_seeds_skips_solr_and_availability(self, monkeypatch):
+        solr_mock = Mock()
+        availability_mock = Mock()
+        monkeypatch.setattr(legacy_lists, "get_solr_works", solr_mock)
+        monkeypatch.setattr(legacy_lists, "get_availabilities", availability_mock)
+
+        items = legacy_lists._resolve_list_view_items([])
+
+        assert items == []
+        solr_mock.assert_not_called()
+        availability_mock.assert_not_called()
+
+    def test_work_seed_resolved_via_solr(self, monkeypatch):
+        work_doc = {"key": "/works/OL1W", "editions": {"docs": [{"key": "/books/OL1M"}]}}
+        seed = _make_seed("/works/OL1W", "work")
+
+        monkeypatch.setattr(legacy_lists, "get_solr_works", Mock(return_value={"/works/OL1W": work_doc}))
+        monkeypatch.setattr(
+            legacy_lists,
+            "get_availabilities",
+            Mock(return_value={"/books/OL1M": {"status": "available"}}),
+        )
+
+        items = legacy_lists._resolve_list_view_items([seed])
+
+        assert len(items) == 1
+        assert items[0].seed is seed
+        assert items[0].doc == work_doc
+        assert items[0].availability == {"status": "available"}
+
+    def test_edition_seed_stays_edition_and_is_excluded_from_solr_query(self, monkeypatch):
+        edition_doc = {"key": "/books/OL2M"}
+        seed = _make_seed("/books/OL2M", "edition", document=edition_doc)
+
+        solr_mock = Mock(return_value={})
+        monkeypatch.setattr(legacy_lists, "get_solr_works", solr_mock)
+        monkeypatch.setattr(
+            legacy_lists,
+            "get_availabilities",
+            Mock(return_value={"/books/OL2M": {"status": "available"}}),
+        )
+
+        items = legacy_lists._resolve_list_view_items([seed])
+
+        # get_solr_works is only ever queried with `work`-type seed keys
+        solr_mock.assert_called_once_with(set(), editions=True)
+        assert items[0].doc == edition_doc
+        assert items[0].availability == {"status": "available"}
+
+    def test_orphan_seed_falls_back_to_document_without_crashing(self, monkeypatch):
+        seed = _make_seed("/works/OL3W", "work", document=None)
+
+        monkeypatch.setattr(legacy_lists, "get_solr_works", Mock(return_value={}))
+        monkeypatch.setattr(legacy_lists, "get_availabilities", Mock(return_value={}))
+
+        items = legacy_lists._resolve_list_view_items([seed])
+
+        assert items[0].doc is None
+        assert items[0].availability is None
+
+    def test_non_work_edition_seed_has_no_doc_or_availability(self, monkeypatch):
+        seed = _make_seed("subject:foo", "subject")
+
+        availability_mock = Mock(return_value={})
+        monkeypatch.setattr(legacy_lists, "get_solr_works", Mock(return_value={}))
+        monkeypatch.setattr(legacy_lists, "get_availabilities", availability_mock)
+
+        items = legacy_lists._resolve_list_view_items([seed])
+
+        assert items[0].doc is None
+        assert items[0].availability is None
+        # subject/person/place/time seeds never enter the availability batch
+        availability_mock.assert_called_once_with([])
+
+    def test_mixed_list_batches_availability_exactly_once(self, monkeypatch):
+        work_doc = {"key": "/works/OL1W"}  # no editions block -> falls back to the work doc itself
+        seeds = [
+            _make_seed("/works/OL1W", "work"),
+            _make_seed("/books/OL2M", "edition", document={"key": "/books/OL2M"}),
+            _make_seed("subject:foo", "subject"),
+        ]
+
+        availability_mock = Mock(
+            return_value={
+                "/works/OL1W": {"status": "available"},
+                "/books/OL2M": {"status": "borrowable"},
+            }
+        )
+        monkeypatch.setattr(legacy_lists, "get_solr_works", Mock(return_value={"/works/OL1W": work_doc}))
+        monkeypatch.setattr(legacy_lists, "get_availabilities", availability_mock)
+
+        items = legacy_lists._resolve_list_view_items(seeds)
+
+        assert availability_mock.call_count == 1
+        assert [item.availability for item in items] == [
+            {"status": "available"},
+            {"status": "borrowable"},
+            None,
+        ]
+
+
+class TestListViewGet:
+    """Tests for the list_view HTML handler."""
+
+    def test_non_html_encoding_returns_406(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", "json", raising=False)
+
+        with pytest.raises(web.HTTPError):
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+    def test_missing_list_raises_notfound(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None))
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
+
+        mock_site = Mock()
+        mock_site.get.return_value = None
+        with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
+            mock_site_context.get.return_value = mock_site
+
+            with pytest.raises(web.HTTPError):
+                legacy_lists.list_view().GET("/lists/OL999L")
+
+    def test_deleted_list_renders_delete_template_with_404(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None))
+
+        deleted = SimpleNamespace(type=SimpleNamespace(key="/type/delete"))
+        mock_site = Mock()
+        mock_site.get.return_value = deleted
+
+        render_mock = Mock(return_value="rendered")
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists.render_template", render_mock),
+        ):
+            mock_site_context.get.return_value = mock_site
+
+            result = legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert result == "rendered"
+        render_mock.assert_called_once_with("type/delete/view", deleted)
+
+    def test_only_current_page_seeds_are_resolved(self, monkeypatch):
+        """Batch resolution must only ever see the seeds on the requested page."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="2", sort=None))
+
+        all_seeds = [_make_seed(f"/works/OL{i}W", "work") for i in range(120)]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=all_seeds),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        render_mock = Mock(return_value="rendered")
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+            patch("openlibrary.plugins.openlibrary.lists.render_template", render_mock),
+        ):
+            mock_site_context.get.return_value = mock_site
+
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        # page=2 (1-indexed in the query string) -> zero-indexed page 1 ->
+        # seeds[50:100], i.e. exactly LIST_VIEW_PAGE_SIZE items, never the full list.
+        resolve_mock.assert_called_once_with(all_seeds[50:100])
+        render_mock.assert_called_once_with("type/list/view", lst, [], 1, 50, None)
+
+    def test_page_zero_query_param_preserves_preexisting_slicing_quirk(self, monkeypatch):
+        """`?page=0` -> page=-1 -> a negative-start slice that yields no items.
+
+        safeint(query_param('page'), 1) - 1 has no lower bound; the quirk is
+        preserved intentionally rather than fixed as a silent side effect.
+        """
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page="0", sort=None))
+
+        all_seeds = [_make_seed(f"/works/OL{i}W", "work") for i in range(10)]
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=all_seeds),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        resolve_mock = Mock(return_value=[])
+        render_mock = Mock(return_value="rendered")
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists._resolve_list_view_items", resolve_mock),
+            patch("openlibrary.plugins.openlibrary.lists.render_template", render_mock),
+        ):
+            mock_site_context.get.return_value = mock_site
+
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        # page=0 -> page=-1 -> seeds[-50:0], which Python clamps to an empty
+        # slice here.
+        resolve_mock.assert_called_once_with(all_seeds[-50:0])
+        assert all_seeds[-50:0] == []
+
+    def test_non_view_mode_is_delegated_to_mode_machinery(self, monkeypatch):
+        """?m=history (and any other non-view mode) is handed back to the
+        mode machinery, which the page registration would otherwise shadow."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="history"))
+
+        fake_mode = Mock()
+        fake_mode.return_value.GET.return_value = "history page"
+        monkeypatch.setattr(legacy_lists, "find_mode", lambda: (fake_mode, ["/lists/OL1L"]))
+
+        result = legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert result == "history page"
+        fake_mode.return_value.GET.assert_called_once_with("/lists/OL1L")
+
+    def test_unknown_mode_redirects_to_default_view(self, monkeypatch):
+        """An unregistered mode falls back the way delegate() does:
+        seeother to m=None."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web.ctx, "path", "/lists/OL1L", raising=False)
+        monkeypatch.setattr(web.ctx, "home", "", raising=False)
+        monkeypatch.setattr(web.ctx, "headers", [], raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="bogus"))
+        monkeypatch.setattr(web, "changequery", lambda **kw: "/lists/OL1L")
+        monkeypatch.setattr(legacy_lists, "find_mode", lambda: (None, None))
+
+        with pytest.raises(web.HTTPError) as excinfo:
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert excinfo.value.args[0] == "303 See Other"
+        assert any(h[0] == "Location" and h[1] == "/lists/OL1L" for h in web.ctx.headers)
+
+    def test_sort_last_modified_is_forwarded_to_get_seeds(self, monkeypatch):
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, page=None, sort="last_modified"))
+
+        lst = SimpleNamespace(
+            type=SimpleNamespace(key="/type/list"),
+            get_seeds=Mock(return_value=[]),
+        )
+        mock_site = Mock()
+        mock_site.get.return_value = lst
+
+        with (
+            patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context,
+            patch("openlibrary.plugins.openlibrary.lists.render_template", Mock(return_value="rendered")),
+        ):
+            mock_site_context.get.return_value = mock_site
+
+            legacy_lists.list_view().GET("/lists/OL1L")
+
+        lst.get_seeds.assert_called_once_with(sort=True, resolve_redirects=True)

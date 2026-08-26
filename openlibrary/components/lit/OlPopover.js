@@ -213,6 +213,7 @@ export class OlPopover extends LitElement {
             right: 0;
             width: auto;
             max-height: 85vh;
+            max-height: 85dvh;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin: 0 12px calc(12px + env(safe-area-inset-bottom));

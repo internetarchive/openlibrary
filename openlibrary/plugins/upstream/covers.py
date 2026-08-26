@@ -79,7 +79,8 @@ class add_cover(delegate.page):
                 i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)
             cover = Image(web.ctx.site, "b", coverid)
-            return render_template("covers/saved", cover)
+            image_info = cover.info()
+            return render_template("covers/saved", cover, image_info=image_info)
         else:
             return render_template("covers/add", book, {"url": i.url}, data)
 
@@ -191,7 +192,8 @@ class manage_covers(delegate.page):
         if "-" in images:
             images = [int(id) for id in images[: images.index("-")]]
             self.save_images(book, images)
-            return render_template("covers/saved", self.get_image(book), showinfo=False)
+            cover = self.get_image(book)
+            return render_template("covers/saved", cover, image_info=None, showinfo=False)
         else:
             # ERROR
             pass

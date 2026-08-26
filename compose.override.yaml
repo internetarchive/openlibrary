@@ -40,6 +40,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     ports:
+      - ${FAST_WEB_PORT:-8080}:8080
       # Debugger
       - 127.0.0.1:${FAST_WEB_DEBUG_PORT:-3001}:3000
     volumes:
