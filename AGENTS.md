@@ -20,7 +20,7 @@
 pre-commit run --files <file1> <file2> ...
 ```
 
-The `mypy` and `generate-pot` hooks will fail on the host (they need `infogami` which only lives in Docker) — that's expected. Everything else must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
+Every hook passes on the host, `mypy` and `generate-pot` included — pre-commit builds an isolated environment per hook, so none of them need Docker. Run `make git` first, though. Both of those hooks read `infogami`, a symlink into the `vendor/infogami` submodule, so while that submodule is unchecked out they fail with `Cannot read file 'infogami'` and `ModuleNotFoundError: No module named 'infogami'`. Everything must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
 
 - **Double quotes** — use `"string"` not `'string'` in all new Python code (the Ruff formatter enforces this)
 - **Import order** — imports must be sorted: stdlib → third-party (alphabetical within each group) → local (ruff isort enforces this)
