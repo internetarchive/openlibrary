@@ -85,8 +85,12 @@ reindex-solr:
 	parallel -j4 python ./scripts/solr_builder/solr_builder/index_subjects.py ::: subject person place time
 
 lint:
-	# See the pyproject.toml file for ruff's settings
-	python -m ruff check .
+	# See the pyproject.toml file for ruff's settings.
+	# Run through uv so a host without ruff installed still works, and so the
+	# pinned ruff from requirements_test.txt is used rather than whatever
+	# version happens to resolve -- lint results differ between ruff releases,
+	# so an unpinned run can disagree with CI. Same pattern as test-py-uv.
+	uv run --with-requirements requirements_test.txt ruff check .
 
 PYTEST_ARGS ?= . --doctest-modules
 
