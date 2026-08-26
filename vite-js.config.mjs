@@ -19,8 +19,7 @@
  * file only wires them together. jquery-ui's AMD interop needs no plugin —
  * explicit wrapper modules handle it (openlibrary/plugins/openlibrary/js/jquery-ui-*).
  *
- * See docs/ai/js-vite-migration-progress.md for the full rationale and the
- * webpack-parity harness.
+ * The webpack-parity harness lives in scripts/js-build-parity.sh.
  *
  * Usage:
  *   BUILD_DIR=static/build/js npx vite build -c vite-js.config.mjs

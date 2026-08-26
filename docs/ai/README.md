@@ -209,7 +209,7 @@ We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Comp
 
 What the toolchain guarantees:
 
-- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/index.js` (see `js-vite-migration-progress.md`). `all.js` is a `<script type="module">`, so the practical floor is ~Chrome 61 / Safari 11.
+- **Page JS** is bundled by Vite: Oxc lowers *syntax* to the floor (`build.target`), and a curated set of `core-js` built-in polyfills is imported at the top of `js/index.js`. `all.js` is a `<script type="module">`, so the practical floor is ~Chrome 61 / Safari 11.
 - **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
 - **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
 

@@ -9,7 +9,7 @@
 # expected to run before/around the webpack removal). The two builds use
 # different code-splitting (webpack extracts a giant shared "vendor" chunk;
 # Vite inlines per-chunk deps), so sizes are compared structurally, not
-# byte-for-byte — see docs/ai/js-vite-migration-progress.md.
+# byte-for-byte.
 #
 # Usage: scripts/js-build-parity.sh [webpack_out_dir] [vite_out_dir] [git_ref]
 set -euo pipefail

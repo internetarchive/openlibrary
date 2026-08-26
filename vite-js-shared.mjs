@@ -6,7 +6,6 @@
  * entries, output format, and the extra transform plugins — keep that common
  * boilerplate here so the two configs only state what actually differs.
  *
- * See docs/ai/js-vite-migration-progress.md for the full rationale.
  */
 import { resolve } from 'path';
 
