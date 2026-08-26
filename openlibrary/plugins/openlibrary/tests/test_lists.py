@@ -481,30 +481,37 @@ class TestListViewGet:
         resolve_mock.assert_called_once_with(all_seeds[-50:0])
         assert all_seeds[-50:0] == []
 
-    def test_edit_mode_redirects_to_edit_url(self, monkeypatch):
-        """/lists/OL1L?m=edit redirects to /lists/OL1L/edit, matching the
-        edit mode that page dispatch shadows for this route."""
+    def test_non_view_mode_is_delegated_to_mode_machinery(self, monkeypatch):
+        """?m=history (and any other non-view mode) is handed back to the
+        mode machinery, which the page registration would otherwise shadow."""
+        monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="history"))
+
+        fake_mode = Mock()
+        fake_mode.return_value.GET.return_value = "history page"
+        monkeypatch.setattr(legacy_lists, "find_mode", lambda: (fake_mode, ["/lists/OL1L"]))
+
+        result = legacy_lists.list_view().GET("/lists/OL1L")
+
+        assert result == "history page"
+        fake_mode.return_value.GET.assert_called_once_with("/lists/OL1L")
+
+    def test_unknown_mode_redirects_to_default_view(self, monkeypatch):
+        """An unregistered mode falls back the way delegate() does:
+        seeother to m=None."""
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
         monkeypatch.setattr(web.ctx, "path", "/lists/OL1L", raising=False)
         monkeypatch.setattr(web.ctx, "home", "", raising=False)
         monkeypatch.setattr(web.ctx, "headers", [], raising=False)
-        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="edit"))
+        monkeypatch.setattr(web, "input", lambda **kw: web.storage(v=None, m="bogus"))
+        monkeypatch.setattr(web, "changequery", lambda **kw: "/lists/OL1L")
+        monkeypatch.setattr(legacy_lists, "find_mode", lambda: (None, None))
 
-        lst = SimpleNamespace(
-            type=SimpleNamespace(key="/type/list"),
-            url=Mock(return_value="/lists/OL1L/edit"),
-        )
-        mock_site = Mock()
-        mock_site.get.return_value = lst
-
-        with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
-            mock_site_context.get.return_value = mock_site
-
-            with pytest.raises(web.HTTPError) as excinfo:
-                legacy_lists.list_view().GET("/lists/OL1L")
+        with pytest.raises(web.HTTPError) as excinfo:
+            legacy_lists.list_view().GET("/lists/OL1L")
 
         assert excinfo.value.args[0] == "303 See Other"
-        assert any(h[0] == "Location" and h[1] == "/lists/OL1L/edit" for h in web.ctx.headers)
+        assert any(h[0] == "Location" and h[1] == "/lists/OL1L" for h in web.ctx.headers)
 
     def test_sort_last_modified_is_forwarded_to_get_seeds(self, monkeypatch):
         monkeypatch.setattr(web.ctx, "encoding", None, raising=False)
