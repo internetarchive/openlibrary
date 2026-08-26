@@ -487,9 +487,7 @@ class TestingPR(BaseModel):
 class TestingState(BaseModel):
     last_deploy_at: str  # ISO timestamp, empty if never deployed
     prs: list[TestingPR] = Field(default_factory=list)
-    # OL username of whoever clicked the last deploy; empty for state files
-    # written before the field existed.
-    deployed_by: str = ""
+    deployed_by: str = ""  # OL username of whoever clicked the last deploy; empty if never
     # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
     deploy_started_at: str = ""
     # {pr number: title} of what the last deploy actually built — what

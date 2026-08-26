@@ -62,8 +62,6 @@ const deployFinishedAt = computed(() => (props.payload && props.payload.deploy_f
 
 const deployStage = computed(() => (props.payload && props.payload.deploy_stage) || '');
 
-// OL username of whoever clicked the last deploy; empty for state files that
-// predate the field, in which case the plain strings carry the line.
 const deployer = computed(() => (props.payload && props.payload.deployed_by) || '');
 
 function text(key, ...args) {
