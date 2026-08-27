@@ -4,7 +4,7 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "watch": "npx concurrently --names js,css,components --prefix-colors --kill-others npm:watch:js npm:watch:css npm:watch:components",
+    "watch": "npx concurrently --names js,css,components,lit --prefix-colors --kill-others npm:watch:js npm:watch:css npm:watch:components npm:watch:lit-components",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "npx vite build -c vite-css.config.mjs --watch --mode development",
@@ -54,7 +54,7 @@
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
-    "concurrently": "^7.6.0",
+    "concurrently": "^10.0.0",
     "core-js": "^3.37.1",
     "css-loader": "^7.1.4",
     "datatables.net-dt": "1.13.11",

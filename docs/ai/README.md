@@ -8,7 +8,9 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. FastAPI is the primary entry point on port 8080; unmatched requests are proxied to the legacy web.py app by `openlibrary/fastapi/proxy.py` (the old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423).
+
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
 
 ## Build Commands
 
@@ -91,7 +93,7 @@ matches the app's configured `http_ext_header_uri`. The dev app sets this to
   `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
 - **Prefer FastAPI endpoints instead:** they share the session auth and need
   no custom headers — e.g. author merges via
-  `POST http://localhost:18080/authors/merge.json`.
+  `POST http://localhost:8080/authors/merge.json`.
 
 ### Scripts must log in via the JSON endpoint
 
@@ -162,7 +164,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -280,6 +282,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 

@@ -48,6 +48,7 @@ def test_unified_loans_carousel_merges_active_and_history():
     mock_mb.lists = []
     mock_mb.component_times = {}
     mock_mb.is_my_page = True
+    mock_mb.current_goal = None
 
     # Setup readlog mock to prevent AttributeError
     mock_mb.readlog = MagicMock()
@@ -138,6 +139,7 @@ def test_active_loan_ranks_above_recently_returned():
     mock_mb.lists = []
     mock_mb.component_times = {}
     mock_mb.is_my_page = True
+    mock_mb.current_goal = None
     mock_mb.readlog = MagicMock()
     mock_mb.readlog.get_works.return_value = MagicMock(docs=[])
 
@@ -193,6 +195,7 @@ def _mb_for_viewer(*, is_my_page: bool):
     mb.lists = []
     mb.component_times = {}
     mb.is_my_page = is_my_page
+    mb.current_goal = None
     mb.readlog = MagicMock()
     mb.readlog.get_works.return_value = MagicMock(docs=[])
     return mb

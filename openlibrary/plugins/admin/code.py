@@ -539,52 +539,6 @@ def get_counts():
     return storify(retval)
 
 
-def get_admin_stats():
-    def f(dates):
-        keys = ["/admin/stats/" + date.isoformat() for date in dates]
-        docs = web.ctx.site.get_many(keys)
-        return g(docs)
-
-    def has_doc(date):
-        return bool(web.ctx.site.get("/admin/stats/" + date.isoformat()))
-
-    def g(docs):
-        return {
-            "edits": {
-                "human": sum(doc["edits"]["human"] for doc in docs),
-                "bot": sum(doc["edits"]["bot"] for doc in docs),
-                "total": sum(doc["edits"]["total"] for doc in docs),
-            },
-            "members": sum(doc["members"] for doc in docs),
-        }
-
-    current_date = datetime.now(tz=UTC).date()
-
-    if has_doc(current_date):
-        today = f([current_date])
-    else:
-        today = g([stats().get_stats(current_date.isoformat())])
-    yesterday = f(daterange(current_date, -1, 0, 1))
-    thisweek = f(daterange(current_date, 0, -7, -1))
-    thismonth = f(daterange(current_date, 0, -30, -1))
-
-    xstats = {
-        "edits": {
-            "today": today["edits"],
-            "yesterday": yesterday["edits"],
-            "thisweek": thisweek["edits"],
-            "thismonth": thismonth["edits"],
-        },
-        "members": {
-            "today": today["members"],
-            "yesterday": yesterday["members"],
-            "thisweek": thisweek["members"],
-            "thismonth": thismonth["members"],
-        },
-    }
-    return storify(xstats)
-
-
 from openlibrary.plugins.upstream import borrow  # noqa: F401 side effects may be needed
 
 
@@ -762,7 +716,10 @@ class imports_add:
 
 class imports_by_date:
     def GET(self, date):
-        return render_template("admin/imports_by_date", imports.Stats(), date)
+        stats = imports.Stats()
+        summary = stats.get_items_summary(date)
+        items = list(stats.get_items(date))
+        return render_template("admin/imports_by_date", date=date, summary=summary, items=items)
 
 
 class show_log:
@@ -809,7 +766,6 @@ def setup():
     register_admin_page("/admin/spamwords", spamwords, label="")
     register_admin_page("/admin/pd", pd_dashboard)
 
-    public(get_admin_stats)
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
 

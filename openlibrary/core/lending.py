@@ -527,7 +527,6 @@ def get_ocaid(item: dict) -> str | None:
     return next((ocaid for ocaid in ocaids if not is_non_ia_ocaid(ocaid)), None)
 
 
-@public
 def get_availabilities(items: list) -> dict:
     result = {}
     ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]

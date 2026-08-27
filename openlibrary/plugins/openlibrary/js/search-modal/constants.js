@@ -83,6 +83,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageLabel: 'Language',
     languagePlaceholder: 'Search languages…',
     languageHeading: 'Languages',
+    languagesLoading: 'Loading…',
     searching: 'Searching…',
     noResults: 'No results found',
     // Screen-reader-only live announcement when results land: first %s = rows
