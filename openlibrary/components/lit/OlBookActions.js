@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
@@ -981,7 +982,10 @@ export class OlBookActions extends LitElement {
         const filter = this._listFilter.trim().toLowerCase();
         const shown = filter ? entries.filter(([, l]) => l.listName.toLowerCase().includes(filter)) : entries;
         if (!shown.length) return html`<div class="empty">${this.t('noMatchingLists')}</div>`;
-        return shown.map(([key, list]) => {
+        // Filtering shuffles which list sits at each index, so key the rows
+        // to keep Lit from rebuilding them; the other lists in this file are
+        // static and fine with index reconciliation.
+        return repeat(shown, ([key]) => key, ([key, list]) => {
             const checked = list.members.includes(this._seedKey);
             return html`
                 <label class="list-row">
