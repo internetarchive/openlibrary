@@ -275,6 +275,103 @@ class TestPrepareBookPageLendingState:
         mock_gt.assert_not_called()
         assert context.lending_state == "open"
 
+    def test_supplied_user_is_passed_to_get_lending_state(self):
+        """The request user must be reused; get_lending_state must not be left
+        to re-resolve the current user on its own."""
+        page = self._page(bulk_status="open")
+        page.availability = {"status": "open", "is_readable": True}
+        user = self._user()
+
+        with patch.object(lending, "get_lending_state", return_value="open") as mock_gls:
+            code.prepare_book_page(page, {}, user=user)
+
+        mock_gls.assert_called_once()
+        assert mock_gls.call_args.kwargs["user"] is user
+        assert mock_gls.call_args.kwargs["check_loan_status"] is True
+
+    def test_logged_out_passes_user_none_without_loan_check(self):
+        page = self._page(bulk_status="open")
+        page.availability = {"status": "open", "is_readable": True}
+
+        with patch.object(lending, "get_lending_state", return_value="open") as mock_gls:
+            code.prepare_book_page(page, {}, user=None)
+
+        mock_gls.assert_called_once()
+        assert mock_gls.call_args.kwargs["user"] is None
+        assert mock_gls.call_args.kwargs["check_loan_status"] is False
+
+    def test_active_loan_returns_borrowed(self):
+        page = self._page(
+            bulk_status="borrowable",
+        )
+        # Non-error bulk availability so we exercise the user-loan path, not groundtruth.
+        page.availability = {
+            "status": "borrow_available",
+            "is_lendable": True,
+            "available_to_borrow": True,
+        }
+        user = self._user()
+        user.get_loan_for.return_value = {"expiry": "2030-01-01", "resource_type": "bookreader"}
+        mock_provider = Mock(short_name="ia")
+
+        with (
+            patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider),
+            patch("openlibrary.accounts.get_current_user") as mock_get_user,
+        ):
+            context = code.prepare_book_page(page, {}, user=user)
+
+        mock_get_user.assert_not_called()
+        assert context.lending_state == "borrowed"
+
+    def test_printdisabled_user_returns_printdisabled(self):
+        page = self._page(bulk_status="error")
+        user = self._user()
+        user.is_printdisabled.return_value = True
+        mock_provider = Mock(short_name="ia")
+
+        with (
+            patch.object(
+                lending,
+                "get_cached_groundtruth_availability",
+                return_value={"status": "borrowable", "is_lendable": True, "available_to_borrow": True},
+            ),
+            patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider),
+            patch("openlibrary.accounts.get_current_user") as mock_get_user,
+        ):
+            context = code.prepare_book_page(page, {}, user=user)
+
+        mock_get_user.assert_not_called()
+        assert context.lending_state == "printdisabled"
+
+    def test_preview_only_and_locate_from_availability(self):
+        mock_provider = Mock(short_name="ia")
+
+        preview_page = self._page(bulk_status="error")
+        with (
+            patch.object(
+                lending,
+                "get_cached_groundtruth_availability",
+                return_value={"status": "private", "is_previewable": True},
+            ),
+            patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider),
+            patch("openlibrary.accounts.get_current_user", return_value=self._user()),
+        ):
+            preview_ctx = code.prepare_book_page(preview_page, {}, user=self._user())
+        assert preview_ctx.lending_state == "preview_only"
+
+        locate_page = self._page(bulk_status="error")
+        with (
+            patch.object(
+                lending,
+                "get_cached_groundtruth_availability",
+                return_value={"status": "error"},
+            ),
+            patch("openlibrary.book_providers.get_book_provider", return_value=mock_provider),
+            patch("openlibrary.accounts.get_current_user", return_value=None),
+        ):
+            locate_ctx = code.prepare_book_page(locate_page, {}, user=None)
+        assert locate_ctx.lending_state == "locate"
+
 
 class TestLoanStatusNoLongerDoesNetworkIO:
     """Section D: no template can reach the ground-truth availability fetch anymore."""

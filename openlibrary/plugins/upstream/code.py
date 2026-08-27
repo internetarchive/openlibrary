@@ -420,7 +420,11 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     if edition.get("availability", {}).get("status") == "error" and ocaid:
         edition["availability"].update(lending.get_cached_groundtruth_availability(ocaid))
 
-    lending_state = lending.get_lending_state(edition or work, check_loan_status=bool(user))
+    lending_state = lending.get_lending_state(
+        edition or work,
+        user=user,
+        check_loan_status=bool(user),
+    )
 
     return BookPageContext(
         work=work,
