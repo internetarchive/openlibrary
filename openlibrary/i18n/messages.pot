@@ -7483,7 +7483,7 @@ msgstr ""
 
 #: TestingEnvironment.html.jinja
 #, python-format
-msgid "Merge conflict with %(pr)s"
+msgid "Merge conflict with #%(pr)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja

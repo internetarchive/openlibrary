@@ -29,7 +29,7 @@ export const DEFAULT_STRINGS = {
     next: 'Next deploy',
     liveNow: 'Live now',
     notLive: 'Not yet deployed',
-    mergeConflictDot: 'Merge conflict with %s',
+    mergeConflictDot: 'Merge conflict with #%s',
     closed: 'This PR is already closed.',
     actions: 'Actions',
     ok: 'OK',
