@@ -192,6 +192,11 @@ export class OlCarousel extends LitElement {
             scroll-snap-type: none;
         }
 
+        /* One instant programmatic write (a resize reflow, not a navigation). */
+        .viewport.no-smooth {
+            scroll-behavior: auto;
+        }
+
         /* scrollbar-width is Safari 18.2+; this covers older WebKit/Blink. */
         .viewport::-webkit-scrollbar {
             display: none;
@@ -377,6 +382,9 @@ export class OlCarousel extends LitElement {
         // Item count at the last near-end emission; a changed count re-arms it.
         this._nearEndEmittedForCount = 0;
 
+        // Item index whose page a breakpoint change should restore, or null.
+        this._resizeAnchorItem = null;
+
         /** @type {ResizeObserver|null} */
         this._resizeObserver = null;
         this._scrollEndTimer = null;
@@ -410,7 +418,15 @@ export class OlCarousel extends LitElement {
         super.connectedCallback();
         this._resizeObserver = new ResizeObserver((entries) => {
             const width = entries[0]?.contentRect.width ?? this.clientWidth;
+            const prevColumns = this._columns;
+            // First item of the current page — the reader's place. A column
+            // change reflows the pages, so stash it for the update pass
+            // (which owns the recalculated page count) to restore.
+            const anchorItem = this._page * prevColumns;
             this._updateColumns(width);
+            if (this._columns !== prevColumns) {
+                this._resizeAnchorItem = anchorItem;
+            }
             this._applyTrackLayout();
             this._refreshGeometry();
         });
@@ -452,6 +468,10 @@ export class OlCarousel extends LitElement {
             this._recalculate();
             this._applyTrackLayout();
             this._refreshGeometry();
+            if (this._resizeAnchorItem !== null) {
+                this._restoreAnchor(this._resizeAnchorItem);
+                this._resizeAnchorItem = null;
+            }
             this._maybeEmitNearEnd();
         }
     }
@@ -602,6 +622,26 @@ export class OlCarousel extends LitElement {
         }
 
         this._pageOffsets = offsets.length ? offsets : [0];
+    }
+
+    /** Jump — instantly, this is a reflow, not a navigation — to the page
+     *  that now contains `itemIndex`, so a breakpoint change keeps the
+     *  reader's place instead of stranding the rail wherever scrollLeft
+     *  happened to land. */
+    _restoreAnchor(itemIndex) {
+        const scroller = this._scroller;
+        if (!scroller || this._columns <= 0) return;
+        const page = Math.max(0, Math.min(Math.floor(itemIndex / this._columns), this._totalPages - 1));
+        // Compare positions, not page numbers — the rail can rest between
+        // the new offsets while still mapping to the right page.
+        if (Math.abs(scroller.scrollLeft - (this._pageOffsets[page] ?? 0)) < 1) return;
+        this._page = page;
+        scroller.classList.add('no-smooth');
+        // Let the style land so the write below is not smoothed.
+        void scroller.offsetWidth;
+        scroller.scrollLeft = this._pageOffsets[page] ?? 0;
+        scroller.classList.remove('no-smooth');
+        this._syncFromScroll();
     }
 
     /** Nearest page to the scroller's current position. */

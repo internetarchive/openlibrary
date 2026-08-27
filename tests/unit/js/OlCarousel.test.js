@@ -486,6 +486,50 @@ describe('in-view tracking', () => {
     });
 });
 
+describe('resize', () => {
+    it('realigns the rail to the page holding the reader\'s items', async() => {
+        const { el, scroller, scrollTo, settle } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);   // page 1 of 3 starts at item 8
+        await settle();
+        const before = scroller.scrollLeft;
+
+        resizeObservers.forEach((ro) => ro.trigger(1000));   // → 7 columns, 3 pages
+        await el.updateComplete;
+
+        // Item 8 now opens page 1 at a different offset; without the anchor
+        // restore the rail would stay stranded at the old position.
+        expect(el.totalPages).toBe(3);
+        expect(el.page).toBe(1);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+        expect(scroller.scrollLeft).not.toBeCloseTo(before, 5);
+    });
+
+    it('remaps the page number when a shrink multiplies the pages', async() => {
+        const { el, scroller, scrollTo, settle } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);   // page 1 of 3 starts at item 8
+        await settle();
+
+        resizeObservers.forEach((ro) => ro.trigger(500));   // → 4 columns, 5 pages
+        await el.updateComplete;
+
+        expect(el.totalPages).toBe(5);
+        expect(el.page).toBe(2);              // item 8 now lives on page 2
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[2], 5);
+    });
+
+    it('leaves the scroll alone when the column count is unchanged', async() => {
+        const { el, scroller, scrollTo, settle } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+
+        resizeObservers.forEach((ro) => ro.trigger(1250));   // still 8 columns
+        await el.updateComplete;
+
+        expect(el.page).toBe(1);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+});
+
 describe('appending items', () => {
     it('keeps the page, offsets and scroll position when items are appended', async() => {
         const { el, scroller, scrollTo, settle, appendItems } = await mountCarousel(18);
