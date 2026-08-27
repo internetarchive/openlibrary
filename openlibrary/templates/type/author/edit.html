@@ -107,7 +107,7 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="hiddenAuthorIdentifiers"></div>
                         <div id="identifiers-display">
                             $ admin = ctx.user.is_super_librarian_or_higher()
-                            $:render_component('IdentifiersInput', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenAuthorIdentifiers', admin=str(admin), input_prefix='author--remote_ids', id_config_string=author_config.identifiers))
+                            $:render_component('IdentifiersInput', attrs={'assigned-ids-string': dict(page.remote_ids), 'output-selector': '#hiddenAuthorIdentifiers', 'admin': str(admin), 'input-prefix': 'author--remote_ids', 'id-config-string': author_config.identifiers})
                         </div>
                         <br>
                         <fieldset class="major">

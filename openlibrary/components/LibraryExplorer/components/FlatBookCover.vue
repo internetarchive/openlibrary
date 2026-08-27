@@ -33,7 +33,10 @@ import { hashCode } from '../utils.js';
 
 export default {
     props: {
-        book: Object,
+        book: {
+            type: Object,
+            required: true
+        },
         /** @type {'image' | 'text'} */
         cover: {
             default: 'image'

@@ -406,9 +406,18 @@ export default {
     },
 
     props: {
-        filterState: Object,
-        settingsState: Object,
-        sortState: Object,
+        filterState: {
+            type: Object,
+            required: true
+        },
+        settingsState: {
+            type: Object,
+            required: true
+        },
+        sortState: {
+            type: Object,
+            required: true
+        },
     },
 
     data() {
