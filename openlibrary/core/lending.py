@@ -180,9 +180,14 @@ def compose_ia_url(
     return base_url + "?" + urlencode(params)
 
 
-@public
 @cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
+    """
+    Not exposed to templates (no longer `@public`): this makes an outbound
+    HTTP call, and is only ever called from Python now, via
+    prepare_book_page() in openlibrary/plugins/upstream/code.py, never from
+    template rendering.
+    """
     return get_groundtruth_availability(ocaid)
 
 
