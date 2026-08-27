@@ -142,6 +142,7 @@ export default {
             default: null
         },
         sort: {
+            type: String,
             default: 'editions',
         },
         limit: {

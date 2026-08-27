@@ -51,6 +51,7 @@ export default {
             default: ''
         }
     },
+    emits: ['update-selected'],
     data: function() {
         return {
             /**
