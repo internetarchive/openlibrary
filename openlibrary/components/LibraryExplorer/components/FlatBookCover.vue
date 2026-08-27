@@ -37,9 +37,10 @@ export default {
             type: Object,
             required: true
         },
-        /** @type {'image' | 'text'} */
         cover: {
-            default: 'image'
+            type: String,
+            default: 'image',
+            validator: val => ['image', 'text'].includes(val)
         }
     },
 

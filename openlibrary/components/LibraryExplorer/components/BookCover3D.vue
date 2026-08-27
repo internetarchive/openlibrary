@@ -61,7 +61,8 @@ export default {
         },
         cover: {
             type: String,
-            default: 'image'
+            default: 'image',
+            validator: val => ['image', 'text'].includes(val)
         },
     },
 
