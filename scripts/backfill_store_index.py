@@ -1,6 +1,7 @@
 """
 Backfills new ID column in the `store_index` table.
 """
+
 import argparse
 import time
 
@@ -13,10 +14,12 @@ from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_re
 DEFAULT_CONFIG_PATH = "conf/openlibrary.yml"
 DEFAULT_BATCH_SIZE = 20_000
 
+
 def init(conf_path):
     init_signal_handler()
     setup_for_script(conf_path)
     web.ctx.ip = web.ctx.ip or "127.0.0.1"
+
 
 def find_upper_bound():
     oldb = db.get_db()
@@ -26,6 +29,7 @@ def find_upper_bound():
     """
     return list(oldb.query(query))[0]["min"]
 
+
 def backfill_rows(lower_bound, upper_bound):
     oldb = db.get_db()
 
@@ -34,6 +38,7 @@ def backfill_rows(lower_bound, upper_bound):
         WHERE id BETWEEN $lo AND $hi AND new_id IS NULL
     """
     oldb.query(query, vars={"lo": lower_bound, "hi": upper_bound})
+
 
 def main(args):
     init(args.config)
@@ -50,20 +55,11 @@ def main(args):
         elapsed = time.perf_counter() - start
         print(f"Chunk updated in {elapsed:.6f} seconds")
 
+
 def _parse_args():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument(
-        "-c",
-        "--config",
-        default=DEFAULT_CONFIG_PATH,
-        help="Path to openlibrary configuration yaml"
-    )
-    p.add_argument(
-        "-b",
-        "--batch-size",
-        default=DEFAULT_BATCH_SIZE,
-        type=int
-    )
+    p.add_argument("-c", "--config", default=DEFAULT_CONFIG_PATH, help="Path to openlibrary configuration yaml")
+    p.add_argument("-b", "--batch-size", default=DEFAULT_BATCH_SIZE, type=int)
     p.set_defaults(func=main)
     return p.parse_args()
 
