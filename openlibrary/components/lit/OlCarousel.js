@@ -32,6 +32,15 @@ import './OlIcon.js';
  * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
  * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail: { page: Number, totalPages: Number }
+ * @fires ol-carousel-near-end - Fired when the rail settles (or items change) within two pages
+ *     of the end, at most once per item count — appending items re-arms it, so a load-more
+ *     consumer that stops appending stops hearing it. A rail shorter than three pages fires
+ *     on first render, which lets a consumer fill it immediately. detail: { page: Number,
+ *     totalPages: Number, itemCount: Number }
+ *
+ * Items at least half visible in the viewport carry a `data-in-view` attribute
+ * (see also `itemsInView()`), so consumers can style or measure what is
+ * actually showing without re-deriving geometry.
  *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
@@ -291,6 +300,13 @@ export class OlCarousel extends LitElement {
      *  fling's momentum tail, short enough to still feel immediate. */
     static _scrollEndFallbackDelay = 120;
 
+    /** A rail is "near its end" within this many pages of the last one.
+     *  Matches the legacy carousel's load-more look-ahead of two pages. */
+    static _nearEndPageBuffer = 2;
+
+    /** An item counts as in view once this fraction of it shows. */
+    static _inViewThreshold = 0.5;
+
     constructor() {
         super();
         this.peek = 0.03;
@@ -316,13 +332,22 @@ export class OlCarousel extends LitElement {
         // Keeps a settle that lands back on the same page from re-emitting.
         this._lastEmittedPage = 0;
 
+        // Item count at the last near-end emission; a changed count re-arms it.
+        this._nearEndEmittedForCount = 0;
+
         /** @type {ResizeObserver|null} */
         this._resizeObserver = null;
         this._scrollEndTimer = null;
 
+        /** @type {IntersectionObserver|null} */
+        this._itemObserver = null;
+        /** @type {Set<Element>} items currently intersecting the viewport */
+        this._inView = new Set();
+
         this._onScroll = this._onScroll.bind(this);
         this._onScrollEnd = this._onScrollEnd.bind(this);
         this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
+        this._onItemIntersect = this._onItemIntersect.bind(this);
     }
 
     connectedCallback() {
@@ -334,6 +359,10 @@ export class OlCarousel extends LitElement {
             this._refreshGeometry();
         });
         this._resizeObserver.observe(this);
+        // firstUpdated covers the initial connect; this covers re-connects.
+        if (this.hasUpdated) {
+            this._observeItems();
+        }
     }
 
     disconnectedCallback() {
@@ -341,6 +370,9 @@ export class OlCarousel extends LitElement {
         this._resizeObserver?.disconnect();
         this._resizeObserver = null;
         clearTimeout(this._scrollEndTimer);
+        this._itemObserver?.disconnect();
+        this._itemObserver = null;
+        this._inView.clear();
     }
 
     firstUpdated() {
@@ -349,6 +381,7 @@ export class OlCarousel extends LitElement {
         this._recalculate();
         this._applyTrackLayout();
         this._refreshGeometry();
+        this._observeItems();
     }
 
     updated(changedProperties) {
@@ -357,6 +390,7 @@ export class OlCarousel extends LitElement {
             this._recalculate();
             this._applyTrackLayout();
             this._refreshGeometry();
+            this._maybeEmitNearEnd();
         }
     }
 
@@ -376,6 +410,16 @@ export class OlCarousel extends LitElement {
     /** Go to the previous page. */
     prev() {
         this.goToPage(this._page - 1);
+    }
+
+    /** Indices of the items currently at least half visible in the viewport. */
+    itemsInView() {
+        return this._items.reduce((indices, item, i) => {
+            if (this._inView.has(item)) {
+                indices.push(i);
+            }
+            return indices;
+        }, []);
     }
 
     /** Jump to a specific page (0-indexed). */
@@ -520,6 +564,36 @@ export class OlCarousel extends LitElement {
         this._page = this._pageFromScroll();
     }
 
+    // ── In-view tracking ──
+
+    /** (Re)observe the slotted items. One observer per connected life; a
+     *  slot change re-registers the targets on the same instance. */
+    _observeItems() {
+        const scroller = this._scroller;
+        if (!scroller) return;
+        if (!this._itemObserver) {
+            this._itemObserver = new IntersectionObserver(this._onItemIntersect, {
+                root: scroller,
+                threshold: OlCarousel._inViewThreshold,
+            });
+        }
+        this._itemObserver.disconnect();
+        this._inView.clear();
+        this._items.forEach((item) => this._itemObserver.observe(item));
+    }
+
+    _onItemIntersect(entries) {
+        for (const entry of entries) {
+            if (entry.isIntersecting) {
+                this._inView.add(entry.target);
+                entry.target.setAttribute('data-in-view', '');
+            } else {
+                this._inView.delete(entry.target);
+                entry.target.removeAttribute('data-in-view');
+            }
+        }
+    }
+
     // ── Scroll tracking ──
 
     _onScroll() {
@@ -539,11 +613,27 @@ export class OlCarousel extends LitElement {
             this._lastEmittedPage = this._page;
             this._emitPageChange();
         }
+        this._maybeEmitNearEnd();
     }
 
     _emitPageChange() {
         this.dispatchEvent(new CustomEvent('ol-carousel-page-change', {
             detail: { page: this._page, totalPages: this._totalPages },
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    /** Ask for more items when the rail runs low. Emission is keyed to the
+     *  item count, so each append re-arms it and a consumer with nothing
+     *  left to add is not asked again. */
+    _maybeEmitNearEnd() {
+        if (this._itemCount <= 0) return;
+        if (this._page < this._totalPages - OlCarousel._nearEndPageBuffer) return;
+        if (this._itemCount === this._nearEndEmittedForCount) return;
+        this._nearEndEmittedForCount = this._itemCount;
+        this.dispatchEvent(new CustomEvent('ol-carousel-near-end', {
+            detail: { page: this._page, totalPages: this._totalPages, itemCount: this._itemCount },
             bubbles: true,
             composed: true,
         }));
@@ -569,6 +659,7 @@ export class OlCarousel extends LitElement {
     _onSlotChange() {
         this._countItems();
         this._refreshGeometry();
+        this._observeItems();
     }
 
     // ── Keyboard ──

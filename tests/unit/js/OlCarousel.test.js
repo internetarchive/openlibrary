@@ -12,6 +12,7 @@ const GAP = 8;
 const COLUMNS = 8;
 
 let resizeObservers;
+let intersectionObservers;
 
 beforeAll(() => {
     global.ResizeObserver = class {
@@ -27,10 +28,29 @@ beforeAll(() => {
             this.callback([{ contentRect: { width } }]);
         }
     };
+
+    global.IntersectionObserver = class {
+        constructor(callback) {
+            this.callback = callback;
+            this.elements = [];
+            intersectionObservers.push(this);
+        }
+        observe(el) { this.elements.push(el); }
+        unobserve(el) { this.elements = this.elements.filter((e) => e !== el); }
+        disconnect() { this.elements = []; }
+        /** Report `visible` as the in-view set, as a real observer batch would. */
+        trigger(visible) {
+            this.callback(this.elements.map((target) => ({
+                target,
+                isIntersecting: visible.includes(target),
+            })), this);
+        }
+    };
 });
 
 beforeEach(() => {
     resizeObservers = [];
+    intersectionObservers = [];
 });
 
 afterEach(() => {
@@ -102,6 +122,27 @@ async function mountCarousel(count, { showIndicators = false } = {}) {
         /** Simulate the scroller coming to rest. */
         async settle() {
             scroller.dispatchEvent(new Event('scrollend'));
+            await el.updateComplete;
+        },
+        /** Append `n` more stubbed items, as a load-more consumer would. */
+        async appendItems(n) {
+            const start = el.children.length;
+            for (let i = 0; i < n; i++) {
+                const item = document.createElement('div');
+                item.textContent = `Item ${start + i}`;
+                const idx = start + i;
+                item.getBoundingClientRect = () => ({
+                    left: idx * (ITEM_WIDTH + GAP) - scrollLeft,
+                    width: ITEM_WIDTH,
+                });
+                el.appendChild(item);
+            }
+            Object.defineProperty(scroller, 'scrollWidth', {
+                value: trackWidth(el.children.length),
+                configurable: true,
+            });
+            // slotchange → recount → reactive update; flush both cycles.
+            await el.updateComplete;
             await el.updateComplete;
         },
     };
@@ -319,6 +360,129 @@ describe('page-change event without native scrollend', () => {
     });
 });
 
+describe('near-end event', () => {
+    it('fires on settle within two pages of the end, not before', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);   // 3 pages
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-near-end', handler);
+
+        await settle();                                             // page 0
+        expect(handler).not.toHaveBeenCalled();
+
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, totalPages: 3, itemCount: 18 });
+    });
+
+    it('does not fire twice for the same item count', async() => {
+        const { el, scrollTo, settle, maxScroll } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-near-end', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        await scrollTo(maxScroll);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-arms once items are appended', async() => {
+        const { el, scrollTo, settle, appendItems } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-near-end', handler);
+
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+
+        await appendItems(8);                                       // 26 items, 4 pages
+        expect(handler).toHaveBeenCalledTimes(1);                   // buffer refilled, quiet
+
+        await scrollTo(el._pageOffsets[2]);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(2);
+        expect(handler.mock.calls[1][0].detail.itemCount).toBe(26);
+    });
+
+    it('fires again immediately when an append leaves the rail still near its end', async() => {
+        const { el, scrollTo, settle, maxScroll, appendItems } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-near-end', handler);
+
+        await scrollTo(maxScroll);
+        await settle();
+        expect(handler).toHaveBeenCalledTimes(1);
+
+        await appendItems(4);                                       // 22 items — still on page 1 of 3
+        expect(handler).toHaveBeenCalledTimes(2);
+        expect(handler.mock.calls[1][0].detail.itemCount).toBe(22);
+    });
+
+    it('fires on first render when the rail is too short to fill the buffer', async() => {
+        const handler = jest.fn();
+        document.addEventListener('ol-carousel-near-end', handler);
+        await mountCarousel(12);                                    // 2 pages
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.itemCount).toBe(12);
+        document.removeEventListener('ol-carousel-near-end', handler);
+    });
+});
+
+describe('in-view tracking', () => {
+    it('marks intersecting items with data-in-view and reports their indices', async() => {
+        const { el } = await mountCarousel(18);
+        const io = intersectionObservers[intersectionObservers.length - 1];
+        io.trigger([el.children[0], el.children[1]]);
+        expect(el.children[0].hasAttribute('data-in-view')).toBe(true);
+        expect(el.children[2].hasAttribute('data-in-view')).toBe(false);
+        expect(el.itemsInView()).toEqual([0, 1]);
+    });
+
+    it('clears the mark when an item leaves the viewport', async() => {
+        const { el } = await mountCarousel(18);
+        const io = intersectionObservers[intersectionObservers.length - 1];
+        io.trigger([el.children[0]]);
+        io.trigger([el.children[8]]);
+        expect(el.children[0].hasAttribute('data-in-view')).toBe(false);
+        expect(el.itemsInView()).toEqual([8]);
+    });
+
+    it('observes items appended later', async() => {
+        const { el, appendItems } = await mountCarousel(18);
+        await appendItems(2);
+        const io = intersectionObservers[intersectionObservers.length - 1];
+        expect(io.elements).toHaveLength(20);
+        expect(io.elements).toContain(el.children[19]);
+    });
+});
+
+describe('appending items', () => {
+    it('keeps the page, offsets and scroll position when items are appended', async() => {
+        const { el, scroller, scrollTo, settle, appendItems } = await mountCarousel(18);
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        const offsetBefore = el._pageOffsets[1];
+        const scrollBefore = scroller.scrollLeft;
+
+        await appendItems(8);
+
+        expect(el.totalPages).toBe(4);
+        expect(el.page).toBe(1);
+        expect(scroller.scrollLeft).toBe(scrollBefore);
+        expect(el._pageOffsets[1]).toBeCloseTo(offsetBefore, 5);
+    });
+
+    it('moves the end alignment to the new last item', async() => {
+        const { el, appendItems } = await mountCarousel(18);
+        await appendItems(8);
+        const items = Array.from(el.children);
+        expect(items[16].style.scrollSnapAlign).toBe('start');
+        expect(items[17].style.scrollSnapAlign).toBe('');
+        expect(items[25].style.scrollSnapAlign).toBe('end');
+    });
+});
+
 describe('arrows and edge fades', () => {
     it('hides the previous arrow at the start of the rail', async() => {
         const { el } = await mountCarousel(18);
@@ -457,5 +621,12 @@ describe('teardown', () => {
         const { el } = await mountCarousel(18);
         el.remove();
         expect(resizeObservers[0].elements).toHaveLength(0);
+    });
+
+    it('disconnects the item observer when removed', async() => {
+        const { el } = await mountCarousel(18);
+        const io = intersectionObservers[intersectionObservers.length - 1];
+        el.remove();
+        expect(io.elements).toHaveLength(0);
     });
 });

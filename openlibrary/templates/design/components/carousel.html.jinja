@@ -37,6 +37,31 @@
             })();
         </script>
 {% endcall %}
+{% call ex.example("Load more", "Fires ol-carousel-near-end when the rail settles within two pages of the end — once per item count, so appending items re-arms it and a consumer with nothing left to add is not asked again. Here each event appends a batch, up to three.",
+    code='<ol-carousel id="demo-load-more" label="Endless shelf" show-indicators>\n  ...items...\n</ol-carousel>\n\n<script>\n  carousel.addEventListener(\'ol-carousel-near-end\', async (e) => {\n    const cards = await fetchMoreCards(e.detail.itemCount);\n    cards.forEach((card) => carousel.appendChild(card));\n  });\n</script>') %}
+    <ol-carousel id="demo-load-more" label="Endless shelf" show-indicators>
+        {{ cards(18) }}
+    </ol-carousel>
+    <p>Batches loaded: <strong id="demo-load-more-batches">0</strong> of 3 · Items: <strong id="demo-load-more-count">18</strong></p>
+    <script>
+            (() => {
+                const carousel = document.getElementById('demo-load-more');
+                let batches = 0;
+                carousel.addEventListener('ol-carousel-near-end', (e) => {
+                    if (batches >= 3) return;   // pretend the result set is exhausted
+                    batches += 1;
+                    for (let i = 1; i <= 9; i++) {
+                        const card = document.createElement('div');
+                        card.className = 'design-carousel-demo-card';
+                        card.textContent = e.detail.itemCount + i;
+                        carousel.appendChild(card);
+                    }
+                    document.getElementById('demo-load-more-batches').textContent = batches;
+                    document.getElementById('demo-load-more-count').textContent = carousel.children.length;
+                });
+            })();
+    </script>
+{% endcall %}
 <div class="ds-notes">
     <p>
         <b>Images.</b> Give every image its real URL in <code>src</code> and mark it <code>loading="lazy"</code>. The viewport is a scroll container, so it clips its overflow and the browser never fetches an off-page cover until you scroll toward it. Don't ship a placeholder <code>src</code> with the real URL parked in a data attribute — that convention predates <code>loading</code>, needs JS to undo, and leaves the browser deferring a placeholder that is already inline.
