@@ -8,6 +8,7 @@
   white-space: nowrap;
   margin: 0 0 10px;
   font-size: var(--font-size-label-medium);
+  width: 100%;
 }
 
 .mobile-vendor {
@@ -42,7 +43,6 @@
   text-decoration: none;
   position: relative;
   margin: 0 auto;
-  margin-top: -15px; /* offsets Illustration margin-bottom: 10px */
   background-color: transparent;
   transition: background-color 0.2s;
 
@@ -80,7 +80,6 @@
 .btn-notice .waitinglist-message {
   margin: 0 0 10px;
   font-size: var(--font-size-label-medium);
-  text-wrap: auto;
 }
 
 .read-options .cta-section,

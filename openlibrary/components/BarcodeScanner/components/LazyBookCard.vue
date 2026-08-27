@@ -21,6 +21,7 @@ export default {
     props: {
         isbn: {
             type: String,
+            required: true,
         },
         tentativeCover: {
             type: String,
