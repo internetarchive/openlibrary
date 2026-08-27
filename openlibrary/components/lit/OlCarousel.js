@@ -55,7 +55,10 @@ import './OlIcon.js';
  * directly, a release under 0.1 px/ms (measured over the last 170ms of
  * movement) settles on the nearest page, a faster flick advances exactly one
  * page, and any drag past 10px swallows the click so covers never navigate
- * mid-drag. Touch and trackpad input stays fully native.
+ * mid-drag. Touch and trackpad input stays fully native. The grab engages
+ * only after 4px of travel (or instantly on a moving rail): pointer capture
+ * retargets the release click to the viewport, so capturing every press
+ * would stop slotted buttons and links from ever receiving mouse clicks.
  *
  * Tabbing into an off-page card aligns its whole page: the browser's minimal
  * scroll-into-view would otherwise strand the rail between pages. Mouse
@@ -378,6 +381,9 @@ export class OlCarousel extends LitElement {
     /** Cumulative drag (px) beyond which the release click is swallowed. */
     static _dragClickThreshold = 10;
 
+    /** Cumulative travel (px) before a press engages the grab layer. */
+    static _dragEngageSlop = 4;
+
     /** An item counts as in view once this fraction of it shows. */
     static _inViewThreshold = 0.5;
 
@@ -425,6 +431,7 @@ export class OlCarousel extends LitElement {
 
         // Mouse-drag state. Touch and trackpad scrolling stay native.
         this._dragging = false;
+        this._dragEngaged = false;
         this._suppressClick = false;
         this._dragFromMotion = false;
         this._dragLastX = 0;
@@ -439,6 +446,7 @@ export class OlCarousel extends LitElement {
         this._onDragPointerDown = this._onDragPointerDown.bind(this);
         this._onDragPointerMove = this._onDragPointerMove.bind(this);
         this._onDragPointerUp = this._onDragPointerUp.bind(this);
+        this._onDragPointerLeave = this._onDragPointerLeave.bind(this);
         this._onDragCancel = this._onDragCancel.bind(this);
         this._onDragStartNative = this._onDragStartNative.bind(this);
         this._onViewportClickCapture = this._onViewportClickCapture.bind(this);
@@ -823,6 +831,7 @@ export class OlCarousel extends LitElement {
         if (!scroller) return;
 
         this._dragging = true;
+        this._dragEngaged = false;
         this._dragLastX = e.clientX;
         this._dragDistance = 0;
         this._dragSamples = [{ t: performance.now(), x: e.clientX }];
@@ -831,6 +840,29 @@ export class OlCarousel extends LitElement {
         this._dragFromMotion =
             Math.abs(scroller.scrollLeft - (this._pageOffsets[this._pageFromScroll()] ?? 0)) > 1;
         clearTimeout(this._scrollEndTimer);
+
+        scroller.addEventListener('pointermove', this._onDragPointerMove);
+        scroller.addEventListener('pointerup', this._onDragPointerUp);
+        scroller.addEventListener('pointerleave', this._onDragPointerLeave);
+        scroller.addEventListener('pointercancel', this._onDragCancel);
+        scroller.addEventListener('lostpointercapture', this._onDragCancel);
+
+        // A grab of a moving rail is a stop, never a click — engage at once.
+        // A press at rest stays unengaged until real travel (_dragEngageSlop).
+        if (this._dragFromMotion) {
+            this._engageDrag(e);
+        }
+    }
+
+    /** Flip a pending press into an actual grab. Deferred past pointerdown
+     *  because pointer capture retargets the release — and with it the click —
+     *  to this scroller, so capturing every press would stop slotted buttons
+     *  and links from ever receiving mouse clicks. */
+    _engageDrag(e) {
+        if (this._dragEngaged) return;
+        this._dragEngaged = true;
+        const scroller = this._scroller;
+        if (!scroller) return;
 
         scroller.classList.add('dragging');
         scroller.classList.remove('settling');
@@ -844,10 +876,6 @@ export class OlCarousel extends LitElement {
                 scroller.setPointerCapture(e.pointerId);
             }
         } catch { /* stale pointer id or jsdom — capture is best-effort */ }
-        scroller.addEventListener('pointermove', this._onDragPointerMove);
-        scroller.addEventListener('pointerup', this._onDragPointerUp);
-        scroller.addEventListener('pointercancel', this._onDragCancel);
-        scroller.addEventListener('lostpointercapture', this._onDragCancel);
     }
 
     _onDragPointerMove(e) {
@@ -856,23 +884,30 @@ export class OlCarousel extends LitElement {
             this._onDragPointerUp(e);
             return;
         }
-        e.preventDefault();
-
         const dx = this._dragLastX - e.clientX;
         this._dragLastX = e.clientX;
         this._dragDistance += Math.abs(dx);
-        const scroller = this._scroller;
-        if (scroller) {
-            // The browser clamps at the edges; incremental deltas mean a
-            // reversal responds immediately even after overshooting.
-            scroller.scrollLeft += dx;
-        }
 
         const now = performance.now();
         this._dragSamples.push({ t: now, x: e.clientX });
         const cutoff = now - OlCarousel._dragVelocityWindow;
         while (this._dragSamples.length > 1 && this._dragSamples[0].t < cutoff) {
             this._dragSamples.shift();
+        }
+
+        // Inside the slop this is still a click in progress: leave the rail
+        // alone so the press neither scrolls nor loses its click target.
+        if (!this._dragEngaged) {
+            if (this._dragDistance <= OlCarousel._dragEngageSlop) return;
+            this._engageDrag(e);
+        }
+        e.preventDefault();
+
+        const scroller = this._scroller;
+        if (scroller) {
+            // The browser clamps at the edges; incremental deltas mean a
+            // reversal responds immediately even after overshooting.
+            scroller.scrollLeft += dx;
         }
     }
 
@@ -893,6 +928,15 @@ export class OlCarousel extends LitElement {
 
     _onDragCancel() {
         this._settleFromDrag(0);
+    }
+
+    /** Unengaged presses hold no capture, so a release outside the viewport
+     *  would never reach the scroller's pointerup — treat leaving as one.
+     *  While engaged, capture suppresses boundary events until release. */
+    _onDragPointerLeave(e) {
+        if (!this._dragEngaged) {
+            this._onDragPointerUp(e);
+        }
     }
 
     /** Shared release path: end the drag, pick a page, animate to it. */
@@ -926,11 +970,13 @@ export class OlCarousel extends LitElement {
      *  settling phase: snap stays off until the release animation lands. */
     _endDrag() {
         this._dragging = false;
+        this._dragEngaged = false;
         this._dragSamples = [];
         const scroller = this._scroller;
         if (!scroller) return;
         scroller.removeEventListener('pointermove', this._onDragPointerMove);
         scroller.removeEventListener('pointerup', this._onDragPointerUp);
+        scroller.removeEventListener('pointerleave', this._onDragPointerLeave);
         scroller.removeEventListener('pointercancel', this._onDragCancel);
         scroller.removeEventListener('lostpointercapture', this._onDragCancel);
         if (scroller.classList.contains('dragging')) {

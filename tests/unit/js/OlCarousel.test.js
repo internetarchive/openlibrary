@@ -645,16 +645,42 @@ describe('mouse drag', () => {
     it('moves the rail with the pointer and flags the viewport while held', async() => {
         const { scroller } = await mountCarousel(18);
         scroller.dispatchEvent(pointerEvent('pointerdown', { x: 500 }));
-        expect(scroller.classList.contains('dragging')).toBe(true);
+        // A resting press is still a click in progress — no grab yet.
+        expect(scroller.classList.contains('dragging')).toBe(false);
 
         now += 16;
         scroller.dispatchEvent(pointerEvent('pointermove', { x: 480 }));
+        expect(scroller.classList.contains('dragging')).toBe(true);
         now += 16;
         scroller.dispatchEvent(pointerEvent('pointermove', { x: 460 }));
         expect(scroller.scrollLeft).toBe(40);
 
         scroller.dispatchEvent(pointerEvent('pointerup', { x: 460, buttons: 0 }));
         expect(scroller.classList.contains('dragging')).toBe(false);
+    });
+
+    it('captures the pointer only once travel exceeds the slop', async() => {
+        const { scroller } = await mountCarousel(18);
+        scroller.setPointerCapture = jest.fn();
+
+        // Sub-slop jitter: never captured, so the release click keeps its
+        // real target and slotted buttons and links stay clickable.
+        drag(scroller, 500, [{ x: 497, dt: 16 }]);
+        expect(scroller.setPointerCapture).not.toHaveBeenCalled();
+
+        drag(scroller, 500, [{ x: 480, dt: 16 }]);
+        expect(scroller.setPointerCapture).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats leaving the viewport during an unengaged press as a release', async() => {
+        const { scroller } = await mountCarousel(18);
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 500 }));
+        scroller.dispatchEvent(pointerEvent('pointerleave', { x: 502 }));
+        // A later native scroll settle must not be mistaken for a drag pause.
+        expect(scroller.classList.contains('dragging')).toBe(false);
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: 400 }));
+        expect(scroller.scrollLeft).toBe(0);
     });
 
     it('ignores touch pointers — native scroll owns them', async() => {

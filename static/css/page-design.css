@@ -471,6 +471,31 @@ html:has(.ds) {
   font-size: 1.25rem;
 }
 
+/* Book-cover items for the carousel composition demo: cover above, action button below. */
+.design-carousel-book {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+}
+
+.design-carousel-book__cover {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  cursor: pointer;
+  box-shadow: 0 0 0 0 var(--color-surface-sunken);
+  transition: box-shadow 0.15s ease;
+}
+
+.design-carousel-book__cover:hover,
+.design-carousel-book__cover:focus-visible {
+  box-shadow: 0 0 0 6px var(--color-surface-sunken);
+  outline: none;
+}
+
 /* --------------------------------------------------------------- components */
 
 .ds-component {

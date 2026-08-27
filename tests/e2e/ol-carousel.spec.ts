@@ -102,6 +102,25 @@ test.describe('ol-carousel', () => {
         expect(errors()).toHaveLength(0);
     });
 
+    test('plain click targets the slotted card itself', async ({ page }) => {
+        // A host-level listener can't tell: retargeted clicks still bubble
+        // composed through the host. Capturing the pointer at pointerdown
+        // would move click's target to the shadow viewport, cutting slotted
+        // buttons and links out of the path — so listen on the card.
+        await page.evaluate((demo) => {
+            (window as any).__cardClicks = 0;
+            const card = document.querySelector(demo)!.children[0];
+            card.addEventListener('click', () => (window as any).__cardClicks++);
+        }, sel.demo);
+
+        const box = await page.evaluate((demo) => {
+            const r = document.querySelector(demo)!.children[0].getBoundingClientRect();
+            return { x: r.x, y: r.y, width: r.width, height: r.height };
+        }, sel.demo);
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        expect(await page.evaluate(() => (window as any).__cardClicks)).toBe(1);
+    });
+
     test('drag settle keeps scroll snapping intact afterwards', async ({ page }) => {
         await dragViewport(page, 400);
         // Settled: both transient viewport phases gone (the browser owns

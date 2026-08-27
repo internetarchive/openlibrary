@@ -2,6 +2,14 @@
 {% macro cards(count) %}
     {% for i in range(1, count + 1) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
 {% endmacro %}
+{% macro shelf_menu() %}
+    <ul class="ds-demo-menu">
+        <li>Want to Read</li>
+        <li>Currently Reading</li>
+        <li>Already Read</li>
+        <li class="ds-demo-menu__divided">Add to a list</li>
+    </ul>
+{% endmacro %}
 {% macro demos() %}
     <p class="ds-lead">
         A paged, Netflix-style horizontal carousel. Items are direct children; the component sets their width from responsive breakpoints and provides arrow buttons, edge peek, and bar-segment page indicators. The viewport is a native scroll container with CSS scroll snapping, so swipe momentum, overscroll, and trackpad and wheel scrolling all behave exactly as the operating system does elsewhere.
@@ -10,6 +18,34 @@
         code='<ol-carousel label="Trending">\n  <div>...item...</div>\n  <div>...item...</div>\n</ol-carousel>') %}
         <ol-carousel label="Trending">
             {{ cards(15) }}
+        </ol-carousel>
+    {% endcall %}
+    {% call ex.example("Book covers with actions", "Items compose with other components: hovering or focusing a cover shows an ol-tooltip, and the ol-button under each cover opens an ol-popover menu. Both render in the top layer, so the carousel viewport never clips them. --ol-carousel-viewport-padding leaves room for the cover hover ring.",
+        code='<ol-carousel label="Classic books" style="--ol-carousel-viewport-padding: 8px;">\n  <div class="book-card">\n    <ol-tooltip content="The Great Gatsby (1925) · F. Scott Fitzgerald">\n      <img src="//covers.openlibrary.org/b/id/10590366-M.jpg"
+        alt="The Great Gatsby"
+        loading="lazy"
+        tabindex="0">\n    </ol-tooltip>\n    <ol-popover aria-label="Shelve The Great Gatsby">\n      <ol-button slot="trigger" size="small" full-width>Want to read</ol-button>\n      <ul>...shelf options...</ul>\n    </ol-popover>\n  </div>\n  ...more books...\n</ol-carousel>') %}
+        {% set books = [('10590366', 'The Great Gatsby', 'F. Scott Fitzgerald', 1925), ('14348537', 'Pride and Prejudice', 'Jane Austen', 1813), ('10544254', 'Moby Dick', 'Herman Melville', 1851), ('8235363', 'Jane Eyre', 'Charlotte Brontë', 1847), ('12356249', 'Frankenstein', 'Mary Shelley', 1818), ('12216503', 'Dracula', 'Bram Stoker', 1897), ('14627509', 'The Hobbit', 'J.R.R. Tolkien', 1937), ('12818862', 'Wuthering Heights', 'Emily Brontë', 1847), ('8238803', 'Mythos', 'Stephen Fry', 2017), ('8765912', 'Mythology', 'Edith Hamilton', 1942), ('7996608', 'Where the Red Fern Grows', 'Wilson Rawls', 1961), ('12474938', 'The Odyssey', 'Homer', 1946)] %}
+        <ol-carousel label="Classic books" style="--ol-carousel-viewport-padding: 8px;">
+            {% for cover_id, title, author, year in books %}
+                <div class="design-carousel-book">
+                    <ol-tooltip content="{{ title }} ({{ year }}) · {{ author }}">
+                        <img class="design-carousel-book__cover"
+                             width="180"
+                             height="270"
+                             loading="lazy"
+                             tabindex="0"
+                             src="//covers.openlibrary.org/b/id/{{ cover_id }}-M.jpg"
+                             alt="{{ title }}">
+                    </ol-tooltip>
+                    <ol-popover aria-label="Shelve {{ title }}">
+                        <ol-button slot="trigger" size="small" full-width>
+                            Want to read
+                        </ol-button>
+                        {{ shelf_menu() }}
+                    </ol-popover>
+                </div>
+            {% endfor %}
         </ol-carousel>
     {% endcall %}
     {% call ex.example("Page indicators", "Hidden by default; show-indicators displays the page indicator bar.",
