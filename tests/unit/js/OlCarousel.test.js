@@ -829,6 +829,44 @@ describe('indicators', () => {
     });
 });
 
+describe('keyboard focus', () => {
+    /** Put a focusable link inside item `i` with a stubbed :focus-visible. */
+    function linkIn(el, i, focusVisible) {
+        const link = document.createElement('a');
+        link.href = '/works/OL1W';
+        link.matches = (selector) => selector === ':focus-visible' && focusVisible;
+        el.children[i].appendChild(link);
+        return link;
+    }
+
+    it('aligns the page containing a keyboard-focused card', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const link = linkIn(el, 10, true);   // item 10 → page 1
+        link.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+        expect(el.page).toBe(1);
+    });
+
+    it('leaves the rail alone for mouse focus', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const link = linkIn(el, 10, false);
+        link.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }));
+        await el.updateComplete;
+        expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('does not move when the focused card is already on the page', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const scrollSpy = jest.spyOn(scroller, 'scrollTo');
+        const link = linkIn(el, 2, true);
+        link.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }));
+        await el.updateComplete;
+        expect(scrollSpy).not.toHaveBeenCalled();
+        expect(scroller.scrollLeft).toBe(0);
+    });
+});
+
 describe('translatable labels', () => {
     it('labels the tablist and each indicator from the English defaults', async() => {
         const { el } = await mountCarousel(18, { showIndicators: true });

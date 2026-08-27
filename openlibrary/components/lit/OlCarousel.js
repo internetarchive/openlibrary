@@ -48,6 +48,10 @@ import './OlIcon.js';
  * page, and any drag past 10px swallows the click so covers never navigate
  * mid-drag. Touch and trackpad input stays fully native.
  *
+ * Tabbing into an off-page card aligns its whole page: the browser's minimal
+ * scroll-into-view would otherwise strand the rail between pages. Mouse
+ * focus (not :focus-visible) never moves the rail.
+ *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
  * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
@@ -412,6 +416,11 @@ export class OlCarousel extends LitElement {
         this._onDragCancel = this._onDragCancel.bind(this);
         this._onDragStartNative = this._onDragStartNative.bind(this);
         this._onViewportClickCapture = this._onViewportClickCapture.bind(this);
+        this._onFocusIn = this._onFocusIn.bind(this);
+
+        // On the host, so it hears light-DOM (slotted) focus; shadow focus
+        // retargets to the host itself and is filtered out by containment.
+        this.addEventListener('focusin', this._onFocusIn);
     }
 
     connectedCallback() {
@@ -915,6 +924,27 @@ export class OlCarousel extends LitElement {
     }
 
     // ── Keyboard ──
+
+    /** Keyboard focus landing on an off-page card pulls that card's whole
+     *  page into place. The browser's own scroll-into-view reveals the card
+     *  but can strand the rail between pages; this aligns it. Mouse focus
+     *  (not :focus-visible) never yanks the rail. */
+    _onFocusIn(e) {
+        const target = e.target;
+        if (!(target instanceof Element)) return;
+        let keyboard = true;
+        try {
+            keyboard = target.matches(':focus-visible');
+        } catch { /* selector unsupported: treat the focus as keyboard */ }
+        if (!keyboard) return;
+
+        const index = this._items.findIndex((item) => item.contains(target));
+        if (index === -1 || this._columns <= 0) return;
+        const page = Math.min(Math.floor(index / this._columns), this._totalPages - 1);
+        if (page !== this._page) {
+            this.goToPage(page);
+        }
+    }
 
     /** Arrow-key nav for the indicator tablist (APG "Tabs", horizontal).
      *  Scoped to the indicators, not the region — hijacking ←/→ over the
