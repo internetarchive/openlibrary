@@ -469,6 +469,15 @@ html:has(.ds) {
   border-radius: var(--border-radius-card);
   color: var(--color-text-muted);
   font-size: 1.25rem;
+  user-select: none;
+}
+
+button.design-carousel-demo-card {
+  appearance: none;
+  padding: 0;
+  font: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
 }
 
 /* --------------------------------------------------------------- components */

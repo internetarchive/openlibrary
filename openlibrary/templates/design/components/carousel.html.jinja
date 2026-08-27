@@ -2,6 +2,9 @@
 {% macro cards(count) %}
     {% for i in range(1, count + 1) %}<div class="design-carousel-demo-card">{{ i }}</div>{% endfor %}
 {% endmacro %}
+{% macro button_cards(count) %}
+    {% for i in range(1, count + 1) %}<button type="button" class="design-carousel-demo-card">{{ i }}</button>{% endfor %}
+{% endmacro %}
 {% macro demos() %}
     <p class="ds-lead">
         A paged, Netflix-style horizontal carousel. Items are direct children; the component sets their width from responsive breakpoints and provides arrow buttons, edge peek, and bar-segment page indicators. The viewport is a native scroll container with CSS scroll snapping, so swipe momentum, overscroll, and trackpad and wheel scrolling all behave exactly as the operating system does elsewhere.
@@ -16,6 +19,12 @@
         code='<ol-carousel label="New releases" show-indicators>\n  ...items...\n</ol-carousel>') %}
         <ol-carousel label="New releases" show-indicators>
             {{ cards(12) }}
+        </ol-carousel>
+    {% endcall %}
+    {% call ex.example("Keyboard focus", "Interactive children (links, buttons) are reachable with Tab, and tabbing into a card beyond the current page aligns that card's whole page. Keyboard focus only — clicking a card never moves the rail.",
+        code='<ol-carousel label="Trending">\n  <a href="/works/OL1W">...cover...</a>\n  <a href="/works/OL2W">...cover...</a>\n</ol-carousel>') %}
+        <ol-carousel label="Keyboard browsing">
+            {{ button_cards(15) }}
         </ol-carousel>
     {% endcall %}
     {% call ex.example("Page-change event", "Fires ol-carousel-page-change after each transition, with { page, previousPage, totalPages } in event.detail — previousPage lets a consumer infer direction without keeping state.",
