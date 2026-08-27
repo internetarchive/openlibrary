@@ -79,10 +79,11 @@ function pointerEvent(type, { x = 0, pointerType = 'mouse', button = 0, buttons 
 }
 
 /** Mount a carousel with `count` children, stub its geometry reads, measure. */
-async function mountCarousel(count, { showIndicators = false } = {}) {
+async function mountCarousel(count, { showIndicators = false, columns = '' } = {}) {
     const el = document.createElement('ol-carousel');
     el.gap = GAP;
     if (showIndicators) el.showIndicators = true;
+    if (columns) el.columns = columns;
 
     for (let i = 0; i < count; i++) {
         const item = document.createElement('div');
@@ -318,7 +319,7 @@ describe('page-change event', () => {
 
         await settle();
         expect(handler).toHaveBeenCalledTimes(1);
-        expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, totalPages: 3 });
+        expect(handler.mock.calls[0][0].detail).toEqual({ page: 1, previousPage: 0, totalPages: 3 });
     });
 
     it('reports only the final page after a multi-page fling', async() => {
@@ -332,6 +333,7 @@ describe('page-change event', () => {
 
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail.page).toBe(2);
+        expect(handler.mock.calls[0][0].detail.previousPage).toBe(0);
     });
 
     it('stays quiet when the scroll settles back on the same page', async() => {
@@ -386,6 +388,66 @@ describe('page-change event without native scrollend', () => {
         jest.advanceTimersByTime(40);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail.page).toBe(2);
+    });
+});
+
+describe('page announcements', () => {
+    it('announces the settled page in a polite live region', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        const announcer = el.shadowRoot.querySelector('.announcer');
+        expect(announcer.getAttribute('aria-live')).toBe('polite');
+        expect(announcer.textContent).toBe('');
+
+        await scrollTo(el._pageOffsets[1]);
+        await settle();
+        expect(announcer.textContent).toBe('Page 2 of 3');
+    });
+
+    it('stays quiet when the settle lands on the same page', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        await scrollTo(4);
+        await settle();
+        expect(el.shadowRoot.querySelector('.announcer').textContent).toBe('');
+    });
+
+    it('takes a translated template', async() => {
+        const { el, scrollTo, settle } = await mountCarousel(18);
+        el.labelPageAnnouncement = '{total} 中 {page}';
+        await scrollTo(el._pageOffsets[2]);
+        await settle();
+        expect(el.shadowRoot.querySelector('.announcer').textContent).toBe('3 中 3');
+    });
+});
+
+describe('columns attribute', () => {
+    it('fixes the column count with a single value', async() => {
+        const { el } = await mountCarousel(18, { columns: '6' });
+        expect(el._columns).toBe(6);
+        expect(el.totalPages).toBe(3);
+    });
+
+    it('maps a list onto the width tiers, repeating the last value', async() => {
+        const { el } = await mountCarousel(18, { columns: '3,6' });
+        expect(el._columns).toBe(6);              // 1280px — beyond the first tier
+
+        resizeObservers.forEach((ro) => ro.trigger(400));   // ≤480 tier
+        await el.updateComplete;
+        expect(el._columns).toBe(3);
+        expect(el.totalPages).toBe(6);
+    });
+
+    it('recalculates when the attribute changes', async() => {
+        const { el } = await mountCarousel(18);
+        el.setAttribute('columns', '9');
+        await el.updateComplete;
+        await el.updateComplete;
+        expect(el._columns).toBe(9);
+        expect(el.totalPages).toBe(2);
+    });
+
+    it('falls back to the defaults for a malformed value', async() => {
+        const { el } = await mountCarousel(18, { columns: 'banana' });
+        expect(el._columns).toBe(COLUMNS);
     });
 });
 
@@ -627,6 +689,20 @@ describe('mouse drag', () => {
 
         el.children[0].dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, cancelable: true }));
         expect(clickSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows the click when grabbing a moving rail, even without movement', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const clickSpy = jest.fn();
+        el.children[0].addEventListener('click', clickSpy);
+
+        // Rest the rail between page offsets, as it sits mid-settle.
+        scroller.scrollTo({ left: el._pageOffsets[1] / 2 });
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 500 }));
+        scroller.dispatchEvent(pointerEvent('pointerup', { x: 500, buttons: 0 }));
+
+        el.children[0].dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, cancelable: true }));
+        expect(clickSpy).not.toHaveBeenCalled();
     });
 
     it('settles on the nearest page after a slow release', async() => {

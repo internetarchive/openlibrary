@@ -29,9 +29,18 @@ import './OlIcon.js';
  * @prop {String} labelPages - Aria-label for the page indicator tablist (default: "Carousel pages")
  * @prop {String} labelGoToPage - Aria-label template for each page indicator, use {page} and
  *                                {total} as placeholders (default: "Go to page {page} of {total}")
+ * @prop {String} labelPageAnnouncement - Screen-reader announcement template read after each
+ *                                        page change, use {page} and {total} as placeholders
+ *                                        (default: "Page {page} of {total}")
+ * @prop {String} columns - Column counts overriding the responsive defaults: comma- or
+ *                          space-separated values for the width tiers (≤480, ≤600, ≤768,
+ *                          ≤1024, wider). A shorter list repeats its last value, so "6"
+ *                          fixes six columns at every width (default: unset)
  * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
- * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail: { page: Number, totalPages: Number }
+ * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail:
+ *     { page: Number, previousPage: Number, totalPages: Number } — previousPage lets
+ *     consumers (e.g. analytics) infer direction without keeping state
  * @fires ol-carousel-near-end - Fired when the rail settles (or items change) within two pages
  *     of the end, at most once per item count — appending items re-arms it, so a load-more
  *     consumer that stops appending stops hearing it. A rail shorter than three pages fires
@@ -82,6 +91,8 @@ export class OlCarousel extends LitElement {
         labelNext: { type: String, attribute: 'label-next' },
         labelPages: { type: String, attribute: 'label-pages' },
         labelGoToPage: { type: String, attribute: 'label-go-to-page' },
+        labelPageAnnouncement: { type: String, attribute: 'label-page-announcement' },
+        columns: { type: String },
         showIndicators: { type: Boolean, attribute: 'show-indicators' },
         _page: { type: Number, state: true },
         _totalPages: { type: Number, state: true },
@@ -199,6 +210,18 @@ export class OlCarousel extends LitElement {
         /* One instant programmatic write (a resize reflow, not a navigation). */
         .viewport.no-smooth {
             scroll-behavior: auto;
+        }
+
+        /* Visually hidden live region: screen readers hear page changes land
+           while focus stays on the arrow or indicator. */
+        .announcer {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
         }
 
         /* scrollbar-width is Safari 18.2+; this covers older WebKit/Blink. */
@@ -368,6 +391,8 @@ export class OlCarousel extends LitElement {
         this.labelNext = 'Next page';
         this.labelPages = 'Carousel pages';
         this.labelGoToPage = 'Go to page {page} of {total}';
+        this.labelPageAnnouncement = 'Page {page} of {total}';
+        this.columns = '';
         this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
@@ -401,6 +426,7 @@ export class OlCarousel extends LitElement {
         // Mouse-drag state. Touch and trackpad scrolling stay native.
         this._dragging = false;
         this._suppressClick = false;
+        this._dragFromMotion = false;
         this._dragLastX = 0;
         this._dragDistance = 0;
         /** @type {{t: Number, x: Number}[]} recent pointer samples */
@@ -472,6 +498,9 @@ export class OlCarousel extends LitElement {
     }
 
     updated(changedProperties) {
+        if (changedProperties.has('columns')) {
+            this._updateColumns(this.clientWidth);
+        }
         if (changedProperties.has('_columns') || changedProperties.has('_itemCount')
             || changedProperties.has('peek') || changedProperties.has('gap')) {
             this._recalculate();
@@ -541,8 +570,17 @@ export class OlCarousel extends LitElement {
         this._itemCount = this._items.length;
     }
 
+    /** Resolved [maxWidth, cols] pairs — the `columns` attribute overrides
+     *  the default counts tier by tier, repeating its last value. */
+    get _breakpointList() {
+        if (!this.columns) return OlCarousel._breakpoints;
+        const counts = String(this.columns).split(/[\s,]+/).map(Number).filter((n) => n > 0);
+        if (!counts.length) return OlCarousel._breakpoints;
+        return OlCarousel._breakpoints.map(([maxWidth], i) => [maxWidth, counts[Math.min(i, counts.length - 1)]]);
+    }
+
     _updateColumns(width) {
-        for (const [maxWidth, cols] of OlCarousel._breakpoints) {
+        for (const [maxWidth, cols] of this._breakpointList) {
             if (width <= maxWidth) {
                 if (cols !== this._columns) {
                     this._columns = cols;
@@ -731,18 +769,32 @@ export class OlCarousel extends LitElement {
         this._scroller?.classList.remove('settling');
         this._syncFromScroll();
         if (this._page !== this._lastEmittedPage) {
+            const previousPage = this._lastEmittedPage;
             this._lastEmittedPage = this._page;
-            this._emitPageChange();
+            this._emitPageChange(previousPage);
+            this._announcePage();
         }
         this._maybeEmitNearEnd();
     }
 
-    _emitPageChange() {
+    _emitPageChange(previousPage) {
         this.dispatchEvent(new CustomEvent('ol-carousel-page-change', {
-            detail: { page: this._page, totalPages: this._totalPages },
+            detail: { page: this._page, previousPage, totalPages: this._totalPages },
             bubbles: true,
             composed: true,
         }));
+    }
+
+    /** Update the polite live region so a screen-reader user hears arrow,
+     *  drag and swipe navigation land — focus stays on the control while
+     *  the content changes beside it. */
+    _announcePage() {
+        const announcer = this.shadowRoot?.querySelector('.announcer');
+        if (!announcer) return;
+        announcer.textContent = this._interpolateLabel(this.labelPageAnnouncement, {
+            page: this._page + 1,
+            total: this._totalPages,
+        });
     }
 
     /** Ask for more items when the rail runs low. Emission is keyed to the
@@ -774,6 +826,10 @@ export class OlCarousel extends LitElement {
         this._dragLastX = e.clientX;
         this._dragDistance = 0;
         this._dragSamples = [{ t: performance.now(), x: e.clientX }];
+        // Off a resting offset means the rail was still moving: this grab is
+        // a stop, and stopping is not clicking, however little it moves.
+        this._dragFromMotion =
+            Math.abs(scroller.scrollLeft - (this._pageOffsets[this._pageFromScroll()] ?? 0)) > 1;
         clearTimeout(this._scrollEndTimer);
 
         scroller.classList.add('dragging');
@@ -842,7 +898,7 @@ export class OlCarousel extends LitElement {
     /** Shared release path: end the drag, pick a page, animate to it. */
     _settleFromDrag(velocity) {
         if (!this._dragging) return;
-        this._suppressClick = this._dragDistance > OlCarousel._dragClickThreshold;
+        this._suppressClick = this._dragDistance > OlCarousel._dragClickThreshold || this._dragFromMotion;
         this._endDrag();
 
         const nearest = this._pageFromScroll();
@@ -1056,6 +1112,7 @@ export class OlCarousel extends LitElement {
                         @click=${() => this.next()}
                     ><span class="arrow-icon">${OlCarousel._rightArrow}</span></button>
                 </div>
+                <div class="announcer" aria-live="polite" aria-atomic="true"></div>
             </section>
         `;
     }

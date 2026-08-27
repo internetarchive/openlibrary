@@ -18,7 +18,7 @@
             {{ cards(12) }}
         </ol-carousel>
     {% endcall %}
-    {% call ex.example("Page-change event", "Fires ol-carousel-page-change after each transition, with { page, totalPages } in event.detail.",
+    {% call ex.example("Page-change event", "Fires ol-carousel-page-change after each transition, with { page, previousPage, totalPages } in event.detail — previousPage lets a consumer infer direction without keeping state.",
         code='<ol-carousel id="demo-carousel" label="Popular">\n  ...items...\n</ol-carousel>\n\n<script>\n  carousel.addEventListener(\'ol-carousel-page-change\', (e) => {\n    console.log(e.detail.page, e.detail.totalPages);\n  });\n</script>') %}
         <ol-carousel id="demo-carousel" label="Popular">
             {{ cards(18) }}
