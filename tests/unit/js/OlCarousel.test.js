@@ -743,6 +743,18 @@ describe('mouse drag', () => {
         expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
     });
 
+    it('never travels past the adjacent page, however hard the throw', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        // A violent throw: travel crosses well past page 1 before a fast
+        // release. Nearest-plus-flick alone would land on page 2 or beyond.
+        drag(scroller, 0, [
+            { x: -900, dt: 50 },
+            { x: -1500, dt: 50 },
+            { x: -1900, dt: 50 },
+        ]);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
     it('advances exactly one page on a flick', async() => {
         const { el, scroller } = await mountCarousel(18);
         drag(scroller, 500, [

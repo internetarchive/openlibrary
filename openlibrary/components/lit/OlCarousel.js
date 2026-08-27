@@ -54,7 +54,9 @@ import './OlIcon.js';
  * Mouse pointers can grab and throw the rail: scrollLeft follows the pointer
  * directly, a release under 0.1 px/ms (measured over the last 170ms of
  * movement) settles on the nearest page, a faster flick advances exactly one
- * page, and any drag past 10px swallows the click so covers never navigate
+ * page — never further than the page adjacent to where the grab began,
+ * however hard the throw — and any drag past 10px swallows the click so
+ * covers never navigate
  * mid-drag. Touch and trackpad input stays fully native. The grab engages
  * only after 4px of travel (or instantly on a moving rail): pointer capture
  * retargets the release click to the viewport, so capturing every press
@@ -432,6 +434,7 @@ export class OlCarousel extends LitElement {
         // Mouse-drag state. Touch and trackpad scrolling stay native.
         this._dragging = false;
         this._dragEngaged = false;
+        this._dragStartPage = 0;
         this._suppressClick = false;
         this._dragFromMotion = false;
         this._dragLastX = 0;
@@ -832,6 +835,7 @@ export class OlCarousel extends LitElement {
 
         this._dragging = true;
         this._dragEngaged = false;
+        this._dragStartPage = this._pageFromScroll();
         this._dragLastX = e.clientX;
         this._dragDistance = 0;
         this._dragSamples = [{ t: performance.now(), x: e.clientX }];
@@ -953,6 +957,10 @@ export class OlCarousel extends LitElement {
             const ascending = (this._pageOffsets[this._totalPages - 1] ?? 0) >= (this._pageOffsets[0] ?? 0);
             target = nearest + (ascending ? 1 : -1) * Math.sign(velocity);
         }
+        // One page per gesture (Embla's skip-less snap model): a hard throw
+        // travels far before release, so nearest-plus-flick alone would skip
+        // pages — the release always lands adjacent to where the grab began.
+        target = Math.max(this._dragStartPage - 1, Math.min(target, this._dragStartPage + 1));
         const clamped = Math.max(0, Math.min(target, this._totalPages - 1));
 
         const scroller = this._scroller;

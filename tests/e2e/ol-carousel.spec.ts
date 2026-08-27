@@ -121,6 +121,13 @@ test.describe('ol-carousel', () => {
         expect(await page.evaluate(() => (window as any).__cardClicks)).toBe(1);
     });
 
+    test('a hard throw lands one page over, not several', async ({ page }) => {
+        // 900px of fast travel crosses page 1's offset before release;
+        // without the start-page clamp this settled on page 3.
+        await dragViewport(page, 900, 6);
+        await expect(page.locator(sel.pageReadout)).toHaveText('2');
+    });
+
     test('drag settle keeps scroll snapping intact afterwards', async ({ page }) => {
         await dragViewport(page, 400);
         // Settled: both transient viewport phases gone (the browser owns
