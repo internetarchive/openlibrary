@@ -10,7 +10,7 @@ import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import requests
 import web
