@@ -63,6 +63,21 @@ function trackWidth(count) {
     return count * ITEM_WIDTH + Math.max(0, count - 1) * GAP;
 }
 
+/** jsdom has no PointerEvent; a MouseEvent with pointer fields stapled on. */
+function pointerEvent(type, { x = 0, pointerType = 'mouse', button = 0, buttons = 1 } = {}) {
+    const e = new MouseEvent(type, {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        clientX: x,
+        button,
+        buttons,
+    });
+    Object.defineProperty(e, 'pointerType', { value: pointerType });
+    Object.defineProperty(e, 'pointerId', { value: 1 });
+    return e;
+}
+
 /** Mount a carousel with `count` children, stub its geometry reads, measure. */
 async function mountCarousel(count, { showIndicators = false } = {}) {
     const el = document.createElement('ol-carousel');
@@ -86,7 +101,10 @@ async function mountCarousel(count, { showIndicators = false } = {}) {
     Object.defineProperty(scroller, 'scrollWidth', { value: trackWidth(count), configurable: true });
     Object.defineProperty(scroller, 'scrollLeft', {
         get: () => scrollLeft,
-        set: (v) => { scrollLeft = v; },
+        // Clamp as a real scroller would — drag writes rely on it.
+        set: (v) => {
+            scrollLeft = Math.max(0, Math.min(v, Math.max(0, scroller.scrollWidth - HOST_WIDTH)));
+        },
         configurable: true,
     });
     scroller.getBoundingClientRect = () => ({ left: 0, right: HOST_WIDTH, width: HOST_WIDTH });
@@ -480,6 +498,203 @@ describe('appending items', () => {
         expect(items[16].style.scrollSnapAlign).toBe('start');
         expect(items[17].style.scrollSnapAlign).toBe('');
         expect(items[25].style.scrollSnapAlign).toBe('end');
+    });
+});
+
+describe('mouse drag', () => {
+    let now;
+
+    beforeEach(() => {
+        now = 0;
+        jest.spyOn(performance, 'now').mockImplementation(() => now);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    /** Press, move through {x, dt} steps, release. */
+    function drag(scroller, x0, steps, { pointerType = 'mouse' } = {}) {
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: x0, pointerType }));
+        let x = x0;
+        for (const step of steps) {
+            now += step.dt;
+            x = step.x;
+            scroller.dispatchEvent(pointerEvent('pointermove', { x, pointerType }));
+        }
+        scroller.dispatchEvent(pointerEvent('pointerup', { x, pointerType, buttons: 0 }));
+    }
+
+    it('moves the rail with the pointer and flags the viewport while held', async() => {
+        const { scroller } = await mountCarousel(18);
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 500 }));
+        expect(scroller.classList.contains('dragging')).toBe(true);
+
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: 480 }));
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: 460 }));
+        expect(scroller.scrollLeft).toBe(40);
+
+        scroller.dispatchEvent(pointerEvent('pointerup', { x: 460, buttons: 0 }));
+        expect(scroller.classList.contains('dragging')).toBe(false);
+    });
+
+    it('ignores touch pointers — native scroll owns them', async() => {
+        const { scroller } = await mountCarousel(18);
+        drag(scroller, 500, [{ x: 400, dt: 16 }], { pointerType: 'touch' });
+        expect(scroller.classList.contains('dragging')).toBe(false);
+        expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('lets a plain click through', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const clickSpy = jest.fn();
+        el.children[0].addEventListener('click', clickSpy);
+
+        drag(scroller, 500, [{ x: 496, dt: 16 }]);   // 4px — a twitchy click
+
+        const click = new MouseEvent('click', { bubbles: true, composed: true, cancelable: true });
+        el.children[0].dispatchEvent(click);
+        expect(clickSpy).toHaveBeenCalledTimes(1);
+        expect(click.defaultPrevented).toBe(false);
+    });
+
+    it('swallows exactly one click after a real drag', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const clickSpy = jest.fn();
+        el.children[0].addEventListener('click', clickSpy);
+
+        drag(scroller, 500, [{ x: 470, dt: 16 }]);   // 30px — a real drag
+
+        el.children[0].dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, cancelable: true }));
+        expect(clickSpy).not.toHaveBeenCalled();
+
+        el.children[0].dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, cancelable: true }));
+        expect(clickSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('settles on the nearest page after a slow release', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        // Rush near page 1's offset, then creep: the trailing 170ms window
+        // only sees the slow tail, so the fast start must not fling.
+        drag(scroller, 0, [
+            { x: -1220, dt: 16 },
+            { x: -1228, dt: 84 },
+            { x: -1230, dt: 100 },
+        ]);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
+    it('advances exactly one page on a flick', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        drag(scroller, 500, [
+            { x: 460, dt: 16 },
+            { x: 420, dt: 16 },
+        ]);   // 80px at 2.5 px/ms — nearest is still page 0
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
+    it('clamps a flick at the last page', async() => {
+        const { scroller, scrollTo, settle, maxScroll } = await mountCarousel(18);
+        await scrollTo(maxScroll);
+        await settle();
+        drag(scroller, 500, [
+            { x: 460, dt: 16 },
+            { x: 420, dt: 16 },
+        ]);
+        expect(scroller.scrollLeft).toBe(maxScroll);
+    });
+
+    it('does not report a page change mid-drag, only after the settle', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 0 }));
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: -1230 }));
+        // A finger pause lets the browser fire scrollend mid-drag.
+        scroller.dispatchEvent(new Event('scrollend'));
+        expect(handler).not.toHaveBeenCalled();
+
+        now += 200;   // long hold — the release reads as a drop, not a flick
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: -1231 }));
+        scroller.dispatchEvent(pointerEvent('pointerup', { x: -1231, buttons: 0 }));
+        scroller.dispatchEvent(new Event('scrollend'));
+        await el.updateComplete;
+
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.page).toBe(1);
+    });
+
+    it('keeps snap off through the settle, then restores it', async() => {
+        const { scroller } = await mountCarousel(18);
+        drag(scroller, 500, [{ x: 420, dt: 16 }]);
+        expect(scroller.classList.contains('dragging')).toBe(false);
+        expect(scroller.classList.contains('settling')).toBe(true);
+
+        scroller.dispatchEvent(new Event('scrollend'));
+        expect(scroller.classList.contains('settling')).toBe(false);
+    });
+
+    it('treats a lost pointer as a plain drop', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 0 }));
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: -1230 }));
+        scroller.dispatchEvent(pointerEvent('pointercancel', { x: -1230, buttons: 0 }));
+        expect(scroller.classList.contains('dragging')).toBe(false);
+        expect(scroller.scrollLeft).toBeCloseTo(el._pageOffsets[1], 5);
+    });
+
+    it('survives removal mid-drag', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 500 }));
+        el.remove();
+        expect(() => {
+            scroller.dispatchEvent(pointerEvent('pointermove', { x: 400 }));
+        }).not.toThrow();
+        expect(scroller.scrollLeft).toBe(0);
+    });
+});
+
+describe('mouse drag without native scrollend', () => {
+    let supported;
+    let now;
+
+    beforeEach(() => {
+        supported = OlCarousel._supportsScrollEnd;
+        OlCarousel._supportsScrollEnd = false;
+        jest.useFakeTimers();
+        now = 0;
+        jest.spyOn(performance, 'now').mockImplementation(() => now);
+    });
+
+    afterEach(() => {
+        OlCarousel._supportsScrollEnd = supported;
+        jest.restoreAllMocks();
+    });
+
+    it('does not arm the settle fallback while dragging', async() => {
+        const { el, scroller } = await mountCarousel(18);
+        const handler = jest.fn();
+        el.addEventListener('ol-carousel-page-change', handler);
+
+        scroller.dispatchEvent(pointerEvent('pointerdown', { x: 0 }));
+        now += 16;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: -1230 }));
+        // The scroll the write causes must not schedule a fallback settle.
+        scroller.dispatchEvent(new Event('scroll'));
+        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        expect(handler).not.toHaveBeenCalled();
+
+        now += 200;
+        scroller.dispatchEvent(pointerEvent('pointermove', { x: -1231 }));
+        scroller.dispatchEvent(pointerEvent('pointerup', { x: -1231, buttons: 0 }));
+        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler.mock.calls[0][0].detail.page).toBe(1);
     });
 });
 

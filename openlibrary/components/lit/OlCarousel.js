@@ -42,6 +42,12 @@ import './OlIcon.js';
  * (see also `itemsInView()`), so consumers can style or measure what is
  * actually showing without re-deriving geometry.
  *
+ * Mouse pointers can grab and throw the rail: scrollLeft follows the pointer
+ * directly, a release under 0.1 px/ms (measured over the last 170ms of
+ * movement) settles on the nearest page, a faster flick advances exactly one
+ * page, and any drag past 10px swallows the click so covers never navigate
+ * mid-drag. Touch and trackpad input stays fully native.
+ *
  * @slot - Carousel items. Each direct child becomes one card; the component controls its width.
  *
  * @cssprop [--ol-carousel-arrow-color=var(--neutral-700)] - Colour of the arrow glyphs
@@ -158,6 +164,31 @@ export class OlCarousel extends LitElement {
             /* No macOS history swipe when the rail hits its end. */
             overscroll-behavior-x: contain;
             scrollbar-width: none;
+            /* Mouse pointers can grab the rail; links keep their own cursor. */
+            cursor: grab;
+        }
+
+        /* Mid-drag: we drive scrollLeft per pointer frame, so the browser
+           must neither smooth each write nor re-snap between them. */
+        .viewport.dragging {
+            scroll-snap-type: none;
+            scroll-behavior: auto;
+            cursor: grabbing;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Grabbing cursor everywhere (the hovered element decides the
+           cursor), and no hover lifts while the rail flies underneath. */
+        .viewport.dragging ::slotted(*) {
+            pointer-events: none;
+        }
+
+        /* Release: snap stays off through the settle animation — mandatory
+           re-snap would fight the flick target — smooth comes back via the
+           class removal so reduced-motion still governs it. */
+        .viewport.settling {
+            scroll-snap-type: none;
         }
 
         /* scrollbar-width is Safari 18.2+; this covers older WebKit/Blink. */
@@ -304,6 +335,16 @@ export class OlCarousel extends LitElement {
      *  Matches the legacy carousel's load-more look-ahead of two pages. */
     static _nearEndPageBuffer = 2;
 
+    /** Only the trailing window of movement (ms) counts toward release
+     *  velocity, so hold-then-release never flings. (Embla-derived.) */
+    static _dragVelocityWindow = 170;
+
+    /** Release speed (px/ms) separating a plain drop from a flick. */
+    static _dragFlickVelocity = 0.1;
+
+    /** Cumulative drag (px) beyond which the release click is swallowed. */
+    static _dragClickThreshold = 10;
+
     /** An item counts as in view once this fraction of it shows. */
     static _inViewThreshold = 0.5;
 
@@ -344,10 +385,24 @@ export class OlCarousel extends LitElement {
         /** @type {Set<Element>} items currently intersecting the viewport */
         this._inView = new Set();
 
+        // Mouse-drag state. Touch and trackpad scrolling stay native.
+        this._dragging = false;
+        this._suppressClick = false;
+        this._dragLastX = 0;
+        this._dragDistance = 0;
+        /** @type {{t: Number, x: Number}[]} recent pointer samples */
+        this._dragSamples = [];
+
         this._onScroll = this._onScroll.bind(this);
         this._onScrollEnd = this._onScrollEnd.bind(this);
         this._onIndicatorKeydown = this._onIndicatorKeydown.bind(this);
         this._onItemIntersect = this._onItemIntersect.bind(this);
+        this._onDragPointerDown = this._onDragPointerDown.bind(this);
+        this._onDragPointerMove = this._onDragPointerMove.bind(this);
+        this._onDragPointerUp = this._onDragPointerUp.bind(this);
+        this._onDragCancel = this._onDragCancel.bind(this);
+        this._onDragStartNative = this._onDragStartNative.bind(this);
+        this._onViewportClickCapture = this._onViewportClickCapture.bind(this);
     }
 
     connectedCallback() {
@@ -373,6 +428,8 @@ export class OlCarousel extends LitElement {
         this._itemObserver?.disconnect();
         this._itemObserver = null;
         this._inView.clear();
+        this._endDrag();
+        this._scroller?.classList.remove('settling');
     }
 
     firstUpdated() {
@@ -382,6 +439,10 @@ export class OlCarousel extends LitElement {
         this._applyTrackLayout();
         this._refreshGeometry();
         this._observeItems();
+        // Capture phase (not a template binding) so a post-drag click dies
+        // before it reaches a book link. Lives on our own shadow node, so it
+        // needs no teardown — it is collected with the component.
+        this._scroller?.addEventListener('click', this._onViewportClickCapture, true);
     }
 
     updated(changedProperties) {
@@ -600,7 +661,8 @@ export class OlCarousel extends LitElement {
         // Keeps indicators, arrows and fades in step mid-scroll.
         this._syncFromScroll();
 
-        if (!OlCarousel._supportsScrollEnd) {
+        // A finger pause mid-drag must not read as a settle.
+        if (!OlCarousel._supportsScrollEnd && !this._dragging) {
             clearTimeout(this._scrollEndTimer);
             this._scrollEndTimer = setTimeout(this._onScrollEnd, OlCarousel._scrollEndFallbackDelay);
         }
@@ -608,6 +670,9 @@ export class OlCarousel extends LitElement {
 
     /** The only place page-change fires, so a multi-page fling reports once. */
     _onScrollEnd() {
+        // Native scrollend fires between pointer pauses during a drag.
+        if (this._dragging) return;
+        this._scroller?.classList.remove('settling');
         this._syncFromScroll();
         if (this._page !== this._lastEmittedPage) {
             this._lastEmittedPage = this._page;
@@ -637,6 +702,146 @@ export class OlCarousel extends LitElement {
             bubbles: true,
             composed: true,
         }));
+    }
+
+    // ── Mouse drag ──
+    // Native scroll owns touch and trackpad; this layer adds grab-and-throw
+    // for mouse pointers by driving scrollLeft from pointer deltas.
+
+    _onDragPointerDown(e) {
+        if (e.pointerType !== 'mouse' || e.button !== 0) return;
+        if (this._totalPages <= 1) return;
+        const scroller = this._scroller;
+        if (!scroller) return;
+
+        this._dragging = true;
+        this._dragLastX = e.clientX;
+        this._dragDistance = 0;
+        this._dragSamples = [{ t: performance.now(), x: e.clientX }];
+        clearTimeout(this._scrollEndTimer);
+
+        scroller.classList.add('dragging');
+        scroller.classList.remove('settling');
+        // Grab-to-stop: a self-assignment aborts any in-flight smooth scroll.
+        scroller.scrollLeft += 0;
+
+        // Capture retargets move/up here even when the pointer leaves the
+        // window, so no document-level listeners are needed.
+        try {
+            if (typeof scroller.setPointerCapture === 'function') {
+                scroller.setPointerCapture(e.pointerId);
+            }
+        } catch { /* stale pointer id or jsdom — capture is best-effort */ }
+        scroller.addEventListener('pointermove', this._onDragPointerMove);
+        scroller.addEventListener('pointerup', this._onDragPointerUp);
+        scroller.addEventListener('pointercancel', this._onDragCancel);
+        scroller.addEventListener('lostpointercapture', this._onDragCancel);
+    }
+
+    _onDragPointerMove(e) {
+        // The button went up without a pointerup reaching us (e.g. an alert).
+        if ((e.buttons & 1) === 0) {
+            this._onDragPointerUp(e);
+            return;
+        }
+        e.preventDefault();
+
+        const dx = this._dragLastX - e.clientX;
+        this._dragLastX = e.clientX;
+        this._dragDistance += Math.abs(dx);
+        const scroller = this._scroller;
+        if (scroller) {
+            // The browser clamps at the edges; incremental deltas mean a
+            // reversal responds immediately even after overshooting.
+            scroller.scrollLeft += dx;
+        }
+
+        const now = performance.now();
+        this._dragSamples.push({ t: now, x: e.clientX });
+        const cutoff = now - OlCarousel._dragVelocityWindow;
+        while (this._dragSamples.length > 1 && this._dragSamples[0].t < cutoff) {
+            this._dragSamples.shift();
+        }
+    }
+
+    _onDragPointerUp() {
+        const samples = this._dragSamples;
+        let velocity = 0;
+        if (samples.length > 1) {
+            const first = samples[0];
+            const last = samples[samples.length - 1];
+            const dt = last.t - first.t;
+            // Positive scrolls forward: the content follows the pointer.
+            if (dt > 0) {
+                velocity = (first.x - last.x) / dt;
+            }
+        }
+        this._settleFromDrag(velocity);
+    }
+
+    _onDragCancel() {
+        this._settleFromDrag(0);
+    }
+
+    /** Shared release path: end the drag, pick a page, animate to it. */
+    _settleFromDrag(velocity) {
+        if (!this._dragging) return;
+        this._suppressClick = this._dragDistance > OlCarousel._dragClickThreshold;
+        this._endDrag();
+
+        const nearest = this._pageFromScroll();
+        let target = nearest;
+        if (Math.abs(velocity) >= OlCarousel._dragFlickVelocity) {
+            // One page per flick. Offsets ascend LTR and descend RTL, so the
+            // flick sign maps through their ordering.
+            const ascending = (this._pageOffsets[this._totalPages - 1] ?? 0) >= (this._pageOffsets[0] ?? 0);
+            target = nearest + (ascending ? 1 : -1) * Math.sign(velocity);
+        }
+        const clamped = Math.max(0, Math.min(target, this._totalPages - 1));
+
+        const scroller = this._scroller;
+        if (scroller && Math.abs(scroller.scrollLeft - (this._pageOffsets[clamped] ?? 0)) < 1) {
+            // Already resting on the target: no scroll will fire, settle now.
+            scroller.classList.remove('settling');
+            this.goToPage(clamped);
+            this._onScrollEnd();
+            return;
+        }
+        this.goToPage(clamped);
+    }
+
+    /** Tear down drag listeners and state. The viewport moves to its
+     *  settling phase: snap stays off until the release animation lands. */
+    _endDrag() {
+        this._dragging = false;
+        this._dragSamples = [];
+        const scroller = this._scroller;
+        if (!scroller) return;
+        scroller.removeEventListener('pointermove', this._onDragPointerMove);
+        scroller.removeEventListener('pointerup', this._onDragPointerUp);
+        scroller.removeEventListener('pointercancel', this._onDragCancel);
+        scroller.removeEventListener('lostpointercapture', this._onDragCancel);
+        if (scroller.classList.contains('dragging')) {
+            scroller.classList.remove('dragging');
+            scroller.classList.add('settling');
+        }
+    }
+
+    /** Firefox starts a native link/image drag where WebKit's
+     *  -webkit-user-drag does not apply. */
+    _onDragStartNative(e) {
+        if (this._dragging) {
+            e.preventDefault();
+        }
+    }
+
+    /** Swallow the click that follows a real drag, so dragging over a book
+     *  cover never navigates. One-shot, capture phase. */
+    _onViewportClickCapture(e) {
+        if (!this._suppressClick) return;
+        this._suppressClick = false;
+        e.preventDefault();
+        e.stopPropagation();
     }
 
     // ── Layout ──
@@ -757,7 +962,13 @@ export class OlCarousel extends LitElement {
                         @click=${() => this.prev()}
                     ><span class="arrow-icon">${OlCarousel._leftArrow}</span></button>
 
-                    <div class="viewport" @scroll=${this._onScroll} @scrollend=${this._onScrollEnd}>
+                    <div
+                        class="viewport"
+                        @scroll=${this._onScroll}
+                        @scrollend=${this._onScrollEnd}
+                        @pointerdown=${this._onDragPointerDown}
+                        @dragstart=${this._onDragStartNative}
+                    >
                         <slot @slotchange=${this._onSlotChange}></slot>
                     </div>
 
