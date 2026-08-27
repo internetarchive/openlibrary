@@ -1281,7 +1281,7 @@ class account_loans(delegate.page):
 
         from openlibrary.plugins.openlibrary.home import get_carousel_data
 
-        staff_picks = get_carousel_data()["staff_picks"]
+        staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
 
         template = render["account/loans"](
             user,

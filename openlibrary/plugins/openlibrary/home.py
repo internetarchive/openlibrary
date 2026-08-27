@@ -64,52 +64,39 @@ def get_homepage(devmode):
     return dict(page)
 
 
-def get_carousel_data():
+def get_carousel_data(carousels=None):
+    if carousels is None:
+        carousels = ("staff_picks", "recently_returned")
+
     lang = get_request_lang()
     marc_lang = convert_iso_to_marc(lang)
     lang_filter = f" language:{marc_lang}" if marc_lang and marc_lang in get_populated_languages() else ""
 
-    staff_picks_query = 'languageSorter:("English")' + lang_filter
-    staff_picks_subject = "openlibrary_staff_picks"
-    staff_picks_sorts = ["lending___last_browse desc"]
-    staff_picks_limit = 18
+    result = {}
 
-    staff_picks_books = generic_carousel(
-        query=staff_picks_query,
-        subject=staff_picks_subject,
-        sorts=staff_picks_sorts,
-        limit=staff_picks_limit,
-        safe_mode=True,
-    )
-    staff_picks_url = compose_ia_url(
-        query=staff_picks_query,
-        subject=staff_picks_subject,
-        sorts=staff_picks_sorts,
-        limit=staff_picks_limit,
-        advanced=False,
-        safe_mode=True,
-    )
+    if "staff_picks" in carousels:
+        staff_picks_query = lang_filter
+        staff_picks_subject = "openlibrary_staff_picks"
+        staff_picks_sorts = ["lending___last_browse desc"]
+        staff_picks_limit = 18
 
-    recently_returned_query = "" + lang_filter
-    recently_returned_sorts = ["lending___last_browse desc"]
-    recently_returned_limit = 18
+        staff_picks_books = generic_carousel(
+            query=staff_picks_query,
+            subject=staff_picks_subject,
+            sorts=staff_picks_sorts,
+            limit=staff_picks_limit,
+            safe_mode=True,
+        )
+        staff_picks_url = compose_ia_url(
+            query=staff_picks_query,
+            subject=staff_picks_subject,
+            sorts=staff_picks_sorts,
+            limit=staff_picks_limit,
+            advanced=False,
+            safe_mode=True,
+        )
 
-    recently_returned_books = generic_carousel(
-        query=recently_returned_query,
-        sorts=recently_returned_sorts,
-        limit=recently_returned_limit,
-        safe_mode=True,
-    )
-    recently_returned_url = compose_ia_url(
-        query=recently_returned_query,
-        sorts=recently_returned_sorts,
-        limit=recently_returned_limit,
-        advanced=False,
-        safe_mode=True,
-    )
-
-    return {
-        "staff_picks": {
+        result["staff_picks"] = {
             "books": staff_picks_books,
             "url": staff_picks_url,
             "load_more": {
@@ -120,8 +107,28 @@ def get_carousel_data():
                 "mode": "page",
                 "limit": staff_picks_limit,
             },
-        },
-        "recently_returned": {
+        }
+
+    if "recently_returned" in carousels:
+        recently_returned_query = lang_filter
+        recently_returned_sorts = ["lending___last_browse desc"]
+        recently_returned_limit = 18
+
+        recently_returned_books = generic_carousel(
+            query=recently_returned_query,
+            sorts=recently_returned_sorts,
+            limit=recently_returned_limit,
+            safe_mode=True,
+        )
+        recently_returned_url = compose_ia_url(
+            query=recently_returned_query,
+            sorts=recently_returned_sorts,
+            limit=recently_returned_limit,
+            advanced=False,
+            safe_mode=True,
+        )
+
+        result["recently_returned"] = {
             "books": recently_returned_books,
             "url": recently_returned_url,
             "load_more": {
@@ -132,8 +139,9 @@ def get_carousel_data():
                 "mode": "page",
                 "limit": recently_returned_limit,
             },
-        },
-    }
+        }
+
+    return result
 
 
 def get_cached_homepage():
