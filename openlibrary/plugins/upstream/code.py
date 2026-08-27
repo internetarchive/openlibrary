@@ -18,7 +18,7 @@ from infogami.infobase import client
 from infogami.plugins.api.code import jsonapi, make_query
 from infogami.plugins.api.code import request as infogami_request
 from infogami.utils import delegate
-from infogami.utils.context import context  # noqa: F401 side effects may be needed
+from infogami.utils.context import context
 from infogami.utils.view import (
     public,
     render,
@@ -117,7 +117,12 @@ class view(core.view):
         if p is None or p.type.key not in ("/type/work", "/type/edition"):
             return core.view.GET(self, path)
 
-        book_page_context = prepare_book_page(p, web.input(), web.ctx.site.get_user())
+        # Use context.user (already resolved once per request by
+        # infogami's initialize_context() loadhook -- the same value
+        # templates see as ctx.user) instead of calling
+        # web.ctx.site.get_user() again here: that method is not memoized
+        # and makes a real Infobase round-trip every time it's called.
+        book_page_context = prepare_book_page(p, web.input(), context.user)
         return render.viewpage(p, book_page_context=book_page_context)
 
 

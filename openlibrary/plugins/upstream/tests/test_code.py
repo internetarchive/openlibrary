@@ -381,10 +381,13 @@ class TestViewModeRoutingIsolation:
         self._mock_web_input(monkeypatch)
         work_page = web.storage(key="/works/OL1W", type=web.storage(key="/type/work"))
         fake_context = object()
+        fake_user = Mock(name="context.user")
         mock_render = Mock(return_value="rendered")
-        mock_site = Mock()
-        mock_site.get_user.return_value = None
-        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        # No web.ctx.site mock here at all: view.GET() must use context.user
+        # (already resolved once per request by initialize_context()) rather
+        # than calling web.ctx.site.get_user() itself, which is not memoized
+        # and would be a second, redundant Infobase round-trip.
+        monkeypatch.setattr(code.context, "user", fake_user, raising=False)
         with (
             patch.object(code.core.db, "get_version", return_value=work_page),
             patch.object(code, "prepare_book_page", return_value=fake_context) as mock_prepare,
@@ -392,9 +395,27 @@ class TestViewModeRoutingIsolation:
             # render.viewpage is resolved dynamically (disk template lookup),
             # so it isn't a real static attribute to patch.object() onto.
             monkeypatch.setattr(code.render, "viewpage", mock_render, raising=False)
-            result = code.view().GET("/works/OL1W")
+            code.view().GET("/works/OL1W")
 
         mock_prepare.assert_called_once()
         assert mock_prepare.call_args[0][0] is work_page
+        assert mock_prepare.call_args[0][2] is fake_user
         mock_render.assert_called_once_with(work_page, book_page_context=fake_context)
-        assert result == "rendered"
+
+    def test_view_class_does_not_call_get_user_itself(self, monkeypatch):
+        """Regression test: view.GET() must not call web.ctx.site.get_user()
+        (an uncached Infobase round-trip) -- it must reuse context.user,
+        which initialize_context() already resolved once for this request."""
+        self._mock_web_input(monkeypatch)
+        work_page = web.storage(key="/works/OL1W", type=web.storage(key="/type/work"))
+        mock_site = Mock()
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+        monkeypatch.setattr(code.render, "viewpage", Mock(return_value="rendered"), raising=False)
+        with (
+            patch.object(code.core.db, "get_version", return_value=work_page),
+            patch.object(code, "prepare_book_page", return_value=object()),
+        ):
+            code.view().GET("/works/OL1W")
+
+        mock_site.get_user.assert_not_called()
