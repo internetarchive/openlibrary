@@ -123,7 +123,7 @@ class view(core.view):
         # web.ctx.site.get_user() again here: that method is not memoized
         # and makes a real Infobase round-trip every time it's called.
         book_page_context = prepare_book_page(p, web.input(), context.user)
-        return render.viewpage(p, book_page_context=book_page_context)
+        return render.viewpage(p, book_page_context)
 
 
 # handlers for change photo and change cover

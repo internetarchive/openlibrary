@@ -497,7 +497,7 @@ class TestViewModeRoutingIsolation:
         mock_prepare.assert_called_once()
         assert mock_prepare.call_args[0][0] is work_page
         assert mock_prepare.call_args[0][2] is fake_user
-        mock_render.assert_called_once_with(work_page, book_page_context=fake_context)
+        mock_render.assert_called_once_with(work_page, fake_context)
 
     def test_view_class_does_not_call_get_user_itself(self, monkeypatch):
         """Regression test: view.GET() must not call web.ctx.site.get_user()

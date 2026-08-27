@@ -24,7 +24,7 @@ $page.prefetch()
 $if book_page_context is not None:
   $# /works and /books pages: lending/availability was already prepared
   $# in Python (see prepare_book_page() in openlibrary/plugins/upstream/code.py).
-  $ view = render_template(page.type.key[1:] + "/view", page, book_page_context=book_page_context)
+  $ view = render_template("type/edition/view", page, None, book_page_context)
 $else:
   $ view = thingview(page)
 
