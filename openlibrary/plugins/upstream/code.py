@@ -99,6 +99,16 @@ class view(core.view):
     """
 
     def GET(self, path):
+        # Work/edition keys are always canonically namespaced under /works/
+        # or /books/ (readable-URL slugs are already stripped by
+        # ReadableUrlProcessor before dispatch reaches here). For every
+        # other path, delegate immediately -- without ever calling
+        # get_version() ourselves -- so we don't do a second, redundant
+        # Thing load on top of the one core.view.GET does for every other
+        # Thing type (authors, lists, subjects, the home page, etc.).
+        if not path.startswith(("/works/", "/books/")):
+            return core.view.GET(self, path)
+
         i = web.input(v=None)
         if i.v is not None and safeint(i.v, None) is None:
             raise web.seeother(web.changequery(v=None))

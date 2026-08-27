@@ -342,15 +342,38 @@ class TestViewModeRoutingIsolation:
         # requested, exactly like a request with no matching query params.
         monkeypatch.setattr(web, "input", lambda *a, **kw: web.storage(**kw))
 
-    def test_view_class_falls_back_to_core_for_non_book_work_types(self, monkeypatch):
+    def test_view_class_skips_get_version_for_non_book_work_path(self, monkeypatch):
+        """A path outside /works/ and /books/ must delegate to core.view.GET
+        immediately, without this override doing its own get_version() call
+        first -- otherwise every non-book/work page (authors, lists,
+        subjects, the home page, ...) would pay for a redundant Thing load
+        on top of the one core.view.GET does itself."""
         self._mock_web_input(monkeypatch)
-        author_page = web.storage(key="/authors/OL1A", type=web.storage(key="/type/author"))
         with (
-            patch.object(code.core.db, "get_version", return_value=author_page),
+            patch.object(code.core.db, "get_version") as mock_get_version,
             patch.object(code.core.view, "GET", return_value="core-view-response") as mock_core_get,
         ):
             result = code.view().GET("/authors/OL1A")
 
+        mock_get_version.assert_not_called()
+        mock_core_get.assert_called_once()
+        assert mock_core_get.call_args[0][1] == "/authors/OL1A"
+        assert result == "core-view-response"
+
+    def test_view_class_falls_back_to_core_for_non_work_edition_type(self, monkeypatch):
+        """A /works/... or /books/... path that doesn't resolve to a work or
+        edition (e.g. a deleted/redirected Thing) still falls back to
+        core.view.GET, but only after this override's own get_version()
+        call -- it needs the Thing to know that."""
+        self._mock_web_input(monkeypatch)
+        deleted_page = web.storage(key="/works/OL1W", type=web.storage(key="/type/delete"))
+        with (
+            patch.object(code.core.db, "get_version", return_value=deleted_page) as mock_get_version,
+            patch.object(code.core.view, "GET", return_value="core-view-response") as mock_core_get,
+        ):
+            result = code.view().GET("/works/OL1W")
+
+        mock_get_version.assert_called_once()
         mock_core_get.assert_called_once()
         assert result == "core-view-response"
 
