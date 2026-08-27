@@ -198,6 +198,17 @@ def get_software_version() -> str:
         return "unknown"
 
 
+@functools.cache
+def get_git_version() -> str:
+    cmd = ["git", "--version"]
+    try:
+        result = run(cmd, capture_output=True, text=True, check=True, timeout=5)
+        version = result.stdout.strip()
+        return version or "unknown"
+    except Exception:  # noqa: BLE001 - must be fully graceful, any failure -> "unknown"
+        return "unknown"
+
+
 # See https://docs.python.org/3/library/enum.html#orderedenum
 class OrderedEnum(Enum):
     def __ge__(self, other):

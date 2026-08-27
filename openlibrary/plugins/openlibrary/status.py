@@ -21,7 +21,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
 from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.openlibrary.jenkins import JENKINS_JOB_URL, trigger_rebuild
-from openlibrary.utils import get_software_version
+from openlibrary.utils import get_git_version, get_software_version
 from openlibrary.utils.async_utils import async_bridge
 
 status_info: dict[str, Any] = {}
@@ -883,8 +883,13 @@ def setup():
         _ensure_testing_state_file()
     global status_info
     host = socket.gethostname()
+    try:
+        git_version = get_git_version()
+    except Exception:  # noqa: BLE001 - belt-and-suspenders, utility already graceful
+        git_version = "unknown"
     status_info = {
         "Software version": get_software_version(),
+        "Git version": git_version,
         "Python version": sys.version.split()[0],
         "Host": host,
         "Start time": datetime.datetime.now(datetime.UTC),
