@@ -246,14 +246,25 @@ describe('snap points', () => {
         expect(items[items.length - 1].style.scrollSnapAlign).toBe('end');
     });
 
+    it('makes page boundaries hard stops so a fling cannot skip pages', async() => {
+        const { el } = await mountCarousel(18);
+        const items = Array.from(el.children);
+        expect(items[0].style.scrollSnapStop).toBe('always');
+        expect(items[COLUMNS].style.scrollSnapStop).toBe('always');
+        expect(items[items.length - 1].style.scrollSnapStop).toBe('always');
+        expect(items[1].style.scrollSnapStop).toBe('');
+    });
+
     it('re-applies snap points when the column count changes', async() => {
         const { el } = await mountCarousel(18);
         resizeObservers.forEach((ro) => ro.trigger(500));   // → 4 columns
         await el.updateComplete;
         const items = Array.from(el.children);
         expect(items[4].style.scrollSnapAlign).toBe('start');
+        expect(items[4].style.scrollSnapStop).toBe('always');
         expect(items[COLUMNS].style.scrollSnapAlign).toBe('start');
         expect(items[5].style.scrollSnapAlign).toBe('');
+        expect(items[5].style.scrollSnapStop).toBe('');
     });
 });
 

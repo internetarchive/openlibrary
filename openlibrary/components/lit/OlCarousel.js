@@ -59,8 +59,9 @@ import './OlIcon.js';
  * @cssprop [--ol-carousel-viewport-padding=0px] - Inner viewport padding so slotted items can show a hover lift/shadow without being clipped
  *
  * Browser support: scroll-snap (Safari 11) and scroll-padding (14.5) are the
- * load-bearing ones. scroll-behavior (15.4) and overscroll-behavior (16)
- * degrade gracefully. scrollend is Safari 26.2, so it is feature-detected.
+ * load-bearing ones. scroll-behavior (15.4), scroll-snap-stop (15) and
+ * overscroll-behavior (16) degrade gracefully. scrollend is Safari 26.2, so
+ * it is feature-detected.
  *
  * @example
  * <ol-carousel label="Trending Books">
@@ -544,7 +545,10 @@ export class OlCarousel extends LitElement {
     }
 
     /** Mark page boundaries; the browser owns landing on them. The last item
-     *  gets `end` so a short final page rests flush against the edge. */
+     *  gets `end` so a short final page rests flush against the edge.
+     *  Boundaries are hard stops (`scroll-snap-stop`): a hard fling advances
+     *  one page at a time instead of sailing past several, matching the
+     *  arrows and the one-page mouse flick. */
     _applySnapPoints() {
         const items = this._items;
         const cols = this._columns;
@@ -552,10 +556,13 @@ export class OlCarousel extends LitElement {
         items.forEach((item, i) => {
             if (i === last) {
                 item.style.scrollSnapAlign = 'end';
+                item.style.scrollSnapStop = 'always';
             } else if (cols > 0 && i % cols === 0) {
                 item.style.scrollSnapAlign = 'start';
+                item.style.scrollSnapStop = 'always';
             } else {
                 item.style.scrollSnapAlign = '';
+                item.style.scrollSnapStop = '';
             }
         });
     }

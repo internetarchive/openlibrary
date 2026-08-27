@@ -64,6 +64,9 @@
 {% endcall %}
 <div class="ds-notes">
     <p>
+        <b>Paging.</b> Page boundaries are hard stops (<code>scroll-snap-stop: always</code>): a hard swipe or fling advances one page at a time instead of flying past several, matching the arrows and the one-page mouse flick.
+    </p>
+    <p>
         <b>Images.</b> Give every image its real URL in <code>src</code> and mark it <code>loading="lazy"</code>. The viewport is a scroll container, so it clips its overflow and the browser never fetches an off-page cover until you scroll toward it. Don't ship a placeholder <code>src</code> with the real URL parked in a data attribute — that convention predates <code>loading</code>, needs JS to undo, and leaves the browser deferring a placeholder that is already inline.
     </p>
     <p>
