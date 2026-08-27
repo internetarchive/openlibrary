@@ -343,8 +343,10 @@ html:has(.ds) {
 }
 
 /* The carousel picks columns, pages and peek off its container width, so a
-   shrink-wrapped host would demo it at the wrong breakpoint. */
-.ds-example__output > ol-carousel {
+   shrink-wrapped host would demo it at the wrong breakpoint. The markdown
+   editor likewise demos as a full-width block. */
+.ds-example__output > ol-carousel,
+.ds-example__output > ol-markdown-editor {
   flex: 1 0 100%;
   min-width: 0;
 }
