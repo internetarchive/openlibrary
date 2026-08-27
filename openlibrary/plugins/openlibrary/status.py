@@ -27,6 +27,7 @@ from openlibrary.utils.async_utils import async_bridge
 status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
+TESTING_CONFLICTS_FILE = Path("./_testing-merge-conflicts.json")
 _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 60  # 1 minute
@@ -432,7 +433,10 @@ class PRStatus:
     @staticmethod
     def from_output(output: str) -> PRStatus:
         lines = output.strip().split("\n")
-        return PRStatus(pull_line=lines[0], status=lines[-1], body="\n".join(lines[1:]))
+        pull_line = lines[0]
+        body_lines = lines[1:]
+        status = body_lines[-1] if body_lines else ""
+        return PRStatus(pull_line=pull_line, status=status, body="\n".join(body_lines))
 
 
 class TestingPR(BaseModel):
@@ -516,6 +520,7 @@ class TestingPRStatus(TestingPR):
     is_new: bool = False  # added since the last deploy
     live_now: bool = False  # the last deploy put this PR on the box
     merge_conflict: bool = False  # the last deploy's merge of this PR conflicted, so it did not land
+    conflict_with: list[int | str] = Field(default_factory=list)  # PRs or master causing the conflict
     closed: bool = False  # the PR was closed on GitHub without being merged; the next deploy drops it
     action: str = ""  # what the next deploy does with this row: add, pin, enable, disable, remove, or empty
     in_set: bool = True  # False for rows dropped from the set but still on the box
@@ -549,7 +554,7 @@ class TestingStatus(BaseModel):
     deploy_stage: str = ""  # stage a running deploy is on; empty when not running or Jenkins is unreachable
 
 
-def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts: frozenset[int] = frozenset()) -> TestingStatus:
+def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts: dict[int, list[int | str]] | None = None) -> TestingStatus:
     """Compose the testing-environment status from persisted state and live drift info. Pure.
 
     Rows carry the live drift flags plus the derived per-row ``action`` and
@@ -559,9 +564,8 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     derived the same way the deploy handler applies them, so the table, the
     plan, and the JSON API can't drift apart.
 
-    ``merge_conflicts`` is the set of PRs whose merge failed on the last deploy
-    (read from the deploy status file); their rows carry ``merge_conflict`` so
-    the panel can show they did not land.
+    ``merge_conflicts`` maps each conflicted PR to the list of earlier PR(s)
+    whose merged files caused the conflict (empty list = conflict with master).
     """
     last_deploy = state.last_deploy_at
     pending_changes = _pending_changes(state, drift_info)
@@ -580,7 +584,8 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
             merged=drift_info.get(p.pr, {}).get("merged", False),
             is_new=bool(last_deploy and p.added_at > last_deploy),
             live_now=_live_now(state, p),
-            merge_conflict=p.pr in merge_conflicts,
+            merge_conflict=p.pr in (merge_conflicts or {}),
+            conflict_with=(merge_conflicts or {}).get(p.pr, []),
             closed=drift_info.get(p.pr, {}).get("closed", False),
             action=actions.get(p.pr, ""),
             in_set=True,
@@ -648,27 +653,22 @@ async def load_testing_status_async() -> TestingStatus | None:
 _MERGE_CONFLICT_PREFIXES = ("Automatic merge failed", "Merge conflict for PR #")
 
 
-def _merge_conflicted_prs() -> frozenset[int]:
-    """PRs whose merge failed on the last deploy, per the deploy status file.
-
-    Reads the same ``_dev-merged_status.txt`` that powers the legacy "Last
-    Build Result" table: a PR row whose status says the merge failed means the
-    deploy skipped it, so it never landed on the box.
-    """
-    dms = get_dev_merged_status()
-    if not dms:
-        return frozenset()
-    conflicted: set[int] = set()
-    for pr in dms.pr_statuses:
-        if not pr.status.startswith(_MERGE_CONFLICT_PREFIXES):
-            continue
-        if pr.pull_id:
-            conflicted.add(pr.pull_id)
-        # Fallback: the summary message names the PR when the pull_line carries
-        # no "origin pull/N/head" line to parse a number from.
-        elif m := re.search(r"Merge conflict for PR #(\d+)", pr.status):
-            conflicted.add(int(m.group(1)))
-    return frozenset(conflicted)
+def _merge_conflicted_prs() -> dict[int, list[int | str]]:
+    """Load persisted merge-conflict causes, returning empty data on failure."""
+    try:
+        if not TESTING_CONFLICTS_FILE.exists():
+            return {}
+        data = json.loads(TESTING_CONFLICTS_FILE.read_text())
+        if not isinstance(data, dict) or not isinstance(data.get("generated_at"), str) or not isinstance(data.get("conflicts"), dict):
+            return {}
+        conflicts = data["conflicts"]
+        return {
+            int(pr): details.get("with_prs", []) + (["master"] if details.get("with_master") else [])
+            for pr, details in conflicts.items()
+            if isinstance(details, dict)
+        }
+    except OSError, TypeError, ValueError:
+        return {}
 
 
 def _save_testing_state(state: TestingState) -> None:

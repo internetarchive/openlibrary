@@ -79,6 +79,7 @@ if [[ -f "$TESTING_STATE_FILE" ]]; then
         fi
         git merge "$pinned_sha"
         if [[ $(git ls-files -u) ]]; then
+            conflict_files=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
             git merge --abort
             echo "Merge conflict for PR #$pr_num (pinned $pinned_sha) — skipping"
         fi
@@ -98,3 +99,6 @@ fi
 
 echo "---"
 echo "Complete; $NEW_BRANCH created (SHA: $(git rev-parse --short HEAD))"
+
+# Conflict analysis is advisory metadata. Never let it affect the deploy result.
+python3 scripts/analyze_merge_conflicts.py || true
