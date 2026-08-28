@@ -734,24 +734,32 @@ class TestNonHtmlModesNeverUsePreparation:
 
 
 class TestEditModeFakeRecordRegression:
-    """Regression coverage for a real crash this refactor introduced: before
-    this PR, type/edition/view.html computed everything it needed from
-    `page` and query_param() alone, so any caller could render it with just
-    a page. Now it requires `book_page_context` (see prepare_book_page()
-    above) and does `work = book_page_context.work` unconditionally.
+    """Regression coverage for ?m=edit on a fake record, e.g.
+    /books/ia:foo00bar (Edition.is_fake_record(): synthesized on the fly
+    from archive.org metadata, never persisted in Infobase, but
+    web.ctx.site.get() still resolves it -- see connection.py's
+    IAMiddleware). The UI itself already hides the Edit button for these
+    (databarView.html, databarWork.html, type/edition/view.html all check
+    page.is_fake_record()); this redirects the URL too, for anyone who
+    reaches ?m=edit directly.
 
-    core.edit.GET()'s own fallback (`db.new_version()`, used when no Thing
-    exists yet for the key) still renders that same template via
-    thingview() -- with no book_page_context. That path is reachable for a
-    /books/ia:foo00bar fake record (Edition.is_fake_record(): these are
-    synthesized on the fly from archive.org metadata, not real Infobase
-    Things, but web.ctx.site.get() still resolves them -- see
-    connection.py), because "ia:foo00bar" doesn't match the "OL<id>" pattern
-    that routes real book/work edits through addbook's own edit UI instead.
+    This is deliberately narrower than "any non-OL /books/ or /works/ key".
+    core.edit.GET()'s own fallback (db.new_version() -> render.editpage()
+    -> thingedit() -> render.edit(page)) never renders
+    type/edition/view.html/thingview() -- that only happens from a POST
+    with action=preview, a different code path. Its actual failure mode --
+    type/edition/edit.html doesn't exist on disk, so render.edit()'s
+    typetemplate lookup raises TypeError -- is already caught by
+    Templetor's saferender(), degrading to "Unable to render this page"
+    rather than crashing (verified empirically: saferender's own exception
+    handling is what's reached, not an uncaught 500). That protection
+    applies equally to non-fake-record keys, so they're left to fall
+    through to core.edit.GET() unchanged, exactly as on the base branch.
     """
 
     def test_ia_fake_record_edit_redirects_instead_of_reaching_core_edit(self, monkeypatch):
         fake_record = web.storage(key="/books/ia:foo00bar", type=web.storage(key="/type/edition"))
+        fake_record.is_fake_record = Mock(return_value=True)
         mock_site = Mock()
         mock_site.get = Mock(return_value=fake_record)
         monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
@@ -760,16 +768,15 @@ class TestEditModeFakeRecordRegression:
         with patch.object(code.core.edit, "GET") as mock_core_get:
             result = code.edit().GET("/books/ia:foo00bar")
 
-        # Must never reach core.edit.GET()'s db.new_version() fallback --
-        # that's what used to call thingview() -> type/edition/view.html
-        # with book_page_context=None and crash with AttributeError.
+        # Must never reach core.edit.GET() -- the fake record is caught by
+        # is_fake_record() and redirected to the view page instead.
         mock_core_get.assert_not_called()
         assert result == "seeother:/books/ia:foo00bar"
 
     def test_nonexistent_books_path_still_takes_pre_existing_none_branch(self, monkeypatch):
         """Sanity check: a real (but not-yet-created) /books/OL...M key
         matches editable_keys_re and must still take the pre-existing
-        `page is None` branch above the new fake-record branch, unchanged."""
+        `page is None` branch above the fake-record branch, unchanged."""
         mock_site = Mock()
         mock_site.get = Mock(return_value=None)
         monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
@@ -783,7 +790,8 @@ class TestEditModeFakeRecordRegression:
 
     def test_real_edition_key_still_uses_addbook_edit_flow(self, monkeypatch):
         """Sanity check: a real, existing /books/OL...M key is unaffected --
-        still redirected to addbook's own edit UI, not the new branch."""
+        still redirected to addbook's own edit UI, not the fake-record
+        branch."""
         real_edition = Mock()
         real_edition.url = Mock(return_value="/books/OL1M/edit")
         mock_site = Mock()
@@ -796,10 +804,42 @@ class TestEditModeFakeRecordRegression:
         mock_redirect.assert_called_once_with("/books/OL1M/edit")
         assert result == "redirected"
 
+    def test_non_fake_record_books_key_delegates_to_core_edit(self, monkeypatch):
+        """A /books/ key that isn't OL-formatted and isn't a fake record
+        (page.is_fake_record() is False, e.g. an ordinary garbage/malformed
+        path) must keep delegating to core.edit.GET() -- the pre-existing,
+        upstream behaviour -- not be swept into the fake-record redirect."""
+        not_fake = web.storage(key="/books/some-garbage-key", type=web.storage(key="/type/edition"))
+        not_fake.is_fake_record = Mock(return_value=False)
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=not_fake)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+
+        with patch.object(code.core.edit, "GET", return_value="core-edit-response") as mock_core_get:
+            result = code.edit().GET("/books/some-garbage-key")
+
+        mock_core_get.assert_called_once()
+        assert result == "core-edit-response"
+
+    def test_works_key_has_no_is_fake_record_and_delegates_to_core_edit(self, monkeypatch):
+        """/works/ pages have no fake-record concept (is_fake_record() is
+        only defined on Edition); a non-OL /works/ key must not raise
+        AttributeError and must keep delegating to core.edit.GET()."""
+        work_page = web.storage(key="/works/not-an-olid", type=web.storage(key="/type/work"))
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=work_page)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+
+        with patch.object(code.core.edit, "GET", return_value="core-edit-response") as mock_core_get:
+            result = code.edit().GET("/works/not-an-olid")
+
+        mock_core_get.assert_called_once()
+        assert result == "core-edit-response"
+
     def test_non_book_work_path_untouched(self, monkeypatch):
-        """Sanity check: the new branch is scoped to /books/ and /works/ --
-        an unrelated path (e.g. a plain wiki page) still falls through to
-        core.edit.GET(), exactly as before this change."""
+        """Sanity check: the fake-record branch is scoped to /books/ and
+        /works/ pages -- an unrelated path (e.g. a plain wiki page) still
+        falls through to core.edit.GET(), exactly as before this change."""
         mock_site = Mock()
         mock_site.get = Mock(return_value=None)
         monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)

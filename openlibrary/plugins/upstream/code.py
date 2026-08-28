@@ -80,14 +80,31 @@ class edit(core.edit):
                 return web.seeother(key)
             else:
                 return addbook.safe_seeother(page.url(suffix="/edit"))
-        elif key.startswith(("/books/", "/works/")):
-            # e.g. /books/ia:foo00bar (a fake record synthesized on the fly,
-            # see Edition.is_fake_record()), or any other /books/ or /works/
-            # path that isn't a "OL<id>" key. core.edit.GET()'s fallback
-            # (db.new_version()) would otherwise reach thingview() -> the
-            # same type/edition/view.html template the real book page uses
-            # (see prepare_book_page() below), which requires
-            # book_page_context and isn't safe to call from here.
+        elif page is not None and hasattr(page, "is_fake_record") and page.is_fake_record():
+            # e.g. /books/ia:foo00bar: a fake record synthesized on the fly
+            # from archive.org metadata (see Edition.is_fake_record()),
+            # never persisted in Infobase. The UI itself already hides the
+            # Edit button for these (databarView.html, databarWork.html,
+            # type/edition/view.html all check page.is_fake_record()), so
+            # redirect to the view page instead of falling through to
+            # core.edit.GET(), matching the existing page-is-None branch
+            # above.
+            #
+            # This is deliberately narrower than "any non-OL /books/ or
+            # /works/ key": core.edit.GET()'s own fallback (db.new_version()
+            # -> render.editpage() -> thingedit() -> render.edit(page))
+            # never reaches thingview()/type/edition/view.html -- that only
+            # happens from a POST with action=preview (a different code
+            # path, see core.edit.POST()). Its actual failure mode here --
+            # type/edition/edit.html doesn't exist on disk, so
+            # render.edit()'s typetemplate lookup falls back to None and
+            # raises TypeError -- is already caught by Templetor's
+            # saferender() (the same protection LoanStatus.html always had),
+            # degrading to "Unable to render this page" instead of
+            # crashing. That's true for any /books/ or /works/ key, fake
+            # record or not, so it needs no special-casing here; a
+            # non-fake-record key just keeps falling through to
+            # core.edit.GET() below, unchanged from upstream.
             return web.seeother(key)
         else:
             return core.edit.GET(self, key)
@@ -131,7 +148,14 @@ class view(core.view):
         # templates see as ctx.user) instead of calling
         # web.ctx.site.get_user() again here: that method is not memoized
         # and makes a real Infobase round-trip every time it's called.
-        book_page_context = prepare_book_page(p, web.input(), context.user)
+        #
+        # Reuse `i` (already parsed above) instead of calling web.input()
+        # again: web.input()'s storify() includes every key present in the
+        # actual query string, not just the ones declared as defaults, so
+        # `i` already carries `edition`/`mode`/etc. if they're present.
+        # This also guarantees the `v` validation above and the edition
+        # selection below see exactly the same query params.
+        book_page_context = prepare_book_page(p, i, context.user)
         return render.viewpage(p, book_page_context)
 
 
