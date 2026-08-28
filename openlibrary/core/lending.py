@@ -569,7 +569,6 @@ async def add_availability_async(
 
 
 add_availability = async_bridge.wrap(add_availability_async, "add_availability")
-public(add_availability)
 
 
 def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
