@@ -997,6 +997,16 @@ export class OlShelfActions extends LitElement {
         });
     }
 
+    willUpdate(changed) {
+        // The surface can take the book off its shelf without us — the split
+        // button's main click does — and that deletes the check-ins too, so drop
+        // the date we are holding rather than amend a deleted event.
+        if (changed.has('shelf') && changed.get('shelf') && !this.shelf) {
+            this.readDate = null;
+            this.eventId = null;
+        }
+    }
+
     updated(changed) {
         // Panes only exist once `book` is set, so observe them lazily.
         if (!this._resizeObserver) {
@@ -1116,7 +1126,10 @@ export class OlShelfActions extends LitElement {
     async _postShelf(shelfId) {
         const previous = this.shelf;
         const removing = previous === shelfId;
-        return this._mutate({ shelf: removing ? null : shelfId }, async() => {
+        // Coming off a shelf deletes the book's check-in events with it, so the
+        // date goes too — a kept event id would make the next check-in amend an
+        // event the server no longer has, and 404.
+        return this._mutate(removing ? { shelf: null, readDate: null, eventId: null } : { shelf: shelfId }, async() => {
             await setShelf(this.book.key, shelfId, { editionKey: this.book.editionKey });
             trackEvent('ReadingLog', SHELF_EVENT[removing ? null : shelfId]);
             this._emitState();

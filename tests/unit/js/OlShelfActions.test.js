@@ -639,6 +639,45 @@ describe('ol-shelf-actions check-in pane', () => {
         expect([body.year, body.month, body.day]).toEqual([2024, 6, null]);
     });
 
+    test('removing the book from its shelf drops the date the server deleted with it', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+        // The trash row: for Already Read, clicking the shelf row amends the date.
+        qa(el, '.group.shelves .row')[4].click();
+        await tick(el);
+        expect(el.shelf).toBeNull();
+        expect(el.readDate).toBeNull();
+        expect(el.eventId).toBeNull();
+        // So the next check-in adds an event instead of amending event 12.
+        el.shelf = SHELF.ALREADY_READ;
+        await tick(el);
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        yearRows(el)[0].click();
+        await tick(el);
+        expect(JSON.parse(checkInWrites()[0].init.body).event_id).toBeNull();
+    });
+
+    test('a failed removal puts the date back', async() => {
+        stubFetch({ failWith: 500 });
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+        qa(el, '.group.shelves .row')[4].click();
+        await tick(el);
+        expect(el.shelf).toBe(SHELF.ALREADY_READ);
+        expect(el.readDate).toBe('2025');
+        expect(el.eventId).toBe(12);
+    });
+
+    test('a removal made outside the popover drops it too', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
+        // What the split button's main click does, applied by the surface.
+        el.shelf = null;
+        await tick(el);
+        expect(el.readDate).toBeNull();
+        expect(el.eventId).toBeNull();
+    });
+
     test('Escape from the pane goes back rather than closing', async() => {
         stubFetch();
         const el = await mount();
