@@ -80,32 +80,6 @@ class edit(core.edit):
                 return web.seeother(key)
             else:
                 return addbook.safe_seeother(page.url(suffix="/edit"))
-        elif page is not None and hasattr(page, "is_fake_record") and page.is_fake_record():
-            # e.g. /books/ia:foo00bar: a fake record synthesized on the fly
-            # from archive.org metadata (see Edition.is_fake_record()),
-            # never persisted in Infobase. The UI itself already hides the
-            # Edit button for these (databarView.html, databarWork.html,
-            # type/edition/view.html all check page.is_fake_record()), so
-            # redirect to the view page instead of falling through to
-            # core.edit.GET(), matching the existing page-is-None branch
-            # above.
-            #
-            # This is deliberately narrower than "any non-OL /books/ or
-            # /works/ key": core.edit.GET()'s own fallback (db.new_version()
-            # -> render.editpage() -> thingedit() -> render.edit(page))
-            # never reaches thingview()/type/edition/view.html -- that only
-            # happens from a POST with action=preview (a different code
-            # path, see core.edit.POST()). Its actual failure mode here --
-            # type/edition/edit.html doesn't exist on disk, so
-            # render.edit()'s typetemplate lookup falls back to None and
-            # raises TypeError -- is already caught by Templetor's
-            # saferender() (the same protection LoanStatus.html always had),
-            # degrading to "Unable to render this page" instead of
-            # crashing. That's true for any /books/ or /works/ key, fake
-            # record or not, so it needs no special-casing here; a
-            # non-fake-record key just keeps falling through to
-            # core.edit.GET() below, unchanged from upstream.
-            return web.seeother(key)
         else:
             return core.edit.GET(self, key)
 

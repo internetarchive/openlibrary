@@ -17,14 +17,16 @@ Covers:
 """
 
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import web
 
-from infogami.utils import delegate, macro
+from infogami.utils import app as infogami_app
+from infogami.utils import delegate, macro, template
 from openlibrary.core import db, lending
-from openlibrary.plugins.upstream import code, utils
+from openlibrary.core.processors.readableurls import ReadableUrlProcessor, get_readable_path
+from openlibrary.plugins.upstream import addbook, code, utils
 
 
 def make_edition(key, ocaid=None, availability=None, **extra):
@@ -733,45 +735,33 @@ class TestNonHtmlModesNeverUsePreparation:
         assert result.rawtext == '{"key": "/works/OL1W"}'
 
 
-class TestEditModeFakeRecordRegression:
-    """Regression coverage for ?m=edit on a fake record, e.g.
-    /books/ia:foo00bar (Edition.is_fake_record(): synthesized on the fly
-    from archive.org metadata, never persisted in Infobase, but
-    web.ctx.site.get() still resolves it -- see connection.py's
-    IAMiddleware). The UI itself already hides the Edit button for these
-    (databarView.html, databarWork.html, type/edition/view.html all check
-    page.is_fake_record()); this redirects the URL too, for anyone who
-    reaches ?m=edit directly.
+class TestEditModeRouting:
+    """?m=edit routing for books/works, matching upstream/master.
 
-    This is deliberately narrower than "any non-OL /books/ or /works/ key".
-    core.edit.GET()'s own fallback (db.new_version() -> render.editpage()
-    -> thingedit() -> render.edit(page)) never renders
-    type/edition/view.html/thingview() -- that only happens from a POST
-    with action=preview, a different code path. Its actual failure mode --
-    type/edition/edit.html doesn't exist on disk, so render.edit()'s
-    typetemplate lookup raises TypeError -- is already caught by
-    Templetor's saferender(), degrading to "Unable to render this page"
-    rather than crashing (verified empirically: saferender's own exception
-    handling is what's reached, not an uncaught 500). That protection
-    applies equally to non-fake-record keys, so they're left to fall
-    through to core.edit.GET() unchanged, exactly as on the base branch.
+    Real /books/OL...M and /works/OL...W keys are redirected to addbook's
+    dedicated /edit pages. Everything else -- including fake records like
+    /books/ia:foo00bar -- falls through to Infogami's core.edit.GET(),
+    which never calls thingview()/type/edition/view.html (that only happens
+    from POST action=preview; see TestGenericEditPreviewRouting).
     """
 
-    def test_ia_fake_record_edit_redirects_instead_of_reaching_core_edit(self, monkeypatch):
+    def test_ia_fake_record_edit_delegates_to_core_edit(self, monkeypatch):
+        """Fake records do not match editable_keys_re (no OL id) and are
+        not special-cased: GET ?m=edit keeps the pre-existing fallthrough
+        to core.edit.GET(). The UI already hides the Edit button for these
+        (databarView.html, databarWork.html, type/edition/view.html)."""
         fake_record = web.storage(key="/books/ia:foo00bar", type=web.storage(key="/type/edition"))
         fake_record.is_fake_record = Mock(return_value=True)
         mock_site = Mock()
         mock_site.get = Mock(return_value=fake_record)
         monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
-        monkeypatch.setattr(code.web, "seeother", lambda url: f"seeother:{url}")
 
-        with patch.object(code.core.edit, "GET") as mock_core_get:
+        with patch.object(code.core.edit, "GET", return_value="core-edit-response") as mock_core_get:
             result = code.edit().GET("/books/ia:foo00bar")
 
-        # Must never reach core.edit.GET() -- the fake record is caught by
-        # is_fake_record() and redirected to the view page instead.
-        mock_core_get.assert_not_called()
-        assert result == "seeother:/books/ia:foo00bar"
+        mock_core_get.assert_called_once()
+        assert mock_core_get.call_args[0][1] == "/books/ia:foo00bar"
+        assert result == "core-edit-response"
 
     def test_nonexistent_books_path_still_takes_pre_existing_none_branch(self, monkeypatch):
         """Sanity check: a real (but not-yet-created) /books/OL...M key
@@ -837,9 +827,7 @@ class TestEditModeFakeRecordRegression:
         assert result == "core-edit-response"
 
     def test_non_book_work_path_untouched(self, monkeypatch):
-        """Sanity check: the fake-record branch is scoped to /books/ and
-        /works/ pages -- an unrelated path (e.g. a plain wiki page) still
-        falls through to core.edit.GET(), exactly as before this change."""
+        """An unrelated wiki path still falls through to core.edit.GET()."""
         mock_site = Mock()
         mock_site.get = Mock(return_value=None)
         monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
@@ -1097,10 +1085,10 @@ class TestIntegratedBookPageRendering:
         # Sanity check first: the real signature renders fine.
         assert 'data-lending-state="open"' in str(code.view().GET("/works/OL3W"))
 
-        # Now break the same call the way the bug class described in
-        # TestEditModeFakeRecordRegression does: render type/edition/view
-        # directly with no book_page_context at all, the way thingview()
-        # does for any caller that doesn't go through prepare_book_page().
+        # Now break the same call the way leftover Infogami thingview()
+        # callers would: render type/edition/view directly with no
+        # book_page_context at all, the way thingview() does for any
+        # caller that doesn't go through prepare_book_page().
         # Every render.X path (including render_template()) goes through
         # Render.__getitem__, which always wraps templates in saferender()
         # -- it catches the AttributeError and returns a generic error page
@@ -1111,5 +1099,154 @@ class TestIntegratedBookPageRendering:
         # thing under test is saferender's own catch-and-fallback behavior.
         monkeypatch.setattr(delegate, "exception_hooks", [])
         html = str(code.render.viewpage(edition))
+        assert "data-lending-state" not in html
+        assert "Unable to render this page" in html
+
+
+class TestGenericEditPreviewRouting:
+    """Prove whether Infogami's generic edit POST+preview can reach
+    type/edition/view.html without BookPageContext.
+
+    Infogami delegate order is find_page() -> find_view() -> find_mode().
+    Dedicated book/work editors are delegate.page handlers on the /edit
+    suffix; ?m=edit is a mode, used only when no page handler matches.
+    """
+
+    def _load_request(self, path, query="", method="GET"):
+        app = web.application()
+        app.load(
+            {
+                "PATH_INFO": path,
+                "REQUEST_METHOD": method,
+                "QUERY_STRING": query.lstrip("?"),
+                "HTTP_HOST": "openlibrary.org",
+            }
+        )
+        web.ctx.path = path
+        web.ctx.encoding = None
+
+    def test_dedicated_edit_pages_win_over_edit_mode_for_real_ol_keys(self):
+        self._load_request("/books/OL1M/edit")
+        cls, args = infogami_app.find_page()
+        assert cls is addbook.book_edit
+        assert args == ("/books/OL1M",)
+
+        self._load_request("/works/OL1W/edit")
+        cls, args = infogami_app.find_page()
+        assert cls is addbook.work_edit
+        assert args == ("/works/OL1W",)
+
+    def test_bare_book_and_work_keys_do_not_match_a_page_handler(self):
+        self._load_request("/books/OL1M")
+        cls, _ = infogami_app.find_page()
+        assert cls is None
+
+        self._load_request("/works/OL1W")
+        cls, _ = infogami_app.find_page()
+        assert cls is None
+
+    def test_fake_record_keys_do_not_match_book_edit_page(self):
+        self._load_request("/books/ia:foo00bar")
+        cls, _ = infogami_app.find_page()
+        assert cls is None
+
+        self._load_request("/books/ia:foo00bar/edit")
+        cls, _ = infogami_app.find_page()
+        assert cls is None
+
+    def test_m_edit_mode_is_the_openlibrary_override(self):
+        self._load_request("/books/OL1M", query="m=edit")
+        cls, args = infogami_app.find_mode()
+        assert cls is code.edit
+        assert args == ["/books/OL1M"]
+
+        self._load_request("/books/ia:foo00bar", query="m=edit")
+        cls, args = infogami_app.find_mode()
+        assert cls is code.edit
+        assert args == ["/books/ia:foo00bar"]
+
+    def test_ia_edit_suffix_is_a_readable_title_not_an_edit_handler(self, mock_site):
+        """ReadableUrlProcessor treats /books/ia:.../edit as a title slug.
+        The path is rewritten to /books/ia:... (view), so fake records can
+        never reach addbook.book_edit via a /edit suffix."""
+        mock_site.quicksave("/books/ia:foo00bar", "/type/edition", title="Some Title")
+        real_path, _ = get_readable_path(
+            mock_site,
+            "/books/ia:foo00bar/edit",
+            ReadableUrlProcessor.patterns,
+        )
+        assert real_path == "/books/ia:foo00bar"
+        assert not real_path.endswith("/edit")
+
+    def test_dedicated_book_edit_form_has_no_infogami_preview_button(self):
+        with open("openlibrary/templates/books/edit.html") as f:
+            book_edit_src = f.read()
+        with open("openlibrary/macros/EditButtons.html") as f:
+            buttons_src = f.read()
+        assert "_preview" not in book_edit_src
+        assert "_preview" not in buttons_src
+        assert 'name="_save"' in buttons_src
+
+    def test_edit_post_always_delegates_to_core_edit_for_books(self):
+        """OL's edit.POST() only special-cases /people/ spam; books, works,
+        and fake records all fall through to core.edit.POST(). That leftover
+        Infogami endpoint is not what the production edit UI posts to
+        (see dedicated /edit page handlers above)."""
+        with patch.object(code.core.edit, "POST", return_value="core-post") as mock_post:
+            assert code.edit().POST("/books/OL1M") == "core-post"
+            assert code.edit().POST("/works/OL1W") == "core-post"
+            assert code.edit().POST("/books/ia:foo00bar") == "core-post"
+        assert mock_post.call_count == 3
+
+    def test_core_edit_get_renders_editpage_without_preview(self, monkeypatch):
+        page = web.storage(key="/books/ia:foo00bar", type=web.storage(key="/type/edition"))
+        mock_site = Mock()
+        mock_site.can_write = Mock(return_value=True)
+        mock_site.get = Mock(return_value=page)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        monkeypatch.setattr(web, "input", lambda *a, **kw: web.storage(v=None, t=None))
+
+        mock_editpage = Mock(return_value="edit-form")
+        monkeypatch.setattr(code.core.render, "editpage", mock_editpage, raising=False)
+        with patch.object(code.core.db, "get_version", return_value=page):
+            result = code.core.edit().GET("/books/ia:foo00bar")
+
+        mock_editpage.assert_called_once_with(page)
+        assert result == "edit-form"
+
+    def test_core_edit_post_preview_renders_editpage_with_preview_true(self, monkeypatch):
+        page = MagicMock()
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=page)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+
+        posted = web.storage(_preview="Preview")
+        monkeypatch.setattr(web, "input", lambda _method=None, **kw: posted if _method == "post" else web.storage())
+
+        mock_editpage = Mock(return_value="previewed")
+        monkeypatch.setattr(code.core.render, "editpage", mock_editpage, raising=False)
+        with patch.object(code.core.helpers, "unflatten", side_effect=lambda i: i):
+            result = code.core.edit().POST("/books/ia:foo00bar")
+
+        mock_editpage.assert_called_once()
+        assert mock_editpage.call_args[0][0] is page
+        assert mock_editpage.call_args[1].get("preview") is True or mock_editpage.call_args[0][1] is True
+        assert result == "previewed"
+
+    def test_editpage_preview_of_edition_hits_thingview_without_book_page_context(self, monkeypatch, mock_site, render_template, request_context_fixture):
+        """If anyone did reach render.editpage(edition, preview=True), OL's
+        editpage.html calls thingview(page), which cannot render
+        type/edition/view.html on this branch (no book_page_context).
+
+        This is the leftover Infogami wiki-preview path, not the production
+        /books/OL.../edit UI. Templetor saferender() degrades it to
+        'Unable to render this page' rather than a 500.
+        """
+        request_context_fixture(lang="en")
+        edition = mock_site.quicksave("/books/OL5M", "/type/edition", title="Preview Probe Edition")
+        monkeypatch.setattr(delegate, "exception_hooks", [])
+        template.load_templates("vendor/infogami/infogami/core")
+
+        html = str(code.render.editpage(edition, preview=True))
         assert "data-lending-state" not in html
         assert "Unable to render this page" in html
