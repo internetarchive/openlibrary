@@ -427,7 +427,20 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     # and only when the bulk availability lookup above came back as an error.
     ocaid = edition.get("ocaid")
     if edition.get("availability", {}).get("status") == "error" and ocaid:
-        edition["availability"].update(lending.get_cached_groundtruth_availability(ocaid))
+        try:
+            edition["availability"].update(lending.get_cached_groundtruth_availability(ocaid))
+        except Exception:
+            # This call used to run inside LoanStatus.html's template
+            # rendering, where Templetor's saferender() caught any
+            # exception (including a re-raised timeout -- see
+            # get_groundtruth_availability_async()) and degraded to a
+            # generic error page rather than crashing the request. Now
+            # that it runs here, in Python, before any template renders,
+            # nothing upstream of prepare_book_page() catches this -- an
+            # uncaught exception would 500 the whole page instead. Log and
+            # keep the (already "error") bulk availability; get_lending_state()
+            # handles that status sanely (falls through to "locate").
+            logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
 
     lending_state = lending.get_lending_state(
         edition or work,
