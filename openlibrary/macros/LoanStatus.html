@@ -5,10 +5,8 @@ $# * listen - whether to display listen button
 $# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
-$# * lending_state - when the caller has already resolved availability/lending
-$#     (e.g. the /works and /books pages, via prepare_book_page()), pass it in
-$#     here so it isn't recomputed. Callers that don't have it yet leave this
-$#     None and it's computed below.
+$# * lending_state - pass in when already resolved (e.g. /works and /books
+$#     pages, via prepare_book_page()) to avoid recomputing it below
 
 $ loanstatus_start_time = time()
 

@@ -90,22 +90,14 @@ class edit(core.edit):
 
 
 class view(core.view):
-    """Overwrite the generic HTML view mode for /works and /books pages so that
-    lending/availability data (including the ground-truth availability
-    fallback) is prepared in Python, via prepare_book_page(), before the
-    template renders. Every other type, and every other mode/encoding
-    (edit, history, diff, revert, json, yml, rdf, opds, marcxml, ...), is
-    untouched and continues to go through core.view / its own mode class.
+    """Prepare lending/availability in Python for /works and /books HTML views.
+
+    Other types and modes/encodings continue through their existing handlers.
     """
 
     def GET(self, path):
-        # Work/edition keys are always canonically namespaced under /works/
-        # or /books/ (readable-URL slugs are already stripped by
-        # ReadableUrlProcessor before dispatch reaches here). For every
-        # other path, delegate immediately -- without ever calling
-        # get_version() ourselves -- so we don't do a second, redundant
-        # Thing load on top of the one core.view.GET does for every other
-        # Thing type (authors, lists, subjects, the home page, etc.).
+        # Everything else goes through core.view unchanged, without the
+        # redundant get_version() load below.
         if not path.startswith(("/works/", "/books/")):
             return core.view.GET(self, path)
 
@@ -117,18 +109,7 @@ class view(core.view):
         if p is None or p.type.key not in ("/type/work", "/type/edition"):
             return core.view.GET(self, path)
 
-        # Use context.user (already resolved once per request by
-        # infogami's initialize_context() loadhook -- the same value
-        # templates see as ctx.user) instead of calling
-        # web.ctx.site.get_user() again here: that method is not memoized
-        # and makes a real Infobase round-trip every time it's called.
-        #
-        # Reuse `i` (already parsed above) instead of calling web.input()
-        # again: web.input()'s storify() includes every key present in the
-        # actual query string, not just the ones declared as defaults, so
-        # `i` already carries `edition`/`mode`/etc. if they're present.
-        # This also guarantees the `v` validation above and the edition
-        # selection below see exactly the same query params.
+        # context.user avoids a second, non-memoized get_user() round-trip.
         book_page_context = prepare_book_page(p, i, context.user)
         return render.viewpage(p, book_page_context)
 
@@ -324,21 +305,17 @@ class BookPageContext:
 
 
 def prepare_book_page(page, query_params, user=None) -> BookPageContext:
-    """
-    Resolves the work, the selected edition, and the lending state for a
-    /works or /books page.
-
-    This ports the edition-selection and lending-preparation logic that
-    used to live at the top of type/edition/view.html (and type/work/view.html)
-    into Python, and moves the ground-truth availability fallback (an
-    outbound HTTP call) that used to happen inside the LoanStatus macro
-    to run here instead, before rendering, and only for the one edition
-    that ends up selected.
+    """Resolves the work, selected edition, and lending state for a /works
+    or /books page. Ported from type/edition/view.html so that no
+    lending/availability I/O (including the ground-truth fallback) happens
+    from inside a template.
 
     :param page: the Work or Edition already loaded for this request.
     :param query_params: a mapping supporting `.get(name, default)`, e.g. `web.input()`.
     :param user: the logged-in user, if any (only used to gate loan/waitlist checks).
     """
+    import openlibrary.book_providers as bp
+
     show_observations = True
 
     if page.key.startswith("/works"):
@@ -370,8 +347,6 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
             selected_provider, selected_id = query_params.get("edition").split(":")
         else:
             selected_provider, selected_id = "ia", query_params.get("edition")
-        import openlibrary.book_providers as bp
-
         provider = bp.get_book_provider_by_name(selected_provider)
 
     # Fetch a work's editions.
@@ -400,15 +375,10 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
     availabilities = {e.availability.get("identifier"): e.availability for e in editions}
 
-    # This collects which books are previewable in any manner
     previews = [e for e in editions if e.get("ocaid")]
 
-    # Choose an edition to render
+    # No edition selected yet: pick one (matching the requested provider/id, else the default best edition)
     if editions and not edition:
-        # We're presumably on a work url
-        # edition selection strategy (e.g. language, by id, first w/ ocaid)
-        import openlibrary.book_providers as bp
-
         if provider:
             edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
         else:
@@ -420,24 +390,15 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     if not edition.get("availability"):
         edition["availability"] = (edition.get("ocaid") and availabilities.get(edition["ocaid"])) or {}
 
-    # Replace existing, possibly inaccurate, availability with the result of the
-    # ground truth availability API call, but only for the one selected edition,
-    # and only when the bulk availability lookup above came back as an error.
+    # Ground-truth fallback: only for the selected edition, only when bulk availability errored.
     ocaid = edition.get("ocaid")
     if edition.get("availability", {}).get("status") == "error" and ocaid:
         try:
             edition["availability"].update(lending.get_cached_groundtruth_availability(ocaid))
         except Exception:
-            # This call used to run inside LoanStatus.html's template
-            # rendering, where Templetor's saferender() caught any
-            # exception (including a re-raised timeout -- see
-            # get_groundtruth_availability_async()) and degraded to a
-            # generic error page rather than crashing the request. Now
-            # that it runs here, in Python, before any template renders,
-            # nothing upstream of prepare_book_page() catches this -- an
-            # uncaught exception would 500 the whole page instead. Log and
-            # keep the (already "error") bulk availability; get_lending_state()
-            # handles that status sanely (falls through to "locate").
+            # Unlike the old template-side call (caught by Templetor's
+            # saferender()), an uncaught exception here would 500 the whole
+            # page. Keep the bulk ("error") availability instead.
             logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
 
     lending_state = lending.get_lending_state(
