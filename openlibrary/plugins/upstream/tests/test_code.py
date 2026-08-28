@@ -16,13 +16,15 @@ Covers:
 * that overriding modes["view"][None] doesn't shadow edit/history/revert/diff
 """
 
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
 import web
 
-from openlibrary.core import lending
-from openlibrary.plugins.upstream import code
+from infogami.utils import delegate, macro
+from openlibrary.core import db, lending
+from openlibrary.plugins.upstream import code, utils
 
 
 def make_edition(key, ocaid=None, availability=None, **extra):
@@ -516,3 +518,345 @@ class TestViewModeRoutingIsolation:
             code.view().GET("/works/OL1W")
 
         mock_site.get_user.assert_not_called()
+
+
+class TestEditModeFakeRecordRegression:
+    """Regression coverage for a real crash this refactor introduced: before
+    this PR, type/edition/view.html computed everything it needed from
+    `page` and query_param() alone, so any caller could render it with just
+    a page. Now it requires `book_page_context` (see prepare_book_page()
+    above) and does `work = book_page_context.work` unconditionally.
+
+    core.edit.GET()'s own fallback (`db.new_version()`, used when no Thing
+    exists yet for the key) still renders that same template via
+    thingview() -- with no book_page_context. That path is reachable for a
+    /books/ia:foo00bar fake record (Edition.is_fake_record(): these are
+    synthesized on the fly from archive.org metadata, not real Infobase
+    Things, but web.ctx.site.get() still resolves them -- see
+    connection.py), because "ia:foo00bar" doesn't match the "OL<id>" pattern
+    that routes real book/work edits through addbook's own edit UI instead.
+    """
+
+    def test_ia_fake_record_edit_redirects_instead_of_reaching_core_edit(self, monkeypatch):
+        fake_record = web.storage(key="/books/ia:foo00bar", type=web.storage(key="/type/edition"))
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=fake_record)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        monkeypatch.setattr(code.web, "seeother", lambda url: f"seeother:{url}")
+
+        with patch.object(code.core.edit, "GET") as mock_core_get:
+            result = code.edit().GET("/books/ia:foo00bar")
+
+        # Must never reach core.edit.GET()'s db.new_version() fallback --
+        # that's what used to call thingview() -> type/edition/view.html
+        # with book_page_context=None and crash with AttributeError.
+        mock_core_get.assert_not_called()
+        assert result == "seeother:/books/ia:foo00bar"
+
+    def test_nonexistent_books_path_still_takes_pre_existing_none_branch(self, monkeypatch):
+        """Sanity check: a real (but not-yet-created) /books/OL...M key
+        matches editable_keys_re and must still take the pre-existing
+        `page is None` branch above the new fake-record branch, unchanged."""
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=None)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        monkeypatch.setattr(code.web, "seeother", lambda url: f"seeother:{url}")
+
+        with patch.object(code.core.edit, "GET") as mock_core_get:
+            result = code.edit().GET("/books/OL999999M")
+
+        mock_core_get.assert_not_called()
+        assert result == "seeother:/books/OL999999M"
+
+    def test_real_edition_key_still_uses_addbook_edit_flow(self, monkeypatch):
+        """Sanity check: a real, existing /books/OL...M key is unaffected --
+        still redirected to addbook's own edit UI, not the new branch."""
+        real_edition = Mock()
+        real_edition.url = Mock(return_value="/books/OL1M/edit")
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=real_edition)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+
+        with patch.object(code.addbook, "safe_seeother", return_value="redirected") as mock_redirect:
+            result = code.edit().GET("/books/OL1M")
+
+        mock_redirect.assert_called_once_with("/books/OL1M/edit")
+        assert result == "redirected"
+
+    def test_non_book_work_path_untouched(self, monkeypatch):
+        """Sanity check: the new branch is scoped to /books/ and /works/ --
+        an unrelated path (e.g. a plain wiki page) still falls through to
+        core.edit.GET(), exactly as before this change."""
+        mock_site = Mock()
+        mock_site.get = Mock(return_value=None)
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+
+        with patch.object(code.core.edit, "GET", return_value="core-edit-response") as mock_core_get:
+            result = code.edit().GET("/some/wiki/page")
+
+        mock_core_get.assert_called_once()
+        assert result == "core-edit-response"
+
+
+class TestIntegratedBookPageRendering:
+    """Section G: a real, end-to-end render of the /works and /books HTML
+    view -- view.GET() -> prepare_book_page() -> render.viewpage() ->
+    viewpage.html -> type/edition/view.html (also type/work/view.html,
+    which is a symlink to it) -> databarWork -> LoanStatus -> final HTML --
+    with Templetor actually rendering every template in that chain. Nothing
+    across the Python -> Templetor boundary is mocked: render.viewpage is
+    not stubbed anywhere in this class, unlike the routing-isolation tests
+    above.
+
+    Only genuinely external dependencies are stubbed: bulk availability
+    (lending.get_availability, which get_sorted_editions() would otherwise
+    call) and the ground-truth availability API
+    (lending.get_cached_groundtruth_availability) -- both real outbound
+    HTTP calls in production, blocked in this test environment anyway by
+    the autouse `no_requests` fixture (openlibrary/conftest.py).
+    """
+
+    def _load_fake_request(self, path, site, monkeypatch):
+        """Load a real (fake-environ) web.py request so web.ctx.path,
+        web.ctx.home, and web.input() all work exactly as they would for a
+        real GET with no query string -- no monkeypatching of web.input
+        needed. app.load() replaces web.ctx wholesale, so web.ctx.site
+        (set by the mock_site fixture) must be restored afterwards."""
+        # The render_template fixture's own setup (code.setup_template_globals(),
+        # which imports openlibrary.plugins.openlibrary.code) ends up
+        # re-registering /type/work -> the *base* openlibrary.core.models.Work
+        # class, clobbering the mock_site fixture's own registration of
+        # openlibrary.plugins.upstream.models.Work (the subclass that
+        # actually defines get_sorted_editions() and everything else
+        # prepare_book_page() needs). Re-register the real ones.
+        from openlibrary.plugins.upstream import models as upstream_models
+
+        upstream_models.setup()
+
+        app = web.application()
+        app.load({"PATH_INFO": path, "REQUEST_METHOD": "GET", "HTTP_HOST": "openlibrary.org"})
+        web.ctx.site = site
+        # app.load() replaces web.ctx wholesale, wiping out web.ctx.lang
+        # too (set by the render_template fixture); helpers.datestr() (used
+        # by databarView.html's "Last edited by ..." line) needs it.
+        web.ctx.lang = "en"
+
+        # get_book_provider(...).render_download_options() (called from
+        # databarWork.html whenever editions_page=True, which
+        # type/edition/view.html always passes) hits archive.org over
+        # httpx for file-listing metadata -- a real, live outbound call the
+        # `no_requests` autouse fixture (openlibrary/conftest.py) does NOT
+        # block, since it only patches `requests`, not `httpx`. Stub it at
+        # its root, the same external-dependency boundary as
+        # lending.get_availability/get_cached_groundtruth_availability.
+        monkeypatch.setattr("openlibrary.core.ia.get_api_response", lambda *a, **kw: {})
+
+        # get_identifier_config("edition") (used by the "Edition
+        # Identifiers" section) reads a real /config/edition Thing that
+        # only exists in a fully-seeded production/dev site, not a bare
+        # mock_site. Its result is cached process-wide
+        # (@functools.cache), so seeding it once is enough for the whole
+        # test run.
+        if site.get("/config/edition") is None:
+            site.quicksave("/config/edition", "/type/object", classifications=[], roles=[])
+
+        # `ctx` in templates is infogami's own request-scoped InfogamiContext
+        # (a *separate* ThreadedDict from web.ctx), normally populated once
+        # per real request by the initialize_context() loadhook. Nothing in
+        # this fake request goes through that hook, so call it directly --
+        # matching the precedent in openlibrary/admin/utils.py -- with
+        # create_site() stood in for by the mock site, so it doesn't
+        # overwrite web.ctx.site with a real one.
+        monkeypatch.setattr(delegate, "create_site", lambda: site)
+        delegate.initialize_context()
+
+        # The render_template fixture loads templates but not macros (see
+        # openlibrary/tests/test_link_track_attribute_escaping.py), so
+        # `macros.X` (used throughout type/edition/view.html, databarWork,
+        # LoanStatus, ...) is unresolvable without this. `request` is a
+        # separate template global (the same utils.Request() instance
+        # utils.setup() normally registers -- see request.canonical_url).
+        macro.load_macros("openlibrary", lazy=True)
+        web.template.Template.globals["request"] = utils.Request()
+
+        # The full page also renders unrelated stats sections (star
+        # ratings, "want to read" counts, review/observation counts, ...)
+        # that are backed by Postgres, not Infobase/mock_site -- genuinely
+        # out of scope for testing lending/availability. Stub the DB layer
+        # so those sections degrade to "no data" (their real behavior for a
+        # book with no rows yet), exactly like
+        # get_availability/get_cached_groundtruth_availability stand in for
+        # the network calls this test isn't about either. Most of these are
+        # single-row COUNT(*)/AVG(...) aggregate queries that index the
+        # first (only) row directly (e.g. oldb.query(...)[0]["count"]) --
+        # a zero-valued row for any column asked of it matches what those
+        # aggregates actually return over zero matching rows.
+        class _ZeroRow(dict):
+            def __missing__(self, key):
+                return 0
+
+        fake_db = Mock()
+        fake_db.query = Mock(return_value=[_ZeroRow()])
+        fake_db.select = Mock(return_value=[_ZeroRow()])
+        monkeypatch.setattr(db, "get_db", lambda: fake_db)
+
+        # databarView.html (a *different* section of the page from
+        # databarWork/LoanStatus -- the edit-history/"last edited" info)
+        # calls Thing.get_most_recent_change(), which unconditionally
+        # indexes the first entry of the version history with no existence
+        # check. MockSite.versions() is a hard-coded stub that always
+        # returns [] (see openlibrary/mocks/mock_infobase.py) -- a mock
+        # infrastructure gap, not something a real page (which always has
+        # at least one version) would ever hit. Give it one, so this
+        # unrelated section renders instead of crashing the whole page.
+        def fake_versions(q):
+            return [web.storage(key=q.get("key"), revision=1, author=None, created=datetime.now())]
+
+        monkeypatch.setattr(site, "versions", fake_versions)
+
+    def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
+        """bulk availability -> status=error; ground-truth fallback ->
+        status=open; prepare_book_page() applies the fallback before
+        get_lending_state() runs; the real Templetor render must show
+        data-lending-state="open" and an open-access CTA, ground-truth
+        called exactly once (before the lending-state decision, never again
+        during render), and get_lending_state() computed exactly once
+        (LoanStatus must not recompute it)."""
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/works/OL1W", "/type/work", title="Integration Test Work", edition_count=1)
+        mock_site.quicksave(
+            "/books/OL1M",
+            "/type/edition",
+            title="Integration Test Edition",
+            works=[{"key": "/works/OL1W"}],
+            ocaid="integrationtest001",
+        )
+        # Bulk availability (get_sorted_editions() -> lending.get_availability)
+        # comes back empty here -- get_sorted_editions() then falls back to
+        # {"status": "error"} per edition, which is the scenario this test
+        # targets.
+        monkeypatch.setattr(lending, "get_availability", lambda *a, **kw: {})
+
+        groundtruth_calls = []
+
+        def fake_groundtruth(ocaid):
+            groundtruth_calls.append(ocaid)
+            return {"status": "open", "identifier": ocaid, "is_readable": True}
+
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", fake_groundtruth)
+
+        lending_state_calls = []
+        real_get_lending_state = lending.get_lending_state
+
+        def spy_get_lending_state(*a, **kw):
+            lending_state_calls.append((a, kw))
+            return real_get_lending_state(*a, **kw)
+
+        monkeypatch.setattr(lending, "get_lending_state", spy_get_lending_state)
+
+        self._load_fake_request("/works/OL1W", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        html = str(code.view().GET("/works/OL1W"))
+
+        # Ground truth: called exactly once, for the selected edition's
+        # ocaid, and it ran before the lending-state decision (prepare_book_page()
+        # applies the fallback to edition["availability"] before calling
+        # get_lending_state() -- see openlibrary/plugins/upstream/code.py).
+        assert groundtruth_calls == ["integrationtest001"]
+
+        # get_lending_state() ran exactly once (in prepare_book_page()).
+        # LoanStatus.html receives lending_state already resolved and must
+        # not recompute it -- if it did, this would be 2.
+        assert len(lending_state_calls) == 1
+
+        # The prepared lending_state reached the real template render and
+        # was not recomputed/overridden differently anywhere downstream.
+        assert 'data-lending-state="open"' in html
+
+        # An "open" lending_state renders macros.ReadButton (not a
+        # NotInLibrary/LocateButton or waitlist form) -- a coherent CTA for
+        # the "open" state, not text specific to any other state.
+        assert "waitinglist-form" not in html
+        assert "LocateButton" not in html
+
+    def test_edition_page_renders_via_real_templates(self, monkeypatch, mock_site, render_template, request_context_fixture):
+        """The /books/OL...M direct-edition-page path, with an ordinary
+        `status=open` bulk availability result (no ground-truth fallback
+        needed) -- a second, representative real-template render, this time
+        through the /books/ URL rather than /works/."""
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/works/OL2W", "/type/work", title="Second Integration Work", edition_count=1)
+        mock_site.quicksave(
+            "/books/OL2M",
+            "/type/edition",
+            title="Second Integration Edition",
+            works=[{"key": "/works/OL2W"}],
+            ocaid="integrationtest002",
+        )
+
+        monkeypatch.setattr(
+            lending,
+            "get_availability",
+            lambda kind, ids: {i: {"status": "open", "identifier": i, "is_readable": True} for i in ids},
+        )
+
+        groundtruth_calls = []
+        monkeypatch.setattr(
+            lending,
+            "get_cached_groundtruth_availability",
+            lambda ocaid: groundtruth_calls.append(ocaid) or {},
+        )
+
+        self._load_fake_request("/books/OL2M", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        html = str(code.view().GET("/books/OL2M"))
+
+        # Bulk availability already said "open" -- the ground-truth fallback
+        # must not run at all (it's only for a bulk status == "error").
+        assert groundtruth_calls == []
+        assert 'data-lending-state="open"' in html
+
+    def test_signature_mismatch_would_surface_as_a_real_render_error(self, monkeypatch, mock_site, render_template, request_context_fixture):
+        """Negative control for this whole class: if the Python -> Templetor
+        argument passing (view.GET() -> render.viewpage(p, book_page_context)
+        -> viewpage.html -> render_template("type/edition/view", page, None,
+        book_page_context)) were broken -- wrong argument count/order, or a
+        template signature that no longer matches -- rendering must fail
+        loudly, not silently produce a page missing the lending-state
+        markup. This proves the positive tests above are actually exercising
+        real Templetor argument binding, not swallowing errors."""
+        request_context_fixture(lang="en")
+        mock_site.quicksave("/works/OL3W", "/type/work", title="Third Integration Work", edition_count=1)
+        edition = mock_site.quicksave(
+            "/books/OL3M",
+            "/type/edition",
+            title="Third Integration Edition",
+            works=[{"key": "/works/OL3W"}],
+            ocaid="integrationtest003",
+        )
+        monkeypatch.setattr(lending, "get_availability", lambda *a, **kw: {})
+        monkeypatch.setattr(lending, "get_cached_groundtruth_availability", lambda ocaid: {"status": "open", "identifier": ocaid})
+        self._load_fake_request("/works/OL3W", mock_site, monkeypatch)
+        monkeypatch.setattr(code.context, "user", None, raising=False)
+
+        # Sanity check first: the real signature renders fine.
+        assert 'data-lending-state="open"' in str(code.view().GET("/works/OL3W"))
+
+        # Now break the same call the way the bug class described in
+        # TestEditModeFakeRecordRegression does: render type/edition/view
+        # directly with no book_page_context at all, the way thingview()
+        # does for any caller that doesn't go through prepare_book_page().
+        # Every render.X path (including render_template()) goes through
+        # Render.__getitem__, which always wraps templates in saferender()
+        # -- it catches the AttributeError and returns a generic error page
+        # rather than raising, so this can't assert pytest.raises(). Its
+        # exception-logging hook (delegate.save_error(), which renders an
+        # HTML debug dump of the traceback) is unrelated infrastructure
+        # this test doesn't want to depend on -- neutralize it so the only
+        # thing under test is saferender's own catch-and-fallback behavior.
+        monkeypatch.setattr(delegate, "exception_hooks", [])
+        html = str(code.render.viewpage(edition))
+        assert "data-lending-state" not in html
+        assert "Unable to render this page" in html
