@@ -28,5 +28,5 @@ export { OpenLibraryOTP } from './OpenLibraryOTP.js';
 export { OlCarousel } from './OlCarousel.js';
 export { OlScorecard } from './OlScorecard.js';
 export { OlBookCover } from './OlBookCover.js';
-export { OlBookActions } from './OlBookActions.js';
+export { OlShelfActions } from './OlShelfActions.js';
 export { OlShelfButton } from './OlShelfButton.js';

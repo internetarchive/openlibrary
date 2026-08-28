@@ -69,7 +69,7 @@ const PANES = ['main', 'lists', 'checkIn'];
  * instead of rendering this. State is optimistic: the UI updates first and
  * an error toast rolls back.
  *
- * @element ol-book-actions
+ * @element ol-shelf-actions
  *
  * @prop {Object} book     - `{ key, title, firstPublishYear?, editionKey? }`
  * @prop {Number} shelf    - Current shelf id (1–4) or null
@@ -94,7 +94,7 @@ const PANES = ['main', 'lists', 'checkIn'];
  *
  * @slot trigger - The button that opens the popover.
  */
-export class OlBookActions extends LitElement {
+export class OlShelfActions extends LitElement {
     static properties = {
         book: { type: Object },
         shelf: { type: Number },
@@ -1306,4 +1306,4 @@ export class OlBookActions extends LitElement {
     }
 }
 
-customElements.define('ol-book-actions', OlBookActions);
+customElements.define('ol-shelf-actions', OlShelfActions);

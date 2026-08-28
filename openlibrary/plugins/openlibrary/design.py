@@ -271,12 +271,12 @@ COMPONENTS = (
         tag="ol-shelf-button",
     ),
     Component(
-        "book-actions",
-        "Book Actions",
+        "shelf-actions",
+        "Shelf Actions",
         "Per-book shelf, rating and add-to-list actions in a popover.",
-        "design/components/book-actions.html.jinja",
+        "design/components/shelf-actions.html.jinja",
         group="Books",
-        tag="ol-book-actions",
+        tag="ol-shelf-actions",
     ),
 )
 

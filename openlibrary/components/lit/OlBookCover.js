@@ -119,7 +119,7 @@ export class OlBookCover extends LitElement {
         }
 
         /* The corner is the cover's to own. Whatever is slotted in goes static
-           inside it — a wrapper like <ol-book-actions> takes the corner and its
+           inside it — a wrapper like <ol-shelf-actions> takes the corner and its
            own trigger sits inside that. */
         slot[name="overlay"]::slotted(*) {
             position: absolute;

@@ -4,7 +4,7 @@
        to the reader's actual reading log, so they open on what's there. #}
     {% set garden = reading_state.get('OL69612W') or {} %}
     <p class="ds-lead">
-        The control that puts a book on a reading-log shelf, in the two shapes the site needs. Both open the same <a href="#book-actions">Book Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, either shape sends the visitor to log in with the intent remembered.
+        The control that puts a book on a reading-log shelf, in the two shapes the site needs. Both open the same <a href="#shelf-actions">Shelf Actions</a> popover; the split variant adds a main half that toggles Want to Read without opening anything. Signed out, either shape sends the visitor to log in with the intent remembered.
     </p>
     {% call ex.example("Split", "For a row, where there is width for a label. The main half toggles the shown shelf; the chevron opens the popover. Signed in, this demo opens on your real state for The Secret Garden and saves every change to your account.",
         code="<ol-shelf-button\n  user-key=\"/people/you\"\n  work-key=\"/works/OL69612W\"\n  book-title=\"The Secret Garden\">\n</ol-shelf-button>",

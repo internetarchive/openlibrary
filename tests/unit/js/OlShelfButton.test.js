@@ -90,7 +90,7 @@ describe('ol-shelf-button shapes', () => {
 describe('ol-shelf-button popover', () => {
     test('signed in, the trigger is wrapped in the actions popover with the book\'s state', async() => {
         const el = await mount({ shelf: SHELF.ALREADY_READ, rating: 4, userKey: '/people/tester' });
-        const actions = q(el, 'ol-book-actions');
+        const actions = q(el, 'ol-shelf-actions');
         expect(actions).not.toBeNull();
         expect(actions.shelf).toBe(SHELF.ALREADY_READ);
         expect(actions.rating).toBe(4);
@@ -100,7 +100,7 @@ describe('ol-shelf-button popover', () => {
 
     test('signed out, no popover is built at all', async() => {
         const el = await mount();
-        expect(q(el, 'ol-book-actions')).toBeNull();
+        expect(q(el, 'ol-shelf-actions')).toBeNull();
         expect(q(el, '.more')).not.toBeNull();
     });
 });
@@ -232,15 +232,15 @@ describe('ol-shelf-button signed out', () => {
 });
 
 describe('ol-shelf-button pass-through to the popover', () => {
-    test('hands hide-rating to ol-book-actions', async() => {
+    test('hands hide-rating to ol-shelf-actions', async() => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', hideRating: true });
-        expect(q(el, 'ol-book-actions').hideRating).toBe(true);
+        expect(q(el, 'ol-shelf-actions').hideRating).toBe(true);
     });
 
     test('it defaults to off', async() => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
-        expect(q(el, 'ol-book-actions').hideRating).toBe(false);
+        expect(q(el, 'ol-shelf-actions').hideRating).toBe(false);
     });
 });

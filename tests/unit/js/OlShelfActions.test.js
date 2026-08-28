@@ -1,9 +1,9 @@
 /**
- * Unit tests for <ol-book-actions>: shelf/rating requests and their optimistic
+ * Unit tests for <ol-shelf-actions>: shelf/rating requests and their optimistic
  * updates, the state-change event, and the add-to-list pane (load, filter,
  * toggle, create). Network is stubbed at `fetch`.
  */
-import { OlBookActions } from '../../../openlibrary/components/lit/OlBookActions.js';
+import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
 import { fmt } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
@@ -52,7 +52,7 @@ async function tick(el) {
 }
 
 async function mount(props = {}) {
-    const el = new OlBookActions();
+    const el = new OlShelfActions();
     el.book = BOOK;
     el.userKey = '/people/tester';
     Object.assign(el, props);
@@ -77,7 +77,7 @@ describe('fmt', () => {
     });
 });
 
-describe('ol-book-actions shelves', () => {
+describe('ol-shelf-actions shelves', () => {
     test('renders header and four shelf rows with the current one checked', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING });
@@ -122,7 +122,7 @@ describe('ol-book-actions shelves', () => {
     });
 });
 
-describe('ol-book-actions rating', () => {
+describe('ol-shelf-actions rating', () => {
     test('rating posts and moves the book to Already Read', async() => {
         stubFetch();
         const el = await mount();
@@ -145,7 +145,7 @@ describe('ol-book-actions rating', () => {
     });
 });
 
-describe('ol-book-actions lists pane', () => {
+describe('ol-shelf-actions lists pane', () => {
     test('opening the popover prefetches lists so the count shows straight away', async() => {
         stubFetch();
         const el = await mount();
@@ -249,7 +249,7 @@ describe('ol-book-actions lists pane', () => {
     });
 });
 
-describe('ol-book-actions shared lists', () => {
+describe('ol-shelf-actions shared lists', () => {
     async function createList(el, name) {
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -291,7 +291,7 @@ describe('ol-book-actions shared lists', () => {
 
 });
 
-describe('ol-book-actions hide-rating', () => {
+describe('ol-shelf-actions hide-rating', () => {
     test('drops the stars but keeps shelves and lists', async() => {
         stubFetch();
         const el = await mount({ hideRating: true });
@@ -307,7 +307,7 @@ describe('ol-book-actions hide-rating', () => {
     });
 });
 
-describe('ol-book-actions rejected writes', () => {
+describe('ol-shelf-actions rejected writes', () => {
     // bookshelves.json answers a rejected write with 200 and an `error` key,
     // so a status-only check would let the optimistic update stand.
     test('a 200 carrying `error` rolls the shelf back', async() => {
@@ -376,7 +376,7 @@ describe('quickYears', () => {
     });
 });
 
-describe('ol-book-actions check-in pane', () => {
+describe('ol-shelf-actions check-in pane', () => {
     test('marking a book read slides the date question in', async() => {
         stubFetch();
         const el = await mount();

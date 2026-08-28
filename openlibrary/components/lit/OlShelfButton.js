@@ -5,8 +5,8 @@ import { translate } from './utils/labels.js';
 import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
-import { DEFAULT_LABELS as ACTION_LABELS } from './OlBookActions.js';
-import './OlBookActions.js';
+import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
+import './OlShelfActions.js';
 import './OlIcon.js';
 
 export const DEFAULT_LABELS = {
@@ -21,7 +21,7 @@ export const DEFAULT_LABELS = {
  * site needs: a bordered split button for a row (`split`), and a round bookmark
  * that floats over cover art (`icon`).
  *
- * Both open the same `<ol-book-actions>` popover; the split variant adds a main
+ * Both open the same `<ol-shelf-actions>` popover; the split variant adds a main
  * half that toggles between Want to Read and off without opening anything.
  * Signed out, either shape sends the visitor to log in with the intent
  * remembered.
@@ -156,7 +156,7 @@ export class OlShelfButton extends LitElement {
             color: var(--color-link);
         }
 
-        .split > ol-book-actions {
+        .split > ol-shelf-actions {
             display: flex;
         }
 
@@ -289,7 +289,7 @@ export class OlShelfButton extends LitElement {
     _withActions(trigger) {
         if (!this.userKey) return trigger;
         return html`
-            <ol-book-actions
+            <ol-shelf-actions
                 .book=${{ key: this.workKey, title: this.bookTitle, editionKey: this.editionKey }}
                 .shelf=${this.shelf}
                 .rating=${this.rating}
@@ -299,7 +299,7 @@ export class OlShelfButton extends LitElement {
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 ?hide-rating=${this.hideRating}
-            >${trigger}</ol-book-actions>
+            >${trigger}</ol-shelf-actions>
         `;
     }
 
