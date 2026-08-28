@@ -30,7 +30,7 @@
             <b>Shelf ids.</b> 1 Want to Read, 2 Currently Reading, 3 Already Read, 4 Stopped Reading — the same ids as <code>Bookshelves.PRESET_BOOKSHELVES</code> and the <code>bookshelf_id</code> the endpoint takes. From JS, import <code>SHELF</code> from <code>lit/utils/books-api.js</code> instead of writing the number.
         </p>
         <p>
-            <b>Requests.</b> Shelves post to <code>/works/OL…W/bookshelves.json</code>, ratings to <code>/works/OL…W/ratings.json</code>, check-ins to <code>/works/OL…W/check-ins</code>, lists through <code>/partials/MyBooksDropperLists.json</code> (read) and the lists/seeds endpoints (write). A 401 on any of them redirects to login.
+            <b>Requests.</b> Shelves post to <code>/works/OL…W/bookshelves.json</code>, ratings to <code>/works/OL…W/ratings.json</code>, check-ins to <code>/works/OL…W/check-ins</code> and <code>DELETE /check-ins/…</code>, lists through <code>/partials/MyBooksDropperLists.json</code> (read) and the lists/seeds endpoints (write). A 401 on any of them redirects to login.
         </p>
     </div>
 {% endmacro %}

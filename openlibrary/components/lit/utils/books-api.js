@@ -38,13 +38,19 @@ export function olid(key) {
     return key.split('/').pop();
 }
 
-async function request(url, init) {
+/** The shared half: fetch and reject non-2xx with a `.status`-carrying Error. */
+async function send(url, init) {
     const response = await fetch(url, { credentials: 'same-origin', ...init });
     if (!response.ok) {
         const error = new Error(`${init?.method || 'GET'} ${url} → ${response.status}`);
         error.status = response.status;
         throw error;
     }
+    return response;
+}
+
+async function request(url, init) {
+    const response = await send(url, init);
     const data = await response.json();
     // `bookshelves.json` answers a rejected write with 200 and an `error` key,
     // so checking the status alone would let a failed write look like a save.
@@ -103,6 +109,15 @@ export function setCheckIn(workKey, { year, month = null, day = null, editionKey
         edition_key: editionKey || null,
         event_id: eventId || null,
     }));
+}
+
+/**
+ * DELETE /check-ins/:id — drops a recorded date, leaving the book on its shelf.
+ * Answers 200 with an empty body, so it goes through `send` rather than
+ * `request`. The reader's own events only; the server 403s on anyone else's.
+ */
+export async function deleteCheckIn(eventId) {
+    await send(`/check-ins/${eventId}`, { method: 'DELETE' });
 }
 
 /**

@@ -111,6 +111,17 @@ describe('ol-shelf-actions shelves', () => {
         expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json').init.body.get('bookshelf_id')).toBe('1');
     });
 
+    // Clicking the shelf you are on is the way off it, so the link would be a
+    // second way of doing the same thing — except on Already Read, whose row
+    // goes to the date pane instead.
+    test('only Already Read offers a Remove from shelf link', async() => {
+        stubFetch();
+        for (const shelf of [null, SHELF.WANT_TO_READ, SHELF.CURRENTLY_READING, SHELF.STOPPED_READING]) {
+            expect(q(await mount({ shelf }), '.clear-shelf')).toBeNull();
+        }
+        expect(q(await mount({ shelf: SHELF.ALREADY_READ }), '.clear-shelf')).not.toBeNull();
+    });
+
     test('rolls back and toasts on failure', async() => {
         stubFetch({ failWith: 500 });
         const el = await mount();
@@ -360,6 +371,7 @@ const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
 const paneRows = el => [...checkInPane(el).querySelectorAll('.row')];
 const yearRows = el => [...checkInPane(el).querySelectorAll('.row.year')];
 const otherDateRow = el => checkInPane(el).querySelector('.row.date-toggle');
+const clearDateLink = el => checkInPane(el).querySelector('.clear-date');
 
 describe('quickYears', () => {
     test('one year once the new year has bedded in', () => {
@@ -437,6 +449,18 @@ describe('ol-shelf-actions check-in pane', () => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2026-08' });
         expect(qa(el, '.group.shelves .row')[2].querySelector('.count').textContent).toBe('Aug 2026');
+    });
+
+    // The server keeps check-ins through a shelf move (only coming off the
+    // shelves deletes them), so the date outlives the shelf it was given on.
+    test('but not once the book has moved to another shelf', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.CURRENTLY_READING, readDate: '2026' });
+        const row = qa(el, '.group.shelves .row')[2];
+        expect(row.querySelector('.count')).toBeNull();
+        // Still a way through to the date, which the popover has not forgotten.
+        expect(row.querySelector('.trail').getAttribute('name')).toBe('chevron-right');
+        expect(el.readDate).toBe('2026');
     });
 
     test('amending a date edits the same check-in rather than adding one', async() => {
@@ -639,11 +663,55 @@ describe('ol-shelf-actions check-in pane', () => {
         expect([body.year, body.month, body.day]).toEqual([2024, 6, null]);
     });
 
+    // Every other row on the pane replaces one date with another, so deleting
+    // the event is the only way back to an unanswered question.
+    describe('removing the date', () => {
+        const openPane = async(props = {}) => {
+            const el = await mount({ shelf: SHELF.ALREADY_READ, ...props });
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            return el;
+        };
+
+        test('is offered only once a date is recorded', async() => {
+            stubFetch();
+            expect(clearDateLink(await openPane())).toBeNull();
+            expect(clearDateLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
+        });
+
+        test('deletes the event and unanswers the pane', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            const events = [];
+            el.addEventListener('ol-book-check-in', e => events.push(e.detail));
+            clearDateLink(el).click();
+            await tick(el);
+
+            expect(calls.filter(c => c.url === '/check-ins/12' && c.init.method === 'DELETE')).toHaveLength(1);
+            expect(el.readDate).toBeNull();
+            expect(el.eventId).toBeNull();
+            expect(events).toEqual([{ key: '/works/OL1W', date: null, eventId: null }]);
+            // The book stays on the shelf; only the date went.
+            expect(el.shelf).toBe(SHELF.ALREADY_READ);
+            expect(el._pane).toBe('main');
+        });
+
+        test('a failed removal keeps the date', async() => {
+            stubFetch({ failWith: 500 });
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            clearDateLink(el).click();
+            await tick(el);
+            expect(el.readDate).toBe('2025');
+            expect(el.eventId).toBe(12);
+        });
+    });
+
     test('removing the book from its shelf drops the date the server deleted with it', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
-        // The trash row: for Already Read, clicking the shelf row amends the date.
-        qa(el, '.group.shelves .row')[4].click();
+        // The Remove-from-shelf link: for Already Read, clicking the shelf row
+        // amends the date instead.
+        q(el, '.clear-shelf').click();
         await tick(el);
         expect(el.shelf).toBeNull();
         expect(el.readDate).toBeNull();
@@ -661,7 +729,7 @@ describe('ol-shelf-actions check-in pane', () => {
     test('a failed removal puts the date back', async() => {
         stubFetch({ failWith: 500 });
         const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
-        qa(el, '.group.shelves .row')[4].click();
+        q(el, '.clear-shelf').click();
         await tick(el);
         expect(el.shelf).toBe(SHELF.ALREADY_READ);
         expect(el.readDate).toBe('2025');

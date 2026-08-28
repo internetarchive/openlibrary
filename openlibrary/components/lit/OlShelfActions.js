@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './OlToastRegion.js';
@@ -43,6 +43,7 @@ export const DEFAULT_LABELS = {
     month: 'Month',
     day: 'Day',
     saveDate: 'Save',
+    clearDate: 'Clear date',
 };
 
 const SHELF_ICON = {
@@ -84,10 +85,10 @@ const PANES = ['main', 'lists', 'checkIn'];
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
- * @fires ol-book-check-in - After a finish date is accepted by the server. The
+ * @fires ol-book-check-in - After a finish date is saved or removed. The
  *     component keeps its own copy (`readDate`/`eventId`); the event is for the
  *     surface to persist it across renders. detail: { key, date, eventId } —
- *     `date` is whole or partial, as stored.
+ *     `date` is whole or partial, as stored, and both are null on a removal.
  * @fires ol-list-created - After the inline form creates a list. Sibling
  *     popovers share the lists store and need no event; this is for surfaces
  *     outside the components. detail: { key, name, seedKey }
@@ -305,14 +306,17 @@ export class OlShelfActions extends LitElement {
             transform: scale(0.97);
         }
 
-        /* Except the shelf rows: clicking one re-renders it — label weight and
-           colour change, a check mark appears — and re-laying out mid-scale
-           reads as a flicker. They keep the press fill, not the squeeze. */
-        .group.shelves .row {
+        /* Except the shelf and date rows: clicking one re-renders it — label
+           weight and colour change, a check mark appears — and re-laying out
+           mid-scale reads as a flicker. They keep the press fill, not the
+           squeeze. */
+        .group.shelves .row,
+        .group.dates .row {
             transition: none;
         }
 
-        .group.shelves .row:active {
+        .group.shelves .row:active,
+        .group.dates .row:active {
             transform: none;
         }
 
@@ -321,12 +325,16 @@ export class OlShelfActions extends LitElement {
             outline-offset: -2px;
         }
 
-        .row[aria-checked="true"] {
+        /* The shelf a book is on, and the date it was finished on, are the same
+           kind of answer — both mark their row the same way. */
+        .row[aria-checked="true"],
+        .row[aria-current="true"] {
             color: var(--color-link);
             font-weight: 600;
         }
 
-        .row[aria-checked="true"] .obd-icon {
+        .row[aria-checked="true"] .obd-icon,
+        .row[aria-current="true"] .obd-icon {
             color: var(--color-link);
         }
 
@@ -398,8 +406,10 @@ export class OlShelfActions extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        .stars .clear {
-            padding: 0;
+        /* Taking back an answer, shared by Clear rating and Clear date: a quiet
+           text link, so it never competes with the rows that give one. Padding
+           comes from .caption, which the stars row zeroes out. */
+        .clear {
             border: 0;
             background: none;
             color: var(--color-text-secondary);
@@ -408,14 +418,21 @@ export class OlShelfActions extends LitElement {
             cursor: pointer;
         }
 
-        .stars .clear:hover {
+        .clear:hover {
             color: var(--color-text);
             text-decoration: underline;
         }
 
-        .stars .clear:focus-visible {
+        .clear:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             border-radius: var(--border-radius-sm);
+        }
+
+        /* The two that stand at the foot of a group rather than beside the
+           control they undo: hug the text instead of stretching the column.
+           Clear rating is nested in .stars, so it keeps that row's centring. */
+        .group > .clear {
+            align-self: flex-start;
         }
 
         /* Check-in pane */
@@ -747,11 +764,11 @@ export class OlShelfActions extends LitElement {
                         ${this._renderShelfTrail(row)}
                     </button>
                 `)}
-                ${this.shelf ? html`
-                    <button type="button" class="row" ?disabled=${this._busy} @click=${this._removeFromShelf}>
-                        <ol-icon class="obd-icon" name="trash"></ol-icon>
-                        <span class="label">${this.t('removeFromShelf')}</span>
-                    </button>
+                <!-- Only Already Read: on the other shelves, clicking the row
+                     you are on takes the book off it, but this one's row leads
+                     to the date pane, leaving no other way out. -->
+                ${this.shelf === SHELF.ALREADY_READ ? html`
+                    <button type="button" class="caption clear clear-shelf" ?disabled=${this._busy} @click=${this._removeFromShelf}>${this.t('removeFromShelf')}</button>
                 ` : nothing}
             </div>
             ${this.hideRating ? nothing : html`
@@ -771,14 +788,20 @@ export class OlShelfActions extends LitElement {
     }
 
     /**
-     * The end of a shelf row. Already Read carries the date it holds and a
-     * chevron, because it leads to the date pane; the others only mark the
-     * shelf the book is on.
+     * The end of a shelf row. Already Read carries a chevron, because it leads
+     * to the date pane; the others only mark the shelf the book is on.
+     *
+     * The date rides along only while the book is actually on that shelf. A
+     * move keeps the check-in — only coming off the shelves entirely deletes it
+     * — so a book moved to, say, Currently Reading still has a finish date, and
+     * showing it against a shelf the book has left reads as the wrong state.
+     * The date pane still opens on it, which is where it belongs.
      */
     _renderShelfTrail(row) {
         if (row.id === SHELF.ALREADY_READ) {
+            const onShelf = this.shelf === SHELF.ALREADY_READ;
             return html`
-                ${this.readDate ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
+                ${this.readDate && onShelf ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
                 <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
             `;
         }
@@ -847,7 +870,7 @@ export class OlShelfActions extends LitElement {
                 </button>
             </div>
             <div class="caption">${this.t('whenFinished')}</div>
-            <div class="group" role="group">
+            <div class="group dates" role="group">
                 <button
                     type="button"
                     class="row"
@@ -886,8 +909,11 @@ export class OlShelfActions extends LitElement {
                     ${answered === 'other' ? html`<span class="count">${formatReadDate(this.readDate)}</span>` : nothing}
                     <ol-icon class="obd-icon trail" name="chevron-down"></ol-icon>
                 </button>
+                ${this._pickingDate ? this._renderDateFields() : nothing}
+                ${this.readDate ? html`
+                    <button type="button" class="caption clear clear-date" ?disabled=${this._dateBusy} @click=${this._clearDate}>${this.t('clearDate')}</button>
+                ` : nothing}
             </div>
-            ${this._pickingDate ? this._renderDateFields() : nothing}
         `;
     }
 
@@ -1110,7 +1136,8 @@ export class OlShelfActions extends LitElement {
         const previous = this.shelf;
         // Already Read leads to the date pane — that is what its chevron says,
         // and it is the only way to change a date once given. Coming off the
-        // shelf is the "Remove from shelf" row's job.
+        // shelf is the "Remove from shelf" link's job, which is why that link
+        // is offered on this shelf alone.
         if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
             return this._openCheckIn();
         }
@@ -1222,6 +1249,32 @@ export class OlShelfActions extends LitElement {
                 bubbles: true,
                 composed: true,
                 detail: { key: this.book.key, date: this.readDate, eventId: this.eventId },
+            }));
+            this._backToMain();
+        } catch (error) {
+            this._fail(error);
+        } finally {
+            this._dateBusy = false;
+        }
+    }
+
+    /**
+     * Unanswers the question, leaving the book on the shelf: the pane asks it
+     * again next time. Deleting the event is the only way back to no date —
+     * every other row here replaces one date with another.
+     */
+    async _clearDate() {
+        if (this._dateBusy || !this.eventId) return;
+        this._dateBusy = true;
+        try {
+            await deleteCheckIn(this.eventId);
+            this.readDate = null;
+            this.eventId = null;
+            trackEvent('CheckInPrompt', 'ClearDate');
+            this.dispatchEvent(new CustomEvent('ol-book-check-in', {
+                bubbles: true,
+                composed: true,
+                detail: { key: this.book.key, date: null, eventId: null },
             }));
             this._backToMain();
         } catch (error) {
