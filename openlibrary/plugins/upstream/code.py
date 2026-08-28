@@ -80,6 +80,15 @@ class edit(core.edit):
                 return web.seeother(key)
             else:
                 return addbook.safe_seeother(page.url(suffix="/edit"))
+        elif key.startswith(("/books/", "/works/")):
+            # e.g. /books/ia:foo00bar (a fake record synthesized on the fly,
+            # see Edition.is_fake_record()), or any other /books/ or /works/
+            # path that isn't a "OL<id>" key. core.edit.GET()'s fallback
+            # (db.new_version()) would otherwise reach thingview() -> the
+            # same type/edition/view.html template the real book page uses
+            # (see prepare_book_page() below), which requires
+            # book_page_context and isn't safe to call from here.
+            return web.seeother(key)
         else:
             return core.edit.GET(self, key)
 
