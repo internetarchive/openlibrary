@@ -9,6 +9,11 @@
  */
 
 .header-bar {
+  /* One height for every control in the header row — the search field, the
+     My Books / Browse ghost buttons, and the account/menu button — so they
+     all line up. Large (touch-friendly) by default; desktop tightens it to
+     the standard control height (see header-bar--desktop.css). */
+  --header-control-height: var(--control-height-large);
   max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
@@ -211,18 +216,48 @@
   animation: sweep 0.2s ease-in-out;
 }
 
-.header-bar .hamburger-component details[open] .hamburger__icon {
-  background-color: var(--account-icon-background);
-}
-
-.header-bar .hamburger-component .hamburger__icon {
-  width: 22px;
-  height: 22px;
-  padding: 0 var(--spacing-inset-sm);
-  border-radius: 3px;
-  box-sizing: content-box;
+.header-bar .hamburger-component details[open] summary {
+  background-color: var(--beige-three);
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
+
+/* ── Account / menu ghost button ─────────────────────────────────────────
+   The avatar (when signed in) and the hamburger icon are grouped into a
+   single ghost button: transparent at rest, filled on hover and while the
+   drawer is open, height-locked to the header control height. */
+.header-bar .hamburger-component summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  cursor: pointer;
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+.hamburger-component summary:hover,
+.hamburger-component summary:focus-visible {
+  background-color: var(--beige-three);
+}
+
+.hamburger-component summary:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-bar .hamburger-component summary {
+    transition: none;
+  }
+
+  .hamburger-component summary:active {
+    transform: none;
+  }
+}
 
 @keyframes sweep {
   0% {
@@ -291,26 +326,26 @@
   content: "" !important;
 }
 
-.header-bar .header-dropdown .header-dropdown__icon {
-  width: 40px;
-  height: 40px;
-}
-
+/* Avatar sized to sit inside the account/menu ghost button beside the
+   24px hamburger glyph. */
 .header-bar .header-dropdown .account__icon {
-  border: 2px solid var(--account-icon-border);
-  border-radius: 4px;
-  width: 30px;
-  height: 30px;
+  border: 1px solid var(--account-icon-border);
+  border-radius: var(--border-radius-sm);
+  width: 24px;
+  height: 24px;
 }
 
+/* Pending-merge count, pinned to the top-right corner of the account/menu
+   ghost button (the summary is its positioning context). */
 .header-bar .header-dropdown .mr-notifications {
   position: absolute;
+  top: -6px;
+  right: -6px;
   background: var(--color-primary);
   color: var(--white);
   border-radius: var(--border-radius-notification);
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  padding: 1px var(--spacing-inset-xs);
   font-size: var(--font-size-label-medium);
-  margin-top: var(--spacing-stack-lg);
   font-weight: bold;
 }
 
@@ -457,21 +492,6 @@
   display: flex;
   align-items: stretch;
   position: relative;
-}
-
-.hamburger-component summary {
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  cursor: pointer;
-}
-
-.hamburger-component summary .header-dropdown__icon {
-  border: none;
-  margin-right: var(--spacing-inline-sm);
-  border-radius: 3px;
-  box-sizing: content-box;
 }
 
 .navigation-component {
@@ -628,19 +648,23 @@
   display: inline-flex;
 }
 
-.header-bar .navigation-component .browse-popover__trigger {
+/* Shared ghost treatment for the top-level nav controls (the My Books link
+   and the Browse trigger): transparent at rest, filled on hover, and
+   height-locked to the header control height so they line up with the
+   search field. */
+.header-bar .navigation-component .nav-ghost-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-inline-sm);
-  /* Roomier click target; negative inline margin keeps the text aligned with
-   * the sibling nav items rather than pushing them apart. */
-  margin: 0 calc(-1 * var(--spacing-inset-md));
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-md);
   border: 0;
   border-radius: var(--border-radius-md);
   background: none;
   color: var(--color-text);
   font: inherit;
+  text-decoration: none;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
   transition: transform 0.08s;
@@ -648,14 +672,14 @@
 
 /* A subtle darken of the canvas the header sits on. (--beige is a near match
  * for that canvas, so it'd read as no hover at all.) */
-.navigation-component .browse-popover__trigger:hover,
-.navigation-component .browse-popover__trigger:focus-visible,
+.navigation-component .nav-ghost-btn:hover,
+.navigation-component .nav-ghost-btn:focus-visible,
 .browse-popover[open] .browse-popover__trigger {
   background-color: var(--beige-three);
 }
 
 /* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
-.navigation-component .browse-popover__trigger:active {
+.navigation-component .nav-ghost-btn:active {
   transform: scale(0.97);
 }
 
@@ -673,7 +697,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navigation-component .browse-popover__trigger,
+  .navigation-component .nav-ghost-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
@@ -813,14 +837,18 @@
    (background, border, radius), the trigger expands to fill the slot,
    and the label is shown beside the icon — the original wide "Search 🔍"
    bar. `aria-label="Search"` on the button supplies the accessible name
-   in both modes. */
+   in both modes.
+
+   The magnifier is the Lucide `search` sprite glyph (see macros.icon): it
+   inherits the trigger's currentColor and ol-icon--md supplies its 20px
+   box, so it needs no rules of its own here. */
 .search-bar-trigger {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 38px;
+  min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;
   border: 0;
@@ -837,13 +865,6 @@
   display: none;
 }
 
-.search-bar-trigger__icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  background: url(/static/images/search-icon.svg) center / contain no-repeat;
-}
-
 /* ── Barcode scanner button ──────────────────────────────────────────────
    Standalone control that sits next to the search pill in the header
    (not nested inside it). Only surfaced on touch devices since scanning
@@ -853,20 +874,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  min-height: 38px;
+  width: var(--header-control-height);
+  min-height: var(--header-control-height);
   border-radius: var(--border-radius-input);
   transition: background-color 0.15s ease;
 }
 
-/* Match the search magnifier (#8a7f71 in search-icon.svg; --accessible-grey is
-   the nearest token). The link states outrank a:link/:visited/:hover in
+/* Match the search magnifier, which now inherits the trigger's
+   --color-text-secondary. The link states outrank a:link/:visited/:hover in
    base/common.css, which would otherwise paint the icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,
 .search-by-barcode:hover {
-  color: var(--accessible-grey);
+  color: var(--color-text-secondary);
 }
 
 .search-by-barcode img {

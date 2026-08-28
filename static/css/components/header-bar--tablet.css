@@ -24,8 +24,3 @@
   -ms-flex-order: 3;
   order: 3;
 }
-
-.header-bar .header-dropdown .account__icon {
-  width: 45px;
-  height: 45px;
-}
