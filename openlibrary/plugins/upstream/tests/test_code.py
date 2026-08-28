@@ -395,9 +395,7 @@ class TestIntegratedBookPageRendering:
 
         monkeypatch.setattr(site, "versions", fake_versions)
 
-    def test_work_page_renders_open_lending_state_after_groundtruth_fallback(
-        self, monkeypatch, mock_site, render_template, request_context_fixture
-    ):
+    def test_work_page_renders_open_lending_state_after_groundtruth_fallback(self, monkeypatch, mock_site, render_template, request_context_fixture):
         request_context_fixture(lang="en")
         mock_site.quicksave("/works/OL1W", "/type/work", title="Integration Test Work", edition_count=1)
         mock_site.quicksave(
