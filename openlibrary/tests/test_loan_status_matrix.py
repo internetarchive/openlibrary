@@ -18,11 +18,14 @@ real call sites, reduces each render to the controls a reader would actually
 see, and diffs that against a committed snapshot.  Losing a button becomes a
 one-line diff rather than a code-review judgement call.
 
-Regenerate the snapshot after a deliberate change with::
+After changing LoanStatus on purpose, rewrite the snapshot with::
 
-    UPDATE_SNAPSHOTS=1 pytest openlibrary/tests/test_loan_status_matrix.py
+    docker compose run --rm home bash -c \\
+      "UPDATE_SNAPSHOTS=1 pytest openlibrary/tests/test_loan_status_matrix.py"
 
-and read the resulting diff as the description of what you changed.
+That rewrites the file and then fails once, printing the diff, so a behaviour
+change cannot be regenerated away without someone reading it.  Re-run without
+UPDATE_SNAPSHOTS to go green, and commit the snapshot with your change.
 """
 
 import difflib
@@ -372,14 +375,19 @@ def test_matrix_matches_snapshot(loan_status_env):
     the behaviour is *known*, so that changing it is a reviewable diff.
     """
     actual = build_snapshot()
+    committed = SNAPSHOT_PATH.read_text() if SNAPSHOT_PATH.exists() else ""
+    diff = "".join(difflib.unified_diff(committed.splitlines(True), actual.splitlines(True), "committed", "rendered"))
+
     if os.environ.get("UPDATE_SNAPSHOTS") == "1":
+        if not diff:
+            return
         SNAPSHOT_PATH.parent.mkdir(parents=True, exist_ok=True)
         SNAPSHOT_PATH.write_text(actual)
-        pytest.skip(f"snapshot rewritten: {SNAPSHOT_PATH}")
+        # Rewriting and passing would let a behaviour change land unread, so
+        # fail once with the diff.  Re-run without UPDATE_SNAPSHOTS to go green.
+        pytest.fail(f"Snapshot rewritten. Review this before committing it:\n\n{diff}")
 
-    assert SNAPSHOT_PATH.exists(), f"missing snapshot; create it with UPDATE_SNAPSHOTS=1 pytest {__file__}"
-    committed = SNAPSHOT_PATH.read_text().splitlines(True)
-    diff = "".join(difflib.unified_diff(committed, actual.splitlines(True), "committed", "rendered"))
+    assert committed, f"missing snapshot; create it with UPDATE_SNAPSHOTS=1 pytest {__file__}"
     assert not diff, f"LoanStatus renders differently than the committed matrix.\n\n{diff}\nIf intended: UPDATE_SNAPSHOTS=1 pytest {__file__}"
 
 
