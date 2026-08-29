@@ -19,7 +19,12 @@ function lintImportAtTop(code) {
             file,
             '--config', path.join(repoRoot, '.stylelintrc.json'),
             '--allow-empty-input',
-        ], { encoding: 'utf8' });
+        ], {
+            encoding: 'utf8',
+            // The fixtures fail lint on purpose; capture the report for the
+            // assertion below instead of letting execFileSync print it.
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
         return 0;
     } catch (error) {
         const output = `${error.stdout || ''}${error.stderr || ''}`;
