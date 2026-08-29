@@ -24,6 +24,9 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      # Writable pyc bytecode cache dir -- see PYTHONPYCACHEPREFIX in
+      # Dockerfile.olbase for why this is needed.
+      - ol-pycache:/pycache
     environment:
       - LOCAL_DEV=true
       - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
@@ -58,6 +61,7 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
     environment:
       - LOCAL_DEV=true
       - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
@@ -108,6 +112,7 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
 
   db:
     image: postgres:${POSTGRES_VERSION:-18.3}
@@ -146,6 +151,7 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
 
   infobase:
     build:
@@ -167,6 +173,7 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
     depends_on:
       db:
         condition: service_healthy
@@ -206,6 +213,7 @@ services:
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+      - ol-pycache:/pycache
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
     depends_on:
@@ -237,3 +245,4 @@ volumes:
   ol-build:
   ol-nodemodules:
   ol-postgres:
+  ol-pycache:

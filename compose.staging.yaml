@@ -34,6 +34,9 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
+      # Writable pyc bytecode cache dir -- see PYTHONPYCACHEPREFIX in
+      # Dockerfile.olbase for why this is needed.
+      - ol-pycache:/pycache
 
   fast_web:
     build:
@@ -56,6 +59,7 @@ services:
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       - .:/openlibrary
+      - ol-pycache:/pycache
 
 
   memcached:
@@ -65,3 +69,4 @@ volumes:
   ol-vendor:
   ol-build:
   ol-nodemodules:
+  ol-pycache:

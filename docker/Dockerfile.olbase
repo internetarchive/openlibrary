@@ -61,9 +61,10 @@ RUN chmod 644 /usr/lib/nginx/modules/ngx_http_modsecurity_module.so \
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
  && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \
  && mkdir -p /var/lib/coverstore && chown openlibrary:openlibrary /var/lib/coverstore \
- # In order to write to solr-updater's named volume, this needs to be
- # pre-created with the right permissions
- && mkdir -p /solr-updater-data && chown openlibrary:openlibrary /solr-updater-data
+ # For the container to have write permissions to the ol-* named volumes, they need
+ # to be pre-created with the right permissions
+ && mkdir -p /solr-updater-data && chown openlibrary:openlibrary /solr-updater-data \
+ && mkdir -p /pycache && chown openlibrary:openlibrary /pycache
 WORKDIR /openlibrary
 
 USER openlibrary
@@ -79,6 +80,10 @@ RUN uv pip install -r requirements.txt
 
 USER openlibrary
 
+# The code volume mount doesn't have write access from the container on linux,
+# So need to redirect pyc bytecode caching here instead of alongside sources.
+ENV PYTHONPYCACHEPREFIX=/pycache
+
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci --no-audit
 
@@ -86,3 +91,9 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make
+
+# Pre-warm the pyc bytecode cache so it ships baked into the image.
+RUN python -m compileall -q \
+ -x '/node_modules/' \
+ "$(python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')" \
+ /openlibrary
