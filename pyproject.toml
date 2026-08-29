@@ -83,6 +83,7 @@ lint.select = [
   "BLE",     # flake8-blind-except
   "C4",      # flake8-comprehensions
   "C90",     # McCabe cyclomatic complexity
+  "DTZ",     # flake8-datetimez
   "E",       # pycodestyle
   "F",       # Pyflakes
   "FA",      # flake8-future-annotations
@@ -117,7 +118,6 @@ lint.select = [
   # "CPY",   # Copyright-related rules
   # "D",     # pydocstyle
   # "DJ",    # flake8-django
-  # "DTZ",   # flake8-datetimez
   # "EM",    # flake8-errmsg
   # "ERA",   # eradicate
   # "EXE",   # flake8-executable

@@ -41,11 +41,11 @@ def read_state_file(path, initial_state: str | None = None):
         return open(path).read()
     except OSError:
         logger.error("State file %s is not found. Reading log from the beginning of today", path)
-        return initial_state or f"{datetime.date.today().isoformat()}:0"
+        return initial_state or f"{datetime.datetime.now(tz=datetime.UTC).date().isoformat()}:0"
 
 
 def get_default_offset():
-    return datetime.date.today().isoformat() + ":0"
+    return datetime.datetime.now(tz=datetime.UTC).date().isoformat() + ":0"
 
 
 class InfobaseLogRecord(TypedDict):

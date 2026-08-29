@@ -68,7 +68,7 @@ def test_status_total():
 
 def test_status_timerange():
     "Tests the stats container with a time X-axis"
-    d = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    d = datetime.datetime.now(tz=datetime.UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     ipdata = []
     expected_op = []
     for i in range(10):

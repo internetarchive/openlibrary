@@ -8,7 +8,7 @@ The purpose of this file is to:
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 
 import requests
 
@@ -199,7 +199,7 @@ def _get_from_web(id: str) -> WikidataEntity | None:
         response = requests.get(f"{WIKIDATA_API_URL}{id}", headers=headers)
         response.raise_for_status()
         if response.status_code == 200:
-            entity = WikidataEntity.from_dict(response=response.json(), updated=datetime.now())
+            entity = WikidataEntity.from_dict(response=response.json(), updated=datetime.now(tz=UTC))
             _add_to_cache(entity)
             return entity
     except requests.exceptions.HTTPError as err:

@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import requests
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     message = f"{len(prs)} open staff PRs:\n\n"
     for pr in prs:
         pr_url = pr["html_url"]
-        pr_age_days = (datetime.now() - datetime.strptime(pr["created_at"], "%Y-%m-%dT%H:%M:%SZ")).days
+        pr_age_days = (datetime.now(tz=UTC) - datetime.strptime(pr["created_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)).days
         message += f"<{pr_url}|*#{pr['number']}* | {pr['title']}>\n"
         message += " | ".join(
             [

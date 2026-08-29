@@ -4,7 +4,7 @@ import functools
 import json
 import re
 from collections.abc import Callable, Iterable
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
@@ -118,7 +118,7 @@ def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = Fa
 
 
 def days_since(then: datetime, now: datetime | None = None) -> int:
-    delta = then - (now or datetime.now())
+    delta = then - (now or datetime.now(tz=UTC))
     return abs(delta.days)
 
 
@@ -132,7 +132,7 @@ def datestr(
     lang = lang or web.ctx.lang
     if relative:
         if now is None:
-            now = datetime.now()
+            now = datetime.now(tz=UTC)
         delta = then - now
         if abs(delta.days) < 4:  # Threshold from web.py
             return babel.dates.format_timedelta(delta, add_direction=True, locale=_get_babel_locale(lang))

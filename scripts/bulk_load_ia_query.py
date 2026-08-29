@@ -189,7 +189,7 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
 
 def import_ocaids(ocaids: list[str], batch_size=5_000):
     # get the month for yesterday
-    date = datetime.date.today() - datetime.timedelta(days=1)
+    date = datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(days=1)
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = importer.Batch.find(batch_name) or importer.Batch.new(batch_name)
 

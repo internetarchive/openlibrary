@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -124,15 +124,15 @@ def test_is_low_quality_book():
 
 
 def test_is_published_in_future_year() -> None:
-    last_year = str(datetime.now().year - 1)
+    last_year = str(datetime.now(tz=UTC).year - 1)
     last_year_book = {"publish_date": last_year}
     assert is_published_in_future_year(last_year_book) is False
 
-    this_year = str(datetime.now().year)
+    this_year = str(datetime.now(tz=UTC).year)
     this_year_book = {"publish_date": this_year}
     assert is_published_in_future_year(this_year_book) is False
 
-    next_year = str(datetime.now().year + 1)
+    next_year = str(datetime.now(tz=UTC).year + 1)
     next_year_book = {"publish_date": next_year}
     assert is_published_in_future_year(next_year_book) is True
 

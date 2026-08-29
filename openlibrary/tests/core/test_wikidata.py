@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -20,7 +20,7 @@ def createWikidataEntity(qid: str = "Q42", expired: bool = False) -> wikidata.Wi
     merged_dict = EXAMPLE_WIKIDATA_DICT.copy()
     merged_dict["id"] = qid
     updated_days_ago = wikidata.WIKIDATA_CACHE_TTL_DAYS + 1 if expired else 0
-    return wikidata.WikidataEntity.from_dict(merged_dict, datetime.now() - timedelta(days=updated_days_ago))
+    return wikidata.WikidataEntity.from_dict(merged_dict, datetime.now(tz=UTC) - timedelta(days=updated_days_ago))
 
 
 EXPIRED = "expired"

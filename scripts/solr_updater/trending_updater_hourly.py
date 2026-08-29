@@ -293,7 +293,7 @@ def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
         ts = datetime.datetime.fromisoformat(timestamp)
     else:
         # Use previous hour if no timestamp is provided
-        ts = datetime.datetime.now() - datetime.timedelta(hours=1)
+        ts = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(hours=1)
 
     # The slot in solr that corresponds to the given hour
     hour_slot = ts.hour

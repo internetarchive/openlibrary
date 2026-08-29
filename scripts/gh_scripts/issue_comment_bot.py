@@ -15,7 +15,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import requests
@@ -320,7 +320,7 @@ def publish_digest(
 
 def time_since(hours):
     """Returns datetime and string representations of the current time, minus the given hour"""
-    now = datetime.now()
+    now = datetime.now(tz=UTC)
     # XXX : Add a minute or two to the delta (to avoid dropping issues)?
     since = now - timedelta(hours=hours)
     return since, since.strftime("%Y-%m-%dT%H:%M:%S")

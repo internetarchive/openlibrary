@@ -35,7 +35,7 @@ def main(
     """
     load_config(openlibrary_yml)
 
-    min_start = datetime.datetime.now() - datetime.timedelta(days=7)
+    min_start = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(days=7)
     # Ensure we start at the beginning of the day
     min_start = min_start.replace(hour=0, minute=5, second=0, microsecond=0)
 
@@ -49,7 +49,7 @@ def main(
         start = min_start
 
     cur_dt = start
-    while cur_dt < datetime.datetime.now():
+    while cur_dt < datetime.datetime.now(tz=datetime.UTC):
         # After 24 hours, run daily trending for this day
         if cur_dt.hour == 0:
             day_dt = cur_dt.replace(hour=0, minute=0, second=0, microsecond=0)

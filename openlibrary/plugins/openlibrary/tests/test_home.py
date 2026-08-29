@@ -58,7 +58,7 @@ class TestHomeTemplates:
                 {
                     "title": "Blog-post-0",
                     "link": "https://blog.openlibrary.org/2011/01/01/blog-post-0",
-                    "pubdate": datetime.datetime(2011, 1, 1),
+                    "pubdate": datetime.datetime(2011, 1, 1, tzinfo=datetime.UTC),
                 }
             )
         ]
@@ -80,7 +80,7 @@ class TestHomeTemplates:
         self.setup_monkeypatch(monkeypatch)
         docs = [
             MockDoc(
-                _id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
+                _id=datetime.datetime.now(tz=datetime.UTC).strftime("counts-%Y-%m-%d"),
                 human_edits=1,
                 bot_edits=1,
                 lists=1,

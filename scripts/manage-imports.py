@@ -89,7 +89,7 @@ def import_ocaids(*ocaids, **kwargs):
     servername = kwargs.get("servername")
     require_marc = not kwargs.get("no_marc", False)
 
-    date = datetime.date.today()
+    date = datetime.datetime.now(tz=datetime.UTC).date()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
     batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
@@ -118,7 +118,7 @@ def add_new_scans(args):
         date = datetime.date(int(yyyy), int(mm), int(dd))
     else:
         # yesterday
-        date = datetime.date.today() - datetime.timedelta(days=1)
+        date = datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(days=1)
 
     items = list(get_candidate_ocaids(date))
     batch_name = f"new-scans-{date.year:04}{date.month:02}"

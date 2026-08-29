@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import web
 
@@ -52,9 +52,9 @@ def test_sanitize():
 
 def test_safesort():
 
-    y2000 = datetime(2000, 1, 1)
-    y2005 = datetime(2005, 1, 1)
-    y2010 = datetime(2010, 1, 1)
+    y2000 = datetime(2000, 1, 1, tzinfo=UTC)
+    y2005 = datetime(2005, 1, 1, tzinfo=UTC)
+    y2010 = datetime(2010, 1, 1, tzinfo=UTC)
 
     assert h.safesort([y2005, y2010, y2000, None]) == [None, y2000, y2005, y2010]
     assert h.safesort([y2005, y2010, y2000, None], reverse=True) == [
@@ -69,23 +69,23 @@ def test_safesort():
 
 def test_datestr(monkeypatch):
 
-    then = datetime(2010, 1, 1, 0, 0, 0)
+    then = datetime(2010, 1, 1, 0, 0, 0, tzinfo=UTC)
 
     _monkeypatch_web(monkeypatch)
     # assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == "1 second ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == "9 seconds ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1, tzinfo=UTC)) == "1 second ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9, tzinfo=UTC)) == "9 seconds ago"
 
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == "1 minute ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == "9 minutes ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1, tzinfo=UTC)) == "1 minute ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1, tzinfo=UTC)) == "9 minutes ago"
 
-    assert h.datestr(then, datetime(2010, 1, 1, 1, 0, 1)) == "1 hour ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 9, 0, 1)) == "9 hours ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 1, 0, 1, tzinfo=UTC)) == "1 hour ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 9, 0, 1, tzinfo=UTC)) == "9 hours ago"
 
-    assert h.datestr(then, datetime(2010, 1, 2, 0, 0, 1)) == "1 day ago"
+    assert h.datestr(then, datetime(2010, 1, 2, 0, 0, 1, tzinfo=UTC)) == "1 day ago"
 
-    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1)) == "January 1, 2010"
-    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1), lang="fr") == "1 janvier 2010"
+    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1, tzinfo=UTC)) == "January 1, 2010"
+    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1, tzinfo=UTC), lang="fr") == "1 janvier 2010"
 
 
 def test_sprintf():

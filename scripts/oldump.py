@@ -3,7 +3,7 @@
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
 
@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 
 def log(*args) -> None:
     args_str = " ".join(str(a) for a in args)
-    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
+    msg = f"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
     logger.info(msg)
     print(msg, file=sys.stderr)
 

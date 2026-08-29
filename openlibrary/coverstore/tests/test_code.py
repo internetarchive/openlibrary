@@ -63,5 +63,5 @@ class Test_cover:
         assert d == {
             "id": 42,
             "filename_s": "s_covers_0000_00.tar:1234:567",
-            "created": datetime.datetime(2010, 1, 1),
+            "created": datetime.datetime(2010, 1, 1, tzinfo=datetime.UTC),
         }

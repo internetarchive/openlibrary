@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
@@ -134,7 +134,7 @@ async def reading_goal_progress_partial(
     The year parameter is optional; defaults to the current year.
     """
     # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
-    return ReadingGoalProgressPartial.generate(year=year or datetime.now().year)
+    return ReadingGoalProgressPartial.generate(year=year or datetime.now(tz=UTC).year)
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

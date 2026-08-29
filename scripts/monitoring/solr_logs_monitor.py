@@ -231,7 +231,7 @@ def main(
             # eg '2025-01-14 20:50:33.796'
             timestamp_str = minute_log_lines[0].timestamp
             # parse the string and convert to an int
-            timestamp_int = int(datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f").timestamp())
+            timestamp_int = int(datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f").timestamp())  # noqa: DTZ007
 
             events: list[GraphiteEvent] = []
 

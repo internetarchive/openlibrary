@@ -14,7 +14,7 @@ import logging
 import os
 import re
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
 import web
 
@@ -28,14 +28,14 @@ logger.setLevel(logging.DEBUG)
 
 def log(*args) -> None:
     args_str = " ".join(str(a) for a in args)
-    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
+    msg = f"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
     logger.info(msg)
     print(msg, file=sys.stderr)
 
 
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format."""
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     total = 0
     for i, raw_json_data in enumerate(json_records):
         total += 1
@@ -68,7 +68,7 @@ def print_dump(json_records, filter=None):
         json_data = json.dumps(d)
 
         print("\t".join([type_key, key, str(d["revision"]), timestamp, json_data]))
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"    print_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
@@ -77,7 +77,7 @@ def read_data_file(filename: str, max_lines: int = 0):
     max_lines allows us to test the process with a subset of all records.
     Setting max_lines to 0 will processes all records.
     """
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     log(f"read_data_file({filename}, max_lines={max_lines or 'all'})")
     total = 0
     for i, line in enumerate(xopen(filename, "rt")):
@@ -86,7 +86,7 @@ def read_data_file(filename: str, max_lines: int = 0):
         yield pgdecode(json_data)
         if max_lines and i >= max_lines:
             break
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"read_data_file() processed {total:,} records in {minutes:,} minutes.")
 
 
@@ -99,7 +99,7 @@ def xopen(path: str, mode: str):
 
 def read_tsv(file, strip=True):
     """Read a tab separated file and return an iterator over rows."""
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     log(f"read_tsv({file})")
     if isinstance(file, str):
         file = xopen(file, "rt")
@@ -112,7 +112,7 @@ def read_tsv(file, strip=True):
         if strip:
             line = line.strip()
         yield line.split("\t")
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f" read_tsv() processed {total:,} records in {minutes:,} minutes.")
 
 
@@ -137,7 +137,7 @@ def generate_cdump(data_file, date=None):
 
 def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     """Sort the given dump based on key."""
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     tmpdir = os.path.join(tmpdir, "oldumpsort")
     if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
@@ -170,7 +170,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
         if status != 0:
             raise Exception("sort failed with status %d" % status)
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"sort_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
@@ -186,12 +186,12 @@ def generate_dump(cdump_file=None):
             row = max(rows, key=revision)
             yield row
 
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     tjoin = "\t".join
     data = read_tsv(cdump_file or sys.stdin, strip=False)
     # group by key and find the max by revision
     sys.stdout.writelines(tjoin(row) for row in process(data))
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"generate_dump({cdump_file}) ran in {minutes:,} minutes.")
 
 
@@ -215,7 +215,7 @@ def generate_idump(day, **db_parameters):
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions, works, redirects, and other."""
     log(f"split_dump({dump_file}, format={format})")
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     types = (
         "/type/edition",
         "/type/author",
@@ -245,14 +245,14 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 
     for f in files.values():
         f.close()
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"split_dump() processed {total:,} records in {minutes:,} minutes.")
 
 
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
     log(f"make_index({dump_file})")
-    start_time = datetime.now()
+    start_time = datetime.now(tz=UTC)
     total = 0
     for i, line in enumerate(read_tsv(dump_file)):
         total += 1
@@ -275,7 +275,7 @@ def make_index(dump_file):
         else:
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
-    minutes = (datetime.now() - start_time).seconds // 60
+    minutes = (datetime.now(tz=UTC) - start_time).seconds // 60
     log(f"make_index() processed {total:,} records in {minutes:,} minutes.")
 
 

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import ClassVar
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
@@ -93,7 +93,7 @@ class YearlyReadingGoals:
             where=where,
             vars=data,
             target=new_target,
-            updated=datetime.now(),
+            updated=datetime.now(tz=UTC),
         )
 
     # Delete methods:

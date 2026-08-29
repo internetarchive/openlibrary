@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from math import floor
 
 from infogami.utils.view import public
@@ -17,7 +17,7 @@ def get_reading_goals(year=None):
 
     username = user["key"].split("/")[-1]
     if not year:
-        year = datetime.now().year
+        year = datetime.now(tz=UTC).year
 
     if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
         return None

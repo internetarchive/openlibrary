@@ -17,12 +17,12 @@ WEEK_SECS = DAY_SECS * 7
 
 
 def days_in_current_month() -> int:
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz=datetime.UTC)
     return calendar.monthrange(now.year, now.month)[1]
 
 
 def todays_date_minus(**kwargs) -> datetime.date:
-    return datetime.date.today() - datetime.timedelta(**kwargs)
+    return datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(**kwargs)
 
 
 def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
@@ -33,7 +33,7 @@ def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
     Returns:
         A (datetime.date) of `n` days ago if n is provided, else None
     """
-    _start = start or datetime.date.today()
+    _start = start or datetime.datetime.now(tz=datetime.UTC).date()
     return (_start - datetime.timedelta(days=n)) if n else None
 
 
@@ -106,7 +106,7 @@ def _resize_list(x, size: int) -> None:
 
 @public
 def current_year() -> int:
-    return datetime.datetime.now().year
+    return datetime.datetime.now(tz=datetime.UTC).year
 
 
 @contextmanager

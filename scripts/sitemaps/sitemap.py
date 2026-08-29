@@ -15,7 +15,7 @@ import re
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from time import perf_counter
 
 import web
@@ -51,7 +51,7 @@ siteindex = web.template.Template(t_siteindex)
 
 def log(*args) -> None:
     args_str = " ".join(str(a) for a in args)
-    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
+    msg = f"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
     logger.info(msg)
     print(msg, file=sys.stderr)
 
@@ -161,7 +161,7 @@ def generate_siteindex() -> None:
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 

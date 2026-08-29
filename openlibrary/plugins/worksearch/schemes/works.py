@@ -2,7 +2,7 @@ import logging
 import re
 from collections.abc import Callable
 from copy import deepcopy
-from datetime import datetime
+from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import Any, cast
 
@@ -190,8 +190,8 @@ class WorkSearchScheme(SearchScheme):
             "random": "random_1 asc",
             "random asc": "random_1 asc",
             "random desc": "random_1 desc",
-            "random.hourly": lambda: f"random_{datetime.now():%Y%m%dT%H} asc",
-            "random.daily": lambda: f"random_{datetime.now():%Y%m%d} asc",
+            "random.hourly": lambda: f"random_{datetime.now(tz=UTC):%Y%m%dT%H} asc",
+            "random.daily": lambda: f"random_{datetime.now(tz=UTC):%Y%m%d} asc",
         }
     )
     default_fetched_fields = frozenset(

@@ -26,7 +26,7 @@ class TestMockSite:
             "type": {"key": "/type/edition"},
             "title": "The Test Book",
         }
-        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
+        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)
 
         mock_site.save(doc, timestamp=timestamp)
 
@@ -50,7 +50,7 @@ class TestMockSite:
             "isbn_10": ["0123456789"],
             "isbn_13": ["0123456789abc"],
         }
-        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
+        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)
 
         mock_site.reset()
         mock_site.save(doc, timestamp=timestamp)
