@@ -1,14 +1,33 @@
 /* Styling overrides for author and orphaned edition pages */
-.old-style-lists h3 {
-  font-size: 0.75em;
-  text-align: left;
-  padding: var(--spacing-inset-sm);
-  min-width: 150px;
-  font-weight: bold;
+/* Make the "Add to List" h3 visually match the .book-progress-btn reading-log button */
+.old-style-lists .generic-dropper__primary h3 {
+  font-size: var(--font-size-label-large);
+  font-weight: normal;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.old-style-lists h3:hover {
-  text-decoration: underline;
+.old-style-lists .generic-dropper__primary a {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.old-style-lists .generic-dropper__primary a h3 {
+  height: 100%;
+  width: 100%;
 }
 
 /* Hide "My Reading Lists" heading */
