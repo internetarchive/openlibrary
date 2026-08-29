@@ -286,7 +286,7 @@ $jsdef render_work_autocomplete_item(item):
                     <label for="is-translation">$_("Is it a translation of another book?")</label>
                     <span class="tip"></span>
                 </div>
-                $ translation = book.translation_of or book.translated_from
+                $ translation = book.get('translation') or book.translation_of or book.translated_from
                 $ checked_yes = cond(translation, 'checked="checked"', '')
                 $ checked_no = cond(not translation, 'checked="checked"', '')
                 $if translation:
