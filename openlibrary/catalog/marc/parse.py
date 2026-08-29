@@ -1,3 +1,4 @@
+import html
 import logging
 import re
 from collections.abc import Callable
@@ -277,18 +278,18 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle("No title found from joining subfields.")
     if alternate:
-        ret["title"] = title_from_list(list(alternate.get_subfield_values("a")))
+        ret["title"] = html.unescape(title_from_list(list(alternate.get_subfield_values("a"))))
         ret["other_titles"] = [title]
     else:
-        ret["title"] = title
+        ret["title"] = html.unescape(title)
 
     # Subtitle
     if bnps:
-        ret["subtitle"] = title_from_list(bnps, delim=" : ")
+        ret["subtitle"] = html.unescape(title_from_list(bnps, delim=" : "))
     elif alternate:
         subtitle = alternate.get_subfield_values("bnps")
         if subtitle:
-            ret["subtitle"] = title_from_list(subtitle, delim=" : ")
+            ret["subtitle"] = html.unescape(title_from_list(subtitle, delim=" : "))
     if "subtitle" in ret and re_bracket_field.match(ret["subtitle"]):
         # Remove entirely bracketed subtitles
         ret.pop("subtitle")
