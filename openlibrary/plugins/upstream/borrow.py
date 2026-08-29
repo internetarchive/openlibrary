@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Literal
 
 import web
+from markupsafe import Markup, escape
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -30,6 +31,7 @@ from openlibrary.core import (
     stats,
     vendors,
 )
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
@@ -143,7 +145,7 @@ class BorrowNotFound:
     pass
 
 
-BorrowOutcome = BorrowRedirect | BorrowNotFound
+BorrowOutcome = BorrowRedirect | BorrowNotFound | str  # str = rendered interstitial HTML
 
 
 async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None, fastapi: bool = False) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
@@ -179,10 +181,18 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and acquisitions[0].access == "open-access"
     ):
         stats.increment("ol.loans.webbook")
-        return render_template(
-            "interstitial",
+        raw_name = acquisitions[0].provider_name or ""
+        book_provider = (
+            Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>")
+            if raw_name
+            else Markup("")
+        )
+        return render_jinja_template(
+            "interstitial.html.jinja",
             url=acquisitions[0].url,
-            provider_name=acquisitions[0].provider_name,
+            provider_name=raw_name,
+            book_provider=book_provider,
+            wait=5,
             fastapi=fastapi,
         )
 

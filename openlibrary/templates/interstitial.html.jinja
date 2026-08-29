@@ -1,0 +1,69 @@
+{# Interstitial redirect page — shown when borrowing from a third-party Trusted Book Provider.
+   Rendered by handle_borrow_async() in openlibrary/plugins/upstream/borrow.py.
+   Arguments:
+     url           (str)      — the destination URL
+     wait          (int)      — seconds before auto-redirect (default 5)
+     fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
+     book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
+#}
+{% if fastapi %}
+<style>
+  #contentBody.interstitial {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    color: hsl(41, 14%, 21%);
+    background: hsl(48, 32%, 94%);
+    max-width: 40em;
+    margin: 4em auto;
+    padding: 2em;
+    border-radius: 8px;
+    text-align: center;
+  }
+  #contentBody.interstitial a {
+    color: hsl(210, 84%, 31%);
+  }
+</style>
+{% endif %}
+
+<div id="contentBody" class="interstitial" data-url="{{ url }}" data-wait="{{ wait }}">
+  <h1>{{ _("You are being redirected to your book") }}</h1>
+
+  <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
+
+  <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time="<span id=\"timer\">" ~ wait ~ "</span>", url="<a href=\"" ~ url ~ "\">" ~ url ~ "</a>") | safe }}</p>
+
+  <p>
+    <a href="#" class="close-window">{{ _("Cancel") }}</a>
+    <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
+  </p>
+</div>
+
+{% if fastapi %}
+<script>
+  // Copied from openlibrary/plugins/openlibrary/js/interstitial.js's
+  // initInterstitial(), rewritten with `var` instead of module-scoped
+  // let/const since this runs as a plain inline script, not a bundled
+  // ES module -- FastAPI-rendered pages don't load the site's JS bundle.
+  var interstitialElem = document.querySelector('.interstitial');
+  if (interstitialElem) {
+      var seconds = interstitialElem.dataset.wait;
+      var url = interstitialElem.dataset.url;
+      var timerElement = interstitialElem.querySelector('#timer');
+      var countdown = setInterval(() => {
+          seconds--;
+          timerElement.textContent = seconds;
+          if (seconds === 0) {
+              clearInterval(countdown);
+              window.location.href = url;
+          }
+      }, 1000); // 1 second interval
+
+      // Add cancel button handler
+      var cancelButton = interstitialElem.querySelector('.close-window');
+      if (cancelButton) {
+          cancelButton.addEventListener('click', () => {
+              window.close();
+          });
+      }
+  }
+</script>
+{% endif %}
