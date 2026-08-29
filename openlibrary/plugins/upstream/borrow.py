@@ -24,7 +24,6 @@ from infogami.utils.view import (
 )
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
-from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
     models,  # noqa: F401 side effects may be needed
@@ -182,11 +181,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
     ):
         stats.increment("ol.loans.webbook")
         raw_name = acquisitions[0].provider_name or ""
-        book_provider = (
-            Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>")
-            if raw_name
-            else Markup("")
-        )
+        book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
         return render_jinja_template(
             "interstitial.html.jinja",
             url=acquisitions[0].url,
