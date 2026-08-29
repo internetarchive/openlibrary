@@ -75,7 +75,7 @@ $if editions and not edition:
   $if provider:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
   $else:
-    $ edition, provider = get_best_edition(editions)
+    $ edition, provider = get_best_edition(editions, user_lang=get_lang())
 
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
