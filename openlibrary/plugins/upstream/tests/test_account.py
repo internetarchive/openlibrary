@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 from unittest import mock
@@ -448,6 +449,147 @@ class TestOtpServiceS3Auth:
         result = account.otp_service_redeem().POST()
         body = json.loads(result.rawtext)
         assert body == {"success": "redeemed"}
+
+
+class TestOtpFailuresAreVisible:
+    """Every refusal must carry a real HTTP status and a log line.
+
+    These endpoints used to answer `200 {"error": ...}` for every failure. A 200
+    is not an exception, so Sentry never saw one; it is not an error status, so
+    request logs and the load balancer did not flag it either. Requests also fan
+    across ol-web0..3 behind haproxy, so with nothing logged there was no way to
+    tell which head served a call or why it refused.
+    """
+
+    def _env(self, **extra):
+        return {
+            "HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret",
+            "HTTP_X_FORWARDED_FOR": "1.2.3.4, 10.0.0.9",
+            **extra,
+        }
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_auth_is_401(self, mock_web, mock_ia):
+        mock_web.ctx.env = {}
+        account.otp_service_issue().POST()
+        assert mock_web.ctx.status == "401 Unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_rejected_keys_are_401(self, mock_web, mock_ia):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = self._env()
+        account.otp_service_issue().POST()
+        assert mock_web.ctx.status == "401 Unauthorized"
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_auth_service_outage_is_503(self, mock_web, mock_ia):
+        """A 5xx from xauthn is our problem, not the caller's — it must not be a
+        4xx that tells an integrator to go fix their credentials."""
+        mock_ia.s3auth.return_value = {"error": "service error", "code": 503}
+        mock_web.ctx.env = self._env()
+        account.otp_service_issue().POST()
+        assert mock_web.ctx.status == "503 Service Unavailable"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_service_ip_is_400(self, mock_web, mock_ia, mock_otp):
+        """No X-Forwarded-For means no service_ip. Callers hitting a web head
+        directly, bypassing nginx, see exactly this."""
+        mock_ia.s3auth.return_value = {"success": True}
+        mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW goodaccess:goodsecret"}
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false")
+        result = account.otp_service_issue().POST()
+        assert mock_web.ctx.status == "400 Bad Request"
+        assert json.loads(result.rawtext)["missing_keys"] == ["service_ip"]
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_ratelimit_is_429_and_keeps_its_body(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True}
+        mock_web.ctx.env = self._env()
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false")
+        limit = {"ttl": 60, "key": "otp-client:1.2.3.4:email:test@example.com"}
+        mock_otp.is_ratelimited.return_value = {"error": "ratelimit", "ratelimit": limit}
+        result = account.otp_service_issue().POST()
+        assert mock_web.ctx.status == "429 Too Many Requests"
+        # The body shape is unchanged, so existing clients keep working.
+        assert json.loads(result.rawtext) == {"error": "ratelimit", "ratelimit": limit}
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_otp_mismatch_is_401(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True}
+        mock_web.ctx.env = self._env()
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", otp="wrong")
+        mock_otp.is_valid.return_value = False
+        result = account.otp_service_redeem().POST()
+        assert mock_web.ctx.status == "401 Unauthorized"
+        assert json.loads(result.rawtext) == {"error": "otp_mismatch"}
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_success_sets_no_error_status(self, mock_web, mock_ia, mock_otp):
+        mock_ia.s3auth.return_value = {"success": True}
+        mock_web.ctx.env = self._env()
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", challenge_url="", sendmail="false")
+        mock_otp.is_ratelimited.return_value = None
+        mock_otp.generate.return_value = "abc123"
+        result = account.otp_service_issue().POST()
+        assert json.loads(result.rawtext) == {"success": "issued"}
+        assert not isinstance(mock_web.ctx.status, str), "success must not set an error status"
+
+    @mock.patch("openlibrary.plugins.upstream.account.OTP")
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_refusal_logs_the_service_ip(self, mock_web, mock_ia, mock_otp, caplog):
+        """`service_ip` is an ingredient of the OTP's HMAC, so an issue/redeem
+        pair that disagrees about it fails forever with otp_mismatch. Logging it
+        is the only way to compare the two across web heads."""
+        mock_ia.s3auth.return_value = {"success": True}
+        mock_web.ctx.env = self._env()
+        mock_web.input.return_value = web.storage(email="test@example.com", ip="1.2.3.4", otp="wrong")
+        mock_otp.is_valid.return_value = False
+        with caplog.at_level(logging.WARNING, logger="openlibrary.account"):
+            account.otp_service_redeem().POST()
+
+        assert "1.2.3.4, 10.0.0.9" in caplog.text
+        assert "otp_mismatch" in caplog.text
+        assert "redeem" in caplog.text
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_logs_do_not_contain_the_full_patron_email(self, mock_web, mock_ia, caplog):
+        mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
+        mock_web.ctx.env = self._env()
+        with caplog.at_level(logging.WARNING, logger="openlibrary.account"):
+            account.otp_service_issue().POST()
+        assert "test@example.com" not in caplog.text
+
+    def test_mask_email(self):
+        assert account._mask_email("alice@example.org") == "al***@example.org"
+        assert account._mask_email("a@b.c") == "a***@b.c"
+        assert account._mask_email("") == "***"
+        assert account._mask_email("notanemail") == "***"
+
+    def test_every_error_code_has_a_status(self):
+        """A code with no mapping silently degrades to 400. Keep them in step."""
+        emitted = {
+            "missing_or_invalid_authorization",
+            "unauthorized",
+            "auth_service_unavailable",
+            "missing_keys",
+            "challenge_failed",
+            "ratelimit",
+            "otp_mismatch",
+        }
+        assert emitted <= set(account.OTP_ERROR_STATUS)
 
 
 class TestParseLowAuthHeader:
