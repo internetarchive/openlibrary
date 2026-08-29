@@ -1,5 +1,6 @@
 """Interface to import queue."""
 
+import asyncio
 import contextlib
 import datetime
 import json
@@ -7,7 +8,7 @@ import logging
 import time
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
 from psycopg2.errors import UndefinedTable, UniqueViolation
@@ -130,10 +131,88 @@ class Batch(web.storage):
 
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
-        return [ImportItem(row) for row in result]
+        return [ImportItem[int](row) for row in result]
+
+    async def poll_pending(self, ids: list[str], timeout: int = 300, interval: int = 15):  # noqa: ASYNC109
+        """
+        Polls pending items in this batch until all are processed or timeout is reached.
+
+        :param ids: List of `ia_id` to restrict polling to.
+        :param timeout: Maximum time to wait for pending items to be processed, in seconds.
+        """
+        start_time = time.time()
+        while True:
+            rows = list(
+                db.query(
+                    """
+                SELECT status, COUNT(*) AS count FROM import_item
+                WHERE batch_id = $batch_id AND ia_id IN $ids
+                GROUP BY status
+                """,
+                    vars={"batch_id": self.id, "ids": ids},
+                )
+            )
+            counts = {row.status: row.count for row in rows}
+            logger.info("batch %s: status counts: %s", self.name, counts)
+
+            if counts.get("pending", 0) + counts.get("processing", 0) == 0:
+                # All items are processed
+                results = db.query(
+                    """
+                    SELECT * FROM import_item
+                    WHERE batch_id = $batch_id AND ia_id IN $ids
+                    """,
+                    vars={"batch_id": self.id, "ids": ids},
+                )
+                return [cast(SuccessImportItem[int] | FailedImportItem[int], ImportItem[int](row)) for row in results]
+
+            if time.time() - start_time >= timeout:
+                raise TimeoutError(f"batch {self.name}: timed out waiting for {len(ids)} identifiers {timeout}s")
+
+            await asyncio.sleep(interval)
 
 
-class ImportItem(web.storage):
+type ImportItemStatus = Literal[
+    "pending",  # Item is waiting for next importbot call, and will then be imported
+    "processing",  # Item is actively being imported by importbot
+    "staged",  # Item is staged but required human approval before it will transition to 'pending'
+    "found",  # Importing was successful, but no edits were made since an identical edition already exists
+    "created",  # Importing was successful, and a new edition was created
+    "modified",  # Importing was successful, and an existing edition was modified
+    "failed",  # Importing was attempted but failed
+]
+"""
+| Status       | Description                                                                 |
+|--------------|-----------------------------------------------------------------------------|
+| `pending`    | Waiting for the next importbot call to be imported                          |
+| `processing` | Actively being imported by importbot                                        |
+| `staged`     | Requires human approval before transitioning to `pending`                   |
+| `found`      | Import succeeded; no edits made since an identical edition already exists   |
+| `created`    | Import succeeded; a new edition was created                                 |
+| `modified`   | Import succeeded; an existing edition was modified                          |
+| `failed`     | Import was attempted but failed                                             |
+"""
+
+
+class ImportItem[TBatchId = int | None](web.storage):
+    id: int
+    batch_id: TBatchId
+    added_time: datetime.datetime | None
+    import_time: datetime.datetime | None
+    status: ImportItemStatus
+    error: str | None
+    ia_id: str
+    """
+    A mis-nomer, actually a sort of 'local_id'. Usually of the form "{source}:{identifier}",
+    e.g. "isbn:1234567890" or "partner:1234567890" for partner bots.
+    """
+    data: str | None
+    """The raw Open Library import record JSON as a string"""
+    ol_key: str | None
+    """If successful, the resulting Open Library edition key, e.g. "/books/OL12345M" """
+    comments: str | None
+    submitter: str | None
+
     @staticmethod
     def find_pending(limit=1000):
         if result := db.where("import_item", status="pending", order="id", limit=limit):
@@ -193,6 +272,8 @@ class ImportItem(web.storage):
             # Avoids a circular import issue.
             from openlibrary.plugins.importapi.code import parse_data
 
+            if self.data is None:
+                raise ValueError("No data to import")
             edition, _ = parse_data(self.data.encode("utf-8"))
             if edition:
                 reply = add_book.load(edition)
@@ -235,7 +316,7 @@ class ImportItem(web.storage):
         query = "UPDATE import_item SET status = 'pending' WHERE status = 'staged' AND ia_id IN $ia_ids"
         db.query(query, vars={"ia_ids": ia_ids})
 
-    def set_status(self, status, error=None, ol_key=None):
+    def set_status(self, status: ImportItemStatus, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
         d = {
@@ -275,6 +356,19 @@ class ImportItem(web.storage):
             where += " AND batch_id=$batch_id"
 
         return oldb.delete("import_item", where=where, vars=data, _test=_test)
+
+
+class SuccessImportItem[TBatchId = int | None](ImportItem[TBatchId]):
+    status: Literal["found", "created", "modified"]
+    error: None
+    ol_key: str
+    """If successful, the resulting Open Library edition key, e.g. "/books/OL12345M" """
+
+
+class FailedImportItem[TBatchId = int | None](ImportItem[TBatchId]):
+    status: Literal["failed"]
+    error: str
+    ol_key: None
 
 
 class Stats:

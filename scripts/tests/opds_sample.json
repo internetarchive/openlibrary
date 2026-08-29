@@ -1,0 +1,163 @@
+{
+    "metadata": {
+        "title": "Better World Books",
+        "numberOfItems": 2,
+        "itemsPerPage": 50,
+        "currentPage": 1
+    },
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://www.betterworldbooks.com/opds/",
+            "type": "application/opds+json"
+        },
+        {
+            "rel": "first",
+            "href": "https://www.betterworldbooks.com/opds/",
+            "type": "application/opds+json"
+        },
+        {
+            "rel": "last",
+            "href": "https://www.betterworldbooks.com/opds/",
+            "type": "application/opds+json"
+        },
+        {
+            "rel": "http://opds-spec.org/shelf",
+            "href": "https://www.betterworldbooks.com/My/Account/Orders",
+            "type": "text/html"
+        }
+    ],
+    "publications": [
+        {
+            "metadata": {
+                "type": "http://schema.org/Book",
+                "title": "The Brick House Apparent Quarterly, Vol. 1",
+                "identifier": "urn:isbn:9781737408802",
+                "author": [
+                    {
+                        "name": "The Brick House Cooperative"
+                    },
+                    {
+                        "name": "Maria Bustillos"
+                    },
+                    {
+                        "name": "David Moore"
+                    },
+                    {
+                        "name": "Kólá Túbósún"
+                    },
+                    {
+                        "name": "Joe MacLeod"
+                    }
+                ],
+                "language": [
+                    "en"
+                ],
+                "published": "2021-08-03",
+                "modified": "2026-06-16T10:59:50.1400407-04:00"
+            },
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "https://www.betterworldbooks.com/opds/publication/9781737408802",
+                    "type": "application/opds-publication+json"
+                },
+                {
+                    "rel": "alternate",
+                    "href": "https://www.betterworldbooks.com/product/detail/the-brick-house-apparent-quarterly-vol-1-9781737408802/ebook",
+                    "type": "text/html"
+                },
+                {
+                    "rel": "http://opds-spec.org/shelf",
+                    "href": "https://www.betterworldbooks.com/My/Account/Orders",
+                    "type": "text/html"
+                },
+                {
+                    "rel": "http://opds-spec.org/acquisition/buy",
+                    "href": "https://www.betterworldbooks.com/purchase/9781737408802",
+                    "type": "text/html",
+                    "title": "Better World Books",
+                    "properties": {
+                        "indirectAcquisition": [
+                            {
+                                "type": "application/epub+zip"
+                            }
+                        ],
+                        "price": {
+                            "currency": "USD",
+                            "value": 1.25
+                        }
+                    }
+                }
+            ],
+            "images": [
+                {
+                    "href": "https://product-images.bwbcontent.com/173/62148414_The-Brick-House-Apparent-Quarterly-Vol-1-9781737408802_COV_167.jpg",
+                    "type": "image/jpeg",
+                    "rel": "cover"
+                }
+            ]
+        },
+        {
+            "metadata": {
+                "type": "http://schema.org/Book",
+                "title": "Vanishing Culture: A Report on Our Fragile Cultural Record",
+                "identifier": "urn:isbn:9798995425007",
+                "author": [
+                    {
+                        "name": "Chris Freeland"
+                    },
+                    {
+                        "name": "Luca Messarra"
+                    },
+                    {
+                        "name": "Juliya Ziskina"
+                    }
+                ],
+                "published": "2026-01-01",
+                "modified": "2026-06-16T13:02:54.4576888-04:00"
+            },
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "https://www.betterworldbooks.com/opds/publication/9798995425007",
+                    "type": "application/opds-publication+json"
+                },
+                {
+                    "rel": "alternate",
+                    "href": "https://www.betterworldbooks.com/product/detail/vanishing-culture-a-report-on-our-fragile-cultural-record-9798995425007/ebook",
+                    "type": "text/html"
+                },
+                {
+                    "rel": "http://opds-spec.org/shelf",
+                    "href": "https://www.betterworldbooks.com/My/Account/Orders",
+                    "type": "text/html"
+                },
+                {
+                    "rel": "http://opds-spec.org/acquisition/buy",
+                    "href": "https://www.betterworldbooks.com/purchase/9798995425007",
+                    "type": "text/html",
+                    "title": "Better World Books",
+                    "properties": {
+                        "indirectAcquisition": [
+                            {
+                                "type": "application/epub+zip"
+                            }
+                        ],
+                        "price": {
+                            "currency": "USD",
+                            "value": 1.01
+                        }
+                    }
+                }
+            ],
+            "images": [
+                {
+                    "href": "https://product-images.bwbcontent.com/899/73038647_Vanishing-Culture-A-Report-on-Our-Fragile-Cultural-Record-9798995425007_COV_600.jpg",
+                    "type": "image/jpeg",
+                    "rel": "cover"
+                }
+            ]
+        }
+    ]
+}
