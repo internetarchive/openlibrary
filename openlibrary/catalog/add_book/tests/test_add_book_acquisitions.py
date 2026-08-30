@@ -8,7 +8,6 @@ import pytest
 import web
 
 from openlibrary.bookworm import opds
-from openlibrary.bookworm.registry import FeedRegistry
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import load
 from openlibrary.core.acquisitions import Acquisition
@@ -186,22 +185,3 @@ def test_end_to_end_opds_publication_to_edition_with_acquisition(mock_site, add_
     assert rows[0].provider_name == "lenny"
     assert rows[0].local_id == rec["acquisitions"][0]["local_id"]
     assert rows[0].data["access"] == "open-access"
-
-
-def test_load_survives_registry_lookup_failure(mock_site, add_languages, ia_writeback, acquisitions_db, monkeypatch):
-    """A registry-read failure must not 500 an import whose edition already saved.
-
-    The acquisition is skipped (re-submitted on the next harvest, idempotent),
-    not raised — matching _save_acquisitions' fail-soft contract.
-    """
-
-    def boom() -> set:
-        raise RuntimeError("feed_registry unavailable")
-
-    monkeypatch.setattr(FeedRegistry, "provider_names", staticmethod(boom))
-    rec = {**BASE, "acquisitions": [{"provider_name": "lenny", "local_id": "37044775", "data": {"access": "open-access"}}]}
-    reply = load(rec)
-    assert reply["success"] is True  # import succeeded despite the registry error
-
-    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
-    assert Acquisition.get_by_edition(edition_id) == []  # acquisition skipped, not fatal

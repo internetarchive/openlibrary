@@ -7,7 +7,7 @@ import pytest
 import web
 
 from openlibrary.bookworm import harvest, opds
-from openlibrary.bookworm.harvest import _as_utc, request_url
+from openlibrary.bookworm.harvest import _as_utc
 from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, FeedRegistry
 from openlibrary.core.db import get_db
 
@@ -93,7 +93,7 @@ def test_harvest_gutenberg_injects_modified_since_and_open_access(bookworm_db):
     FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 7, 20))
     feed = FeedRegistry.get_by_id(feed.id)
 
-    fetch_url = request_url(feed, datetime.datetime(2026, 7, 20, tzinfo=datetime.UTC))
+    fetch_url = feed.request_url(datetime.datetime(2026, 7, 20, tzinfo=datetime.UTC))
     assert "modified_since=2026-07-20" in fetch_url
     session = FakeSession({fetch_url: feed_page("gutenberg")})
 

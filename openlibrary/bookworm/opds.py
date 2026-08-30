@@ -135,11 +135,14 @@ def extract_local_id(pub: Publication, feed: Feed) -> str | None:
     return None
 
 
-def build_acquisition(pub: Publication, feed: Feed, local_id: str) -> list[dict[str, Any]]:
+def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict[str, Any]]:
     """Acquisition items for a publication: one per buy/open-access link.
 
     Each item is an acquisitions-table row minus work/edition ids (the catalog
-    supplies those): ``provider_name`` + ``local_id`` + a ``data`` blob.
+    supplies those): ``provider_name`` + ``local_id`` + a ``data`` blob. The
+    blob keeps convenience fields (access/url/format/title/price) plus ``link``,
+    the raw OPDS acquisition link, so provider-specific data we don't lift out
+    yet (currency, indirect acquisition, ...) isn't lost.
     """
     items = []
     for link in pub.acquisition_links():
@@ -150,6 +153,7 @@ def build_acquisition(pub: Publication, feed: Feed, local_id: str) -> list[dict[
             data["title"] = link.title
         if link.properties and link.properties.price:
             data["price"] = link.properties.price.model_dump()
+        data["link"] = link.model_dump(mode="json", exclude_none=True)
         items.append({"provider_name": feed.provider_name, "local_id": local_id, "data": data})
     return items
 
@@ -187,6 +191,6 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
     # internetarchive/openlibrary#10856 and the covers wiki). Covers for ingested
     # feeds are a separate, later concern. ``Publication.cover()`` stays available
     # for that future path. #12844
-    if acquisitions := build_acquisition(pub, feed, local_id):
+    if acquisitions := build_acquisitions(pub, feed, local_id):
         record["acquisitions"] = acquisitions
     return record

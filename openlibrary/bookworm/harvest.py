@@ -5,14 +5,13 @@ Fetch a registered feed, parse its publications into Open Library import records
 queue via :class:`~openlibrary.core.imports.Batch`. ImportBot (manage-imports)
 then loads them, and the catalog writes the acquisitions.
 
-Per-feed cursor styles (from the registry ``data`` blob):
-
-- ``client`` (BWB, Lenny): crawl ``rel=next``; when publications carry a
-  ``modified`` timestamp, keep only those newer than the cursor and advance to
-  the newest seen.
-- ``modified_since`` (Gutenberg): inject ``modified_since=<cursor date>`` into
-  the request so the server returns only changed items; advance the cursor to
-  the run time.
+The clean path is :func:`harvest_feed`: the feed filters server-side via
+``?modified_since=<cursor>`` (Gutenberg, Lenny), so we just fetch, parse, submit,
+and advance the cursor to now. Feeds that don't support that param fall back to
+:func:`_harvest_by_full_crawl`, which crawls the whole feed and filters by each
+publication's ``modified`` timestamp on our side. That fallback exists only for
+holdouts (currently BWB) and is meant to be deleted once every feed supports
+``modified_since``.
 """
 
 from __future__ import annotations
@@ -20,12 +19,11 @@ from __future__ import annotations
 import datetime
 import logging
 from typing import Any
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import requests
 
 from openlibrary.bookworm import opds
-from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, FeedRegistry
+from openlibrary.bookworm.registry import FeedRegistry
 from openlibrary.core.imports import Batch
 
 logger = logging.getLogger("openlibrary.bookworm.harvest")
@@ -39,16 +37,6 @@ def _as_utc(value: datetime.datetime | str | None) -> datetime.datetime | None:
         return None
     dt = datetime.datetime.fromisoformat(value) if isinstance(value, str) else value
     return dt.replace(tzinfo=datetime.UTC) if dt.tzinfo is None else dt.astimezone(datetime.UTC)
-
-
-def request_url(feed: FeedRegistry, since: datetime.datetime) -> str:
-    """The URL to fetch: for ``modified_since`` feeds, inject the cursor date."""
-    if feed.cursor_style != CURSOR_MODIFIED_SINCE:
-        return feed.url
-    parts = urlparse(feed.url)
-    query = parse_qs(parts.query)
-    query["modified_since"] = [since.date().isoformat()]
-    return urlunparse(parts._replace(query=urlencode(query, doseq=True)))
 
 
 def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None):
@@ -73,9 +61,19 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
         )
 
 
-def _submit(provider_name: str, records: list[dict[str, Any]]) -> None:
-    batch = Batch.find(f"{provider_name}-opds") or Batch.new(f"{provider_name}-opds")
-    batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
+def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[dict[str, Any] | None, datetime.datetime | None]:
+    """Parse one OPDS publication into (import record | None, modified timestamp).
+
+    Isolated so a single malformed publication (bad timestamp, link missing
+    ``href``, non-dict entry) is skipped rather than aborting the whole feed —
+    which would leave the cursor un-advanced and re-poison every later run.
+    """
+    try:
+        pub = opds.Publication(**raw)
+        return opds.to_import_record(pub, feed), _as_utc(pub.modified)
+    except Exception:
+        logger.exception("skipping malformed publication in %s", provider_name)
+        return None, None
 
 
 def harvest_feed(
@@ -84,38 +82,72 @@ def harvest_feed(
     max_pages: int | None = None,
     now: datetime.datetime | None = None,
 ) -> dict[str, Any]:
-    """Harvest one feed: fetch -> parse -> submit to import_item -> advance cursor."""
+    """Harvest one feed via its server-side ``modified_since`` filter (the clean path).
+
+    Feeds that don't support that param are handed off to
+    :func:`_harvest_by_full_crawl`.
+    """
+    if not feed.supports_modified_since:
+        return _harvest_by_full_crawl(feed, session=session, max_pages=max_pages, now=now)
+
     session = session or requests.Session()
     now = now or datetime.datetime.now(datetime.UTC)
-    since = _as_utc(feed.get("last_updated")) or EPOCH
+    since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
-    client_cursor = feed.cursor_style != CURSOR_MODIFIED_SINCE
+
+    records: list[dict[str, Any]] = []
+    for page in iter_pages(feed.request_url(since), session, max_pages=max_pages):
+        for raw in page.get("publications") or []:
+            record, _modified = _parse_publication(raw, parser_feed, feed.provider_name)
+            if record:
+                records.append(record)
+
+    if records:
+        batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
+        batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
+    # The server already returned only records modified since the cursor, so
+    # advance straight to the run time.
+    FeedRegistry.advance(feed.id, last_updated=now.replace(tzinfo=None))
+    logger.info("harvested %s: %d records", feed.provider_name, len(records))
+    return {"feed": feed.provider_name, "records": len(records)}
+
+
+def _harvest_by_full_crawl(
+    feed: FeedRegistry,
+    session: requests.Session | None = None,
+    max_pages: int | None = None,
+    now: datetime.datetime | None = None,
+) -> dict[str, Any]:
+    """Fallback for feeds WITHOUT a ``modified_since`` filter (currently only BWB).
+
+    Crawls the whole feed every run and filters by each publication's ``modified``
+    timestamp on our side, advancing the cursor to the newest one seen. This is
+    strictly worse than the native path (full re-crawl each time) and exists only
+    while a holdout feed lacks the server-side filter — delete it once none do.
+    """
+    session = session or requests.Session()
+    now = now or datetime.datetime.now(datetime.UTC)
+    since = _as_utc(feed.last_updated) or EPOCH
+    parser_feed = feed.to_feed()
 
     records: list[dict[str, Any]] = []
     max_modified = since
-    for page in iter_pages(request_url(feed, since), session, max_pages=max_pages):
+    for page in iter_pages(feed.url, session, max_pages=max_pages):
         for raw in page.get("publications") or []:
-            # One malformed publication (bad timestamp, link missing href, non-dict
-            # entry) must not abort the page/feed: that would leave the cursor
-            # un-advanced and re-poison every subsequent cycle. Skip and continue.
-            try:
-                pub = opds.Publication(**raw)
-                modified = _as_utc(pub.modified)
-                if client_cursor and modified is not None:
-                    if modified <= since:
-                        continue
-                    max_modified = max(max_modified, modified)
-                if record := opds.to_import_record(pub, parser_feed):
-                    records.append(record)
-            except Exception:
-                logger.exception("skipping malformed publication in %s", feed.provider_name)
+            record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
+            if modified is not None:
+                if modified <= since:
+                    continue  # already seen; keep scanning (feed order isn't guaranteed)
+                max_modified = max(max_modified, modified)
+            if record:
+                records.append(record)
 
     if records:
-        _submit(feed.provider_name, records)
-
-    new_cursor = max_modified if (client_cursor and max_modified > since) else now
+        batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
+        batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
+    new_cursor = max_modified if max_modified > since else now
     FeedRegistry.advance(feed.id, last_updated=new_cursor.replace(tzinfo=None))
-    logger.info("harvested %s: %d records", feed.provider_name, len(records))
+    logger.info("harvested %s (full crawl): %d records", feed.provider_name, len(records))
     return {"feed": feed.provider_name, "records": len(records)}
 
 

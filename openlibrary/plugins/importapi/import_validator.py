@@ -168,12 +168,14 @@ class import_validator:
     def _registered_feed_providers() -> set[str]:
         """The ``provider_name`` of every registered feed (empty if unavailable).
 
-        Wrapped defensively: this runs on every incomplete import, including in
-        contexts (unit tests, tooling) with no database configured.
+        ``validate`` runs in contexts with no database configured (unit tests,
+        tooling), so a failed registry read must fall back to "no registered
+        feeds" — i.e. skip the exemption — rather than break validation. This is
+        not the legacy missing-table guard; it keeps validation DB-optional.
         """
         try:
             from openlibrary.bookworm.registry import FeedRegistry
 
             return FeedRegistry.provider_names()
-        except Exception:  # noqa: BLE001 - absence of a DB must not break validation
+        except Exception:  # noqa: BLE001 - validation must not require a database
             return set()

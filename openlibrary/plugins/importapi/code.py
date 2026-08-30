@@ -187,8 +187,8 @@ class importapi:
 
         # Acquisitions ride along on the import record. ImportBot posts feed
         # records to this (privileged) endpoint, so the guard against arbitrary
-        # callers minting acquisitions is enforced downstream in add_book.load:
-        # only providers with a registered feed are honored. #12844
+        # callers minting acquisitions from unregistered feeds is enforced
+        # downstream in add_book.load. #12844
 
         try:
             reply = add_book.load(edition, save=not preview)

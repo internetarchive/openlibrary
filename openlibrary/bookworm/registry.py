@@ -7,8 +7,7 @@ Gutenberg, Lenny, ...) and how far each has been processed — the
 Lives in the Open Library database for v1 (``feed_registry`` table); it moves to
 a dedicated bookworm database later. Per-feed connector config lives in the
 ``data`` blob: ``id_strategy`` (how to derive the publication id) and
-``cursor_style`` (how the feed expresses "since" — client-side filtering vs a
-``modified_since`` query param). A row maps to an
+``cursor_style`` (how the feed expresses "since"). A row maps to an
 :class:`openlibrary.bookworm.opds.Feed`.
 """
 
@@ -17,7 +16,8 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import web
 
@@ -29,9 +29,19 @@ logger = logging.getLogger("openlibrary.bookworm.registry")
 if TYPE_CHECKING:
     from web.db import ResultSet
 
-# cursor styles
-CURSOR_CLIENT = "client"  # crawl rel=next, filter modified > cursor client-side (BWB, Lenny)
-CURSOR_MODIFIED_SINCE = "modified_since"  # inject ?modified_since=<cursor> into the request (Gutenberg)
+CursorStyle = Literal["client", "modified_since"]
+"""How a feed lets us fetch only what changed since the last run:
+
+- ``modified_since``: the feed honors a ``?modified_since=<cursor>`` query param
+  and filters server-side (Gutenberg, Lenny). This is the desired shape.
+- ``client``: the feed has no such param, so it must be crawled in full and
+  filtered on our side by each publication's ``modified`` timestamp (currently
+  only BWB). Ideally every feed becomes ``modified_since`` and this can be
+  dropped along with the full-crawl code path.
+"""
+
+CURSOR_CLIENT: CursorStyle = "client"
+CURSOR_MODIFIED_SINCE: CursorStyle = "modified_since"
 
 
 def _utcnow() -> datetime.datetime:
@@ -41,13 +51,25 @@ def _utcnow() -> datetime.datetime:
 class FeedRegistry(web.storage):
     """A single row of the ``feed_registry`` table."""
 
+    # Columns (annotations so the fields type-check; web.storage holds them):
+    id: int
+    provider_name: str
+    feed_type: str
+    url: str
+    last_updated: datetime.datetime | None
+    data: dict
+    created: datetime.datetime
+    updated: datetime.datetime
+
     TABLENAME = "feed_registry"
 
     @staticmethod
     def _from_row(row: Any) -> FeedRegistry:
         registry = FeedRegistry(row)
-        if isinstance(registry.get("data"), str):
-            registry.data = json.loads(registry.data)
+        # jsonb comes back as a dict from Postgres but as a string from SQLite.
+        raw = registry.get("data")
+        if isinstance(raw, str):
+            registry.data = json.loads(raw)
         return registry
 
     @staticmethod
@@ -86,13 +108,15 @@ class FeedRegistry(web.storage):
         url: str,
         feed_type: str = "opds",
         id_strategy: str = "isbn",
-        cursor_style: str = CURSOR_CLIENT,
+        cursor_style: CursorStyle = CURSOR_CLIENT,
         data: dict | None = None,
     ) -> FeedRegistry | None:
         """Idempotently register a feed (keyed on ``provider_name`` + ``url``).
 
         ``id_strategy`` and ``cursor_style`` are the connector config; extra
-        config may be passed via ``data``.
+        config may be passed via ``data``. Pass ``cursor_style="modified_since"``
+        for feeds that support the server-side filter (Gutenberg, Lenny); the
+        conservative default ``client`` (full crawl) works for any feed.
         """
         if existing := FeedRegistry.find(provider_name, url):
             return existing
@@ -115,8 +139,20 @@ class FeedRegistry(web.storage):
         return (self.data or {}).get("id_strategy", "isbn")
 
     @property
-    def cursor_style(self) -> str:
+    def cursor_style(self) -> CursorStyle:
         return (self.data or {}).get("cursor_style", CURSOR_CLIENT)
+
+    @property
+    def supports_modified_since(self) -> bool:
+        """Whether the feed filters server-side via ``?modified_since=<cursor>``."""
+        return self.cursor_style == CURSOR_MODIFIED_SINCE
+
+    def request_url(self, since: datetime.datetime) -> str:
+        """This feed's fetch URL with the ``modified_since`` cursor injected."""
+        parts = urlparse(self.url)
+        query = parse_qs(parts.query)
+        query["modified_since"] = [since.date().isoformat()]
+        return urlunparse(parts._replace(query=urlencode(query, doseq=True)))
 
     def to_feed(self) -> Feed:
         """The :class:`~openlibrary.bookworm.opds.Feed` parser config for this row."""
