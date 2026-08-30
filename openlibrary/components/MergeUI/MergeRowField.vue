@@ -146,6 +146,7 @@ export default {
             required: true
         },
         value: {
+            type: [String, Number, Boolean, Object, Array],
             required: true
         },
         merged: {

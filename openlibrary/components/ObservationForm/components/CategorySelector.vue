@@ -17,9 +17,13 @@
       >
         <template #before>
           <span
+            v-if="hasSelectedValues(o.label)"
             class="symbol"
-            v-html="displaySymbol(o.label)"
-          />
+          >&#10004;</span>
+          <span
+            v-else
+            class="symbol"
+          >&bull;</span>
         </template>
       </OLChip>
     </div>
@@ -74,6 +78,7 @@ export default {
             default: 0
         }
     },
+    emits: ['update-selected'],
     data: function() {
         return {
             /**
@@ -116,19 +121,13 @@ export default {
             return this.selectedId === id;
         },
         /**
-         * Returns an HTML code denoting what symbol to display in a book tag type chip.
+         * Returns `true` if any book tags of the given type have been selected.
          *
-         * Will return a bullet symbol if no book tags of a chip's type have been selected,
-         * and a heavy checkmark otherwise.
-         *
-         * @returns {String} An HTML code representing selections of a type.
+         * @param {String} type A book tag type.
+         * @returns {boolean} Whether any selected values exist for the given type.
          */
-        displaySymbol: function(type) {
-            if (this.allSelectedValues[type] && this.allSelectedValues[type].length) {
-                // &#10004; - Heavy checkmark
-                return '&#10004;';
-            }
-            return '&bull;';
+        hasSelectedValues: function(type) {
+            return !!(this.allSelectedValues[type] && this.allSelectedValues[type].length);
         }
     }
 };
