@@ -51,7 +51,10 @@ import CONFIGS from '../../configs';
 export default {
     components: { FlatBookCover },
     props: {
-        books: Array
+        books: {
+            type: Array,
+            default: () => []
+        }
     },
     data() {
         return {

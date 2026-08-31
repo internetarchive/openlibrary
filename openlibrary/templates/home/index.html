@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, test=False)
+$def with (stats=None, blog_posts=None, test=False, featured_subjects=[])
 
 $ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
@@ -38,7 +38,7 @@ $add_metatag(property="og:site_name", content="Open Library")
   $if not test and get_ol_env().LOCAL_DEV:
     $:macros.QueryCarousel(title=_('Books in Local Environment'), query='*', use_cache=False)
 
-  $:render_template("home/categories", test=test)
+  $:render_template("home/categories", featured_subjects=featured_subjects if not test else [])
 
   $:render_template("home/stats", stats)
 

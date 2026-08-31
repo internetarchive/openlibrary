@@ -105,10 +105,14 @@ export class MyBooksDropper extends Dropper {
     /**
      * Creates loading animation for list loading indicator.
      *
-     * @param {HTMLElement} loadingIndicator
-     * @returns {NodeJS.Timer}
+     * @param {HTMLElement|null} loadingIndicator
+     * @returns {NodeJS.Timer|null}
      */
     initLoadingAnimation(loadingIndicator) {
+        // The indicator is only rendered for authenticated patrons, so without
+        // this guard the interval throws on every tick for anonymous visitors.
+        if (!loadingIndicator) return null;
+
         let count = 0;
         const intervalId = setInterval(function() {
             let ellipsis = '';
