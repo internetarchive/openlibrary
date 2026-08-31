@@ -102,17 +102,6 @@ def mock_fulltext_search_async():
 
 
 @pytest.fixture
-def mock_fulltext_search():
-    """Mock the fulltext_search (sync) function to avoid actual Solr calls.
-
-    Used by webpy search_inside endpoint tests.
-    """
-    with patch("openlibrary.plugins.inside.code.fulltext_search", autospec=True) as mock:
-        mock.return_value = {"docs": [], "numFound": 0}
-        yield mock
-
-
-@pytest.fixture
 def mock_async_run_solr_query():
     """Mock async_run_solr_query function to avoid actual Solr calls.
 
