@@ -7104,11 +7104,6 @@ msgstr ""
 msgid "❞"
 msgstr ""
 
-#: FulltextSuggestionSnippet.html
-#, python-format
-msgid "Page: %(page)s"
-msgstr ""
-
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
