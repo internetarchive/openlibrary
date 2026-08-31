@@ -18,7 +18,7 @@ DEFAULT_BATCH_SIZE = 20_000
 def init(conf_path):
     init_signal_handler()
     setup_for_script(conf_path)
-    web.ctx.ip = web.ctx.ip or "127.0.0.1"
+    web.ctx.ip = getattr(web.ctx, "ip", None) or "127.0.0.1"
 
 
 def find_upper_bound():
