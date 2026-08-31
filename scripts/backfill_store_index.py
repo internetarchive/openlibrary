@@ -27,7 +27,7 @@ def find_upper_bound():
     query = """
         SELECT MIN(new_id) as min from store_index
     """
-    return list(oldb.query(query))[0]["min"]
+    return next(iter(oldb.query(query)))["min"]
 
 
 def backfill_rows(lower_bound, upper_bound):
