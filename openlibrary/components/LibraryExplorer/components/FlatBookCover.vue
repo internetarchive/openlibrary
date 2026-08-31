@@ -33,10 +33,14 @@ import { hashCode } from '../utils.js';
 
 export default {
     props: {
-        book: Object,
-        /** @type {'image' | 'text'} */
+        book: {
+            type: Object,
+            required: true
+        },
         cover: {
-            default: 'image'
+            type: String,
+            default: 'image',
+            validator: val => ['image', 'text'].includes(val)
         }
     },
 

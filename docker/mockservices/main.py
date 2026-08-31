@@ -67,6 +67,8 @@ app = FastAPI(title="OL Mock Services", docs_url="/mock/docs", lifespan=_lifespa
 #
 # Supported ops: authenticate, info, issue_otp, redeem_otp, create, issue_key, activate
 # Dev credentials: email=test@example.com, password=<any non-empty>
+#                  (password "bad_password" is rejected, so the error path
+#                  is reachable from the login form / e2e tests)
 # Dev S3 keys:     access=foo, secret=foo
 # Dev OTP code:    123456
 # ---------------------------------------------------------------------------
@@ -76,6 +78,7 @@ _DEV_SCREENNAME = "testuser"
 _DEV_EMAIL = "test@example.com"
 _DEV_OTP = "123456"
 _DEV_TOKEN = "dev_placeholder_token"
+_DEV_BAD_PASSWORD = "bad_password"
 
 
 @app.post("/services/xauthn/")
@@ -86,7 +89,7 @@ async def xauth(op: str, request: Request) -> JSONResponse:
         body = {}
 
     if op == "authenticate":
-        if not body.get("password"):
+        if body.get("password") in (None, "", _DEV_BAD_PASSWORD):
             return JSONResponse({"success": False, "values": {"reason": "bad_password"}})
         return JSONResponse(
             {
