@@ -1201,11 +1201,11 @@ export class SearchModal extends LitElement {
     }
 
     // One snippet row: cover, two-line quote with the match marked, and
-    // a title · author attribution line. The whole row deep-links to
-    // the passage — BookReader opens with the query highlighted via the
-    // #search/ anchor (the same link the /search/inside page uses).
+    // a title · author attribution line. The whole row opens BookReader with
+    // the query (?q=) — its own in-book search finds and highlights the
+    // passage (the same link the /search/inside page uses).
     _renderFulltextHit(hit, q, index = 0) {
-        const href = `https://archive.org/stream/${hit.ia}?ref=ol&access=1#search/${encodeURIComponent(q)}`;
+        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(q)}`;
         const segments = parseSnippet(hit.snippet);
         const attribution = [hit.title, hit.author].filter(Boolean).join(' · ');
         return html`<li>

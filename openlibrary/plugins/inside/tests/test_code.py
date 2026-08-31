@@ -44,8 +44,8 @@ def test_readable_fails_open_when_availability_lookup_failed():
 
 
 def test_rows_carry_parsed_snippets():
-    """The live service reports one page per hit ([[270]]) alongside several
-    highlights, so the first snippet deep-links and the rest fall back."""
+    """page_num stays on the wire untouched: the cross-document FTS index has
+    no page knowledge (per IA), so rows never carry page numbers."""
     rows, total = fulltext_page(
         {
             "hits": {
@@ -62,22 +62,8 @@ def test_rows_carry_parsed_snippets():
     assert total == 4312
     (row,) = rows
     assert row.ocaid == "scan1"
-    assert [snippet.page for snippet in row.snippets] == [270, None]
+    assert len(row.snippets) == 2
     assert row.snippets[0].segments == [("But ", False), ("Lokesh", True), (" had", False)]
-
-
-def test_extra_reported_pages_pair_with_later_snippets():
-    """Forward-compat: if the service ever reports a page per highlight, each
-    snippet deep-links rather than only the first."""
-    rows, _ = fulltext_page(
-        {
-            "hits": {
-                "total": 1,
-                "hits": [{"fields": {"identifier": ["scan1"], "page_num": [[214, 350]]}, "highlight": {"text": ["{{{a}}}", "{{{b}}}"]}}],
-            }
-        }
-    )
-    assert [snippet.page for snippet in rows[0].snippets] == [214, 350]
 
 
 def test_rows_fall_back_to_ia_metadata_when_no_edition_hydrated():
@@ -108,7 +94,7 @@ def test_rows_tolerate_fields_that_are_present_but_empty():
     """A present-but-empty field used to raise IndexError off `[0]` indexing."""
     rows, _ = fulltext_page({"hits": {"total": 1, "hits": [{"fields": {"identifier": ["scan3"], "meta_title": [], "page_num": []}}]}})
     (row,) = rows
-    assert (row.title, row.snippets, row.pages) == ("scan3", [], [])
+    assert (row.title, row.snippets) == ("scan3", [])
 
 
 @pytest.mark.parametrize("results", [None, {}, {"error": "Unable to query search engine"}, {"hits": {"hits": [], "total": 0}}])

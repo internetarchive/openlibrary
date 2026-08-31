@@ -2,14 +2,13 @@ $def with (q, row=None)
 
 $ ia_base_url = "https://archive.org"
 
+$# Every quote opens BookReader with the query — its own in-book search finds
+$# and highlights the match. No page deep-links: the FTS index we queried has
+$# no page knowledge (per IA), so there is nothing more precise to link to.
+$ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=q)))
+
 <ul class="fsi-snippet">
   $for snippet in row.snippets[:3]:
-    $# With a page, the quote deep-links straight to it (q keeps the term
-    $# highlighted); without one, fall back to BookReader's search view.
-    $if snippet.page is not None:
-      $ href = "%s/details/%s/page/%s?%s" % (ia_base_url, row.ocaid, snippet.page, urlencode(dict(q=q)))
-    $else:
-      $ href = "%s/stream/%s?ref=ol&access=1#search/%s" % (ia_base_url, row.ocaid, q)
     <li class="fsi-snippet__main fsi-snippet__full-results">
       $# snippet.html escapes each segment and marks the matches; see Snippet in
       $# core/fulltext.py. Never interpolate snippet text directly.

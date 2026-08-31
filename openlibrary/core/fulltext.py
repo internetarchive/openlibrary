@@ -119,30 +119,13 @@ def parse_snippet(snippet: str) -> list[tuple[str, bool]]:
     return segments
 
 
-def _page_numbers(raw: Any) -> list:
-    """The page numbers the API reported for a hit.
-
-    Nested one level deeper than the other fields — [[270]]. Measured against
-    the live service, it reports a single page per hit while returning several
-    highlights, so treat this as "the pages we were told about", not as a value
-    aligned with the snippets. Snippet.page pairs them positionally for the
-    entries that exist, which today means the first snippet deep-links and the
-    rest fall back to BookReader's search view.
-    """
-    if not raw:
-        return []
-    inner = raw[0] if isinstance(raw[0], list) else raw
-    return [page for page in inner if page is not None]
-
-
 @dataclass(frozen=True)
 class Snippet:
-    """One matched passage: its text as (text, is_match) segments, and the page
-    to deep-link to — None when the API reported no page for this snippet, which
-    today is every snippet but the first (see _page_numbers)."""
+    """One matched passage as (text, is_match) segments. No page number: the
+    cross-document FTS index has no page knowledge (per IA), so links hand the
+    query to BookReader, whose own in-book search locates and highlights it."""
 
     segments: list[tuple[str, bool]]
-    page: Any = None
 
     @property
     def html(self) -> str:
@@ -166,7 +149,6 @@ class FulltextRow:
 
     ocaid: str
     snippets: list[Snippet]
-    pages: list
     edition: Any = None
     availability: dict | None = None
     title: str = ""
@@ -177,12 +159,10 @@ class FulltextRow:
 def _row(hit: dict) -> FulltextRow:
     fields = hit.get("fields") or {}
     ocaid = _first(fields.get("identifier"))
-    pages = _page_numbers(fields.get("page_num"))
     texts = (hit.get("highlight") or {}).get("text") or []
     return FulltextRow(
         ocaid=ocaid,
-        snippets=[Snippet(parse_snippet(text), pages[i] if i < len(pages) else None) for i, text in enumerate(texts) if text],
-        pages=pages,
+        snippets=[Snippet(parse_snippet(text)) for text in texts if text],
         edition=hit.get("edition"),
         availability=hit.get("availability") or {},
         title=_first(fields.get("meta_title")) or ocaid,

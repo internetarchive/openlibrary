@@ -2,7 +2,9 @@ $def with (q, row=None)
 
 $ ia_base_url = "https://archive.org"
 $ snippet = row.snippets[0] if row.snippets else None
-$ page = ', '.join(str(num) for num in row.pages)
+$# The quote opens BookReader with the query so its in-book search highlights
+$# the match. No page number shown: the FTS index has no page knowledge.
+$ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=q)))
 
 $if snippet:
   <div class="fsi-snippet">
@@ -10,13 +12,9 @@ $if snippet:
       <div class="fsi-snippet__quotation-mark">$_('❝')</div>
       $# snippet.html escapes each segment and marks the matches; see Snippet in
       $# core/fulltext.py. Never interpolate snippet text directly.
-      <a class="fsi-snippet__link" href="$ia_base_url/details/$row.ocaid" data-ol-link-track="SearchInsideSuggestion|QuoteClick">
+      <a class="fsi-snippet__link" href="$href" data-ol-link-track="SearchInsideSuggestion|QuoteClick">
         &hellip;$:snippet.html&hellip;
       </a>&nbsp;
       <div class="fsi-snippet__quotation-mark">$_('❞')</div>
-      $if page:
-        <span class="fsi-snippet__page-num">
-          <a href="$ia_base_url/details/$row.ocaid" data-ol-link-track="SearchInsideSuggestion|QuoteClick">$_('Page: %(page)s', page=page)</a>
-        </span>
     </div>
   </div>
