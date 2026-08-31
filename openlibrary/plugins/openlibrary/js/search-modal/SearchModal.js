@@ -32,7 +32,8 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { parseSnippet, fulltextHitDisplay, isPassageQuery, solrLooksWeak } from './fulltext.js';
+import { parseSnippet } from './fulltext.js';
+import { FulltextBand, fulltextSearchParams } from './fulltextBand.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -77,10 +78,6 @@ const READABLE_ACCESS = new Set(['public', 'borrowable']);
 const PRINT_DISABLED_ACCESS = 'printdisabled';
 
 const RESULTS_LIMIT     = 10;
-// Snippet rows in the "Found inside books" band. Small on purpose: every
-// fulltext hit costs availability + edition hydration server-side, and the
-// band is a teaser pointing at /search/inside, not a result list.
-const FULLTEXT_LIMIT    = 3;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
@@ -814,22 +811,18 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
 
-        // "Found inside books" band: up to FULLTEXT_LIMIT Search Inside
-        // snippet hits plus the total match count. Fulltext is a rescue-and-
-        // passages surface, not an every-query one: passage-shaped queries
-        // (quotes, questions, long phrases — see isPassageQuery) fetch on this
-        // slower debounce, while everything else waits for the Solr response
-        // and fetches only when it came back weak (see _fetchResults). Title
-        // lookups that Solr answers well never hit the fulltext backend — an
-        // external service with much higher latency variance.
-        this._ftHits           = [];
-        this._ftTotal          = null;
-        this._ftFetchKey       = null;
-        // The passage check runs at fire time, not schedule time, so a timer
-        // scheduled under an older query can't fetch for the edited one.
-        this._debouncedFtFetch = debounce(() => {
-            if (isPassageQuery(this._query)) this._fetchFulltext();
-        }, 800, false);
+        // "Found inside books" band. When it fetches is FulltextBand's call —
+        // the modal reports what happened (query changed, Solr settled, Solr
+        // failed) and mirrors the result into reactive state.
+        this._ftHits  = [];
+        this._ftTotal = null;
+        this._ftBand  = new FulltextBand({
+            getFilters: () => this._fulltextFilters(),
+            onChange: ({ hits, total }) => {
+                this._ftHits  = hits;
+                this._ftTotal = total;
+            },
+        });
         this._allLangsLoaded = false;
         // Search context the currently-merged language counts describe, and the
         // one a request is in flight for. Equal keys mean the counts on screen
@@ -922,7 +915,7 @@ export class SearchModal extends LitElement {
         this._seeAllLoading  = false;
         this._activeFetchKey = null;
         this._resetResults({ hasSearched: false });
-        this._clearFulltext();
+        this._ftBand.clear();
         const input = this.renderRoot.querySelector('.search-input');
         if (input) {
             input.value = '';
@@ -1191,9 +1184,7 @@ export class SearchModal extends LitElement {
     _renderFulltextBand() {
         if (this._ftHits.length === 0) return nothing;
         const q = this._query.trim();
-        const seeAllParams = new URLSearchParams({ q });
-        this._appendFulltextFilterParams(seeAllParams);
-        const seeAllHref = `/search/inside?${seeAllParams.toString()}`;
+        const seeAllHref = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
         return html`
             <h3 class="results-heading">${this._i18n.foundInside}</h3>
             <ul class="results-list">
@@ -1273,8 +1264,7 @@ export class SearchModal extends LitElement {
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
         this._loading = true;
-        this._debouncedFetch();
-        this._debouncedFtFetch();
+        this._scheduleSearch();
     }
 
     // role="button" rows activate on Enter and Space. Keydowns bubbling up
@@ -1584,8 +1574,7 @@ export class SearchModal extends LitElement {
         if (input) input.value = text;
         if (this._shouldAutocomplete()) {
             this._loading = true;
-            this._debouncedFetch();
-            this._debouncedFtFetch();
+            this._scheduleSearch();
         }
     }
 
@@ -1594,7 +1583,7 @@ export class SearchModal extends LitElement {
         this._navigatingKey = null;
         if (!this._shouldAutocomplete()) {
             this._resetResults({ hasSearched: false });
-            this._clearFulltext();
+            this._ftBand.clear();
             return;
         }
         // Drop the previous query's author suggestion immediately. Stale book
@@ -1604,8 +1593,7 @@ export class SearchModal extends LitElement {
         // resolves.
         this._authorSuggestions = [];
         this._loading = true;
-        this._debouncedFetch();
-        this._debouncedFtFetch();
+        this._scheduleSearch();
     }
 
     _onInputKeydown(e) {
@@ -1692,8 +1680,7 @@ export class SearchModal extends LitElement {
     _refetchIfActive() {
         if (this._shouldAutocomplete()) {
             this._loading = true;
-            this._debouncedFetch();
-            this._debouncedFtFetch();
+            this._scheduleSearch();
         }
     }
 
@@ -1753,18 +1740,7 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
-                // Fulltext gate, non-passage half (passage queries fetch on
-                // their own debounce — leave that path alone): fetch when the
-                // catalog answer looks weak, so the band acts as a rescue;
-                // otherwise clear it, so a strong title match isn't trailed by
-                // a stale band from the previous query.
-                if (!isPassageQuery(trimmed)) {
-                    if (solrLooksWeak(this._results, trimmed)) {
-                        this._fetchFulltext();
-                    } else {
-                        this._clearFulltext();
-                    }
-                }
+                this._ftBand.solrSettled(trimmed, this._results);
                 // Record the settled outcome — ResultsShown or NoResults —
                 // deferred so only a query the patron actually stops on counts
                 // (not each partial typed on the way). See _scheduleOutcomeTrack.
@@ -1776,9 +1752,7 @@ export class SearchModal extends LitElement {
                     hasSearched: true,
                     clearReadableCount: this._availability === 'readable',
                 });
-                // Solr itself failed — the fulltext band is the only rescue
-                // left, and it runs on a separate backend.
-                this._fetchFulltext();
+                this._ftBand.solrFailed(trimmed);
             });
     }
 
@@ -1799,48 +1773,6 @@ export class SearchModal extends LitElement {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._readableCount = null;
             });
-    }
-
-    // Fetches a few Search Inside snippet matches for the current query, for
-    // the "Found inside books" band. Reached two ways — the passage-query
-    // debounce set up in the constructor, or a weak/failed Solr response in
-    // _fetchResults — with its own race key and silent failure: the band
-    // simply doesn't render, because it's a secondary discovery surface, not
-    // the primary result list. facets=false skips the aggregations work
-    // upstream (see /search/inside.json).
-    _fetchFulltext() {
-        const trimmed = this._query.trim();
-        if (!this._shouldAutocomplete()) return;
-
-        const params = new URLSearchParams();
-        params.set('q', trimmed);
-        params.set('facets', 'false');
-        this._appendFulltextFilterParams(params);
-        // The server drops unreadable hits from the page it fetched, so the
-        // readable filter needs headroom or the band thins out to a row or two.
-        params.set('limit', String(params.get('readable') ? FULLTEXT_LIMIT * 3 : FULLTEXT_LIMIT));
-        const url = `/search/inside.json?${params.toString()}`;
-        this._ftFetchKey = url;
-
-        fetch(url)
-            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Fulltext search failed: ${r.status}`)))
-            .then(data => {
-                if (this._ftFetchKey !== url) return;
-                const hits = (data && data.hits && data.hits.hits) || [];
-                this._ftHits  = hits.map(fulltextHitDisplay).filter(Boolean).slice(0, FULLTEXT_LIMIT);
-                this._ftTotal = typeof data?.hits?.total === 'number' ? data.hits.total : null;
-            })
-            .catch(() => {
-                if (this._ftFetchKey !== url) return;
-                this._clearFulltext();
-            });
-    }
-
-    // Empties the fulltext band and invalidates any in-flight fetch.
-    _clearFulltext() {
-        this._ftFetchKey = null;
-        this._ftHits     = [];
-        this._ftTotal    = null;
     }
 
     // q + spellcheck shared by every /search.json request the modal makes;
@@ -1910,15 +1842,22 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // The modal's filters, translated for /search/inside (page and .json).
-    // Any non-default availability maps to readable=true — the FTS index's
-    // collections can't split open vs borrowable more finely — and languages
-    // ride along as MARC codes the server maps onto languageSorter.
-    _appendFulltextFilterParams(params) {
-        if (this._availability !== DEFAULT_AVAILABILITY) params.set('readable', 'true');
-        for (const lang of this._languages) {
-            params.append('language', lang);
-        }
+    // Every path that starts a search goes through here, so the metadata
+    // request and the fulltext band can't drift apart — the band's own gating
+    // (passage-shaped now, or after a weak Solr answer) lives in FulltextBand.
+    _scheduleSearch() {
+        this._debouncedFetch();
+        this._ftBand.queryChanged(this._query);
+    }
+
+    // The modal's filter state, as the fulltext surfaces express it. Any
+    // non-default availability maps to a single readable flag — the FTS index's
+    // collections can't split open vs borrowable more finely.
+    _fulltextFilters() {
+        return {
+            readable: this._availability !== DEFAULT_AVAILABILITY,
+            languages: this._languages,
+        };
     }
 
     // ── Static icons ─────────────────────────────────────────────────────

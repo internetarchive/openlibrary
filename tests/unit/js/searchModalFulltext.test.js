@@ -4,6 +4,7 @@ import {
     parseSnippet,
     solrLooksWeak,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
+import { fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
 
 describe('parseSnippet', () => {
     test('splits text around {{{match}}} markers', () => {
@@ -151,5 +152,24 @@ describe('solrLooksWeak', () => {
     test('only the top docs are scanned', () => {
         const filler = { title: 'Unrelated', author_name: ['Nobody'] };
         expect(solrLooksWeak([filler, filler, filler, gatsby], 'gatsby')).toBe(true);
+    });
+});
+
+describe('fulltextSearchParams', () => {
+    test('carries the query alone when no filter is set', () => {
+        const params = fulltextSearchParams('white whale', { readable: false, languages: [] });
+        expect(params.toString()).toBe('q=white+whale');
+    });
+
+    test('maps a non-default availability onto readable=true', () => {
+        const params = fulltextSearchParams('white whale', { readable: true, languages: [] });
+        expect(params.get('readable')).toBe('true');
+    });
+
+    // The FTS backend's `lang` param takes one language and the handler drops
+    // the rest, so the band and its "see all" URL must not claim more.
+    test('narrows the language selection to the first code', () => {
+        const params = fulltextSearchParams('white whale', { readable: false, languages: ['fre', 'ger'] });
+        expect(params.getAll('language')).toEqual(['fre']);
     });
 });
