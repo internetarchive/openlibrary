@@ -151,13 +151,17 @@ $elif lending_state == 'checkedout':
   </div>
 
 $elif lending_state == 'preview_only':
+  $# PreviewSearchInside already provides a Preview button, so the secondary
+  $# case only needs a note explaining why there's no Read/Borrow button.
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
-  <div class="cta-button-group">
-    <p class="waitinglist-message">
-      <span>$_("Only a preview is available.")</span>
-    </p>
-  </div>
+    <div class="cta-button-group">
+      <p class="waitinglist-message">
+        <span>$_("Only a preview is available.")</span>
+      </p>
+    </div>
+  $else:
+    $:macros.BookPreview(ocaid, show_only=True)
 
 $else:
   $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.
