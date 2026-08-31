@@ -5700,11 +5700,11 @@ msgid "No results found. Try a different word or phrase."
 msgstr ""
 
 #: search/inside.html
-msgid "None of the matches on this page are readable online. Turn off Readable Only to see them all."
+msgid "None of the matches on this page can be shown with these filters. Try another page or remove a filter."
 msgstr ""
 
 #: search/inside.html
-msgid "None of the matches on this page can be shown with these filters. Try another page or remove a filter."
+msgid "No more results. Try an earlier page."
 msgstr ""
 
 #: search/layout_options.html

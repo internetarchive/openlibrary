@@ -502,36 +502,31 @@ class TestSearchFacetsEndpoint:
 class TestSearchInsideEndpoint:
     """Tests for the /search/inside.json endpoint."""
 
-    def test_defaults(self, fastapi_client, mock_fulltext_search_async):
+    @pytest.fixture
+    def languages(self, monkeypatch):
+        # resolve_language reads the language catalogue, which needs a site
+        # context these tests don't have.
+        monkeypatch.setattr(
+            "openlibrary.fastapi.search.resolve_language",
+            lambda values: ("ger", "German") if values else None,
+        )
+
+    def test_defaults(self, fastapi_client, mock_fulltext_search_async, languages):
         """Default call: limit 20, facets on (the historical behavior)."""
         response = fastapi_client.get("/search/inside.json?q=hello")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, languages=[])
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=False, language=None)
 
-    def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async):
+    def test_facets_can_be_disabled(self, fastapi_client, mock_fulltext_search_async, languages):
         """Lightweight callers (the header modal) skip aggregations upstream."""
         response = fastapi_client.get("/search/inside.json?q=hello&facets=false&limit=3")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, languages=[])
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=3, js=True, facets=False, readable=False, language=None)
 
-    def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, monkeypatch):
+    def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, languages):
         """`q` stays the patron's words: readable is applied to the fetched
-        hits, and the language is resolved to the name the FTS `lang` param
-        wants ("German", not the MARC code we take in the URL)."""
-        # The MARC code -> name map comes from the language catalogue, which
-        # needs a site context this test doesn't have.
-        monkeypatch.setattr("openlibrary.fastapi.search.language_name_maps", lambda: ({"ger": "German"}, {"german": "ger"}))
+        hits, and the language goes out as the name the FTS `lang` param wants
+        ("German", not the MARC code we take in the URL)."""
         response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
         assert response.status_code == 200
-        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, languages=["German"])
-
-    def test_only_the_first_language_is_applied(self, fastapi_client, mock_fulltext_search_async, monkeypatch):
-        """The FTS `lang` param takes one language, so extra values are dropped
-        here rather than silently ignored a layer down."""
-        monkeypatch.setattr(
-            "openlibrary.fastapi.search.language_name_maps",
-            lambda: ({"ger": "German", "fre": "French"}, {"german": "ger", "french": "fre"}),
-        )
-        response = fastapi_client.get("/search/inside.json?q=hello&language=ger&language=fre")
-        assert response.status_code == 200
-        assert mock_fulltext_search_async.call_args.kwargs["languages"] == ["German"]
+        mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, language="German")

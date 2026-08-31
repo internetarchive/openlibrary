@@ -1,10 +1,16 @@
-$def with (q, results, search_time, page=1, results_per_page=20, selected_languages=None, readable=False)
+$def with (q, rows, total, page=1, results_per_page=20, language=None, readable=False, error=None, empty_reason=None)
 
 $var title: $_('Search Open Library for %s', q)
 
-$ selected_languages = selected_languages or []
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('search-page')
+
+$# Totals are estimates, hence "about". With a filter on they also count hits
+$# this page dropped, so the "1 - 20 of" range would skip numbers between pages
+$# — show the bare total instead. The handler decides whether the page is empty
+$# and why (empty_reason); this template only renders that decision.
+$ filtered = bool(readable or language)
+$ range_start = (page - 1) * results_per_page + 1
 
 <div id="contentHead">
   <h1>$_("Search Inside")</h1>
@@ -12,78 +18,64 @@ $ bodyclass.append('search-page')
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  $ num_found = 0
-  $if q and results and 'error' not in results and results['hits']:
-      $ hits = results['hits'].get('hits', [])
-      $ num_found = results['hits'].get('total', 0)
 
   $# Same stacked-controls structure as /search (work_search.html): the
   $# .search-controls wrapper owns the vertical rhythm between the search box,
-  $# filter row, chips, and stats with a single gap.
+  $# filter row and stats with a single gap.
   <div class="search-controls">
     <form class="siteSearch search-row olform" action="/search/inside">
       $:render_template("search/searchbox", q=q, autofocus=True)
-      $for lang in selected_languages:
-        <input type="hidden" name="language" value="$lang.code"/>
+      $if language:
+        <input type="hidden" name="language" value="$language[0]"/>
       $if readable:
         <input type="hidden" name="readable" value="true"/>
     </form>
 
     $if q:
-        $if 'error' in results:
-            <div class="searchResultsError">$results['error']</div>
+      $# Same filter row as /search (work_search.html): the empty controls are
+      $# seeded and wired client-side by SearchFilterBar.js, which maps them onto
+      $# this page's readable/language params. No sort or layout tools: the FTS
+      $# backend only ranks by relevance, and snippet rows have no grid form.
+      $# No count on the toggle: it would need a second query the FTS backend
+      $# parses differently, over a different corpus, with approximate totals.
+      <div class="search-filter-row" id="search-filter-row">
+        <ol-toggle
+          variant="button"
+          label="$_('Readable Only')"
+          accessible-label="$_('Filter by availability')"
+        ></ol-toggle>
+        <ol-select-popover
+          label="$_('Language')"
+          placeholder="$_('Search languages…')"
+          $# Both headings carry the same hint: this surface filters by one
+          $# language, because the FTS backend's lang param takes one. The
+          $# unselected heading alone would vanish once a language is picked —
+          $# exactly when someone reaches for a second one.
+          unselected-heading="$_('Choose one language')"
+          suggestions-heading="$_('Choose one language')"
+          loading-label="$_('Loading…')"
+          aria-label="$_('Filter by language')"
+        ></ol-select-popover>
+      </div>
 
-        $# Same filter row as /search (work_search.html): the empty controls
-        $# are seeded and wired client-side by SearchFilterBar.js, which maps
-        $# them onto this page's readable/language params. No sort or layout
-        $# tools: the FTS backend only ranks by relevance, and snippet rows
-        $# have no grid form.
-        $# No count on the toggle: it would need a second query the FTS backend
-        $# parses differently, over a different corpus, with approximate totals.
-        <div class="search-filter-row" id="search-filter-row">
-          <ol-toggle
-            variant="button"
-            label="$_('Readable Only')"
-            accessible-label="$_('Filter by availability')"
-          ></ol-toggle>
-          <ol-select-popover
-            label="$_('Language')"
-            placeholder="$_('Search languages…')"
-            $# Heading doubles as the affordance hint: this surface filters by
-            $# one language, because the FTS backend's lang param takes one.
-            unselected-heading="$_('Choose one language')"
-            loading-label="$_('Loading…')"
-            aria-label="$_('Filter by language')"
-          ></ol-select-popover>
-        </div>
-
-        $if num_found:
-            $# Totals are estimates, hence "about". With the readable or
-            $# language filter on they also count hits this page dropped
-            $# (unreadable / not OL-linked), so the range would skip numbers
-            $# between pages — show the total on its own instead.
-            $if readable or selected_languages:
-                <div class="search-results-stats">$ungettext('About %(total)s result', 'About %(total)s results', num_found, total=commify(num_found))</div>
-            $else:
-                $# Count the hits actually rendered rather than assuming a full page.
-                $ range_start = (page - 1) * results_per_page + 1
-                $ range_end = range_start + len(hits) - 1
-                <div class="search-results-stats">$ungettext('%(start)s - %(end)s of about %(total)s result', '%(start)s - %(end)s of about %(total)s results', num_found, start=range_start, end=range_end, total=commify(num_found))</div>
+      $if total:
+        $if filtered or not rows:
+          <div class="search-results-stats">$ungettext('About %(total)s result', 'About %(total)s results', total, total=commify(total))</div>
+        $else:
+          <div class="search-results-stats">$ungettext('%(start)s - %(end)s of about %(total)s result', '%(start)s - %(end)s of about %(total)s results', total, start=range_start, end=range_start + len(rows) - 1, total=commify(total))</div>
   </div>
 
-  $if q:
-      $if not num_found:
-          <div class="search-no-results">$_('No results found. Try a different word or phrase.')</div>
-      $elif readable and not selected_languages and not hits:
-          $# Every match on this page was filtered out — say so rather than
-          $# leaving a result count above an empty list.
-          <div class="search-no-results">$_('None of the matches on this page are readable online. Turn off Readable Only to see them all.')</div>
-      $elif selected_languages and not hits:
-          $# Language-filtered pages drop matches with no OL edition (and
-          $# unreadable ones too when Readable Only is also on).
-          <div class="search-no-results">$_('None of the matches on this page can be shown with these filters. Try another page or remove a filter.')</div>
+  $if error:
+    <div class="searchResultsError">$error</div>
+  $elif empty_reason == 'no_matches':
+    <div class="search-no-results">$_('No results found. Try a different word or phrase.')</div>
+  $elif empty_reason == 'filtered_out':
+    <div class="search-no-results">$_('None of the matches on this page can be shown with these filters. Try another page or remove a filter.')</div>
+  $elif empty_reason == 'past_end':
+    <div class="search-no-results">$_('No more results. Try an earlier page.')</div>
 
-      <div class="resultsContainer search-results-container">
-        $:macros.FulltextResults(q, results, page=page, results_per_page=results_per_page)
-      </div>
+  $if rows:
+    <div class="resultsContainer search-results-container">
+      $:macros.FulltextResults(q, rows, total, page=page, results_per_page=results_per_page)
+    </div>
 </div>

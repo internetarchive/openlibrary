@@ -1,8 +1,13 @@
+import functools
 import json
 import logging
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
+import web
 
 from infogami import config
 from openlibrary.core.lending import get_availability_async
@@ -13,10 +18,13 @@ from openlibrary.utils.request_context import req_context, site
 logger = logging.getLogger("openlibrary.inside")
 
 
+# ── Language resolution ────────────────────────────────────────────────────
+
+
+@functools.cache
 def language_name_maps() -> tuple[dict[str, str], dict[str, str]]:
     """Bidirectional MARC-code ↔ English-name maps for the FTS index's
-    languageSorter field: (code → name, casefolded name → code). Built from
-    the OL language catalogue in one fetch — reuse the result within a request.
+    languageSorter field: (code → name, casefolded name → code).
     """
     from openlibrary.plugins.upstream.utils import get_languages, safeget
 
@@ -32,20 +40,172 @@ def language_name_maps() -> tuple[dict[str, str], dict[str, str]]:
     return code_to_name, name_to_code
 
 
-def normalize_language_name(lang: str, code_to_name: dict[str, str] | None = None) -> str:
-    """Map a MARC language code (e.g. "fre") to the English name the FTS
-    index's languageSorter field stores ("French"). Values that aren't MARC
-    codes (already-normalized names, e.g. facet bucket keys) pass through.
+def resolve_language(values: Iterable[str] | None) -> tuple[str, str] | None:
+    """The (MARC code, English name) pair for the first value that resolves, or
+    None when nothing usable was passed.
+
+    Accepts either form, because both handlers take the same `language` param:
+    "fre" from our own URLs, "French" from a hand-edited one. Callers want both
+    halves back — the FTS query needs the name, generated URLs stay on the code.
+
+    Only ever one language: the FTS `lang` param is single-valued (`lang=a,b`
+    matches nothing, and a repeated param keeps only the first). This is the one
+    place that narrowing happens, so no surface can show a filter the search
+    didn't apply.
     """
-    if code_to_name is None:
-        code_to_name, _ = language_name_maps()
-    lang = lang.strip()
-    return code_to_name.get(lang.casefold(), lang)
+    code_to_name, name_to_code = language_name_maps()
+    for raw in values or []:
+        if not (lang := raw.strip()):
+            continue
+        code = name_to_code.get(lang.casefold(), lang.casefold())
+        return code, code_to_name.get(code, lang)
+    return None
+
+
+# ── Response envelope → rows ───────────────────────────────────────────────
+#
+# The FTS wire format — {"hits": {"hits": [...], "total": n}}, multi-valued
+# `fields` lists, {{{ }}} match markers, page numbers nested one level deeper
+# than you'd expect — stops at fulltext_page(). Templates and partials take
+# FulltextRow, so no consumer re-parses the envelope or indexes [0] into a
+# field that may be present but empty.
+
+
+def _first(values: Any, default: Any = "") -> Any:
+    """First element of a multi-valued FTS field, tolerating [] and non-lists."""
+    if isinstance(values, list):
+        return values[0] if values else default
+    return default if values is None else values
 
 
 def hit_ocaid(hit: dict) -> str:
     """The archive.org identifier a full-text hit was found in."""
-    return hit.get("fields", {}).get("identifier", [""])[0]
+    return _first(hit.get("fields", {}).get("identifier"))
+
+
+def parse_snippet(snippet: str) -> list[tuple[str, bool]]:
+    """Split a snippet into (text, is_match) segments on the API's {{{ }}} markers.
+
+    Segments rather than an HTML string so each half can be escaped normally by
+    whoever renders it — the snippet is API-controlled text and never belongs in
+    an unescaped template expression. Mirrors parseSnippet() in
+    search-modal/fulltext.js, which does the same for the JSON endpoint.
+
+    >>> parse_snippet("never came. But {{{Lokesh}}} had never")
+    [('never came. But ', False), ('Lokesh', True), (' had never', False)]
+    >>> parse_snippet("{{{red}}} rising and {{{red}}} falling")
+    [('red', True), (' rising and ', False), ('red', True), (' falling', False)]
+    >>> parse_snippet("no markers here")
+    [('no markers here', False)]
+    >>> parse_snippet("ends with {{{truncated")
+    [('ends with ', False), ('truncated', True)]
+    >>> parse_snippet("")
+    []
+    """
+    if not snippet:
+        return []
+    segments: list[tuple[str, bool]] = []
+    head, *rest = snippet.split("{{{")
+    if head:
+        segments.append((head, False))
+    for chunk in rest:
+        matched, marker, tail = chunk.partition("}}}")
+        if matched:
+            # An unbalanced marker means a truncated snippet: keep the text as a
+            # match rather than dropping it.
+            segments.append((matched, True))
+        if marker and tail:
+            segments.append((tail, False))
+    return segments
+
+
+def _page_numbers(raw: Any) -> list:
+    """The page numbers the API reported for a hit.
+
+    Nested one level deeper than the other fields — [[270]]. Measured against
+    the live service, it reports a single page per hit while returning several
+    highlights, so treat this as "the pages we were told about", not as a value
+    aligned with the snippets. Snippet.page pairs them positionally for the
+    entries that exist, which today means the first snippet deep-links and the
+    rest fall back to BookReader's search view.
+    """
+    if not raw:
+        return []
+    inner = raw[0] if isinstance(raw[0], list) else raw
+    return [page for page in inner if page is not None]
+
+
+@dataclass(frozen=True)
+class Snippet:
+    """One matched passage: its text as (text, is_match) segments, and the page
+    to deep-link to — None when the API reported no page for this snippet, which
+    today is every snippet but the first (see _page_numbers)."""
+
+    segments: list[tuple[str, bool]]
+    page: Any = None
+
+    @property
+    def html(self) -> str:
+        """The passage as markup, matches wrapped in <strong>.
+
+        Escaping happens here, once, for every surface that renders a snippet.
+        The text is API-controlled OCR; the templates used to hand-roll it with
+        a replace() chain that turned < and > into guillemets and left & alone.
+        """
+        return "".join(f"<strong>{web.websafe(text)}</strong>" if is_match else web.websafe(text) for text, is_match in self.segments)
+
+
+@dataclass(frozen=True)
+class FulltextRow:
+    """One full-text hit, ready to render.
+
+    `edition` is the OL record the scan hydrated to, or None — a scan with no OL
+    edition still renders from its own IA metadata (title/year/authors) rather
+    than vanishing, because the total and pagination count it either way.
+    """
+
+    ocaid: str
+    snippets: list[Snippet]
+    pages: list
+    edition: Any = None
+    availability: dict | None = None
+    title: str = ""
+    year: Any = None
+    authors: list[str] | None = None
+
+
+def _row(hit: dict) -> FulltextRow:
+    fields = hit.get("fields") or {}
+    ocaid = _first(fields.get("identifier"))
+    pages = _page_numbers(fields.get("page_num"))
+    texts = (hit.get("highlight") or {}).get("text") or []
+    return FulltextRow(
+        ocaid=ocaid,
+        snippets=[Snippet(parse_snippet(text), pages[i] if i < len(pages) else None) for i, text in enumerate(texts) if text],
+        pages=pages,
+        edition=hit.get("edition"),
+        availability=hit.get("availability") or {},
+        title=_first(fields.get("meta_title")) or ocaid,
+        year=_first(fields.get("meta_year"), None),
+        authors=[creator for creator in (fields.get("meta_creator") or []) if creator],
+    )
+
+
+def fulltext_page(results: dict | None) -> tuple[list[FulltextRow], int]:
+    """Normalize an FTS response into (rows, total).
+
+    `total` counts every match the service found, including ones this page
+    filtered out or couldn't identify — so len(rows) < limit is normal and the
+    caller decides how to describe it (see empty_reason in plugins/inside).
+    """
+    if not results or "error" in results:
+        return [], 0
+    envelope = results.get("hits") or {}
+    rows = [_row(hit) for hit in envelope.get("hits") or [] if hit_ocaid(hit)]
+    return rows, envelope.get("total") or 0
+
+
+# ── Search ─────────────────────────────────────────────────────────────────
 
 
 def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
@@ -66,7 +226,7 @@ def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
     """
     if not availability:
         return hits
-    return [hit for hit in hits if (status := availability.get(hit_ocaid(hit), {})) and (status.get("is_readable") or status.get("is_lendable"))]
+    return [hit for hit in hits if (status := availability.get(hit_ocaid(hit))) and (status.get("is_readable") or status.get("is_lendable"))]
 
 
 async def fulltext_search_api(params):
@@ -100,7 +260,7 @@ async def fulltext_search_api(params):
         return {"error": "Error converting search engine data to JSON"}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, languages=None):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None):
     if offset is None:
         offset = (page - 1) * limit
     params = {
@@ -114,10 +274,10 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
     # takes an English name ("German", not "ger"). It has to stay a request
     # param: a languageSorter: clause inside `q` would flip the endpoint to
     # its Lucene parser, which silently ignores olonly and searches all of
-    # archive.org. The param is single-valued — the handlers narrow to one
-    # language before calling, so the UI can't promise a filter we'd drop.
-    if languages:
-        params["lang"] = languages[0]
+    # archive.org. Single-valued by the backend's rules, hence the str type —
+    # see resolve_language, which is where a request gets narrowed to one.
+    if language:
+        params["lang"] = language
     ia_results = await fulltext_search_api(params)
 
     # Guard on the hits list itself: the old `ia_results["hits"]` check passed

@@ -18,11 +18,7 @@ from pydantic import (
     model_validator,
 )
 
-from openlibrary.core.fulltext import (
-    fulltext_search_async,
-    language_name_maps,
-    normalize_language_name,
-)
+from openlibrary.core.fulltext import fulltext_search_async, resolve_language
 from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
@@ -260,10 +256,7 @@ async def search_inside_json(
     # facets=True is the historical default; lightweight callers (e.g. the
     # header search modal's snippet band) pass facets=false to skip the
     # aggregations work upstream.
-    code_to_name = language_name_maps()[0] if language else {}
-    # Only the first language reaches the backend — its `lang` param is
-    # single-valued — so don't bother normalizing the rest.
-    languages = [normalize_language_name(lang, code_to_name) for lang in (language or [])[:1]]
+    resolved = resolve_language(language)
     return await fulltext_search_async(
         q,
         page=pagination.page,
@@ -275,7 +268,9 @@ async def search_inside_json(
         # clause in `q` would switch the FTS endpoint to its Lucene parser,
         # which ignores olonly=true and searches all of archive.org.
         readable=readable,
-        languages=languages,
+        # The name, not the MARC code — resolve_language also narrows a
+        # multi-language request to the one the backend's `lang` param takes.
+        language=resolved[1] if resolved else None,
     )
 
 

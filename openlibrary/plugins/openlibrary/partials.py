@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import fulltext_page, fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
@@ -438,11 +438,11 @@ class FullTextSuggestionsPartial:
         # hit costs availability + Infobase hydration, so the old default of
         # 100 hydrated ~96 hits per render that were never shown.
         data = await fulltext_search_async(query, limit=10)
-        hits = data.get("hits", {})
-        if not hits.get("total"):
+        rows, total = fulltext_page(data)
+        if not rows:
             macro = "<div></div>"
         else:
-            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
+            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, rows, total)
         return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 

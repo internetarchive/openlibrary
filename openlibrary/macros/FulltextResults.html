@@ -1,52 +1,44 @@
-$def with(query, results, page=1, results_per_page=20)
+$def with(query, rows, total, page=1, results_per_page=20)
 
-$def render_snippet(query, doc):
+$def render_snippets(query, row):
   <div class="serp-extra">
-    $:macros.FulltextSnippet(query, doc=doc)
+    $:macros.FulltextSnippet(query, row=row)
   </div>
 
-$# A hit whose scan didn't hydrate to an OL edition (record missing or lookup
-$# failed) degrades to the scan's own IA metadata instead of vanishing — the
-$# totals and pagination count it either way.
-$def render_ia_fallback(query, doc):
-  $ fields = doc.get('fields', {})
-  $ ia = fields.get('identifier', [''])[0]
-  $ title = fields.get('meta_title', [''])[0] or ia
-  $ year = fields.get('meta_year', [None])[0]
-  $ creators = [c for c in fields.get('meta_creator', []) if c]
-  $ details_url = "https://archive.org/details/%s?%s" % (ia, urlencode(dict(q=query)))
+$# A scan that didn't hydrate to an OL edition (record missing or lookup failed)
+$# renders from its own IA metadata instead of vanishing — the total and the
+$# pagination count it either way.
+$def render_ia_fallback(query, row):
+  $ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict(q=query)))
   <li class="searchResultItem sri--w-main">
     <div class="sri__main">
       <span class="bookcover">
         <a href="$details_url">
-          <img src="https://archive.org/services/img/$ia" alt="$_('Cover of: %(title)s', title=title)" loading="lazy"/>
+          <img src="https://archive.org/services/img/$row.ocaid" alt="$_('Cover of: %(title)s', title=row.title)" loading="lazy"/>
         </a>
       </span>
       <div class="details">
         <div class="resultTitle">
           <h3 class="booktitle">
-            <a class="results" href="$details_url">$title</a>
-            $if year:
-              <span class="booktitle__year">($year)</span>
+            <a class="results" href="$details_url">$row.title</a>
+            $if row.year:
+              <span class="booktitle__year">($row.year)</span>
           </h3>
         </div>
-        $if creators:
-          <span class="bookauthor">$_('by %(authors)s', authors=', '.join(creators[:3]))</span>
-        $:render_snippet(query, doc)
+        $if row.authors:
+          <span class="bookauthor">$_('by %(authors)s', authors=', '.join(row.authors[:3]))</span>
+        $:render_snippets(query, row)
       </div>
     </div>
   </li>
 
-$if results and results.get('hits'):
-  $ hits = results['hits'].get('hits', [])
-  $ num_found = results['hits'].get('total', 0)
-  <div id="searchResults">
-    <ul class="list-books">
-      $for doc in hits:
-        $if doc.get('edition'):
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0, show_title_year=True)
-        $elif doc.get('fields', {}).get('identifier'):
-          $:render_ia_fallback(query, doc)
-    </ul>
-    $:macros.OlPagination(page, ceil(num_found / results_per_page))
-  </div>
+<div id="searchResults">
+  <ul class="list-books">
+    $for row in rows:
+      $if row.edition:
+        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
+      $else:
+        $:render_ia_fallback(query, row)
+  </ul>
+  $:macros.OlPagination(page, ceil(total / results_per_page))
+</div>
