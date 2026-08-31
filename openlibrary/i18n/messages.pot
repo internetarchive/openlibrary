@@ -885,7 +885,7 @@ msgstr ""
 msgid "Search languages…"
 msgstr ""
 
-#: books/edit/edition.html languages/index.html search/inside.html search/search_modal_i18n.html work_search.html
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html work_search.html
 msgid "Languages"
 msgstr ""
 
@@ -5675,6 +5675,10 @@ msgstr ""
 
 #: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
 msgid "Search Inside"
+msgstr ""
+
+#: search/inside.html
+msgid "Choose one language"
 msgstr ""
 
 #: search/inside.html

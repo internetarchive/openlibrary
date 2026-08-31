@@ -254,14 +254,16 @@ async def search_inside_json(
     readable: Annotated[bool, Query(description="Drop matches that aren't readable (public or borrowable) scans. hits.total still counts them.")] = False,
     language: Annotated[
         list[str] | None,
-        Query(description="Filter by language — MARC codes (e.g. fre) or language names. Also drops matches with no OL edition; hits.total still counts them."),
+        Query(description="Filter by language — a MARC code (e.g. fre) or language name. The FTS backend takes one language; extra values are ignored."),
     ] = None,
 ):
     # facets=True is the historical default; lightweight callers (e.g. the
     # header search modal's snippet band) pass facets=false to skip the
     # aggregations work upstream.
     code_to_name = language_name_maps()[0] if language else {}
-    languages = [normalize_language_name(lang, code_to_name) for lang in language or []]
+    # Only the first language reaches the backend — its `lang` param is
+    # single-valued — so don't bother normalizing the rest.
+    languages = [normalize_language_name(lang, code_to_name) for lang in (language or [])[:1]]
     return await fulltext_search_async(
         q,
         page=pagination.page,
@@ -270,10 +272,8 @@ async def search_inside_json(
         js=True,
         facets=facets,
         # Readability filters the fetched hits, not the query: a readable
-        # clause in `q` switches the FTS endpoint to its Lucene parser, which
-        # ignores olonly=true and searches all of archive.org. A language
-        # filter unavoidably does switch it — fulltext_search_async then
-        # drops the non-OL hits that leak in.
+        # clause in `q` would switch the FTS endpoint to its Lucene parser,
+        # which ignores olonly=true and searches all of archive.org.
         readable=readable,
         languages=languages,
     )

@@ -43,61 +43,9 @@ def normalize_language_name(lang: str, code_to_name: dict[str, str] | None = Non
     return code_to_name.get(lang.casefold(), lang)
 
 
-def build_fulltext_query(q: str, languages: list[str] | None = None) -> str:
-    """Combine the user's query with filter clauses.
-
-    The FTS endpoint parses ``q`` as a Lucene query, so filters are ANDed
-    field clauses. The user query is parenthesized so its own OR/AND
-    structure can't leak into the filters, and quotes are stripped from
-    language values so they can't break out of their clause.
-
-    Readability is deliberately not expressible here: any field clause
-    switches the endpoint to its Lucene parser, which silently ignores
-    ``olonly=true`` and searches all of archive.org. Language has to pay
-    that price to work at all — ``fulltext_search_async`` claws it back by
-    dropping hits with no OL edition (``filter_ol_linked``). Readability
-    doesn't, so it's applied to the fetched hits instead — see
-    ``filter_readable``.
-
-    >>> build_fulltext_query("moby dick")
-    'moby dick'
-    >>> build_fulltext_query("moby dick", ["French"])
-    '(moby dick) AND languageSorter:"French"'
-    >>> build_fulltext_query("moby dick", ["French", "German"])
-    '(moby dick) AND (languageSorter:"French" OR languageSorter:"German")'
-    >>> build_fulltext_query("whale", ['Fre"nch'])
-    '(whale) AND languageSorter:"French"'
-    """
-    if not (names := [clean for lang in languages or [] if (clean := lang.replace('"', "").strip())]):
-        return q
-    lang_clauses = [f'languageSorter:"{name}"' for name in names]
-    # A single field clause must stay bare: the FTS parser matches
-    # nothing for a lone parenthesized term like (languageSorter:"French").
-    clause = lang_clauses[0] if len(lang_clauses) == 1 else "(" + " OR ".join(lang_clauses) + ")"
-    return f"({q}) AND {clause}"
-
-
 def hit_ocaid(hit: dict) -> str:
     """The archive.org identifier a full-text hit was found in."""
     return hit.get("fields", {}).get("identifier", [""])[0]
-
-
-def filter_ol_linked(hits: list[dict], editions_by_ocaid: dict) -> list[dict]:
-    """Drop hits whose scan has no OL edition.
-
-    Applied when the query carries a field clause (a language filter): that
-    flips the FTS endpoint to its Lucene parser, which silently ignores
-    ``olonly=true`` and searches all of archive.org — magazines and unlinked
-    scans included. Hydration already looked every ocaid up, so this restores
-    the OL-only scope at no extra cost. ``total`` still counts the dropped
-    hits, so a filtered page can render short — same tradeoff as
-    ``filter_readable``.
-
-    >>> hits = [{"fields": {"identifier": ["linked"]}}, {"fields": {"identifier": ["unlinked"]}}]
-    >>> [hit_ocaid(hit) for hit in filter_ol_linked(hits, {"linked": "ed"})]
-    ['linked']
-    """
-    return [hit for hit in hits if hit_ocaid(hit) in editions_by_ocaid]
 
 
 def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
@@ -155,18 +103,21 @@ async def fulltext_search_api(params):
 async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, languages=None):
     if offset is None:
         offset = (page - 1) * limit
-    query = build_fulltext_query(q, languages=languages)
-    # A changed query means a field clause was injected, which flips the
-    # endpoint to its Lucene parser and disables olonly — so the OL-only
-    # scope has to be restored client-side (see filter_ol_linked).
-    ol_only = query != q
     params = {
-        "q": query,
+        "q": q,
         "from": offset,
         "size": limit,
         **({"nofacets": "true"} if not facets else {}),
         "olonly": "true",
     }
+    # `lang` filters on the FTS index's normalized languageSorter field and
+    # takes an English name ("German", not "ger"). It has to stay a request
+    # param: a languageSorter: clause inside `q` would flip the endpoint to
+    # its Lucene parser, which silently ignores olonly and searches all of
+    # archive.org. The param is single-valued — the handlers narrow to one
+    # language before calling, so the UI can't promise a filter we'd drop.
+    if languages:
+        params["lang"] = languages[0]
     ia_results = await fulltext_search_api(params)
 
     # Guard on the hits list itself: the old `ia_results["hits"]` check passed
@@ -195,10 +146,6 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
         # only the first occurrence, so when two hits share an ocaid the second
         # hit got no edition and was silently dropped by the templates.
         editions_by_ocaid = {ed.ocaid: ed for ed in editions}
-        if ol_only:
-            hits = filter_ol_linked(hits, editions_by_ocaid)
-            ia_results["hits"]["hits"] = hits
-            ocaids = [hit_ocaid(hit) for hit in hits]
         for hit, ocaid in zip(hits, ocaids):
             if ed := editions_by_ocaid.get(ocaid):
                 hit["edition"] = format_book_data(ed, fetch_availability=False) if js else ed

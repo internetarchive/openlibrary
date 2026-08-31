@@ -39,13 +39,14 @@ class search_inside(delegate.page):
             if any(sel.name.casefold() == name.casefold() for sel in selected_languages):
                 continue
             selected_languages.append(web.storage(code=code, name=name))
+        # The FTS `lang` param takes a single language, so narrow to the first
+        # rather than filtering by one while the UI shows several selected.
+        del selected_languages[1:]
         language_names = [sel.name for sel in selected_languages]
 
         # Readability filters the fetched hits rather than the query: a readable
-        # clause in `q` flips the FTS endpoint to its Lucene parser, which
-        # ignores olonly=true and searches all of archive.org. A language filter
-        # unavoidably does flip it — fulltext_search_async then drops the
-        # non-OL hits that leak in.
+        # clause in `q` would flip the FTS endpoint to its Lucene parser, which
+        # ignores olonly=true and searches all of archive.org.
         results = (
             async_bridge.run(
                 fulltext_search_async(

@@ -71,6 +71,11 @@ const SURFACES = {
         availabilityParams: (value) =>
             value === DEFAULT_AVAILABILITY ? {} : { readable: 'true' },
         facetCounts: false,
+        // The FTS backend's `lang` param takes one language: `lang=a,b` returns
+        // nothing and a repeated param keeps only the first. So the popover
+        // behaves as a radio group here rather than offering a multi-select we
+        // can't honor. Drop this flag if `lang` learns to OR.
+        singleLanguage: true,
     },
 };
 
@@ -96,6 +101,21 @@ function writeStoredLanguages(values) {
 }
 
 // ── URL / sticky-filter helpers ────────────────────────────────────────────
+
+/**
+ * Narrows a language selection to what the surface can actually apply.
+ *
+ * @param {object} surface - entry from SURFACES
+ * @param {string[]} selected - the codes the popover reports as selected
+ * @param {string|null} [added] - the code just added, if this was a change
+ * @returns {string[]} the codes to write to the URL and storage
+ */
+export function selectionFor(surface, selected, added) {
+    if (!surface.singleLanguage) return selected;
+    if (added) return [added];
+    return selected.slice(0, 1);
+}
+
 
 function urlHasAnyFilterParam(surface, params) {
     if (surface.availabilityParamKeys.some(k => params.has(k))) return true;
@@ -201,7 +221,9 @@ export function initSearchFilterBar(container) {
         // Seed with the curated defaults so a pre-selected language renders its
         // label immediately, without waiting on (or requiring) the network.
         languageEl.items = DEFAULT_LANGUAGE_OPTIONS;
-        languageEl.selected = currentParams.getAll('language');
+        // Truncate here too, not just on change: a hand-edited URL can carry
+        // several language params, and only the first one is actually applied.
+        languageEl.selected = selectionFor(surface, currentParams.getAll('language'));
 
         // Defer fetching the full catalogue + context-aware counts until the
         // popover is first asked to open. On later opens of the same dropper
@@ -261,10 +283,17 @@ export function initSearchFilterBar(container) {
         });
 
         languageEl.addEventListener('ol-select-popover-change', (e) => {
-            writeStoredLanguages(e.detail.selected);
+            // On a single-language surface the click that just landed wins, so
+            // picking a second language replaces the first instead of adding
+            // to it. `added` is null when the click was a deselect.
+            const selected = surface.singleLanguage
+                ? selectionFor(surface, e.detail.selected, e.detail.added)
+                : e.detail.selected;
+            languageEl.selected = selected;
+            writeStoredLanguages(selected);
             navigateWithParams((params) => {
                 params.delete('language');
-                e.detail.selected.forEach((code) => params.append('language', code));
+                selected.forEach((code) => params.append('language', code));
             });
         });
     }

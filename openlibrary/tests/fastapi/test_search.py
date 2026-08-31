@@ -516,10 +516,22 @@ class TestSearchInsideEndpoint:
 
     def test_filters_reach_the_search_not_the_query(self, fastapi_client, mock_fulltext_search_async, monkeypatch):
         """`q` stays the patron's words: readable is applied to the fetched
-        hits, and languages are turned into a clause inside the search call."""
+        hits, and the language is resolved to the name the FTS `lang` param
+        wants ("German", not the MARC code we take in the URL)."""
         # The MARC code -> name map comes from the language catalogue, which
         # needs a site context this test doesn't have.
         monkeypatch.setattr("openlibrary.fastapi.search.language_name_maps", lambda: ({"ger": "German"}, {"german": "ger"}))
         response = fastapi_client.get("/search/inside.json?q=hello&readable=true&language=ger")
         assert response.status_code == 200
         mock_fulltext_search_async.assert_called_once_with("hello", page=1, offset=None, limit=20, js=True, facets=True, readable=True, languages=["German"])
+
+    def test_only_the_first_language_is_applied(self, fastapi_client, mock_fulltext_search_async, monkeypatch):
+        """The FTS `lang` param takes one language, so extra values are dropped
+        here rather than silently ignored a layer down."""
+        monkeypatch.setattr(
+            "openlibrary.fastapi.search.language_name_maps",
+            lambda: ({"ger": "German", "fre": "French"}, {"german": "ger", "french": "fre"}),
+        )
+        response = fastapi_client.get("/search/inside.json?q=hello&language=ger&language=fre")
+        assert response.status_code == 200
+        assert mock_fulltext_search_async.call_args.kwargs["languages"] == ["German"]

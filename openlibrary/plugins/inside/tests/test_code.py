@@ -1,32 +1,7 @@
-from openlibrary.core.fulltext import build_fulltext_query, filter_ol_linked, filter_readable
+import pytest
 
-
-def test_no_filters_returns_query_unchanged():
-    assert build_fulltext_query("moby dick") == "moby dick"
-    assert build_fulltext_query('"exact phrase"') == '"exact phrase"'
-    assert build_fulltext_query("moby dick", languages=[]) == "moby dick"
-
-
-def test_language_adds_anded_clause():
-    assert build_fulltext_query("moby dick", ["French"]) == '(moby dick) AND languageSorter:"French"'
-
-
-def test_multiple_languages_are_ored():
-    assert build_fulltext_query("moby dick", ["French", "German"]) == '(moby dick) AND (languageSorter:"French" OR languageSorter:"German")'
-
-
-def test_user_query_is_parenthesized():
-    # The user's own OR must not swallow the language clause.
-    assert build_fulltext_query("cat OR dog", ["German"]) == '(cat OR dog) AND languageSorter:"German"'
-
-
-def test_quotes_stripped_from_language_value():
-    # A quote in the facet value can't break out of its clause.
-    assert build_fulltext_query("whale", ['Fre"nch']) == '(whale) AND languageSorter:"French"'
-
-
-def test_blank_language_values_dropped():
-    assert build_fulltext_query("whale", ["", "  "]) == "whale"
+from openlibrary.core import fulltext
+from openlibrary.core.fulltext import filter_readable
 
 
 def hit(ocaid: str) -> dict:
@@ -55,13 +30,44 @@ def test_readable_fails_open_when_availability_lookup_failed():
     assert filter_readable(hits, {}) == hits
 
 
-def test_ol_linked_drops_hits_without_an_edition():
-    hits = [hit("linked"), hit("unlinked"), hit("also-linked")]
-    editions_by_ocaid = {"linked": "ed1", "also-linked": "ed2"}
-    assert [h["fields"]["identifier"][0] for h in filter_ol_linked(hits, editions_by_ocaid)] == ["linked", "also-linked"]
+class FakeSearchAPI:
+    """Captures the params fulltext_search_async sends upstream."""
+
+    def __init__(self):
+        self.params = None
+
+    async def __call__(self, params):
+        self.params = params
+        return {"hits": {"hits": [], "total": 0}}
 
 
-def test_ol_linked_no_editions_drops_everything():
-    # No fail-open here, unlike filter_readable: an empty map means none of
-    # the scans have OL editions (a failed lookup raises instead).
-    assert filter_ol_linked([hit("a"), hit("b")], {}) == []
+async def search_params(monkeypatch, **kwargs) -> dict:
+    api = FakeSearchAPI()
+    monkeypatch.setattr(fulltext, "fulltext_search_api", api)
+    await fulltext.fulltext_search_async("moby dick", **kwargs)
+    return api.params
+
+
+@pytest.mark.asyncio
+async def test_query_is_sent_verbatim_with_olonly(monkeypatch):
+    # Nothing may be injected into `q`: a field clause would flip the endpoint
+    # to its Lucene parser, which silently ignores olonly.
+    params = await search_params(monkeypatch)
+    assert params["q"] == "moby dick"
+    assert params["olonly"] == "true"
+    assert "lang" not in params
+
+
+@pytest.mark.asyncio
+async def test_language_is_sent_as_the_lang_param(monkeypatch):
+    params = await search_params(monkeypatch, languages=["German"])
+    assert params["q"] == "moby dick"
+    assert params["lang"] == "German"
+
+
+@pytest.mark.asyncio
+async def test_only_the_first_language_is_sent(monkeypatch):
+    # `lang=German,French` returns nothing upstream and a repeated param keeps
+    # only the first, so one language is all we can honor.
+    params = await search_params(monkeypatch, languages=["German", "French"])
+    assert params["lang"] == "German"

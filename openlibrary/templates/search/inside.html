@@ -49,7 +49,9 @@ $ bodyclass.append('search-page')
           <ol-select-popover
             label="$_('Language')"
             placeholder="$_('Search languages…')"
-            unselected-heading="$_('Languages')"
+            $# Heading doubles as the affordance hint: this surface filters by
+            $# one language, because the FTS backend's lang param takes one.
+            unselected-heading="$_('Choose one language')"
             loading-label="$_('Loading…')"
             aria-label="$_('Filter by language')"
           ></ol-select-popover>
