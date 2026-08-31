@@ -11,9 +11,13 @@ export const PASSAGE_WORD_COUNT = 5;
 export const WEAK_SCAN_LIMIT = 3;
 
 // Words too common to count as a real title/author overlap on their own.
+// Interrogatives are here because questions rely on this check for their
+// rescue: "how do birds navigate?" overlapping a "How to..." title is not
+// evidence the question was answered.
 const OVERLAP_STOPWORDS = new Set([
     'the', 'and', 'for', 'with', 'from', 'was', 'are', 'not', 'but',
     'his', 'her', 'its', 'this', 'that', 'you', 'all',
+    'who', 'what', 'when', 'where', 'why', 'how',
 ]);
 
 /** Lowercase and strip diacritics so "garcia" matches "García". */
@@ -23,10 +27,10 @@ function fold(s) {
 
 /**
  * True when the query reads like a passage rather than a title/author lookup —
- * the queries where fulltext search shines and metadata search shrugs:
- *  - a quoted phrase (straight or curly quotes): someone hunting a quotation,
- *  - a trailing question mark,
- *  - or PASSAGE_WORD_COUNT+ words (titles are usually shorter).
+ * a quoted phrase (straight or curly quotes), or PASSAGE_WORD_COUNT+ words —
+ * words remembered from inside a book. A question mark is deliberately not a
+ * signal: short interrogatives are usually titles ("Where's Waldo?"), and a
+ * real question Solr answers badly is already caught by solrLooksWeak.
  *
  * @param {string} query
  * @returns {boolean}
@@ -35,34 +39,43 @@ export function isPassageQuery(query) {
     const q = (query || '').trim();
     if (!q) return false;
     if (/"[^"]+"|“[^”]+”/.test(q)) return true;
-    if (q.endsWith('?')) return true;
     return q.split(/\s+/).filter(Boolean).length >= PASSAGE_WORD_COUNT;
 }
 
 /**
  * True when the Solr response looks like it didn't really answer the query —
- * no docs at all, or none of the top WEAK_SCAN_LIMIT docs' title/author share
- * a meaningful word with the query. Matches on word-boundary prefixes (so
- * "gatsby" matches "Gatsby", but "art" doesn't match "Bartleby"), meaning a
- * misspelling like "hobit" finds no overlap and correctly reads as weak.
+ * no docs at all, or none of the top WEAK_SCAN_LIMIT docs share a meaningful
+ * word with the query. Each doc is judged by what the modal would render for
+ * it: title, subtitle, the promoted edition's title (a language-matched query
+ * like "kammer" hits the German edition, not the work's English title), and
+ * authors.
+ *
+ * Overlap is a word-boundary prefix in either direction — "gats" matches
+ * "Gatsby" mid-typing, and "hobbits" matches "The Hobbit" — but both sides
+ * must be meaningful words (3+ letters, no stopwords), so "art" doesn't match
+ * "Bartleby" and a misspelling like "hobit" still finds no overlap and
+ * correctly reads as weak.
  *
  * Queries with no meaningful words (all short/stopwords) can't be judged and
  * are treated as answered.
  *
- * @param {Array<{title?: string, author_name?: string[]}>} docs
+ * @param {Array<{title?: string, subtitle?: string, author_name?: string[],
+ *   editions?: {docs?: Array<{title?: string}>}}>} docs
  * @param {string} query
  * @returns {boolean}
  */
 export function solrLooksWeak(docs, query) {
     if (!Array.isArray(docs) || docs.length === 0) return true;
-    const tokens = fold(query).split(/\W+/)
-        .filter(t => t.length >= 3 && !OVERLAP_STOPWORDS.has(t));
+    const meaningful = w => w.length >= 3 && !OVERLAP_STOPWORDS.has(w);
+    const tokens = fold(query).split(/\W+/).filter(meaningful);
     if (tokens.length === 0) return false;
     return !docs.slice(0, WEAK_SCAN_LIMIT).some(doc => {
-        const haystack = [doc && doc.title, ...((doc && doc.author_name) || [])]
+        if (!doc) return false;
+        const edition = doc.editions && doc.editions.docs && doc.editions.docs[0];
+        const haystack = [doc.title, doc.subtitle, edition && edition.title, ...(doc.author_name || [])]
             .filter(Boolean).join(' ');
-        const words = fold(haystack).split(/\W+/).filter(Boolean);
-        return tokens.some(t => words.some(w => w.startsWith(t)));
+        const words = fold(haystack).split(/\W+/).filter(meaningful);
+        return tokens.some(t => words.some(w => w.startsWith(t) || t.startsWith(w)));
     });
 }
 

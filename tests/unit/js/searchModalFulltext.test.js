@@ -98,8 +98,9 @@ describe('isPassageQuery', () => {
         expect(isPassageQuery('"" dune')).toBe(false);
     });
 
-    test('question-shaped queries are passages', () => {
-        expect(isPassageQuery('who coined meritocracy?')).toBe(true);
+    test('a question mark alone is not a passage — short ones are titles', () => {
+        expect(isPassageQuery('who coined meritocracy?')).toBe(false);
+        expect(isPassageQuery('where\'s waldo?')).toBe(false);
     });
 
     test('long queries are passages, short ones are lookups', () => {
@@ -136,6 +137,29 @@ describe('solrLooksWeak', () => {
         expect(solrLooksWeak([{ title: 'García Márquez reader' }], 'garcia')).toBe(false);
     });
 
+    test('a pluralized query still matches the singular title', () => {
+        expect(solrLooksWeak([{ title: 'The Hobbit', author_name: ['J.R.R. Tolkien'] }], 'hobbits')).toBe(false);
+    });
+
+    test('reverse prefixes only count for meaningful doc words', () => {
+        // "The Room"'s "the" is a prefix of "theodore", but a stopword is not
+        // evidence the query was answered.
+        expect(solrLooksWeak([{ title: 'The Room' }], 'theodore roosevelt')).toBe(true);
+    });
+
+    test('a subtitle match is not weak', () => {
+        expect(solrLooksWeak([{ title: 'Walden', subtitle: 'or, Life in the Woods' }], 'life in the woods')).toBe(false);
+    });
+
+    test('the promoted edition title counts — the modal renders that row', () => {
+        const potter = {
+            title: 'Harry Potter and the Chamber of Secrets',
+            author_name: ['J. K. Rowling'],
+            editions: { docs: [{ title: 'Harry Potter und die Kammer des Schreckens' }] },
+        };
+        expect(solrLooksWeak([potter], 'kammer')).toBe(false);
+    });
+
     test('no overlap in the top docs is weak', () => {
         expect(solrLooksWeak([gatsby], 'hobit')).toBe(true);
     });
@@ -147,6 +171,20 @@ describe('solrLooksWeak', () => {
 
     test('stopword-only queries are treated as answered', () => {
         expect(solrLooksWeak([gatsby], 'the and')).toBe(false);
+    });
+
+    // The case that used to justify treating "?" as a passage signal: prod Solr
+    // answers it with one unrelated book, so the weak path already rescues it.
+    test('a question Solr answers badly is weak', () => {
+        expect(solrLooksWeak([{ title: 'The Human Planet' }], 'who coined meritocracy?')).toBe(true);
+    });
+
+    test('a question-shaped title is answered, not weak', () => {
+        expect(solrLooksWeak([{ title: 'Where\'s Waldo?', author_name: ['Martin Handford'] }], 'where\'s waldo?')).toBe(false);
+    });
+
+    test('an interrogative overlapping a how-to title is not an answer', () => {
+        expect(solrLooksWeak([{ title: 'How to Cook Everything' }], 'how do birds navigate?')).toBe(true);
     });
 
     test('only the top docs are scanned', () => {
