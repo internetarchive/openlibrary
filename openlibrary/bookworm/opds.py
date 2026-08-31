@@ -139,10 +139,11 @@ def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict
     """Acquisition items for a publication: one per buy/open-access link.
 
     Each item is an acquisitions-table row minus work/edition ids (the catalog
-    supplies those): ``provider_name`` + ``local_id`` + a ``data`` blob. The
-    blob keeps convenience fields (access/url/format/title/price) plus ``link``,
-    the raw OPDS acquisition link, so provider-specific data we don't lift out
-    yet (currency, indirect acquisition, ...) isn't lost.
+    supplies those): ``provider_name`` + ``local_id`` + a ``data`` blob. The blob
+    stores the raw OPDS acquisition ``link`` as the source of truth (so provider
+    data we don't lift out yet — currency, indirect acquisition, ... — isn't
+    lost); the flat access/url/format/title/price fields are a denormalized
+    convenience copy of values already inside ``link``.
     """
     items = []
     for link in pub.acquisition_links():
@@ -178,6 +179,12 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         "source_records": [f"{feed.provider_name}:{local_id}"],
         "publish_date": pub.metadata.get("published", ""),
     }
+    # Invariant: for non-ISBN feeds the ``identifiers`` KEY must equal the
+    # registered ``provider_name`` (the ``source_records`` prefix). The import
+    # validator's feed-source exemption only accepts the record when the two
+    # agree (see import_validator.FeedSourcedBook), so a feed's provider_name and
+    # its identifier type are one and the same — e.g. gutenberg must be
+    # registered as ``project_gutenberg``.
     if feed.id_strategy == "isbn":
         record["isbn_13"] = [local_id]
     elif feed.id_strategy == "gutenberg":

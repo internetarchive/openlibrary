@@ -1032,6 +1032,12 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
     trusted not to forge acquisition *content* for a registered provider;
     tightening that is deferred. Acquisitions missing the required keys are
     skipped rather than raising.
+
+    The ``FeedRegistry.provider_names()`` read is unguarded ON PURPOSE — unlike
+    ``import_validator`` (which keeps a try/except because validation runs in
+    DB-less contexts), this only runs inside the import pipeline where the DB and
+    ``feed_registry`` table always exist. Don't add a guard here; don't remove
+    the validator's.
     """
     from openlibrary.bookworm.registry import FeedRegistry
     from openlibrary.core.acquisitions import Acquisition

@@ -5,13 +5,15 @@ Fetch a registered feed, parse its publications into Open Library import records
 queue via :class:`~openlibrary.core.imports.Batch`. ImportBot (manage-imports)
 then loads them, and the catalog writes the acquisitions.
 
-The clean path is :func:`harvest_feed`: the feed filters server-side via
-``?modified_since=<cursor>`` (Gutenberg, Lenny), so we just fetch, parse, submit,
-and advance the cursor to now. Feeds that don't support that param fall back to
-:func:`_harvest_by_full_crawl`, which crawls the whole feed and filters by each
-publication's ``modified`` timestamp on our side. That fallback exists only for
-holdouts (currently BWB) and is meant to be deleted once every feed supports
-``modified_since``.
+:func:`harvest_feed` dispatches on how the feed lets us fetch only what changed:
+
+- **Native** (:func:`_harvest_native`) — the feed filters server-side via
+  ``?modified_since=<cursor>`` (Gutenberg, Lenny). Fetch, parse, submit, advance
+  the cursor to the run time.
+- **Fallback** (:func:`_harvest_by_full_crawl`) — the feed has no such param
+  (currently only BWB), so crawl it in full and filter by each publication's
+  ``modified`` timestamp on our side. Strictly worse; meant to be deleted once
+  every feed supports ``modified_since``.
 """
 
 from __future__ import annotations
@@ -76,20 +78,38 @@ def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[
         return None, None
 
 
+def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> None:
+    """Queue harvested records into ``import_item`` for ImportBot to load."""
+    if not records:
+        return
+    batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
+    batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
+
+
 def harvest_feed(
     feed: FeedRegistry,
     session: requests.Session | None = None,
     max_pages: int | None = None,
     now: datetime.datetime | None = None,
 ) -> dict[str, Any]:
-    """Harvest one feed via its server-side ``modified_since`` filter (the clean path).
+    """Harvest one feed, using the native ``modified_since`` path when supported.
 
-    Feeds that don't support that param are handed off to
-    :func:`_harvest_by_full_crawl`.
+    ``max_pages`` is a testing cap only: truncating a crawl advances the cursor
+    past the pages it didn't fetch, permanently skipping them — don't use it in
+    production.
     """
-    if not feed.supports_modified_since:
-        return _harvest_by_full_crawl(feed, session=session, max_pages=max_pages, now=now)
+    if feed.supports_modified_since:
+        return _harvest_native(feed, session=session, max_pages=max_pages, now=now)
+    return _harvest_by_full_crawl(feed, session=session, max_pages=max_pages, now=now)
 
+
+def _harvest_native(
+    feed: FeedRegistry,
+    session: requests.Session | None = None,
+    max_pages: int | None = None,
+    now: datetime.datetime | None = None,
+) -> dict[str, Any]:
+    """Harvest a feed that filters server-side via ``?modified_since=<cursor>``."""
     session = session or requests.Session()
     now = now or datetime.datetime.now(datetime.UTC)
     since = _as_utc(feed.last_updated) or EPOCH
@@ -98,15 +118,13 @@ def harvest_feed(
     records: list[dict[str, Any]] = []
     for page in iter_pages(feed.request_url(since), session, max_pages=max_pages):
         for raw in page.get("publications") or []:
+            # The server already returned only records modified since the cursor,
+            # so keep every record and ignore its timestamp.
             record, _modified = _parse_publication(raw, parser_feed, feed.provider_name)
             if record:
                 records.append(record)
 
-    if records:
-        batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
-        batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
-    # The server already returned only records modified since the cursor, so
-    # advance straight to the run time.
+    _submit(feed, records)
     FeedRegistry.advance(feed.id, last_updated=now.replace(tzinfo=None))
     logger.info("harvested %s: %d records", feed.provider_name, len(records))
     return {"feed": feed.provider_name, "records": len(records)}
@@ -120,10 +138,10 @@ def _harvest_by_full_crawl(
 ) -> dict[str, Any]:
     """Fallback for feeds WITHOUT a ``modified_since`` filter (currently only BWB).
 
-    Crawls the whole feed every run and filters by each publication's ``modified``
-    timestamp on our side, advancing the cursor to the newest one seen. This is
-    strictly worse than the native path (full re-crawl each time) and exists only
-    while a holdout feed lacks the server-side filter — delete it once none do.
+    Deliberately parallel to :func:`_harvest_native` rather than sharing its body:
+    it crawls the whole feed every run and filters by each publication's
+    ``modified`` timestamp on our side. Delete this function as a unit once every
+    feed supports ``modified_since``.
     """
     session = session or requests.Session()
     now = now or datetime.datetime.now(datetime.UTC)
@@ -142,9 +160,9 @@ def _harvest_by_full_crawl(
             if record:
                 records.append(record)
 
-    if records:
-        batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
-        batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
+    _submit(feed, records)
+    # Advance to the newest modified we saw; if nothing was newer, advance to now
+    # so an idle feed doesn't re-scan from the same old cursor every run.
     new_cursor = max_modified if max_modified > since else now
     FeedRegistry.advance(feed.id, last_updated=new_cursor.replace(tzinfo=None))
     logger.info("harvested %s (full crawl): %d records", feed.provider_name, len(records))

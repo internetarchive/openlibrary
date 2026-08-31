@@ -148,9 +148,14 @@ class FeedRegistry(web.storage):
         return self.cursor_style == CURSOR_MODIFIED_SINCE
 
     def request_url(self, since: datetime.datetime) -> str:
-        """This feed's fetch URL with the ``modified_since`` cursor injected."""
+        """This feed's fetch URL with the ``modified_since`` cursor injected.
+
+        The cursor is truncated to a date (day granularity), so a run re-requests
+        the whole starting day — conservative overlap, never a missed record
+        (imports are idempotent).
+        """
         parts = urlparse(self.url)
-        query = parse_qs(parts.query)
+        query = parse_qs(parts.query, keep_blank_values=True)
         query["modified_since"] = [since.date().isoformat()]
         return urlunparse(parts._replace(query=urlencode(query, doseq=True)))
 

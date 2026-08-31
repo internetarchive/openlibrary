@@ -34,7 +34,8 @@ def main(
 
     :param ol_config: path to ``openlibrary.yml`` (for the database connection).
     :param provider: harvest only this feed by ``provider_name``; default is all.
-    :param max_pages: cap pages fetched per feed (useful when testing).
+    :param max_pages: cap pages fetched per feed. TESTING ONLY — truncating a
+        crawl advances the cursor past the pages it didn't fetch.
     """
     logging.basicConfig(level=logging.INFO)
     load_config(ol_config)
@@ -42,11 +43,14 @@ def main(
         feeds = [feed for feed in FeedRegistry.all() if feed.provider_name == provider]
         if not feeds:
             logger.error("no registered feed named %r", provider)
-            return
+            raise SystemExit(1)
         results = [harvest.harvest_feed(feed, max_pages=max_pages) for feed in feeds]
     else:
         results = harvest.harvest_all(max_pages=max_pages)
     logger.info("bookworm harvest complete: %s", results)
+    # Surface a total failure to cron (every feed errored) with a non-zero exit.
+    if results and all(result.get("error") for result in results):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
