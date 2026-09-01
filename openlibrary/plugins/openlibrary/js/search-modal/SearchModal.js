@@ -1,10 +1,11 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
-// The <ol-*> custom elements this modal uses (ol-dialog, ol-toggle,
+// The <ol-*> custom elements this modal uses (ol-icon, ol-dialog, ol-toggle,
 // ol-select-popover) are registered by the site-wide
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
-// modules here — re-running customElements.define() throws NotSupportedError.
+// modules here — re-running customElements.define() throws NotSupportedError,
+// which aborts the rest of that bundle and unregisters every other component.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { trackEvent } from '../ol.analytics.js';
@@ -29,6 +30,7 @@ import {
     removeRecentSearch,
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
+import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -147,7 +149,7 @@ export class SearchModal extends LitElement {
             flex-shrink: 0;
             width: 20px;
             height: 20px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
         .search-input {
@@ -162,7 +164,7 @@ export class SearchModal extends LitElement {
             line-height: 1.4;
         }
 
-        .search-input::placeholder { color: var(--accessible-grey); }
+        .search-input::placeholder { color: var(--color-text-muted); }
         .search-input:focus         { outline: none; }
 
         /* Drop the native type="search" clear affordance — the modal renders
@@ -181,7 +183,7 @@ export class SearchModal extends LitElement {
             background: var(--white);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font: inherit;
             font-size: var(--font-size-label-medium);
             font-weight: 600;
@@ -217,11 +219,11 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
-        .back-btn svg {
+        .back-btn ol-icon {
             width: 24px;
             height: 24px;
         }
@@ -248,11 +250,11 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-circle);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
         }
 
-        .clear-btn svg {
+        .clear-btn ol-icon {
             width: 16px;
             height: 16px;
         }
@@ -352,7 +354,7 @@ export class SearchModal extends LitElement {
         .results-heading {
             margin: 0;
             padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -430,12 +432,12 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 36px;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             background: var(--lightest-grey);
             border-radius: var(--border-radius-avatar);
         }
 
-        .result__avatar svg { width: 20px; height: 20px; }
+        .result__avatar ol-icon { width: 20px; height: 20px; }
 
         .result__avatar-photo {
             position: absolute;
@@ -465,7 +467,7 @@ export class SearchModal extends LitElement {
         .result__author {
             display: block;
             overflow: hidden;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 13px;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -473,7 +475,7 @@ export class SearchModal extends LitElement {
 
         .result__year {
             display: block;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: 400;
         }
@@ -508,7 +510,7 @@ export class SearchModal extends LitElement {
            readable copy isn't in the patron's site language. Informational, not
            a button — muted so it sits below the pill without competing with it. */
         .result__lang {
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-small);
             font-weight: 400;
             white-space: nowrap;
@@ -516,7 +518,7 @@ export class SearchModal extends LitElement {
 
         .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-body-medium);
             text-align: center;
         }
@@ -572,10 +574,10 @@ export class SearchModal extends LitElement {
             align-items: center;
             justify-content: center;
             height: 28px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
         }
 
-        .result__recent-icon svg { width: 18px; height: 18px; }
+        .result__recent-icon ol-icon { width: 18px; height: 18px; }
 
         .result__remove-recent {
             flex-shrink: 0;
@@ -591,7 +593,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             cursor: pointer;
             opacity: 0;
             transition: opacity 100ms ease;
@@ -606,7 +608,7 @@ export class SearchModal extends LitElement {
             .result__remove-recent:hover { background: var(--lighter-grey); }
         }
 
-        .result__remove-recent svg { width: 16px; height: 16px; }
+        .result__remove-recent ol-icon { width: 16px; height: 16px; }
 
         .result__remove-recent:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
@@ -686,227 +688,6 @@ export class SearchModal extends LitElement {
             border-top: var(--border-divider);
         }
 
-        /* Two <ol-button>s live in this modal's shadow root: the footer
-           "See all results" action (variant="primary") and the language
-           select-popover's injected disclosure trigger (default, secondary).
-           ol-button is styled entirely by the global
-           static/css/components/ol-button.css, but that sheet can't cross into
-           this shadow root — so the rules both buttons need (the secondary
-           default, the primary opt-in, and the disclosure chevron) are mirrored
-           below. Keep in sync with ol-button.css. */
-
-        ol-button { display: inline-block; }
-
-        /* Once hydrated the host is a bare wrapper; the inner <button> paints. */
-        ol-button[hydrated] {
-            padding: 0;
-            border: 0;
-            background: transparent;
-            color: inherit;
-        }
-
-        ol-button[disabled],
-        ol-button[loading] { pointer-events: none; }
-
-        /* Shared appearance / secondary default: the host pre-upgrade, the
-           inner button post-upgrade. Raised white pill — same as ol-button.css. */
-        ol-button:not([hydrated]),
-        ol-button > button {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-inline-md);
-            box-sizing: border-box;
-            height: var(--control-height-medium);
-            padding: 0 var(--spacing-md);
-            font-family: var(--font-family-button);
-            font-size: var(--font-size-body-medium);
-            line-height: var(--line-height-control);
-            text-align: center;
-            white-space: nowrap;
-            background-color: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            color: var(--dark-grey);
-            /* Strength of the specular top edge. Full on the light secondary fill;
-               the dark primary fill dials it down below. */
-            --control-highlight-strength: 35%;
-            box-shadow:
-                var(--box-shadow-raised),
-                inset 0 1px 0 color-mix(in srgb, var(--white) var(--control-highlight-strength), var(--control-surface));
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.08s;
-        }
-
-        ol-button > button:active { transform: scale(0.97); }
-
-        /* Primary — opt-in via variant="primary" (the footer action). */
-        ol-button[variant="primary"]:not([hydrated]),
-        ol-button[variant="primary"] > button {
-            background-color: var(--primary-blue);
-            border-color: var(--primary-blue);
-            color: var(--white);
-            /* Tone the specular highlight to the blue fill and soften it — the
-               white edge reads much louder on a dark fill than on white. */
-            --control-surface: var(--primary-blue);
-            --control-highlight-strength: 18%;
-        }
-
-        /* Selected — the language trigger once a language is picked. Soft blue
-           tint, matching the checked ol-toggle beside it. After the variant
-           rules because it ties them on specificity. */
-        ol-button[selected]:not([hydrated]),
-        ol-button[selected] > button {
-            background-color: var(--color-control-selected-bg);
-            border-color: var(--color-control-selected-border);
-            color: var(--link-blue);
-            /* Opaque twin of the tint — a translucent surface washes out the highlight. */
-            --control-surface: var(--color-control-selected-surface);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            /* Scoping is load-bearing (and matches ol-button.css): unscoped, this
-               ties the primary fill rule on specificity and wins on source order,
-               blanking its blue on hover while the text stays white. */
-            ol-button[variant="secondary"] > button:hover {
-                background-color: var(--lightest-grey);
-                border-color: var(--light-grey);
-                --control-surface: var(--lightest-grey);
-            }
-
-            ol-button[variant="primary"] > button:hover {
-                filter: brightness(1.1);
-            }
-
-            ol-button[selected] > button:hover {
-                background-color: var(--color-control-selected-bg-hover);
-                border-color: var(--color-control-selected-border-hover);
-                --control-surface: var(--color-control-selected-surface-hover);
-            }
-        }
-
-        ol-button > button:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: var(--spacing-3xs);
-        }
-
-        ol-button[loading] > button { cursor: progress; }
-
-        /* Scoped away from [loading] so the loading state keeps full-strength
-           colors while still being non-interactive. */
-        ol-button:not([loading]) > button:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-
-        /* Loading: the label and spinner crossfade. Both are always in the DOM
-           so the button width stays stable. */
-        ol-button > button > .ol-btn-label {
-            display: inline-block;
-            transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
-        }
-
-        ol-button[loading] > button > .ol-btn-label {
-            opacity: 0;
-            transform: scale(0.8);
-            filter: blur(2px);
-        }
-
-        ol-button > button > .ol-btn-spinner {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transform: scale(0.4);
-            filter: blur(3px);
-            pointer-events: none;
-            transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
-        }
-
-        ol-button > button > .ol-btn-spinner::before {
-            content: "";
-            display: block;
-            box-sizing: border-box;
-            width: 1em;
-            height: 1em;
-            border: 2px solid currentcolor;
-            border-right-color: transparent;
-            border-radius: var(--border-radius-circle);
-        }
-
-        ol-button[loading] > button > .ol-btn-spinner {
-            opacity: 1;
-            transform: scale(1);
-            filter: blur(0);
-        }
-
-        ol-button[loading] > button > .ol-btn-spinner::before {
-            animation: ol-button-spin 0.7s linear infinite;
-        }
-
-        @keyframes ol-button-spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Disclosure chevron — shown only when the button is a popover trigger.
-           The language select-popover sets aria-haspopup/aria-expanded on its
-           injected trigger, so the chevron appears and rotates automatically. */
-        ol-button > button > .ol-btn-chevron { display: none; }
-
-        ol-button[aria-haspopup] > button > .ol-btn-chevron {
-            /* Reference the external SVG (same file as ol-button.css) rather than
-               an inline data URI: an unquoted url() to a static path has no plus
-               sign or spaces for the CSS formatter to tokenize and mangle (a data
-               URI repeatedly got split on the image/svg+xml token). */
-            --chevron: url(/static/images/icons/chevron-down.svg);
-
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-            /* Tuck toward the label and the edge — see ol-button.css. */
-            margin-left: calc(var(--spacing-2xs) * -1);
-            margin-right: calc(var(--spacing-2xs) * -1);
-            background: currentcolor;
-            transition: transform 150ms ease-out;
-            -webkit-mask: var(--chevron) center / 16px no-repeat;
-            mask: var(--chevron) center / 16px no-repeat;
-        }
-
-        ol-button[no-chevron] > button > .ol-btn-chevron { display: none; }
-
-        ol-button[aria-expanded="true"] > button > .ol-btn-chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            ol-button > button,
-            ol-button > button > .ol-btn-label,
-            ol-button > button > .ol-btn-spinner {
-                transform: none;
-                filter: none;
-                transition-property: opacity;
-            }
-
-            ol-button[loading] > button > .ol-btn-spinner::before {
-                animation-duration: 2s;
-            }
-
-            ol-button[aria-haspopup] > button > .ol-btn-chevron {
-                transition: none;
-            }
-        }
-
         /* ── Mobile overrides ──────────────────────────────────────── */
 
         @media (max-width: 767px) {
@@ -963,7 +744,12 @@ export class SearchModal extends LitElement {
 
         // Curated set shown instantly; replaced by the real catalogue list
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
-        this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
+        // `_languageItems` is what the popover renders — the catalogue, or the
+        // catalogue merged with the current query's facet counts. `_allLanguageItems`
+        // keeps the uncounted catalogue so each new query re-merges from a clean
+        // list instead of one already filtered by the previous query's counts.
+        this._languageItems    = DEFAULT_LANGUAGE_OPTIONS;
+        this._allLanguageItems = DEFAULT_LANGUAGE_OPTIONS;
 
         // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
         // `language` field. Mapped from the trigger's 2-letter data-search-lang in
@@ -991,6 +777,11 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
+        // Search context the currently-merged language counts describe, and the
+        // one a request is in flight for. Equal keys mean the counts on screen
+        // are already right for this query, so re-opening the dropper is free.
+        this._facetKey       = null;
+        this._activeFacetKey = null;
         // Search-outcome analytics (NoResults / ResultsShown): keys already
         // counted this modal session, so re-settling the same query — a filter
         // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
@@ -1084,14 +875,79 @@ export class SearchModal extends LitElement {
         }
     }
 
+    // Fetch the catalogue once per modal instance. The in-flight promise is
+    // memoized so the modal-open prefetch and a dropper opened before it lands
+    // share one request instead of racing two.
+    _ensureLanguageCatalogue() {
+        if (!this._languageCataloguePromise) {
+            this._languageCataloguePromise = fetchLanguageOptions().then(options => {
+                this._allLanguageItems = options;
+                this._allLangsLoaded   = true;
+                return options;
+            });
+        }
+        return this._languageCataloguePromise;
+    }
+
     async _loadAllLanguages() {
         this._langsLoading = true;
         try {
-            this._languageItems = await fetchLanguageOptions();
+            this._languageItems = await this._ensureLanguageCatalogue();
         } finally {
-            this._allLangsLoaded = true;
-            this._langsLoading   = false;
+            this._langsLoading = false;
         }
+    }
+
+    _onLanguageOpenRequest(e) {
+        return openWhenCountsReady(e, () => this._loadLanguageFacets());
+    }
+
+    // Context-aware counts for the language dropper, fetched when the patron
+    // asks for it rather than alongside every search — most never open it, and
+    // the counts are only ever seen while it's on screen.
+    //
+    // Loading can't race the query: the dropper takes focus, so the query is
+    // frozen from the moment it's asked for. A query typed while it was
+    // *closed* just changes the key, and the next open refetches.
+    async _loadLanguageFacets() {
+        // Counts describe the current query's results. With no query there's
+        // nothing to count, so fall back to the plain catalogue — this also
+        // undoes a previous query's merge after the input is cleared.
+        if (!this._shouldAutocomplete()) {
+            this._languageItems = this._allLanguageItems;
+            this._facetKey      = null;
+            return;
+        }
+
+        const params = this._buildFacetParams(this._query.trim());
+        const key    = params.toString();
+        if (key === this._facetKey) return;   // already merged for this context
+
+        this._activeFacetKey = key;
+        this._langsLoading   = true;
+        // Drop the outgoing query's counts now rather than showing them under
+        // the spinner. The suggestion list is hidden while `loading` is set, but
+        // any selected rows stay on screen and would otherwise read as current.
+        this._languageItems = this._allLanguageItems;
+
+        // The catalogue is normally already in flight (kicked off on modal open);
+        // await it so a dropper opened immediately still merges. Counts are
+        // caught rather than awaited fail-fast, so a failed count request still
+        // leaves the catalogue that did load on screen.
+        const [catalogue, counts] = await Promise.all([
+            this._ensureLanguageCatalogue(),
+            fetchFacetCounts('language', params).catch(() => null),
+        ]);
+        if (this._activeFacetKey !== key) return;
+
+        // No counts (request failed, or the query matched nothing) degrades to
+        // the uncounted catalogue — filtering must never break. Only a real
+        // response is cached; a null key lets the next open retry.
+        this._languageItems = counts?.length
+            ? mergeFacetCounts(catalogue, counts, this._languages)
+            : catalogue;
+        this._facetKey     = counts ? key : null;
+        this._langsLoading = false;
     }
 
     // ── Render ────────────────────────────────────────────────────────────
@@ -1110,7 +966,6 @@ export class SearchModal extends LitElement {
                     --ol-dialog-top-offset: 54px;
                     --ol-dialog-animation-duration: 160ms;
                     --ol-dialog-width-large: min(680px, 92vw);
-                    --ol-dialog-backdrop-color: hsla(0,0%,0%,0.18);
                 "
                 @ol-after-open=${this._onDialogOpened}
                 @ol-after-close=${this._onDialogClosed}
@@ -1214,8 +1069,11 @@ export class SearchModal extends LitElement {
                     label=${this._i18n.languageLabel}
                     placeholder=${this._i18n.languagePlaceholder}
                     unselected-heading=${this._i18n.languageHeading}
+                    loading-label=${this._i18n.languagesLoading}
+                    ?loading=${this._langsLoading}
                     .items=${this._languageItems}
                     .selected=${this._languages}
+                    @ol-select-popover-request-open=${this._onLanguageOpenRequest}
                     @ol-select-popover-change=${this._onLanguagesChange}
                 ></ol-select-popover>
                 ${showClearAll ? html`
@@ -1843,6 +1701,23 @@ export class SearchModal extends LitElement {
         return `/search?${params.toString()}`;
     }
 
+    // Search context for /search/facets.json: the query plus the availability
+    // subset, so the counts describe the same result set the modal is showing.
+    //
+    // The selected `language` values are deliberately left out: they'd change
+    // the cache key, making every tick of a checkbox refetch and flash the
+    // spinner while the dropper is open. fetchFacetCounts() strips them too —
+    // Solr ANDs an fq on the faceted field, collapsing the list to what's ticked.
+    _buildFacetParams(query) {
+        const params = new URLSearchParams();
+        params.set('q', query);
+        const availParams = AVAILABILITY_TO_PARAMS[this._availability] || {};
+        for (const [key, value] of Object.entries(availParams)) {
+            params.append(key, value);
+        }
+        return params;
+    }
+
     // `availability` defaults to the patron's current selection; the readable
     // count query forces 'readable' so it mirrors the main search's language
     // context while overriding only the availability subset.
@@ -1856,17 +1731,17 @@ export class SearchModal extends LitElement {
         }
     }
 
-    // ── Static SVGs ──────────────────────────────────────────────────────
+    // ── Static icons ─────────────────────────────────────────────────────
 
-    static _clockIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    static _clockIcon = html`<ol-icon name="clock"></ol-icon>`;
 
-    static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+    static _searchIcon = html`<ol-icon class="search-icon" name="search"></ol-icon>`;
 
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    static _closeIcon = html`<ol-icon name="x"></ol-icon>`;
 
-    static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+    static _backIcon = html`<ol-icon name="arrow-left"></ol-icon>`;
 
-    static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    static _personIcon = html`<ol-icon name="user"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);

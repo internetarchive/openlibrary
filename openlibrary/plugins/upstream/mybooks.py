@@ -1,34 +1,33 @@
 import json
+import logging
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
-from warnings import deprecated
 
 import web
 from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, render, safeint
+from infogami.utils.view import public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
+    get_internet_archive_id,
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import (
-    add_availability,
-    get_loans_of_user,
-)
+from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
+from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
@@ -40,6 +39,8 @@ if TYPE_CHECKING:
 
     from openlibrary.core.lists.model import List
     from openlibrary.plugins.upstream.models import Work
+
+logger = logging.getLogger("openlibrary.mybooks")
 
 RESULTS_PER_PAGE: Final = 25
 
@@ -74,14 +75,66 @@ class mybooks_home(delegate.page):
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
-            loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
+
+            # Dictionary mapping dedup_key -> (book, timestamp, is_active)
+            merged_books: dict[str, tuple[Any, float, bool]] = {}
+
+            # Process active loans first
             for loan in myloans:
-                # Book will be None if no OL edition exists for the book
-                if book := site.get().get(loan["book"]):
-                    book.loan = loan
-                    loans.docs.append(book)
-            docs["loans"] = loans
+                book_key = loan["book"]
+                if book := site.get().get(book_key):
+                    for _ in range(5):
+                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
+                            book_key = book.location
+                            book = site.get().get(book_key)
+                        else:
+                            break
+                    if book:
+                        book.loan = loan
+                        works = getattr(book, "works", None)
+                        work_key = works[0].key if works and len(works) > 0 else book.key
+                        loaned_at = loan.get("loaned_at") or 0.0
+                        merged_books[work_key] = (book, float(loaned_at), True)
+
+            # Ownership gate, not just "is logged in": mb.username comes from the
+            # URL, while mb.me is the session. get_loan_history_data() resolves S3
+            # credentials for whichever username it is handed, so this must run
+            # only on the patron's own page. The carousel is already rendered for
+            # owners only, but that guard lives in the template -- keep the fetch
+            # itself gated too rather than relying on the view layer.
+            history_books = []
+            if mb.is_my_page:
+                try:
+                    history_data = get_loan_history_data(mb.username, page=1)
+                    history_books = [doc for doc in history_data.get("docs", []) if not doc.get("ia_only")]
+                except Exception:
+                    # Deliberately non-fatal: My Books must still render its
+                    # active loans and every other shelf if IA is unreachable.
+                    # But log it -- swallowing this silently makes a missing
+                    # history section indistinguishable from an empty one, with
+                    # nothing in the logs to tell them apart.
+                    logger.exception("Failed to fetch loan history for %s; rendering without it", mb.username)
+
+            for book in history_books:
+                works = getattr(book, "works", None)
+                work_key = works[0].key if works and len(works) > 0 else book.key
+                updatedate = book.get("last_loan_date") or ""
+                try:
+                    timestamp = datetime.fromisoformat(updatedate.replace(" ", "T")).timestamp()
+                except ValueError:
+                    timestamp = 0.0
+
+                # Add history record only if no active loan exists for this book
+                if work_key not in merged_books:
+                    merged_books[work_key] = (book, timestamp, False)
+
+            # Sort: active loans first (is_active=True > False), then by timestamp desc.
+            # This ensures a currently-borrowed book always ranks above a recently-returned one.
+            total_results = len(merged_books)
+            sorted_entries = sorted(merged_books.values(), key=lambda x: (x[2], x[1]), reverse=True)
+            final_books = [entry[0] for entry in sorted_entries[:18]]
+
+            docs["loans"] = web.Storage({"docs": final_books, "total_results": total_results})
 
         if mb.me or mb.is_public:
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)
@@ -112,6 +165,7 @@ class mybooks_home(delegate.page):
             counts=mb.counts,
             lists=mb.lists,
             component_times=mb.component_times,
+            current_goal=mb.current_goal,
         )
 
 
@@ -149,6 +203,7 @@ class mybooks_feed(delegate.page):
         if mb.is_my_page:
             docs = PubSub.get_feed(username)
             doc_count = len(docs)
+            meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.me.key)
             template = render["account/reading_log"](
                 docs,
                 mb.key,
@@ -157,6 +212,7 @@ class mybooks_feed(delegate.page):
                 mb.is_my_page,
                 current_page=1,
                 user=mb.me,
+                meta_photo_url=meta_photo_url,
             )
             return mb.render(header_title=_("My Feed"), template=template)
         raise web.seeother(mb.user.key)
@@ -300,6 +356,7 @@ class mybooks_readinglog(delegate.page):
             mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
+        meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(mb.user.key)
         return render["account/reading_log"](
             docs,
             mb.key,
@@ -315,77 +372,8 @@ class mybooks_readinglog(delegate.page):
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
+            meta_photo_url=meta_photo_url,
         )
-
-
-@deprecated("migrated to fastapi")
-class public_my_books_json(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)\.json"
-    encoding = "json"
-
-    def GET(self, username, key="want-to-read"):
-        i = web.input(page=1, limit=100, q="", mode="everything")
-        key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
-        if len(i.q) < 3:
-            i.q = ""
-        page = safeint(i.page, 1)
-        limit = safeint(i.limit, 100)
-        # check if user's reading log is public
-        user = site.get().get("/people/%s" % username)
-        if not user:
-            return delegate.RawText(
-                json.dumps({"error": "User %s not found" % username}),
-                content_type="application/json",
-            )
-        is_public = user.preferences().get("public_readlog", "no") == "yes"
-        logged_in_user = accounts.get_current_user()
-        if is_public or (logged_in_user and logged_in_user.key.split("/")[-1] == username):
-            # Construct fq parameter for ebooks filtering
-            fq = None
-            if i.mode == "ebooks":
-                fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
-
-            readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page, limit, q=i.q, fq=fq).docs
-            records_json = [
-                {
-                    "work": {
-                        "title": w.get("title"),
-                        "key": w.key,
-                        "author_keys": ["/authors/" + key for key in w.get("author_key", [])],
-                        "author_names": w.get("author_name", []),
-                        "first_publish_year": w.get("first_publish_year") or None,
-                        "lending_edition_s": (w.get("lending_edition_s") or None),
-                        "edition_key": (w.get("edition_key") or None),
-                        "cover_id": (w.get("cover_i") or None),
-                        "cover_edition_key": (w.get("cover_edition_key") or None),
-                    },
-                    "logged_edition": w.get("logged_edition") or None,
-                    "logged_date": (w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None),
-                }
-                for w in books
-            ]
-
-            if page == 1 and len(records_json) < limit:
-                num_found = len(records_json)
-            else:
-                num_found = readlog.count_shelf(key)
-
-            return delegate.RawText(
-                json.dumps(
-                    {
-                        "page": page,
-                        "numFound": num_found,
-                        "reading_log_entries": records_json,
-                    }
-                ),
-                content_type="application/json",
-            )
-        else:
-            return delegate.RawText(
-                json.dumps({"error": "Shelf %s not found or not accessible" % key}),
-                content_type="application/json",
-            )
 
 
 @public
@@ -455,6 +443,10 @@ class MyBooksTemplate:
 
         self.component_times: dict = {}
 
+        # Precompute reading goal once so both mybooks.html (mobile) and sidebar.html (desktop)
+        # can render without blocking I/O in templates; avoids duplicate DB queries per request.
+        self.current_goal = get_reading_goals(year=current_year()) if self.is_my_page else None
+
     def render_sidebar(self) -> TemplateResult:
         return render["account/sidebar"](
             self.username,
@@ -464,6 +456,7 @@ class MyBooksTemplate:
             self.counts,
             self.lists,
             self.component_times,
+            self.current_goal,
         )
 
     def render(self, template: TemplateResult, header_title: str, page: List | None = None) -> TemplateResult:

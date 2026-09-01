@@ -32,7 +32,6 @@ from openlibrary.accounts import (
     audit_accounts,
     clear_cookies,
     encrypt_s3_keys,
-    get_s3_keys,
     valid_email,
 )
 from openlibrary.core import helpers as h
@@ -43,17 +42,14 @@ from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
-from openlibrary.core.lending import (
-    get_items_and_add_availability,
-    s3_loan_api,
-)
+from openlibrary.core.lending import get_loan_history_data
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.plugins.openlibrary.pd import get_pd_options
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import borrow, forms
+from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
@@ -335,16 +331,64 @@ def _parse_low_auth_header():
     return access, secret
 
 
-def _require_s3_auth():
+#: HTTP status for each way an OTP request can be refused. These endpoints used
+#: to answer 200 for all of them, which made every failure invisible: a 200 is
+#: not an exception, so Sentry never saw one, and it is not an error status, so
+#: nothing in the request logs or the load balancer flagged it either. A caller
+#: that did not inspect the body could not tell success from failure at all.
+OTP_ERROR_STATUS: Final = {
+    "missing_or_invalid_authorization": "401 Unauthorized",
+    "unauthorized": "401 Unauthorized",
+    "auth_service_unavailable": "503 Service Unavailable",
+    "missing_keys": "400 Bad Request",
+    "challenge_failed": "403 Forbidden",
+    "ratelimit": "429 Too Many Requests",
+    "otp_mismatch": "401 Unauthorized",
+}
+
+
+def _mask_email(email: str) -> str:
+    """`alice@example.org` -> `al***@example.org`, so a log line is useful for
+    support without writing a patron's full address into the request logs."""
+    local, _, domain = (email or "").partition("@")
+    return f"{local[:2]}***@{domain}" if domain else "***"
+
+
+def _otp_error(operation: str, code: str, service_ip: str = "", email: str = "", **extra):
+    """Refuse an OTP request: set a real HTTP status, log it, return the body.
+
+    The JSON body keeps exactly the shape it had before, so existing callers that
+    only read `error` are unaffected; the status code and the log line are added
+    on top.
+
+    The log line is the point. Requests to these endpoints fan out across
+    ol-web0..3 behind haproxy, so without a greppable record naming the
+    `service_ip` the request actually presented, there is no way to tell which
+    head served a given call or why it was refused.
+    """
+    web.ctx.status = OTP_ERROR_STATUS.get(code, "400 Bad Request")
+    logger.warning(
+        "otp %s refused: error=%s service_ip=%r email=%s extra=%s",
+        operation,
+        code,
+        service_ip,
+        _mask_email(email),
+        extra or "-",
+    )
+    return delegate.RawText(json.dumps({"error": code, **extra}))
+
+
+def _require_s3_auth(operation: str):
     """Validate the request's IA S3 credentials. Returns None on success or a RawText error response."""
+    service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR", "")
     try:
         s3_access, s3_secret = _parse_low_auth_header()
     except ValueError:
-        return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
+        return _otp_error(operation, "missing_or_invalid_authorization", service_ip)
     if "error" in (result := InternetArchiveAccount.s3auth(s3_access, s3_secret)):
         if result.get("code", 400) >= 500:
-            return delegate.RawText(json.dumps({"error": "auth_service_unavailable"}))
-        return delegate.RawText(json.dumps({"error": "unauthorized"}))
+            return _otp_error(operation, "auth_service_unavailable", service_ip)
+        return _otp_error(operation, "unauthorized", service_ip)
     return None
 
 
@@ -353,7 +397,7 @@ class otp_service_issue(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        if err := _require_s3_auth():
+        if err := _require_s3_auth("issue"):
             return err
 
         i = web.input(email="", ip="", challenge_url="", sendmail="true")
@@ -361,13 +405,13 @@ class otp_service_issue(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({"error": "missing_keys", "missing_keys": missing_fields}))
+            return _otp_error("issue", "missing_keys", i.service_ip or "", i.email, missing_keys=missing_fields)
 
         # Challenge currently does not work due to Firewall/Proxy limitations
         if i.challenge_url and not OTP.verify_service(i.service_ip, i.challenge_url):
-            return delegate.RawText(json.dumps({"error": "challenge_failed"}))
+            return _otp_error("issue", "challenge_failed", i.service_ip, i.email)
         if error := OTP.is_ratelimited(service_ip=i.service_ip, email=i.email, ip=i.ip):
-            return delegate.RawText(json.dumps(error))
+            return _otp_error("issue", "ratelimit", i.service_ip, i.email, ratelimit=error["ratelimit"])
 
         otp = OTP.generate(i.service_ip, i.email, i.ip)
         if i.sendmail.lower() == "true":
@@ -377,6 +421,18 @@ class otp_service_issue(delegate.page):
                 subject="Your One Time Password",
                 message=web.safestr(f"Your one time password is: {otp.upper()}"),
             )
+        # Logged so an issue can be correlated with its later redeem. `service_ip`
+        # is an ingredient of the OTP's HMAC, so when a redeem fails with
+        # otp_mismatch, comparing this value against the redeem's is the first
+        # thing worth checking — and requests fan across ol-web0..3, so without a
+        # log line there is nothing to compare.
+        logger.info(
+            "otp issue ok: service_ip=%r email=%s ip=%r sendmail=%s",
+            i.service_ip,
+            _mask_email(i.email),
+            i.ip,
+            i.sendmail.lower() == "true",
+        )
         return delegate.RawText(json.dumps({"success": "issued"}))
 
 
@@ -385,7 +441,7 @@ class otp_service_redeem(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        if err := _require_s3_auth():
+        if err := _require_s3_auth("redeem"):
             return err
 
         required_keys = ("email", "ip", "service_ip", "otp")
@@ -393,10 +449,14 @@ class otp_service_redeem(delegate.page):
         i.email = i.email.replace(" ", "+").lower()
         i.service_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
         if missing_fields := [k for k in required_keys if not getattr(i, k)]:
-            return delegate.RawText(json.dumps({"error": "missing_keys", "missing_keys": missing_fields}))
+            return _otp_error("redeem", "missing_keys", i.service_ip or "", i.email, missing_keys=missing_fields)
         if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
+            logger.info("otp redeem ok: service_ip=%r email=%s ip=%r", i.service_ip, _mask_email(i.email), i.ip)
             return delegate.RawText(json.dumps({"success": "redeemed"}))
-        return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
+        # A mismatch is usually a typo, but it is also what a `service_ip` that
+        # differed between issue and redeem looks like — same payload, different
+        # HMAC. Log both so the two cases can be told apart.
+        return _otp_error("redeem", "otp_mismatch", i.service_ip, i.email)
 
 
 def _set_login_cookies(
@@ -1186,14 +1246,13 @@ class my_follows(delegate.page):
 
 def get_account_loans_json(user: User) -> dict[str, Any]:
     user.update_loan_status()
-    loans = borrow.get_loans(user)
+    loans = lending.get_loans_of_user(user.key)
     return {"loans": loans}
 
 
 def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
-    mb = MyBooksTemplate(username, key="loan_history")
-    loan_history_data = dict(get_loan_history_data(page=page, mb=mb))
+    loan_history_data = dict(get_loan_history_data(username, page=page))
     # Ensure all `docs` are `dicts`, as some are `Edition`s.
     loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
     return {"loans_history": loan_history_data}
@@ -1205,14 +1264,30 @@ class account_loans(delegate.page):
     @require_login
     def GET(self):
         from openlibrary.core.lending import get_loans_of_user
+        from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 
+        i = web.input(page=1)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
         docs = get_loans_of_user(user.key)
-        template = render["account/loans"](user, docs)
-        return mb.render(header_title=_("Loans"), template=template)
+        loan_history_data = get_loan_history_data(username, page=page)
+        featured_subjects = get_cached_featured_subjects()
+        template = render["account/loans"](
+            user,
+            docs,
+            history_docs=loan_history_data["docs"],
+            current_page=page,
+            show_next=loan_history_data["show_next"],
+            ia_base_url=CONFIG_IA_DOMAIN,
+            featured_subjects=featured_subjects,
+        )
+        return mb.render(header_title=_("Loans & History"), template=template)
 
 
 @deprecated("migrated to fastapi")
@@ -1233,18 +1308,11 @@ class account_loan_history(delegate.page):
     @require_login
     def GET(self):
         i = web.input(page=1)
-        page = int(i.page)
-        user = accounts.get_current_user()
-        username = user["key"].split("/")[-1]
-        mb = MyBooksTemplate(username, key="loan_history")
-        loan_history_data = get_loan_history_data(page=page, mb=mb)
-        template = render["account/loan_history"](
-            docs=loan_history_data["docs"],
-            current_page=page,
-            show_next=loan_history_data["show_next"],
-            ia_base_url=CONFIG_IA_DOMAIN,
-        )
-        return mb.render(header_title=_("Loan History"), template=template)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
+        raise web.redirect(f"/account/loans?page={page}", status="301 Moved Permanently")
 
 
 @deprecated("migrated to fastapi")
@@ -1402,70 +1470,6 @@ def process_goodreads_csv(i):
         else:
             books_wo_isbns[_book["Book Id"]] = _book
     return books, books_wo_isbns
-
-
-def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
-    """
-    Retrieve IA loan history data for page `page` of the patron's history.
-
-    This will use a patron's S3 keys to query the IA loan history API,
-    get the IA IDs, get the OLIDs if available, and and then convert this
-    into editions and IA-only items for display in the loan history.
-
-    This returns both editions and IA-only items because the loan history API
-    includes items that are not in Open Library, and displaying only IA
-    items creates pagination and navigation issues. For further discussion,
-    see https://github.com/internetarchive/openlibrary/pull/8375.
-    """
-    if not (account := OpenLibraryAccount.get_by_username(mb.username)):
-        raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = get_s3_keys(account)
-    limit = RESULTS_PER_PAGE
-    offset = page * limit - limit
-    loan_history = s3_loan_api(
-        s3_keys=s3_keys,
-        action="user_borrow_history",
-        limit=limit + 1,
-        offset=offset,
-        newest=True,
-    ).json()["history"]["items"]
-
-    # We request limit+1 to see if there is another page of history to display,
-    # and then pop the +1 off if it's present.
-    show_next = len(loan_history) == limit + 1
-    if show_next:
-        loan_history.pop()
-
-    ocaids = [loan_record["identifier"] for loan_record in loan_history]
-    loan_history_map = {loan_record["identifier"]: loan_record for loan_record in loan_history}
-
-    # Get editions and attach their loan history.
-    editions_map = get_items_and_add_availability(ocaids=ocaids)
-    for edition in editions_map.values():
-        edition_loan_history = loan_history_map.get(edition.get("ocaid"))
-        edition["last_loan_date"] = edition_loan_history.get("updatedate") if edition_loan_history else ""
-
-    # Create 'placeholders' dicts for items in the Internet Archive loan history,
-    # but absent from Open Library, and then add loan history.
-    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
-    # loan. No apparently way to distinguish between current and past loans with
-    # this API call.
-    ia_only_loans = [{"ocaid": ocaid} for ocaid in ocaids if ocaid not in editions_map]
-    for ia_only_loan in ia_only_loans:
-        loan_data = loan_history_map[ia_only_loan["ocaid"]]
-        ia_only_loan["last_loan_date"] = loan_data.get("updatedate", "")
-        # Determine the macro to load for loan-history items only.
-        ia_only_loan["ia_only"] = True  # type: ignore[typeddict-unknown-key]
-
-    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
-    editions_and_ia_loans.sort(key=lambda item: item.get("last_loan_date", ""), reverse=True)
-
-    return {
-        "docs": editions_and_ia_loans,
-        "show_next": show_next,
-        "limit": limit,
-        "page": page,
-    }
 
 
 class account_security_check(delegate.page):

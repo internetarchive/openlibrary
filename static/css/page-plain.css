@@ -56,7 +56,7 @@ div.nav {
 
 .borrow-table table th.expires {
   font-family: var(--font-family-body);
-  color: var(--brown);
+  color: var(--color-text-heading);
   font-weight: 600;
   font-size: 0.6875em;
   text-transform: uppercase;
@@ -105,7 +105,7 @@ ul.link li {
 }
 #faq p {
   font-size: 0.75em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 
 p.help {
@@ -139,7 +139,7 @@ div.navBorrow {
 }
 .panel {
   background-color: var(--white);
-  border: 1px solid var(--beige-two);
+  border: 1px solid var(--color-border-subtle);
   padding: 30px 20px;
   margin-bottom: 20px;
 }
@@ -160,16 +160,16 @@ div.navBorrow {
 }
 .borrow span.author {
   font-size: 0.875em;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 .borrow span.publisher,
 .borrow span.contributor {
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 0.875em;
 }
 .borrow div.date {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 .borrow span.expires {
   font-size: 1em;

@@ -54,14 +54,16 @@ $if is_edition:
 
 $def analytics_attr(action):
   $if analytics_override:
-    data-ol-link-track="$analytics_override"
+    data-ol-link-track="$(analytics_override.replace('{action}', action))"
   $else:
     data-ol-link-track="CTAClick|$action"
 
 $if lending_state == 'borrowed':
+  $if secondary_action:
+    $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
   $if secondary_action:
-    $:macros.ReturnForm(ocaid, user_loan['expiry'])
+    $:macros.ReturnForm(ocaid, user_loan['expiry'], analytics_track="LoanStatus|ReturnClick")
 
 $elif lending_state == 'partner':
   $# Partner Trusted Book Provider Read Buttons
@@ -69,9 +71,9 @@ $elif lending_state == 'partner':
 
 $elif lending_state == 'open':
   $# Open / Publicly Readable (Unrestricted)
-  $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
+  $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
 
 $elif lending_state == 'printdisabled':
   $# Exemptions for patrons with Print Disabilities
@@ -149,9 +151,17 @@ $elif lending_state == 'checkedout':
   </div>
 
 $elif lending_state == 'preview_only':
-  $:macros.BookPreview(ocaid, show_only=True)
+  $# PreviewSearchInside already provides a Preview button, so the secondary
+  $# case only needs a note explaining why there's no Read/Borrow button.
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
+    <div class="cta-button-group">
+      <p class="waitinglist-message">
+        <span>$_("Only a preview is available.")</span>
+      </p>
+    </div>
+  $else:
+    $:macros.BookPreview(ocaid, show_only=True)
 
 $else:
   $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.

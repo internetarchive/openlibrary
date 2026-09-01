@@ -14,6 +14,12 @@ build/
 # Custom Elements Manifest — generated from component JSDoc by `npx cem analyze`,
 # which `make lit-components` runs. Read at runtime by plugins/openlibrary/design.py.
 openlibrary/components/lit/custom-elements.json
+# Inline Lit icon templates — generated from static/icons/src/ by `make icons`,
+# which `make lit-components` depends on. Bundled, never served directly.
+openlibrary/components/lit/icons.generated.js
+# Icon sprite — generated from static/icons/src/ by `make icons`. Lives next to
+# its sources rather than in static/build/ so all icon files stay in one place.
+static/icons/sprite.svg
 *.local
 /.local
 CLAUDE.local.md
@@ -64,3 +70,7 @@ uv.lock
 # Playwright output (npm run test:e2e)
 playwright-report/
 test-results/
+
+# Local dev state for /status testing-environment (deploy table)
+/_testing-prs.json
+/_dev-merged_status.txt

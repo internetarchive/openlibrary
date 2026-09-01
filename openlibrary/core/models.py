@@ -13,6 +13,7 @@ import requests
 import web
 
 from infogami.infobase import client
+from infogami.utils import types
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -347,9 +348,10 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
-
-        return borrow.get_edition_loans(self)
+        if not self.ocaid:
+            return []
+        loan = lending.get_loan(self.ocaid)
+        return [loan] if loan else []
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -965,6 +967,10 @@ class User(Thing):
     def is_admin(self) -> bool:
         return self.is_usergroup_member("/usergroup/admin")
 
+    def is_maintainer(self) -> bool:
+        """Whether the user can manage the testing environment (maintainers + admins)."""
+        return self.is_member_of_any(["/usergroup/maintainers", "/usergroup/admin"])
+
     def is_librarian(self) -> bool:
         return self.is_usergroup_member("/usergroup/librarians")
 
@@ -1283,9 +1289,7 @@ class Tag(Thing):
         key = site.get().new_key("/type/tag")
         tag["key"] = key
 
-        from openlibrary.accounts import RunAs
-
-        with RunAs(patron):
+        with accounts.RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
             t = site.get().save(tag, comment=comment, action="create-tag")
             return t
@@ -1343,8 +1347,6 @@ def register_models():
 
 def register_types():
     """Register default types for various path patterns used in OL."""
-    from infogami.utils import types
-
     types.register_type("^/authors/[^/]*$", "/type/author")
     types.register_type("^/books/[^/]*$", "/type/edition")
     types.register_type("^/works/[^/]*$", "/type/work")

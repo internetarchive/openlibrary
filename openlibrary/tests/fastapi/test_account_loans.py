@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import web
 
+from openlibrary.core.lending import get_loan_history_data
 from openlibrary.plugins.upstream import account as legacy_account
 
 
@@ -35,7 +36,7 @@ class TestAccountLoansJson:
 
         with (
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.plugins.upstream.account.borrow.get_loans", return_value=loans) as get_loans,
+            patch("openlibrary.plugins.upstream.account.lending.get_loans_of_user", return_value=loans) as get_loans_of_user,
         ):
             response = fastapi_client.get("/account/loans.json")
 
@@ -43,7 +44,7 @@ class TestAccountLoansJson:
         assert response.headers["content-type"] == "application/json"
         assert response.json() == {"loans": loans}
         legacy_user.update_loan_status.assert_called_once_with()
-        get_loans.assert_called_once_with(legacy_user)
+        get_loans_of_user.assert_called_once_with(legacy_user.key)
 
     @pytest.mark.parametrize(
         ("path", "page"),
@@ -131,3 +132,35 @@ class TestAccountLoansJson:
 
         assert fastapi_response.status_code == 200
         assert fastapi_response.json() == json.loads(legacy_response.rawtext)
+
+    @pytest.mark.parametrize(
+        "mock_response_val",
+        [
+            {},
+            {"history": None},
+            {"history": {"items": None}},
+        ],
+    )
+    def test_get_loan_history_data_handles_missing_or_null_history(self, mock_response_val):
+        mock_account = MagicMock()
+
+        mock_response = MagicMock()
+        mock_response.json.return_value = mock_response_val
+
+        with (
+            patch("openlibrary.core.lending.OpenLibraryAccount.get_by_username", return_value=mock_account),
+            patch("openlibrary.core.lending.web.cookies", return_value={"s3": "irrelevant"}),
+            patch("openlibrary.core.lending.parse_s3_cookie", return_value={"access": "acc", "secret": "sec"}),
+            patch("openlibrary.core.lending.s3_loan_api", return_value=mock_response) as mock_s3_loan_api,
+            patch("openlibrary.core.lending.get_items_and_add_availability", return_value={}) as mock_availability,
+        ):
+            result = get_loan_history_data(username="testuser", page=1)
+
+            assert result == {
+                "docs": [],
+                "show_next": False,
+                "limit": 25,
+                "page": 1,
+            }
+            mock_s3_loan_api.assert_called_once()
+            mock_availability.assert_called_once_with(ocaids=[])

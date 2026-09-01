@@ -37,8 +37,14 @@ export default {
     props: {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
-        columns: Array,
-        index: Number
+        columns: {
+            type: Array,
+            default: () => []
+        },
+        index: {
+            type: Number,
+            default: 0
+        }
     },
     computed: {
         searchUrl() {

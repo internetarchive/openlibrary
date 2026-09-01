@@ -5,7 +5,8 @@
 
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link with a book icon */
-.bookcover .cta-btn.cta-btn--preview {
+.bookcover .cta-btn.cta-btn--preview,
+.bookcover .cta-btn.cta-btn--no-preview {
   color: var(--primary-blue);
   text-decoration: none;
   position: relative;
@@ -39,7 +40,19 @@
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: var(--primary-blue);
+  background-color: var(--color-primary);
+}
+
+/* No Preview state - muted placeholder, shown in grid layout only */
+.bookcover .cta-btn.cta-btn--no-preview {
+  display: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  pointer-events: none;
+}
+
+.list-books--grid .bookcover .cta-btn.cta-btn--no-preview {
+  display: inline-block;
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -78,7 +91,7 @@
   display: block;
   margin: 0;
   padding: 0;
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-size: 1.1em;
   font-weight: 700;
   font-family: var(--font-family-title);
@@ -97,7 +110,7 @@
 
 .searchResultItem .resultStats {
   font-size: 0.75em;
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-family: var(--font-family-body);
   display: block;
 }
@@ -266,7 +279,7 @@
   border-top: 1px dashed currentColor;
   margin-top: var(--spacing-stack-sm);
   margin-bottom: calc(-1 * var(--spacing-stack-xs));
-  color: var(--grey);
+  color: var(--color-text-secondary);
   padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
   transition: color 0.2s;
@@ -283,7 +296,7 @@
   }
 
   .search-result-item__preview-covers :hover img {
-    border-color: var(--primary-blue);
+    border-color: var(--color-primary);
   }
 }
 

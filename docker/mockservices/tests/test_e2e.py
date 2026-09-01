@@ -77,6 +77,16 @@ class TestXauthn:
         assert body["success"] is False
         assert body["values"]["reason"]
 
+    def test_authenticate_fails_with_sentinel_bad_password(self):
+        resp = _post(
+            "/services/xauthn/",
+            params={"op": "authenticate"},
+            json={"email": "test@example.com", "password": "bad_password"},
+        )
+        body = resp.json()
+        assert body["success"] is False
+        assert body["values"]["reason"] == "bad_password"
+
     def test_info(self):
         resp = _post("/services/xauthn/", params={"op": "info"}, json={})
         body = resp.json()
