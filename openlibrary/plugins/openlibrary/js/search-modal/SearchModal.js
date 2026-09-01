@@ -1323,7 +1323,7 @@ export class SearchModal extends LitElement {
                 aria-label=${this._seeAllInsideLabel()}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
-            >${this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel())}<ol-icon slot="icon-end" name="arrow-right"></ol-icon></ol-button>
+            >${this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel())}</ol-button>
         `;
     }
 

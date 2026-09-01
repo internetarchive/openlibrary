@@ -7091,6 +7091,13 @@ msgstr ""
 
 #: FulltextSearchSuggestion.html
 #, python-format
+msgid "Search inside %(count)s book"
+msgid_plural "Search inside %(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
 msgid "See all matches found in %(count)s book"
 msgid_plural "See all matches found in %(count)s books"
 msgstr[0] ""
