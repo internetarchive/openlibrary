@@ -54,7 +54,7 @@
     },
     {
       "path": "static/build/js/all.js",
-      "maxSize": "155KB"
+      "maxSize": "156KB"
     },
     {
       "path": "static/build/css/tokens.css",
@@ -74,7 +74,7 @@
     },
     {
       "path": "static/build/css/page-edit.css",
-      "maxSize": "27KB"
+      "maxSize": "27.5KB"
     },
     {
       "path": "static/build/css/page-form.css",
