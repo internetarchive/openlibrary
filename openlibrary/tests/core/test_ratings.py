@@ -5,7 +5,45 @@ Focuses on testing the pure mathematical functions that compute rating statistic
 These functions don't require database access and test the core rating logic.
 """
 
+from unittest.mock import patch
+
+import pytest
+
 from openlibrary.core.ratings import Ratings
+
+
+class TestAddAutoShelve:
+    """Test that rating a book only auto-shelves it as "Already Read" when
+    doing so doesn't overwrite an explicit shelf choice."""
+
+    WANT_TO_READ = 1
+    CURRENTLY_READING = 2
+    ALREADY_READ = 3
+    STOPPED_READING = 4
+
+    @pytest.mark.parametrize(
+        ("read_status", "should_auto_shelve"),
+        [
+            (None, True),  # Unshelved books are moved to Already Read
+            (WANT_TO_READ, True),  # ... as are Want to Read books
+            (CURRENTLY_READING, False),  # Explicit shelf choices are preserved
+            (STOPPED_READING, False),
+            (ALREADY_READ, False),  # Already there; nothing to do
+        ],
+    )
+    def test_add_only_auto_shelves_unshelved_and_want_to_read(self, read_status, should_auto_shelve):
+        with (
+            patch("openlibrary.core.ratings.db.get_db"),
+            patch("openlibrary.core.bookshelves.Bookshelves.get_users_read_status_of_work", return_value=read_status),
+            patch("openlibrary.core.bookshelves.Bookshelves.add") as bookshelves_add,
+            patch.object(Ratings, "get_users_rating_for_work", return_value=None),
+        ):
+            Ratings.add("testuser", 123, rating=4)
+
+        if should_auto_shelve:
+            bookshelves_add.assert_called_once_with("testuser", self.ALREADY_READ, 123, edition_id=None)
+        else:
+            bookshelves_add.assert_not_called()
 
 
 class TestComputeSortableRating:
