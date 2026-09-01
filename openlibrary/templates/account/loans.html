@@ -225,6 +225,7 @@ th.status {
 <br/>
 
 <div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
-     $:render_template("books/custom_carousel", carousel["books"], title=_('Books We Love'), url=carousel["url"], key="staff_picks", load_more=carousel["load_more"], min_books=7, test=test, compact_mode=True)
+    $if carousel:
+        $:render_template("books/custom_carousel", carousel["books"], title=_('Books We Love'), url=carousel["url"], key="staff_picks", load_more=carousel["load_more"], min_books=7, test=test, compact_mode=True)
     $:render_template("home/categories", featured_subjects=featured_subjects)
     $:_('Or, check out our <a href="/collections">special collections</a>.')
