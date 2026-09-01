@@ -5,8 +5,8 @@ import web
 from bs4 import BeautifulSoup
 
 from openlibrary.core.admin import Stats
+from openlibrary.core.carousels import format_book_data
 from openlibrary.mocks.mock_infobase import MockSite
-from openlibrary.plugins.openlibrary import home
 
 
 class MockDoc(dict):
@@ -166,7 +166,7 @@ class Test_format_book_data:
         )
 
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        assert home.format_book_data(book)["authors"] == []
+        assert format_book_data(book)["authors"] == []
 
         # when there is no work and authors, the authors field must be picked from the book
         book = mock_site.quicksave(
@@ -175,7 +175,7 @@ class Test_format_book_data:
             title="Foo",
             authors=[{"key": "/authors/OL1A"}],
         )
-        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL1A", "name": "A1"}]
+        assert format_book_data(book)["authors"] == [{"key": "/authors/OL1A", "name": "A1"}]
 
         # when there is work, the authors field must be picked from the work
         book = mock_site.quicksave(
@@ -185,4 +185,4 @@ class Test_format_book_data:
             authors=[{"key": "/authors/OL1A"}],
             works=[{"key": "/works/OL1W"}],
         )
-        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL2A", "name": "A2"}]
+        assert format_book_data(book)["authors"] == [{"key": "/authors/OL2A", "name": "A2"}]
