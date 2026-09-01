@@ -24,7 +24,7 @@ $if not shown and total:
       <span>$_("Found inside books")</span>
     </h2>
     <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
-      $_('See all %(count)s matches inside books', count=num_found)
+      $ungettext('See all matches found in %(count)s book', 'See all matches found in %(count)s books', total, count=num_found)
       $:macros.icon("arrow-right", size="sm", slot="icon-end")
     </ol-button>
   </section>
@@ -44,7 +44,7 @@ $elif shown:
     </ul>
     <div class="fulltext-suggestions__footer">
       <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
-        $_('See all %(count)s matches inside books', count=num_found)
+        $ungettext('See all matches found in %(count)s book', 'See all matches found in %(count)s books', total, count=num_found)
         $:macros.icon("arrow-right", size="sm", slot="icon-end")
       </ol-button>
     </div>

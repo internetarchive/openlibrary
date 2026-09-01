@@ -3,6 +3,7 @@ import {
     fulltextHitDisplay,
     isPassageQuery,
     parseSnippet,
+    phraseQuery,
     solrLooksWeak,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
 import { fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
@@ -236,6 +237,38 @@ describe('solrLooksWeak', () => {
     });
 });
 
+// Mirror of core/fulltext.py phrase_query — same cases as its Python tests.
+describe('phraseQuery', () => {
+    test('wraps bare words into one quoted phrase', () => {
+        expect(phraseQuery('it was the best of times')).toBe('"it was the best of times"');
+        expect(phraseQuery('whale')).toBe('"whale"');
+    });
+
+    test('leaves a well-formed phrase unchanged', () => {
+        expect(phraseQuery('"it was the best of times"')).toBe('"it was the best of times"');
+    });
+
+    test('normalizes curly quotes, wrapping or inner', () => {
+        expect(phraseQuery('\u201cit was the best of times\u201d')).toBe('"it was the best of times"');
+        expect(phraseQuery('he said \u201chello there\u201d softly')).toBe('"he said hello there softly"');
+    });
+
+    test('repairs unbalanced quotes', () => {
+        expect(phraseQuery('"it was the best of times')).toBe('"it was the best of times"');
+        expect(phraseQuery('hello there" softly')).toBe('"hello there softly"');
+    });
+
+    test('inner quotes are removed, not escaped', () => {
+        expect(phraseQuery('he said "hello there" softly')).toBe('"he said hello there softly"');
+    });
+
+    test('whitespace collapses and an emptied query yields nothing', () => {
+        expect(phraseQuery('  a\n  b  ')).toBe('"a b"');
+        expect(phraseQuery('  "  "  ')).toBe('');
+        expect(phraseQuery('')).toBe('');
+    });
+});
+
 describe('fulltextSearchParams', () => {
     test('carries the query alone when no filter is set', () => {
         const params = fulltextSearchParams('white whale', { readable: false, languages: [] });
@@ -259,12 +292,12 @@ describe('see-all button labels', () => {
     test('the visible label is the short form, total formatted for the locale', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
-        expect(modal._seeAllInsideShortLabel()).toBe('134,731 inside books');
+        expect(modal._seeAllInsideShortLabel()).toBe('Found in 134,731 books');
     });
 
     test('the accessible name spells out the full sentence', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
-        expect(modal._seeAllInsideLabel()).toBe('See all 134,731 matches inside books');
+        expect(modal._seeAllInsideLabel()).toBe('See all matches found in 134,731 books');
     });
 });

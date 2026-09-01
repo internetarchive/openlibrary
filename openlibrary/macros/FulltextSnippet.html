@@ -5,7 +5,8 @@ $ ia_base_url = "https://archive.org"
 $# Every quote opens BookReader with the query — its own in-book search finds
 $# and highlights the match. No page deep-links: the FTS index we queried has
 $# no page knowledge (per IA), so there is nothing more precise to link to.
-$ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=q)))
+$# phrase_query keeps BookReader searching for the passage, not each word.
+$ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=phrase_query(q))))
 
 <ul class="fsi-quotes">
   $for snippet in row.snippets[:3]:

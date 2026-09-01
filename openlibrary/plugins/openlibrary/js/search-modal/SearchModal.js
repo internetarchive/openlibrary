@@ -32,7 +32,7 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { parseSnippet } from './fulltext.js';
+import { parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, fulltextSearchParams } from './fulltextBand.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -1248,7 +1248,7 @@ export class SearchModal extends LitElement {
     // the primary "See N results" — always in view, even with the band
     // scrolled away. Only rendered once the fulltext total exceeds the hits
     // shown inline — with everything already visible there's nothing more
-    // to see. The visible label is short ("23,783 inside books"); the
+    // to see. The visible label is short ("Found in 23,783 books"); the
     // accessible name carries the full sentence.
     _renderFulltextSeeAll() {
         if (this._ftHits.length === 0) return nothing;
@@ -1265,13 +1265,13 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    // The footer button's visible label, e.g. "134 inside books".
+    // The footer button's visible label, e.g. "Found in 134 books".
     _seeAllInsideShortLabel() {
         return sprintf(this._i18n.seeAllInsideShort, this._ftTotal.toLocaleString());
     }
 
     // Accessible name for the same button — the full sentence, e.g.
-    // "See all 134 matches inside books".
+    // "See all matches found in 134 books".
     _seeAllInsideLabel() {
         return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
     }
@@ -1280,9 +1280,11 @@ export class SearchModal extends LitElement {
     // a book row, with the quote (match marked) as a card in the trailing
     // column. The whole row opens BookReader with the query (?q=) — its own
     // in-book search finds and highlights the passage (the same link the
-    // /search/inside page uses).
+    // /search/inside page uses). The query is phrase-quoted like the FTS
+    // request that produced the hit, so BookReader searches for the passage
+    // rather than each word.
     _renderFulltextHit(hit, q, index = 0) {
-        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(q)}`;
+        const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(phraseQuery(q))}`;
         const segments = parseSnippet(hit.snippet);
         return html`<li>
                 <a

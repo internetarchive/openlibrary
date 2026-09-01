@@ -4,7 +4,8 @@ $# A Search Inside hit whose scan didn't hydrate to an OL edition (record
 $# missing or lookup failed) renders from its own IA metadata instead of
 $# vanishing — the total counts it either way. Mirrors the shape of
 $# macros/SearchResultsWork.html so it sits in the same list.
-$ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict(q=query)))
+$# phrase_query keeps BookReader searching for the passage, not each word.
+$ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict(q=phrase_query(query))))
 
 <li class="searchResultItem sri--w-main">
   <div class="sri__main">

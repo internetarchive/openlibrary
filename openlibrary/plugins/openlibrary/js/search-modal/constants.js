@@ -111,13 +111,14 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
-    // "Found inside books" band: snippet matches from Search Inside rendered
-    // under the top results. %s = the band's total match count, formatted
-    // client-side. seeAllInsideShort is the footer see-all button's visible
-    // text; seeAllInside is its accessible name.
+    // "Found inside books" band: %s = the number of books with matches (not
+    // match occurrences), formatted client-side. seeAllInsideShort is the
+    // footer see-all button's visible text; seeAllInside its accessible name.
+    // Plural-only like seeAllMany: the button renders only when the total
+    // exceeds the >=1 hits shown inline, so the count is always >= 2.
     foundInside: 'Found inside books',
-    seeAllInsideShort: '%s inside books',
-    seeAllInside: 'See all %s matches inside books',
+    seeAllInsideShort: 'Found in %s books',
+    seeAllInside: 'See all matches found in %s books',
 };
 
 /**

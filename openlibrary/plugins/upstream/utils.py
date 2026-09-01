@@ -1698,8 +1698,13 @@ def setup() -> None:
     )
 
     from openlibrary.core import helpers as h
+    from openlibrary.core.fulltext import phrase_query
 
     web.template.Template.globals.update(h.helpers)
+    # The BookReader links in the fulltext macros re-quote the query the same
+    # way the FTS request did (imported here, not at module top: core.fulltext
+    # imports back into plugins at import time).
+    web.template.Template.globals["phrase_query"] = phrase_query
 
     if config.get("use_gzip") is True:
         config.middleware.append(GZipMiddleware)

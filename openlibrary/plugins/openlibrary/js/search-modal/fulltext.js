@@ -20,6 +20,20 @@ const OVERLAP_STOPWORDS = new Set([
     'who', 'what', 'when', 'where', 'why', 'how',
 ]);
 
+/**
+ * Mirror of phrase_query in core/fulltext.py: the query BookReader's in-book
+ * search receives, as one straight-quoted phrase. Bare words match anywhere
+ * in the book, and the FTS backend mishandles stray or curly quotes, so
+ * quotes are stripped and the whole query re-wrapped.
+ *
+ * @param {string} query
+ * @returns {string} the quoted phrase, or '' when nothing is left
+ */
+export function phraseQuery(query) {
+    const words = (query || '').replace(/[\u201c\u201d\u201e\u201f]/g, '"').replace(/"/g, ' ').split(/\s+/).filter(Boolean);
+    return words.length ? `"${words.join(' ')}"` : '';
+}
+
 /** Lowercase and strip diacritics so "garcia" matches "García". */
 function fold(s) {
     return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
