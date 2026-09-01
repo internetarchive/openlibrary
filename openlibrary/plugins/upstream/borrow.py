@@ -185,7 +185,6 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         return render_jinja_template(
             "interstitial.html.jinja",
             url=acquisitions[0].url,
-            provider_name=raw_name,
             book_provider=book_provider,
             wait=5,
             fastapi=fastapi,
