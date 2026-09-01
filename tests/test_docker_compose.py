@@ -34,3 +34,13 @@ class TestDockerCompose:
             prod_dc: dict = yaml.safe_load(f)
         for serv, opts in prod_dc["services"].items():
             assert "profiles" in opts, f"{serv} is missing 'profiles' field"
+
+    def test_web_services_set_deployment_name(self):
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+
+        for service_name in ("web", "fast_web"):
+            assert "OL_DEPLOYMENT_NAME=testing" in staging_dc["services"][service_name]["environment"]
+            assert "OL_DEPLOYMENT_NAME=production" in prod_dc["services"][service_name]["environment"]
