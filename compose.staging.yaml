@@ -18,6 +18,7 @@ services:
       - ${WEB_PORT:-8080}:8080
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
+      - OL_DEPLOYMENT_NAME=testing
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
@@ -47,6 +48,7 @@ services:
       - ${FAST_WEB_PORT:-18080}:8080
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
+      - OL_DEPLOYMENT_NAME=testing
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - PIP_INDEX_URL=${PIP_INDEX_URL:-}
     env_file:
