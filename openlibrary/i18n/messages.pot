@@ -923,13 +923,12 @@ msgstr ""
 msgid "Full URL:"
 msgstr ""
 
-#: work_search.html
-#, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search."
+#: search/search_modal_i18n.html work_search.html
+msgid "No matching books or authors"
 msgstr ""
 
 #: work_search.html
-msgid "Add a new book?"
+msgid "Add a new book"
 msgstr ""
 
 #: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
@@ -1342,7 +1341,7 @@ msgstr ""
 msgid "Import & Export Options"
 msgstr ""
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
+#: BookByline.html SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -3303,7 +3302,7 @@ msgstr ""
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
 msgstr ""
 
-#: FulltextResults.html FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -5673,7 +5672,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
+#: SearchNavigation.html search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5795,10 +5794,6 @@ msgid "No results found"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "No matching books or authors"
-msgstr ""
-
-#: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
 msgstr ""
@@ -5829,12 +5824,18 @@ msgstr ""
 msgid "Remove \"%s\" from recent searches"
 msgstr ""
 
-#: search/search_modal_i18n.html
+#: FulltextSearchSuggestion.html search/search_modal_i18n.html
 msgid "Found inside books"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "See more Search Inside matches"
+#, python-format
+msgid "%s inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s matches inside books"
 msgstr ""
 
 #: search/sort_options.html
@@ -7077,31 +7078,9 @@ msgstr ""
 msgid "Expires"
 msgstr ""
 
-#: FulltextResults.html
-#, python-format
-msgid "by %(authors)s"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "Checking for Search Inside matches"
-msgstr ""
-
 #: FulltextSearchSuggestion.html
 #, python-format
-msgid "%(book_count)s books found with matching passages"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
-msgid "❝"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
-msgid "❞"
+msgid "See all %(count)s matches inside books"
 msgstr ""
 
 #: IABook.html

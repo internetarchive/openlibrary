@@ -42,8 +42,6 @@
 @import "components/ol-message.css";
 /* Import styles for fulltext-search-suggestion card */
 @import "components/fulltext-search-suggestion.css";
-/* Import styles for fulltext-search-suggestion card item */
-@import "components/fulltext-search-suggestion-item.css";
 /* Import styles for fulltext-search-suggestion card item snippet */
 @import "components/fulltext-snippet.css";
 /* Import styles for author infobox */

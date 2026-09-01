@@ -1,33 +1,51 @@
-$def with(query, rows, total, page=1)
+$def with(query, rows, total)
 
-$def render_snippet(query, row):
-    $:macros.FulltextSuggestionSnippet(query, row=row)
+$# Search Inside band at the foot of /search: a taste of what the query finds
+$# inside scanned books, pointing at /search/inside for the rest. Rows are the
+$# /search/inside result items (macros/FulltextResults.html) minus their
+$# lending/list controls, so the band's one button is the see-all.
+$ shown = rows[:3]
 
-$if rows:
-  $ num_found = commify(total)
+$def render_snippets(query, row):
+  <div class="serp-extra">
+    $:macros.FulltextSnippet(query, row=row)
+  </div>
 
-  $:macros.LoadingIndicator(_("Checking for Search Inside matches"))
-    <div id="fulltextSuggestions" class="fulltext-suggestions">
-      <div class="fulltext-suggestions__header">
-        $# The link is named by its icon; the heading beside it repeats the destination.
-        <a class="fulltext-suggestions__icon" data-ol-link-track="SearchInsideSuggestion|SeeAllClick" href="/search/inside?$urlencode(dict(q=query))">
-            $:macros.icon("search-inside", size="lg", label=_('Search Inside'))
-        </a>
-        <h3 class="fulltext-suggestions__title">
-          <a data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
-          href="/search/inside?$urlencode(dict(q=query))">$_("Search Inside")</a> &mdash; $_('%(book_count)s books found with matching passages', book_count=num_found)
-        </h3>
-      </div>
-      $for row in rows[:4]:
+$ num_found = commify(total)
+$ see_all_url = "/search/inside?%s" % urlencode(dict(q=query))
+
+$if not shown and total:
+  $# Every fetched hit is a book the page already lists (see `exclude` in
+  $# templates/work_search.html), so there's nothing new to preview — just
+  $# the way through to the full results.
+  <section class="fulltext-suggestions fulltext-suggestions--compact" aria-labelledby="fulltext-suggestions-heading">
+    <h2 id="fulltext-suggestions-heading" class="search-results-section-label fulltext-suggestions__header">
+      $:macros.icon("text-search", size="sm")
+      <span>$_("Found inside books")</span>
+    </h2>
+    <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+      $_('See all %(count)s matches inside books', count=num_found)
+      $:macros.icon("arrow-right", size="sm", slot="icon-end")
+    </ol-button>
+  </section>
+$elif shown:
+  <section class="fulltext-suggestions" aria-labelledby="fulltext-suggestions-heading">
+    <h2 id="fulltext-suggestions-heading" class="search-results-section-label fulltext-suggestions__header">
+      $# Decorative: flags these as matches from inside the scans, not catalogue records.
+      $:macros.icon("text-search", size="sm")
+      <span>$_("Found inside books")</span>
+    </h2>
+    <ul class="list-books list-books--fulltext">
+      $for row in shown:
         $if row.edition:
-          $:macros.FulltextSearchSuggestionItem(row.edition, snippet=render_snippet(query, row))
-      <h3 class="fulltext-suggestions__footer">
-        <a class="fulltext-suggestions__footer-link" data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
-        href="/search/inside?$urlencode(dict(q=query))">$_('See all %(results_count)s Search Inside Matches', results_count=num_found)
-        <span class="fulltext-suggestions__right-chevron">
-          $# Decorative: the link text already says where it goes.
-          $:macros.icon("chevron-right", size="sm")
-        </span>
-        </a>
-      </h3>
+          $:macros.SearchResultsWork(row.edition, cta=False, availability=row.availability, extra=render_snippets(query, row), seq_index=loop.index0, show_title_year=True)
+        $else:
+          $:macros.FulltextResultIA(query, row, extra=render_snippets(query, row))
+    </ul>
+    <div class="fulltext-suggestions__footer">
+      <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+        $_('See all %(count)s matches inside books', count=num_found)
+        $:macros.icon("arrow-right", size="sm", slot="icon-end")
+      </ol-button>
     </div>
+  </section>

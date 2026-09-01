@@ -5,40 +5,13 @@ $def render_snippets(query, row):
     $:macros.FulltextSnippet(query, row=row)
   </div>
 
-$# A scan that didn't hydrate to an OL edition (record missing or lookup failed)
-$# renders from its own IA metadata instead of vanishing — the total and the
-$# pagination count it either way.
-$def render_ia_fallback(query, row):
-  $ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict(q=query)))
-  <li class="searchResultItem sri--w-main">
-    <div class="sri__main">
-      <span class="bookcover">
-        <a href="$details_url">
-          <img src="https://archive.org/services/img/$row.ocaid" alt="$_('Cover of: %(title)s', title=row.title)" loading="lazy"/>
-        </a>
-      </span>
-      <div class="details">
-        <div class="resultTitle">
-          <h3 class="booktitle">
-            <a class="results" href="$details_url">$row.title</a>
-            $if row.year:
-              <span class="booktitle__year">($row.year)</span>
-          </h3>
-        </div>
-        $if row.authors:
-          <span class="bookauthor">$_('by %(authors)s', authors=', '.join(row.authors[:3]))</span>
-        $:render_snippets(query, row)
-      </div>
-    </div>
-  </li>
-
 <div id="searchResults">
-  <ul class="list-books">
+  <ul class="list-books list-books--fulltext">
     $for row in rows:
       $if row.edition:
         $:macros.SearchResultsWork(row.edition, availability=row.availability, extra=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
       $else:
-        $:render_ia_fallback(query, row)
+        $:macros.FulltextResultIA(query, row, extra=render_snippets(query, row))
   </ul>
   $:macros.OlPagination(page, ceil(total / results_per_page))
 </div>

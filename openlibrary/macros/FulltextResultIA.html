@@ -1,0 +1,30 @@
+$def with(query, row, extra=None)
+
+$# A Search Inside hit whose scan didn't hydrate to an OL edition (record
+$# missing or lookup failed) renders from its own IA metadata instead of
+$# vanishing — the total counts it either way. Mirrors the shape of
+$# macros/SearchResultsWork.html so it sits in the same list.
+$ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict(q=query)))
+
+<li class="searchResultItem sri--w-main">
+  <div class="sri__main">
+    <span class="bookcover">
+      <a href="$details_url">
+        <img src="https://archive.org/services/img/$row.ocaid" alt="$_('Cover of: %(title)s', title=row.title)" loading="lazy"/>
+      </a>
+    </span>
+    <div class="details">
+      <div class="resultTitle">
+        <h3 class="booktitle">
+          <a class="results" href="$details_url">$row.title</a>
+        </h3>
+      </div>
+      $if row.authors:
+        <span class="bookauthor">$_('by %(authors)s', authors=', '.join(row.authors[:3]))</span>
+      $if row.year:
+        <span class="bookyear">$row.year</span>
+      $if extra:
+        $:extra
+    </div>
+  </div>
+</li>

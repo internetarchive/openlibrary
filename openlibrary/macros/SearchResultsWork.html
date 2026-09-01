@@ -52,8 +52,8 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
 
-  # Year shown after the title. Only data already on the record — never a
-  # second lookup: solr docs carry first_publish_year; infogami editions
+  # Year shown on its own line below the author. Only data already on the
+  # record — never a second lookup: solr docs carry first_publish_year; infogami editions
   # carry publish_date, from which we pull the 4-digit year.
   title_year = None
   if show_title_year:
@@ -107,8 +107,6 @@ $code:
             </span>
           <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
-            $if title_year:
-              <span class="booktitle__year">($title_year)</span>
           </h3>
         </div>
         <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
@@ -135,6 +133,8 @@ $code:
               ]
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
+        $if title_year:
+          <span class="bookyear">$title_year</span>
         <span class="resultStats">
           $ ratings_count = doc.get('ratings_count') or 0
           $ ratings_avg = doc.get('ratings_average', None)

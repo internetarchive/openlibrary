@@ -1,91 +1,49 @@
-/**
- * Search Result Item
- * https://docs.openlibrary.org/designers/design-pattern-library.html#searchresultitem
- */
+/* Search Inside band at the foot of /search (macros/FulltextSearchSuggestion.html).
+   The rows are the /search/inside result items under the page's section
+   label; the footer button carries the band's one call to action. */
 .fulltext-suggestions {
-  list-style-type: none;
-  line-height: 1.5em;
-  background-color: var(--grey-fafafa);
-  border-radius: 5px;
-  padding: var(--spacing-inset-xs);
-  margin-bottom: var(--spacing-stack-xs);
-  border-bottom: 1px solid var(--light-beige);
-  display: flex;
-  flex-direction: column;
+  margin: var(--spacing-stack-lg) 0;
 }
+
 .fulltext-suggestions__header {
-  display: flex;
-  flex-direction: row;
-  align-items: start;
-  padding: var(--spacing-inset-xs);
-  margin-bottom: var(--spacing-stack-xs);
+  align-items: center;
+  gap: var(--spacing-2xs);
 }
-.fulltext-suggestions__icon {
-  margin-top: var(--spacing-stack-xs);
-  min-height: 30px;
-  min-width: 30px;
+
+.fulltext-suggestions__header .ol-icon {
+  flex-shrink: 0;
 }
-/* --width-breakpoint-tablet: 768px */
-@media (min-width: 768px) {
-  .fulltext-suggestions__icon {
-    align-items: center;
-  }
-}
-.fulltext-suggestions__title {
-  display: block;
-  margin: 0;
-  padding: var(--spacing-inset-xs);
-  font-size: medium;
-  font-weight: 700;
-  font-family: var(--font-family-body);
-}
-/* --width-breakpoint-tablet: 768px */
-@media (min-width: 768px) {
-  .fulltext-suggestions__title {
-    font-size: large;
-  }
-}
-.fulltext-suggestions__title a:link,
-.fulltext-suggestions__title a:visited {
-  color: var(--black);
-  text-decoration: none;
-}
-.fulltext-suggestions__title a:hover {
-  color: var(--color-link);
-}
-.fulltext-suggestions__footer {
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  padding: var(--spacing-inset-xs);
-  font-size: small;
-  font-weight: 700;
-  font-family: var(--font-family-body);
-}
-/* --width-breakpoint-mobile-m: 425px */
-@media (min-width: 425px) {
-  .fulltext-suggestions__footer {
-    font-size: medium;
-  }
-}
-/* --width-breakpoint-tablet: 768px */
-@media (min-width: 768px) {
-  .fulltext-suggestions__footer {
-    font-size: large;
-    justify-content: end;
-  }
-}
-.fulltext-suggestions__right-chevron {
-  max-height: 20px;
-  max-width: 20px;
+
+/* Rows render without lending/list controls; drop the column they'd occupy. */
+.fulltext-suggestions .searchResultItemCTA {
   display: none;
 }
-/* --width-breakpoint-mobile-m: 425px */
-@media (min-width: 425px) {
-  .fulltext-suggestions__right-chevron {
-    display: inline;
-  }
+
+.fulltext-suggestions__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-stack-sm);
 }
+
+/* Nothing new to preview (every hit is already on the page): label and
+   button share one row. */
+.fulltext-suggestions--compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-inline-md);
+  flex-wrap: wrap;
+}
+
+.fulltext-suggestions--compact .fulltext-suggestions__header {
+  margin-bottom: 0;
+}
+
+/* Fetch-failure message with its retry link (fulltext-search-suggestion.js). */
 .fulltext-suggestions__retry {
+  display: block;
+  padding: var(--spacing-inset-xs);
   text-align: center;
+  font-size: var(--font-size-body-medium);
+  color: var(--color-text-muted);
 }

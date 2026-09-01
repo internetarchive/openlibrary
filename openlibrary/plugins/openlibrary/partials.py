@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -9,7 +10,7 @@ from pydantic import BaseModel
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
-from openlibrary.core.fulltext import fulltext_page, fulltext_search_async
+from openlibrary.core.fulltext import exclude_ocaids, fulltext_page, fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
@@ -432,14 +433,16 @@ class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
-        # The macro renders at most 4 suggestions (hits[:4]); fetch just a few
-        # spare hits to cover ones with no matching OL edition. Every fetched
-        # hit costs availability + Infobase hydration, so the old default of
-        # 100 hydrated ~96 hits per render that were never shown.
+    async def generate_async(cls, query: str, exclude: Iterable[str] = ()) -> FullTextSuggestionsPartialResult:
+        # The macro renders at most 3 suggestions; fetch just a few spare hits
+        # to cover ones excluded (already on the page) or with no matching OL
+        # edition. Every fetched hit costs availability + Infobase hydration,
+        # so the old default of 100 hydrated ~96 hits per render that were
+        # never shown.
         data = await fulltext_search_async(query, limit=10)
         rows, total = fulltext_page(data)
-        if not rows:
+        rows = exclude_ocaids(rows, exclude)
+        if not rows and not total:
             macro = "<div></div>"
         else:
             macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, rows, total)

@@ -117,10 +117,16 @@ export function parseSnippet(snippet) {
  * a hit without an OL edition still renders instead of being dropped. (With
  * a language filter active such hits are already dropped server-side.)
  *
+ * The author comes from the edition when there is one, else from the scan's
+ * `meta_creator` (IA's own catalogue field, present on nearly every hit). The
+ * year is always the scan's `meta_year` — the hydrated edition carries none.
+ * The cover falls back to the scan's own, the same IA cover URLs the book
+ * rows use, so a hit without an OL record still shows its cover.
+ *
  * @param {Object} hit - one entry of the /search/inside.json hits.hits array
- * @returns {{ia: string, title: string, author: string, snippet: string,
- *   coverUrl: (string|null)}|null} null when the hit has no scan identifier
- *   or no snippet to show
+ * @returns {{ia: string, title: string, author: string, year: string,
+ *   snippet: string, coverUrl: string, coverSrcset: string}|null} null when
+ *   the hit has no scan identifier or no snippet to show
  */
 export function fulltextHitDisplay(hit) {
     const fields = (hit && hit.fields) || {};
@@ -132,7 +138,37 @@ export function fulltextHitDisplay(hit) {
     const title = (edition && edition.title) || metaTitle || '';
     const author = (edition && Array.isArray(edition.authors)
         ? edition.authors.map((a) => a && a.name).filter(Boolean).join(', ')
-        : '');
-    const coverUrl = (edition && edition.cover_url) || null;
-    return { ia, title, author, snippet, coverUrl };
+        : creatorsFromMeta(fields.meta_creator));
+    const metaYear = Array.isArray(fields.meta_year) ? fields.meta_year[0] : fields.meta_year;
+    const year = metaYear ? String(metaYear) : '';
+    // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
+    const coverUrl = (edition && edition.cover_url) || `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
+    const coverSrcset = (edition && edition.cover_url) ? '' : `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
+    return { ia, title, author, year, snippet, coverUrl, coverSrcset };
+}
+
+/**
+ * Author names from a scan's `meta_creator`. Each value is usually one name,
+ * catalogue-style ("Tyler, Denise"), but multi-author scans sometimes pack
+ * every name into one value separated by bare commas ("A Ganci,B Crespo,…").
+ * A comma with no space after it is a separator; "Last, First" keeps its
+ * space and stays whole. IA also leaves MARC relator terms on some names
+ * ("Eyre, Richard M., author"); that trailing role is dropped. Capped at
+ * three names like the /search/inside page.
+ *
+ * @param {string[]|string|undefined} metaCreator
+ * @returns {string} comma-joined names, or '' when there are none
+ */
+/** Trailing MARC relator term IA sometimes leaves on a creator name
+ *  (", author", ", editor.", ", joint author", ", ed."). */
+const CREATOR_ROLE_SUFFIX = /(?:,\s*(?:joint\s+)?(?:author|editor|illustrator|translator|compiler|contributor|photographer|narrator|ed|comp|tr|ill)\.?)+$/i;
+
+export function creatorsFromMeta(metaCreator) {
+    const values = Array.isArray(metaCreator) ? metaCreator : (metaCreator ? [metaCreator] : []);
+    return values
+        .flatMap((v) => String(v).split(/,(?=\S)/))
+        .map((name) => name.trim().replace(CREATOR_ROLE_SUFFIX, ''))
+        .filter(Boolean)
+        .slice(0, 3)
+        .join(', ');
 }

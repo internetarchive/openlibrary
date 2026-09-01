@@ -181,11 +181,11 @@ async def search_params(monkeypatch, **kwargs) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_query_is_sent_verbatim_with_olonly(monkeypatch):
-    # Nothing may be injected into `q`: a field clause would flip the endpoint
-    # to its Lucene parser, which silently ignores olonly.
+async def test_query_is_sent_as_a_phrase_with_olonly(monkeypatch):
+    # Only the phrase quotes may be added to `q`: a field clause would flip the
+    # endpoint to its Lucene parser, which silently ignores olonly.
     params = await search_params(monkeypatch)
-    assert params["q"] == "moby dick"
+    assert params["q"] == '"moby dick"'
     assert params["olonly"] == "true"
     assert "lang" not in params
 
@@ -193,5 +193,5 @@ async def test_query_is_sent_verbatim_with_olonly(monkeypatch):
 @pytest.mark.asyncio
 async def test_language_is_sent_as_the_lang_param(monkeypatch):
     params = await search_params(monkeypatch, language="German")
-    assert params["q"] == "moby dick"
+    assert params["q"] == '"moby dick"'
     assert params["lang"] == "German"

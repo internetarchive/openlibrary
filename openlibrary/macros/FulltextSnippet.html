@@ -7,13 +7,11 @@ $# and highlights the match. No page deep-links: the FTS index we queried has
 $# no page knowledge (per IA), so there is nothing more precise to link to.
 $ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=q)))
 
-<ul class="fsi-snippet">
+<ul class="fsi-quotes">
   $for snippet in row.snippets[:3]:
-    <li class="fsi-snippet__main fsi-snippet__full-results">
+    <li>
       $# snippet.html escapes each segment and marks the matches; see Snippet in
       $# core/fulltext.py. Never interpolate snippet text directly.
-      <a class="fsi-snippet__link" href="$href" data-ol-link-track="SearchInsideCard|QuoteClick">
-        &hellip;$:snippet.html&hellip;
-      </a>
+      <a class="fsi-quote" href="$href" data-ol-link-track="SearchInsideCard|QuoteClick">&hellip;$:snippet.html&hellip;</a>
     </li>
 </ul>

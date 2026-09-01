@@ -1,10 +1,12 @@
 import {
+    creatorsFromMeta,
     fulltextHitDisplay,
     isPassageQuery,
     parseSnippet,
     solrLooksWeak,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltext';
 import { fulltextSearchParams } from '../../../openlibrary/plugins/openlibrary/js/search-modal/fulltextBand';
+import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal';
 
 describe('parseSnippet', () => {
     test('splits text around {{{match}}} markers', () => {
@@ -49,6 +51,7 @@ describe('fulltextHitDisplay', () => {
         fields: {
             identifier: ['watertouchingst00patt'],
             meta_title: ['Water touching stone'],
+            meta_year: [2001],
             page_num: [[214]],
         },
         highlight: { text: ['But {{{Lokesh}}} had never seemed'] },
@@ -65,20 +68,60 @@ describe('fulltextHitDisplay', () => {
             ia: 'watertouchingst00patt',
             title: 'Water Touching Stone',
             author: 'Eliot Pattison',
+            year: '2001',
             snippet: 'But {{{Lokesh}}} had never seemed',
             coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
+            coverSrcset: '',
         });
     });
 
     test('falls back to scan metadata when no OL edition matched', () => {
-        const bare = { ...hit, edition: undefined };
+        const bare = { ...hit, edition: undefined, fields: { ...hit.fields, meta_creator: ['Pattison, Eliot'] } };
         expect(fulltextHitDisplay(bare)).toEqual({
             ia: 'watertouchingst00patt',
             title: 'Water touching stone',
-            author: '',
+            author: 'Pattison, Eliot',
+            year: '2001',
             snippet: 'But {{{Lokesh}}} had never seemed',
-            coverUrl: null,
+            coverUrl: 'https://archive.org/download/watertouchingst00patt/page/cover_w116_h58.jpg',
+            coverSrcset: 'https://archive.org/download/watertouchingst00patt/page/cover_w180_h360.jpg 2x',
         });
+    });
+
+    test('no edition and no meta_creator leaves the author empty', () => {
+        expect(fulltextHitDisplay({ ...hit, edition: undefined }).author).toBe('');
+    });
+
+    test('no meta_year leaves the year empty', () => {
+        expect(fulltextHitDisplay({ ...hit, fields: { ...hit.fields, meta_year: undefined } }).year).toBe('');
+    });
+});
+
+describe('creatorsFromMeta', () => {
+    test('keeps a catalogue-style "Last, First" name whole', () => {
+        expect(creatorsFromMeta(['Tyler, Denise'])).toBe('Tyler, Denise');
+    });
+
+    test('splits a packed multi-author value on bare commas and caps at three', () => {
+        expect(creatorsFromMeta(['John Ganci,Oscar Aranda Crespo,Nevine Helmy,Mark Ho']))
+            .toBe('John Ganci, Oscar Aranda Crespo, Nevine Helmy');
+    });
+
+    test('drops a trailing MARC relator term but keeps the name', () => {
+        expect(creatorsFromMeta(['Eyre, Richard M., author'])).toBe('Eyre, Richard M.');
+        expect(creatorsFromMeta(['Smith, Jane, editor.'])).toBe('Smith, Jane');
+        expect(creatorsFromMeta(['Doe, John, joint author'])).toBe('Doe, John');
+        expect(creatorsFromMeta(['Roe, Ann, ed., tr.'])).toBe('Roe, Ann');
+        // A packed list keeps every name; only the role goes.
+        expect(creatorsFromMeta(['A One, author,B Two, illustrator'])).toBe('A One, B Two');
+        // Names that merely contain a role word are untouched.
+        expect(creatorsFromMeta(['Author, Ann', 'Illustrated Press'])).toBe('Author, Ann, Illustrated Press');
+    });
+
+    test('joins separate values and drops blanks', () => {
+        expect(creatorsFromMeta(['Ada Lovelace', '', 'Charles Babbage'])).toBe('Ada Lovelace, Charles Babbage');
+        expect(creatorsFromMeta('Solo Author')).toBe('Solo Author');
+        expect(creatorsFromMeta(undefined)).toBe('');
     });
 
     test('returns null without an identifier or snippet', () => {
@@ -209,5 +252,19 @@ describe('fulltextSearchParams', () => {
     test('narrows the language selection to the first code', () => {
         const params = fulltextSearchParams('white whale', { readable: false, languages: ['fre', 'ger'] });
         expect(params.getAll('language')).toEqual(['fre']);
+    });
+});
+
+describe('see-all button labels', () => {
+    test('the visible label is the short form, total formatted for the locale', () => {
+        const modal = new SearchModal();
+        modal._ftTotal = 134731;
+        expect(modal._seeAllInsideShortLabel()).toBe('134,731 inside books');
+    });
+
+    test('the accessible name spells out the full sentence', () => {
+        const modal = new SearchModal();
+        modal._ftTotal = 134731;
+        expect(modal._seeAllInsideLabel()).toBe('See all 134,731 matches inside books');
     });
 });

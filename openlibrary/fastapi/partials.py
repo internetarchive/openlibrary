@@ -109,13 +109,14 @@ async def book_page_lists_partial(
 async def fulltext_search_suggestion_partial(
     response: Response,
     data: Annotated[str, Query(description="Search query string")],
+    exclude: Annotated[str, Query(description="Comma-separated IA identifiers already shown on the page; their hits are skipped")] = "",
 ) -> dict:
     """
     Get full-text search suggestions HTML.
 
     The data parameter is the raw search query string.
     """
-    result = await FullTextSuggestionsPartial.generate_async(query=data)
+    result = await FullTextSuggestionsPartial.generate_async(query=data, exclude=filter(None, exclude.split(",")))
 
     if not result.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"

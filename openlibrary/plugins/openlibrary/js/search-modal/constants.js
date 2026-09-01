@@ -112,9 +112,12 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     // "Found inside books" band: snippet matches from Search Inside rendered
-    // under the top results.
+    // under the top results. %s = the band's total match count, formatted
+    // client-side. seeAllInsideShort is the footer see-all button's visible
+    // text; seeAllInside is its accessible name.
     foundInside: 'Found inside books',
-    seeAllInside: 'See more Search Inside matches',
+    seeAllInsideShort: '%s inside books',
+    seeAllInside: 'See all %s matches inside books',
 };
 
 /**

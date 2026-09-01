@@ -1,68 +1,51 @@
-.fsi-snippet {
-  display: inline;
-  width: 60%;
-  padding: var(--spacing-inset-xs);
-  margin: 0;
-  font-size: var(--font-size-body-small);
+/* Search Inside quote cards (/search/inside, macros/FulltextSnippet.html).
+   Each matched passage is its own small card — the whole card is the link into
+   BookReader — laid out three-up inside the result's details column. */
+.fsi-quotes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-inline-md);
+  margin: var(--spacing-stack-sm) 0 0;
+  padding: 0;
+  list-style: none;
 }
-/* --width-breakpoint-mobile: 450px */
-@media (min-width: 450px) {
-  .fsi-snippet {
-    width: 90%;
-  }
-}
+
 /* --width-breakpoint-tablet: 768px */
 @media (min-width: 768px) {
-  .fsi-snippet {
-    width: auto;
-    font-size: var(--font-size-body-medium);
+  .fsi-quotes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-.fsi-snippet__main {
-  padding: var(--spacing-inset-xs);
-  margin: 0 var(--spacing-inline-sm);
-  line-height: 1.6em;
-}
-.fsi-snippet__main__page-num a {
+
+.fsi-quote:any-link {
+  display: block;
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background-color: var(--color-surface);
+  font-family: var(--font-family-quote);
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-relaxed);
   color: var(--color-text);
-  display: inline;
   text-decoration: none;
-  font-family: var(--font-family-body);
+  overflow-wrap: anywhere;
 }
-.fsi-snippet__main a:link,
-.fsi-snippet__main a:hover,
-.fsi-snippet__main a:visited {
-  text-decoration: none;
+
+.fsi-quote:hover,
+.fsi-quote:focus-visible {
+  background-color: var(--color-control-hover);
 }
-.fsi-snippet__main a:link {
-  font-family: var(--font-family-serif);
-  color: var(--black);
-}
-.fsi-snippet__main a:hover {
-  color: var(--color-link);
-}
-.fsi-snippet__full-results {
-  border-bottom: 1px solid var(--lightest-grey);
-  font-size: 1em;
-  overflow: hidden;
-}
-.fsi-snippet__full-results:last-child {
-  border-bottom: none;
-}
-/* /search/inside rows match the search modal's band: plain body text,
-   no quotation marks, matched terms bold with no highlight. */
-.fsi-snippet__full-results .fsi-snippet__link:link,
-.fsi-snippet__full-results .fsi-snippet__link:visited {
-  font-family: var(--font-family-body);
-  color: var(--color-text);
-}
-.fsi-snippet__full-results .fsi-snippet__link:hover {
-  color: var(--color-link);
-}
-.fsi-snippet__full-results strong {
-  font-weight: 600;
-}
-.fsi-snippet__quotation-mark {
-  font-size: larger;
-  display: inline;
+
+/* The matched terms. A highlight rather than bold: at small serif sizes bold
+   alone barely registers against surrounding OCR text. Padding bleeds outward
+   so the highlight box breathes without pushing the punctuation after it. */
+.fsi-quote strong {
+  font-weight: 500;
+  background-color: var(--amber-50);
+  border-radius: var(--border-radius-sm);
+  padding: 0 var(--spacing-inline-xs);
+  margin: 0 calc(-1 * var(--spacing-inline-xs));
+  box-decoration-break: clone;
 }

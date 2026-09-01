@@ -365,6 +365,21 @@ export class SearchModal extends LitElement {
             text-transform: uppercase;
         }
 
+        /* Heading with a leading glyph (the "Found inside books" band): the
+           icon flags that these rows are a different kind of match — text
+           from inside the scans, not catalogue records. */
+        .results-heading--icon {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2xs);
+        }
+
+        .results-heading--icon ol-icon {
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+        }
+
         .results-list {
             list-style: none;
             margin: 0;
@@ -529,32 +544,53 @@ export class SearchModal extends LitElement {
 
         /* ── "Found inside books" band ─────────────────────────────── */
 
-        /* Snippet passage from inside the book, clamped to two lines. */
+        /* Snippet passage from inside the book, as a small quote card in the
+           row's trailing column — the same card the /search/inside page uses
+           (.fsi-quote). The row is the link, so the card is inert: it sits on
+           the hovered row rather than highlighting on its own. */
         .ft-quote {
+            flex: 0 1 46%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: var(--border-card);
+            border-radius: var(--border-radius-card);
+            background-color: var(--color-surface);
+            color: var(--color-text);
+            font-family: var(--font-family-quote);
+            font-size: var(--font-size-body-small);
+            line-height: var(--line-height-relaxed);
+            overflow-wrap: anywhere;
+        }
+
+        /* The quote card leaves the title about half the row, so let it wrap
+           to a second line before clamping instead of truncating at one. */
+        .ft-result .result__title {
             display: -webkit-box;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
+            white-space: normal;
+        }
+
+        /* Clamp the passage so a long OCR run can't balloon the row. */
+        .ft-quote__text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
             overflow: hidden;
-            color: var(--color-text);
-            line-height: 1.45;
         }
 
-        /* Subtle match treatment: no highlight, just bold. */
+        /* Same match treatment as the /search/inside quote cards
+           (.fsi-quote strong): amber highlight, medium weight. The padding
+           bleeds outward so the box doesn't push the punctuation after it. */
         .ft-quote mark {
-            background: none;
+            background-color: var(--amber-50);
             color: inherit;
-            font-weight: 600;
-        }
-
-        /* Attribution line under the quote (title · author · page). */
-        .ft-result .result__author { margin-top: var(--spacing-3xs); }
-
-        /* Quiet footer link into /search/inside. Reuses .result for the
-           row hover/focus treatment and arrow-key navigation. */
-        .ft-see-all {
-            color: var(--link-blue);
-            font-size: var(--font-size-body-medium);
             font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            padding: 0 var(--spacing-inline-xs);
+            margin: 0 calc(-1 * var(--spacing-inline-xs));
+            box-decoration-break: clone;
         }
 
         /* Animated trailing dots on the "Searching" label. The three dots
@@ -608,7 +644,8 @@ export class SearchModal extends LitElement {
             align-items: center;
             justify-content: center;
             height: 28px;
-            color: var(--color-text-muted);
+            /* Decorative — the heading already says these are recent searches. */
+            color: var(--color-icon-muted);
         }
 
         .result__recent-icon ol-icon { width: 18px; height: 18px; }
@@ -717,10 +754,17 @@ export class SearchModal extends LitElement {
 
         .footer {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
+            gap: var(--spacing-md);
             padding: var(--spacing-sm) var(--spacing-lg);
             border-top: var(--border-divider);
         }
+
+        .footer ol-button { flex-shrink: 0; }
+
+        /* The primary "See N results" holds the right edge; the fulltext
+           see-all (when present) sits before it, on the left. */
+        .footer ol-button:last-child { margin-left: auto; }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
 
@@ -743,6 +787,11 @@ export class SearchModal extends LitElement {
             }
             .search-icon { display: none; }
             .back-btn { margin-left: 0; }
+
+            /* No room for a side-by-side card: the quote wraps beneath the
+               cover/meta row at full width. */
+            .ft-result { flex-wrap: wrap; }
+            .ft-quote { flex-basis: 100%; }
         }
     `;
 
@@ -1077,6 +1126,7 @@ export class SearchModal extends LitElement {
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
+                    ${this._renderFulltextSeeAll()}
                     <ol-button
                         variant="primary"
                         ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
@@ -1184,40 +1234,70 @@ export class SearchModal extends LitElement {
     _renderFulltextBand() {
         if (this._ftHits.length === 0) return nothing;
         const q = this._query.trim();
-        const seeAllHref = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
         return html`
-            <h3 class="results-heading">${this._i18n.foundInside}</h3>
+            <h3 class="results-heading results-heading--icon">
+                ${SearchModal._textSearchIcon}<span>${this._i18n.foundInside}</span>
+            </h3>
             <ul class="results-list">
                 ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
             </ul>
-            ${typeof this._ftTotal === 'number' && this._ftTotal > this._ftHits.length ? html`
-                <a
-                    class="result ft-see-all"
-                    href=${seeAllHref}
-                    @click=${() => { this._track('FulltextSeeAll', 'band'); this._saveCurrentSearch(); }}
-                >${this._i18n.seeAllInside}</a>
-            ` : nothing}
         `;
     }
 
-    // One snippet row: cover, two-line quote with the match marked, and
-    // a title · author attribution line. The whole row opens BookReader with
-    // the query (?q=) — its own in-book search finds and highlights the
-    // passage (the same link the /search/inside page uses).
+    // The band's see-all: a secondary button on the footer's left, opposite
+    // the primary "See N results" — always in view, even with the band
+    // scrolled away. Only rendered once the fulltext total exceeds the hits
+    // shown inline — with everything already visible there's nothing more
+    // to see. The visible label is short ("23,783 inside books"); the
+    // accessible name carries the full sentence.
+    _renderFulltextSeeAll() {
+        if (this._ftHits.length === 0) return nothing;
+        if (typeof this._ftTotal !== 'number' || this._ftTotal <= this._ftHits.length) return nothing;
+        const q = this._query.trim();
+        const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
+        return html`
+            <ol-button
+                variant="secondary"
+                href=${href}
+                aria-label=${this._seeAllInsideLabel()}
+                @click=${() => { this._track('FulltextSeeAll', 'footer'); this._saveCurrentSearch(); }}
+            >${this._seeAllInsideShortLabel()}<ol-icon slot="icon-end" name="arrow-right"></ol-icon></ol-button>
+        `;
+    }
+
+    // The footer button's visible label, e.g. "134 inside books".
+    _seeAllInsideShortLabel() {
+        return sprintf(this._i18n.seeAllInsideShort, this._ftTotal.toLocaleString());
+    }
+
+    // Accessible name for the same button — the full sentence, e.g.
+    // "See all 134 matches inside books".
+    _seeAllInsideLabel() {
+        return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
+    }
+
+    // One snippet row: cover, then title / author / year stacked exactly like
+    // a book row, with the quote (match marked) as a card in the trailing
+    // column. The whole row opens BookReader with the query (?q=) — its own
+    // in-book search finds and highlights the passage (the same link the
+    // /search/inside page uses).
     _renderFulltextHit(hit, q, index = 0) {
         const href = `https://archive.org/details/${hit.ia}?ref=ol&q=${encodeURIComponent(q)}`;
         const segments = parseSnippet(hit.snippet);
-        const attribution = [hit.title, hit.author].filter(Boolean).join(' · ');
         return html`<li>
                 <a
                     class="result ft-result"
                     href=${href}
                     @click=${() => { this._track('FulltextClick', `rank:${index + 1}`); this._saveCurrentSearch(); }}
                 >
-                    <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                    <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
                     <span class="result__meta">
-                        <span class="ft-quote">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
-                        ${attribution ? html`<span class="result__author">${attribution}</span>` : nothing}
+                        <span class="result__title">${hit.title || this._i18n.untitled}</span>
+                        ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
+                        ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
+                    </span>
+                    <span class="ft-quote">
+                        <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
                     </span>
                 </a>
             </li>`;
@@ -1871,6 +1951,8 @@ export class SearchModal extends LitElement {
     static _backIcon = html`<ol-icon name="arrow-left"></ol-icon>`;
 
     static _personIcon = html`<ol-icon name="user"></ol-icon>`;
+
+    static _textSearchIcon = html`<ol-icon name="text-search" aria-hidden="true"></ol-icon>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);

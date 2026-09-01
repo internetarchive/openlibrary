@@ -93,7 +93,7 @@
   padding: 0;
   color: var(--color-text);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-family-title);
   /* Not a scroll container: Literata's glyph metrics overrun the 1.35
      line-height by ~1px, which overflow: auto turns into a scrollbar. */
@@ -101,9 +101,13 @@
   line-height: var(--line-height-heading);
 }
 
-/* Publish year in parentheses after the title — same size, not bold */
-.searchResultItem .booktitle__year {
-  font-weight: normal;
+/* Publish year on its own line under the author (title / author / year,
+   as in the search modal). */
+.searchResultItem .bookyear {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-family: var(--font-family-body);
 }
 
 .searchResultItem .details {
@@ -391,6 +395,12 @@
     width: auto;
     max-width: 100%;
     max-height: 170px;
+  }
+
+  /* /search/inside rows are tall (three quote cards), so a centered cover
+     floats mid-row; pin it to the title instead. */
+  .list-books--fulltext .searchResultItem .sri__main {
+    align-items: flex-start;
   }
 }
 

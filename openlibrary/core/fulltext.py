@@ -1,6 +1,7 @@
 import functools
 import json
 import logging
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
@@ -81,6 +82,31 @@ def _first(values: Any, default: Any = "") -> Any:
 def hit_ocaid(hit: dict) -> str:
     """The archive.org identifier a full-text hit was found in."""
     return _first(hit.get("fields", {}).get("identifier"))
+
+
+# Word count at/above which an unquoted query reads as a passage, not a title.
+PASSAGE_WORD_COUNT = 5
+
+
+def is_passage_query(query: str) -> bool:
+    """True when a query reads like a passage (words remembered from inside a
+    book) rather than a title/author lookup — a quoted phrase (straight or
+    curly), or PASSAGE_WORD_COUNT+ words. Mirrors isPassageQuery() in
+    search-modal/fulltext.js.
+
+    >>> is_passage_query('"the best of times"')
+    True
+    >>> is_passage_query("it was the best of times")
+    True
+    >>> is_passage_query("happiness paradox")
+    False
+    """
+    q = (query or "").strip()
+    if not q:
+        return False
+    if re.search(r'"[^"]+"|“[^”]+”', q):
+        return True
+    return len(q.split()) >= PASSAGE_WORD_COUNT
 
 
 def parse_snippet(snippet: str) -> list[tuple[str, bool]]:
@@ -188,6 +214,19 @@ def fulltext_page(results: dict | None) -> tuple[list[FulltextRow], int]:
 # ── Search ─────────────────────────────────────────────────────────────────
 
 
+def exclude_ocaids(rows: list[FulltextRow], exclude: Iterable[str]) -> list[FulltextRow]:
+    """Drop the rows whose scan is in `exclude` — on /search, the scans the
+    metadata results already list, so the Search Inside band only shows books
+    the page doesn't.
+
+    >>> rows = [FulltextRow("a", []), FulltextRow("b", []), FulltextRow("c", [])]
+    >>> [r.ocaid for r in exclude_ocaids(rows, {"b", "zzz"})]
+    ['a', 'c']
+    """
+    excluded = set(exclude)
+    return [row for row in rows if row.ocaid not in excluded]
+
+
 def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
     """Drop hits the visitor can't actually open — print-disabled-only scans,
     which are 20-70% of an unfiltered result page.
@@ -207,6 +246,42 @@ def filter_readable(hits: list[dict], availability: dict) -> list[dict]:
     if not availability:
         return hits
     return [hit for hit in hits if (status := availability.get(hit_ocaid(hit))) and (status.get("is_readable") or status.get("is_lendable"))]
+
+
+# ── Query normalization ────────────────────────────────────────────────────
+
+# Pasted passages carry curly quotes, which the FTS backend treats as ordinary
+# characters rather than phrase delimiters.
+_CURLY_DOUBLE_QUOTES = str.maketrans({"“": '"', "”": '"', "„": '"', "‟": '"'})
+
+
+def phrase_query(q: str | None) -> str:
+    """Send every Search Inside query to the backend as one quoted phrase.
+
+    Bare words match anywhere in a book (1.5M hits for `it was the best of
+    times`); the quoted phrase matches the passage (14K). Measured against
+    the FTS backend: an unbalanced quote silently degrades to a bare-word
+    search, an inner quote splits the phrase into fragments, and backslash
+    escaping does nothing — so a quote the user typed can only be removed.
+    Apostrophes and operators are literal inside a phrase and stay as-is.
+
+    >>> phrase_query("it was the best of times")
+    '"it was the best of times"'
+    >>> phrase_query('"it was the best of times"')
+    '"it was the best of times"'
+    >>> phrase_query("“it was the best of times”")
+    '"it was the best of times"'
+    >>> phrase_query('he said "hello there" softly')
+    '"he said hello there softly"'
+    >>> phrase_query('"it was the best of times')
+    '"it was the best of times"'
+    >>> print(phrase_query("it's a truth\\n  universally acknowledged"))
+    "it's a truth universally acknowledged"
+    >>> phrase_query('  "  "  ')
+    ''
+    """
+    words = (q or "").translate(_CURLY_DOUBLE_QUOTES).replace('"', " ").split()
+    return f'"{" ".join(words)}"' if words else ""
 
 
 async def fulltext_search_api(params):
@@ -243,6 +318,10 @@ async def fulltext_search_api(params):
 async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False, readable=False, language: str | None = None):
     if offset is None:
         offset = (page - 1) * limit
+    # Nothing left once the quotes are stripped: skip the upstream call rather
+    # than ask the backend what an empty phrase matches.
+    if not (q := phrase_query(q)):
+        return {"hits": {"hits": [], "total": 0}}
     params = {
         "q": q,
         "from": offset,
