@@ -10,7 +10,7 @@ other's page controllers.
 """
 
 from collections.abc import Iterable
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import web
 
@@ -41,7 +41,26 @@ CAROUSEL_SUBJECTS: dict[CarouselName, str] = {
 }
 
 
-def get_carousel_data(carousels: Iterable[CarouselName] | None = None) -> dict[str, dict[str, Any]]:
+class LoadMoreConfig(TypedDict):
+    """Config passed to the carousel JS data-loader for lazy pagination."""
+
+    queryType: str
+    q: str
+    subject: str
+    sorts: str
+    mode: str
+    limit: int
+
+
+class CarouselData(TypedDict):
+    """Typed shape of a single carousel returned by get_carousel_data()."""
+
+    books: list[Any]
+    url: str | None
+    load_more: LoadMoreConfig
+
+
+def get_carousel_data(carousels: Iterable[CarouselName] | None = None) -> dict[CarouselName, CarouselData]:
     """Fetch books, IA search URLs, and load-more configs for the given carousels."""
     names: Iterable[CarouselName]
     if carousels is None:
@@ -55,7 +74,7 @@ def get_carousel_data(carousels: Iterable[CarouselName] | None = None) -> dict[s
     sorts = ["lending___last_browse desc"]
     limit = 18
 
-    result: dict[str, dict[str, Any]] = {}
+    result: dict[CarouselName, CarouselData] = {}
     for name in names:
         subject = CAROUSEL_SUBJECTS[name]
         result[name] = {
