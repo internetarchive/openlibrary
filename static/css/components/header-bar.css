@@ -847,9 +847,8 @@
    bar. `aria-label="Search"` on the button supplies the accessible name
    in both modes.
 
-   The magnifier is the Lucide `search` sprite glyph (see macros.icon): it
-   inherits the trigger's currentColor and ol-icon--md supplies its 20px
-   box, so it needs no rules of its own here. */
+   The magnifier is the Lucide `search` sprite glyph (see macros.icon);
+   ol-icon--md supplies its 20px box. */
 .search-bar-trigger {
   flex: 0 0 auto;
   display: flex;
@@ -861,11 +860,17 @@
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
-  color: var(--color-text-secondary);
+  /* Match the nav ghost buttons: full text color for the label, muted for
+     the glyph, so the whole header row reads as one set of controls. */
+  color: var(--color-text);
   font-family: inherit;
   font-size: var(--font-size-label-large);
   font-weight: 500;
   cursor: pointer;
+}
+
+.search-bar-trigger .search-bar-trigger__icon {
+  color: var(--color-icon-muted);
 }
 
 /* Hidden on mobile/touch; the desktop file flips this back to `block`
@@ -889,14 +894,14 @@
   transition: background-color 0.15s ease;
 }
 
-/* Match the search magnifier, which now inherits the trigger's
-   --color-text-secondary. The link states outrank a:link/:visited/:hover in
-   base/common.css, which would otherwise paint the icon link-blue. */
+/* Match the search magnifier's muted glyph color. The link states outrank
+   a:link/:visited/:hover in base/common.css, which would otherwise paint the
+   icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,
 .search-by-barcode:hover {
-  color: var(--color-text-secondary);
+  color: var(--color-icon-muted);
 }
 
 .search-by-barcode img {
