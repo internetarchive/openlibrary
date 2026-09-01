@@ -170,9 +170,14 @@ class Ratings(db.CommonExtras):
         if rating not in cls.VALID_STAR_RATINGS:
             return None
 
-        # Vote implies user read book; Update reading log status as "Already Read"
+        # Vote implies user read book, so shelve unshelved (or Want to Read) books
+        # as "Already Read". Never overwrite Currently Reading or Stopped Reading,
+        # where the patron has explicitly said otherwise.
         users_read_status_for_work = Bookshelves.get_users_read_status_of_work(username, work_id)
-        if users_read_status_for_work != Bookshelves.PRESET_BOOKSHELVES["Already Read"]:
+        if users_read_status_for_work in (
+            None,
+            Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+        ):
             Bookshelves.add(
                 username,
                 Bookshelves.PRESET_BOOKSHELVES["Already Read"],
