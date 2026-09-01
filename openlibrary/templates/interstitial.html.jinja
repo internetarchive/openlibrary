@@ -40,27 +40,27 @@
   }
     </style>
     <script>
-  var interstitialElem = document.querySelector('.interstitial');
-  if (interstitialElem) {
-      var seconds = interstitialElem.dataset.wait;
-      var url = interstitialElem.dataset.url;
-      var timerElement = interstitialElem.querySelector('#timer');
-      var countdown = setInterval(() => {
-          seconds--;
-          timerElement.textContent = seconds;
-          if (seconds === 0) {
-              clearInterval(countdown);
-              window.location.href = url;
-          }
-      }, 1000); // 1 second interval
+  (() => {
+      const interstitial = document.querySelector('.interstitial');
+      if (!interstitial) return;
 
-      // Add cancel button handler
-      var cancelButton = interstitialElem.querySelector('.close-window');
-      if (cancelButton) {
-          cancelButton.addEventListener('click', () => {
-              window.close();
-          });
-      }
-  }
+      const url = interstitial.dataset.url;
+      let seconds = Number(interstitial.dataset.wait) || 0;
+      const timerElement = interstitial.querySelector('#timer');
+
+      const countdown = setInterval(() => {
+          seconds--;
+          if (timerElement) {
+              timerElement.textContent = seconds;
+          }
+          if (seconds <= 0) {
+              clearInterval(countdown);
+              window.location.assign(url);
+          }
+      }, 1000);
+
+      // Cancel button handler
+      interstitial.querySelector('.close-window')?.addEventListener('click', () => window.close());
+  })();
     </script>
 {% endif %}
