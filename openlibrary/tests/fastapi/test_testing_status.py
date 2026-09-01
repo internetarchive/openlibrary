@@ -135,6 +135,30 @@ def test_build_testing_status_marks_merge_conflicts():
     assert by_pr[13238].conflict_with == []
 
 
+@pytest.mark.asyncio
+async def test_conflict_analysis_runs_once_per_transcript_version(tmp_path, monkeypatch):
+    status_file = tmp_path / "_dev-merged_status.txt"
+    state_file = tmp_path / "_testing-prs.json"
+    conflicts_file = tmp_path / "_testing-merge-conflicts.json"
+    status_file.write_text("transcript")
+    state_file.write_text("{}")
+    monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
+    monkeypatch.setattr(status_module, "TESTING_CONFLICTS_FILE", conflicts_file)
+    monkeypatch.setattr(status_module, "_CONFLICT_ANALYSIS_VERSION", None)
+    calls = []
+
+    def analyze(*args):
+        calls.append(args)
+
+    with patch("openlibrary.plugins.openlibrary.status.Path", wraps=status_module.Path), patch("scripts.analyze_merge_conflicts.main", side_effect=analyze):
+        # The helper uses the conventional working-directory transcript path.
+        monkeypatch.chdir(tmp_path)
+        await status_module._ensure_merge_conflicts_analyzed()
+        await status_module._ensure_merge_conflicts_analyzed()
+
+    assert len(calls) == 1
+
+
 def test_load_testing_status_async_wires_merge_conflicts():
     """The async loader passes the deploy-status conflicts into the built rows."""
     state = _make_state()

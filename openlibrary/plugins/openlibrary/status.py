@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import datetime
+import hashlib
 import json
 import re
 import socket
@@ -28,6 +29,8 @@ status_info: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path("./_testing-prs.json")
 TESTING_CONFLICTS_FILE = Path("./_testing-merge-conflicts.json")
+_CONFLICT_ANALYSIS_LOCK = asyncio.Lock()
+_CONFLICT_ANALYSIS_VERSION: tuple[int, int, str] | None = None
 _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
 _DRIFT_CACHE_KEY = "status.github_pr_drift"
 _DRIFT_CACHE_TTL = 60  # 1 minute
@@ -642,6 +645,7 @@ async def load_testing_status_async() -> TestingStatus | None:
     if (state := _load_testing_state()) is None:
         return None
     drift_info, _ = await _get_drift_info_async(state)
+    await _ensure_merge_conflicts_analyzed()
     return build_testing_status(state, drift_info, merge_conflicts=_merge_conflicted_prs())
 
 
@@ -651,6 +655,37 @@ async def load_testing_status_async() -> TestingStatus | None:
 # "Merge conflict for PR #13370 (pinned <sha>) — skipping". Match both so a
 # real conflict always lights the row.
 _MERGE_CONFLICT_PREFIXES = ("Automatic merge failed", "Merge conflict for PR #")
+
+
+def _analyze_merge_conflicts_for_status(status_file: Path, version: tuple[int, int, str]) -> tuple[int, int, str] | None:
+    """Run the best-effort analyzer and return its transcript version on success."""
+    try:
+        from scripts.analyze_merge_conflicts import main as analyze_merge_conflicts
+
+        analyze_merge_conflicts(status_file, TESTING_STATE_FILE.resolve(), TESTING_CONFLICTS_FILE.resolve())
+    except ImportError, OSError, ValueError, TypeError:
+        return None
+    return version
+
+
+async def _ensure_merge_conflicts_analyzed() -> None:
+    """Analyze a changed deploy transcript once without affecting status reads."""
+    global _CONFLICT_ANALYSIS_VERSION
+    status_file = Path("./_dev-merged_status.txt")
+    try:
+        stat = await asyncio.to_thread(status_file.stat)
+        content = await asyncio.to_thread(status_file.read_bytes)
+        version = (stat.st_mtime_ns, stat.st_size, hashlib.sha256(content).hexdigest())
+    except OSError:
+        return
+    if version == _CONFLICT_ANALYSIS_VERSION:
+        return
+    async with _CONFLICT_ANALYSIS_LOCK:
+        if version == _CONFLICT_ANALYSIS_VERSION:
+            return
+        analyzed_version = await asyncio.to_thread(_analyze_merge_conflicts_for_status, status_file, version)
+        if analyzed_version is not None:
+            _CONFLICT_ANALYSIS_VERSION = analyzed_version
 
 
 def _merge_conflicted_prs() -> dict[int, list[int | str]]:
