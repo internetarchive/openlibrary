@@ -1,9 +1,5 @@
 .header-bar {
-  /* Fine pointers don't need the large touch height: lock every header
-     control (search field, nav ghost buttons, account/menu button) to the
-     standard control height so they all match the rest of the UI. */
-  --header-control-height: var(--control-height-medium);
-  margin: 20px auto;
+  margin: var(--spacing-md) auto;
   padding-top: 0;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;

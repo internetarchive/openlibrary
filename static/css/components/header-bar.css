@@ -11,8 +11,8 @@
 .header-bar {
   /* One height for every control in the header row — the search field, the
      My Books / Browse ghost buttons, and the account/menu button — so they
-     all line up. Large (touch-friendly) by default; desktop tightens it to
-     the standard control height (see header-bar--desktop.css). */
+     all line up. Large at every width: touch-friendly on mobile, and roomy
+     enough on desktop for the 28px avatar inside the account button. */
   --header-control-height: var(--control-height-large);
   max-width: 1060px;
   min-width: 300px;
@@ -322,17 +322,16 @@
 }
 
 .header-bar .header-dropdown summary::before {
-  /* For the <details> polyfill used for IE11 */
+  /* For the <details> polyfill used for IE11. display: none keeps it from
+     becoming an empty flex item that picks up the summary's gap. */
   content: "" !important;
+  display: none;
 }
 
-/* Avatar sized to sit inside the account/menu ghost button beside the
-   24px hamburger glyph. */
+/* Account glyph inside the account/menu ghost button, beside the 24px
+   hamburger glyph. */
 .header-bar .header-dropdown .account__icon {
-  border: 1px solid var(--account-icon-border);
-  border-radius: var(--border-radius-sm);
-  width: 24px;
-  height: 24px;
+  flex-shrink: 0;
 }
 
 /* Pending-merge count, pinned to the top-right corner of the account/menu
@@ -392,16 +391,16 @@
   pointer-events: none;
   user-select: none;
   width: max-content;
-  padding: 4px 6px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 2px 5px;
+  font-size: 9px;
+  font-weight: 500;
   letter-spacing: 0.025em;
   text-transform: uppercase;
   line-height: var(--line-height-chip);
   border-radius: var(--border-radius-tooltip);
   color: var(--white);
   left: 40px;
-  top: 44px;
+  top: 40px;
   z-index: var(--z-index-level-2);
 }
 
@@ -436,7 +435,9 @@
   -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
   padding: 0;
-  font-size: 1em;
+  /* One-off: a step between the 14px and 16px type tokens. */
+  font-size: 15px;
+  font-weight: 500;
 }
 
 /* stylelint-disable max-nesting-depth, selector-max-specificity */
@@ -655,7 +656,7 @@
 .header-bar .navigation-component .nav-ghost-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-inline-sm);
+  gap: var(--spacing-inline-md);
   height: var(--header-control-height);
   box-sizing: border-box;
   padding: 0 var(--spacing-inset-md);
@@ -668,6 +669,13 @@
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
   transition: transform 0.08s;
+}
+
+/* Leading glyphs only echo the label beside them, so they sit on the
+   decorative tier like the browse popover's link icons. */
+.header-bar .navigation-component .nav-ghost-btn__icon {
+  flex: none;
+  color: var(--color-icon-muted);
 }
 
 /* A subtle darken of the canvas the header sits on. (--beige is a near match
@@ -752,7 +760,7 @@
   height: 36px;
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
-  color: var(--primary-blue);
+  color: var(--blue-400);
 }
 
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
@@ -855,7 +863,8 @@
   border-radius: var(--border-radius-input);
   color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: 1em;
+  font-size: var(--font-size-label-large);
+  font-weight: 500;
   cursor: pointer;
 }
 
