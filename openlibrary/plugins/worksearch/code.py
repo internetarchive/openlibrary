@@ -13,6 +13,7 @@ from unicodedata import normalize
 
 import httpx
 import web
+from requests import Response
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -65,10 +66,10 @@ re_olid = re.compile(r"^OL\d+([AMW])$")
 
 plurals = {f + "s": f for f in ("publisher", "author")}
 
+solr_select_url = "http://localhost:8983/solr/openlibrary/select"
 default_spellcheck_count = 10
 if hasattr(config, "plugin_worksearch"):
-    solr_select_url = config.plugin_worksearch.get("solr_base_url", "localhost") + "/select"
-
+    solr_select_url = config.plugin_worksearch.get("solr_base_url", "http://localhost:8983/solr/openlibrary") + "/select"
     default_spellcheck_count = config.plugin_worksearch.get("spellcheck_count", 10)
 
 
@@ -483,6 +484,11 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
+def get_solr_select_url() -> str:
+    base = getattr(config, "plugin_worksearch", {}).get("solr_base_url", "http://solr:8983/solr/openlibrary")
+    return f"{base.rstrip('/')}/select"
+
+
 async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
@@ -521,9 +527,10 @@ async def run_solr_query_async(
         solr_internals_params=solr_internals_params,
     )
 
+    solr_select_url = f"{get_solr().base_url.rstrip('/')}/select"
     url = f"{solr_select_url}?{urlencode(params)}"
     start_time = time.time()
-    response = await execute_solr_query_async(solr_select_url, params)
+    response = await execute_solr_query_async("select", params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -1111,6 +1118,264 @@ def random_author_search(limit=10) -> SearchResponse:
         rows=limit,
         sort="random.hourly",
     )
+
+
+class edition_search(delegate.page):
+    path = "/search/editions"
+
+    def GET(self):
+        i = web.input(q="", page=None, sort=None, work_key=None)
+        q = i.q.strip()
+        work_key = i.get("work_key", "").strip() or None
+        results_per_page = 20
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or "new"
+
+        results = (
+            self.get_results(
+                q,
+                work_key=work_key,
+                offset=offset,
+                limit=results_per_page,
+                sort=sort,
+                request_label="EDITION_SEARCH",
+            )
+            if q or work_key
+            else None
+        )
+        return render_template(
+            "search/editions",
+            q,
+            page,
+            results_per_page,
+            sort,
+            results,
+            work_key=work_key,
+        )
+
+    def get_results(
+        self,
+        q,
+        request_label: Literal["EDITION_SEARCH", "EDITION_SEARCH_API", "WORK_EDITION_SEARCH"],
+        work_key=None,
+        offset=0,
+        limit=20,
+        fields=None,
+        sort="new",
+    ):
+        extra_params = []
+        if work_key:
+            safe_key = work_key.replace("\\", "\\\\").replace('"', '\\"')
+            extra_params.append(("fq", f'work_key:"{safe_key}"'))
+
+        return run_solr_query(
+            EditionSearchScheme(),
+            {"q": q or "*:*"},
+            offset=offset,
+            rows=limit,
+            fields=fields or list(EditionSearchScheme.default_fetched_fields),
+            sort=sort,
+            facet=False,
+            extra_params=extra_params or None,
+            request_label=request_label,
+        )
+
+
+class work_edition_search(delegate.page):
+    """Searchable edition browser scoped to a single work.
+
+    Accessible at /works/OLxxxW/Title/editions with optional ?q= for additional filters.
+    """
+
+    path = r"(/works/OL\d+W)/[^/]+/editions"
+
+    def GET(self, work_key):
+        work_olid = work_key.split("/")[-1]
+        work = web.ctx.site.get(work_key)
+        if not work or work.type.key != "/type/work":
+            raise web.notfound()
+
+        i = web.input(q="", page=None, sort=None)
+        q = i.q.strip()
+        results_per_page = 20
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or "new"
+
+        results = edition_search().get_results(
+            q,
+            work_key=work_olid,
+            offset=offset,
+            limit=results_per_page,
+            sort=sort,
+            request_label="WORK_EDITION_SEARCH",
+        )
+        return render_template(
+            "type/work/editions_search",
+            work,
+            q,
+            page,
+            results_per_page,
+            sort,
+            results,
+        )
+
+
+class SolrEditionWrapper(web.Storage):
+    """Wrapper around a Solr edition dictionary to duck-type as an Infogami Edition object
+
+    for seamless rendering in live `editions_datatable.html` & `books/edition-sort.html`.
+    """
+
+    def __init__(self, doc: dict[str, Any]):
+        key = doc.get("key", "")
+        title = doc.get("title", "")
+        subtitle = doc.get("subtitle", "")
+        publishers = doc.get("publisher", [])
+        _publish_dates = doc.get("publish_date", [])
+        publish_date = _publish_dates[0] if _publish_dates else ""
+        physical_format = doc.get("physical_format", "")
+        edition_name = doc.get("edition_name", "")
+        cover_i = doc.get("cover_i")
+        isbns = doc.get("isbn", [])
+        languages = doc.get("language", [])
+        oclc_numbers = doc.get("oclc_number", [])
+
+        # Format languages into web.Storage objects with .key attribute
+        lang_objs = [web.Storage(key=f"/languages/{lang}") for lang in languages]
+
+        # Extract ISBN-10 / ISBN-13
+        isbn_10 = next((i for i in isbns if len(i) == 10), None)
+        isbn_13 = next((i for i in isbns if len(i) == 13), None)
+
+        # Map ebook_access to availability status dict
+        access_state = doc.get("ebook_access", "")
+        availability_status = "open" if access_state == "public" else "borrow_available" if access_state == "borrowable" else "none"
+        availability = {"status": availability_status}
+
+        super().__init__(
+            key=key,
+            title=title,
+            subtitle=subtitle,
+            publishers=publishers,
+            publish_date=publish_date,
+            physical_format=physical_format,
+            edition_name=edition_name,
+            oclc_numbers=oclc_numbers,
+            languages=lang_objs,
+            _cover_i=cover_i,
+            _isbn_10=isbn_10,
+            _isbn_13=isbn_13,
+            availability=availability,
+        )
+
+    def url(self, suffix=""):
+        return self.key + suffix if suffix else self.key
+
+    def get_cover_url(self, size="S"):
+        if self._cover_i:
+            from openlibrary.plugins.upstream.utils import (
+                get_coverstore_public_url,
+            )
+
+            return f"{get_coverstore_public_url()}/b/id/{self._cover_i}-{size}.jpg"
+        return "/static/images/icons/avatar_book-sm.png"
+
+    def get_isbn10(self):
+        return self._isbn_10
+
+    def get_isbn13(self):
+        return self._isbn_13
+
+
+def get_solr_editions_for_work(
+    work_key: str,
+    page: int = 1,
+    limit: int = 20,
+    fields: list[str] | None = None,
+    request_label: Literal["WORK_SOLR_EDITIONS_TABLE", "WORK_EDITION_SEARCH", "EDITION_SEARCH"] = "WORK_SOLR_EDITIONS_TABLE",
+):
+    """Fetch edition documents for a work directly from Solr.
+
+    Restricts fetched fields to essential edition metadata and sets facet=False for maximum
+    performance and minimal Solr CPU overhead.
+    """
+    work_olid = work_key.rstrip("/").split("/")[-1]
+    safe_key = work_olid.replace("\\", "\\\\").replace('"', '\\"')
+    extra_params = [("fq", f'work_key:"{safe_key}"')]
+    offset = max(0, (page - 1) * limit)
+
+    if not fields:
+        fields = [
+            "key",
+            "title",
+            "subtitle",
+            "publish_date",
+            "publisher",
+            "language",
+            "isbn",
+            "cover_i",
+            "ebook_access",
+            "physical_format",
+            "work_key",
+            "edition_name",
+        ]
+
+    results = run_solr_query(
+        EditionSearchScheme(),
+        {"q": "*:*"},
+        offset=offset,
+        rows=limit,
+        fields=fields,
+        facet=False,
+        extra_params=extra_params,
+        request_label=request_label,
+    )
+
+    if results and getattr(results, "docs", None):
+        results.editions = [SolrEditionWrapper(doc) for doc in results.docs]
+    else:
+        results.editions = []
+
+    return results
+
+
+class work_solr_editions_table(delegate.page):
+    """Solr-powered editions table view for a work.
+
+    Accessible at /works/OLxxxW/solr_editions or /works/OLxxxW/Title/solr_editions.
+    Provides fast, paginated edition browsing backed directly by Solr.
+    """
+
+    path = r"(/works/OL\d+W)(?:/[^/]+)?/solr_editions"
+
+    def GET(self, work_key):
+        work = web.ctx.site.get(work_key)
+        if not work or work.type.key != "/type/work":
+            raise web.notfound()
+
+        i = web.input(page=None, limit=None)
+        limit = safeint(i.limit, 20) if i.limit else 20
+        page = safeint(i.page, 1) if i.page else 1
+
+        start_time = time.time()
+        results = get_solr_editions_for_work(
+            work.key,
+            page=page,
+            limit=limit,
+            request_label="WORK_SOLR_EDITIONS_TABLE",
+        )
+        elapsed = time.time() - start_time
+
+        return render_template(
+            "type/work/solr_editions_table",
+            work,
+            results,
+            page=page,
+            limit=limit,
+            elapsed=elapsed,
+        )
 
 
 def rewrite_list_query(q, page, offset, limit):
