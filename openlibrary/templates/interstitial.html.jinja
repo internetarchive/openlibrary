@@ -5,7 +5,24 @@
      wait          (int)      — seconds before auto-redirect (default 5)
      fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
      book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
+
+   The doctype is required for the standalone FastAPI page (standards mode);
+   when this fragment is embedded in the web.py site layout, browsers ignore
+   a stray doctype mid-document, so it is harmless there.
 #}
+<!DOCTYPE html>
+<div id="contentBody"
+     class="interstitial"
+     data-url="{{ url }}"
+     data-wait="{{ wait }}">
+    <h1>{{ _("You are being redirected to your book") }}</h1>
+    <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
+    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
+    <p>
+        <a href="#" class="close-window">{{ _("Cancel") }}</a>
+        <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
+    </p>
+</div>
 {% if fastapi %}
     <style>
   #contentBody.interstitial {
@@ -22,25 +39,7 @@
     color: hsl(210, 84%, 31%);
   }
     </style>
-{% endif %}
-<div id="contentBody"
-     class="interstitial"
-     data-url="{{ url }}"
-     data-wait="{{ wait }}">
-    <h1>{{ _("You are being redirected to your book") }}</h1>
-    <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
-    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
-    <p>
-        <a href="#" class="close-window">{{ _("Cancel") }}</a>
-        <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
-    </p>
-</div>
-{% if fastapi %}
     <script>
-  // Copied from openlibrary/plugins/openlibrary/js/interstitial.js's
-  // initInterstitial(), rewritten with `var` instead of module-scoped
-  // let/const since this runs as a plain inline script, not a bundled
-  // ES module -- FastAPI-rendered pages don't load the site's JS bundle.
   var interstitialElem = document.querySelector('.interstitial');
   if (interstitialElem) {
       var seconds = interstitialElem.dataset.wait;
