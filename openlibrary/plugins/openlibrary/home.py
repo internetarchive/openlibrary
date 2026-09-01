@@ -2,6 +2,8 @@
 
 import logging
 import random
+from collections.abc import Iterable
+from typing import Any, Literal
 
 import web
 
@@ -40,6 +42,14 @@ CAROUSELS_PRESETS = {
 }
 
 
+CarouselName = Literal["staff_picks", "recently_returned"]
+
+CAROUSEL_CONFIGS: dict[CarouselName, dict[str, str]] = {
+    "staff_picks": {"subject": "openlibrary_staff_picks"},
+    "recently_returned": {"subject": ""},
+}
+
+
 def get_homepage(devmode):
     try:
         stats = admin.get_stats(use_mock_data=devmode)
@@ -64,83 +74,37 @@ def get_homepage(devmode):
     return dict(page)
 
 
-def get_carousel_data(carousels=None):
-    if carousels is None:
-        carousels = ("staff_picks", "recently_returned")
+def get_carousel_data(carousels: Iterable[CarouselName] | None = None) -> dict[str, dict[str, Any]]:
+    carousels = carousels or ("staff_picks", "recently_returned")
 
     lang = get_request_lang()
     marc_lang = convert_iso_to_marc(lang)
     lang_filter = f" language:{marc_lang}" if marc_lang and marc_lang in get_populated_languages() else ""
 
-    result = {}
-
-    if "staff_picks" in carousels:
-        staff_picks_query = lang_filter
-        staff_picks_subject = "openlibrary_staff_picks"
-        staff_picks_sorts = ["lending___last_browse desc"]
-        staff_picks_limit = 18
-
-        staff_picks_books = generic_carousel(
-            query=staff_picks_query,
-            subject=staff_picks_subject,
-            sorts=staff_picks_sorts,
-            limit=staff_picks_limit,
-            safe_mode=True,
-        )
-        staff_picks_url = compose_ia_url(
-            query=staff_picks_query,
-            subject=staff_picks_subject,
-            sorts=staff_picks_sorts,
-            limit=staff_picks_limit,
-            advanced=False,
-            safe_mode=True,
-        )
-
-        result["staff_picks"] = {
-            "books": staff_picks_books,
-            "url": staff_picks_url,
+    result: dict[str, dict[str, Any]] = {}
+    for name in carousels:
+        subject = CAROUSEL_CONFIGS[name]["subject"]
+        sorts = ["lending___last_browse desc"]
+        limit = 18
+        result[name] = {
+            "books": generic_carousel(query=lang_filter, subject=subject, sorts=sorts, limit=limit, safe_mode=True),
+            "url": compose_ia_url(
+                query=lang_filter,
+                subject=subject,
+                sorts=sorts,
+                limit=limit,
+                advanced=False,
+                safe_mode=True,
+            ),
             "load_more": {
                 "queryType": "BROWSE",
-                "q": staff_picks_query,
-                "subject": staff_picks_subject,
-                "sorts": ",".join(staff_picks_sorts),
+                "q": lang_filter,
+                "subject": subject,
+                "sorts": ",".join(sorts),
                 "mode": "page",
-                "limit": staff_picks_limit,
+                "limit": limit,
             },
         }
-
-    if "recently_returned" in carousels:
-        recently_returned_query = lang_filter
-        recently_returned_sorts = ["lending___last_browse desc"]
-        recently_returned_limit = 18
-
-        recently_returned_books = generic_carousel(
-            query=recently_returned_query,
-            sorts=recently_returned_sorts,
-            limit=recently_returned_limit,
-            safe_mode=True,
-        )
-        recently_returned_url = compose_ia_url(
-            query=recently_returned_query,
-            sorts=recently_returned_sorts,
-            limit=recently_returned_limit,
-            advanced=False,
-            safe_mode=True,
-        )
-
-        result["recently_returned"] = {
-            "books": recently_returned_books,
-            "url": recently_returned_url,
-            "load_more": {
-                "queryType": "BROWSE",
-                "q": recently_returned_query,
-                "subject": "",
-                "sorts": ",".join(recently_returned_sorts),
-                "mode": "page",
-                "limit": recently_returned_limit,
-            },
-        }
-
     return result
 
 
