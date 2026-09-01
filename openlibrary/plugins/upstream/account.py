@@ -1291,10 +1291,7 @@ class account_loans(delegate.page):
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
             featured_subjects=featured_subjects,
-            carousel_books=staff_picks["books"],
-            carousel_title=_("Books We Love"),
-            carousel_url=staff_picks["url"],
-            carousel_load_more=staff_picks["load_more"],
+            carousel=staff_picks,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 

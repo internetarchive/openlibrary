@@ -1287,6 +1287,10 @@ msgstr ""
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
 msgstr ""
 
+#: account/loans.html home/index.html
+msgid "Books We Love"
+msgstr ""
+
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
@@ -4159,10 +4163,6 @@ msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Classic Books"
-msgstr ""
-
-#: home/index.html openlibrary/plugins/upstream/account.py
-msgid "Books We Love"
 msgstr ""
 
 #: home/index.html
