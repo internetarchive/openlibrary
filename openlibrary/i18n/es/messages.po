@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-04-28 18:58-0400\n"
-"PO-Revision-Date: 2026-08-12 19:10+0200\n"
+"PO-Revision-Date: 2026-08-18 23:05+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -206,8 +206,7 @@ msgstr "Estado"
 msgid "Submitter"
 msgstr "Remitente"
 
-#: RecentChangesAdmin.html batch_import_pending_view.html
-#: batch_import_view.html
+#: batch_import_pending_view.html batch_import_view.html
 msgid "Comments"
 msgstr "Comentarios"
 
@@ -352,8 +351,7 @@ msgstr "Borrar comparación"
 msgid "Rev"
 msgstr "Rev"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/ip/view.html admin/people/edits.html history.html
+#: RecentChanges.html admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
 msgid "When"
 msgstr "Cuándo"
@@ -364,9 +362,9 @@ msgstr "Cuándo"
 msgid "Who"
 msgstr "Quién"
 
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
+#: RecentChanges.html admin/history.html admin/ip/view.html
+#: admin/people/edits.html history.html recentchanges/render.html
+#: recentchanges/updated_records.html
 msgid "Comment"
 msgstr "Comentario"
 
@@ -484,10 +482,9 @@ msgstr ""
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr "En %(time)s segundos, serás redirigido automáticamente a: %(url)s"
 
-#: CreateListModal.html EditButtons.html PreviewSearchInside.html
-#: account/notifications.html account/password/reset.html account/privacy.html
-#: admin/imports-add.html admin/permissions.html books/add.html
-#: databarEdit.html interstitial.html merge/authors.html
+#: EditButtons.html PreviewSearchInside.html account/notifications.html
+#: account/privacy.html admin/imports-add.html admin/permissions.html
+#: books/add.html databarEdit.html interstitial.html merge/authors.html
 #: my_books/dropdown_content.html type/list/edit.html type/series/edit.html
 #: type/tag/form.html
 msgid "Cancel"
@@ -501,7 +498,7 @@ msgstr "Continuar sin esperar"
 msgid "Library Explorer"
 msgstr "Explorador de biblioteca"
 
-#: account/create.html books/custom_carousel.html
+#: RelatedSubjects.html account/create.html books/custom_carousel.html
 #: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
@@ -615,7 +612,7 @@ msgstr "Añadido nuevo libro."
 msgid "Thank you for improving the Open Library catalog!"
 msgstr "¡Muchas gracias por mejorar el catálogo de la Biblioteca Abierta!"
 
-#: CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html
+#: NotesModal.html ObservationsModal.html ShareModal.html
 #: covers/author_photo.html covers/book_cover.html covers/change.html
 #: lib/exports.html my_books/check_ins/check_in_prompt.html
 #: my_books/dropdown_content.html native_dialog.html
@@ -627,7 +624,7 @@ msgstr "Cerrar"
 msgid "%(path)s is not found"
 msgstr "%(path)s no se encuentra"
 
-#: languages/notfound.html notfound.html
+#: notfound.html
 msgid "404 - Page Not Found"
 msgstr "404 -  Página no encontrada"
 
@@ -973,13 +970,13 @@ msgstr "Quiero leer"
 msgid "Currently Reading"
 msgstr "Leyendo"
 
-# Read = Leído
-# Acompaña a la fecha en que el lector leyó el libro, en la página de edición.
+# Read = Leer
+# Botón donde hacer clic para "Leer" un libro.
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
 #: book_providers/read_button.html books/edit/edition.html trending.html
 #: type/list/embed.html widget.html
 msgid "Read"
-msgstr "Leído"
+msgstr "Leer"
 
 #. Display name for the "stopped-reading" reading log shelf used in page headings and breadcrumbs.
 #. Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
@@ -1335,14 +1332,6 @@ msgstr ""
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr "¿Ya tienes una cuenta? <a href=\"/account/login\">Inicia sesión</a>"
 
-#: account/delete.html
-msgid "Delete Account"
-msgstr "Borrar cuenta"
-
-#: account/delete.html
-msgid "Sorry, this functionality is not yet implemented."
-msgstr "Lo sentimos, esta funcionalidad no está implementada todavía."
-
 #: account/follows.html
 msgid "There is nothing to see here yet."
 msgstr "Aquí todavía no hay nada que ver."
@@ -1519,7 +1508,7 @@ msgid_plural "%(count)d books"
 msgstr[0] "%(count)d libro"
 msgstr[1] "%(count)d libros"
 
-#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
+#: account/loans.html admin/loans_table.html
 msgid "Actions"
 msgstr "Acciones"
 
@@ -1534,14 +1523,14 @@ msgstr[1] "Esperando por %(count)d días"
 msgid "You are the next person to receive this book."
 msgstr "Tú eres la siguiente persona en recibir este libro."
 
-#: ManageWaitlistButton.html account/loans.html
+#: account/loans.html
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
 msgstr[0] "Hay una persona delante de ti en la lista de espera."
 msgstr[1] "Hay %(count)d personas delante de ti en la lista de espera."
 
-#: ManageWaitlistButton.html account/loans.html
+#: account/loans.html
 msgid "You have less than an hour to borrow it."
 msgstr "Tienes menos de una hora para pedirlo prestado."
 
@@ -1552,11 +1541,11 @@ msgid_plural "You have %(hours)d more hours to borrow it."
 msgstr[0] "Tienes una hora más para pedirlo prestado."
 msgstr[1] "Tienes %(hours)d horas más para pedirlo prestado."
 
-#: ManageWaitlistButton.html account/loans.html
+#: account/loans.html
 msgid "Borrow Now"
 msgstr "Prestar ahora"
 
-#: ManageWaitlistButton.html account/loans.html
+#: account/loans.html
 msgid "Leave the waiting list?"
 msgstr "¿Abandonar la lista de espera?"
 
@@ -1630,41 +1619,6 @@ msgstr "Mis reseñas"
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
 msgstr "Opciones de importación y exportación"
-
-#: account/not_verified.html account/verify/failed.html
-msgid "Oops!"
-msgstr "¡Ups!"
-
-#: account/not_verified.html
-msgid "The email address you signed up with needs to be verified."
-msgstr ""
-"Es necesario verificar la dirección de correo electrónico con la que te "
-"registraste."
-
-#: account/not_verified.html
-#, python-format
-msgid ""
-"When you created your account, we sent an email to %(email)s that contained "
-"a link for you to verify your email address. We need you to click that link, "
-"please."
-msgstr ""
-"Cuando creaste tu cuenta, te enviamos un correo electrónico a %(email)s que "
-"contenía un enlace para verificar tu dirección de correo electrónico. "
-"Necesitamos que hagas clic en ese enlace, por favor."
-
-#: account/not_verified.html
-msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
-"Si no encuentras el correo electrónico, pulsa este botón para enviar uno "
-"nuevo:"
-
-#: account/not_verified.html account/verify/failed.html
-msgid "Resend the verification email"
-msgstr "Reenviar el correo de verificación"
-
-#: account/not_verified.html account/verify/failed.html
-msgid "Thanks!"
-msgstr "¡Gracias!"
 
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
 #: account/notes.html account/observations.html
@@ -1939,7 +1893,7 @@ msgstr "Quiero leer"
 msgid "My %(shelf_name)s Stats"
 msgstr "Mis estadísticas %(shelf_name)s"
 
-#: account/readinglog_stats.html home/loans.html lib/nav_head.html
+#: account/readinglog_stats.html lib/nav_head.html
 msgid "My Books"
 msgstr "Mis libros"
 
@@ -2079,8 +2033,7 @@ msgstr "Ajustes de privacidad: %(public)s"
 msgid "Verification email sent"
 msgstr "Verificación de correo electrónico enviada"
 
-#: account/password/reset_success.html account/verify.html
-#: account/verify/activated.html account/verify/success.html
+#: account/verify.html
 #, python-format
 msgid "Hi, %(user)s"
 msgstr "Hola, %(user)s"
@@ -2127,15 +2080,6 @@ msgid "Your book reviews will be shared anonymously with other patrons."
 msgstr ""
 "Tus reseñas de libros se compartirán de forma anónima con otros usuarios."
 
-#: account/yrg_banner.html
-#, python-format
-msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr "Establece tu objetivo anual de lectura de %(year)s:"
-
-#: account/yrg_banner.html
-msgid "Set my goal"
-msgstr "Establecer mi objetivo"
-
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
 msgstr "¿Olvidaste tu correo electrónico del Archivo de Internet?"
@@ -2164,63 +2108,9 @@ msgstr "Correo electrónico de la Biblioteca Abierta"
 msgid "Retrieve Archive.org Email"
 msgstr "Obtener el correo electrónico de Archive.org"
 
-#: account/email/forgot-ia.html account/password/forgot.html
+#: account/email/forgot-ia.html
 msgid "Forgot your Archive.org Password?"
 msgstr "¿Olvidaste tu contraseña de Archive.org?"
-
-#: account/password/forgot.html account/password/sent.html
-msgid "Username/Password Reminder"
-msgstr "Recordatorio de usuario/contraseña"
-
-#: account/password/forgot.html
-msgid "Click here."
-msgstr "Haz clic aquí."
-
-#: account/password/forgot.html
-msgid "Send It"
-msgstr "Envíalo"
-
-#: account/password/reset.html admin/people/view.html
-msgid "Reset Password"
-msgstr "Restablecer contraseña"
-
-#: account/password/reset.html
-msgid "Please enter a new password for your Open Library account."
-msgstr ""
-"Por favor, introduce una nueva contraseña para tu cuenta de la Biblioteca "
-"Abierta."
-
-#: account/password/reset.html
-msgid "Reset"
-msgstr "Restablecer"
-
-#: account/password/reset_success.html
-msgid "Password Reset Successful"
-msgstr "Contraseña restablecida con éxito"
-
-#: account/password/reset_success.html
-msgid ""
-"Your password has been updated. Please <a href='/account/login?"
-"redirect=/'>log in to continue</a>."
-msgstr ""
-"Tu contraseña ha sido actualizada. Por favor, <a href='/account/login?"
-"redirect=/'>inicia sesión para continuar</a>."
-
-#: account/password/sent.html
-msgid "Done."
-msgstr "Hecho."
-
-#: account/password/sent.html
-#, python-format
-msgid ""
-"We've sent an email to %(email)s with a reminder of your username and "
-"instructions to help you reset your Open Library password. Please check your "
-"inbox for a note from us."
-msgstr ""
-"Hemos enviado un correo %(email)s con un recordatorio de tu nombre de "
-"usuario e instrucciones para ayudarte a restablecer tu contraseña de la "
-"Biblioteca Abierta. Por favor, comprueba tu buzón de entrada para obtener "
-"una nota nuestra."
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
@@ -2276,60 +2166,6 @@ msgid ""
 msgstr ""
 "Tu cuenta <em>no</em> fue encontrada en la lista de cuentas afectadas. No se "
 "requiere ninguna acción."
-
-#: account/verify/activated.html
-msgid "Account already activated"
-msgstr "Cuenta ya activada"
-
-#: account/verify/activated.html
-#, python-format
-msgid ""
-"Your account has been activated already. Please <a href=\"%s\">log in to "
-"continue</a>."
-msgstr ""
-"Tu cuenta ya ha sido activada. Por favor, <a href=\"%s\">inicia sesión para "
-"continuar</a>."
-
-#: account/verify/failed.html
-msgid "Email Verification Failed"
-msgstr "Verificación de correo electrónico fallida"
-
-#: account/verify/failed.html
-msgid ""
-"Your email address couldn't be verified. Your verification link seems "
-"invalid or expired."
-msgstr ""
-"Tu dirección de correo electrónico no pudo ser verificada. Tu enlace de "
-"verificación parece inválido o expirado."
-
-#: account/verify/failed.html
-msgid ""
-"Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
-"Rellena con tu correo electrónico y pulsa este botón para reenviar un nuevo "
-"correo de verificación:"
-
-#: account/verify/failed.html
-msgid "Enter your email address here"
-msgstr "Introduce tu dirección de correo electrónico aquí"
-
-#: account/verify/failed.html
-msgid "No user registered with this email address."
-msgstr ""
-"No hay ningún usuario registrado con esta dirección de correo electrónico."
-
-#: account/verify/success.html
-msgid "Email Verification Successful"
-msgstr "Verificación de correo electrónico correcta"
-
-#: account/verify/success.html
-#, python-format
-msgid ""
-"Yay! Your email address has been verified. Please <a href='%s'>log in to "
-"continue</a>."
-msgstr ""
-"¡Yija! Tu dirección de correo electrónico ha sido verificada. Por favor, <a "
-"href='%s'>inicia sesión para continuar</a>."
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
@@ -2693,8 +2529,8 @@ msgstr[1] "%d préstamos actuales"
 msgid "Loan Expires"
 msgstr "Vencimiento de préstamo"
 
-#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
+#: RecentChanges.html admin/ip/view.html admin/loans_table.html
+#: admin/people/edits.html recentchanges/render.html
 #: recentchanges/updated_records.html
 msgid "What"
 msgstr "Qué"
@@ -3201,7 +3037,7 @@ msgstr "desbloquear esta cuenta"
 msgid "activate account"
 msgstr "activar cuenta"
 
-#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
+#: admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
 msgstr "Nombre:"
 
@@ -3212,6 +3048,10 @@ msgstr "ver perfil"
 #: admin/people/view.html
 msgid "Change"
 msgstr "Cambio"
+
+#: admin/people/view.html
+msgid "Reset Password"
+msgstr "Restablecer contraseña"
 
 #: admin/people/view.html
 msgid "Admin"
@@ -4047,9 +3887,9 @@ msgstr ""
 "«Edición»."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
-#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
-#: lists/preview.html lists/snippet.html lists/widget.html
-#: my_books/dropdown_content.html type/work/editions.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/preview.html
+#: lists/snippet.html lists/widget.html my_books/dropdown_content.html
+#: type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr "Portada de: %(title)s"
@@ -4940,23 +4780,6 @@ msgstr "Añadir otra imagen"
 msgid "Finished"
 msgstr "Finalizado"
 
-#: email/case_created.html
-msgid "Sent!"
-msgstr "¡Enviado!"
-
-#: email/case_created.html
-msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
-"Gracias por tu nota. Nos pondremos en contacto contigo lo antes posible."
-
-#: email/case_created.html
-msgid ""
-"It might take us a little while to read it because we receive lots of "
-"messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
-"Puede que tardemos un poco en leerlo porque recibimos muchos mensajes, pero "
-"ten por seguro que lo haremos y te responderemos si es necesario."
-
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
@@ -5062,29 +4885,6 @@ msgstr "Authors Alliance & MIT Press"
 #: home/index.html
 msgid "Books in Local Environment"
 msgstr "Libros en el entorno local"
-
-#: home/loans.html
-#, python-format
-msgid ""
-"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one "
-"more book until you've hit the limit!"
-msgid_plural ""
-"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
-"%(count)d more books until you've hit the limit!"
-msgstr[0] ""
-"¡Aún puedes <a href=\"/subjects/in_library#ebooks=true\">tomar prestado</a> "
-"un libro más hasta alcanzar el límite!"
-msgstr[1] ""
-"¡Aún puedes <a href=\"/subjects/in_library#ebooks=true\">tomar prestados</a> "
-"%(count)d libros más hasta alcanzar el límite!"
-
-#: home/loans.html
-msgid ""
-"You have reached the borrowing limit. Please return a book to checkout "
-"something new."
-msgstr ""
-"Has alcanzado el límite de préstamos. Devuelve un libro para poder sacar "
-"otro nuevo."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -5244,16 +5044,6 @@ msgid_plural "%s ebook editions"
 msgstr[0] "%s edición electrónica"
 msgstr[1] "%s ediciones electrónicas"
 
-#: languages/notfound.html
-#, python-format
-msgid "%s is not found"
-msgstr "%s no se encuentra"
-
-#: languages/notfound.html
-#, python-format
-msgid "%s does not exist."
-msgstr "%s no existe."
-
 #: lib/browse_popover.html lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
 msgstr "Colecciones"
@@ -5392,56 +5182,6 @@ msgstr "Creado por %(user)s"
 #, python-format
 msgid "Edited by %(user)s"
 msgstr "Editado por %(user)s"
-
-#: lib/message_addbook.html
-msgid "Super!"
-msgstr "¡Súper!"
-
-#: lib/message_addbook.html
-msgid " Your new record is in the library. Thank you!"
-msgstr " Tu nuevo registro está en la biblioteca. ¡Gracias!"
-
-#: lib/message_addbook.html
-msgid ""
-"There are a few other simple things you can add while you're here to improve "
-"your new record quickly, and make it much easier for other people to find "
-"later."
-msgstr ""
-"Hay algunas otras cosas sencillas que puedes añadir mientras estás aquí para "
-"mejorar tu nuevo registro rápidamente y hacerlo mucho más fácil de encontrar "
-"para otras personas más tarde."
-
-#: lib/message_addbook.html
-msgid "Upload a cover image"
-msgstr "Subir una imagen de portada"
-
-#: lib/message_addbook.html
-msgid "Snap a quick photo of the cover to share?"
-msgstr "¿Quieres compartir una foto rápida de la portada?"
-
-#: lib/message_addbook.html
-msgid "Add an ISBN"
-msgstr "Añadir un ISBN"
-
-#: lib/message_addbook.html
-msgid "Help the library connect with other systems, like Amazon."
-msgstr "Ayudar a la biblioteca a conectarse con otros sistemas, como Amazon."
-
-#: lib/message_addbook.html
-msgid "Add some subjects"
-msgstr "Añadir algunos temas"
-
-#: lib/message_addbook.html
-msgid "They're just like tags."
-msgstr "Son como etiquetas."
-
-#: lib/message_addbook.html
-msgid "Describe what the book's about"
-msgstr "Describe de qué trata el libro"
-
-#: lib/message_addbook.html
-msgid "Just a sentence or two is good."
-msgstr "Una o dos frases son suficientes."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -5848,7 +5588,7 @@ msgstr "Modificado por última vez %(date)s"
 msgid "No description."
 msgstr "Sin descripción."
 
-#: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
+#: lists/home.html lists/lists.html type/user/view.html
 msgid "Recent Activity"
 msgstr "Actividad reciente"
 
@@ -5879,24 +5619,6 @@ msgstr "Logo de la Biblioteca Abierta"
 #: lists/list_follow.html
 msgid "Community List"
 msgstr "Lista de comunidad"
-
-#: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
-msgid "See this list"
-msgstr "Ver esta lista"
-
-#: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
-msgid "Remove from your list?"
-msgstr "¿Quitar de tu lista?"
-
-#: lists/list_overview.html
-#, python-format
-msgid "from <a href=\"%(link)s\">You</a>"
-msgstr "de <a href=\"%(link)s\">ti</a>"
-
-#: lists/list_overview.html
-#, python-format
-msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr "de <a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
@@ -5959,6 +5681,14 @@ msgstr "Mis listas (%(count)d)"
 #: lists/showcase.html
 msgid "You have no lists."
 msgstr "No tienes listas."
+
+#: lists/widget.html my_books/dropdown_content.html
+msgid "See this list"
+msgstr "Ver esta lista"
+
+#: lists/widget.html my_books/dropdown_content.html
+msgid "Remove from your list?"
+msgstr "¿Quitar de tu lista?"
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
@@ -6225,17 +5955,16 @@ msgstr "Cargando"
 msgid "Use this Work"
 msgstr "Usar esta obra"
 
-#: CreateListModal.html my_books/dropdown_content.html
+#: my_books/dropdown_content.html
 msgid "Create a new list"
 msgstr "Crear una nueva lista"
 
-#: CreateListModal.html my_books/dropdown_content.html
-#: type/permission/edit.html type/usergroup/edit.html
+#: my_books/dropdown_content.html type/permission/edit.html
+#: type/usergroup/edit.html
 msgid "Description:"
 msgstr "Descripción:"
 
-#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
-#: type/series/edit.html
+#: my_books/dropdown_content.html type/list/edit.html type/series/edit.html
 msgid "Create new list"
 msgstr "Crear nueva lista"
 
@@ -6565,13 +6294,11 @@ msgstr "Todo"
 msgid "Admin view"
 msgstr "Vista de administrador"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: recentchanges/render.html
+#: RecentChanges.html recentchanges/render.html
 msgid "Older"
 msgstr "Más antiguo"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: recentchanges/render.html
+#: RecentChanges.html recentchanges/render.html
 msgid "Newer"
 msgstr "Más reciente"
 
@@ -6579,8 +6306,8 @@ msgstr "Más reciente"
 msgid "Review what's changed in from the previous revision"
 msgstr "Revisar los cambios respecto a la revisión previa"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: recentchanges/default/path.html recentchanges/updated_records.html
+#: RecentChanges.html recentchanges/default/path.html
+#: recentchanges/updated_records.html
 msgid "diff"
 msgstr "diff"
 
@@ -6593,7 +6320,7 @@ msgstr "ampliar"
 msgid "opened a new Open Library account!"
 msgstr "¡abriste una nueva cuenta de la Biblioteca Abierta!"
 
-#: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
+#: RecentChanges.html recentchanges/default/path.html
 msgid "Review what's changed from the previous revision"
 msgstr "Revisar los cambios respecto a la revisión anterior"
 
@@ -6737,7 +6464,6 @@ msgid "Search Open Library for %s"
 msgstr "Buscar %s en la Biblioteca Abierta"
 
 #: FulltextSearchSuggestion.html SearchNavigation.html search/inside.html
-#: search/snippets.html
 msgid "Search Inside"
 msgstr "Buscar dentro"
 
@@ -6875,11 +6601,6 @@ msgstr "Búsquedas recientes"
 #, python-format
 msgid "Remove \"%s\" from recent searches"
 msgstr "Eliminar «%s» de las búsquedas recientes"
-
-#: search/snippets.html
-#, python-format
-msgid "On leaf number %(page_num)d:"
-msgstr "En la hoja número %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -8073,7 +7794,7 @@ msgstr ""
 msgid "My Lists"
 msgstr "Mis listas"
 
-#: RecentChangesUsers.html type/user/view.html
+#: type/user/view.html
 msgid "No edits. Yet."
 msgstr "Sin ediciones. Todavía."
 
@@ -8308,20 +8029,6 @@ msgstr "Prestado"
 msgid "Locate"
 msgstr "Buscar"
 
-#: ManageWaitlistButton.html
-#, python-format
-msgid "Waiting for %d day"
-msgid_plural "Waiting for %d days"
-msgstr[0] "Esperando por %d día"
-msgstr[1] "Esperando por %d días"
-
-#: ManageWaitlistButton.html
-#, python-format
-msgid "You have %(count)d more hour to borrow it."
-msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] "Te quedan %(count)d hora más para pedirlo prestado."
-msgstr[1] "Te quedan %(count)d horas más para pedirlo prestado."
-
 # Se traduce como «No en biblioteca» para evitar que el texto se corte en el
 # botón donde se muestra.
 #: NotInLibrary.html
@@ -8391,6 +8098,14 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr "Este gráfico muestra las ediciones publicadas sobre este tema."
 
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Something went wrong."
+msgstr "Algo fue mal."
+
+#: PublishingHistory.html RelatedSubjects.html
+msgid "Retry"
+msgstr "Reintentar"
+
 #: RawQueryCarousel.html
 msgid "Loading carousel"
 msgstr "Cargando carrusel"
@@ -8442,22 +8157,6 @@ msgstr "Escuchar"
 #: RecentChanges.html
 msgid "View MARC"
 msgstr "Ver MARC"
-
-#: RecentChangesAdmin.html
-msgid "Path"
-msgstr "Ruta"
-
-#: RecentChangesAdmin.html
-msgid "view"
-msgstr "ver"
-
-#: RecentChangesAdmin.html
-msgid "edit"
-msgstr "editar"
-
-#: RecentChangesAdmin.html RecentChangesUsers.html
-msgid "No edit history available."
-msgstr "No hay historial de ediciones disponible."
 
 #: RelatedSubjects.html
 msgid "Related..."
@@ -8715,10 +8414,6 @@ msgid ""
 msgstr ""
 "(La solución más simple: Si no estás seguro de si esto debe ser cambiado, no "
 "lo cambies.)"
-
-#: WorkInfo.html
-msgid "No link to Wikipedia in your language"
-msgstr "No hay enlace a Wikipedia en tu idioma"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
@@ -9662,3 +9357,254 @@ msgstr "Publicado por primera vez"
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
 msgstr "Libros electrónicos clásicos"
+
+#~ msgid "Delete Account"
+#~ msgstr "Borrar cuenta"
+
+#~ msgid "Sorry, this functionality is not yet implemented."
+#~ msgstr "Lo sentimos, esta funcionalidad no está implementada todavía."
+
+#~ msgid "Oops!"
+#~ msgstr "¡Ups!"
+
+#~ msgid "The email address you signed up with needs to be verified."
+#~ msgstr ""
+#~ "Es necesario verificar la dirección de correo electrónico con la que te "
+#~ "registraste."
+
+#, python-format
+#~ msgid ""
+#~ "When you created your account, we sent an email to %(email)s that "
+#~ "contained a link for you to verify your email address. We need you to "
+#~ "click that link, please."
+#~ msgstr ""
+#~ "Cuando creaste tu cuenta, te enviamos un correo electrónico a %(email)s "
+#~ "que contenía un enlace para verificar tu dirección de correo electrónico. "
+#~ "Necesitamos que hagas clic en ese enlace, por favor."
+
+#~ msgid ""
+#~ "If you can't find the email, just hit this button to send a fresh one:"
+#~ msgstr ""
+#~ "Si no encuentras el correo electrónico, pulsa este botón para enviar uno "
+#~ "nuevo:"
+
+#~ msgid "Resend the verification email"
+#~ msgstr "Reenviar el correo de verificación"
+
+#~ msgid "Thanks!"
+#~ msgstr "¡Gracias!"
+
+#, python-format
+#~ msgid "Set your %(year)s Yearly Reading Goal:"
+#~ msgstr "Establece tu objetivo anual de lectura de %(year)s:"
+
+#~ msgid "Set my goal"
+#~ msgstr "Establecer mi objetivo"
+
+#~ msgid "Username/Password Reminder"
+#~ msgstr "Recordatorio de usuario/contraseña"
+
+#~ msgid "Click here."
+#~ msgstr "Haz clic aquí."
+
+#~ msgid "Send It"
+#~ msgstr "Envíalo"
+
+#~ msgid "Please enter a new password for your Open Library account."
+#~ msgstr ""
+#~ "Por favor, introduce una nueva contraseña para tu cuenta de la Biblioteca "
+#~ "Abierta."
+
+#~ msgid "Reset"
+#~ msgstr "Restablecer"
+
+#~ msgid "Password Reset Successful"
+#~ msgstr "Contraseña restablecida con éxito"
+
+#~ msgid ""
+#~ "Your password has been updated. Please <a href='/account/login?"
+#~ "redirect=/'>log in to continue</a>."
+#~ msgstr ""
+#~ "Tu contraseña ha sido actualizada. Por favor, <a href='/account/login?"
+#~ "redirect=/'>inicia sesión para continuar</a>."
+
+#~ msgid "Done."
+#~ msgstr "Hecho."
+
+#, python-format
+#~ msgid ""
+#~ "We've sent an email to %(email)s with a reminder of your username and "
+#~ "instructions to help you reset your Open Library password. Please check "
+#~ "your inbox for a note from us."
+#~ msgstr ""
+#~ "Hemos enviado un correo %(email)s con un recordatorio de tu nombre de "
+#~ "usuario e instrucciones para ayudarte a restablecer tu contraseña de la "
+#~ "Biblioteca Abierta. Por favor, comprueba tu buzón de entrada para obtener "
+#~ "una nota nuestra."
+
+#~ msgid "Account already activated"
+#~ msgstr "Cuenta ya activada"
+
+#, python-format
+#~ msgid ""
+#~ "Your account has been activated already. Please <a href=\"%s\">log in to "
+#~ "continue</a>."
+#~ msgstr ""
+#~ "Tu cuenta ya ha sido activada. Por favor, <a href=\"%s\">inicia sesión "
+#~ "para continuar</a>."
+
+#~ msgid "Email Verification Failed"
+#~ msgstr "Verificación de correo electrónico fallida"
+
+#~ msgid ""
+#~ "Your email address couldn't be verified. Your verification link seems "
+#~ "invalid or expired."
+#~ msgstr ""
+#~ "Tu dirección de correo electrónico no pudo ser verificada. Tu enlace de "
+#~ "verificación parece inválido o expirado."
+
+#~ msgid ""
+#~ "Fill your email and hit this button to resend a fresh verification email:"
+#~ msgstr ""
+#~ "Rellena con tu correo electrónico y pulsa este botón para reenviar un "
+#~ "nuevo correo de verificación:"
+
+#~ msgid "Enter your email address here"
+#~ msgstr "Introduce tu dirección de correo electrónico aquí"
+
+#~ msgid "No user registered with this email address."
+#~ msgstr ""
+#~ "No hay ningún usuario registrado con esta dirección de correo electrónico."
+
+#~ msgid "Email Verification Successful"
+#~ msgstr "Verificación de correo electrónico correcta"
+
+#, python-format
+#~ msgid ""
+#~ "Yay! Your email address has been verified. Please <a href='%s'>log in to "
+#~ "continue</a>."
+#~ msgstr ""
+#~ "¡Yija! Tu dirección de correo electrónico ha sido verificada. Por favor, "
+#~ "<a href='%s'>inicia sesión para continuar</a>."
+
+#~ msgid "Sent!"
+#~ msgstr "¡Enviado!"
+
+#~ msgid "Thank you for your note. We'll get back to you as soon as possible."
+#~ msgstr ""
+#~ "Gracias por tu nota. Nos pondremos en contacto contigo lo antes posible."
+
+#~ msgid ""
+#~ "It might take us a little while to read it because we receive lots of "
+#~ "messages, but rest assured we will, and we'll get back to you if required."
+#~ msgstr ""
+#~ "Puede que tardemos un poco en leerlo porque recibimos muchos mensajes, "
+#~ "pero ten por seguro que lo haremos y te responderemos si es necesario."
+
+#, python-format
+#~ msgid ""
+#~ "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one "
+#~ "more book until you've hit the limit!"
+#~ msgid_plural ""
+#~ "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
+#~ "%(count)d more books until you've hit the limit!"
+#~ msgstr[0] ""
+#~ "¡Aún puedes <a href=\"/subjects/in_library#ebooks=true\">tomar prestado</"
+#~ "a> un libro más hasta alcanzar el límite!"
+#~ msgstr[1] ""
+#~ "¡Aún puedes <a href=\"/subjects/in_library#ebooks=true\">tomar prestados</"
+#~ "a> %(count)d libros más hasta alcanzar el límite!"
+
+#~ msgid ""
+#~ "You have reached the borrowing limit. Please return a book to checkout "
+#~ "something new."
+#~ msgstr ""
+#~ "Has alcanzado el límite de préstamos. Devuelve un libro para poder sacar "
+#~ "otro nuevo."
+
+#, python-format
+#~ msgid "%s is not found"
+#~ msgstr "%s no se encuentra"
+
+#, python-format
+#~ msgid "%s does not exist."
+#~ msgstr "%s no existe."
+
+#~ msgid "Super!"
+#~ msgstr "¡Súper!"
+
+#~ msgid " Your new record is in the library. Thank you!"
+#~ msgstr " Tu nuevo registro está en la biblioteca. ¡Gracias!"
+
+#~ msgid ""
+#~ "There are a few other simple things you can add while you're here to "
+#~ "improve your new record quickly, and make it much easier for other people "
+#~ "to find later."
+#~ msgstr ""
+#~ "Hay algunas otras cosas sencillas que puedes añadir mientras estás aquí "
+#~ "para mejorar tu nuevo registro rápidamente y hacerlo mucho más fácil de "
+#~ "encontrar para otras personas más tarde."
+
+#~ msgid "Upload a cover image"
+#~ msgstr "Subir una imagen de portada"
+
+#~ msgid "Snap a quick photo of the cover to share?"
+#~ msgstr "¿Quieres compartir una foto rápida de la portada?"
+
+#~ msgid "Add an ISBN"
+#~ msgstr "Añadir un ISBN"
+
+#~ msgid "Help the library connect with other systems, like Amazon."
+#~ msgstr ""
+#~ "Ayudar a la biblioteca a conectarse con otros sistemas, como Amazon."
+
+#~ msgid "Add some subjects"
+#~ msgstr "Añadir algunos temas"
+
+#~ msgid "They're just like tags."
+#~ msgstr "Son como etiquetas."
+
+#~ msgid "Describe what the book's about"
+#~ msgstr "Describe de qué trata el libro"
+
+#~ msgid "Just a sentence or two is good."
+#~ msgstr "Una o dos frases son suficientes."
+
+#, python-format
+#~ msgid "from <a href=\"%(link)s\">You</a>"
+#~ msgstr "de <a href=\"%(link)s\">ti</a>"
+
+#, python-format
+#~ msgid "from <a href=\"%(link)s\">%(name)s</a>"
+#~ msgstr "de <a href=\"%(link)s\">%(name)s</a>"
+
+#, python-format
+#~ msgid "On leaf number %(page_num)d:"
+#~ msgstr "En la hoja número %(page_num)d:"
+
+#, python-format
+#~ msgid "Waiting for %d day"
+#~ msgid_plural "Waiting for %d days"
+#~ msgstr[0] "Esperando por %d día"
+#~ msgstr[1] "Esperando por %d días"
+
+#, python-format
+#~ msgid "You have %(count)d more hour to borrow it."
+#~ msgid_plural "You have %(count)d more hours to borrow it."
+#~ msgstr[0] "Te quedan %(count)d hora más para pedirlo prestado."
+#~ msgstr[1] "Te quedan %(count)d horas más para pedirlo prestado."
+
+#~ msgid "Path"
+#~ msgstr "Ruta"
+
+#~ msgid "view"
+#~ msgstr "ver"
+
+#~ msgid "edit"
+#~ msgstr "editar"
+
+#~ msgid "No edit history available."
+#~ msgstr "No hay historial de ediciones disponible."
+
+#~ msgid "No link to Wikipedia in your language"
+#~ msgstr "No hay enlace a Wikipedia en tu idioma"

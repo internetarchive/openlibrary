@@ -36,7 +36,7 @@ class TestAccountLoansJson:
 
         with (
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.plugins.upstream.account.borrow.get_loans", return_value=loans) as get_loans,
+            patch("openlibrary.plugins.upstream.account.lending.get_loans_of_user", return_value=loans) as get_loans_of_user,
         ):
             response = fastapi_client.get("/account/loans.json")
 
@@ -44,7 +44,7 @@ class TestAccountLoansJson:
         assert response.headers["content-type"] == "application/json"
         assert response.json() == {"loans": loans}
         legacy_user.update_loan_status.assert_called_once_with()
-        get_loans.assert_called_once_with(legacy_user)
+        get_loans_of_user.assert_called_once_with(legacy_user.key)
 
     @pytest.mark.parametrize(
         ("path", "page"),

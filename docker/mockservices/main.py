@@ -66,16 +66,17 @@ app = FastAPI(title="OL Mock Services", docs_url="/mock/docs", lifespan=_lifespa
 # (not "status") from the response.
 #
 # Supported ops: authenticate, info, issue_otp, redeem_otp, create, issue_key, activate
-# Dev credentials: email=test@example.com, password=<any non-empty>
+# Dev credentials: email=openlibrary@example.com, password=<any non-empty>
 #                  (password "bad_password" is rejected, so the error path
 #                  is reachable from the login form / e2e tests)
+# Every dev login resolves to /people/openlibrary, the seeded admin account.
 # Dev S3 keys:     access=foo, secret=foo
 # Dev OTP code:    123456
 # ---------------------------------------------------------------------------
 
 _DEV_S3 = {"access": "foo", "secret": "foo"}
-_DEV_SCREENNAME = "testuser"
-_DEV_EMAIL = "test@example.com"
+_DEV_SCREENNAME = "openlibrary"
+_DEV_EMAIL = "openlibrary@example.com"
 _DEV_OTP = "123456"
 _DEV_TOKEN = "dev_placeholder_token"
 _DEV_BAD_PASSWORD = "bad_password"
