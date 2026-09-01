@@ -136,6 +136,11 @@ module.exports = [
           ignores: ["Bookshelf", "Shelf"],
         },
       ],
+      "vue/require-prop-types": "error",
+      "vue/require-explicit-emits": "error",
+      "vue/require-default-prop": "error",
+      "vue/no-v-html": "error",
+      "vue/no-template-shadow": "error",
       // jQuery deprecated rules
       "no-jquery/no-box-model": "warn",
       "no-jquery/no-browser": "warn",
