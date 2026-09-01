@@ -16,6 +16,7 @@ from urllib.parse import unquote
 import web
 
 from infogami import config
+from infogami.utils import delegate
 from infogami.utils.delegate import create_site
 
 if TYPE_CHECKING:
@@ -201,6 +202,35 @@ def set_context_from_legacy_web_py() -> None:
             is_bot=is_bot,
         )
     )
+
+
+def caching_prethread():
+    """Return a callback that re-establishes request context on a worker thread.
+
+    Memcache-memoized fetches (homepage, carousels, featured subjects, cached
+    macros) can be computed on a background thread where the `web.ctx.*` globals
+    are stale or unset. The returned callback copies the language, host, and bot
+    flag captured on the main thread onto the worker thread before the fetch runs.
+    """
+    # Module-level would cycle: `code.py` imports this module.
+    from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
+
+    # web.ctx.lang is undefined on the new thread, so need to transfer it over
+    lang = req_context.get().lang
+    host = web.ctx.host
+    _is_bot = is_bot()
+
+    def main():
+        # Leaving this in since this is a bit strange, but you can see it clearly
+        # in action with this debug line:
+        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
+        delegate.fakeload()
+        web.ctx.lang = lang
+        web.ctx.is_bot = _is_bot
+        web.ctx.host = host
+        set_context_from_legacy_web_py()
+
+    return main
 
 
 def set_context_from_fastapi(request: Request) -> None:

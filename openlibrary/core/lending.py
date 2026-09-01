@@ -118,7 +118,7 @@ def compose_ia_url(
 
     Returns None if we get an empty query
     """
-    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
+    from openlibrary.core.carousels import CAROUSELS_PRESETS
 
     query = CAROUSELS_PRESETS.get(query, query)
     q = "openlibrary_work:(*)"

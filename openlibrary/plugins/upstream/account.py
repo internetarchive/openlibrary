@@ -40,6 +40,7 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.carousels import get_carousel_data
 from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import get_loan_history_data
@@ -1278,6 +1279,9 @@ class account_loans(delegate.page):
         docs = get_loans_of_user(user.key)
         loan_history_data = get_loan_history_data(username, page=page)
         featured_subjects = get_cached_featured_subjects()
+
+        staff_picks = get_carousel_data(carousels=("staff_picks",))["staff_picks"]
+
         template = render["account/loans"](
             user,
             docs,
@@ -1286,6 +1290,7 @@ class account_loans(delegate.page):
             show_next=loan_history_data["show_next"],
             ia_base_url=CONFIG_IA_DOMAIN,
             featured_subjects=featured_subjects,
+            carousel=staff_picks,
         )
         return mb.render(header_title=_("Loans & History"), template=template)
 
