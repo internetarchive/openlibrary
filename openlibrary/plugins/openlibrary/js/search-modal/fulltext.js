@@ -186,3 +186,24 @@ export function creatorsFromMeta(metaCreator) {
         .slice(0, 3)
         .join(', ');
 }
+
+/**
+ * Drop band hits whose scan is already among the modal's catalog rows — the
+ * same dedupe /search applies via `exclude_ocaids` (core/fulltext.py), so a
+ * top result isn't immediately repeated as a snippet row. A work is "listed"
+ * under every ocaid in its `ia` field plus its promoted editions' `ia`.
+ *
+ * @param {{ia: string}[]} hits - display hits from fulltextHitDisplay
+ * @param {Object[]} docs - /search.json work docs (the modal's SEARCH_FIELDS shape)
+ * @returns {{ia: string}[]} the hits not already listed, original order kept
+ */
+export function dedupeFulltextHits(hits, docs) {
+    const listed = new Set();
+    for (const doc of docs || []) {
+        for (const ocaid of doc?.ia || []) listed.add(ocaid);
+        for (const ed of doc?.editions?.docs || []) {
+            for (const ocaid of ed?.ia || []) listed.add(ocaid);
+        }
+    }
+    return (hits || []).filter((hit) => !listed.has(hit.ia));
+}

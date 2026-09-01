@@ -4,8 +4,11 @@ $# labels, placeholders, aria-labels and status messages. Rendered into the
 $# trigger's `data-i18n-ui` attribute and read client-side by
 $# search-modal/constants.js (searchModalStringsFromElement). The keys and
 $# English source strings here must match DEFAULT_SEARCH_MODAL_STRINGS in that
-$# same file. `%s` (in "See all %s results", "Remove … from recent searches",
+$# same file. `%s` (in "See all %s books", "Remove … from recent searches",
 $# "See all matches found in %s books", …) is filled in client-side via sprintf. (Availability option labels live in search/availability_i18n.html.)
+$# The *Narrow keys are shorter forms of the label above them, shown on narrow
+$# viewports where the footer holds two buttons; the longer form stays the
+$# button's accessible name at both widths, so keep the two saying the same thing.
 $ search_modal_i18n = {
 $     "dialogAria":          _("Search Open Library"),
 $     "inputPlaceholder":    _("Search books and authors…"),
@@ -14,9 +17,10 @@ $     "closeAria":           _("Close search"),
 $     "clearAria":           _("Clear search"),
 $     "seeAll":              _("See results"),
 $     "seeNone":             _("Go to full search"),
-$     "seeOne":              _("See %s result"),
-$     "seeMany":             _("See %s results"),
-$     "seeAllMany":          _("See all %s results"),
+$     "seeOne":              _("See %s book"),
+$     "seeMany":             _("See %s books"),
+$     "seeAllMany":          _("See all %s books"),
+$     "seeAllManyNarrow":    _("All %s books"),
 $     "clearAll":            _("Clear all"),
 $     "filtersAria":         _("Search filters"),
 $     "availabilityLabel":   _("Availability"),
@@ -28,7 +32,7 @@ $     "searching":           _("Searching…"),
 $     "noResults":           _("No results found"),
 $     "noCatalogResults":    _("No matching books or authors"),
 $     "resultsAnnounce":     _("Showing %s of %s results"),
-$     "topResults":          _("Top results"),
+$     "topResults":          _("Books"),
 $     "untitled":            _("Untitled"),
 $     "authorLabel":         _("Author"),
 $     "accessReadable":      _("Readable"),
@@ -36,7 +40,8 @@ $     "inLanguage":          _("In %s"),
 $     "recentSearches":      _("Recent searches"),
 $     "removeRecent":        _('Remove "%s" from recent searches'),
 $     "foundInside":         _("Found inside books"),
-$     "seeAllInsideShort":   _("Found in %s books"),
+$     "seeAllInsideShort":   _("Search inside %s books"),
+$     "seeAllInsideNarrow":  _("Search inside (%s)"),
 $     "seeAllInside":        _("See all matches found in %s books"),
 $ }
 $json_encode(search_modal_i18n)

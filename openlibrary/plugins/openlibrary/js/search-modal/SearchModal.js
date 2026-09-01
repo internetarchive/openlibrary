@@ -32,8 +32,8 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { parseSnippet, phraseQuery } from './fulltext.js';
-import { FulltextBand, fulltextSearchParams } from './fulltextBand.js';
+import { dedupeFulltextHits, parseSnippet, phraseQuery } from './fulltext.js';
+import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -88,6 +88,14 @@ const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // to /search is still allowed for it (handled by the length-only gates).
 const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
 
+// Counts in the narrow footer labels, where an exact six- or seven-digit total
+// pushes the two buttons past a small phone. Intl does the rounding *and* the
+// suffix per locale ("135K", "1.23M", "13万"), which a hand-rolled "k" wouldn't.
+// Three significant digits keeps four-digit counts honest ("1.2K", not "1K") and
+// caps the rest at five characters. Only the narrow forms use it: the wide ones
+// have room to stay exact, and the accessible name is always the wide form.
+const compactCount = n => new Intl.NumberFormat(undefined, { notation: 'compact', maximumSignificantDigits: 3 }).format(n);
+
 export class SearchModal extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
@@ -100,6 +108,7 @@ export class SearchModal extends LitElement {
         _readableCount: { state: true },
         _loading: { state: true },
         _seeAllLoading: { state: true },
+        _ftSeeAllLoading: { state: true },
         _hasSearched: { state: true },
         _languageItems: { state: true },
         _langsLoading: { state: true },
@@ -365,6 +374,11 @@ export class SearchModal extends LitElement {
             text-transform: uppercase;
         }
 
+        /* A heading that starts a new section mid-list (e.g. "Found inside
+           books" after the top results) gets clear air separating it from
+           the rows above. */
+        .results-list + .results-heading { margin-top: var(--spacing-lg); }
+
         /* Heading with a leading glyph (the "Found inside books" band): the
            icon flags that these rows are a different kind of match — text
            from inside the scans, not catalogue records. */
@@ -391,7 +405,7 @@ export class SearchModal extends LitElement {
            as texture rather than structure. Adjacent rows share one line. */
         .results-list li { border-top: 1px solid var(--lightest-grey); }
 
-        /* Sets the author suggestion apart from the "Top results" works below.
+        /* Sets the author suggestion apart from the "Books" works below.
            The row hairlines draw the dividing line; this just adds air. */
         .author-suggestion { margin-bottom: var(--spacing-2xs); }
 
@@ -558,7 +572,7 @@ export class SearchModal extends LitElement {
             background-color: var(--color-surface);
             color: var(--color-text);
             font-family: var(--font-family-quote);
-            font-size: var(--font-size-body-small);
+            font-size: var(--font-size-body-medium);
             line-height: var(--line-height-relaxed);
             overflow-wrap: anywhere;
         }
@@ -762,9 +776,15 @@ export class SearchModal extends LitElement {
 
         .footer ol-button { flex-shrink: 0; }
 
-        /* The primary "See N results" holds the right edge; the fulltext
+        /* The primary "See N books" holds the right edge; the fulltext
            see-all (when present) sits before it, on the left. */
         .footer ol-button:last-child { margin-left: auto; }
+
+        /* Two-tier button labels: both forms are slotted and one is hidden by
+           width (see _responsiveLabel). The buttons carry the wide form as an
+           explicit aria-label, so which span is showing never changes what a
+           screen reader announces. */
+        .footer .label-narrow { display: none; }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
 
@@ -774,6 +794,16 @@ export class SearchModal extends LitElement {
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
             .footer { background: var(--color-surface); }
+
+            /* Two buttons share this row on mobile — swap in the short labels. */
+            .footer .label-wide { display: none; }
+            .footer .label-narrow { display: inline; }
+
+            /* Compact counts keep the English pair inside a small phone, but a
+               translation of "Search inside" can be half again as long and the
+               buttons don't shrink. Let the primary wrap under the fulltext one
+               rather than overflow the dialog. */
+            .footer { flex-wrap: wrap; row-gap: var(--spacing-xs); }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
@@ -811,6 +841,8 @@ export class SearchModal extends LitElement {
         // Set when the patron commits to /search (click or Enter) and the page
         // begins navigating; mirrors how a pressed result uses _navigatingKey.
         this._seeAllLoading = false;
+        // Same, for the fulltext band's "Search inside N books" footer button.
+        this._ftSeeAllLoading = false;
         this._hasSearched  = false;
         this._langsLoading = false;
         this._navigatingKey = null;
@@ -893,6 +925,7 @@ export class SearchModal extends LitElement {
         this._onPageShow = () => {
             this._navigatingKey = null;
             this._seeAllLoading = false;
+            this._ftSeeAllLoading = false;
         };
         window.addEventListener('pageshow', this._onPageShow);
     }
@@ -962,6 +995,7 @@ export class SearchModal extends LitElement {
         this._query          = '';
         this._navigatingKey  = null;
         this._seeAllLoading  = false;
+        this._ftSeeAllLoading = false;
         this._activeFetchKey = null;
         this._resetResults({ hasSearched: false });
         this._ftBand.clear();
@@ -1127,12 +1161,7 @@ export class SearchModal extends LitElement {
 
                 <div slot="footer" class="footer">
                     ${this._renderFulltextSeeAll()}
-                    <ol-button
-                        variant="primary"
-                        ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
-                        ?loading=${this._seeAllLoading}
-                        @click=${this._onSeeAllResults}
-                    >${this._seeAllLabel()}</ol-button>
+                    ${this._renderSeeAll()}
                 </div>
             </ol-dialog>
         `;
@@ -1205,7 +1234,7 @@ export class SearchModal extends LitElement {
             // catalog matched, but the query may still appear inside books.
             // When the band has hits, scope the empty message to the catalog —
             // "No results found" above visible results would contradict itself.
-            const emptyLabel = this._ftHits.length ? this._i18n.noCatalogResults : this._i18n.noResults;
+            const emptyLabel = this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
             return html`<div class="results" @keydown=${this._onResultsKeydown}>
                 <div class="empty">${emptyLabel}</div>
                 ${this._renderFulltextBand()}
@@ -1226,33 +1255,45 @@ export class SearchModal extends LitElement {
         `;
     }
 
+    // The band rows actually shown: the fetched pool minus any hit whose scan
+    // is already a catalog row above (mirroring /search's `exclude` dedupe),
+    // trimmed to FULLTEXT_LIMIT. Computed at render time because the Solr and
+    // fulltext fetches race — whichever lands last, the next render dedupes
+    // against the final pairing.
+    _visibleFtHits() {
+        return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
+    }
+
     // The "Found inside books" band: Search Inside snippet matches rendered
     // after the metadata results (and as the no-results rescue). Hidden
     // entirely until a fulltext response with hits lands — no spinner, no
     // empty state: a secondary surface earns its space only when it has
     // something to show.
     _renderFulltextBand() {
-        if (this._ftHits.length === 0) return nothing;
+        const hits = this._visibleFtHits();
+        if (hits.length === 0) return nothing;
         const q = this._query.trim();
         return html`
             <h3 class="results-heading results-heading--icon">
                 ${SearchModal._textSearchIcon}<span>${this._i18n.foundInside}</span>
             </h3>
             <ul class="results-list">
-                ${this._ftHits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
             </ul>
         `;
     }
 
     // The band's see-all: a secondary button on the footer's left, opposite
-    // the primary "See N results" — always in view, even with the band
+    // the primary "See N books" — always in view, even with the band
     // scrolled away. Only rendered once the fulltext total exceeds the hits
     // shown inline — with everything already visible there's nothing more
-    // to see. The visible label is short ("Found in 23,783 books"); the
-    // accessible name carries the full sentence.
+    // to see. The visible label is short ("Search inside 23,783 books", or
+    // "Search inside (23,783)" when narrow); the accessible name carries the
+    // full sentence at both widths.
     _renderFulltextSeeAll() {
-        if (this._ftHits.length === 0) return nothing;
-        if (typeof this._ftTotal !== 'number' || this._ftTotal <= this._ftHits.length) return nothing;
+        const shown = this._visibleFtHits().length;
+        if (shown === 0) return nothing;
+        if (typeof this._ftTotal !== 'number' || this._ftTotal <= shown) return nothing;
         const q = this._query.trim();
         const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
         return html`
@@ -1260,14 +1301,22 @@ export class SearchModal extends LitElement {
                 variant="secondary"
                 href=${href}
                 aria-label=${this._seeAllInsideLabel()}
-                @click=${() => { this._track('FulltextSeeAll', 'footer'); this._saveCurrentSearch(); }}
-            >${this._seeAllInsideShortLabel()}<ol-icon slot="icon-end" name="arrow-right"></ol-icon></ol-button>
+                ?loading=${this._ftSeeAllLoading}
+                @click=${this._onFulltextSeeAll}
+            >${this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel())}<ol-icon slot="icon-end" name="arrow-right"></ol-icon></ol-button>
         `;
     }
 
-    // The footer button's visible label, e.g. "Found in 134 books".
+    // The footer button's visible label, e.g. "Search inside 134 books".
     _seeAllInsideShortLabel() {
         return sprintf(this._i18n.seeAllInsideShort, this._ftTotal.toLocaleString());
+    }
+
+    // The same label on narrow viewports, where it shares the footer row with
+    // the primary, e.g. "Search inside (135K)". Rounding costs nothing here —
+    // the fulltext total is approximate to begin with.
+    _seeAllInsideNarrowLabel() {
+        return sprintf(this._i18n.seeAllInsideNarrow, compactCount(this._ftTotal));
     }
 
     // Accessible name for the same button — the full sentence, e.g.
@@ -1288,11 +1337,14 @@ export class SearchModal extends LitElement {
         const segments = parseSnippet(hit.snippet);
         return html`<li>
                 <a
-                    class="result ft-result"
+                    class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${() => { this._track('FulltextClick', `rank:${index + 1}`); this._saveCurrentSearch(); }}
+                    @click=${(e) => { this._track('FulltextClick', `rank:${index + 1}`); this._onResultPress(e, href); }}
                 >
-                    <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                    <span class="result__cover-link">
+                        <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
+                        <span class="result__spinner" aria-hidden="true"></span>
+                    </span>
                     <span class="result__meta">
                         <span class="result__title">${hit.title || this._i18n.untitled}</span>
                         ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
@@ -1551,24 +1603,54 @@ export class SearchModal extends LitElement {
             </li>`;
     }
 
+    // The footer's primary: the way through to /search. Its label is the wide
+    // form of _seeAllLabels, which is also its accessible name — the narrow
+    // form only swaps what's on screen (see _responsiveLabel).
+    _renderSeeAll() {
+        const { wide, narrow } = this._seeAllLabels();
+        return html`
+            <ol-button
+                variant="primary"
+                aria-label=${wide}
+                ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
+                ?loading=${this._seeAllLoading}
+                @click=${this._onSeeAllResults}
+            >${this._responsiveLabel(wide, narrow)}</ol-button>
+        `;
+    }
+
     // The footer button shows the actual hit count once a search lands
-    // (e.g. "See all 1,234 results"); the bare "See all results" label is
+    // (e.g. "See all 1,234 books"); the bare "See results" label is
     // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
     // or fetch error). A search that settled on zero hits instead gets a
     // destination label ("Go to full search") — the button still usefully leads
     // to /search, but "See results" would promise results that aren't there.
-    _seeAllLabel() {
+    // Only the there's-more case has a distinct narrow form; the rest are short
+    // enough to sit beside the fulltext see-all as they are.
+    _seeAllLabels() {
         const n = this._numFound;
-        if (this._hasSearched && n === 0) return this._i18n.seeNone;
-        if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
+        if (this._hasSearched && n === 0) return { wide: this._i18n.seeNone, narrow: this._i18n.seeNone };
+        if (typeof n !== 'number' || n <= 0) return { wide: this._i18n.seeAll, narrow: this._i18n.seeAll };
+        const count = n.toLocaleString();
         // "all" is only meaningful when there are more matches than we render
         // inline. Once every hit is shown, drop "all" (and "all 1" never made
         // sense). A there's-more count is always plural, so seeAllMany suffices.
-        let template;
-        if (n > this._results.length) template = this._i18n.seeAllMany;
-        else if (n === 1) template = this._i18n.seeOne;
-        else template = this._i18n.seeMany;
-        return sprintf(template, n.toLocaleString());
+        if (n > this._results.length) {
+            return {
+                wide: sprintf(this._i18n.seeAllMany, count),
+                narrow: sprintf(this._i18n.seeAllManyNarrow, compactCount(n)),
+            };
+        }
+        const label = sprintf(n === 1 ? this._i18n.seeOne : this._i18n.seeMany, count);
+        return { wide: label, narrow: label };
+    }
+
+    // A footer label in both its forms: CSS shows one and hides the other by
+    // viewport width (.label-wide / .label-narrow). Both are rendered rather
+    // than picked in JS so the swap follows a media query, not a stale match
+    // captured at render time.
+    _responsiveLabel(wide, narrow) {
+        return html`<span class="label-wide">${wide}</span><span class="label-narrow">${narrow}</span>`;
     }
 
     // ── Event handlers ───────────────────────────────────────────────────
@@ -1620,6 +1702,7 @@ export class SearchModal extends LitElement {
         // would clear it, but reopening to a frozen spinner looks broken.
         this._loading = false;
         this._seeAllLoading = false;
+        this._ftSeeAllLoading = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1728,7 +1811,7 @@ export class SearchModal extends LitElement {
         if (!this._shouldAutocomplete()) return '';
         if (this._results.length === 0) {
             if (!this._hasSearched || this._loading) return '';
-            return this._ftHits.length ? this._i18n.noCatalogResults : this._i18n.noResults;
+            return this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
         }
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
@@ -1779,6 +1862,18 @@ export class SearchModal extends LitElement {
         // pressed result sets _navigatingKey before the window navigates.
         this._seeAllLoading = true;
         window.location.assign(url);
+    }
+
+    // The fulltext see-all is a native link (href on the ol-button), so a plain
+    // click navigates the whole window. Flag it so its spinner shows during the
+    // navigation delay; modified clicks (new tab/window) leave this page in
+    // place, so they stay untreated — mirrors _onResultPress.
+    _onFulltextSeeAll(e) {
+        this._track('FulltextSeeAll', 'footer');
+        this._saveCurrentSearch();
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._ftSeeAllLoading = true;
     }
 
     // ── Data layer ───────────────────────────────────────────────────────

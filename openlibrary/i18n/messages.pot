@@ -935,7 +935,7 @@ msgstr ""
 msgid "Authors"
 msgstr ""
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py work_search.html
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py search/search_modal_i18n.html work_search.html
 msgid "Books"
 msgstr ""
 
@@ -5760,17 +5760,22 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See %s result"
+msgid "See %s book"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See %s results"
+msgid "See %s books"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all %s results"
+msgid "See all %s books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "All %s books"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -5796,10 +5801,6 @@ msgstr ""
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
-
-#: search/search_modal_i18n.html
-msgid "Top results"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -5830,7 +5831,12 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "Found in %s books"
+msgid "Search inside %s books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "Search inside (%s)"
 msgstr ""
 
 #: search/search_modal_i18n.html

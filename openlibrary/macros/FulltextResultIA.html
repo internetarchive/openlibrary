@@ -1,4 +1,4 @@
-$def with(query, row, extra=None)
+$def with(query, row, extra_row=None)
 
 $# A Search Inside hit whose scan didn't hydrate to an OL edition (record
 $# missing or lookup failed) renders from its own IA metadata instead of
@@ -24,8 +24,8 @@ $ details_url = "https://archive.org/details/%s?%s" % (row.ocaid, urlencode(dict
         <span class="bookauthor">$_('by %(authors)s', authors=', '.join(row.authors[:3]))</span>
       $if row.year:
         <span class="bookyear">$row.year</span>
-      $if extra:
-        $:extra
     </div>
+    $if extra_row:
+      $:extra_row
   </div>
 </li>

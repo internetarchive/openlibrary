@@ -397,11 +397,40 @@
     max-height: 170px;
   }
 
-  /* /search/inside rows are tall (three quote cards), so a centered cover
-     floats mid-row; pin it to the title instead. */
+  /* Fulltext rows: the quote cards (.serp-extra) sit in a full-width row
+     under the details and CTA columns, with the cover spanning beside it. */
   .list-books--fulltext .searchResultItem .sri__main {
-    align-items: flex-start;
+    display: grid;
+    grid-template-areas:
+      "cover details cta"
+      "cover extra extra";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
   }
+
+  .list-books--fulltext .searchResultItem .bookcover {
+    grid-area: cover;
+  }
+
+  .list-books--fulltext .searchResultItem .details {
+    grid-area: details;
+  }
+
+  .list-books--fulltext .searchResultItem .searchResultItemCTA {
+    grid-area: cta;
+  }
+
+  .list-books--fulltext .searchResultItem .serp-extra {
+    grid-area: extra;
+  }
+}
+
+/* Align the quote cards with the details text; on mobile (stacked flex
+   column, centered) the row still needs its full width. */
+.list-books--fulltext .serp-extra {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-xs) var(--spacing-inset-xs);
 }
 
 /* Normalize cover image height so CTA buttons align across all cards in a row. */

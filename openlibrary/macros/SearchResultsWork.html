@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False)
 
 $code:
   max_rendered_authors = 9
@@ -286,6 +286,11 @@ $code:
         $if rating:
           $:rating
     </div>
+
+    $# Full-width row under the details/CTA columns (the cover spans beside
+    $# it); .list-books--fulltext grids .sri__main to place it.
+    $if extra_row:
+      $:extra_row
   </div>
 
   $if footer:

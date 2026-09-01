@@ -38,9 +38,9 @@ $elif shown:
     <ul class="list-books list-books--fulltext">
       $for row in shown:
         $if row.edition:
-          $:macros.SearchResultsWork(row.edition, cta=False, availability=row.availability, extra=render_snippets(query, row), seq_index=loop.index0, show_title_year=True)
+          $:macros.SearchResultsWork(row.edition, cta=False, availability=row.availability, extra_row=render_snippets(query, row), seq_index=loop.index0, show_title_year=True)
         $else:
-          $:macros.FulltextResultIA(query, row, extra=render_snippets(query, row))
+          $:macros.FulltextResultIA(query, row, extra_row=render_snippets(query, row))
     </ul>
     <div class="fulltext-suggestions__footer">
       <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">

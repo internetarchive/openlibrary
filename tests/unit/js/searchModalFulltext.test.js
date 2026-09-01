@@ -1,5 +1,6 @@
 import {
     creatorsFromMeta,
+    dedupeFulltextHits,
     fulltextHitDisplay,
     isPassageQuery,
     parseSnippet,
@@ -292,12 +293,70 @@ describe('see-all button labels', () => {
     test('the visible label is the short form, total formatted for the locale', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
-        expect(modal._seeAllInsideShortLabel()).toBe('Found in 134,731 books');
+        expect(modal._seeAllInsideShortLabel()).toBe('Search inside 134,731 books');
+    });
+
+    test('the narrow form drops the unit and rounds the count', () => {
+        const modal = new SearchModal();
+        modal._ftTotal = 134731;
+        expect(modal._seeAllInsideNarrowLabel()).toBe('Search inside (135K)');
     });
 
     test('the accessible name spells out the full sentence', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
         expect(modal._seeAllInsideLabel()).toBe('See all matches found in 134,731 books');
+    });
+});
+
+describe('catalog see-all labels', () => {
+    // The there's-more case is the only one with a distinct narrow form: it is
+    // also the only one that shares the footer with the fulltext see-all.
+    test('offers a shorter form when there are more results than rows shown', () => {
+        const modal = new SearchModal();
+        modal._hasSearched = true;
+        modal._numFound = 1204;
+        modal._results = new Array(7).fill({});
+        expect(modal._seeAllLabels()).toEqual({ wide: 'See all 1,204 books', narrow: 'All 1.2K books' });
+    });
+
+    test('reuses one label for the all-shown cases', () => {
+        const modal = new SearchModal();
+        modal._hasSearched = true;
+        modal._numFound = 1;
+        modal._results = [{}];
+        expect(modal._seeAllLabels()).toEqual({ wide: 'See 1 book', narrow: 'See 1 book' });
+    });
+
+    test('sends the patron to full search when nothing matched', () => {
+        const modal = new SearchModal();
+        modal._hasSearched = true;
+        modal._numFound = 0;
+        modal._results = [];
+        expect(modal._seeAllLabels()).toEqual({ wide: 'Go to full search', narrow: 'Go to full search' });
+    });
+});
+
+describe('dedupeFulltextHits', () => {
+    const hits = [{ ia: 'scanA' }, { ia: 'scanB' }, { ia: 'scanC' }];
+
+    test('drops a hit whose scan is in a listed work\'s ia', () => {
+        const docs = [{ ia: ['scanB', 'other'] }];
+        expect(dedupeFulltextHits(hits, docs).map((h) => h.ia)).toEqual(['scanA', 'scanC']);
+    });
+
+    test('drops a hit listed only via a promoted edition', () => {
+        const docs = [{ editions: { docs: [{ ia: ['scanC'] }] } }];
+        expect(dedupeFulltextHits(hits, docs).map((h) => h.ia)).toEqual(['scanA', 'scanB']);
+    });
+
+    test('keeps every hit when nothing overlaps, order intact', () => {
+        const docs = [{ ia: ['unrelated'] }, { key: '/works/OL1W' }];
+        expect(dedupeFulltextHits(hits, docs)).toEqual(hits);
+    });
+
+    test('no docs — the rescue path — filters nothing', () => {
+        expect(dedupeFulltextHits(hits, [])).toEqual(hits);
+        expect(dedupeFulltextHits(hits, undefined)).toEqual(hits);
     });
 });

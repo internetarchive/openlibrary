@@ -1,6 +1,6 @@
 /* Search Inside quote cards (/search/inside, macros/FulltextSnippet.html).
    Each matched passage is its own small card — the whole card is the link into
-   BookReader — laid out three-up inside the result's details column. */
+   BookReader — laid out two-up in a full-width row below the details/CTA. */
 .fsi-quotes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -13,7 +13,7 @@
 /* --width-breakpoint-tablet: 768px */
 @media (min-width: 768px) {
   .fsi-quotes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -26,7 +26,7 @@
   border-radius: var(--border-radius-card);
   background-color: var(--color-surface);
   font-family: var(--font-family-quote);
-  font-size: var(--font-size-body-small);
+  font-size: var(--font-size-body-medium);
   line-height: var(--line-height-relaxed);
   color: var(--color-text);
   text-decoration: none;

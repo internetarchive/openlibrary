@@ -9,9 +9,9 @@ $def render_snippets(query, row):
   <ul class="list-books list-books--fulltext">
     $for row in rows:
       $if row.edition:
-        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
+        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
       $else:
-        $:macros.FulltextResultIA(query, row, extra=render_snippets(query, row))
+        $:macros.FulltextResultIA(query, row, extra_row=render_snippets(query, row))
   </ul>
   $:macros.OlPagination(page, ceil(total / results_per_page))
 </div>

@@ -9,7 +9,7 @@ $# phrase_query keeps BookReader searching for the passage, not each word.
 $ href = "%s/details/%s?%s" % (ia_base_url, row.ocaid, urlencode(dict(ref='ol', q=phrase_query(q))))
 
 <ul class="fsi-quotes">
-  $for snippet in row.snippets[:3]:
+  $for snippet in row.snippets[:2]:
     <li>
       $# snippet.html escapes each segment and marks the matches; see Snippet in
       $# core/fulltext.py. Never interpolate snippet text directly.

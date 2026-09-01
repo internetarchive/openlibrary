@@ -6,7 +6,9 @@
  * *whether* to call the backend lives here rather than scattered across the
  * modal's input handlers. The modal tells this controller what happened
  * (`queryChanged`, `solrSettled`, `solrFailed`) and gets `{hits, total}` back
- * through `onChange`; it never decides for itself when to fetch.
+ * through `onChange`; it never decides for itself when to fetch. The published
+ * hits are an overfetched pool: the modal dedupes them against its catalog
+ * rows and trims to FULLTEXT_LIMIT at render time.
  *
  * The gating heuristics themselves (isPassageQuery, solrLooksWeak) are pure
  * functions in ./fulltext.js.
@@ -20,9 +22,11 @@ import { fulltextHitDisplay, isPassageQuery, solrLooksWeak } from './fulltext.js
  *  pointing at /search/inside, not a result list. */
 export const FULLTEXT_LIMIT = 3;
 
-/** The server drops unreadable hits from the page it fetched, so the readable
- *  filter needs headroom or the band thins out to a row or two. */
-const READABLE_OVERFETCH = 3;
+/** Hits fetched beyond FULLTEXT_LIMIT. Two consumers need the headroom: the
+ *  server drops unreadable hits when the readable filter is on, and the modal
+ *  drops hits that duplicate a catalog row (dedupeFulltextHits) — either way
+ *  the band would thin out to a row or two without spares. */
+const OVERFETCH = 3;
 
 /** Passage-shaped queries fetch on their own timer — slower than the metadata
  *  debounce, because this is a secondary surface on an external backend. */
@@ -124,7 +128,7 @@ export class FulltextBand {
         const filters = this._getFilters();
         const params = fulltextSearchParams(trimmed, filters);
         params.set('facets', 'false');
-        params.set('limit', String(filters.readable ? FULLTEXT_LIMIT * READABLE_OVERFETCH : FULLTEXT_LIMIT));
+        params.set('limit', String(FULLTEXT_LIMIT * OVERFETCH));
 
         const url = `/search/inside.json?${params.toString()}`;
         this._fetchKey = url;
@@ -135,7 +139,7 @@ export class FulltextBand {
                 if (this._fetchKey !== url) return;
                 const hits = data?.hits?.hits || [];
                 this._set(
-                    hits.map(fulltextHitDisplay).filter(Boolean).slice(0, FULLTEXT_LIMIT),
+                    hits.map(fulltextHitDisplay).filter(Boolean),
                     typeof data?.hits?.total === 'number' ? data.hits.total : null,
                 );
             })

@@ -73,14 +73,21 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // the modal renders inline — when every hit is already shown there's nothing
     // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
     // the there's-more case (always plural, since a lone result is always shown).
+    // The unit is books: numFound is the catalog (work) count, and the author
+    // rows are derived from those same docs rather than counted alongside them.
     seeAll: 'See results',
     // Shown once a search has settled on zero hits — the button still leads to
     // /search (facets, advanced search, Search Inside rescue band), so it gets
     // a destination label instead of promising results that aren't there.
     seeNone: 'Go to full search',
-    seeOne: 'See %s result',
-    seeMany: 'See %s results',
-    seeAllMany: 'See all %s results',
+    seeOne: 'See %s book',
+    seeMany: 'See %s books',
+    seeAllMany: 'See all %s books',
+    // Narrow-viewport form of seeAllMany: the footer holds two buttons there and
+    // the wide label crowds the fulltext one. Only the there's-more case needs a
+    // short form — the others already fit. The wide form stays the button's
+    // accessible name at both widths (see _renderSeeAll).
+    seeAllManyNarrow: 'All %s books',
     clearAll: 'Clear all',
     filtersAria: 'Search filters',
     availabilityLabel: 'Availability',
@@ -99,7 +106,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
     resultsAnnounce: 'Showing %s of %s results',
-    topResults: 'Top results',
+    topResults: 'Books',
     untitled: 'Untitled',
     authorLabel: 'Author',
     // Result-row access badge, shown for any readable book (public-domain or
@@ -112,12 +119,14 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     // "Found inside books" band: %s = the number of books with matches (not
-    // match occurrences), formatted client-side. seeAllInsideShort is the
-    // footer see-all button's visible text; seeAllInside its accessible name.
-    // Plural-only like seeAllMany: the button renders only when the total
-    // exceeds the >=1 hits shown inline, so the count is always >= 2.
+    // match occurrences), formatted client-side. seeAllInsideShort is the footer
+    // see-all button's visible text and seeAllInsideNarrow its narrow-viewport
+    // form; seeAllInside is the accessible name at both widths. Plural-only like
+    // seeAllMany: the button renders only when the total exceeds the >=1 hits
+    // shown inline, so the count is always >= 2.
     foundInside: 'Found inside books',
-    seeAllInsideShort: 'Found in %s books',
+    seeAllInsideShort: 'Search inside %s books',
+    seeAllInsideNarrow: 'Search inside (%s)',
     seeAllInside: 'See all matches found in %s books',
 };
 
