@@ -80,22 +80,10 @@ export function decodeAndParseJSON(str) {
 }
 
 /**
- * Return the same-origin JSON endpoint for the current deployment.
- *
- * The testing site exposes FastAPI behind /_fast; local development proxies
- * the unprefixed path through web.py to the FastAPI container.
- */
-export function testingStatusUrl(location) {
-    return location.hostname === 'testing.openlibrary.org'
-        ? '/_fast/status/testing.json'
-        : '/status/testing.json';
-}
-
-/**
  * Fetch the testing-environment state.
  */
-export async function getTestingStatus(location = window.location) {
-    const response = await fetch(testingStatusUrl(location), {
+export async function getTestingStatus() {
+    const response = await fetch('/status/testing.json', {
         headers: { Accept: 'application/json' },
         credentials: 'same-origin'
     });
