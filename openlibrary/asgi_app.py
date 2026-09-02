@@ -16,7 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
-from openlibrary.core.env import get_deployment_name, get_ol_env
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
@@ -269,19 +269,24 @@ def create_app() -> FastAPI | None:
 
     _include_routers(app)
 
-    # FastAPI is the front door for local dev and testing; proxy the rest to
-    # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
-    # local dev, serve only the real testing host.
-    if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
+    # FastAPI is the front door everywhere; proxy anything it doesn't
+    # handle to web.py. Outside local dev, only serve the real public hosts
+    # (plus TestClient's default host, so tests exercise real routing).
+    KNOWN_HOSTS = {
+        "testing.openlibrary.org",
+        "openlibrary.org",
+        "www.openlibrary.org",
+        "testserver",
+    }
 
-        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
-        async def fallback(request: Request, path: str) -> Response:
-            host = request.headers.get("host", "").split(":")[0]
-            if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
-                raise HTTPException(status_code=404)
-            if request.headers.get("X-Proxied-By") == "FastAPI":
-                raise HTTPException(status_code=404)
-            return await proxy.proxy_to_webpy(request)
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+    async def fallback(request: Request, path: str) -> Response:
+        host = request.headers.get("host", "").split(":")[0]
+        if not get_ol_env().LOCAL_DEV and host not in KNOWN_HOSTS:
+            raise HTTPException(status_code=404)
+        if request.headers.get("X-Proxied-By") == "FastAPI":
+            raise HTTPException(status_code=404)
+        return await proxy.proxy_to_webpy(request)
 
     return app
 
