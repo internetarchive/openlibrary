@@ -5,8 +5,8 @@ import web
 from bs4 import BeautifulSoup
 
 from openlibrary.core.admin import Stats
+from openlibrary.core.carousels import format_book_data
 from openlibrary.mocks.mock_infobase import MockSite
-from openlibrary.plugins.openlibrary import home
 
 
 class MockDoc(dict):
@@ -76,7 +76,7 @@ class TestHomeTemplates:
         html = str(render_template("home/stats"))
         assert html == ""
 
-    def test_home_template(self, render_template, mock_site, monkeypatch):
+    def test_home_template(self, render_template, monkeypatch, mock_site):
         self.setup_monkeypatch(monkeypatch)
         docs = [
             MockDoc(
@@ -112,25 +112,37 @@ class TestHomeTemplates:
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
 
-        def spoofed_generic_carousel(*args, **kwargs):
-            return [
-                {
-                    "work": None,
-                    "key": "/books/OL1M",
-                    "url": "/books/OL1M",
-                    "title": "The Great Book",
-                    "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-                    "read_url": "http://archive.org/stream/foo",
-                    "borrow_url": "/books/OL1M/foo/borrow",
-                    "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-                    "cover_url": "",
-                }
-            ]
+        carousel_data = {
+            "staff_picks": {
+                "books": [],
+                "url": "/search?q=staff_picks",
+                "load_more": {
+                    "queryType": "BROWSE",
+                    "q": "test_query",
+                    "subject": "test_subject",
+                    "sorts": "test_sort",
+                    "mode": "page",
+                    "limit": 18,
+                },
+            },
+            "recently_returned": {
+                "books": [],
+                "url": "/search?q=recently_returned",
+                "load_more": {
+                    "queryType": "BROWSE",
+                    "q": "test_query",
+                    "subject": "",
+                    "sorts": "test_sort",
+                    "mode": "page",
+                    "limit": 18,
+                },
+            },
+        }
 
         macros = web.template.Template.globals.setdefault("macros", web.storage())
         macros.BookPreview = lambda *args, **kwargs: '<div id="bookPreview"></div>'
         macros.BookPreviewFloater = lambda *args, **kwargs: '<div id="bookPreview"></div>'
-        html = str(render_template("home/index", stats=stats, test=True, featured_subjects=[]))
+        html = str(render_template("home/index", stats=stats, test=True, featured_subjects=[], carousel_data=carousel_data))
 
         assert "Recently Returned" in html
         assert "bookPreview" in html
@@ -154,7 +166,7 @@ class Test_format_book_data:
         )
 
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        assert home.format_book_data(book)["authors"] == []
+        assert format_book_data(book)["authors"] == []
 
         # when there is no work and authors, the authors field must be picked from the book
         book = mock_site.quicksave(
@@ -163,7 +175,7 @@ class Test_format_book_data:
             title="Foo",
             authors=[{"key": "/authors/OL1A"}],
         )
-        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL1A", "name": "A1"}]
+        assert format_book_data(book)["authors"] == [{"key": "/authors/OL1A", "name": "A1"}]
 
         # when there is work, the authors field must be picked from the work
         book = mock_site.quicksave(
@@ -173,4 +185,4 @@ class Test_format_book_data:
             authors=[{"key": "/authors/OL1A"}],
             works=[{"key": "/works/OL1W"}],
         )
-        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL2A", "name": "A2"}]
+        assert format_book_data(book)["authors"] == [{"key": "/authors/OL2A", "name": "A2"}]

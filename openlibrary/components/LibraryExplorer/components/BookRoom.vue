@@ -176,6 +176,7 @@ export default {
             type: String
         },
         features: {
+            type: Object,
             default: () => ({
                 book3d: true,
                 cover: 'image',

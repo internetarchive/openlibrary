@@ -1,16 +1,4 @@
 /* Styling overrides for author and orphaned edition pages */
-.old-style-lists h3 {
-  font-size: 0.75em;
-  text-align: left;
-  padding: var(--spacing-inset-sm);
-  min-width: 150px;
-  font-weight: bold;
-}
-
-.old-style-lists h3:hover {
-  text-decoration: underline;
-}
-
 /* Hide "My Reading Lists" heading */
 .old-style-lists .reading-list-title {
   display: none;
