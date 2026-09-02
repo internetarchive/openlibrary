@@ -16,29 +16,29 @@ $var title: $_('Editing %(name)s', name=page.displayname)
     <form method="POST" class="olform">
         <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
 
-        <div class="formElement avatar">
+        <div class="formElement avatar" data-i18n="$:render_template('type/user/avatar_i18n')">
             <div class="label">
                 <label for="avatar-file-input">$_("Profile Picture")</label>
             </div>
-            <div class="input" style="display: flex; align-items: center; gap: 20px;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; background-color: #f5f5f5; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <div class="input avatar-container">
+                <div class="avatar-preview-container">
                     <img id="avatar-preview-img"
                          src="$(page.key)/avatar"
+                         data-base-src="$(page.key)/avatar"
                          alt=""
                          width="80"
                          height="80"
-                         style="width: 100%; height: 100%; object-fit: cover; display: block;"
                          onerror="this.onerror=null; this.src='https://archive.org/images/person2.png';" />
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="avatar-controls">
                     <div>
-                        <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="font-size: 0.9em;" />
+                        <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp,image/gif" />
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <button type="button" id="avatar-upload-btn" style="display: inline-block; width: auto; padding: 5px 12px; font-size: 13px; font-weight: 600; color: #333; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">$_("Upload Photo")</button>
-                        <button type="button" id="avatar-remove-btn" style="display: inline-block; width: auto; padding: 5px 12px; font-size: 13px; font-weight: 600; color: #a00; background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">$_("Remove Photo")</button>
+                    <div class="avatar-button-group">
+                        <button type="button" id="avatar-upload-btn" class="avatar-btn avatar-btn--upload">$_("Upload Photo")</button>
+                        <button type="button" id="avatar-remove-btn" class="avatar-btn avatar-btn--remove">$_("Remove Photo")</button>
                     </div>
-                    <span id="avatar-upload-status" style="font-size: 0.85em; font-weight: 500;"></span>
+                    <span id="avatar-upload-status" class="avatar-upload-status" role="status" aria-live="polite"></span>
                 </div>
             </div>
         </div>
@@ -71,101 +71,3 @@ $var title: $_('Editing %(name)s', name=page.displayname)
         $:macros.EditButtons(comment=page.comment_)
     </form>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('avatar-upload-btn');
-        var fileInput = document.getElementById('avatar-file-input');
-        var statusSpan = document.getElementById('avatar-upload-status');
-        var img = document.getElementById('avatar-preview-img');
-
-        if (fileInput && img) {
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files && fileInput.files[0]) {
-                    img.src = URL.createObjectURL(fileInput.files[0]);
-                }
-            });
-        }
-
-        if (btn && fileInput) {
-            btn.addEventListener('click', function() {
-                if (!fileInput.files || !fileInput.files[0]) {
-                    statusSpan.textContent = 'Please choose an image file first.';
-                    statusSpan.style.color = 'red';
-                    return;
-                }
-
-                var formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-
-                statusSpan.textContent = 'Uploading...';
-                statusSpan.style.color = '#333';
-
-                fetch('/account/avatar', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(function(res) {
-                    if (!res.ok) {
-                        return res.json().then(function(data) {
-                            var msg = 'Upload failed';
-                            if (typeof data.detail === 'string') {
-                                msg = data.detail;
-                            } else if (Array.isArray(data.detail)) {
-                                msg = data.detail.map(function(e) { return (e.loc ? e.loc.join('.') : '') + ': ' + e.msg; }).join('; ');
-                            }
-                            throw new Error(msg);
-                        });
-                    }
-                    return res.json();
-                })
-                .then(function(data) {
-                    statusSpan.textContent = 'Uploaded successfully!';
-                    statusSpan.style.color = 'green';
-                    if (fileInput.files && fileInput.files[0] && img) {
-                        img.src = URL.createObjectURL(fileInput.files[0]);
-                    } else if (data.avatar_url && img) {
-                        img.src = data.avatar_url;
-                    }
-                })
-                .catch(function(err) {
-                    statusSpan.textContent = err.message || 'Failed to upload photo.';
-                    statusSpan.style.color = 'red';
-                });
-            });
-        }
-
-        var removeBtn = document.getElementById('avatar-remove-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function() {
-                statusSpan.textContent = 'Removing...';
-                statusSpan.style.color = '#333';
-
-                fetch('/account/avatar', {
-                    method: 'DELETE'
-                })
-                .then(function(res) {
-                    if (!res.ok) {
-                        return res.json().then(function(data) {
-                            var msg = (data && data.detail) ? data.detail : 'Failed to remove photo.';
-                            throw new Error(msg);
-                        });
-                    }
-                    return res.json();
-                })
-                .then(function(data) {
-                    statusSpan.textContent = 'Photo removed successfully!';
-                    statusSpan.style.color = 'green';
-                    if (fileInput) fileInput.value = '';
-                    if (img) {
-                        img.src = '$(page.key)/avatar?t=' + Date.now();
-                    }
-                })
-                .catch(function(err) {
-                    statusSpan.textContent = err.message || 'Failed to remove photo.';
-                    statusSpan.style.color = 'red';
-                });
-            });
-        }
-    });
-</script>
