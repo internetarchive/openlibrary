@@ -619,8 +619,8 @@ class opds_home(delegate.page):
 
         def get_cached_homepage():
             from openlibrary.plugins.openlibrary.code import is_bot
-            from openlibrary.plugins.openlibrary.home import caching_prethread
             from openlibrary.utils import dateutil
+            from openlibrary.utils.request_context import caching_prethread
 
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang

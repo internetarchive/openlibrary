@@ -9,23 +9,11 @@
 
 import {
     FACET_OPEN_BUDGET_MS,
-    facetsUrl,
     fetchFacetCounts,
     mergeFacetCounts,
     openWhenCountsReady,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/searchFacets.js';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// facetsUrl
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe('facetsUrl', () => {
-    test('uses the FastAPI proxy only on the testing host', () => {
-        expect(facetsUrl({ hostname: 'localhost' })).toBe('/search/facets.json');
-        expect(facetsUrl({ hostname: 'testing.openlibrary.org' })).toBe('/_fast/search/facets.json');
-        expect(facetsUrl({ hostname: 'openlibrary.org' })).toBe('/search/facets.json');
-    });
-});
 // ─────────────────────────────────────────────────────────────────────────────
 // fetchFacetCounts
 // ─────────────────────────────────────────────────────────────────────────────

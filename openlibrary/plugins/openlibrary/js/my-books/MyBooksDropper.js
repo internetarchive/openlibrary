@@ -180,6 +180,16 @@ export class MyBooksDropper extends Dropper {
     }
 
     /**
+     * Returns the ID of the shelf that this dropper's book is currently on,
+     * or `null` if the book is unshelved.
+     *
+     * @returns {ReadingLogShelf|null}
+     */
+    getActiveShelfId() {
+        return this.readingLogForms.getActiveShelfId();
+    }
+
+    /**
      * Updates this dropper's primary button's state and display to show that a book is active on the
      * given shelf.
      *

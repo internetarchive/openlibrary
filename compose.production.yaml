@@ -15,6 +15,7 @@ services:
       - ${WEB_PORT:-8080}:8080
     environment:
       - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
@@ -33,6 +34,7 @@ services:
       - ${FAST_WEB_PORT:-18080}:8080
     environment:
       - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem

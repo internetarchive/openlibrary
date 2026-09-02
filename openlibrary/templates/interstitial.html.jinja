@@ -1,0 +1,66 @@
+{# Interstitial redirect page — shown when borrowing from a third-party Trusted Book Provider.
+   Rendered by handle_borrow_async() in openlibrary/plugins/upstream/borrow.py.
+   Arguments:
+     url           (str)      — the destination URL
+     wait          (int)      — seconds before auto-redirect (default 5)
+     fastapi       (bool)     — True when rendered by FastAPI (adds inline style/script)
+     book_provider (Markup)   — pre-escaped "<strong>Provider Name</strong>" HTML fragment
+
+   The doctype is required for the standalone FastAPI page (standards mode);
+   when this fragment is embedded in the web.py site layout, browsers ignore
+   a stray doctype mid-document, so it is harmless there.
+#}
+<!DOCTYPE html>
+<div id="contentBody"
+     class="interstitial"
+     data-url="{{ url }}"
+     data-wait="{{ wait }}">
+    <h1>{{ _("You are being redirected to your book") }}</h1>
+    <p id="countdown">{{ _("This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider", book_provider=book_provider) | safe }}</p>
+    <p>{{ _("In %(time)s seconds, you will be automatically redirected to: %(url)s", time=('<span id=\"timer\">' ~ wait ~ '</span>') | safe, url=('<a href=\"' ~ url ~ '\">' ~ url ~ '</a>') | safe) | safe }}</p>
+    <p>
+        <a href="#" class="close-window">{{ _("Cancel") }}</a>
+        <a href="{{ url }}">{{ _("Continue without waiting") }}</a>
+    </p>
+</div>
+{% if fastapi %}
+    <style>
+  #contentBody.interstitial {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    color: hsl(41, 14%, 21%);
+    background: hsl(48, 32%, 94%);
+    max-width: 40em;
+    margin: 4em auto;
+    padding: 2em;
+    border-radius: 8px;
+    text-align: center;
+  }
+  #contentBody.interstitial a {
+    color: hsl(210, 84%, 31%);
+  }
+    </style>
+    <script>
+  (() => {
+      const interstitial = document.querySelector('.interstitial');
+      if (!interstitial) return;
+
+      const url = interstitial.dataset.url;
+      let seconds = Number(interstitial.dataset.wait) || 0;
+      const timerElement = interstitial.querySelector('#timer');
+
+      const countdown = setInterval(() => {
+          seconds--;
+          if (timerElement) {
+              timerElement.textContent = seconds;
+          }
+          if (seconds <= 0) {
+              clearInterval(countdown);
+              window.location.assign(url);
+          }
+      }, 1000);
+
+      // Cancel button handler
+      interstitial.querySelector('.close-window')?.addEventListener('click', () => window.close());
+  })();
+    </script>
+{% endif %}
