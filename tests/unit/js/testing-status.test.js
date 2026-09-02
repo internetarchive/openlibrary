@@ -85,6 +85,15 @@ describe('Testing Environment utils', () => {
         expect(sprintf('%s selected', 2)).toBe('2 selected');
     });
 
+    test('deploy-status strings carry the deployer username variant', () => {
+        expect(sprintf(DEFAULT_STRINGS.deployingStartedBy, '2 minutes ago', 'openlibrary'))
+            .toBe('Deploying, started 2 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.deploySucceededBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Deploy succeeded 5 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.lastDeployBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Last deploy 5 minutes ago by openlibrary');
+    });
+
     test('detects the favicon environment', () => {
         expect(faviconEnv('/static/images/openlibrary-testing-192x192.png')).toBe('testing');
         expect(faviconEnv('/static/images/openlibrary-development-128x128.png')).toBe('development');

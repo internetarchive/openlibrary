@@ -62,6 +62,8 @@ const deployFinishedAt = computed(() => (props.payload && props.payload.deploy_f
 
 const deployStage = computed(() => (props.payload && props.payload.deploy_stage) || '');
 
+const deployer = computed(() => (props.payload && props.payload.deployed_by) || '');
+
 function text(key, ...args) {
     return sprintf(props.strings[key] || key, ...args);
 }
@@ -203,7 +205,9 @@ function prUrl(pr) {
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deploySucceeded', timeAgo(deployFinishedAt, now)) }}
+        />{{ deployer
+          ? text('deploySucceededBy', timeAgo(deployFinishedAt, now), deployer)
+          : text('deploySucceeded', timeAgo(deployFinishedAt, now)) }}
       </span>
       <span
         v-else-if="deployResult === 'FAILURE' || deployResult === 'ABORTED'"
@@ -213,7 +217,9 @@ function prUrl(pr) {
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('deployFailed', timeAgo(deployFinishedAt, now)) }}
+        />{{ deployer
+          ? text('deployFailedBy', timeAgo(deployFinishedAt, now), deployer)
+          : text('deployFailed', timeAgo(deployFinishedAt, now)) }}
       </span>
       <span
         v-else-if="payload.deploying"
@@ -224,8 +230,12 @@ function prUrl(pr) {
           class="testing-env__dot"
           aria-hidden="true"
         />{{ deployStage
-          ? text('deployingStage', timeAgo(payload.deploy_started_at, now), deployStage)
-          : text('deployingStarted', timeAgo(payload.deploy_started_at, now)) }}
+          ? (deployer
+            ? text('deployingStageBy', timeAgo(payload.deploy_started_at, now), deployStage, deployer)
+            : text('deployingStage', timeAgo(payload.deploy_started_at, now), deployStage))
+          : (deployer
+            ? text('deployingStartedBy', timeAgo(payload.deploy_started_at, now), deployer)
+            : text('deployingStarted', timeAgo(payload.deploy_started_at, now))) }}
       </span>
       <span
         v-else-if="payload.last_deploy_at"
@@ -235,7 +245,9 @@ function prUrl(pr) {
         <span
           class="testing-env__dot"
           aria-hidden="true"
-        />{{ text('lastDeploy', timeAgo(payload.last_deploy_at, now)) }}
+        />{{ deployer
+          ? text('lastDeployBy', timeAgo(payload.last_deploy_at, now), deployer)
+          : text('lastDeploy', timeAgo(payload.last_deploy_at, now)) }}
       </span>
       <span
         v-else
