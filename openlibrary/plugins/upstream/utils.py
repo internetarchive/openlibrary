@@ -247,7 +247,7 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.home import caching_prethread
+    from openlibrary.utils.request_context import caching_prethread
 
     def get_key_prefix():
         req_context = request_context.req_context.get()
