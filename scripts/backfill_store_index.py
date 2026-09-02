@@ -26,9 +26,9 @@ def find_upper_bound():
     oldb = db.get_db()
 
     query = """
-        SELECT MIN(new_id) as min from store_index
+        SELECT MAX(id) as ubound from store_index WHERE new_id IS NULL
     """
-    return next(iter(oldb.query(query)))["min"]
+    return next(iter(oldb.query(query)))["ubound"]
 
 
 def backfill_rows(lower_bound, upper_bound):
