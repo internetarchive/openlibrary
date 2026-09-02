@@ -58,10 +58,15 @@ export class FulltextBand {
      * @param {object} options
      * @param {() => {readable: boolean, languages: string[]}} options.getFilters
      * @param {(state: {hits: object[], total: number|null}) => void} options.onChange
+     * @param {(status: 'resolved'|'failed') => void} [options.onAttempt] - called
+     *   once per fetch that wasn't superseded. Lets the modal count how often the
+     *   band was *asked* for, not just how often it had something to show — the
+     *   two differ, and only the pair gives the band's own hit rate.
      */
-    constructor({ getFilters, onChange }) {
+    constructor({ getFilters, onChange, onAttempt }) {
         this._getFilters = getFilters;
         this._onChange = onChange;
+        this._onAttempt = onAttempt || (() => {});
         this._fetchKey = null;
         this.hits = [];
         this.total = null;
@@ -142,12 +147,14 @@ export class FulltextBand {
                     hits.map(fulltextHitDisplay).filter(Boolean),
                     typeof data?.hits?.total === 'number' ? data.hits.total : null,
                 );
+                this._onAttempt('resolved');
             })
             // Silent: the band simply doesn't render. It's a secondary
             // discovery surface, not the primary result list.
             .catch(() => {
                 if (this._fetchKey !== url) return;
                 this.clear();
+                this._onAttempt('failed');
             });
     }
 }

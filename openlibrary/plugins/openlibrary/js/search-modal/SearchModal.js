@@ -32,7 +32,7 @@ import {
 import { fetchLanguageOptions } from './languages.js';
 import { fetchFacetCounts, mergeFacetCounts, openWhenCountsReady } from './searchFacets.js';
 import { deriveAuthors } from './authorSuggestion.js';
-import { dedupeFulltextHits, parseSnippet, phraseQuery } from './fulltext.js';
+import { dedupeFulltextHits, isPassageQuery, parseSnippet, phraseQuery } from './fulltext.js';
 import { FulltextBand, FULLTEXT_LIMIT, fulltextSearchParams } from './fulltextBand.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -82,6 +82,10 @@ const RESULTS_LIMIT     = 10;
 // autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
 const MIN_QUERY_LENGTH  = 3;
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
+// How long a query must stand unchanged before its outcome is counted. Long
+// enough that partial strings typed on the way to it don't each register as a
+// search of their own.
+const OUTCOME_DEBOUNCE_MS = 1200;
 
 // The bare common-word "the" matches almost everything and isn't worth a Solr
 // round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
@@ -851,6 +855,11 @@ export class SearchModal extends LitElement {
         // Same, for the fulltext band's "Search inside N books" footer button.
         this._ftSeeAllLoading = false;
         this._hasSearched  = false;
+        // Whether the last search ended in a transport/HTTP error rather than
+        // an honest empty result. Both leave _results empty, but only one is a
+        // catalog gap — the fulltext see-all label reports them apart. Not
+        // reactive: nothing renders from it, it's read at click time.
+        this._searchFailed = false;
         this._langsLoading = false;
         this._navigatingKey = null;
 
@@ -910,6 +919,7 @@ export class SearchModal extends LitElement {
                 this._ftHits  = hits;
                 this._ftTotal = total;
             },
+            onAttempt: (status) => this._scheduleBandOutcome(status),
         });
         this._allLangsLoaded = false;
         // Search context the currently-merged language counts describe, and the
@@ -917,11 +927,17 @@ export class SearchModal extends LitElement {
         // are already right for this query, so re-opening the dropper is free.
         this._facetKey       = null;
         this._activeFacetKey = null;
-        // Search-outcome analytics (NoResults / ResultsShown): keys already
-        // counted this modal session, so re-settling the same query — a filter
-        // toggled off and back, an edit-and-undo — never re-fires. Reset per open.
+        // Search-outcome analytics (ResultsShown / NoResults / SearchFailed /
+        // FulltextBand): keys already counted this modal session, so re-settling
+        // the same query — a filter toggled off and back, an edit-and-undo —
+        // never re-fires. Reset per open. One pending entry *per action*: the
+        // band resolves on its own schedule, and a shared handle would let its
+        // outcome cancel the catalog outcome it's supposed to sit beside —
+        // silently deleting the denominator of the very ratio these measure.
+        // Each entry keeps its own `fire` so an exit can settle it early
+        // (see _flushOutcomes) instead of losing it to the page unload.
         this._outcomeTracked = new Set();
-        this._outcomeTimer   = null;
+        this._outcomeTimers  = new Map();
     }
 
     connectedCallback() {
@@ -939,7 +955,7 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
-        clearTimeout(this._outcomeTimer);
+        this._clearOutcomeTimers();
         super.disconnectedCallback();
     }
 
@@ -998,7 +1014,7 @@ export class SearchModal extends LitElement {
     // (false); `clearReadableCount` is false in the main fetch's error path,
     // where the separate readable-count request owns that field.
     _resetResults({ hasSearched, clearReadableCount = true } = {}) {
-        clearTimeout(this._outcomeTimer);
+        this._clearOutcomeTimers();
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
@@ -1359,7 +1375,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ft-result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => { this._track('FulltextClick', `rank:${index + 1}`); this._onResultPress(e, href); }}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'FulltextClick', label: `rank:${index + 1}` })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${hit.coverUrl || COVER_PLACEHOLDER} srcset=${hit.coverSrcset || nothing} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1447,7 +1463,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { type: 'author', rank: index + 1 })}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `author:${index + 1}` })}
                 >
                     <span class="result__avatar">
                         ${SearchModal._personIcon}
@@ -1604,7 +1620,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href, { type: display === edition ? 'edition' : 'work', rank: index + 1 })}
+                    @click=${(e) => this._onResultPress(e, href, { event: 'ResultClick', label: `${display === edition ? 'edition' : 'work'}:${index + 1}` })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1680,31 +1696,92 @@ export class SearchModal extends LitElement {
         trackEvent('SearchModal', action, label);
     }
 
-    // Fire a search-outcome event — `ResultsShown` or `NoResults` — only for a
-    // query the patron has settled on. Deferring behind a short idle window (and
-    // re-checking _activeFetchKey when it fires) drops the transient states a
-    // query passes through while being typed: each keystroke starts a fresh fetch
-    // that supersedes this key, so only the query left standing counts (rather
-    // than every partial string on the way to it). The per-session Set collapses
-    // repeat settles of the same key — a filter toggled off and back, an
-    // edit-and-undo — to one event. Both outcomes carry the same active-filter
-    // *category* label (never the filter values or query text; that catalog-gap
-    // detail belongs in the server search logs) so a genuine catalog gap
-    // (`unfiltered`) reads apart from an over-constrained search — and so the
-    // no-results rate NoResults / (NoResults + ResultsShown) is sliceable by
-    // filter state.
-    _scheduleOutcomeTrack(action, fetchKey) {
-        clearTimeout(this._outcomeTimer);
-        this._outcomeTimer = setTimeout(() => {
+    /** Drop every pending outcome — the query moved on, so it never settled. */
+    _clearOutcomeTimers() {
+        for (const { id } of this._outcomeTimers.values()) clearTimeout(id);
+        this._outcomeTimers.clear();
+    }
+
+    // Settle every pending outcome now, rather than waiting out the idle window.
+    // Called from the modal's exits — a result press, either see-all, closing the
+    // dialog. The window exists to answer "has the patron settled on this query?"
+    // and those actions answer it directly: acting on results is stronger
+    // evidence of a settled query than 1.2s of silence, and waiting for silence
+    // that a page unload will interrupt just loses the event. Without this the
+    // fastest searches — the ones a patron resolves in under a second, which
+    // skew toward good catalog answers — drop out of the denominator entirely
+    // and every rate computed from these events reads wrong.
+    _flushOutcomes() {
+        const pending = [...this._outcomeTimers.values()];
+        this._outcomeTimers.clear();
+        for (const { id, fire } of pending) {
+            clearTimeout(id);
+            fire();
+        }
+    }
+
+    // Which filter categories were active, as the outcome events report it —
+    // never the filter values or the query text; that catalog-gap detail belongs
+    // in the server search logs. It lets a genuine catalog gap (`unfiltered`)
+    // read apart from an over-constrained search.
+    _filterLabel() {
+        const active = [];
+        if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+        if (this._languages.length > 0) active.push('language');
+        return active.length ? active.join('+') : 'unfiltered';
+    }
+
+    // Fire a search-outcome event — `ResultsShown`, `NoResults`, `SearchFailed`
+    // or `FulltextBand` — only for a query the patron has settled on. Deferring
+    // behind a short idle window (and re-checking _activeFetchKey when it fires)
+    // drops the transient states a query passes through while being typed: each
+    // keystroke starts a fresh fetch that supersedes this key, so only the query
+    // left standing counts (rather than every partial string on the way to it).
+    // The per-session Set collapses repeat settles of the same key — a filter
+    // toggled off and back, an edit-and-undo — to one event.
+    //
+    // Every action shares one fetchKey namespace, so the three catalog outcomes
+    // partition the searches this modal settled and FulltextBand counts a subset
+    // of the same denominator:
+    //
+    //   fulltext reach = FulltextBand(shown:*)
+    //                  / (ResultsShown + NoResults + SearchFailed)
+    //
+    // `buildLabel` runs at *fire* time, not schedule time — the catalog and
+    // fulltext fetches race, and some labels can only be read once both have
+    // landed.
+    _scheduleOutcomeTrack(action, fetchKey, buildLabel) {
+        if (!fetchKey) return;
+        const fire = () => {
+            this._outcomeTimers.delete(action);
             if (this._activeFetchKey !== fetchKey) return;   // query moved on
             const key = `${action}:${fetchKey}`;
-            if (this._outcomeTracked.has(key)) return;
+            if (this._outcomeTracked.has(key)) return;       // already counted
             this._outcomeTracked.add(key);
-            const active = [];
-            if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
-            if (this._languages.length > 0) active.push('language');
-            this._track(action, active.length ? active.join('+') : 'unfiltered');
-        }, 1200);
+            this._track(action, buildLabel ? buildLabel() : this._filterLabel());
+        };
+        const pending = this._outcomeTimers.get(action);
+        if (pending) clearTimeout(pending.id);
+        this._outcomeTimers.set(action, { id: setTimeout(fire, OUTCOME_DEBOUNCE_MS), fire });
+    }
+
+    // The band ran for this search. Recorded against the *catalog* fetch key
+    // rather than the band's own URL: fulltextSearchParams collapses
+    // availability to a flag and keeps only the first language, so two distinct
+    // searches can share one band URL — and a reach ratio is only meaningful if
+    // its numerator counts the same unit as its denominator.
+    //
+    // The label is deliberately built at fire time. `shown` has to mean rows the
+    // patron could actually see, which is _visibleFtHits (the fetched pool minus
+    // hits deduped against the catalog rows, trimmed to FULLTEXT_LIMIT) — and
+    // that is only knowable once the racing catalog fetch has landed too. A pool
+    // of nine hits can still render an empty band.
+    _scheduleBandOutcome(status) {
+        this._scheduleOutcomeTrack('FulltextBand', this._activeFetchKey, () => {
+            if (status === 'failed') return 'failed';
+            const shown = this._visibleFtHits().length;
+            return shown ? `shown:${shown}` : 'empty';
+        });
     }
 
     _onDialogOpened() {
@@ -1714,9 +1791,12 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
-        // Drop any pending outcome timer so a search interrupted by closing the
-        // modal doesn't fire a phantom event after the fact.
-        clearTimeout(this._outcomeTimer);
+        // Settle rather than drop: closing on a search that already returned is
+        // an abandonment, and a patron who bails on an empty result the instant
+        // they see it is the clearest NoResults there is. Dropping these would
+        // leave fast abandonment out of the denominator while fast successes
+        // (flushed at the exits above) stayed in, tilting every rate.
+        this._flushOutcomes();
         // Drop any in-flight spinner so a search interrupted by closing the
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
@@ -1731,13 +1811,21 @@ export class SearchModal extends LitElement {
     // gap. Modified clicks (open in new tab/window) don't navigate this page —
     // leave them untreated.
     _onResultPress(e, key, meta) {
-        if (e.defaultPrevented || e.button !== 0) return;
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (e.defaultPrevented) return;
+        // Settle the search's own outcome before the click event, so a search
+        // resolved faster than the idle window still lands in the denominator
+        // the click will be measured against.
+        this._flushOutcomes();
         // Track which row was chosen by type + 1-based rank (e.g. "work:3",
-        // "author:1") — never the title. New-tab/modified clicks return above,
-        // so this counts the in-window navigations the typeahead drove.
-        if (meta) this._track('ResultClick', `${meta.type}:${meta.rank}`);
+        // "author:1", "rank:2") — never the title. A modified click (new
+        // tab/window) is still the patron picking that row, so it counts here
+        // and saves the query, exactly like the see-all buttons.
+        if (meta) this._track(meta.event, meta.label);
         this._saveCurrentSearch();
+        // Only an unmodified primary click navigates *this* window, so the
+        // loading treatment stops here.
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         this._navigatingKey = key;
     }
 
@@ -1882,12 +1970,40 @@ export class SearchModal extends LitElement {
         // Distinguish a fall-through from the typeahead (results were showing)
         // from a blind jump to /search (no inline results yet) — the ratio of
         // this to ResultClick tells us whether the typeahead satisfies intent.
+        this._flushOutcomes();
         this._track('SeeAllResults', this._results.length ? 'hasResults' : 'noResults');
         // Flag the footer button so its spinner shows during the navigation
         // delay (the page keeps painting until /search arrives). Mirrors how a
         // pressed result sets _navigatingKey before the window navigates.
         this._seeAllLoading = true;
+        this._navigate(url);
+    }
+
+    /** Whole-window navigation, as its own seam so tests can observe it. */
+    _navigate(url) {
         window.location.assign(url);
+    }
+
+    // Label a fulltext see-all click with the state it was made from, so the
+    // event says *why* the patron left for /search/inside rather than only
+    // that they did. Two axes, joined as "<catalog>:<reason>":
+    //
+    //   catalog — hasResults / noResults, mirroring SeeAllResults. The band
+    //     renders over a weak-but-non-empty catalog answer as well as an empty
+    //     one, so this is a real split, not a constant.
+    //   reason  — why the band was on screen at all: a deliberate passage-shaped
+    //     query (the patron came looking for a passage), a weak catalog answer
+    //     (the band as rescue), or a catalog outage. An outage wins the label
+    //     even for a passage query: it is the anomaly worth seeing.
+    //
+    // Six combinations at most, so the label stays a usable Matomo dimension.
+    _fulltextSeeAllLabel() {
+        const catalog = this._results.length ? 'hasResults' : 'noResults';
+        let reason;
+        if (this._searchFailed) reason = 'solrFailed';
+        else if (isPassageQuery(this._query.trim())) reason = 'passage';
+        else reason = 'weakSolr';
+        return `${catalog}:${reason}`;
     }
 
     // The fulltext see-all is a native link (href on the ol-button), so a plain
@@ -1895,9 +2011,11 @@ export class SearchModal extends LitElement {
     // navigation delay; modified clicks (new tab/window) leave this page in
     // place, so they stay untreated — mirrors _onResultPress.
     _onFulltextSeeAll(e) {
-        this._track('FulltextSeeAll', 'footer');
+        if (e.defaultPrevented) return;
+        this._flushOutcomes();
+        this._track('FulltextSeeAll', this._fulltextSeeAllLabel());
         this._saveCurrentSearch();
-        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         this._ftSeeAllLoading = true;
     }
@@ -1924,6 +2042,7 @@ export class SearchModal extends LitElement {
         const url      = this._buildSearchJsonUrl(trimmed);
         const fetchKey = url;
         this._activeFetchKey = fetchKey;
+        this._searchFailed   = false;
 
         // When the readable filter is off, the main numFound is the all-books
         // total and says nothing about the readable subset, so fetch that count
@@ -1951,11 +2070,17 @@ export class SearchModal extends LitElement {
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
+                this._searchFailed = true;
                 this._resetResults({
                     hasSearched: true,
                     clearReadableCount: this._availability === 'readable',
                 });
                 this._ftBand.solrFailed(trimmed);
+                // An outage used to log nothing at all — neither ResultsShown
+                // nor NoResults — quietly dropping failed searches out of every
+                // rate computed from those two. Scheduled *after* _resetResults,
+                // which cancels pending outcome timers.
+                this._scheduleOutcomeTrack('SearchFailed', fetchKey);
             });
     }
 
