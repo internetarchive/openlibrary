@@ -36,7 +36,8 @@
  *
  * Follow-up: this hook is a stopgap. The proper fix is to write relative
  * urls in CSS and delete this file, `publicDir: '.'`, and the parity check.
- * See drafts/issue-remove-root-absolute-css-urls.md.
+ * Tracked in the follow-up discussion on the migration PR:
+ * https://github.com/internetarchive/openlibrary/pull/13331#issuecomment-5514656942
  */
 export function renderBuiltAssetUrl(filename, { type }) {
     // Only public urls have these /static/... paths. Do not change these

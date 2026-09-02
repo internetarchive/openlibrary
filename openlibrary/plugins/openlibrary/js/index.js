@@ -323,13 +323,13 @@ $(function() {
 
     const subjectPublishingHistory = document.getElementById('subjectPublishingHistory');
     if (subjectPublishingHistory) {
-        import(/* webpackChunkName: "subjects" */ './subjects')
+        import('./subjects')
             .then((module) => module.initPublishingHistory(subjectPublishingHistory));
     }
 
     const subjectRelatedFacets = document.getElementById('subjectRelatedFacets');
     if (subjectRelatedFacets) {
-        import(/* webpackChunkName: "subjects" */ './subjects')
+        import('./subjects')
             .then((module) => module.initRelatedSubjects(subjectRelatedFacets));
     }
 
