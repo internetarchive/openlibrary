@@ -7,7 +7,7 @@ import pytest
 from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.proxy import proxy_to_webpy
+from openlibrary.fastapi.proxy import _rebase_redirect, proxy_to_webpy
 
 
 def _make_app():
@@ -172,6 +172,18 @@ def test_location_is_rewritten_to_client_host(status_code):
             "https://archive.org/services/img/OL1M",
             id="non-webpy-absolute-location-untouched",
         ),
+        pytest.param(
+            "HTTP://WEB:8080/books/OL1M",
+            {},
+            "http://testserver/books/OL1M",
+            id="case-insensitive-upstream-origin-rebased",
+        ),
+        pytest.param(
+            "/account/login?redirect=http://web:8080/works/OL1W",
+            {},
+            "/account/login?redirect=http://web:8080/works/OL1W",
+            id="webpy-url-in-query-param-untouched",
+        ),
     ],
 )
 def test_location_scheme_matches_client_facing_scheme(upstream_location, request_headers, expected_location):
@@ -183,6 +195,26 @@ def test_location_scheme_matches_client_facing_scheme(upstream_location, request
 
     assert response.status_code == 302
     assert response.headers["location"] == expected_location
+
+
+@pytest.mark.parametrize(
+    ("location", "expected"),
+    [
+        pytest.param("http://web:8080/works/OL1W", "https://ol.org/works/OL1W", id="http-rebased"),
+        pytest.param("https://web:8080/works/OL1W", "https://ol.org/works/OL1W", id="https-rebased"),
+        pytest.param("HTTP://WEB:8080/works/OL1W", "https://ol.org/works/OL1W", id="case-insensitive-rebased"),
+        pytest.param("http://web:8080?a=1#frag", "https://ol.org?a=1#frag", id="query-and-fragment-preserved"),
+        pytest.param("/login?redirect=http://web:8080/works/OL1W", "/login?redirect=http://web:8080/works/OL1W", id="query-param-substring-untouched"),
+        pytest.param("/static/http://web:8080/logo.png", "/static/http://web:8080/logo.png", id="path-substring-untouched"),
+        pytest.param("http://web:8080.evil.com/works/OL1W", "http://web:8080.evil.com/works/OL1W", id="lookalike-host-untouched"),
+        pytest.param("http://user@web:8080/works/OL1W", "http://user@web:8080/works/OL1W", id="userinfo-netloc-untouched"),
+        pytest.param("https://archive.org/works/OL1W", "https://archive.org/works/OL1W", id="other-host-untouched"),
+        pytest.param("/works/OL1W", "/works/OL1W", id="relative-untouched"),
+    ],
+)
+def test_rebase_redirect(location, expected):
+    """Only Locations whose authority is exactly web.py's may be rebased; everything else passes through."""
+    assert _rebase_redirect(location, "https", "ol.org") == expected
 
 
 def test_upstream_failure_propagates():
