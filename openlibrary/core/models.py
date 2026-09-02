@@ -1041,6 +1041,15 @@ class User(Thing):
             url += f"?v={avatar_updated}"
         return url
 
+    @classmethod
+    def invalidate_avatar_url_cache(cls, username: str) -> None:
+        """Drop the memoized get_avatar_url entry for this user.
+
+        The key must match the one computed by the memoize decorator's keyfunc
+        on get_avatar_url above; update both if that lambda changes.
+        """
+        cache.memcache_cache.delete(f"user-avatar-{username}")
+
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=100, offset=0)
