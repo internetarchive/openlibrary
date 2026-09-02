@@ -474,13 +474,6 @@ html:has(.ds) {
   user-select: none;
 }
 
-/* Beat the global a:link rules — these read as cards, not as body links. */
-a.design-carousel-demo-card:any-link {
-  color: var(--color-text-muted);
-  text-decoration: none;
-  cursor: pointer;
-}
-
 /* --------------------------------------------------------------- components */
 
 .ds-component {
