@@ -31,6 +31,8 @@
 
 .header-bar .auth-component {
   display: none;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
   padding: var(--spacing-inset-xs);
   padding-right: 0;
   -webkit-box-ordinal-group: 4;
@@ -45,11 +47,6 @@
   display: -ms-inline-flexbox;
   display: inline-flex;
   /* stylelint-enable declaration-block-no-duplicate-properties */
-}
-
-.header-bar .auth-component li button,
-.header-bar .auth-component li a {
-  color: var(--color-text);
 }
 
 .header-bar .auth-component .hide-me {
@@ -563,7 +560,7 @@
 
   .header-bar .auth-component {
     margin-right: var(--spacing-inline-sm);
-    display: block;
+    display: flex;
   }
 
   .header-bar .logo-component {
@@ -635,25 +632,16 @@
   }
 }
 
-/* ── Browse popover ──────────────────────────────────────────
- * The Browse nav item uses the <ol-popover> web component (rendered by
- * openlibrary/templates/lib/browse_popover.html) instead of a native
- * <details> dropdown. The panel opens with a single column of featured
- * destinations (icon + title + description) above a divider, followed by a
- * list of simple links. ol-popover owns the panel chrome (background, radius,
- * shadow) and the mobile bottom-tray behavior; these rules style the slotted
- * trigger and content.
+/* ── Header nav controls ─────────────────────────────────────
+ * The header renders before the Lit bundle hydrates, so these controls can't
+ * be <ol-button>s. The two classes below reproduce the ghost and primary
+ * variants in the light DOM; keep them in step with OLButton.js.
  */
 
-.header-bar .browse-popover {
-  display: inline-flex;
-}
-
-/* Shared ghost treatment for the top-level nav controls (the My Books link
-   and the Browse trigger): transparent at rest, filled on hover, and
-   height-locked to the header control height so they line up with the
-   search field. */
-.header-bar .navigation-component .nav-ghost-btn {
+/* Ghost — the header's low-emphasis controls (My Books, Browse, Log In):
+   transparent at rest, filled on hover, and height-locked to the header
+   control height so they line up with the search field. */
+.header-bar .nav-ghost-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-inline-md);
@@ -673,22 +661,72 @@
 
 /* Leading glyphs only echo the label beside them, so they sit on the
    decorative tier like the browse popover's link icons. */
-.header-bar .navigation-component .nav-ghost-btn__icon {
+.header-bar .nav-ghost-btn__icon {
   flex: none;
   color: var(--color-icon-muted);
 }
 
 /* A subtle darken of the canvas the header sits on. (--beige is a near match
  * for that canvas, so it'd read as no hover at all.) */
-.navigation-component .nav-ghost-btn:hover,
-.navigation-component .nav-ghost-btn:focus-visible,
+.header-bar .nav-ghost-btn:hover,
+.header-bar .nav-ghost-btn:focus-visible,
 .browse-popover[open] .browse-popover__trigger {
   background-color: var(--beige-three);
 }
 
 /* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
-.navigation-component .nav-ghost-btn:active {
+.header-bar .nav-ghost-btn:active {
   transform: scale(0.97);
+}
+
+/* Primary — the one high-emphasis control in the header (Sign Up). Carries
+   ol-button's fill, lift, and specular top edge, which is what separates a
+   filled control from a flat block of color. */
+.header-bar .nav-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-md);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-button);
+  background-color: var(--color-primary);
+  color: var(--white);
+  font: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0 color-mix(in srgb, var(--white) 18%, var(--color-primary));
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+/* Lightens on hover the way ol-button's filled variants do — brightness()
+   carries the fill, border, and specular edge together. */
+.header-bar .nav-primary-btn:hover,
+.header-bar .nav-primary-btn:focus-visible {
+  filter: brightness(1.1);
+}
+
+.header-bar .nav-primary-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Browse popover ──────────────────────────────────────────
+ * The Browse nav item uses the <ol-popover> web component (rendered by
+ * openlibrary/templates/lib/browse_popover.html) instead of a native
+ * <details> dropdown. The panel opens with a single column of featured
+ * destinations (icon + title + description) above a divider, followed by a
+ * list of simple links. ol-popover owns the panel chrome (background, radius,
+ * shadow) and the mobile bottom-tray behavior; these rules style the slotted
+ * trigger and content.
+ */
+
+.header-bar .browse-popover {
+  display: inline-flex;
 }
 
 /* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
@@ -705,7 +743,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navigation-component .nav-ghost-btn,
+  .header-bar .nav-ghost-btn,
+  .header-bar .nav-primary-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
