@@ -10,6 +10,7 @@ import { collectConsoleErrors } from './helpers';
  * Fixtures are the demos on the design page:
  *
  *   #demo-carousel        18 items, page readout in #demo-carousel-page/-total
+ *   #demo-links           15 items, every card an <a href="#carousel-link-N">
  *   #demo-load-more       18 items + near-end demo appending 9 per event,
  *                         readouts in #demo-load-more-batches/-count
  *
@@ -26,6 +27,8 @@ const sel = {
     prevArrow: '#demo-carousel .arrow.prev',
     announcer: '#demo-carousel .announcer',
     pageReadout: '#demo-carousel-page',
+    links: '#demo-links',
+    linksViewport: '#demo-links .viewport',
     loadMore: '#demo-load-more',
     batches: '#demo-load-more-batches',
     count: '#demo-load-more-count',
@@ -41,10 +44,10 @@ async function gotoFixture(page: Page): Promise<void> {
         (document.querySelector('#demo-carousel') as any).totalPages > 1);
 }
 
-/** Drag the demo carousel's viewport with the mouse: down, `steps` quick
- *  moves of `dx` each, up. Positive dx drags leftward (scrolls forward). */
-async function dragViewport(page: Page, dx: number, steps = 3): Promise<void> {
-    const box = (await page.locator(sel.viewport).boundingBox())!;
+/** Drag a carousel's viewport with the mouse: down, `steps` quick moves of
+ *  `dx` each, up. Positive dx drags leftward (scrolls forward). */
+async function dragViewport(page: Page, dx: number, steps = 3, viewport = sel.viewport): Promise<void> {
+    const box = (await page.locator(viewport).boundingBox())!;
     const x = box.x + box.width / 2;
     const y = box.y + box.height / 2;
     await page.mouse.move(x, y);
@@ -145,31 +148,42 @@ test.describe('ol-carousel', () => {
     });
 
     test('keyboard focus into an off-page card aligns its page', async ({ page }) => {
-        // The demo cards hold no focusables; give an off-page card a link and
-        // Tab into it from just before the carousel.
-        await page.evaluate((demo) => {
-            const el = document.querySelector(demo) as any;
-            const link = document.createElement('a');
-            link.href = '#probe';
-            link.id = 'probe-link';
-            link.textContent = 'probe';
-            el.children[el.children.length - 1].appendChild(link);
-            const before = document.createElement('a');
-            before.href = '#before';
-            before.id = 'before-link';
-            before.textContent = 'b';
-            el.parentElement.insertBefore(before, el);
-        }, sel.demo);
+        // Every card in this demo is a link, so Tab walks straight off the
+        // first page and the rail has to follow.
+        const carousel = page.locator(sel.links);
+        await carousel.scrollIntoViewIfNeeded();
+        await page.waitForFunction((demo) =>
+            (document.querySelector(demo) as any).totalPages > 1, sel.links);
 
-        await page.locator('#before-link').focus();
-        await page.keyboard.press('Tab');
-        await expect(page.locator('#probe-link')).toBeFocused();
+        const columns = await page.evaluate((demo) =>
+            (document.querySelector(demo) as any)._columns, sel.links);
 
-        // The last item lives on the last page; the whole page must align.
-        await page.waitForFunction((demo) => {
-            const el = document.querySelector(demo) as any;
-            return el.page === el.totalPages - 1;
-        }, sel.demo);
+        await carousel.locator('a').first().focus();
+        // One tab past the last card of page 1 lands on page 2.
+        for (let i = 0; i < columns; i++) {
+            await page.keyboard.press('Tab');
+        }
+        await expect(carousel.locator('a').nth(columns)).toBeFocused();
+        await page.waitForFunction((demo) =>
+            (document.querySelector(demo) as any).page === 1, sel.links);
+    });
+
+    test('a plain click on a card link navigates, a drag does not', async ({ page }) => {
+        const carousel = page.locator(sel.links);
+        await carousel.scrollIntoViewIfNeeded();
+        await page.waitForFunction((demo) =>
+            (document.querySelector(demo) as any).totalPages > 1, sel.links);
+
+        // Clicking a card follows its href.
+        await carousel.locator('a').first().click();
+        await expect(page).toHaveURL(/#carousel-link-1$/);
+
+        // Throwing the rail by the same card must not navigate: the release
+        // click is swallowed, so the fragment stays where the click left it.
+        await dragViewport(page, 300, 4, sel.linksViewport);
+        await expect(page).toHaveURL(/#carousel-link-1$/);
+        expect(await page.evaluate((demo) =>
+            (document.querySelector(demo) as any).page, sel.links)).toBeGreaterThan(0);
     });
 
     test('near-end events drive the load-more demo until exhausted', async ({ page }) => {
