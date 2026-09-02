@@ -12,7 +12,7 @@
   /* One height for every control in the header row — the search field, the
      My Books / Browse ghost buttons, and the account/menu button — so they
      all line up. Large at every width: touch-friendly on mobile, and roomy
-     enough on desktop for the 28px avatar inside the account button. */
+     enough around the 24px glyphs in the account button. */
   --header-control-height: var(--control-height-large);
   /* One type size for the row's labels too. A one-off step between the 14px
      and 16px tokens. */
@@ -348,11 +348,14 @@
   font-weight: bold;
 }
 
+/* Chrome reset for the controls inside a header dropdown (the app drawer's
+   logout button). No `display` or `color` here: this selector outranks
+   `.nav-ghost-btn`, and the two nav items need that class's own `inline-flex`
+   centering; the drawer's rows get `display: block` and their color from
+   `.header-bar .dropdown-menu li a` above. */
 .header-bar .header-dropdown button,
 .header-bar .header-dropdown a {
-  color: var(--white);
   text-decoration: none;
-  display: block;
   border: 0;
   background: none;
 }
@@ -439,12 +442,14 @@
   font-weight: 500;
 }
 
-/* stylelint-disable max-nesting-depth, selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+/* No `display` here: the two nav items (My Books, Browse) are `.nav-ghost-btn`s
+   that need the class's own `inline-flex` centering, and this selector outranks
+   it. */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
   color: var(--color-text);
   text-decoration: none;
-  display: block;
 }
 
 .header-bar .navigation-component li button:visited,
@@ -452,22 +457,7 @@
   color: var(--color-text);
   text-decoration: none;
 }
-
-.header-bar .navigation-component li .dropdown-menu {
-  position: absolute;
-  text-align: left;
-  width: 100%;
-  top: 4px;
-}
-
-.header-bar .navigation-component li .dropdown-menu li a {
-  color: var(--darker-grey);
-}
-
-.header-bar .navigation-component li .navigation-dropdown-component {
-  position: relative;
-}
-/* stylelint-enable max-nesting-depth, selector-max-specificity */
+/* stylelint-enable selector-max-specificity */
 
 .header-bar .search-component {
   -webkit-box-ordinal-group: 3;
@@ -497,24 +487,6 @@
 .navigation-component {
   text-align: center;
   position: relative;
-}
-
-.navigation-component summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.navigation-component summary::-webkit-details-marker {
-  display: none;
-}
-
-.navigation-component summary {
-  cursor: pointer;
-}
-
-.navigation-component .down-arrow {
-  position: relative;
-  top: -2px;
 }
 
 .logo-component {
@@ -547,12 +519,6 @@
   .header-bar .search-component {
     margin-right: 15px;
   }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
 }
 
 @media only screen and (min-width: 30em) {
@@ -573,12 +539,6 @@
     padding: 0 var(--spacing-inset-xs);
   }
 
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
-
   .header-bar .hamburger-component summary {
     margin-left: var(--spacing-inline-lg);
   }
@@ -596,12 +556,6 @@
     -webkit-box-ordinal-group: 7;
     -ms-flex-order: 6;
     order: 6;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
   }
 }
 
@@ -735,10 +689,9 @@
   display: inline-flex;
 }
 
-/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
- * Overrides the generic .down-arrow nudge and rotates when the popover opens. */
+/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.),
+ * rotated when the popover opens. */
 .navigation-component .browse-popover__trigger .down-arrow {
-  top: 0;
   width: 16px;
   height: 16px;
   transition: transform 150ms ease-out;
@@ -852,10 +805,7 @@
   margin: 0;
 }
 
-/* `.navigation-component` is in the selector to outrank the blanket
-   `.navigation-component li a { display: block }` above, which would otherwise
-   win on specificity and drop the row out of flex layout.
-   min-height rather than `height`: these rows are the one place in the panel a
+/* min-height rather than `height`: these rows are the one place in the panel a
    label can wrap (the mobile tray narrows to the viewport), so the row grows
    with its text instead of clipping it. */
 .header-bar .navigation-component .browse-popover__link {

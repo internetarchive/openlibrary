@@ -13,12 +13,6 @@
   display: inline;
 }
 
-.header-bar .navigation-component .dropdown-menu {
-  border-top: none;
-  border-top-right-radius: 0;
-  border-top-left-radius: 0;
-}
-
 .header-bar .search-component {
   -webkit-box-ordinal-group: 4;
   -ms-flex-order: 3;

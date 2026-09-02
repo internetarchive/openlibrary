@@ -29,17 +29,6 @@
   flex: 1;
 }
 
-.header-bar .navigation-component .dropdown-menu {
-  border-radius: 3px;
-  border: 1px solid var(--color-border-muted);
-}
-
-/* stylelint-disable-next-line max-nesting-depth, selector-max-specificity */
-.header-bar .navigation-component li .dropdown-menu {
-  width: auto;
-  white-space: nowrap;
-}
-
 /* ── Desktop search trigger ─────────────────────────────────────────────
    At desktop widths we restore the full-width "Search 🔍" bar: the
    wrapper gains the faux-input chrome and expands to fill the
