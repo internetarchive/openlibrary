@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Backfills new ID column in the `store_index` table.
 """
