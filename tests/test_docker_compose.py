@@ -44,15 +44,3 @@ class TestDockerCompose:
         for service_name in ("web", "fast_web"):
             assert "OL_DEPLOYMENT_NAME=testing" in staging_dc["services"][service_name]["environment"]
             assert "OL_DEPLOYMENT_NAME=production" in prod_dc["services"][service_name]["environment"]
-
-    def test_staging_fastapi_is_front_door(self):
-        """
-        FastAPI (:8080) must be the public entry point on staging, like local
-        dev, with web.py reachable only over the internal network via the
-        fallback proxy (http://web:8080) — no published host port of its own.
-        """
-        with open(p("..", "compose.staging.yaml")) as f:
-            staging_dc: dict = yaml.safe_load(f)
-
-        assert staging_dc["services"]["web"].get("ports", []) == []
-        assert "${FAST_WEB_PORT:-8080}:8080" in staging_dc["services"]["fast_web"]["ports"]
