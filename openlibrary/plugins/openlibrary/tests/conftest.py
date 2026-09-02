@@ -8,7 +8,6 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    print("pytest_configure", config.getvalue("server"))
 
     if config.getvalue("server"):
         collect_ignore[:] = []

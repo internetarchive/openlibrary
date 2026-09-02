@@ -6,8 +6,6 @@ services:
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180}
       - OL_COVERSTORE_PUBLIC_URL=${OL_COVERSTORE_PUBLIC_URL:-}
     command: docker/ol-web-start.sh
-    ports:
-      - ${WEB_PORT:-8080}:8080
     networks:
       - webnet
       - dbnet
@@ -22,8 +20,6 @@ services:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
     command: docker/ol-web-fastapi-start.sh
-    ports:
-      - ${FAST_WEB_PORT:-18080}:8080
     networks:
       - webnet
       - dbnet

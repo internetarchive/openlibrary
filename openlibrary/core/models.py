@@ -348,9 +348,10 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
-
-        return borrow.get_edition_loans(self)
+        if not self.ocaid:
+            return []
+        loan = lending.get_loan(self.ocaid)
+        return [loan] if loan else []
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.

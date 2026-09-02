@@ -153,17 +153,30 @@ export default {
     },
     props: {
         /** @type {import('../utils.js').ClassificationTree} */
-        classification: Object,
-        appSettings: Object,
+        classification: {
+            type: Object,
+            required: true
+        },
+        appSettings: {
+            type: Object,
+            required: true
+        },
 
         /** The classification to jump to @example 658.91500202854 */
-        jumpTo: String,
-        sort: String,
+        jumpTo: {
+            type: String,
+            default: ''
+        },
+        sort: {
+            type: String,
+            default: ''
+        },
         filter: {
             default: '',
             type: String
         },
         features: {
+            type: Object,
             default: () => ({
                 book3d: true,
                 cover: 'image',

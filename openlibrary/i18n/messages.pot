@@ -417,25 +417,25 @@ msgstr ""
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
 msgstr ""
 
-#: interstitial.html
+#: interstitial.html.jinja
 msgid "You are being redirected to your book"
 msgstr ""
 
-#: interstitial.html
+#: interstitial.html.jinja
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
 msgstr ""
 
-#: interstitial.html
+#: interstitial.html.jinja
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr ""
 
-#: EditButtons.html PreviewSearchInside.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
+#: EditButtons.html PreviewSearchInside.html account/notifications.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html.jinja merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
-#: interstitial.html
+#: interstitial.html.jinja
 msgid "Continue without waiting"
 msgstr ""
 
@@ -674,7 +674,7 @@ msgstr ""
 msgid "Show changed files"
 msgstr ""
 
-#: admin/inspect/store.html admin/people/index.html status.html type/author/edit.html type/language/view.html
+#: admin/inspect/store.html admin/people/index.html search/sort_options.html status.html type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr ""
 
@@ -932,7 +932,7 @@ msgstr ""
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html lib/nav_foot.html merge/authors.html publishers/view.html work_search.html
+#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
 msgid "Authors"
 msgstr ""
 
@@ -1223,7 +1223,7 @@ msgstr ""
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: account/loans.html authors/index.html.jinja lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -2663,20 +2663,20 @@ msgstr ""
 msgid "None found"
 msgstr ""
 
-#: authors/index.html
+#: authors/index.html.jinja
 msgid "Search for an Author"
 msgstr ""
 
-#: PreviewSearchInside.html SubjectSearch.html authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
+#: PreviewSearchInside.html SubjectSearch.html authors/index.html.jinja lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
-#: authors/index.html search/authors.html
+#: authors/index.html.jinja search/authors.html
 #, python-format
 msgid "about %(subjects)s"
 msgstr ""
 
-#: authors/index.html search/authors.html
+#: authors/index.html.jinja search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
 msgstr ""
@@ -5822,10 +5822,6 @@ msgid "Random"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Name (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
 msgstr ""
 
@@ -6994,6 +6990,10 @@ msgstr ""
 msgid "Preview Only"
 msgstr ""
 
+#: BookPreview.html
+msgid "No Preview"
+msgstr ""
+
 #: BookPreviewFloater.html
 msgid "Preview Book"
 msgstr ""
@@ -7113,6 +7113,10 @@ msgstr ""
 
 #: LoanStatus.html
 msgid "Checked Out"
+msgstr ""
+
+#: LoanStatus.html
+msgid "Only a preview is available."
 msgstr ""
 
 #: LocateButton.html

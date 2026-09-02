@@ -127,10 +127,22 @@ async function waitUntil(predicate, sleep = 100, maxSleep = 2000) {
 export default {
     components: { BooksCarousel },
     props: {
-        query: String,
-        node: Object,
-        fetchCoordinator: Object,
+        query: {
+            type: String,
+            required: true
+        },
+        node: {
+            type: Object,
+            default: () => ({
+                requests: {}
+            })
+        },
+        fetchCoordinator: {
+            type: Object,
+            default: null
+        },
         sort: {
+            type: String,
             default: 'editions',
         },
         limit: {

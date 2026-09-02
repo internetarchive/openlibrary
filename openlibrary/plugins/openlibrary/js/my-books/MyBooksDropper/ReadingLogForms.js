@@ -262,6 +262,20 @@ export class ReadingLogForms {
     }
 
     /**
+     * Returns the ID of the shelf that the book is currently on, or `null`
+     * if the book is unshelved.
+     *
+     * @returns {ReadingLogShelf|null}
+     */
+    getActiveShelfId() {
+        if (!this.primaryForm) {
+            return null;
+        }
+        const isShelved = this.primaryForm.querySelector('input[name=action]').value === 'remove';
+        return isShelved ? this.primaryForm.querySelector('input[name=bookshelf_id]').value : null;
+    }
+
+    /**
      * Updates the visibility of dropdown buttons, hiding the given button.
      *
      * All other dropdown buttons will be visible after this method exits.

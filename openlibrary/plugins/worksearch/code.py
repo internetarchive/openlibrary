@@ -248,7 +248,6 @@ async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None
 
 # Create a sync wrapper for backward compatibility
 get_solr_works = async_bridge.wrap(get_solr_works_async, "get_solr_works")
-public(get_solr_works)
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -1105,7 +1104,6 @@ class author_search(delegate.page):
         return resp
 
 
-@public
 def random_author_search(limit=10) -> SearchResponse:
     return run_solr_query(
         AuthorSearchScheme(),

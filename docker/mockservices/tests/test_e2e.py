@@ -64,6 +64,8 @@ class TestXauthn:
         assert body["success"] is True
         assert body["values"]["token"]
         assert body["values"]["email"] == "test@example.com"
+        # Every dev login resolves to the seeded admin account.
+        assert body["values"]["screenname"] == "openlibrary"
 
     def test_authenticate_fails_without_password(self):
         resp = _post(
@@ -74,6 +76,16 @@ class TestXauthn:
         body = resp.json()
         assert body["success"] is False
         assert body["values"]["reason"]
+
+    def test_authenticate_fails_with_sentinel_bad_password(self):
+        resp = _post(
+            "/services/xauthn/",
+            params={"op": "authenticate"},
+            json={"email": "test@example.com", "password": "bad_password"},
+        )
+        body = resp.json()
+        assert body["success"] is False
+        assert body["values"]["reason"] == "bad_password"
 
     def test_info(self):
         resp = _post("/services/xauthn/", params={"op": "info"}, json={})

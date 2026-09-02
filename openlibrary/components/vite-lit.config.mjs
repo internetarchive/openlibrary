@@ -36,6 +36,10 @@ export default defineConfig({
             }
         },
 
+        // Suppress the default 500 kB chunk-size warning — Lit components
+        // are intentionally bundled into a single file (~536 kB).
+        chunkSizeWarningLimit: 550,
+
         // Minify the output
         minify: true,
 

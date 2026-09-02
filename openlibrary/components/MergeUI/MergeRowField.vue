@@ -110,7 +110,7 @@
       :title="JSON.stringify(value)"
       :left="value.value || value"
       :right="merged ? ((field in merged && merged[field].value) || merged[field] || '') : (value.value || value)"
-      :show_diffs="show_diffs"
+      :show-diffs="showDiffs"
     />
 
     <!-- Defaults -->
@@ -118,7 +118,7 @@
       v-else-if="typeof(value) == 'string'"
       :left="value"
       :right="merged ? (merged[field] || '') : value"
-      :show_diffs="show_diffs"
+      :show-diffs="showDiffs"
     />
     <div v-else-if="typeof(value) == 'number'">
       {{ value }}
@@ -146,13 +146,14 @@ export default {
             required: true
         },
         value: {
+            type: [Object, Array, String, Number],
             required: true
         },
         merged: {
             type: Object,
-            required: false
+            default: null
         },
-        show_diffs: {
+        showDiffs: {
             type: Boolean
         }
     },
