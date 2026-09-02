@@ -858,14 +858,14 @@ class User(models.User):
         return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
-        self.update_loan_status()
-        return lending.get_loans_of_user(self.key)
+        return self.update_loan_status()
 
     def update_loan_status(self):
         """Update the status of this user's loans."""
         loans = lending.get_loans_of_user(self.key)
         for loan in loans:
             lending.sync_loan(loan["ocaid"])
+        return loans
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()
