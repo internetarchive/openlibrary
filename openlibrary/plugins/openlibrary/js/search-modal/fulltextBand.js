@@ -5,10 +5,10 @@
  * the 2020 rollback of always-on fulltext was a load story — so the decision of
  * *whether* to call the backend lives here rather than scattered across the
  * modal's input handlers. The modal tells this controller what happened
- * (`queryChanged`, `solrSettled`, `solrFailed`) and gets `{hits, total}` back
- * through `onChange`; it never decides for itself when to fetch. The published
- * hits are an overfetched pool: the modal dedupes them against its catalog
- * rows and trims to FULLTEXT_LIMIT at render time.
+ * (`queryChanged`, `solrSettled`, `solrFailed`) and gets `{hits, total,
+ * searchKey}` back through `onChange`; it never decides for itself when to
+ * fetch. The published hits are an overfetched pool: the modal dedupes them
+ * against its catalog rows and trims to FULLTEXT_LIMIT at render time.
  *
  * The gating heuristics themselves (isPassageQuery, solrLooksWeak) are pure
  * functions in ./fulltext.js.
@@ -57,7 +57,7 @@ export class FulltextBand {
     /**
      * @param {object} options
      * @param {() => {readable: boolean, languages: string[]}} options.getFilters
-     * @param {(state: {hits: object[], total: number|null}) => void} options.onChange
+     * @param {(state: {hits: object[], total: number|null, searchKey: string|null}) => void} options.onChange
      * @param {(status: 'resolved'|'failed') => void} [options.onAttempt] - called
      *   once per fetch that wasn't superseded. Lets the modal count how often the
      *   band was *asked* for, not just how often it had something to show — the
@@ -70,6 +70,9 @@ export class FulltextBand {
         this._fetchKey = null;
         this.hits = [];
         this.total = null;
+        // The /search/inside params these hits were measured for — the modal's
+        // proof that a total still describes what its "see all" link points at.
+        this.searchKey = null;
         // The passage test runs at fire time, on the query the timer settled
         // on — a timer scheduled under an older query can't fetch for the
         // edited one.
@@ -113,17 +116,18 @@ export class FulltextBand {
     /** Empty the band and invalidate any in-flight fetch. */
     clear() {
         this._fetchKey = null;
-        this._set([], null);
+        this._set([], null, null);
     }
 
     /** Publish new band state, skipping the notify when nothing actually
      *  changed — clear() runs on most keystrokes and would otherwise churn a
      *  re-render per stroke. */
-    _set(hits, total) {
+    _set(hits, total, searchKey) {
         if (this.hits.length === 0 && hits.length === 0 && this.total === total) return;
         this.hits = hits;
         this.total = total;
-        this._onChange({ hits, total });
+        this.searchKey = searchKey;
+        this._onChange({ hits, total, searchKey });
     }
 
     _fetch(query) {
@@ -132,6 +136,9 @@ export class FulltextBand {
 
         const filters = this._getFilters();
         const params = fulltextSearchParams(trimmed, filters);
+        // Captured before the fetch-only params go on: this is the /search/inside
+        // query string the results about to land describe.
+        const searchKey = params.toString();
         params.set('facets', 'false');
         params.set('limit', String(FULLTEXT_LIMIT * OVERFETCH));
 
@@ -146,6 +153,7 @@ export class FulltextBand {
                 this._set(
                     hits.map(fulltextHitDisplay).filter(Boolean),
                     typeof data?.hits?.total === 'number' ? data.hits.total : null,
+                    searchKey,
                 );
                 this._onAttempt('resolved');
             })

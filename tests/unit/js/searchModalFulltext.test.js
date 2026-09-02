@@ -309,6 +309,44 @@ describe('see-all button labels', () => {
     });
 });
 
+describe('fulltext see-all freshness', () => {
+    const modalFor = (query, searchKey, total = 134731) => {
+        const modal = new SearchModal();
+        modal._query = query;
+        modal._languages = [];
+        modal._ftTotal = total;
+        modal._ftSearchKey = searchKey;
+        return modal;
+    };
+
+    test('the count holds while the total describes the search the button links to', () => {
+        expect(modalFor('white whale', 'q=white+whale')._ftTotalIsCurrent()).toBe(true);
+    });
+
+    // The band's hits linger through an edit so it doesn't flicker per keystroke.
+    // The total must not: it would pair a count nobody measured for this query
+    // with a link that carries the edited one.
+    test('an edit drops the count', () => {
+        expect(modalFor('white whales', 'q=white+whale')._ftTotalIsCurrent()).toBe(false);
+    });
+
+    test('a filter toggle drops it too — same query, different search', () => {
+        const modal = modalFor('white whale', 'q=white+whale');
+        modal._availability = 'readable';
+        expect(modal._ftTotalIsCurrent()).toBe(false);
+    });
+
+    test('a cleared band has no count to show', () => {
+        expect(modalFor('white whale', null, null)._ftTotalIsCurrent()).toBe(false);
+    });
+
+    // A total that's already fully on screen still counts as current — it's
+    // _renderFulltextSeeAll that drops the redundant number, keeping the button.
+    test('a fully-shown total is still current', () => {
+        expect(modalFor('white whale', 'q=white+whale', 2)._ftTotalIsCurrent()).toBe(true);
+    });
+});
+
 describe('catalog see-all labels', () => {
     // The there's-more case is the only one with a distinct narrow form: it is
     // also the only one that shares the footer with the fulltext see-all.

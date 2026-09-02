@@ -13,7 +13,8 @@
  *    `language`), sessionStorage is mirrored from the URL. This way the modal
  *    will reflect a filter change made via the toggle, the language popover, or
  *    the sidebar language facet (which navigates the page with a new `language=`
- *    param) the next time it opens.
+ *    param) the next time it opens. A surface only overwrites what it could
+ *    have written itself — see syncSessionStorageFromUrl.
  *
  *  - On init, if the URL carries NO filter params and sessionStorage has a
  *    non-default value, we replace-navigate to /search with those sticky
@@ -57,7 +58,7 @@ const AVAILABILITY_PARAM_KEYS = [
 // facetCounts marks the surfaces whose results actually come from Solr:
 // /search/facets.json counts Solr matches, which would misdescribe the FTS
 // result set on /search/inside.
-const SURFACES = {
+export const SURFACES = {
     '/search': {
         readAvailability: (params) => availabilityFromParams((name) => params.get(name)),
         availabilityParamKeys: AVAILABILITY_PARAM_KEYS,
@@ -124,35 +125,84 @@ function urlHasAnyFilterParam(surface, params) {
 }
 
 /**
- * Mirror the current URL's filter state to sessionStorage so the modal opens
- * with the same selection next time. We always write both keys so removing a
- * filter via the popovers/sidebar clears the stored value too.
+ * Whether two availability values are indistinguishable in this surface's URL.
+ * /search/inside collapses open/borrowable/readable onto one readable=true, so
+ * comparing the params rather than the values is what tells an actual filter
+ * change apart from that surface reading back its own narrowed output.
+ *
+ * @param {object} surface - entry from SURFACES
+ * @param {string} a
+ * @param {string} b
+ * @returns {boolean}
  */
-function syncSessionStorageFromUrl(surface, params) {
-    writeStoredAvailability(surface.readAvailability(params));
-    writeStoredLanguages(params.getAll('language'));
+function sameAvailabilityOnSurface(surface, a, b) {
+    const pa = surface.availabilityParams(a);
+    const pb = surface.availabilityParams(b);
+    const keys = new Set([...Object.keys(pa), ...Object.keys(pb)]);
+    return [...keys].every(key => pa[key] === pb[key]);
 }
 
 /**
- * If the URL has no filter params at all and sessionStorage has a non-default
- * value, replace-navigate to /search with the sticky filters applied. Returns
- * true when a navigation was kicked off (caller should stop further init).
+ * Mirror the current URL's filter state to sessionStorage so the modal opens
+ * with the same selection next time. Both keys are written on every load, so
+ * removing a filter via the popovers/sidebar clears the stored value too.
  *
- * `replace` is used so the unfiltered URL doesn't end up in the back-stack.
+ * Each key is only overwritten when the URL says something the stored value
+ * could not have produced *here*: /search/inside can express neither a
+ * specific availability nor a second language, and taking its own output at
+ * face value would narrow a selection made on /search that the patron never
+ * touched. Anything the surface could not have written is a real change.
  */
-function maybeApplyStickyFilters(surface, params) {
-    if (urlHasAnyFilterParam(surface, params)) return false;
+export function syncSessionStorageFromUrl(surface, params) {
+    const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
+    const urlAvail = surface.readAvailability(params);
+    writeStoredAvailability(
+        sameAvailabilityOnSurface(surface, storedAvail, urlAvail) ? storedAvail : urlAvail,
+    );
+
+    const storedLangs = readStoredLanguages();
+    const urlLangs = params.getAll('language');
+    const langsUnchanged = selectionFor(surface, storedLangs).join(',') === urlLangs.join(',');
+    writeStoredLanguages(langsUnchanged ? storedLangs : urlLangs);
+}
+
+/**
+ * The query string this page should carry once the session's sticky filters
+ * are applied, or null when there's nothing to apply — the URL already owns a
+ * filter param, or nothing non-default is stored.
+ *
+ * @param {object} surface - entry from SURFACES
+ * @param {URLSearchParams} params - the current query string
+ * @returns {URLSearchParams|null}
+ */
+export function stickyFilterParams(surface, params) {
+    if (urlHasAnyFilterParam(surface, params)) return null;
 
     const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
     const storedLangs = readStoredLanguages();
     if (storedAvail === DEFAULT_AVAILABILITY && storedLangs.length === 0) {
-        return false;
+        return null;
     }
 
     const next = new URLSearchParams(params);
     const mapped = surface.availabilityParams(storedAvail);
     Object.entries(mapped).forEach(([key, value]) => next.set(key, value));
-    storedLangs.forEach(code => next.append('language', code));
+    // Narrowed to what the surface can apply: a URL claiming two languages on
+    // a single-language surface would seed the popover with a filter the
+    // handler drops. syncSessionStorageFromUrl keeps the full stored list.
+    selectionFor(surface, storedLangs).forEach(code => next.append('language', code));
+    return next;
+}
+
+/**
+ * Apply the session's sticky filters to a URL that carries none. Returns true
+ * when a navigation was kicked off (caller should stop further init).
+ *
+ * `replace` is used so the unfiltered URL doesn't end up in the back-stack.
+ */
+function maybeApplyStickyFilters(surface, params) {
+    const next = stickyFilterParams(surface, params);
+    if (!next) return false;
     window.location.replace(`${window.location.pathname}?${next.toString()}`);
     return true;
 }

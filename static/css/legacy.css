@@ -441,12 +441,6 @@ input.highlight {
   margin-top: var(--spacing-stack-xs);
 }
 
-/* openlibrary/templates/search/inside.html */
-.search-no-results {
-  color: var(--color-text-muted);
-  padding: var(--spacing-lg) 0;
-}
-
 .search-results-stats {
   display: flex;
   gap: 10px;
@@ -939,10 +933,12 @@ div#searchResults .SRPCoverBlank a {
   border-radius: 4px;
 }
 
-/* Quiet full-width card for "No books directly matched your search", shown */
-/* ahead of the Search Inside rescue band. */
-/* openlibrary/templates/work_search.html */
-.search-no-direct-match {
+/* Quiet full-width card for the search empty states: the no-match message */
+/* ahead of the Search Inside rescue band, and Search Inside's own zero-result */
+/* messages. */
+/* openlibrary/templates/work_search.html, openlibrary/templates/search/inside.html */
+.search-no-direct-match,
+.search-no-results {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -953,6 +949,12 @@ div#searchResults .SRPCoverBlank a {
   border-radius: var(--border-radius-card);
   background-color: var(--color-surface);
   text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* No button to carry the card's height here, so the text gets more room. */
+.search-no-results {
+  padding: var(--spacing-inset-lg) var(--spacing-inset-md);
 }
 
 .search-no-direct-match__message {

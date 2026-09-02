@@ -128,6 +128,10 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     seeAllInsideShort: 'Search inside %s books',
     seeAllInsideNarrow: 'Search inside (%s)',
     seeAllInside: 'See all matches found in %s books',
+    // The same button while no total has been measured for what's in the input
+    // (mid-edit, or just after a filter toggle) — the link still holds, so the
+    // button stays and only the count drops.
+    seeAllInsidePlain: 'Search inside',
 };
 
 /**

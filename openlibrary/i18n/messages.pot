@@ -5844,6 +5844,10 @@ msgstr ""
 msgid "See all matches found in %s books"
 msgstr ""
 
+#: PreviewSearchInside.html search/search_modal_i18n.html
+msgid "Search inside"
+msgstr ""
+
 #: search/sort_options.html
 msgid "Relevance"
 msgstr ""
@@ -7173,10 +7177,6 @@ msgstr ""
 
 #: PreviewSearchInside.html
 msgid "Search inside book"
-msgstr ""
-
-#: PreviewSearchInside.html
-msgid "Search inside"
 msgstr ""
 
 #: Profile.html

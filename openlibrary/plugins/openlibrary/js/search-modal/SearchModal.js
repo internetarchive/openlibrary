@@ -127,6 +127,7 @@ export class SearchModal extends LitElement {
         _recentSearches: { state: true },
         _ftHits: { state: true },
         _ftTotal: { state: true },
+        _ftSearchKey: { state: true },
     };
 
     static styles = css`
@@ -913,11 +914,13 @@ export class SearchModal extends LitElement {
         // failed) and mirrors the result into reactive state.
         this._ftHits  = [];
         this._ftTotal = null;
+        this._ftSearchKey = null;
         this._ftBand  = new FulltextBand({
             getFilters: () => this._fulltextFilters(),
-            onChange: ({ hits, total }) => {
-                this._ftHits  = hits;
-                this._ftTotal = total;
+            onChange: ({ hits, total, searchKey }) => {
+                this._ftHits      = hits;
+                this._ftTotal     = total;
+                this._ftSearchKey = searchKey;
             },
             onAttempt: (status) => this._scheduleBandOutcome(status),
         });
@@ -1320,27 +1323,43 @@ export class SearchModal extends LitElement {
     }
 
     // The band's see-all: a secondary button on the footer's left, opposite
-    // the primary "See N books" — always in view, even with the band
-    // scrolled away. Only rendered once the fulltext total exceeds the hits
-    // shown inline — with everything already visible there's nothing more
-    // to see. The visible label is short ("Search inside 23,783 books", or
-    // "Search inside (23,783)" when narrow); the accessible name carries the
-    // full sentence at both widths.
+    // the primary "See N books" — always in view, even with the band scrolled
+    // away. Present whenever the band is: /search/inside is a bigger surface
+    // (more context per hit, its own filters, a shareable URL), so the door is
+    // worth offering even when the rows above cover the whole result set.
+    //
+    // The *count* is what has to earn its place. It shows only when it's both
+    // current (see _ftTotalIsCurrent) and larger than the rows already on
+    // screen: "Search inside 23,783 books", "Search inside (23,783)" when
+    // narrow, the full sentence as the accessible name. Otherwise the button
+    // falls back to a plain "Search inside" — the link is still honest, only
+    // the number isn't in hand.
     _renderFulltextSeeAll() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return nothing;
-        if (typeof this._ftTotal !== 'number' || this._ftTotal <= shown) return nothing;
+        const counted = this._ftTotalIsCurrent() && this._ftTotal > shown;
         const q = this._query.trim();
         const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
+        const plain = this._i18n.seeAllInsidePlain;
         return html`
             <ol-button
                 variant="secondary"
                 href=${href}
-                aria-label=${this._seeAllInsideLabel()}
+                aria-label=${counted ? this._seeAllInsideLabel() : plain}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
-            >${this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel())}</ol-button>
+            >${counted ? this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel()) : plain}</ol-button>
         `;
+    }
+
+    // Whether _ftTotal was measured for the search this button links to. The
+    // band's hits deliberately linger across an edit (no per-keystroke flicker)
+    // but the total is a claim about one query and one set of filters, so an
+    // edit or a filter toggle must drop the count rather than pair an old
+    // number with a link to the new search.
+    _ftTotalIsCurrent() {
+        if (typeof this._ftTotal !== 'number') return false;
+        return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
     }
 
     // The footer button's visible label, e.g. "Search inside 134 books".
