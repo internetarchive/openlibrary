@@ -40,7 +40,12 @@ async def proxy_to_webpy(request: Request) -> Response:
     filtered_headers["X-Served-By"] = "web.py"
 
     if location := resp.headers.get("location", ""):
-        location = location.replace("http://web:8080", f"http://{request.headers.get('host', 'localhost:8080')}")
+        # web.py builds absolute redirects from the Host header + wsgi.url_scheme
+        # (X-Scheme), which we forward, so it may emit http:// or https://web:8080.
+        # Rewrite both to the client-facing origin, e.g. https://testing.openlibrary.org.
+        client_scheme = request.headers.get("x-forwarded-proto") or request.headers.get("x-scheme") or request.url.scheme
+        client_origin = f"{client_scheme}://{request.headers.get('host', 'localhost:8080')}"
+        location = location.replace("http://web:8080", client_origin).replace("https://web:8080", client_origin)
         filtered_headers["location"] = location
 
     async def stream_body():

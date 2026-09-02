@@ -145,6 +145,46 @@ def test_location_is_rewritten_to_client_host(status_code):
     assert response.headers["location"] == "http://testserver/books/OL1M"
 
 
+@pytest.mark.parametrize(
+    ("upstream_location", "request_headers", "expected_location"),
+    [
+        pytest.param(
+            "https://web:8080/books/OL1M",
+            {},
+            "http://testserver/books/OL1M",
+            id="https-upstream-no-forwarded-headers",
+        ),
+        pytest.param(
+            "https://web:8080/books/OL1M",
+            {"X-Scheme": "https"},
+            "https://testserver/books/OL1M",
+            id="x-scheme-https-rewrites-to-https",
+        ),
+        pytest.param(
+            "http://web:8080/books/OL1M",
+            {"X-Forwarded-Proto": "https"},
+            "https://testserver/books/OL1M",
+            id="x-forwarded-proto-https-rewrites-to-https",
+        ),
+        pytest.param(
+            "https://archive.org/services/img/OL1M",
+            {"X-Scheme": "https"},
+            "https://archive.org/services/img/OL1M",
+            id="non-webpy-absolute-location-untouched",
+        ),
+    ],
+)
+def test_location_scheme_matches_client_facing_scheme(upstream_location, request_headers, expected_location):
+    """The rewritten Location must use the client-facing scheme (https on testing, http locally)."""
+    fake_client = FakeClient(FakeResponse([b""], status_code=302, headers={"location": upstream_location}))
+
+    with _proxy_client(fake_client) as client:
+        response = client.get("/books/OL1M", headers=request_headers, follow_redirects=False)
+
+    assert response.status_code == 302
+    assert response.headers["location"] == expected_location
+
+
 def test_upstream_failure_propagates():
     """If the upstream request fails, the error propagates and the shared client survives."""
 
