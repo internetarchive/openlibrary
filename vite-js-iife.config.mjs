@@ -18,6 +18,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
+import { renderBuiltAssetUrl } from './vite-asset-urls.mjs';
 
 const ENTRY = process.env.IIFE_ENTRY || 'sw';
 
@@ -31,6 +32,10 @@ if (!entries[ENTRY]) {
 }
 
 export default defineConfig(({ mode }) => ({
+    // CSS that JavaScript imports has root-absolute url(/static/...). This
+    // hook writes these urls unchanged. `base` does not change them.
+    // See vite-asset-urls.mjs.
+    experimental: { renderBuiltUrl: renderBuiltAssetUrl },
     publicDir: '.',
     clearScreen: false,
     build: {

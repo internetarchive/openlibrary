@@ -29,8 +29,14 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
 import { chunkName } from './vite-js-chunk-names.mjs';
+import { renderBuiltAssetUrl } from './vite-asset-urls.mjs';
 
 export default defineConfig(({ mode }) => ({
+    // CSS that JavaScript imports has root-absolute url(/static/...). This
+    // hook writes these urls unchanged. Without the hook, `base` below
+    // changes /static/images/x.svg to /static/build/js/static/images/x.svg.
+    // The server then returns 404. See vite-asset-urls.mjs.
+    experimental: { renderBuiltUrl: renderBuiltAssetUrl },
     // webpack `output.publicPath: "/static/build/js/"` parity. Without this the
     // dynamic-import chunks and their preload <link>s are resolved against `/`
     // (Vite's default base) and 404 — the entry is served at /static/build/js/,
@@ -41,6 +47,8 @@ export default defineConfig(({ mode }) => ({
     // comment in vite-css.config.mjs. Every JS-imported stylesheet uses
     // root-absolute urls; leaving them unprocessed avoids Vite inlining them
     // as data URIs or rewriting/copying them (which breaks nginx-served paths).
+    // Note: `base` below changes these urls. The
+    // experimental.renderBuiltUrl hook above stops this.
     publicDir: '.',
     clearScreen: false,
     build: {

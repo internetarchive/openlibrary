@@ -122,6 +122,17 @@ check "sw.js is an IIFE" grep -q '^(function' "$VITE_DIR/sw.js"
 check "sw.js bundles workbox" grep -q 'workbox:core:' "$VITE_DIR/sw.js"
 
 echo
+echo "== 6. CSS url() parity (root-absolute urls stay root-absolute) =="
+# webpack's css-loader ran with url:false, so url(/static/...) must be emitted
+# verbatim. Base-prefixing it (the bug that broke the carousel arrows) yields
+# "/static/build/<...>/static/..." — match that doubled shape rather than any
+# specific base so the check survives future base changes.
+for css in "$VITE_DIR"/*.css; do
+    check "no base-prefixed urls: $(basename "$css")" \
+        sh -c "! grep -qE 'url\\(/static/build/[^)]*/static/' '$css'"
+done
+
+echo
 echo "== gzip sizes (informational; Vite inlines per-chunk deps) =="
 for f in all.js sw.js partnerLib.js; do
     w=$(gzip -c "$WP_DIR/$f" | wc -c | tr -d ' ')
