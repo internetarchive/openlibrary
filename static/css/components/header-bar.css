@@ -14,6 +14,9 @@
      all line up. Large at every width: touch-friendly on mobile, and roomy
      enough on desktop for the 28px avatar inside the account button. */
   --header-control-height: var(--control-height-large);
+  /* One type size for the row's labels too. A one-off step between the 14px
+     and 16px tokens. */
+  --header-control-font-size: 15px;
   max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
@@ -432,8 +435,7 @@
   -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
   padding: 0;
-  /* One-off: a step between the 14px and 16px type tokens. */
-  font-size: 15px;
+  font-size: var(--header-control-font-size);
   font-weight: 500;
 }
 
@@ -652,7 +654,9 @@
   border-radius: var(--border-radius-md);
   background: none;
   color: var(--color-text);
-  font: inherit;
+  font-family: inherit;
+  font-size: var(--header-control-font-size);
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
@@ -693,7 +697,9 @@
   border-radius: var(--border-radius-button);
   background-color: var(--color-primary);
   color: var(--white);
-  font: inherit;
+  font-family: inherit;
+  font-size: var(--header-control-font-size);
+  font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
