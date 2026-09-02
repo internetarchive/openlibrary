@@ -175,6 +175,17 @@ describe('ol-carousel structure', () => {
         expect(region.getAttribute('aria-label')).toBe('Carousel');
     });
 
+    it('names the scroll container so it is not read out item by item', async() => {
+        // Browsers make an overflowing scroller focusable; nameless, its name
+        // comes from its contents and a screen reader reads the whole rail.
+        const { el } = await mountCarousel(18);
+        const viewport = el.shadowRoot.querySelector('.viewport');
+        expect(viewport.getAttribute('role')).toBe('group');
+        expect(viewport.getAttribute('aria-label')).toBe('Carousel');
+        // No tab stop of our own in front of every card.
+        expect(viewport.hasAttribute('tabindex')).toBe(false);
+    });
+
     it('makes the viewport a scroll container, not a transformed track', async() => {
         const { el, scroller } = await mountCarousel(18);
         expect(scroller).not.toBeNull();

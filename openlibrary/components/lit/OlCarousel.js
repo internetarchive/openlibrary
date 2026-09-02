@@ -164,7 +164,14 @@ export class OlCarousel extends LitElement {
             position: relative;
         }
 
-        /* ── Viewport (the scroll container) ── */
+        /* ── Viewport (the scroll container) ──
+           Browsers make an overflowing scroller keyboard-focusable so it can
+           be arrow-scrolled — but only while nothing inside it is focusable.
+           A nameless focusable element takes its name from its contents, so
+           a screen reader read the whole rail aloud; role=group plus the
+           region's label names it instead. No tabindex of our own: the
+           browser already supplies the stop where one is needed, and forcing
+           one would land a stop in front of every card carousel. */
         .viewport {
             display: flex;
             gap: var(--_gap, 4px);
@@ -1139,6 +1146,8 @@ export class OlCarousel extends LitElement {
 
                     <div
                         class="viewport"
+                        role="group"
+                        aria-label=${this.label}
                         @scroll=${this._onScroll}
                         @scrollend=${this._onScrollEnd}
                         @pointerdown=${this._onDragPointerDown}
