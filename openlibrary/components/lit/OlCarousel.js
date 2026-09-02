@@ -597,6 +597,12 @@ export class OlCarousel extends LitElement {
         }
     }
 
+    /** The page holding `itemIndex`, clamped into range. */
+    _pageForItem(itemIndex) {
+        if (this._columns <= 0) return 0;
+        return Math.max(0, Math.min(Math.floor(itemIndex / this._columns), this._totalPages - 1));
+    }
+
     /** Re-derive everything layout-dependent after a resize or slot change. */
     _refreshGeometry() {
         this._applySnapPoints();
@@ -671,7 +677,7 @@ export class OlCarousel extends LitElement {
     _restoreAnchor(itemIndex) {
         const scroller = this._scroller;
         if (!scroller || this._columns <= 0) return;
-        const page = Math.max(0, Math.min(Math.floor(itemIndex / this._columns), this._totalPages - 1));
+        const page = this._pageForItem(itemIndex);
         // Compare positions, not page numbers — the rail can rest between
         // the new offsets while still mapping to the right page.
         if (Math.abs(scroller.scrollLeft - (this._pageOffsets[page] ?? 0)) < 1) return;
@@ -1032,7 +1038,7 @@ export class OlCarousel extends LitElement {
 
         const index = this._items.findIndex((item) => item.contains(target));
         if (index === -1 || this._columns <= 0) return;
-        const page = Math.min(Math.floor(index / this._columns), this._totalPages - 1);
+        const page = this._pageForItem(index);
         if (page !== this._page) {
             this.goToPage(page);
         }
