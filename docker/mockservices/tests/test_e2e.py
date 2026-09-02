@@ -16,13 +16,10 @@ code sends (see openlibrary/accounts/model.py, openlibrary/core/lending.py),
 not just what's convenient to construct.
 """
 
-import datetime
 import os
 
 import pytest
 import requests
-
-from openlibrary.core.matomo import MatomoClient
 
 MOCKSERVICES_URL = os.environ.get("MOCKSERVICES_URL", "http://mockservices:8090")
 
@@ -216,65 +213,15 @@ class TestLoanChangesFeed:
 
 
 # ---------------------------------------------------------------------------
-# Matomo mock — Core Vitals retention scoring (issue #11956)
+# Matomo mock — the parts that need a live container.
 #
-# matomo.archive.org is IP-restricted to IA's network, so this is the only way
-# to exercise the real MatomoClient and the real scorer end to end in dev or CI.
-# The feed is small and deterministic on purpose: the expected R_total below is
-# worked out by hand from the fixture, so a scoring regression shows up as an
-# arithmetic mismatch rather than "some number changed".
+# Everything else about this endpoint is covered by test_matomo_inprocess.py,
+# which serves the same app on a loopback port and therefore also runs in CI.
+# Only keep tests here that genuinely require the deployed container.
 # ---------------------------------------------------------------------------
 
 
 class TestMatomoMock:
-    """The 12-visit default feed, and the exact score it must produce.
-
-    Visit i has cohort MATOMO_COHORTS[i % 7] and event MATOMO_SAMPLE_EVENTS[i % 7],
-    plus a /works/ page view worth book_view (5) on every visit:
-
-        i=0  visitor  CTAClick|Read          read 100 + 5 = 105
-        i=1  d0       CTAClick|Borrow        read 100 + 5 = 105
-        i=2  d1+      CTAClick|Edit          edit  25 + 5 =  30
-        i=3  d7+      ReadingLog|WantToRead  want   10 + 5 =  15
-        i=4  d14+     MainNav|MyBooks        mybooks 5 + 5 =  10
-        i=5  d30+     PatronImports|Goodreads  gr 200 + 5 = 205
-        i=6  d90+     SearchModal|Open       (unmapped) + 5 =   5
-        i=7..11 repeat the cycle from i=0
-
-        visitor    210 x 0.01 =   2.10   (2 patrons)
-        registrant 210 x 0.20 =  42.00   (2 patrons, d0)
-        returning  315 x 0.50 = 157.50   (7 patrons, d1+/d7+/d14+/d30+)
-        retained     5 x 1.00 =   5.00   (1 patron, d90+)
-                              = 206.60 over 12 patrons
-    """
-
-    EXPECTED_R_TOTAL = 206.60
-    EXPECTED_PATRONS = 12
-
-    @pytest.fixture
-    def client(self):
-        return MatomoClient("mock-token", url=f"{MOCKSERVICES_URL}/matomo")
-
-    def test_requires_a_token(self):
-        resp = _post("/matomo/index.php", data={"method": "Live.getLastVisitsDetails"})
-        assert resp.json()["result"] == "error"
-
     def test_rejects_unimplemented_methods(self):
         resp = _post("/matomo/index.php", data={"method": "SitesManager.getAllSites", "token_auth": "t"})
         assert resp.json()["result"] == "error"
-
-    def test_dimension1_is_flat_not_nested(self):
-        """The real API returns dimension1 flat; reading it as nested scored every visit as `visitor`."""
-        resp = _post("/matomo/index.php", data={"method": "Live.getLastVisitsDetails", "token_auth": "t"})
-        visit = resp.json()[0]
-        assert visit["dimension1"] == "visitor"
-        assert "customDimensions" not in visit
-
-    def test_client_fetches_the_whole_feed_through_real_http(self, client):
-        visits = client.get_visits_since(datetime.datetime.now(datetime.UTC))
-        assert len(visits) == 12
-
-    def test_client_pagination_is_exercised(self, client):
-        """A page_size below the feed size must still return everything, in order."""
-        visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=5)
-        assert [v["idVisit"] for v in visits] == [str(i) for i in range(12)]

@@ -80,14 +80,6 @@ admin:
     statsd_server: localhost:9090
     admin_db: http://localhost:5984/admin
 
-# Matomo Reporting API token, read by openlibrary/core/matomo.py.
-# Should be a view-only Matomo user: the read-only allowlist in that module
-# guards against mistakes, not against a token that can write. The real value
-# lives in olsystem's copy of this file; left blank here so local dev simply
-# skips retention scoring. To run the scripts locally, export MATOMO_TOKEN
-# rather than filling this in.
-matomo_api:
-
 stats: # This section is used to state what stats need to be gathered.
     pageload.all:
       filter: all

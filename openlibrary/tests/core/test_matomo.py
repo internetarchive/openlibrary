@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from openlibrary.core.matomo import MAX_PAGES, MatomoClient, MatomoError
+from openlibrary.core.matomo import MatomoClient, MatomoError, MatomoMethodNotAllowed
 
 
 def _response(payload, status_code: int = 200):
@@ -43,12 +43,16 @@ class TestReadOnlyAllowlist:
         ],
     )
     def test_rejects_anything_not_exactly_allowlisted(self, method):
-        with pytest.raises(MatomoError, match="BLOCKED"):
+        with pytest.raises(MatomoMethodNotAllowed, match="read-only allowlist"):
             _client()._post(method)
+
+    def test_a_disallowed_method_is_distinguishable_from_a_flaky_matomo(self):
+        """A caller degrading gracefully on MatomoError must not swallow a programming error."""
+        assert issubclass(MatomoMethodNotAllowed, MatomoError)
 
     def test_blocks_before_any_network_call_is_made(self):
         client = _client()
-        with _patch_post(client) as mock_post, pytest.raises(MatomoError, match="BLOCKED"):
+        with _patch_post(client) as mock_post, pytest.raises(MatomoMethodNotAllowed):
             client._post("SitesManager.deleteSite")
         mock_post.assert_not_called()
 
@@ -58,7 +62,8 @@ class TestReadOnlyAllowlist:
             assert client._post("Live.getLastVisitsDetails") == []
 
     def test_requires_a_token(self):
-        with pytest.raises(MatomoError, match="token is required"):
+        """A missing token is a caller bug, not Matomo being unreachable."""
+        with pytest.raises(ValueError, match="token is required"):
             MatomoClient("")
 
 
@@ -127,12 +132,12 @@ class TestWindowBounds:
         """`date` is derived from `since`, but Matomo's raw retention is finite."""
         client = _client()
         since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=30)
-        with pytest.raises(MatomoError, match="longer than"):
+        with pytest.raises(ValueError, match="longer than"):
             client.get_visits_since(since)
 
     def test_rejects_a_future_since(self):
         client = _client()
-        with pytest.raises(MatomoError, match="in the future"):
+        with pytest.raises(ValueError, match="in the future"):
             client.get_visits_since(datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1))
 
     def test_the_date_range_covers_the_requested_window(self):
@@ -162,9 +167,9 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
 
-        assert [v["idVisit"] for v in visits] == list(range(6))
+        assert [v["idVisit"] for v in fetch.visits] == list(range(6))
         assert mock_post.call_count == 3
 
     def test_a_short_page_does_not_end_pagination(self):
@@ -179,9 +184,9 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages):
-            visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=500)
-        assert len(visits) == 150
-        assert client.truncated is False
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=500)
+        assert len(fetch.visits) == 150
+        assert fetch.truncated is False
 
     def test_offset_follows_what_was_actually_received(self):
         """Stepping by page*page_size skips records whenever a page comes back short."""
@@ -200,15 +205,15 @@ class TestGetVisitsSince:
             [],
         ]
         with patch.object(client, "_post", side_effect=pages):
-            visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
-        assert [v["idVisit"] for v in visits] == [1, 2, 3, 4]
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
+        assert [v["idVisit"] for v in fetch.visits] == [1, 2, 3, 4]
 
     def test_a_page_of_only_duplicates_ends_pagination(self):
         client = _client()
         pages = [[{"idVisit": 1}], [{"idVisit": 1}]]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
-            visits = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=1)
-        assert len(visits) == 1
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=1)
+        assert len(fetch.visits) == 1
         assert mock_post.call_count == 2
 
     def test_passes_min_timestamp(self):
@@ -218,34 +223,41 @@ class TestGetVisitsSince:
             client.get_visits_since(since)
         assert mock_post.call_args.kwargs["minTimestamp"] == int(since.timestamp())
 
-    def test_rejects_an_unexpected_payload_shape(self):
+    @pytest.mark.parametrize("payload", [{"unexpected": "dict"}, {}, "a string", 42])
+    def test_a_non_list_payload_is_an_error_not_an_empty_feed(self, payload):
+        """An empty dict is falsy: checking emptiness first would read it as end-of-feed."""
         client = _client()
-        with patch.object(client, "_post", return_value={"unexpected": "dict"}), pytest.raises(MatomoError, match="Expected a list"):
-            client.get_visits_since(datetime.datetime.now(datetime.UTC))
+        with _patch_post(client, return_value=_response(payload)), pytest.raises(MatomoError, match="expected a list of rows"):
+            client._post("Live.getLastVisitsDetails")
 
-    def test_the_page_cap_sets_the_truncated_flag(self):
-        """A truncated hour must not be reported as a quiet hour."""
+    def test_the_page_cap_reports_truncation(self):
+        """A truncated window must not be reported as a quiet one."""
         client = _client()
-        page = [{"idVisit": f"p{n}"} for n in range(2)]
         with patch.object(client, "_post", side_effect=lambda *a, **k: [{"idVisit": f"{k['filter_offset']}-{n}"} for n in range(2)]):
-            client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=2)
-        assert client.truncated is True
-        assert len(page) == 2  # sanity: the stub returns fresh ids each call
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=2)
+        assert fetch.truncated is True
+        assert "page cap" in fetch.truncated_reason
 
-    def test_the_time_budget_sets_the_truncated_flag(self):
+    def test_the_time_budget_reports_truncation(self):
         """`timeout` is per socket read and bounds no overall duration."""
-        client = _client(budget_seconds=0)
+        client = _client()
         with patch.object(client, "_post", return_value=[{"idVisit": 1}]) as mock_post:
-            visits = client.get_visits_since(datetime.datetime.now(datetime.UTC))
-        assert client.truncated is True
-        assert visits == []
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=0)
+        assert fetch.truncated is True
+        assert "budget" in fetch.truncated_reason
+        assert fetch.visits == []
         mock_post.assert_not_called()
 
-    def test_a_clean_run_leaves_truncated_false(self):
+    def test_the_budget_is_per_call_not_per_client(self):
+        """It bounds one fetch, so a client is not permanently poisoned by a tight budget."""
         client = _client()
         with patch.object(client, "_post", return_value=[]):
-            client.get_visits_since(datetime.datetime.now(datetime.UTC))
-        assert client.truncated is False
+            assert client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=0).truncated is True
+            assert client.get_visits_since(datetime.datetime.now(datetime.UTC), budget_seconds=300).truncated is False
 
-    def test_the_page_cap_is_bounded(self):
-        assert MAX_PAGES == 200
+    def test_a_clean_run_is_not_flagged_truncated(self):
+        client = _client()
+        with patch.object(client, "_post", return_value=[]):
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC))
+        assert fetch.truncated is False
+        assert fetch.truncated_reason is None
