@@ -64,15 +64,27 @@ export function initAvatarUpload(container = document) {
     const fileInput = container.querySelector('#avatar-file-input');
     const statusSpan = container.querySelector('#avatar-upload-status');
     const img = container.querySelector('#avatar-preview-img');
-    const i18nTarget = container.closest?.('.formElement.avatar')
-        || container.querySelector?.('.formElement.avatar')
-        || container;
-    const strings = avatarStringsFromElement(i18nTarget);
+    const strings = avatarStringsFromElement(container);
+
+    // Object URL for the current local file preview; revoked when replaced
+    // or cleared so each selected file doesn't leak until page unload.
+    let previewObjectUrl = null;
+    const clearPreviewObjectUrl = () => {
+        if (previewObjectUrl && URL.revokeObjectURL) {
+            URL.revokeObjectURL(previewObjectUrl);
+        }
+        previewObjectUrl = null;
+    };
+    const setPreviewBlob = (file) => {
+        clearPreviewObjectUrl();
+        previewObjectUrl = URL.createObjectURL(file);
+        img.src = previewObjectUrl;
+    };
 
     if (fileInput && img) {
         fileInput.addEventListener('change', () => {
             if (fileInput.files && fileInput.files[0]) {
-                img.src = URL.createObjectURL(fileInput.files[0]);
+                setPreviewBlob(fileInput.files[0]);
                 setStatus(statusSpan, '', 'info');
             }
         });
@@ -115,10 +127,15 @@ export function initAvatarUpload(container = document) {
 
                 const data = await res.json();
                 setStatus(statusSpan, strings.uploadSuccess, 'success');
-                if (fileInput.files && fileInput.files[0] && img) {
-                    img.src = URL.createObjectURL(fileInput.files[0]);
-                } else if (data.avatar_url && img) {
-                    img.src = data.avatar_url;
+                if (img) {
+                    if (data.avatar_url) {
+                        // Show what the server actually stored (sanitized,
+                        // resized, cache-busted), not the raw local file.
+                        clearPreviewObjectUrl();
+                        img.src = data.avatar_url;
+                    } else if (fileInput.files && fileInput.files[0]) {
+                        setPreviewBlob(fileInput.files[0]);
+                    }
                 }
             } catch (err) {
                 setStatus(statusSpan, err.message || strings.uploadFailed, 'error');
@@ -153,6 +170,7 @@ export function initAvatarUpload(container = document) {
                     fileInput.value = '';
                 }
                 if (img) {
+                    clearPreviewObjectUrl();
                     const basePath = img.getAttribute('data-base-src') || img.src.split('?')[0];
                     img.src = `${basePath}?t=${Date.now()}`;
                 }
