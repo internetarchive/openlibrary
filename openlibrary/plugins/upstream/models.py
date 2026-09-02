@@ -15,7 +15,6 @@ from infogami.utils.view import safeint  # noqa: F401 side effects may be needed
 from openlibrary.core import ia, lending, models
 from openlibrary.core.models import Image
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents
 from openlibrary.plugins.upstream.utils import MultiDict, get_identifier_config
 from openlibrary.plugins.worksearch.code import works_by_author, works_by_author_async
@@ -234,17 +233,6 @@ class Edition(models.Edition):
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
-    def get_current_and_available_loans(self):
-        current_loans = borrow.get_edition_loans(self)
-        current_and_available_loans = (
-            current_loans,
-            self._get_available_loans(current_loans),
-        )
-        return current_and_available_loans
-
-    def get_current_loans(self):
-        return borrow.get_edition_loans(self)
-
     def get_available_loans(self):
         """
         Get the resource types currently available to be loaned out for this edition.  Does NOT
@@ -262,21 +250,10 @@ class Edition(models.Edition):
         if lending.is_loaned_out(self.ocaid):
             return []
 
-        # find available loans. there are no current loans
-        return self._get_available_loans([])
-
-    def _get_available_loans(self, current_loans):
-        if current_loans:
+        if lending.is_loaned_out_on_ia(self.ocaid):
             return []
 
-        if not self.ocaid:
-            return []
-
-        resource_id = f"bookreader:{self.ocaid}"
-        if borrow.is_loaned_out(resource_id):
-            return []
-
-        return [{"resource_id": resource_id, "resource_type": "bookreader", "size": None}]
+        return [{"resource_id": f"bookreader:{self.ocaid}", "resource_type": "bookreader", "size": None}]
 
     def update_loan_status(self):
         """Update the loan status"""
@@ -878,7 +855,7 @@ class User(models.User):
             return 0
 
     def get_loan_count(self) -> int:
-        return len(borrow.get_loans(self))
+        return len(lending.get_loans_of_user(self.key))
 
     def get_loans(self):
         self.update_loan_status()
