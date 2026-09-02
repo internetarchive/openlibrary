@@ -32,10 +32,6 @@ import './OlIcon.js';
  * @prop {String} labelPageAnnouncement - Screen-reader announcement template read after each
  *                                        page change, use {page} and {total} as placeholders
  *                                        (default: "Page {page} of {total}")
- * @prop {String} columns - Column counts overriding the responsive defaults: comma- or
- *                          space-separated values for the width tiers (≤480, ≤600, ≤768,
- *                          ≤1024, wider). A shorter list repeats its last value, so "6"
- *                          fixes six columns at every width (default: unset)
  * @prop {Boolean} showIndicators - When present, shows the page indicator bar (default: false)
  *
  * @fires ol-carousel-page-change - Fired once the scroller settles on a new page. detail:
@@ -97,7 +93,6 @@ export class OlCarousel extends LitElement {
         labelPages: { type: String, attribute: 'label-pages' },
         labelGoToPage: { type: String, attribute: 'label-go-to-page' },
         labelPageAnnouncement: { type: String, attribute: 'label-page-announcement' },
-        columns: { type: String },
         showIndicators: { type: Boolean, attribute: 'show-indicators' },
         _page: { type: Number, state: true },
         _totalPages: { type: Number, state: true },
@@ -400,7 +395,6 @@ export class OlCarousel extends LitElement {
         this.labelPages = 'Carousel pages';
         this.labelGoToPage = 'Go to page {page} of {total}';
         this.labelPageAnnouncement = 'Page {page} of {total}';
-        this.columns = '';
         this.showIndicators = false;
         this._page = 0;
         this._totalPages = 1;
@@ -509,9 +503,6 @@ export class OlCarousel extends LitElement {
     }
 
     updated(changedProperties) {
-        if (changedProperties.has('columns')) {
-            this._updateColumns(this.clientWidth);
-        }
         if (changedProperties.has('_columns') || changedProperties.has('_itemCount')
             || changedProperties.has('peek') || changedProperties.has('gap')) {
             this._recalculate();
@@ -581,17 +572,8 @@ export class OlCarousel extends LitElement {
         this._itemCount = this._items.length;
     }
 
-    /** Resolved [maxWidth, cols] pairs — the `columns` attribute overrides
-     *  the default counts tier by tier, repeating its last value. */
-    get _breakpointList() {
-        if (!this.columns) return OlCarousel._breakpoints;
-        const counts = String(this.columns).split(/[\s,]+/).map(Number).filter((n) => n > 0);
-        if (!counts.length) return OlCarousel._breakpoints;
-        return OlCarousel._breakpoints.map(([maxWidth], i) => [maxWidth, counts[Math.min(i, counts.length - 1)]]);
-    }
-
     _updateColumns(width) {
-        for (const [maxWidth, cols] of this._breakpointList) {
+        for (const [maxWidth, cols] of OlCarousel._breakpoints) {
             if (width <= maxWidth) {
                 if (cols !== this._columns) {
                     this._columns = cols;

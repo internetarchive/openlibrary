@@ -79,11 +79,10 @@ function pointerEvent(type, { x = 0, pointerType = 'mouse', button = 0, buttons 
 }
 
 /** Mount a carousel with `count` children, stub its geometry reads, measure. */
-async function mountCarousel(count, { showIndicators = false, columns = '' } = {}) {
+async function mountCarousel(count, { showIndicators = false } = {}) {
     const el = document.createElement('ol-carousel');
     el.gap = GAP;
     if (showIndicators) el.showIndicators = true;
-    if (columns) el.columns = columns;
 
     for (let i = 0; i < count; i++) {
         const item = document.createElement('div');
@@ -416,38 +415,6 @@ describe('page announcements', () => {
         await scrollTo(el._pageOffsets[2]);
         await settle();
         expect(el.shadowRoot.querySelector('.announcer').textContent).toBe('3 中 3');
-    });
-});
-
-describe('columns attribute', () => {
-    it('fixes the column count with a single value', async() => {
-        const { el } = await mountCarousel(18, { columns: '6' });
-        expect(el._columns).toBe(6);
-        expect(el.totalPages).toBe(3);
-    });
-
-    it('maps a list onto the width tiers, repeating the last value', async() => {
-        const { el } = await mountCarousel(18, { columns: '3,6' });
-        expect(el._columns).toBe(6);              // 1280px — beyond the first tier
-
-        resizeObservers.forEach((ro) => ro.trigger(400));   // ≤480 tier
-        await el.updateComplete;
-        expect(el._columns).toBe(3);
-        expect(el.totalPages).toBe(6);
-    });
-
-    it('recalculates when the attribute changes', async() => {
-        const { el } = await mountCarousel(18);
-        el.setAttribute('columns', '9');
-        await el.updateComplete;
-        await el.updateComplete;
-        expect(el._columns).toBe(9);
-        expect(el.totalPages).toBe(2);
-    });
-
-    it('falls back to the defaults for a malformed value', async() => {
-        const { el } = await mountCarousel(18, { columns: 'banana' });
-        expect(el._columns).toBe(COLUMNS);
     });
 });
 
