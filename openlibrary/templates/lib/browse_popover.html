@@ -9,18 +9,40 @@ $# Analytics: data-*-track = "category|action|label". category = track_prefix,
 $# which the two nav_head.html include sites set per surface (desktop "MainNav"
 $# vs. mobile tray "MainNavMobile") so open-rate and click-through can be
 $# compared across surfaces. The label carries each destination's 1-based rank
-$# in visual top-to-bottom order (featured 1–4, then simple links 5–8) so we
+$# in visual top-to-bottom order (featured first, then the simple links) so we
 $# can see how far down the single column patrons reach.
 $#   data-ol-link-track — link clicks; ol.analytics.js delegates on click.
 $#   data-ol-open-track — one event per open (pointer or keyboard), sent by the
 $#     browse-scoped ol-popover-open listener in index.js.
+$#
+$# Destinations come from openlibrary/plugins/openlibrary/nav.py so this panel
+$# and the hamburger drawer can't drift apart. Only the icons and the featured
+$# rows' blurbs live here — they're presentation, and no other surface has them.
 $ pfx = track_prefix or "MainNav"
-$ simpleLinks = [
-$     { "href": "/collections", "icon": "library-big", "text": _("Collections"), "track": "Collections", "rank": 5 },
-$     { "href": "/k-12", "icon": "graduation-cap", "text": _("K-12 Student Library"), "track": "K12Library", "rank": 6 },
-$     { "href": "/booktalks", "icon": "mic", "text": _("Book Talks"), "track": "BookTalks", "rank": 7 },
-$     { "href": "/random", "icon": "dices", "text": _("Random Book"), "track": "RandomBook", "rank": 8 }
-$ ]
+$ allLinks = browse_links()
+$ featuredLinks = allLinks[:BROWSE_FEATURED_COUNT]
+$ simpleLinks = allLinks[BROWSE_FEATURED_COUNT:]
+$# Keyed by NavLink.track so reordering nav.py can't mismatch an icon or blurb to a label.
+$# Both lookups fall back rather than subscript: this panel renders on every
+$# page, so a destination added to nav.py without an entry here must degrade to
+$# a generic icon, not 500 the whole site.
+$ featuredDetail = {
+$     'Subjects': _('Browse books by topic'),
+$     'Trending': _('Most popular right now'),
+$     'Explore': _('Browse the virtual shelves'),
+$     'Lists': _('Reader-curated collections'),
+$ }
+$ navIcons = {
+$     'Subjects': 'layout-grid',
+$     'Trending': 'trending-up',
+$     'Explore': 'compass',
+$     'Lists': 'list',
+$     'Collections': 'library-big',
+$     'K12Library': 'graduation-cap',
+$     'BookTalks': 'mic',
+$     'RandomBook': 'dices',
+$     'AdvancedSearch': 'search',
+$ }
 <div class="browse-component header-dropdown">
   <ol-popover class="browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
     <button type="button" slot="trigger" class="browse-popover__trigger">
@@ -29,39 +51,20 @@ $ ]
     </button>
     <div class="browse-popover__panel">
       <div class="browse-popover__featured">
-        <a class="browse-feature" href="/subjects" data-ol-link-track="$(pfx)|Subjects|1">
-          <span class="browse-feature__icon">$:macros.icon("layout-grid")</span>
-          <span class="browse-feature__body">
-            <span class="browse-feature__title">$_('Subjects')</span>
-            <span class="browse-feature__desc">$_('Browse books by topic')</span>
-          </span>
-        </a>
-        <a class="browse-feature" href="/trending" data-ol-link-track="$(pfx)|Trending|2">
-          <span class="browse-feature__icon">$:macros.icon("trending-up")</span>
-          <span class="browse-feature__body">
-            <span class="browse-feature__title">$_('Trending')</span>
-            <span class="browse-feature__desc">$_('Most popular right now')</span>
-          </span>
-        </a>
-        <a class="browse-feature" href="/explore" data-ol-link-track="$(pfx)|Explore|3">
-          <span class="browse-feature__icon">$:macros.icon("compass")</span>
-          <span class="browse-feature__body">
-            <span class="browse-feature__title">$_('Library Explorer')</span>
-            <span class="browse-feature__desc">$_('Browse the virtual shelves')</span>
-          </span>
-        </a>
-        <a class="browse-feature" href="/lists" data-ol-link-track="$(pfx)|Lists|4">
-          <span class="browse-feature__icon">$:macros.icon("list")</span>
-          <span class="browse-feature__body">
-            <span class="browse-feature__title">$_('Lists')</span>
-            <span class="browse-feature__desc">$_('Reader-curated collections')</span>
-          </span>
-        </a>
+        $for link in featuredLinks:
+          <a class="browse-feature" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(loop.index)">
+            <span class="browse-feature__icon">$:macros.icon(navIcons.get(link.track, 'link'))</span>
+            <span class="browse-feature__body">
+              <span class="browse-feature__title">$(link.text)</span>
+              $if link.track in featuredDetail:
+                <span class="browse-feature__desc">$(featuredDetail[link.track])</span>
+            </span>
+          </a>
       </div>
       <hr class="browse-popover__divider">
       <ul class="browse-popover__links">
         $for link in simpleLinks:
-          <li><a class="browse-popover__link" href="$(link['href'])" data-ol-link-track="$(pfx)|$(link['track'])|$(link['rank'])">$:macros.icon(link['icon'], size="sm")$(link['text'])</a></li>
+          <li><a class="browse-popover__link" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(BROWSE_FEATURED_COUNT + loop.index)">$:macros.icon(navIcons.get(link.track, 'link'), size="sm")$(link.text)</a></li>
       </ul>
     </div>
   </ol-popover>

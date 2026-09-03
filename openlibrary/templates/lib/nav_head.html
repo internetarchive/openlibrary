@@ -1,55 +1,13 @@
 $def with (page)
 $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
+$# Librarians reach /merges; only super librarians see the open-request count.
+$ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
 <header id="header-bar" class="header-bar">
 
 
-  $if ctx.user:
-    $ loginLinks = [
-    $     { "href": "/account/books", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
-    $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MyProfile" },
-    $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MySettings" },
-    $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout", "name":"hamburger-logout" },
-    $ ]
-      $if is_privileged_user:
-        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests", "badge": True })
-  $else:
-    $ loginLinks = [
-    $     { "loginClass": "login-links" }
-    $ ]
   $ myBooksLinks = [
   $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
   $ ]
-  $ browseLinks = [
-  $     { "href": "/subjects", "text": _("Subjects"), "track": "Subjects" },
-  $     { "href": "/trending", "text": _("Trending"), "track": "Trending" },
-  $     { "href": "/explore", "text": _("Library Explorer"), "track": "Explore" },
-  $     { "href": "/lists", "text": _("Lists"), "track": "Lists" },
-  $     { "href": "/collections", "text": _("Collections"), "track": "Collections" },
-  $     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library" },
-  $     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks" },
-  $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
-  $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
-  $ ]
-  $ contributeLinks = [
-  $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
-  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" }
-  $ ]
-  $ resourceLinks = [
-  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" },
-  $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
-  $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
-  $ ]
-  $ hamburgerProps = {
-  $  'name': 'hamburger',
-  $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
-  $     [ { "subsection": _("Browse") } ] + browseLinks +
-  $     [ { "subsection": _("Contribute") } ] + contributeLinks +
-  $     [ { "subsection": _("Resources") } ] + resourceLinks,
-  $  'icon': 'menu',
-  $  'image-class': 'hamburger__icon',
-  $  'label': 'additional options menu',
-  $  'show_mask': True
-  $ }
 
   $ ol_env = get_deployment_name()
   <div class="logo-component">
@@ -99,7 +57,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       $ is_print_disabled = 'true' if cookies().get('pd') else 'false'
       <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')" data-print-disabled="$is_print_disabled">
         <span class="search-bar-trigger__label">$_('Search')</span>
-        <span class="search-bar-trigger__icon" aria-hidden="true"></span>
+        $# Decorative: the button carries the accessible name.
+        $:macros.icon('search', extra_class='search-bar-trigger__icon')
       </button>
     </div>
     $# Barcode scan needs a camera, so it's only surfaced on touch devices
@@ -124,9 +83,76 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
-  $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")
+  <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">
+    <button class="hamburger-trigger" aria-label="$_('Menu')" aria-expanded="false">
+      $if ctx.user:
+        <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
+        $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
+          <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
+      $# Decorative — the button carries the accessible name.
+      $:macros.icon('menu', size="lg", extra_class='hamburger__icon')
+    </button>
+  </div>
 
 </header>
+
+<ol-drawer id="hamburger-drawer" label="$_('Menu')">
+  <ul class="drawer-menu hamburger-drawer-menu">
+
+    $# ── My Open Library ──
+    <li class="drawer-menu__subsection">$_("My Open Library")</li>
+    $if ctx.user:
+      <li class="drawer-menu__item">
+        <a href="/account/books" data-ol-link-track="Hamburger|MyBooks">
+          $_("My Books")
+          <br><span class="drawer-menu__subheading">$_("Loans, Reading Log, Lists, Stats")</span>
+        </a>
+      </li>
+      <li class="drawer-menu__item">
+        <a href="$(ctx.user.key)" data-ol-link-track="Hamburger|MyProfile">$_("My Profile")</a>
+      </li>
+      $if is_privileged_user:
+        <li class="drawer-menu__item">
+          $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
+            <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
+          <a href="$(homepath())/merges" data-ol-link-track="Hamburger|MyRequests">$_("Pending Merge Requests")</a>
+        </li>
+      <li class="drawer-menu__item">
+        <a href="$(homepath())/account" data-ol-link-track="Hamburger|MySettings">$_("Settings")</a>
+      </li>
+      <li class="drawer-menu__item">
+        <form name="hamburger-logout" action="/account/logout" method="post">
+          <button data-ol-link-track="Hamburger|Logout">$_("Log out")</button>
+        </form>
+      </li>
+    $else:
+      <li class="drawer-menu__login-links">
+        <a class="drawer-menu__login-secondary" href="/account/login">$_('Log In')</a>
+        <a class="drawer-menu__login-primary" href="/account/create">$_('Sign Up')</a>
+      </li>
+
+    $# ── Browse ──
+    $# Destinations come from openlibrary/plugins/openlibrary/nav.py, shared with
+    $# the Browse popover so the two can't drift. The drawer lists all of them
+    $# flat; the popover features the first few.
+    <li class="drawer-menu__subsection">$_("Browse")</li>
+    $# Two-part track values, matching the drawer's other rows — the popover's
+    $# positional rank is its own thing and mixing formats muddies the data.
+    $for link in browse_links():
+      <li class="drawer-menu__item"><a href="$(link.href)" data-ol-link-track="Hamburger|$(link.track)">$(link.text)</a></li>
+
+    $# ── Contribute ──
+    <li class="drawer-menu__subsection">$_("Contribute")</li>
+    <li class="drawer-menu__item"><a href="/books/add" data-ol-link-track="Hamburger|AddBook">$_("Add a Book")</a></li>
+    <li class="drawer-menu__item"><a href="/recentchanges" data-ol-link-track="Hamburger|RecentEdits">$_("Recent Community Edits")</a></li>
+
+    $# ── Resources ──
+    <li class="drawer-menu__subsection">$_("Resources")</li>
+    <li class="drawer-menu__item"><a href="/help" data-ol-link-track="Hamburger|Help">$_("Help & Support")</a></li>
+    <li class="drawer-menu__item"><a href="/developers" data-ol-link-track="Hamburger|DevelopersHelp">$_("Developer Center")</a></li>
+    <li class="drawer-menu__item"><a href="/librarians" data-ol-link-track="Hamburger|LibrariansHelp">$_("Librarians Portal")</a></li>
+  </ul>
+</ol-drawer>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
