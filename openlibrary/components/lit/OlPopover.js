@@ -794,6 +794,7 @@ export class OlPopover extends LitElement {
         this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragY = 0;
         this._isHandleDrag = !!(handle && path.includes(handle));
         // Read scroll position from the actual scroll container under the touch,
@@ -820,12 +821,21 @@ export class OlPopover extends LitElement {
     }
 
     _onTouchMove(e) {
+        if (this._dragBlocked) return;
+
         const touch = e.touches[0];
         const deltaY = touch.clientY - this._touchStartY;
 
         if (!this._isDragging) {
             // Start drag if touching handle, or at scroll-top and swiping down
             if (this._isHandleDrag || (this._touchScrollTop <= 0 && deltaY > 5)) {
+                // Scrolling already underway — the browser won't let us cancel
+                // the gesture, and preventDefault() would only log a console
+                // intervention. Leave the rest of the touch to the scroller.
+                if (!e.cancelable) {
+                    this._dragBlocked = true;
+                    return;
+                }
                 this._isDragging = true;
             } else {
                 return; // Let normal scroll happen
@@ -834,7 +844,7 @@ export class OlPopover extends LitElement {
 
         const dragY = Math.max(0, deltaY);
         this._lastDragY = dragY;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
 
         const panel = this.shadowRoot.querySelector('.panel');
         if (panel) {
@@ -858,6 +868,7 @@ export class OlPopover extends LitElement {
         const velocity = dragY / Math.max(elapsed, 1);
 
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragY = 0;
 
         const panel = this.shadowRoot.querySelector('.panel');
