@@ -99,7 +99,7 @@ The API reference tables on `/developers/design` are **generated, not hand-writt
 
 To make a component's API appear in the tables:
 
-- **Properties** — declare each public property in `static properties` and document it with `@prop {Type} name - description`. The *Attribute* column comes from the property's `attribute` mapping: use `{ attribute: 'kebab-name' }` for multi-word names; single-word props map 1:1.
+- **Properties** — declare each public property in `static properties` and document it with `@prop {Type} name - description`. The *Attribute* column comes from the property's `attribute` mapping: use `{ attribute: 'kebab-name' }` for multi-word names; single-word props map 1:1. **A prop with a closed set of string values is typed as a union, not `{String}`** — see below.
 - **Events** — `@fires event-name - description`. Describe the `detail` payload in the description (e.g. `detail: { selected: Boolean }`).
 - **Slots** — `@slot - description` for the default slot; `@slot name - description` for named slots.
 - **CSS custom properties** — `@cssprop [--name=default] - description`. The bracketed default fills the *Default* column.
@@ -107,6 +107,28 @@ To make a component's API appear in the tables:
 - **Tag name** — read from `customElements.define('ol-name', ...)`. An explicit `@element ol-name` tag is optional, for clarity only.
 
 Intentionally **excluded** from the tables: internal reactive state (Lit `state: true`, conventionally `_`-prefixed) and any non-public member — keep those out of `@prop`.
+
+### Type the enum, don't describe it
+
+The *Type* column is `type.text` copied verbatim out of the JSDoc, so `@prop {String} variant` renders the useless word `String` and the real answer ends up buried in prose that nothing checks. **Write the allowed values as a union type.** Editors then autocomplete them, `tsc --checkJs` catches typos, and the design page's table lists them without anyone maintaining a second copy.
+
+```js
+// Good — the values ARE the type
+ * @prop {"small" | "medium"} size - Default: "medium"
+ * @prop {"neutral" | "success" | "warning" | "danger"} variant - Default: "neutral"
+
+// Bad — the type says nothing and the values drift out of sync with the code
+ * @prop {String} size - Chip size: "small" or "medium" (default)
+```
+
+Where the line falls:
+
+- **Closed set of string literals** → union (`variant`, `size`, `mode`, `placement`, `appearance`, `type`). One legal value is still a union: `@prop {"floating"} elevation`, `@prop {"button"} variant` — omitting the attribute is the other state.
+- **Open-ended string** → `{String}` (`label`, `href`, `name`, every `label*` i18n override, a CSS length like `maxHeight`).
+- **Composed grammar rather than a fixed list** → `{String}`, with the grammar spelled out in the description. `ol-popover` / `ol-tooltip` `placement` is `"{side}"` or `"{side}-{align}"`; enumerating all 16 combinations would be noise in the table. Prefer the union whenever the list is short enough to read at a glance (roughly six or fewer).
+- **State the default in the description** (`Default: "medium"`), never in the type — the manifest reads the *Default* column from the field's initializer, and repeating it in the type just makes the type wrong.
+- **Don't restate the values in the description** once they're in the type. That duplication is exactly what drifts.
+- **Quote style follows the file.** Both `{"start" | "end"}` and `{'start' | 'end'}` render fine; match whichever the component's own JSDoc already uses rather than churning it.
 
 Example (from `OLChip.js`):
 
@@ -538,7 +560,7 @@ _onPopoverOpen() {
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
-3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables.
+3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables. Type any closed set of values as a union, not `{String}` — see [Type the enum, don't describe it](#type-the-enum-dont-describe-it).
 4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) so the API table renders locally; the JSON is gitignored and rebuilt by `make lit-components` in CI/deploy.
 5. Add a demo partial at `openlibrary/templates/design/components/<id>.html.jinja` defining a `{% macro demos() %}` of `ex.example(...)` calls, and register a `Component(...)` row in `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py`. The row drives the sidebar, section order, and the *Avoid* line; the API table renders from the manifest. Nothing on the page is hand-listed — `openlibrary/templates/design.html` is only a shim into `design/layout.html.jinja`, so there is no section markup to add there.
 6. If it renders an anchored overlay panel, promote it to the top layer — see [Overlays and the top layer](#overlays-and-the-top-layer).

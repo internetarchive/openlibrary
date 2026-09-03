@@ -75,6 +75,12 @@ ol-popover:not(:defined) > :not([slot="trigger"]) {
   display: none;
 }
 
+/* Hide ol-drawer's slotted menu content before the component upgrades; the
+   drawer shell renders in its shadow root once Lit defines it. */
+ol-drawer:not(:defined) {
+  display: none;
+}
+
 /* Before ol-carousel upgrades, its items would stack as full-width blocks —
    a tall flash and a large layout shift. Lay out one clipped row instead,
    with item widths approximating the measured layout: (1 - 2 * peek) / cols
