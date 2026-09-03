@@ -90,9 +90,12 @@ export class OlMenuPopover extends LitElement {
         /* Real <button>s so Enter/Space activate natively; the keydown handler
            only moves focus. UA button box reset so they read as menu rows. */
         .item {
-            display: block;
+            display: flex;
+            align-items: center;
             width: 100%;
             box-sizing: border-box;
+            /* One height across every menu row; a wrapping label grows past it. */
+            min-height: var(--menu-row-height);
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
             border: 0;

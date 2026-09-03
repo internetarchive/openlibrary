@@ -16,3 +16,15 @@
   --control-height-medium: 32px;
   --control-height-large: 38px;
 }
+
+/*
+ * Menu rows are a different shape: full-bleed rows inside a panel, sized to be
+ * comfortably tappable rather than to line up beside a button. One height across
+ * every menu/popover row keeps them scannable.
+ *
+ * Applied as `min-height` — a row with a description or a wrapping label grows
+ * past it.
+ */
+:root {
+  --menu-row-height: 36px;
+}

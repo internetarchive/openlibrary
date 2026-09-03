@@ -131,9 +131,6 @@ export class OlShelfActions extends LitElement {
             /* A fixed measure: the popover shrink-wraps its content, and the
                title would otherwise size the panel per book. */
             width: 300px;
-            /* One height for every row, so the panel never shifts as rows
-               re-render (the rating caption swaps between a span and a button). */
-            --_row-height: calc(var(--font-size-body-medium) * var(--line-height-body) + 2 * var(--spacing-inset-sm));
             /* Keeps the first and last rows off the rounded corners. */
             padding-block: var(--spacing-inset-xs);
             color: var(--color-text);
@@ -249,7 +246,9 @@ export class OlShelfActions extends LitElement {
             align-items: center;
             gap: var(--spacing-inline-md);
             box-sizing: border-box;
-            min-height: var(--_row-height);
+            /* One height for every row, so the panel never shifts as rows
+               re-render (the rating caption swaps between a span and a button). */
+            min-height: var(--menu-row-height);
             margin: 0;
             margin-inline: var(--spacing-inset-xs);
             padding-block: var(--spacing-inset-sm);
@@ -349,7 +348,7 @@ export class OlShelfActions extends LitElement {
             align-items: center;
             gap: var(--spacing-inline-md);
             box-sizing: border-box;
-            height: var(--_row-height);
+            height: var(--menu-row-height);
             padding: 0 var(--spacing-inset-md);
         }
 
@@ -573,6 +572,15 @@ export class OlShelfActions extends LitElement {
         .input:focus {
             outline: 2px solid var(--color-focus-ring);
             outline-offset: -1px;
+        }
+
+        /* iOS zooms in on focus when the field's font is < 16px; bump the
+           text field and the date selects up on mobile to suppress that. */
+        @media (max-width: 767px) {
+            .input,
+            .select {
+                font-size: var(--font-size-body-large);
+            }
         }
 
         .list-items {
@@ -1289,7 +1297,13 @@ export class OlShelfActions extends LitElement {
     async _openLists() {
         this._pane = 'lists';
         await this.updateComplete;
-        this.shadowRoot.querySelector(`.pane:nth-child(${PANES.indexOf('lists') + 1}) .input`)?.focus({ preventScroll: true });
+        // Desktop lands on the filter so the user can type straight away. On
+        // mobile (ol-popover's tray breakpoint) the soft keyboard would cover
+        // the lists they came here to see, so take the back button instead —
+        // the pane the focus came from is inert now and would strand it.
+        const pane = `.pane:nth-child(${PANES.indexOf('lists') + 1})`;
+        const target = window.matchMedia('(max-width: 767px)').matches ? '.back' : '.input';
+        this.shadowRoot.querySelector(`${pane} ${target}`)?.focus({ preventScroll: true });
         this._loadLists();
     }
 

@@ -218,7 +218,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
+            box-sizing: border-box;
+            /* One height across every menu row. */
+            min-height: var(--menu-row-height);
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
