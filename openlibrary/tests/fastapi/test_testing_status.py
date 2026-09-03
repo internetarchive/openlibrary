@@ -340,6 +340,7 @@ def test_deploy_drops_closed_prs():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         status_module.status_deploy().POST()
 
@@ -360,6 +361,7 @@ def test_deploy_drops_staged_removals():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         status_module.status_deploy().POST()
 
@@ -709,6 +711,7 @@ def test_deploy_unconfigured_answers_error_but_advances_state():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="unconfigured"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         response = status_module.status_deploy().POST()
 
@@ -788,6 +791,7 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
         patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
         patch("openlibrary.plugins.openlibrary.status._save_testing_state") as mock_save,
         patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=None),
     ):
         response = status_module.status_deploy().POST()
 
@@ -805,6 +809,36 @@ def test_deploy_success_applies_staged_changes_then_saves_once():
     mock_save.assert_called_once_with(state)
 
 
+def test_deploy_records_who_clicked_it():
+    """A deploy records the OL username of the maintainer who clicked it."""
+    state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
+    user = MagicMock()
+    user.key = "/people/mecha-kraken"
+
+    with (
+        patch("openlibrary.plugins.openlibrary.status._is_maintainer", return_value=True),
+        patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
+        patch("openlibrary.plugins.openlibrary.status._get_drift_info", return_value=({}, False)),
+        patch("openlibrary.plugins.openlibrary.status.trigger_rebuild", return_value="triggered"),
+        patch("openlibrary.plugins.openlibrary.status._save_testing_state"),
+        patch("openlibrary.plugins.openlibrary.status._evict_drift_cache"),
+        patch("openlibrary.plugins.openlibrary.status.get_current_user", return_value=user),
+    ):
+        status_module.status_deploy().POST()
+
+    assert state.deployed_by == "mecha-kraken"
+
+
+def test_build_testing_status_passes_deployed_by():
+    """The API response carries the recorded deployer username through."""
+    state = _make_state(prs=[_make_pr(added_at="2026-08-01T10:00:00+00:00")])
+    state.deployed_by = "mecha-kraken"
+
+    result = status_module.build_testing_status(state, {})
+
+    assert result.deployed_by == "mecha-kraken"
+
+
 def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_maintainer_user):
     mock_maintainer_user(is_maintainer=True)
     state = _make_state()
@@ -818,6 +852,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
     assert response.status_code == 200
     assert response.json() == {
         "last_deploy_at": "2026-08-05T18:00:00+00:00",
+        "deployed_by": "",
         "deploy_started_at": "",
         "deploying": False,
         "deploy_result": "",
