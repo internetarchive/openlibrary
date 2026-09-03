@@ -285,6 +285,8 @@
   position: relative;
 }
 
+/* `color` is not optional: the glyph is currentColor, and a <button> doesn't
+   inherit color — iOS Safari resolves the UA's ButtonText to its system blue. */
 .hamburger-trigger {
   display: flex;
   -webkit-box-align: center;
@@ -294,6 +296,7 @@
   background: none;
   border: none;
   padding: 0;
+  color: var(--color-text);
 }
 
 .navigation-component {
@@ -658,11 +661,10 @@
   display: none;
 }
 
+/* Darker than the trigger's placeholder-grey label, matching the barcode and
+   hamburger icons on either side. */
 .search-bar-trigger__icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  background: url(/static/images/search-icon.svg) center / contain no-repeat;
+  color: var(--color-text);
 }
 
 /* ── Barcode scanner button ──────────────────────────────────────────────
@@ -680,14 +682,14 @@
   transition: background-color 0.15s ease;
 }
 
-/* Match the search magnifier (#8a7f71 in search-icon.svg; --accessible-grey is
-   the nearest token). The link states outrank a:link/:visited/:hover in
-   base/common.css, which would otherwise paint the icon link-blue. */
+/* Match the search magnifier and the hamburger. The link states outrank
+   a:link/:visited/:hover in base/common.css, which would otherwise paint the
+   icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,
 .search-by-barcode:hover {
-  color: var(--accessible-grey);
+  color: var(--color-text);
 }
 
 .search-by-barcode img {

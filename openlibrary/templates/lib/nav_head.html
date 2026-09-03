@@ -57,7 +57,8 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
       $ is_print_disabled = 'true' if cookies().get('pd') else 'false'
       <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')" data-print-disabled="$is_print_disabled">
         <span class="search-bar-trigger__label">$_('Search')</span>
-        <span class="search-bar-trigger__icon" aria-hidden="true"></span>
+        $# Decorative: the button carries the accessible name.
+        $:macros.icon('search', extra_class='search-bar-trigger__icon')
       </button>
     </div>
     $# Barcode scan needs a camera, so it's only surfaced on touch devices
