@@ -208,13 +208,51 @@ class TestGetVisitsSince:
             fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=3)
         assert [v["idVisit"] for v in fetch.visits] == [1, 2, 3, 4]
 
-    def test_a_page_of_only_duplicates_ends_pagination(self):
+    def test_a_live_feed_shifting_by_a_full_page_loses_nothing(self):
+        """Regression: an all-duplicate page means the window moved, not that the feed ended.
+
+        The feed is newest-first and live. If enough visits arrive between two
+        requests, the next offset lands entirely on rows already consumed.
+        Treating that as end-of-feed dropped everything past the shift and
+        reported `truncated=False` -- a silently short score.
+        """
         client = _client()
-        pages = [[{"idVisit": 1}], [{"idVisit": 1}]]
+        state = {"n": 0}
+
+        def growing_feed(_method, **kw):
+            state["n"] += 1
+            # Five new visits land after the first page and remain thereafter.
+            feed = list(range(15, 0, -1)) if state["n"] >= 2 else list(range(10, 0, -1))
+            offset, limit = kw["filter_offset"], kw["filter_limit"]
+            return [{"idVisit": str(v)} for v in feed[offset : offset + limit]]
+
+        with patch.object(client, "_post", side_effect=growing_feed):
+            fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=5)
+
+        collected = {int(v["idVisit"]) for v in fetch.visits}
+        assert set(range(1, 11)) <= collected, "lost visits past the window shift"
+        assert len(fetch.visits) == len(collected), "returned duplicates"
+
+    def test_the_offset_tracks_rows_served_not_rows_kept(self):
+        """Offsetting by the deduped count re-requests rows already consumed."""
+        client = _client()
+        pages = [
+            [{"idVisit": 1}, {"idVisit": 2}],
+            [{"idVisit": 2}, {"idVisit": 3}],  # one duplicate
+            [],
+        ]
+        with patch.object(client, "_post", side_effect=pages) as mock_post:
+            client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=2)
+        # 0, then 2 (rows served), then 4 -- not 0, 2, 3 (rows kept).
+        assert [call.kwargs["filter_offset"] for call in mock_post.call_args_list] == [0, 2, 4]
+
+    def test_an_empty_page_ends_pagination(self):
+        client = _client()
+        pages = [[{"idVisit": 1}], [{"idVisit": 1}], []]
         with patch.object(client, "_post", side_effect=pages) as mock_post:
             fetch = client.get_visits_since(datetime.datetime.now(datetime.UTC), page_size=1)
         assert len(fetch.visits) == 1
-        assert mock_post.call_count == 2
+        assert mock_post.call_count == 3
 
     def test_passes_min_timestamp(self):
         client = _client()

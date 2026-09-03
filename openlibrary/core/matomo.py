@@ -177,6 +177,10 @@ class MatomoClient:
         since_timestamp, date_range = self._window(since)
         visits: list[dict] = []
         seen: set[str] = set()
+        # Rows the server has served, including duplicates. The offset must
+        # track this rather than len(visits): dedupe makes the two diverge, and
+        # offsetting by the deduped count re-requests rows already consumed.
+        consumed = 0
         deadline = time.monotonic() + budget_seconds
 
         for page in range(MAX_PAGES):
@@ -189,20 +193,22 @@ class MatomoClient:
                 date=date_range,
                 minTimestamp=since_timestamp,
                 filter_limit=page_size,
-                # Offset by rows held, not page x page_size: Matomo enforces
+                # Offset by rows consumed, not page x page_size: Matomo enforces
                 # server-side row caps, so a page can come back short.
-                filter_offset=len(visits),
+                filter_offset=consumed,
             )
             if not batch:
                 break
+            consumed += len(batch)
 
-            # The feed is live and newest-first, so a visit arriving mid-fetch
-            # shifts the window and re-presents rows already held.
+            # The feed is live and newest-first, so visits arriving mid-fetch
+            # shift the window and re-present rows already consumed. An
+            # all-duplicate page therefore means the window moved, NOT that the
+            # feed ended -- breaking here silently dropped everything past the
+            # shift, with no truncation reported.
             fresh = [visit for visit in batch if str(visit.get("idVisit", "")) not in seen]
             seen.update(str(visit.get("idVisit", "")) for visit in batch)
             visits.extend(fresh)
-            if not fresh:
-                break
         else:
             return self._truncated(visits, f"hit the {MAX_PAGES}-page cap")
 
