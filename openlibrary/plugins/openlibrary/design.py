@@ -166,7 +166,6 @@ COMPONENTS = (
     Component(
         "drawer",
         "Drawer",
-        "A full-height panel sliding in from a viewport edge — navigation or filters that would crowd the page.",
         "design/components/drawer.html.jinja",
         group="Overlays",
         tag="ol-drawer",
