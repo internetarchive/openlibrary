@@ -95,10 +95,12 @@
   font-size: 1.1em;
   font-weight: 600;
   font-family: var(--font-family-title);
-  /* Not a scroll container: Literata's glyph metrics overrun the 1.35
-     line-height by ~1px, which overflow: auto turns into a scrollbar. */
-  overflow: visible;
   line-height: var(--line-height-heading);
+
+  /* Wrap unbreakable strings instead of the overflow: auto scroll
+     container that previously guarded #5810 (it grew a scrollbar
+     under Literata's taller glyph metrics). */
+  overflow-wrap: break-word;
 }
 
 /* Publish year on its own line under the author (title / author / year,
