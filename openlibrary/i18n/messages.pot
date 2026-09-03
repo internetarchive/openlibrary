@@ -447,7 +447,7 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: lib/header_dropdown.html lib/nav_head.html login.html
+#: lib/nav_head.html login.html
 msgid "Log In"
 msgstr ""
 
@@ -1021,7 +1021,7 @@ msgstr ""
 msgid "Sign Up to Open Library"
 msgstr ""
 
-#: account/create.html lib/header_dropdown.html lib/nav_head.html
+#: account/create.html lib/nav_head.html
 msgid "Sign Up"
 msgstr ""
 

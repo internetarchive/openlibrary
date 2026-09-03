@@ -44,11 +44,6 @@ $ singleton = len(props.get('links', [])) == 1
               <li class="subsection">
                 $(link['subsection'])
               </li>
-            $elif 'loginClass' in link:
-              <li class="$(link['loginClass'])">
-                <a class="login-links__secondary" href="/account/login">$_('Log In')</a>
-                <a class="login-links__primary" href="/account/create">$_('Sign Up')</a>
-              </li>
             $else:
               <li>
               $if 'post' in link:
