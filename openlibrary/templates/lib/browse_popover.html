@@ -23,6 +23,9 @@ $ allLinks = browse_links()
 $ featuredLinks = allLinks[:BROWSE_FEATURED_COUNT]
 $ simpleLinks = allLinks[BROWSE_FEATURED_COUNT:]
 $# Keyed by NavLink.track so reordering nav.py can't mismatch an icon or blurb to a label.
+$# Both lookups fall back rather than subscript: this panel renders on every
+$# page, so a destination added to nav.py without an entry here must degrade to
+$# a generic icon, not 500 the whole site.
 $ featuredDetail = {
 $     'Subjects': _('Browse books by topic'),
 $     'Trending': _('Most popular right now'),
@@ -50,7 +53,7 @@ $ }
       <div class="browse-popover__featured">
         $for link in featuredLinks:
           <a class="browse-feature" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(loop.index)">
-            <span class="browse-feature__icon">$:macros.icon(navIcons[link.track])</span>
+            <span class="browse-feature__icon">$:macros.icon(navIcons.get(link.track, 'link'))</span>
             <span class="browse-feature__body">
               <span class="browse-feature__title">$(link.text)</span>
               $if link.track in featuredDetail:
@@ -61,7 +64,7 @@ $ }
       <hr class="browse-popover__divider">
       <ul class="browse-popover__links">
         $for link in simpleLinks:
-          <li><a class="browse-popover__link" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(BROWSE_FEATURED_COUNT + loop.index)">$:macros.icon(navIcons[link.track], size="sm")$(link.text)</a></li>
+          <li><a class="browse-popover__link" href="$(link.href)" data-ol-link-track="$(pfx)|$(link.track)|$(BROWSE_FEATURED_COUNT + loop.index)">$:macros.icon(navIcons.get(link.track, 'link'), size="sm")$(link.text)</a></li>
       </ul>
     </div>
   </ol-popover>

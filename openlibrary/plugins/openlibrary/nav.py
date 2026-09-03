@@ -11,9 +11,11 @@ a blurb, the drawer renders one flat list. Sharing the markup instead would push
 icons and layout into this file and buy nothing, since the surfaces genuinely
 differ.
 
-Adding a destination is one edit here. Before this table existed the list was
-duplicated across the templates and had already drifted — Advanced Search was
-missing from the Browse popover.
+Adding a destination is one edit here — the surfaces pick it up on their own.
+Give it an icon in ``browse_popover.html``'s ``navIcons`` too, or the popover
+falls back to a generic one. Before this table existed the list was duplicated
+across the templates and had already drifted — Advanced Search was missing from
+the Browse popover.
 
 Labels are translated per call rather than at import, so the list must be built
 inside the function: module-level ``_()`` would freeze one request's locale for
