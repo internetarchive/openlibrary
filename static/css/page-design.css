@@ -160,16 +160,73 @@ html:has(.ds) {
   display: contents;
 }
 
+/* Hidden in the mobile row, where the groups run together as one strip. Styled
+   here rather than beside that `display: block` so the desktop sidebar and the
+   mobile popover — the two places the nav stacks — share one definition. */
 .ds__nav-group-title {
+  display: none;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-small);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Sits above the nav in the sidebar, separated by a rule so it reads as a
+   page-level control rather than another link in the list. */
+.ds__sidebar-controls {
+  padding-bottom: var(--spacing-stack-md);
+  margin-bottom: var(--spacing-stack-md);
+  border-bottom: var(--border-divider);
+}
+
+/* Below 768px the contents list is a popover: 30-odd links wrapped into a strip
+   pushed the page's first component off screen. JS moves the nav into the
+   popover and sets the mode, so there is one set of links, not two; with no JS
+   the row stays and the trigger never appears. */
+.ds__nav-popover {
   display: none;
 }
 
-/* Sits below the nav in the sidebar, separated by a rule so it reads as a
-   page-level control rather than another link in the list. */
-.ds__sidebar-controls {
-  padding-top: var(--spacing-stack-md);
-  margin-top: var(--spacing-stack-md);
-  border-top: var(--border-divider);
+.ds__sidebar[data-ds-nav-mode="popover"] {
+  display: flex;
+  gap: var(--spacing-inline-md);
+  align-items: center;
+}
+
+/* Ahead of the show-code toggle: navigation is what the sidebar is for. */
+.ds__sidebar[data-ds-nav-mode="popover"] .ds__nav-popover {
+  display: inline-flex;
+  order: -1;
+}
+
+/* The rule under the toggle separated it from the nav below. In the row they
+   sit side by side, so it has nothing left to separate. */
+.ds__sidebar[data-ds-nav-mode="popover"] .ds__sidebar-controls {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Inside the tray the nav stacks, as in the desktop sidebar. Link padding is
+   left at the base value: the tray is touched, not clicked. */
+.ds__nav-popover .ds__nav {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md)
+    var(--spacing-inset-lg);
+}
+
+.ds__nav-popover .ds__nav-list {
+  display: block;
+}
+
+.ds__nav-popover .ds__nav-group {
+  display: block;
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.ds__nav-popover .ds__nav-group-title {
+  display: block;
 }
 
 .ds__empty {
@@ -502,16 +559,11 @@ html:has(.ds) {
   color: var(--color-text-muted);
 }
 
-.ds-component__use-when,
 .ds-component__avoid {
   max-width: 78ch;
   margin: 0 0 var(--spacing-stack-xs);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-body-medium);
-}
-
-.ds-component__avoid {
   color: var(--color-warning-fg);
+  font-size: var(--font-size-body-medium);
 }
 
 /* ------------------------------------------------------------ Icon gallery */
@@ -1341,13 +1393,6 @@ fieldset.ds-demo-row {
 
   .ds__nav-group-title {
     display: block;
-    padding: var(--spacing-inset-xs) var(--spacing-inset-sm)
-      var(--spacing-inset-xs);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-label-small);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 
   .ds-state-grid {
