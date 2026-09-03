@@ -23,14 +23,15 @@ $     { "href": "/random", "icon": "dices", "text": _("Random Book"), "track": "
 $ ]
 <div class="browse-component header-dropdown">
   <ol-popover class="browse-popover" placement="bottom-center" aria-label="$_('Browse')" data-ol-open-track="$(pfx)|BrowseOpen">
-    <button type="button" slot="trigger" class="browse-popover__trigger">
+    <button type="button" slot="trigger" class="nav-ghost-btn browse-popover__trigger">
+      $:macros.icon("book-open-text", size="sm", extra_class="nav-ghost-btn__icon")
       $_('Browse')
       $:macros.icon("chevron-down", size="sm", extra_class="down-arrow")
     </button>
     <div class="browse-popover__panel">
       <div class="browse-popover__featured">
         <a class="browse-feature" href="/subjects" data-ol-link-track="$(pfx)|Subjects|1">
-          <span class="browse-feature__icon">$:macros.icon("layout-grid")</span>
+          <span class="browse-feature__icon">$:macros.icon("wand")</span>
           <span class="browse-feature__body">
             <span class="browse-feature__title">$_('Subjects')</span>
             <span class="browse-feature__desc">$_('Browse books by topic')</span>

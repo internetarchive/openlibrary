@@ -9,6 +9,14 @@
  */
 
 .header-bar {
+  /* One height for every control in the header row — the search field, the
+     My Books / Browse ghost buttons, and the account/menu button — so they
+     all line up. Large at every width: touch-friendly on mobile, and roomy
+     enough around the 24px glyphs in the account button. */
+  --header-control-height: var(--control-height-large);
+  /* One type size for the row's labels too. A one-off step between the 14px
+     and 16px tokens. */
+  --header-control-font-size: 15px;
   max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
@@ -26,6 +34,8 @@
 
 .header-bar .auth-component {
   display: none;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
   padding: var(--spacing-inset-xs);
   padding-right: 0;
   -webkit-box-ordinal-group: 4;
@@ -40,11 +50,6 @@
   display: -ms-inline-flexbox;
   display: inline-flex;
   /* stylelint-enable declaration-block-no-duplicate-properties */
-}
-
-.header-bar .auth-component li button,
-.header-bar .auth-component li a {
-  color: var(--color-text);
 }
 
 .header-bar .auth-component .hide-me {
@@ -211,18 +216,48 @@
   animation: sweep 0.2s ease-in-out;
 }
 
-.header-bar .hamburger-component details[open] .hamburger__icon {
-  background-color: var(--account-icon-background);
-}
-
-.header-bar .hamburger-component .hamburger__icon {
-  width: 22px;
-  height: 22px;
-  padding: 0 var(--spacing-inset-sm);
-  border-radius: 3px;
-  box-sizing: content-box;
+.header-bar .hamburger-component details[open] summary {
+  background-color: var(--beige-three);
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
+
+/* ── Account / menu ghost button ─────────────────────────────────────────
+   The avatar (when signed in) and the hamburger icon are grouped into a
+   single ghost button: transparent at rest, filled on hover and while the
+   drawer is open, height-locked to the header control height. */
+.header-bar .hamburger-component summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  color: var(--color-text);
+  cursor: pointer;
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+.hamburger-component summary:hover,
+.hamburger-component summary:focus-visible {
+  background-color: var(--beige-three);
+}
+
+.hamburger-component summary:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-bar .hamburger-component summary {
+    transition: none;
+  }
+
+  .hamburger-component summary:active {
+    transform: none;
+  }
+}
 
 @keyframes sweep {
   0% {
@@ -287,38 +322,40 @@
 }
 
 .header-bar .header-dropdown summary::before {
-  /* For the <details> polyfill used for IE11 */
+  /* For the <details> polyfill used for IE11. display: none keeps it from
+     becoming an empty flex item that picks up the summary's gap. */
   content: "" !important;
+  display: none;
 }
 
-.header-bar .header-dropdown .header-dropdown__icon {
-  width: 40px;
-  height: 40px;
-}
-
+/* Account glyph inside the account/menu ghost button, beside the 24px
+   hamburger glyph. */
 .header-bar .header-dropdown .account__icon {
-  border: 2px solid var(--account-icon-border);
-  border-radius: 4px;
-  width: 30px;
-  height: 30px;
+  flex-shrink: 0;
 }
 
+/* Pending-merge count, pinned to the top-right corner of the account/menu
+   ghost button (the summary is its positioning context). */
 .header-bar .header-dropdown .mr-notifications {
   position: absolute;
+  top: -6px;
+  right: -6px;
   background: var(--color-primary);
   color: var(--white);
   border-radius: var(--border-radius-notification);
-  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  padding: 1px var(--spacing-inset-xs);
   font-size: var(--font-size-label-medium);
-  margin-top: var(--spacing-stack-lg);
   font-weight: bold;
 }
 
+/* Chrome reset for the controls inside a header dropdown (the app drawer's
+   logout button). No `display` or `color` here: this selector outranks
+   `.nav-ghost-btn`, and the two nav items need that class's own `inline-flex`
+   centering; the drawer's rows get `display: block` and their color from
+   `.header-bar .dropdown-menu li a` above. */
 .header-bar .header-dropdown button,
 .header-bar .header-dropdown a {
-  color: var(--white);
   text-decoration: none;
-  display: block;
   border: 0;
   background: none;
 }
@@ -357,16 +394,16 @@
   pointer-events: none;
   user-select: none;
   width: max-content;
-  padding: 4px 6px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 2px 5px;
+  font-size: 9px;
+  font-weight: 500;
   letter-spacing: 0.025em;
   text-transform: uppercase;
   line-height: var(--line-height-chip);
   border-radius: var(--border-radius-tooltip);
   color: var(--white);
   left: 40px;
-  top: 44px;
+  top: 40px;
   z-index: var(--z-index-level-2);
 }
 
@@ -401,15 +438,18 @@
   -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
   padding: 0;
-  font-size: 1em;
+  font-size: var(--header-control-font-size);
+  font-weight: 500;
 }
 
-/* stylelint-disable max-nesting-depth, selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+/* No `display` here: the two nav items (My Books, Browse) are `.nav-ghost-btn`s
+   that need the class's own `inline-flex` centering, and this selector outranks
+   it. */
 .header-bar .navigation-component li button,
 .header-bar .navigation-component li a {
   color: var(--color-text);
   text-decoration: none;
-  display: block;
 }
 
 .header-bar .navigation-component li button:visited,
@@ -417,22 +457,7 @@
   color: var(--color-text);
   text-decoration: none;
 }
-
-.header-bar .navigation-component li .dropdown-menu {
-  position: absolute;
-  text-align: left;
-  width: 100%;
-  top: 4px;
-}
-
-.header-bar .navigation-component li .dropdown-menu li a {
-  color: var(--darker-grey);
-}
-
-.header-bar .navigation-component li .navigation-dropdown-component {
-  position: relative;
-}
-/* stylelint-enable max-nesting-depth, selector-max-specificity */
+/* stylelint-enable selector-max-specificity */
 
 .header-bar .search-component {
   -webkit-box-ordinal-group: 3;
@@ -459,42 +484,9 @@
   position: relative;
 }
 
-.hamburger-component summary {
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  cursor: pointer;
-}
-
-.hamburger-component summary .header-dropdown__icon {
-  border: none;
-  margin-right: var(--spacing-inline-sm);
-  border-radius: 3px;
-  box-sizing: content-box;
-}
-
 .navigation-component {
   text-align: center;
   position: relative;
-}
-
-.navigation-component summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.navigation-component summary::-webkit-details-marker {
-  display: none;
-}
-
-.navigation-component summary {
-  cursor: pointer;
-}
-
-.navigation-component .down-arrow {
-  position: relative;
-  top: -2px;
 }
 
 .logo-component {
@@ -527,12 +519,6 @@
   .header-bar .search-component {
     margin-right: 15px;
   }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-  }
 }
 
 @media only screen and (min-width: 30em) {
@@ -542,7 +528,7 @@
 
   .header-bar .auth-component {
     margin-right: var(--spacing-inline-sm);
-    display: block;
+    display: flex;
   }
 
   .header-bar .logo-component {
@@ -551,12 +537,6 @@
     flex: 1;
     border-right: none;
     padding: 0 var(--spacing-inset-xs);
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
   }
 
   .header-bar .hamburger-component summary {
@@ -576,12 +556,6 @@
     -webkit-box-ordinal-group: 7;
     -ms-flex-order: 6;
     order: 6;
-  }
-
-  .header-bar .navigation-component .dropdown-menu {
-    border-top: none;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
   }
 }
 
@@ -614,6 +588,93 @@
   }
 }
 
+/* ── Header nav controls ─────────────────────────────────────
+ * The header renders before the Lit bundle hydrates, so these controls can't
+ * be <ol-button>s. The two classes below reproduce the ghost and primary
+ * variants in the light DOM; keep them in step with OLButton.js.
+ */
+
+/* Ghost — the header's low-emphasis controls (My Books, Browse, Log In):
+   transparent at rest, filled on hover, and height-locked to the header
+   control height so they line up with the search field. */
+.header-bar .nav-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-md);
+  border: 0;
+  border-radius: var(--border-radius-md);
+  background: none;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--header-control-font-size);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+/* Leading glyphs only echo the label beside them, so they sit on the
+   decorative tier like the browse popover's link icons. */
+.header-bar .nav-ghost-btn__icon {
+  flex: none;
+  color: var(--color-icon-muted);
+}
+
+/* A subtle darken of the canvas the header sits on. (--beige is a near match
+ * for that canvas, so it'd read as no hover at all.) */
+.header-bar .nav-ghost-btn:hover,
+.header-bar .nav-ghost-btn:focus-visible,
+.browse-popover[open] .browse-popover__trigger {
+  background-color: var(--beige-three);
+}
+
+/* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
+.header-bar .nav-ghost-btn:active {
+  transform: scale(0.97);
+}
+
+/* Primary — the one high-emphasis control in the header (Sign Up). Carries
+   ol-button's fill, lift, and specular top edge, which is what separates a
+   filled control from a flat block of color. */
+.header-bar .nav-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--header-control-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-md);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-button);
+  background-color: var(--color-primary);
+  color: var(--white);
+  font-family: inherit;
+  font-size: var(--header-control-font-size);
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    var(--box-shadow-raised),
+    inset 0 1px 0 color-mix(in srgb, var(--white) 18%, var(--color-primary));
+  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
+  transition: transform 0.08s;
+}
+
+/* Lightens on hover the way ol-button's filled variants do — brightness()
+   carries the fill, border, and specular edge together. */
+.header-bar .nav-primary-btn:hover,
+.header-bar .nav-primary-btn:focus-visible {
+  filter: brightness(1.1);
+}
+
+.header-bar .nav-primary-btn:active {
+  transform: scale(0.97);
+}
+
 /* ── Browse popover ──────────────────────────────────────────
  * The Browse nav item uses the <ol-popover> web component (rendered by
  * openlibrary/templates/lib/browse_popover.html) instead of a native
@@ -628,41 +689,9 @@
   display: inline-flex;
 }
 
-.header-bar .navigation-component .browse-popover__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-inline-sm);
-  /* Roomier click target; negative inline margin keeps the text aligned with
-   * the sibling nav items rather than pushing them apart. */
-  margin: 0 calc(-1 * var(--spacing-inset-md));
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border: 0;
-  border-radius: var(--border-radius-md);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
-  transition: transform 0.08s;
-}
-
-/* A subtle darken of the canvas the header sits on. (--beige is a near match
- * for that canvas, so it'd read as no hover at all.) */
-.navigation-component .browse-popover__trigger:hover,
-.navigation-component .browse-popover__trigger:focus-visible,
-.browse-popover[open] .browse-popover__trigger {
-  background-color: var(--beige-three);
-}
-
-/* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
-.navigation-component .browse-popover__trigger:active {
-  transform: scale(0.97);
-}
-
-/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
- * Overrides the generic .down-arrow nudge and rotates when the popover opens. */
+/* Stroked chevron matching the web-component popovers (OlSelectPopover etc.),
+ * rotated when the popover opens. */
 .navigation-component .browse-popover__trigger .down-arrow {
-  top: 0;
   width: 16px;
   height: 16px;
   transition: transform 150ms ease-out;
@@ -673,7 +702,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navigation-component .browse-popover__trigger,
+  .header-bar .nav-ghost-btn,
+  .header-bar .nav-primary-btn,
   .navigation-component .browse-popover__trigger .down-arrow {
     transition: none;
   }
@@ -728,7 +758,7 @@
   height: 36px;
   border-radius: var(--border-radius-md);
   background: var(--light-beige);
-  color: var(--primary-blue);
+  color: var(--blue-400);
 }
 
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
@@ -775,10 +805,7 @@
   margin: 0;
 }
 
-/* `.navigation-component` is in the selector to outrank the blanket
-   `.navigation-component li a { display: block }` above, which would otherwise
-   win on specificity and drop the row out of flex layout.
-   min-height rather than `height`: these rows are the one place in the panel a
+/* min-height rather than `height`: these rows are the one place in the panel a
    label can wrap (the mobile tray narrows to the viewport), so the row grows
    with its text instead of clipping it. */
 .header-bar .navigation-component .browse-popover__link {
@@ -813,35 +840,38 @@
    (background, border, radius), the trigger expands to fill the slot,
    and the label is shown beside the icon — the original wide "Search 🔍"
    bar. `aria-label="Search"` on the button supplies the accessible name
-   in both modes. */
+   in both modes.
+
+   The magnifier is the Lucide `search` sprite glyph (see macros.icon);
+   ol-icon--md supplies its 20px box. */
 .search-bar-trigger {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 38px;
+  min-height: var(--header-control-height);
   padding: 0 var(--spacing-inset-sm);
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
-  color: var(--color-text-secondary);
+  /* Match the nav ghost buttons: full text color for the label, muted for
+     the glyph, so the whole header row reads as one set of controls. */
+  color: var(--color-text);
   font-family: inherit;
-  font-size: 1em;
+  font-size: var(--font-size-label-large);
+  font-weight: 500;
   cursor: pointer;
+}
+
+.search-bar-trigger .search-bar-trigger__icon {
+  color: var(--color-icon-muted);
 }
 
 /* Hidden on mobile/touch; the desktop file flips this back to `block`
    alongside the wider trigger layout. */
 .search-bar-trigger__label {
   display: none;
-}
-
-.search-bar-trigger__icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  background: url(/static/images/search-icon.svg) center / contain no-repeat;
 }
 
 /* ── Barcode scanner button ──────────────────────────────────────────────
@@ -853,20 +883,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  min-height: 38px;
+  width: var(--header-control-height);
+  min-height: var(--header-control-height);
   border-radius: var(--border-radius-input);
   transition: background-color 0.15s ease;
 }
 
-/* Match the search magnifier (#8a7f71 in search-icon.svg; --accessible-grey is
-   the nearest token). The link states outrank a:link/:visited/:hover in
-   base/common.css, which would otherwise paint the icon link-blue. */
+/* Match the search magnifier's muted glyph color. The link states outrank
+   a:link/:visited/:hover in base/common.css, which would otherwise paint the
+   icon link-blue. */
 .search-by-barcode,
 .search-by-barcode:link,
 .search-by-barcode:visited,
 .search-by-barcode:hover {
-  color: var(--accessible-grey);
+  color: var(--color-icon-muted);
 }
 
 .search-by-barcode img {

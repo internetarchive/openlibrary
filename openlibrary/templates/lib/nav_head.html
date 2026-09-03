@@ -73,7 +73,9 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
   $ myBooksProps = {
   $   'name': 'mybooks',
   $   'label': _('My Books'),
-  $   'links': myBooksLinks
+  $   'icon': 'bookmark',
+  $   'links': myBooksLinks,
+  $   'link-class': 'nav-ghost-btn'
   $ }
   <ul class="navigation-component">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
@@ -99,7 +101,7 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       $ is_print_disabled = 'true' if cookies().get('pd') else 'false'
       <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')" data-print-disabled="$is_print_disabled">
         <span class="search-bar-trigger__label">$_('Search')</span>
-        <span class="search-bar-trigger__icon" aria-hidden="true"></span>
+        $:macros.icon("search", size="md", extra_class="search-bar-trigger__icon")
       </button>
     </div>
     $# Barcode scan needs a camera, so it's only surfaced on touch devices
@@ -118,10 +120,8 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
 
   $if not ctx.user:
     <ul class="auth-component">
-      <li class="hide-me">
-        <a class="btn"
-           href="/account/login">$_("Log In")</a></li>
-      <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
+      <li class="hide-me"><a class="nav-ghost-btn" href="/account/login">$_("Log In")</a></li>
+      <li><a class="nav-primary-btn" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
   $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")

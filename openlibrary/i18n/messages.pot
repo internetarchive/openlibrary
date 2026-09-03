@@ -4435,11 +4435,6 @@ msgstr ""
 msgid "My account"
 msgstr ""
 
-#: lib/header_dropdown.html type/user/view.html
-#, python-format
-msgid "Joined %(date)s"
-msgstr ""
-
 #: lib/header_dropdown.html
 msgid "Menu"
 msgstr ""
@@ -6858,6 +6853,11 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Display Name"
+msgstr ""
+
+#: type/user/view.html
+#, python-format
+msgid "Joined %(date)s"
 msgstr ""
 
 #: type/user/view.html
