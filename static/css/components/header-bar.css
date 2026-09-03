@@ -772,13 +772,11 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--dark-grey);
-  border-top: 1px solid var(--dark-beige);
   padding: var(--spacing-2xl) var(--spacing-inset-sm) var(--spacing-2xs);
   list-style: none;
 }
 
 .drawer-menu__subsection:first-child {
-  border-top: none;
   padding-top: var(--spacing-sm);
 }
 
