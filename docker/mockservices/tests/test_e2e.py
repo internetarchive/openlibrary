@@ -210,3 +210,18 @@ class TestLoanChangesFeed:
     def test_missing_action_returns_422(self):
         resp = _get("/services/loans/loan/")
         assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Matomo mock — the parts that need a live container.
+#
+# Everything else about this endpoint is covered by test_matomo_inprocess.py,
+# which serves the same app on a loopback port and therefore also runs in CI.
+# Only keep tests here that genuinely require the deployed container.
+# ---------------------------------------------------------------------------
+
+
+class TestMatomoMock:
+    def test_rejects_unimplemented_methods(self):
+        resp = _post("/matomo/index.php", data={"method": "SitesManager.getAllSites", "token_auth": "t"})
+        assert resp.json()["result"] == "error"
