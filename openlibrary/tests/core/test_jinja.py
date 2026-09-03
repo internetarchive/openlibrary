@@ -65,19 +65,13 @@ def _create_validation_env() -> jinja2.Environment:
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
     env.policies["ext.i18n.trimmed"] = True
 
-    try:
-        from infogami.utils.view import render_template as _render_templetor  # noqa: PLC0415
+    # Stubbed: this env only validates template structure, without infogami's
+    # runtime template disk-loading or template globals.
+    def _stub_render_templetor(*a, **kw):
+        return ""
 
-        env.globals["render_templetor_template"] = _render_templetor
-    except ImportError:
+    env.globals["render_templetor_template"] = _stub_render_templetor
 
-        def _stub(*a, **kw):
-            return ""
-
-        env.globals["render_templetor_template"] = _stub
-
-    # Stubbed: this env only validates template structure, and the real macro
-    # needs infogami's template globals.
     env.globals["icon"] = lambda *a, **kw: ""
 
     # The TestingEnvironment macro renders a Vue component via
@@ -148,6 +142,12 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert "icon" in env.globals
         assert callable(env.globals["icon"])
+
+    def test_has_render_templetor_template_global(self):
+        """Should expose render_templetor_template in globals."""
+        env = get_jinja_env()
+        assert "render_templetor_template" in env.globals
+        assert callable(env.globals["render_templetor_template"])
 
     def test_has_autoescape_enabled(self):
         """Should have autoescaping enabled."""
@@ -278,7 +278,7 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
 
     for path in sorted(templates):
         rel = path.relative_to(TEMPLATES_DIR)
-        with subtests.test(template=str(rel)):
-            tpl = env.get_template(str(rel))
+        with subtests.test(template=rel.as_posix()):
+            tpl = env.get_template(rel.as_posix())
             output = tpl.render()
             assert_valid_html(output)
