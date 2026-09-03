@@ -225,7 +225,7 @@ services:
       - ${MOCKSERVICES_PORT:-8025}:8025
     healthcheck:
       # wget is purged from the image after installing mailpit (see Dockerfile);
-      # use python, which is always present in the python:3.12-slim base, instead.
+      # use python, which is always present in the python:3.14-slim base, instead.
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health', timeout=2)"]
       interval: 10s
       start_period: 5s
