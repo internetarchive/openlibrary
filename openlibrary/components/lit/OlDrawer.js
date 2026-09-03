@@ -219,8 +219,10 @@ export class OlDrawer extends LitElement {
 
         // Touch drag state (horizontal swipe-to-dismiss)
         this._touchStartX = 0;
+        this._touchStartY = 0;
         this._touchStartTime = 0;
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragX = 0;
 
         this._handleCancel = this._handleCancel.bind(this);
@@ -571,28 +573,43 @@ export class OlDrawer extends LitElement {
     _onTouchStart(e) {
         const touch = e.touches[0];
         this._touchStartX = touch.clientX;
+        this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragX = 0;
     }
 
     _onTouchMove(e) {
+        if (this._dragBlocked) return;
+
         const touch = e.touches[0];
         // Only drag in the dismiss direction
         const delta = (touch.clientX - this._touchStartX) * this._dismissDirection;
+        const deltaY = touch.clientY - this._touchStartY;
 
         if (!this._isDragging) {
-            // Require 5px in the dismiss direction to start dragging
-            if (delta > 5) {
-                this._isDragging = true;
-            } else {
+            // Axis lock: a gesture that reads as a vertical scroll belongs to
+            // the panel's own scroller for the rest of the touch. Without this,
+            // sideways drift mid-scroll starts a drag the browser won't let us
+            // cancel, and every preventDefault() logs a console intervention.
+            if (Math.abs(deltaY) > Math.abs(delta)) {
+                this._dragBlocked = true;
                 return;
             }
+            // Require 5px in the dismiss direction to start dragging
+            if (delta <= 5) return;
+            // Scrolling already underway — the gesture is no longer ours.
+            if (!e.cancelable) {
+                this._dragBlocked = true;
+                return;
+            }
+            this._isDragging = true;
         }
 
         const dragX = Math.max(0, delta);
         this._lastDragX = dragX;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
 
         const panel = this._panel;
         panel.style.transition = 'none';
@@ -611,6 +628,7 @@ export class OlDrawer extends LitElement {
         const velocity = dragX / Math.max(Date.now() - this._touchStartTime, 1);
 
         this._isDragging = false;
+        this._dragBlocked = false;
         this._lastDragX = 0;
 
         const DISMISS_THRESHOLD = 80;
