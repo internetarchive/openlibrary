@@ -496,6 +496,31 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
   $:render_template("books/RelatedWorksCarousel", work)
   $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
 
+  $code:
+    from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
+    from openlibrary.plugins.upstream.utils import convert_iso_to_marc
+
+    target_ddc = None
+    if edition and edition.get('dewey_decimal_class'):
+        raw_ddcs = edition.get('dewey_decimal_class', [])
+        normalized = [d for raw in raw_ddcs for d in normalize_ddc(raw)]
+        if normalized:
+            target_ddc = choose_sorting_ddc(normalized)
+
+    ed_lang = None
+    if edition and edition.get('languages'):
+        lang_obj = edition.languages[0]
+        lang_key = (lang_obj.key if hasattr(lang_obj, 'key') else str(lang_obj)).split('/')[-1]
+        ed_lang = convert_iso_to_marc(lang_key) or lang_key
+
+  $if target_ddc and work and work.key:
+    <ol-nearby-books
+      target-ddc="$target_ddc"
+      work-key="$work.key"
+      $if ed_lang:
+        language="$ed_lang"
+    ></ol-nearby-books>
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
