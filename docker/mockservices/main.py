@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    await _ensure_solr_editions()
     await _seed_loan_changes()
     task = asyncio.create_task(_loan_changes_ongoing_loop())
     yield
@@ -281,6 +282,26 @@ def _make_loan_event(identifier: str, when: datetime, event_type: str) -> dict:
         "extra": extra,
         "uid": uid,
     }
+
+
+async def _ensure_solr_editions() -> None:
+    """Dev bootstrap: on an empty Solr, seed the fallback ocaids as nested edition docs
+    so the loan-availability updater has real editions to resolve. No-op when Solr already
+    has ia-bearing editions (real data present). Fail-soft."""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(_SOLR_URL, params={"q": "ia:*", "rows": 0, "wt": "json"})
+            resp.raise_for_status()
+            if resp.json()["response"]["numFound"]:
+                return  # real editions already present; don't pollute the index
+            docs = [
+                {"key": f"/works/OL_MOCK{i}W", "type": "work", "editions": [{"key": f"/books/OL_MOCK{i}M", "type": "edition", "ia": [ocaid]}]}
+                for i, ocaid in enumerate(_FALLBACK_IA_IDS)
+            ]
+            await client.post(_SOLR_URL.replace("/select", "/update"), params={"commit": "true"}, json=docs)
+            logger.info("loan changes: seeded %d dev editions into empty Solr for loan-availability testing", len(docs))
+    except (httpx.HTTPError, KeyError, ValueError):  # fmt: skip
+        logger.warning("loan changes: could not seed dev editions into Solr; loop may resolve nothing")
 
 
 async def _seed_loan_changes() -> None:
