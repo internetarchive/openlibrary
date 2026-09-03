@@ -904,7 +904,7 @@
  * take a beat to paint. During that gap the pressed row holds full opacity
  * while the rest dim back and a spinner shows at its trailing edge. Mirrors
  * the search modal's result loading treatment. The `is-navigating` /
- * `is-target` classes are toggled by the inline script in nav_head.html.
+ * `is-target` classes are toggled by js/hamburger-drawer.js.
  */
 .drawer-menu.is-navigating .drawer-menu__subsection,
 .drawer-menu.is-navigating .drawer-menu__item,
