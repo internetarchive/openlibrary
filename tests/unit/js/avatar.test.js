@@ -104,6 +104,35 @@ describe('avatar module', () => {
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
+        test('keeps the local file preview when the response has no avatar_url (dev mock)', async() => {
+            initAvatarUpload(container);
+
+            const uploadBtn = document.getElementById('avatar-upload-btn');
+            const fileInput = document.getElementById('avatar-file-input');
+            const statusSpan = document.getElementById('avatar-upload-status');
+            const img = document.getElementById('avatar-preview-img');
+            const file = new File(['test-image-data'], 'test.png', { type: 'image/png' });
+
+            Object.defineProperty(fileInput, 'files', {
+                value: [file],
+                writable: true,
+            });
+
+            fileInput.dispatchEvent(new Event('change'));
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                json: async() => ({}),
+            });
+
+            uploadBtn.dispatchEvent(new Event('click'));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(statusSpan.textContent).toBe('Uploaded successfully!');
+            expect(global.URL.createObjectURL).toHaveBeenCalledWith(file);
+            expect(img.src).toBe('blob:http://localhost/mock-blob-url');
+        });
+
         test('successfully uploads avatar and updates status', async() => {
             initAvatarUpload(container);
 
