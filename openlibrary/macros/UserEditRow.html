@@ -4,7 +4,7 @@ $ label = i18n.get('/type/user', name)
 $ value = page[name]
 $ original_label = label
 
-<div class="formElement title" id="clone_$name">
+<div class="formElement title" id="clone_$name" data-invalid-url="$_('Please enter a valid URL.')">
     <div class="label">
         <label for="$name">$label</label>
     </div>
@@ -16,7 +16,7 @@ $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <input type="text" name="$name#$i" value="$v"
+            <input type="url" name="$name#$i" value="$v" placeholder="https://..."
             $if i == 0:
                 id="$name"
             $else:

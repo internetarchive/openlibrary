@@ -406,7 +406,32 @@ export function initSubjectsAutocomplete() {
 }
 
 export function initEditRow(){
-    document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
+    const websiteContainer = document.querySelector('#clone_website');
+    const addRowButton = document.querySelector('#add_row_button');
+    const invalidURLMessage = websiteContainer.dataset.invalidUrl;
+
+    const validateWebsite = input => {
+        const url = input.value.trim();
+        const isValid = url === '' || isValidURL(url);
+        input.setCustomValidity(isValid ? '' : invalidURLMessage);
+        return isValid;
+    };
+
+    const initWebsiteInput = input => {
+        validateWebsite(input);
+        input.addEventListener('input', () => validateWebsite(input));
+    };
+
+    websiteContainer.querySelectorAll('input').forEach(initWebsiteInput);
+    addRowButton.addEventListener('click', () => {
+        const inputs = websiteContainer.querySelectorAll('input');
+        const invalidInput = Array.from(inputs).find(input => !validateWebsite(input));
+        if (invalidInput) {
+            invalidInput.reportValidity();
+            return;
+        }
+        initWebsiteInput(add_row('website'));
+    });
 }
 
 /**
@@ -417,8 +442,10 @@ function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
     inputBox.name = `${name}#${inputBoxes.length}`;
-    inputBox.type = 'text';
+    inputBox.type = 'url';
+    inputBox.placeholder = 'https://...';
     inputBoxes[inputBoxes.length-1].after(inputBox);
+    return inputBox;
 }
 
 function show_hide_title() {
@@ -546,8 +573,8 @@ export function initEdit() {
  */
 function isValidURL(url) {
     try {
-        new URL(url);
-        return true;
+        const parsedURL = new URL(url);
+        return parsedURL.protocol === 'http:' || parsedURL.protocol === 'https:';
     } catch (e) {
         return false;
     }
