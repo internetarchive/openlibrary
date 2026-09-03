@@ -251,8 +251,8 @@ class TestAvatarUpload:
         response = fastapi_client.post("/account/avatar")
         assert response.status_code == 401
 
-    def test_upload_avatar_mock_skips_ia_and_writes_no_state(self, fastapi_client, mock_authenticated_user, monkeypatch):
-        """Mock uploads (local dev / fake keys) must not fake state or hit IA."""
+    def test_upload_avatar_mock_stores_locally_and_skips_ia(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        """Mock uploads (local dev / fake keys) store a local file and never hit IA."""
         mock_account = self._make_account(s3_keys={"access": "mock_access", "secret": "mock_secret"})
         monkeypatch.setattr(
             "openlibrary.accounts.OpenLibraryAccount.get_by_username",
@@ -260,6 +260,8 @@ class TestAvatarUpload:
         )
         self._set_up_site_and_memcache(monkeypatch, mock_account)
 
+        mock_write = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.write_local_avatar", mock_write)
         mock_get_item = MagicMock()
         monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", mock_get_item)
 
@@ -271,7 +273,9 @@ class TestAvatarUpload:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "success"
-        assert data["avatar_url"] is None
+        assert data["avatar_url"].startswith("/people/testuser/avatar?v=")
+        assert mock_write.call_args.args[0] == "testuser"
+        assert len(mock_write.call_args.args[1]) > 0  # sanitized JPEG bytes
         assert "avatar_updated" not in mock_account
         mock_get_item.assert_not_called()
 
@@ -368,6 +372,8 @@ class TestAvatarUpload:
         )
         _, mock_memcache = self._set_up_site_and_memcache(monkeypatch, mock_account)
 
+        mock_delete = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.delete_local_avatar", mock_delete)
         mock_get_item = MagicMock()
         monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", mock_get_item)
 
@@ -378,6 +384,7 @@ class TestAvatarUpload:
         assert data["status"] == "success"
         assert data["message"] == "Profile picture removed successfully"
         assert "avatar_updated" not in mock_account
+        mock_delete.assert_called_once_with("testuser")
         mock_get_item.assert_not_called()
         assert any(call.args and call.args[0] == "user-avatar-testuser" for call in mock_memcache.delete.call_args_list)
 
@@ -413,6 +420,7 @@ class TestAvatarUpload:
             "internetarchive_itemname": "@testuser-archive",
             "username": "testuser",
         }
+        monkeypatch.setattr("openlibrary.fastapi.account.read_local_avatar", lambda username: None)
         mock_site = MagicMock()
         mock_site.store = {"account/testuser": mock_account}
         site.set(mock_site)

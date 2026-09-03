@@ -31,6 +31,7 @@ from openlibrary.fastapi.auth import (
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream import models
 from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.utils.avatar import delete_local_avatar, read_local_avatar, write_local_avatar
 from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.fastapi.account")
@@ -410,7 +411,8 @@ class AvatarUploadResponse(BaseModel):
     status: Literal["success"] = Field(description="Status of the operation")
     avatar_url: str | None = Field(
         default=None,
-        description="The updated avatar URL with cache-busting version query param. None in dev-mock mode, where nothing was uploaded to Internet Archive.",
+        description="The updated avatar URL with cache-busting version query param. "
+        "In dev-mock mode this is the local /people/{username}/avatar route that serves the stored file.",
     )
     message: str = Field(description="User-facing status message")
 
@@ -536,13 +538,17 @@ async def upload_avatar(
                 detail=f"Failed to upload profile picture to Internet Archive: {err}",
             )
 
-    # Nothing was actually uploaded in mock mode (local dev, fake keys), so do
-    # not pretend otherwise: leave the account store and avatar URL untouched.
+    # Mock mode (local dev, fake test keys): archive.org is never written, so
+    # keep the sanitized bytes in a local file and point the avatar at the
+    # /people/{username}/avatar route, which serves them in LOCAL_DEV. The
+    # account store and get_avatar_url cache are left untouched.
     if is_mock:
+        logger.info(f"[LOCAL_DEV] Storing mock avatar locally for user {user.username}")
+        write_local_avatar(user.username, out_buffer.getvalue())
         return AvatarUploadResponse(
             status="success",
-            avatar_url=None,
-            message="Mock upload succeeded (dev only; nothing sent to Internet Archive)",
+            avatar_url=f"/people/{user.username}/avatar?v={int(time.time())}",
+            message="Mock upload succeeded (dev only; stored locally, not sent to Internet Archive)",
         )
 
     # Bump the timestamp before invalidating so any get_avatar_url call that
@@ -569,7 +575,8 @@ async def delete_avatar(
     request: Request,
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AvatarUploadResponse:
-    if "avatar_updated" not in _avatar_account_data(user.username):
+    account_data = _avatar_account_data(user.username)
+    if "avatar_updated" not in account_data and read_local_avatar(user.username) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No custom profile picture exists to remove",
@@ -590,6 +597,7 @@ async def delete_avatar(
     is_mock = get_ol_env().LOCAL_DEV or s3_keys.get("access", "").startswith("mock_")
     if is_mock:
         logger.info(f"[LOCAL_DEV] Mocking Internet Archive avatar removal for user {user.username}")
+        delete_local_avatar(user.username)
     elif not (s3_keys.get("access") and s3_keys.get("secret")):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
