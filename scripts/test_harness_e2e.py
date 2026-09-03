@@ -619,40 +619,52 @@ def report_gaps() -> None:
     gaps = [
         (
             "Search consumer",
-            "ebook_availability/ebook_becomes_available are now retrievable via "
-            "EditionSearchScheme.all_fields, but openlibrary/plugins/worksearch/code.py "
-            "still calls services/availability on every request instead of filtering/"
-            "displaying based on the Solr fields. No search UI surfaces them yet.",
+            (
+                "ebook_availability/ebook_becomes_available are now retrievable via "
+                "EditionSearchScheme.all_fields, but openlibrary/plugins/worksearch/code.py "
+                "still calls services/availability on every request instead of filtering/"
+                "displaying based on the Solr fields. No search UI surfaces them yet."
+            ),
         ),
         (
             "Solr schema update path",
-            "A full re-index wipes ebook_availability, loan_uid etc. The updater "
-            "needs --reset to rebuild from the last 14 days. There is no auto-trigger for this.",
+            (
+                "A full re-index wipes ebook_availability, loan_uid etc. The updater "
+                "needs --reset to rebuild from the last 14 days. There is no auto-trigger for this."
+            ),
         ),
         (
             "S3 credentials / dev testing",
-            "lending.get_loan_changes() needs ia_ol_metadata_write_s3 keys (or a dedicated "
-            "config key), so this daemon can't be exercised end-to-end in dev yet. PR #13045 "
-            "(mockservices) is adding a local mock; once it lands, wire this daemon's "
-            "action=changes calls to it instead of relying on this standalone Solr-only harness.",
+            (
+                "lending.get_loan_changes() needs ia_ol_metadata_write_s3 keys (or a dedicated "
+                "config key), so this daemon can't be exercised end-to-end in dev yet. PR #13045 "
+                "(mockservices) is adding a local mock; once it lands, wire this daemon's "
+                "action=changes calls to it instead of relying on this standalone Solr-only harness."
+            ),
         ),
         (
             "production deploy",
-            "In dev the updater runs backgrounded inside the solr-updater container "
-            "(docker/ol-solr-updater-start.sh). Production still needs an olsystem/Jenkins "
-            "entry to run it on the solr-updater host.",
+            (
+                "In dev the updater runs backgrounded inside the solr-updater container "
+                "(docker/ol-solr-updater-start.sh). Production still needs an olsystem/Jenkins "
+                "entry to run it on the solr-updater host."
+            ),
         ),
         (
             "Search API",
-            "No OL search API parameter (e.g. ?availability=available) exposes "
-            "ebook_availability to end-users yet. The field is facetable but there is no route.",
+            (
+                "No OL search API parameter (e.g. ?availability=available) exposes "
+                "ebook_availability to end-users yet. The field is facetable but there is no route."
+            ),
         ),
         (
             "Optimistic concurrency",
-            "Edition updates don't pass _version_, so a concurrent full work reindex "
-            "(unrelated metadata edit, cover change, etc.) racing with a loan-event write "
-            "could clobber or be clobbered without either side detecting it. Accepted as a "
-            "v1 risk -- not observed, not yet protected against.",
+            (
+                "Edition updates don't pass _version_, so a concurrent full work reindex "
+                "(unrelated metadata edit, cover change, etc.) racing with a loan-event write "
+                "could clobber or be clobbered without either side detecting it. Accepted as a "
+                "v1 risk -- not observed, not yet protected against."
+            ),
         ),
         ("E2e / integration test", "All 32 existing unit tests use mocks (no real Solr). This script is the only end-to-end test."),
     ]

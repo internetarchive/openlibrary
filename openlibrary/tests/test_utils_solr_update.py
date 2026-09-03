@@ -35,7 +35,10 @@ def _run(coro):
 @pytest.fixture
 def solr():
     s = Solr("http://localhost:8983/solr/openlibrary")
-    s.async_session = AsyncMock()
+    # Solr.__init__ assigns get_async_session as an instance attribute (an
+    # event-loop-keyed httpx.AsyncClient cache), so stubbing it here mirrors
+    # production: every call hands back the same mock session.
+    s.get_async_session = MagicMock(return_value=AsyncMock())
     return s
 
 
@@ -45,18 +48,18 @@ def solr():
 
 
 def test_update_posts_to_correct_url_no_requireinplace(solr):
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(solr.update_async([{"key": "/works/OL1W", "ebook_availability": {"set": "available"}}]))
-    url = solr.async_session.post.call_args[0][0]
+    url = solr.get_async_session().post.call_args[0][0]
     assert "/update" in url
     assert "requireInPlace" not in url
     assert "wt=json" in url
 
 
 def test_update_does_not_use_requireinplace_for_commit_either(solr):
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(solr.update_async([], commit=True))
-    url = solr.async_session.post.call_args[0][0]
+    url = solr.get_async_session().post.call_args[0][0]
     assert "requireInPlace" not in url
 
 
@@ -66,7 +69,7 @@ def test_update_does_not_use_requireinplace_for_commit_either(solr):
 
 
 def test_update_raises_on_http_400(solr):
-    solr.async_session.post.return_value = _error_response(400)
+    solr.get_async_session().post.return_value = _error_response(400)
     with pytest.raises(httpx.HTTPStatusError):
         _run(solr.update_async([{"key": "/works/OL1W", "ebook_availability": {"set": "x"}}]))
 
@@ -74,7 +77,7 @@ def test_update_raises_on_http_400(solr):
 def test_update_raises_on_nonzero_response_header_status(solr):
     # Solr can return HTTP 200 but with a non-zero status in the body
     bad_body = {"responseHeader": {"status": 1, "QTime": 0}, "error": {"msg": "oops"}}
-    solr.async_session.post.return_value = _ok_response(body=bad_body)
+    solr.get_async_session().post.return_value = _ok_response(body=bad_body)
     with pytest.raises(RuntimeError, match="Solr update error"):
         _run(solr.update_async([{"key": "/works/OL1W", "ebook_availability": {"set": "x"}}]))
 
@@ -85,12 +88,12 @@ def test_update_raises_on_nonzero_response_header_status(solr):
 
 
 def test_update_happy_path_does_not_raise(solr):
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(solr.update_async([{"key": "/works/OL1W", "ebook_availability": {"set": "available"}}]))  # no exception
 
 
 def test_update_returns_none(solr):
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     result = _run(solr.update_async([{"key": "/works/OL1W", "ebook_availability": {"set": "available"}}]))
     assert result is None
 
@@ -102,51 +105,51 @@ def test_update_returns_none(solr):
 
 def test_update_commit_true_sends_two_posts(solr):
     """commit=True with a non-empty request sends update POST then commit POST."""
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(
         solr.update_async(
             [{"key": "/works/OL1W", "ebook_availability": {"set": "available"}}],
             commit=True,
         )
     )
-    assert solr.async_session.post.call_count == 2
+    assert solr.get_async_session().post.call_count == 2
     # Second call must send the commit payload
-    second_call_kwargs = solr.async_session.post.call_args_list[1]
+    second_call_kwargs = solr.get_async_session().post.call_args_list[1]
     assert second_call_kwargs.kwargs["json"] == {"commit": {}}
 
 
 def test_update_empty_request_commit_true_sends_only_commit_post(solr):
     """Empty list + commit=True must skip the update POST and only commit."""
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(solr.update_async([], commit=True))
-    assert solr.async_session.post.call_count == 1
-    call_kwargs = solr.async_session.post.call_args.kwargs
+    assert solr.get_async_session().post.call_count == 1
+    call_kwargs = solr.get_async_session().post.call_args.kwargs
     assert call_kwargs["json"] == {"commit": {}}
 
 
 def test_update_empty_request_commit_false_sends_no_posts(solr):
     """Empty list + commit=False is a no-op — nothing sent to Solr."""
     _run(solr.update_async([], commit=False))
-    solr.async_session.post.assert_not_called()
+    solr.get_async_session().post.assert_not_called()
 
 
 def test_update_commit_false_sends_one_post(solr):
     """commit=False sends exactly one POST (the update, no commit)."""
-    solr.async_session.post.return_value = _ok_response()
+    solr.get_async_session().post.return_value = _ok_response()
     _run(
         solr.update_async(
             [{"key": "/works/OL1W", "ebook_availability": {"set": "available"}}],
             commit=False,
         )
     )
-    assert solr.async_session.post.call_count == 1
+    assert solr.get_async_session().post.call_count == 1
 
 
 def test_update_commit_raises_on_error(solr):
     """If the commit POST returns an error, it should raise."""
     ok = _ok_response()
     err = _error_response(500)
-    solr.async_session.post.side_effect = [ok, err]
+    solr.get_async_session().post.side_effect = [ok, err]
     with pytest.raises(httpx.HTTPStatusError):
         _run(
             solr.update_async(

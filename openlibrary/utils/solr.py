@@ -149,7 +149,7 @@ class Solr:
         contains string or date fields.
         """
         if request:
-            resp = await self.async_session.post(
+            resp = await self.get_async_session().post(
                 f"{self.base_url}/update?wt=json",
                 json=request,
                 timeout=_timeout,
@@ -160,7 +160,7 @@ class Solr:
                 raise RuntimeError(f"Solr update error: {body}")
 
         if commit:
-            resp = await self.async_session.post(
+            resp = await self.get_async_session().post(
                 f"{self.base_url}/update?wt=json",
                 json={"commit": {}},
                 timeout=_timeout,
