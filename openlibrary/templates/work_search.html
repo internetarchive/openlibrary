@@ -1,4 +1,4 @@
-$def with (q_param, search_response, get_doc, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
+$def with (q_param, search_response, works, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -149,8 +149,6 @@ $ bodyclass.append('search-page')
               <span class="search-results-section-label__count">$results_stats</span>
             </h2>
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
-            $ works = [get_doc(d) for d in search_response.docs]
-            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)

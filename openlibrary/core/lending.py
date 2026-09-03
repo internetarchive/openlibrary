@@ -180,7 +180,6 @@ def compose_ia_url(
     return base_url + "?" + urlencode(params)
 
 
-@public
 @cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
@@ -564,7 +563,6 @@ async def add_availability_async(
 
 
 add_availability = async_bridge.wrap(add_availability_async, "add_availability")
-public(add_availability)
 
 
 def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
