@@ -481,7 +481,8 @@ async def matomo_api(request: Request) -> JSONResponse:
         offset = _matomo_form_int(form, "filter_offset", 0)
         since = _matomo_form_int(form, "minTimestamp", 0)
     except ValueError as exc:
-        return JSONResponse({"result": "error", "message": str(exc)})
+        logger.warning("Invalid Matomo API request parameters", exc_info=exc)
+        return JSONResponse({"result": "error", "message": "Invalid request parameters"})
     if limit < 1 or offset < 0:
         return JSONResponse({"result": "error", "message": "filter_limit must be >= 1 and filter_offset >= 0"})
 
