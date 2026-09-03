@@ -21,14 +21,23 @@
     </header>
     <div class="ds__layout">
         <nav class="ds__sidebar" aria-label="{{ section.title }} contents">
-            {{ page.nav() }}
             {% if section.has_code %}
                 {# Dogfooding: the page's own control is the component it documents. #}
                 <div class="ds__sidebar-controls">
-                    <ol-toggle data-ds-code-toggle label="Show code">
+                    <ol-toggle data-ds-code-toggle variant="button" label="Show code">
                     </ol-toggle>
                 </div>
             {% endif %}
+            {# Below 768px the contents list is a popover instead of a wrapped
+               row of links. JS moves this one nav into it, so there is a single
+               set of links either way; with no JS the row stays. #}
+            <ol-popover class="ds__nav-popover" data-ds-nav-popover placement="bottom-start" aria-label="{{ section.title }} contents">
+                {# Default size, so it height-matches the show-code toggle beside it. #}
+                <ol-button slot="trigger">
+                    Jump to
+                </ol-button>
+            </ol-popover>
+            <div class="ds__nav" data-ds-nav>{{ page.nav() }}</div>
         </nav>
         <main class="ds__main">
             {{ page.body() }}

@@ -74,3 +74,44 @@ ol-segmented-control[size="large"]:not(:defined) {
 ol-popover:not(:defined) > :not([slot="trigger"]) {
   display: none;
 }
+
+/* Before ol-carousel upgrades, its items would stack as full-width blocks —
+   a tall flash and a large layout shift. Lay out one clipped row instead,
+   with item widths approximating the measured layout: (1 - 2 * peek) / cols
+   for the column counts in OlCarousel._breakpoints. The media queries key on
+   viewport width where the component measures its own width, so counts only
+   approximate inside narrow containers — close enough for a skeleton. */
+ol-carousel:not(:defined) {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+
+ol-carousel:not(:defined) > * {
+  flex: 0 0 11.75%; /* 8 columns */
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 13.4%; /* 7 columns */
+  }
+}
+
+@media (max-width: 768px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 18.8%; /* 5 columns */
+  }
+}
+
+@media (max-width: 600px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 23.5%; /* 4 columns */
+  }
+}
+
+@media (max-width: 480px) {
+  ol-carousel:not(:defined) > * {
+    flex-basis: 31.3%; /* 3 columns */
+  }
+}

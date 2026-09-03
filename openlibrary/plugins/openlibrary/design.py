@@ -70,7 +70,6 @@ class Component:
 
     id: str
     title: str
-    use_when: str
     partial: str
     group: str = ""
     tag: str = ""
@@ -83,7 +82,6 @@ COMPONENTS = (
     Component(
         "button",
         "Button",
-        "Any clickable action. The default choice — reach for this before a raw <button>.",
         "design/components/button.html.jinja",
         group="Actions",
         tag="ol-button",
@@ -91,7 +89,6 @@ COMPONENTS = (
     Component(
         "toggle",
         "Toggle",
-        "Flipping a single setting on or off, applied immediately.",
         "design/components/toggle.html.jinja",
         group="Actions",
         tag="ol-toggle",
@@ -100,7 +97,6 @@ COMPONENTS = (
     Component(
         "segmented-control",
         "Segmented Control",
-        "Choosing one of two to four mutually exclusive views, all labels visible at once.",
         "design/components/segmented-control.html.jinja",
         group="Actions",
         tag="ol-segmented-control",
@@ -109,7 +105,6 @@ COMPONENTS = (
     Component(
         "chip",
         "Chip",
-        "A compact, pill-shaped tag or filter, often colored by the kind of thing it names.",
         "design/components/chip.html.jinja",
         group="Actions",
         tag="ol-chip",
@@ -117,7 +112,6 @@ COMPONENTS = (
     Component(
         "chip-group",
         "Chip Group",
-        "Laying out a wrapping row of chips with consistent spacing.",
         "design/components/chip-group.html.jinja",
         group="Actions",
         tag="ol-chip-group",
@@ -125,7 +119,6 @@ COMPONENTS = (
     Component(
         "pagination",
         "Pagination",
-        "Moving through a paged result set, by page number or by arrows alone.",
         "design/components/pagination.html.jinja",
         group="Actions",
         tag="ol-pagination",
@@ -134,7 +127,6 @@ COMPONENTS = (
     Component(
         "tooltip",
         "Tooltip",
-        "A short, non-essential hint shown on hover or focus.",
         "design/components/tooltip.html.jinja",
         group="Overlays",
         tag="ol-tooltip",
@@ -143,7 +135,6 @@ COMPONENTS = (
     Component(
         "popover",
         "Popover",
-        "Arbitrary content anchored to a trigger — menus, forms, rich detail.",
         "design/components/popover.html.jinja",
         group="Overlays",
         tag="ol-popover",
@@ -151,7 +142,6 @@ COMPONENTS = (
     Component(
         "select-popover",
         "Select Popover",
-        "Picking several options from a long, optionally searchable list.",
         "design/components/select-popover.html.jinja",
         group="Overlays",
         tag="ol-select-popover",
@@ -159,7 +149,6 @@ COMPONENTS = (
     Component(
         "options-popover",
         "Options Popover",
-        "Picking exactly one option from a short list, like a sort order.",
         "design/components/options-popover.html.jinja",
         group="Overlays",
         tag="ol-options-popover",
@@ -167,7 +156,6 @@ COMPONENTS = (
     Component(
         "menu-popover",
         "Menu Popover",
-        "Acting on one of a short list of choices — a sort menu, or anything that navigates.",
         "design/components/menu-popover.html.jinja",
         group="Overlays",
         tag="ol-menu-popover",
@@ -176,7 +164,6 @@ COMPONENTS = (
     Component(
         "dialog",
         "Dialog",
-        "An interruption that must be dealt with before the page continues.",
         "design/components/dialog.html.jinja",
         group="Overlays",
         tag="ol-dialog",
@@ -185,7 +172,6 @@ COMPONENTS = (
     Component(
         "toast",
         "Toast",
-        "Confirming that something happened, without interrupting the reader.",
         "design/components/toast.html.jinja",
         group="Feedback",
         tag="ol-toast",
@@ -194,7 +180,6 @@ COMPONENTS = (
     Component(
         "banner",
         "Banner",
-        "A persistent, page-level announcement or call to action.",
         "design/components/banner.html.jinja",
         group="Feedback",
         tag="ol-banner",
@@ -202,14 +187,12 @@ COMPONENTS = (
     Component(
         "message",
         "Message",
-        "Inline status next to the thing it describes — info, success, warning, error.",
         "design/components/message.html.jinja",
         group="Feedback",
     ),
     Component(
         "scorecard",
         "Scorecard",
-        "Breaking a quality score into the checks that produced it.",
         "design/components/scorecard.html.jinja",
         group="Feedback",
         tag="ol-scorecard",
@@ -218,7 +201,6 @@ COMPONENTS = (
     Component(
         "carousel",
         "Carousel",
-        "A horizontal, paged row of items — book covers, cards, shelves.",
         "design/components/carousel.html.jinja",
         group="Content",
         tag="ol-carousel",
@@ -226,7 +208,6 @@ COMPONENTS = (
     Component(
         "read-more",
         "Read More",
-        "Truncating long prose to a fixed height or line count, expandable in place.",
         "design/components/read-more.html.jinja",
         group="Content",
         tag="ol-read-more",
@@ -234,7 +215,6 @@ COMPONENTS = (
     Component(
         "markdown-editor",
         "Markdown Editor",
-        "Rich editing over a plain <textarea> that stays the source of truth.",
         "design/components/markdown-editor.html.jinja",
         group="Content",
         tag="ol-markdown-editor",
@@ -245,7 +225,6 @@ COMPONENTS = (
     Component(
         "icon",
         "Icon",
-        "Any glyph. Three ways to draw one; the Icons section covers which to reach for.",
         "design/components/icon.html.jinja",
         group="Content",
         tag="ol-icon",
@@ -257,7 +236,6 @@ COMPONENTS = (
     Component(
         "book-cover",
         "Book Cover",
-        "A book's cover at a fixed 2:3 ratio, with a blank-cover fallback and a corner for one control.",
         "design/components/book-cover.html.jinja",
         group="Books",
         tag="ol-book-cover",
@@ -265,7 +243,6 @@ COMPONENTS = (
     Component(
         "shelf-button",
         "Shelf Button",
-        "Putting a book on a reading-log shelf: a split button for a row, a bookmark for a cover.",
         "design/components/shelf-button.html.jinja",
         group="Books",
         tag="ol-shelf-button",
@@ -273,7 +250,6 @@ COMPONENTS = (
     Component(
         "shelf-actions",
         "Shelf Actions",
-        "Per-book shelf, rating and add-to-list actions in a popover.",
         "design/components/shelf-actions.html.jinja",
         group="Books",
         tag="ol-shelf-actions",
