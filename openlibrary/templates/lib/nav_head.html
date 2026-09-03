@@ -1,5 +1,7 @@
 $def with (page)
 $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
+$# Librarians reach /merges; only super librarians see the open-request count.
+$ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
 <header id="header-bar" class="header-bar">
 
 
@@ -84,7 +86,7 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
     <button class="hamburger-trigger" aria-label="$_('Menu')" aria-expanded="false">
       $if ctx.user:
         <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
-        $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
+        $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
           <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
       $# Decorative — the button carries the accessible name.
       $:macros.icon('menu', size="lg", extra_class='hamburger__icon')
@@ -110,7 +112,7 @@ $ is_privileged_user = ctx.user and ctx.user.is_librarian_or_higher()
       </li>
       $if is_privileged_user:
         <li class="drawer-menu__item">
-          $if cached_get_counts_by_mode(mode='open') > 0:
+          $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
             <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
           <a href="$(homepath())/merges" data-ol-link-track="Hamburger|MyRequests">$_("Pending Merge Requests")</a>
         </li>
