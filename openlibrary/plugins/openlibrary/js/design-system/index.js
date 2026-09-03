@@ -177,6 +177,64 @@ function initScrollSpy(root) {
     targets.forEach((target) => observer.observe(target));
 }
 
+/**
+ * Below 768px the contents list moves into a popover, which renders as a tray.
+ * The nav is moved, not duplicated, so the scroll spy keeps marking the same
+ * links and there is only ever one `#component` anchor per component.
+ */
+function initNavPopover(root) {
+    const sidebar = root.querySelector('.ds__sidebar');
+    const popover = root.querySelector('[data-ds-nav-popover]');
+    const nav = root.querySelector('[data-ds-nav]');
+    if (!sidebar || !popover || !nav) return;
+
+    // Matches the popover's own tray breakpoint, so the trigger and the tray
+    // appear together.
+    const mobile = window.matchMedia('(max-width: 767px)');
+
+    function apply() {
+        if (mobile.matches) {
+            popover.appendChild(nav);
+            sidebar.dataset.dsNavMode = 'popover';
+        } else {
+            popover.open = false;
+            sidebar.appendChild(nav);
+            delete sidebar.dataset.dsNavMode;
+        }
+    }
+
+    apply();
+    mobile.addEventListener('change', apply);
+
+    // Following a link leaves the tray sitting over what it jumped to.
+    nav.addEventListener('click', (event) => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link || !popover.open) return;
+        popover.open = false;
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (target) jumpOnceUnpinned(target);
+    });
+}
+
+/**
+ * Scroll to `target` once the tray has unpinned <body>. The tray locks body
+ * scroll while open and restores the offset it captured on the way in, which
+ * lands after the browser's own jump to the anchor and undoes it — so the jump
+ * has to wait out the close. The URL still gets the hash from the click.
+ */
+function jumpOnceUnpinned(target) {
+    if (document.body.style.position !== 'fixed') {
+        target.scrollIntoView();
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        if (document.body.style.position === 'fixed') return;
+        observer.disconnect();
+        target.scrollIntoView();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+}
+
 function iconSnippets(name) {
     return {
         templetor: `$:macros.icon("${name}")`,
@@ -279,6 +337,7 @@ function initIconFilter(root) {
 export function initDesignSystem(root) {
     initCodeToggle(root);
     initCopy(root);
+    initNavPopover(root);
     initScrollSpy(root);
     initRampLabels(root);
     renderContrastBadges(root);
