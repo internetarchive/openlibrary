@@ -7657,15 +7657,15 @@ msgid "(Simplest solution: If you aren't sure whether this should be changed, do
 msgstr ""
 
 #: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr ""
-
-#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
 msgstr ""
 
 #: WorldcatLink.html
 msgid "WorldCat"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "Check nearby libraries"
 msgstr ""
 
 #: databarDiff.html databarEdit.html

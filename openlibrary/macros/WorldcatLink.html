@@ -1,17 +1,21 @@
 $def with(isbn=None, oclc_number=None)
 
+$# Rendered inside the Buy popover in macros/databarWork.html, so this emits a
+$# flat .buy-option row matching the affiliate store rows rather than the old
+$# standalone .cta-section vendor card.
+
 $if oclc_number or isbn:
-  <div class="cta-section">
-    <p class="cta-section-title world-cat-link">$_("Check nearby libraries")</p>
-    <ul class="book-locate-options">
-      <li><a
-        class="worldcat-link"
-        data-ol-link-track="worldcat-search"
-        $if oclc_number:
-          href="https://worldcat.org/oclc/$oclc_number"
-        $else:
-          href="https://worldcat.org/isbn/$isbn"
-        title="$_('Check WorldCat for an edition near you')"
-      >$_("WorldCat")</a></li>
-    </ul>
+  <div class="buy-option buy-option--worldcat">
+    <a
+      class="buy-option__link"
+      data-ol-link-track="worldcat-search"
+      $if oclc_number:
+        href="https://worldcat.org/oclc/$oclc_number"
+      $else:
+        href="https://worldcat.org/isbn/$isbn"
+      title="$_('Check WorldCat for an edition near you')"
+      target="_blank"
+      rel="noopener noreferrer"
+    ><span class="buy-option__name">$_("WorldCat")</span>
+      <span class="buy-option__note">$_("Check nearby libraries")</span></a>
   </div>
