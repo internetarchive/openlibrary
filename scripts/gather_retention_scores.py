@@ -11,11 +11,14 @@ gauge series a scheduled job feeds. Pass --statsd when you do want it recorded.
     # Score the last hour and print a breakdown
     ./scripts/gather_retention_scores.py conf/openlibrary.yml
 
-    # Last 24 hours, per-cohort detail, as JSON
+    # Last 24 hours, per-cohort and per-event detail, as JSON
     ./scripts/gather_retention_scores.py conf/openlibrary.yml --hours 24 --verbose --json
 
     # Score the last complete clock hour and record it to statsd
     ./scripts/gather_retention_scores.py /olsystem/etc/openlibrary.yml --by-hour --hours 2 --statsd
+
+Flags come from the signature of main() via FnToCLI, so booleans also accept
+their --no- form (e.g. --no-statsd).
 
 The Matomo token is read from `matomo_api` in the config file, or from a
 MATOMO_TOKEN environment variable, which takes precedence and saves developers
@@ -23,8 +26,7 @@ editing a checked-in config. Matomo is reachable from IA infrastructure; from a
 developer machine, set HTTPS_PROXY to an allowlisted forward proxy.
 """
 
-import argparse
-import json
+import json as jsonlib
 import sys
 
 try:
@@ -42,17 +44,7 @@ from openlibrary.core.retention import (
     retention_gauges,
     write_retention_to_statsd,
 )
-
-
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("openlibrary_config", help="Path to openlibrary.yml (supplies the Matomo token and statsd server)")
-    parser.add_argument("--hours", type=int, default=1, help="Size of the window to score, in hours (default: 1)")
-    parser.add_argument("--statsd", action="store_true", help="Also push the scores to statsd (off by default)")
-    parser.add_argument("--json", action="store_true", dest="as_json", help="Emit the full result as JSON")
-    parser.add_argument("--verbose", action="store_true", help="Show the per-cohort and per-event breakdown behind the score")
-    parser.add_argument("--by-hour", action="store_true", dest="by_hour", help="Score each of the last --hours clock hours separately instead of as one window")
-    return parser.parse_args(argv)
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
 def print_report(scores: dict, verbose: bool) -> None:
@@ -105,52 +97,58 @@ def print_hourly_report(hourly: list[dict], verbose: bool) -> None:
         print_report(hourly[0], verbose)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+def main(
+    openlibrary_config: str,
+    hours: int = 1,
+    by_hour: bool = False,
+    statsd: bool = False,
+    json: bool = False,
+    verbose: bool = False,
+) -> None:
+    """Compute the Core Vitals Retention Score for a window ending now.
 
-    if args.hours < 1:
-        print("--hours must be at least 1", file=sys.stderr)
-        return 1
+    :param openlibrary_config: Path to openlibrary.yml, supplying the Matomo token and statsd server
+    :param hours: Size of the window to score, in hours
+    :param by_hour: Score each of the last --hours clock hours separately instead of as one window
+    :param statsd: Also record the scores to statsd; off by default so an ad hoc run cannot contaminate a scheduled series
+    :param json: Emit the full result as JSON
+    :param verbose: Show the per-cohort and per-event breakdown behind the score
+    """
+    if hours < 1:
+        raise SystemExit("--hours must be at least 1")
 
-    if not (token := resolve_token(args.openlibrary_config)):
-        print(
-            f"No Matomo token found. Set `matomo_api` in {args.openlibrary_config}, or export MATOMO_TOKEN.",
-            file=sys.stderr,
-        )
-        return 1
+    if not (token := resolve_token(openlibrary_config)):
+        raise SystemExit(f"No Matomo token found. Set `matomo_api` in {openlibrary_config}, or export MATOMO_TOKEN.")
 
     hourly: list[dict] | None = None
-    # The window to record: the most recent *complete* hour under --by-hour.
-    # hourly[0] is the hour in progress, so recording it would write a value that
-    # depends on the minute the job fired -- a sawtooth, not a measurement.
+    # The window to record: under --by-hour that is the most recent *complete*
+    # hour, since hourly[0] is still filling up and its value would depend on
+    # the minute the job fired.
     recordable: dict | None = None
     try:
-        if args.by_hour:
-            hourly = gather_retention_scores_by_hour(token, hours=args.hours)
+        if by_hour:
+            hourly = gather_retention_scores_by_hour(token, hours=hours)
             recordable = next((hour for hour in hourly if not hour["partial"]), None)
         else:
-            recordable = gather_retention_scores(token, hours=args.hours)
+            recordable = gather_retention_scores(token, hours=hours)
     except MatomoError as exc:
-        print(f"Could not reach Matomo: {exc}", file=sys.stderr)
-        print("Matomo is restricted to IA's network; set HTTPS_PROXY to an allowlisted proxy if running locally.", file=sys.stderr)
-        return 1
+        raise SystemExit(
+            f"Could not reach Matomo: {exc}\nMatomo is restricted to IA's network; set HTTPS_PROXY to an allowlisted proxy if running locally."
+        ) from exc
 
-    if args.as_json:
-        print(json.dumps(hourly if hourly is not None else recordable, indent=2))
+    if json:
+        print(jsonlib.dumps(hourly if hourly is not None else recordable, indent=2))
     elif hourly is not None:
-        print_hourly_report(hourly, args.verbose)
+        print_hourly_report(hourly, verbose)
     elif recordable is not None:
-        print_report(recordable, args.verbose)
+        print_report(recordable, verbose)
 
-    if args.statsd:
+    if statsd:
         if recordable is None:
-            print("\nNothing recorded: --by-hour --hours 1 covers only the hour in progress. Use --hours 2 or more.", file=sys.stderr)
-            return 1
-        write_retention_to_statsd(args.openlibrary_config, recordable)
-        print(f"\nPushed {len(retention_gauges(recordable))} gauges to statsd for the hour starting {recordable.get('hour_start', recordable['since'])}.")
-
-    return 0
+            raise SystemExit("Nothing recorded: --by-hour --hours 1 covers only the hour in progress. Use --hours 2 or more.")
+        write_retention_to_statsd(openlibrary_config, recordable)
+        print(f"\nRecorded {len(retention_gauges(recordable))} gauges to statsd for the hour starting {recordable.get('hour_start', recordable['since'])}.")
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    FnToCLI(main).run()

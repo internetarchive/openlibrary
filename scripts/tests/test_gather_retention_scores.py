@@ -69,23 +69,25 @@ class TestMain:
         monkeypatch.delenv("MATOMO_TOKEN", raising=False)
         path = tmp_path / "openlibrary.yml"
         path.write_text("matomo_api:\n")
-        assert script.main([str(path)]) == 1
-        assert "No Matomo token found" in capsys.readouterr().err
+        with pytest.raises(SystemExit, match="No Matomo token found"):
+            script.main(str(path))
 
     def test_rejects_a_zero_hour_window(self, configfile, capsys):
-        assert script.main([configfile, "--hours", "0"]) == 1
-        assert "--hours must be at least 1" in capsys.readouterr().err
+        with pytest.raises(SystemExit, match="at least 1"):
+            script.main(configfile, hours=0)
 
     def test_reports_an_unreachable_matomo_without_a_traceback(self, configfile, capsys):
-        with patch.object(script, "gather_retention_scores", side_effect=MatomoError("no route to host")):
-            assert script.main([configfile]) == 1
-        err = capsys.readouterr().err
-        assert "Could not reach Matomo" in err
-        assert "HTTPS_PROXY" in err
+        with (
+            patch.object(script, "gather_retention_scores", side_effect=MatomoError("no route to host")),
+            pytest.raises(SystemExit) as excinfo,
+        ):
+            script.main(configfile)
+        assert "Could not reach Matomo" in str(excinfo.value)
+        assert "HTTPS_PROXY" in str(excinfo.value)
 
     def test_prints_a_report_and_succeeds(self, configfile, capsys):
         with patch.object(script, "gather_retention_scores", return_value=SCORES):
-            assert script.main([configfile]) == 0
+            script.main(configfile)
         out = capsys.readouterr().out
         assert "R_total" in out
         assert "171.00" in out
@@ -96,7 +98,7 @@ class TestMain:
             patch.object(script, "gather_retention_scores", return_value=SCORES),
             patch.object(script, "write_retention_to_statsd") as mock_write,
         ):
-            assert script.main([configfile]) == 0
+            script.main(configfile)
         mock_write.assert_not_called()
 
     def test_pushes_to_statsd_when_asked(self, configfile):
@@ -104,23 +106,23 @@ class TestMain:
             patch.object(script, "gather_retention_scores", return_value=SCORES),
             patch.object(script, "write_retention_to_statsd") as mock_write,
         ):
-            assert script.main([configfile, "--statsd"]) == 0
+            script.main(configfile, statsd=True)
         mock_write.assert_called_once_with(configfile, SCORES)
 
     def test_json_output_is_parseable(self, configfile, capsys):
         with patch.object(script, "gather_retention_scores", return_value=SCORES):
-            assert script.main([configfile, "--json"]) == 0
+            script.main(configfile, json=True)
         assert json.loads(capsys.readouterr().out)["r_total"] == 171.0
 
     def test_passes_the_requested_window_through(self, configfile):
         with patch.object(script, "gather_retention_scores", return_value=SCORES) as mock_gather:
-            script.main([configfile, "--hours", "24"])
+            script.main(configfile, hours=24)
         assert mock_gather.call_args.kwargs["hours"] == 24
 
     def test_warnings_go_to_stderr(self, configfile, capsys):
         scores = SCORES | {"warnings": ["registrant: 5 active patrons but zero scored engagement"]}
         with patch.object(script, "gather_retention_scores", return_value=scores):
-            script.main([configfile])
+            script.main(configfile)
         assert "zero scored engagement" in capsys.readouterr().err
 
 
@@ -132,12 +134,12 @@ class TestByHour:
 
     def test_by_hour_uses_the_hourly_gatherer(self, configfile):
         with patch.object(script, "gather_retention_scores_by_hour", return_value=self.HOURLY) as mock_hourly:
-            assert script.main([configfile, "--by-hour", "--hours", "2"]) == 0
+            script.main(configfile, by_hour=True, hours=2)
         assert mock_hourly.call_args.kwargs["hours"] == 2
 
     def test_prints_one_row_per_hour_most_recent_first(self, configfile, capsys):
         with patch.object(script, "gather_retention_scores_by_hour", return_value=self.HOURLY):
-            script.main([configfile, "--by-hour"])
+            script.main(configfile, by_hour=True)
         out = capsys.readouterr().out
         assert "04:00 (partial)" in out
         assert "03:00" in out
@@ -145,12 +147,12 @@ class TestByHour:
 
     def test_flags_the_partial_hour(self, configfile, capsys):
         with patch.object(script, "gather_retention_scores_by_hour", return_value=self.HOURLY):
-            script.main([configfile, "--by-hour"])
+            script.main(configfile, by_hour=True)
         assert "not a drop" in capsys.readouterr().out
 
     def test_json_emits_the_whole_series(self, configfile, capsys):
         with patch.object(script, "gather_retention_scores_by_hour", return_value=self.HOURLY):
-            script.main([configfile, "--by-hour", "--json"])
+            script.main(configfile, by_hour=True, json=True)
         assert len(json.loads(capsys.readouterr().out)) == 2
 
     def test_statsd_records_the_most_recent_COMPLETE_hour(self, configfile):
@@ -160,7 +162,7 @@ class TestByHour:
             patch.object(script, "gather_retention_scores_by_hour", return_value=self.HOURLY),
             patch.object(script, "write_retention_to_statsd") as mock_write,
         ):
-            script.main([configfile, "--by-hour", "--statsd"])
+            script.main(configfile, by_hour=True, statsd=True)
         recorded = mock_write.call_args.args[1]
         assert recorded["partial"] is False
         assert recorded["r_total"] == 900.0
@@ -171,17 +173,17 @@ class TestByHour:
         with (
             patch.object(script, "gather_retention_scores_by_hour", return_value=only_partial),
             patch.object(script, "write_retention_to_statsd") as mock_write,
+            pytest.raises(SystemExit, match="hour in progress"),
         ):
-            assert script.main([configfile, "--by-hour", "--hours", "1", "--statsd"]) == 1
+            script.main(configfile, by_hour=True, hours=1, statsd=True)
         mock_write.assert_not_called()
-        assert "hour in progress" in capsys.readouterr().err
 
 
 class TestEventBreakdown:
     def test_verbose_lists_the_events_that_earned_points(self, configfile, capsys):
         scores = SCORES | {"events": {"read": {"count": 12, "points": 100, "total": 1200}}}
         with patch.object(script, "gather_retention_scores", return_value=scores):
-            script.main([configfile, "--verbose"])
+            script.main(configfile, verbose=True)
         out = capsys.readouterr().out
         assert "read" in out
         assert "1,200" in out
@@ -189,5 +191,5 @@ class TestEventBreakdown:
     def test_events_are_hidden_without_verbose(self, configfile, capsys):
         scores = SCORES | {"events": {"read": {"count": 12, "points": 100, "total": 1200}}}
         with patch.object(script, "gather_retention_scores", return_value=scores):
-            script.main([configfile])
+            script.main(configfile)
         assert "1,200" not in capsys.readouterr().out
