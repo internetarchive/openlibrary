@@ -78,6 +78,7 @@ export default function initAnalytics() {
 
     // The bundle loads asynchronously, so DOMContentLoaded may already have fired (#4474)
     function sendPageview() {
+        if (!window.archive_analytics) return;
         window.archive_analytics.send_pageview({});
     }
     if (document.readyState === 'loading') {
