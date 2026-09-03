@@ -136,11 +136,13 @@ def get_s3_keys(account, s3_cookie: str | None = None) -> dict | None:
         if (token := web.cookies().get("s3")) and (keys := parse_s3_cookie(token)):
             return keys
 
-    if account_key := getattr(account, "_key", None):
-        return web.ctx.site.store.get(account_key, {}).get("s3_keys")
     if isinstance(account, dict):
         return account.get("s3_keys")
-    return None
+
+    account_key = getattr(account, "_key", None)
+    if not account_key:
+        return None
+    return site.get().store.get(account_key, {}).get("s3_keys")
 
 
 def create_verification_cookie_value() -> str:

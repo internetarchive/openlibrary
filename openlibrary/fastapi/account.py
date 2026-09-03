@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
-from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user, get_s3_keys, parse_s3_cookie
+from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user, get_s3_keys
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
@@ -408,7 +408,10 @@ async def anonymize_account(
 
 class AvatarUploadResponse(BaseModel):
     status: Literal["success"] = Field(description="Status of the operation")
-    avatar_url: str = Field(description="The updated avatar URL with cache-busting version query param")
+    avatar_url: str | None = Field(
+        default=None,
+        description="The updated avatar URL with cache-busting version query param. None in dev-mock mode, where nothing was uploaded to Internet Archive.",
+    )
     message: str = Field(description="User-facing status message")
 
 
@@ -467,17 +470,6 @@ def _set_avatar_updated(username: str, avatar_updated: int | None) -> None:
     site.get().store[f"account/{username}"] = account_data
 
 
-def _resolve_s3_keys(request: Request, ol_account: dict) -> dict | None:
-    """Return the user's Internet Archive S3 keys.
-
-    Prefers the encrypted ``s3`` cookie, falling back to the account store
-    (via get_s3_keys) for sessions that predate the cookie.
-    """
-    if (s3_cookie := request.cookies.get("s3")) and (keys := parse_s3_cookie(s3_cookie)):
-        return keys
-    return get_s3_keys(ol_account)
-
-
 @router.post(
     "/account/avatar",
     response_model=AvatarUploadResponse,
@@ -508,9 +500,9 @@ async def upload_avatar(
             detail="User account is missing Internet Archive item identifier",
         )
 
-    s3_keys = _resolve_s3_keys(request, ol_account) or {}
-    is_mock = s3_keys.get("access", "").startswith("mock_")
-    if get_ol_env().LOCAL_DEV or is_mock:
+    s3_keys = get_s3_keys(ol_account, s3_cookie=request.cookies.get("s3")) or {}
+    is_mock = get_ol_env().LOCAL_DEV or s3_keys.get("access", "").startswith("mock_")
+    if is_mock:
         logger.info(f"[LOCAL_DEV] Mocking Internet Archive avatar S3 upload for user {user.username}")
     elif not (s3_keys.get("access") and s3_keys.get("secret")):
         raise HTTPException(
@@ -525,10 +517,6 @@ async def upload_avatar(
         try:
             item = ia.get_item(itemname)
             # Meta header telling archive.org which file is the item image.
-            # Note the derived image served by
-            # https://archive.org/services/img/{itemname} only regenerates once
-            # archive.org's derive queue processes the upload, so the new
-            # picture can lag the upload by a short while.
             headers = {
                 "x-archive-meta-image": "avatar.jpg",
             }
@@ -539,16 +527,23 @@ async def upload_avatar(
                 secret_key=s3_keys["secret"],
                 queue_derive=True,
                 retries=1,
-                # Skip TLS verification locally, where IA creds are faked.
-                verify=not get_ol_env().LOCAL_DEV,
+                verify=True,
             )
         except Exception as err:  # noqa: BLE001
             logger.error(f"Internet Archive S3 upload failed for user {user.username}: {err}")
-            if not get_ol_env().LOCAL_DEV:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Failed to upload profile picture to Internet Archive: {err}",
-                )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to upload profile picture to Internet Archive: {err}",
+            )
+
+    # Nothing was actually uploaded in mock mode (local dev, fake keys), so do
+    # not pretend otherwise: leave the account store and avatar URL untouched.
+    if is_mock:
+        return AvatarUploadResponse(
+            status="success",
+            avatar_url=None,
+            message="Mock upload succeeded (dev only; nothing sent to Internet Archive)",
+        )
 
     # Bump the timestamp before invalidating so any get_avatar_url call that
     # repopulates the cache in between still sees the new URL.
@@ -571,6 +566,7 @@ async def upload_avatar(
     tags=["account"],
 )
 async def delete_avatar(
+    request: Request,
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> AvatarUploadResponse:
     if "avatar_updated" not in _avatar_account_data(user.username):
@@ -578,6 +574,62 @@ async def delete_avatar(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No custom profile picture exists to remove",
         )
+
+    ol_account = OpenLibraryAccount.get_by_username(user.username)
+    if not ol_account:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User account not found")
+
+    itemname = ol_account.get("internetarchive_itemname")
+    if not itemname:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User account is missing Internet Archive item identifier",
+        )
+
+    s3_keys = get_s3_keys(ol_account, s3_cookie=request.cookies.get("s3")) or {}
+    is_mock = get_ol_env().LOCAL_DEV or s3_keys.get("access", "").startswith("mock_")
+    if is_mock:
+        logger.info(f"[LOCAL_DEV] Mocking Internet Archive avatar removal for user {user.username}")
+    elif not (s3_keys.get("access") and s3_keys.get("secret")):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Internet Archive S3 credentials. Please log out and log in again.",
+        )
+    else:
+        # Actually remove the avatar from the archive.org item: drop the item
+        # image metadata first (so services/img/{item} falls back to the
+        # default portrait even if the file delete below fails), then delete
+        # the uploaded file. Without this the derived image keeps serving the
+        # old photo after the OL-side timestamp is cleared.
+        try:
+            item = ia.get_item(itemname)
+            item.refresh()
+            if item.item_metadata.get("metadata", {}).get("image"):
+                item.modify_metadata(
+                    {"image": None},
+                    access_key=s3_keys["access"],
+                    secret_key=s3_keys["secret"],
+                )
+            avatar_file = item.get_file("avatar.jpg")
+            resp = avatar_file.delete(
+                access_key=s3_keys["access"],
+                secret_key=s3_keys["secret"],
+                retries=1,
+            )
+            # 404 just means the file was already gone; that's fine.
+            if resp.status_code not in (204, 404):
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Failed to remove avatar.jpg from Internet Archive (HTTP {resp.status_code})",
+                )
+        except HTTPException:
+            raise
+        except Exception as err:  # noqa: BLE001
+            logger.error(f"Internet Archive avatar removal failed for user {user.username}: {err}")
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to remove profile picture from Internet Archive: {err}",
+            )
 
     _set_avatar_updated(user.username, None)
     models.User.invalidate_avatar_url_cache(user.username)
