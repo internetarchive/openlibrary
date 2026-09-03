@@ -278,17 +278,26 @@ export class OlDrawer extends LitElement {
 
     _openDrawer() {
         const dialog = this.dialog;
-        if (!dialog || dialog.open) return;
+        if (!dialog) return;
 
-        // document.activeElement doesn't pass into shadow DOM
-        this._previouslyFocusedElement = getDeepActiveElement();
+        // The only way in here with an already-open dialog is a reopen during
+        // the exit transition — `showModal()` is still in effect and the close
+        // callback is still queued. Bumping the cycle below cancels it; the
+        // rest of the entry is idempotent, so it just runs again.
+        const reopening = dialog.open;
+
+        if (!reopening) {
+            // document.activeElement doesn't pass into shadow DOM
+            this._previouslyFocusedElement = getDeepActiveElement();
+        }
         const cycle = ++this._cycle;
 
         this.dispatchEvent(new CustomEvent('ol-drawer-show', {
             bubbles: true, composed: true,
         }));
 
-        dialog.showModal();
+        // Calling showModal() on an open dialog throws.
+        if (!reopening) dialog.showModal();
 
         // showModal() blocks background scroll on desktop but not touch-scroll
         // on iOS Safari, so pin <body> as well. The lock reserves the scrollbar
