@@ -3903,7 +3903,7 @@ msgstr ""
 msgid "Please provide a URL."
 msgstr ""
 
-#: UserEditRow.html books/edit/web.html
+#: books/edit/web.html
 msgid "Please enter a valid URL."
 msgstr ""
 
