@@ -2,7 +2,9 @@ from unittest.mock import patch
 
 import web
 
+from openlibrary.plugins.worksearch import code
 from openlibrary.plugins.worksearch.code import (
+    SearchResponse,
     _get_readable_count,
     _prepare_solr_query_params,
     get_doc,
@@ -232,3 +234,77 @@ def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
     assert readable_param["has_fulltext"] == "true"
     assert "public_scan" not in readable_param
     assert mock_query.call_args.kwargs["rows"] == 0
+
+
+def _stub_search_web_input(monkeypatch):
+    """search.GET() makes two web.input() calls: one just for q/q2, then the
+    real one with a q="hello" query and no other params set."""
+
+    def fake_input(**defaults):
+        if "q2" in defaults:
+            return web.storage(q="", q2="")
+        values = dict(defaults)
+        values["q"] = "hello"
+        return web.storage(**values)
+
+    monkeypatch.setattr(code.web, "input", fake_input)
+
+
+class TestSearchAvailabilityPreparedInPython:
+    """Regression coverage for openlibrary#13419 subtask 5: work_search.html
+    used to call add_availability() itself, mid-render, for every search
+    results page -- an outbound network call from template rendering (the
+    same class of bug the LoanStatus groundtruth fallback removal fixes for
+    /works and /books). search.GET() must batch-augment availability in
+    Python before the template renders, and hand the template an
+    already-prepared `works` list instead of the raw `get_doc` function."""
+
+    def test_add_availability_runs_in_python_before_render_with_prepared_works(self, monkeypatch):
+        _stub_search_web_input(monkeypatch)
+        solr_doc = {
+            "key": "/works/OL1W",
+            "title": "Test Book",
+            "edition_count": 1,
+            "ia": ["testbook"],
+        }
+        search_response = SearchResponse(facet_counts={}, sort="", docs=[solr_doc], num_found=0, solr_select="")
+
+        call_order = []
+        render_calls = []
+
+        def fake_add_availability(items):
+            call_order.append("add_availability")
+            return items
+
+        def fake_render_work_search(*a, **kw):
+            call_order.append("render")
+            render_calls.append(a)
+            return "rendered"
+
+        def run():
+            with (
+                patch.object(code, "run_solr_query", return_value=search_response),
+                patch.object(code, "add_availability", side_effect=fake_add_availability) as mock_add_availability,
+            ):
+                monkeypatch.setattr(code.render, "work_search", fake_render_work_search, raising=False)
+                return code.search().GET(), mock_add_availability
+
+        result, mock_add_availability = _with_req_context(run)
+
+        assert result == "rendered"
+        # add_availability ran exactly once, before render.work_search --
+        # not per-item inside the template's own render pass.
+        assert call_order == ["add_availability", "render"]
+        mock_add_availability.assert_called_once()
+
+        (availability_items,) = mock_add_availability.call_args[0]
+        assert len(availability_items) == 1
+        assert availability_items[0]["key"] == "/works/OL1W"
+
+        # work_search.html no longer takes the raw `get_doc` function as its
+        # 3rd positional arg -- it takes the already-get_doc()-mapped,
+        # already-availability-augmented `works` list.
+        (render_args,) = render_calls
+        works_arg = render_args[2]
+        assert works_arg == [get_doc(solr_doc)]
+        assert works_arg is not get_doc
