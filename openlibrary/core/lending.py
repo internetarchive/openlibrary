@@ -182,9 +182,6 @@ def compose_ia_url(
 
 @cache.memoize(engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
-    """Not `@public` anymore: this makes an outbound HTTP call, so it must
-    only be called from Python (prepare_book_page()), never a template.
-    """
     return get_groundtruth_availability(ocaid)
 
 

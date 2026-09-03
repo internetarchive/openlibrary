@@ -101,6 +101,22 @@ class TestPrepareBookPageEditionSelection:
 
         assert context.edition is ed1
 
+    def test_provider_id_with_extra_colons_does_not_crash(self):
+        ed1 = make_edition("/books/OL1M", ocaid="someid", availability={"status": "open"})
+        work = make_work("/works/OL1W", [ed1])
+
+        mock_provider = Mock()
+        mock_provider.get_olids.return_value = []
+        mock_provider.get_identifiers.side_effect = lambda e: [e.ocaid]
+
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_provider):
+            context = code.prepare_book_page(work, {"edition": "ia:someid:extra"}, user=None)
+
+        # Splits on the first colon only, so a crafted multi-colon ?edition=
+        # falls back to the best edition instead of raising ValueError.
+        mock_provider.get_olids.assert_called_once_with("someid:extra")
+        assert context.edition is ed1
+
     def test_orphan_edition_falls_back_to_synthetic_work(self):
         orphan_work = make_work("", [], edition_count=1)
         ed = make_edition("/books/OL1M", ocaid="ia1", availability={"status": "open"})

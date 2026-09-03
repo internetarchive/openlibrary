@@ -883,10 +883,6 @@ class search(delegate.page):
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
 
-        # Batch-augment availability here, in Python, before the template
-        # renders -- rather than in work_search.html, where it used to run
-        # per-request inside the template (an outbound network call from
-        # template rendering). Mirrors works_by_author_async() below.
         works = [get_doc(doc) for doc in search_response.docs]
         add_availability([(w.get("editions") or [None])[0] or w for w in works])
 

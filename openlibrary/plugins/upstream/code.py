@@ -308,66 +308,54 @@ class BookPageContext:
     lending_state: str
 
 
-def prepare_book_page(page, query_params, user=None) -> BookPageContext:
-    """Resolves the work, selected edition, and lending state for a /works
-    or /books page. Ported from type/edition/view.html so that no
-    lending/availability I/O (including the ground-truth fallback) happens
-    from inside a template.
-
-    :param page: the Work or Edition already loaded for this request.
-    :param query_params: a mapping supporting `.get(name, default)`, e.g. `web.input()`.
-    :param user: the logged-in user, if any (only used to gate loan/waitlist checks).
-    """
-    import openlibrary.book_providers as bp
-
-    show_observations = True
-
+def _resolve_work(page):
+    """Return the work for a /works or /books page, and whether to show
+    reader observations (hidden for editions without a real work)."""
     if page.key.startswith("/works"):
-        work = page
-    elif page.works:
-        work = next(iter(page.works))
-    else:
-        work = page.make_work_from_orphaned_edition()
-        show_observations = False
+        return page, True
+    if page.works:
+        return next(iter(page.works)), True
+    return page.make_work_from_orphaned_edition(), False
 
-    # This can happen when looking at past versions of an edition whose
-    # work has since been merged.
-    if work.type.key == "/type/redirect":
-        redir = work
-        if (fetched := get_document(redir.key)) is not None:
-            work = fetched
-        else:
-            logger.warning("get_document(%r) returned None for redirect %r", redir.key, page.key)
-        work["title"] = "↪ " + redir.key
 
-    edition = web.storage({})
+def _resolve_edition_request(page, query_params):
+    """Resolve the edition explicitly requested via `?edition=key:`, the
+    edition itself on /books pages, or a provider/id pair for `provider:id`.
+
+    Returns (requested_edition, provider, selected_id); requested_edition is
+    None when the caller should fall back to picking the best edition.
+    """
     if query_params.get("edition", "").startswith("key:"):
-        edition = core.db.get_type(query_params.get("edition").split(":")[1])
-    elif page.key.startswith("/books"):
+        return core.db.get_type(query_params.get("edition").split(":")[1]), None, None
+    if page.key.startswith("/books"):
         # We are on an editions page: an edition has been explicitly selected
-        edition = page
+        return page, None, None
+    if query_params.get("edition"):
+        from openlibrary.book_providers import get_book_provider_by_name
 
-    selected_id = None
-    provider = None
-    if query_params.get("edition") and not edition:
         if ":" in query_params.get("edition"):
-            selected_provider, selected_id = query_params.get("edition").split(":")
+            provider_name, selected_id = query_params.get("edition").split(":", 1)
         else:
-            selected_provider, selected_id = "ia", query_params.get("edition")
-        provider = bp.get_book_provider_by_name(selected_provider)
+            provider_name, selected_id = "ia", query_params.get("edition")
+        return None, get_book_provider_by_name(provider_name), selected_id
+    return None, None, None
 
-    # Fetch a work's editions.
-    # Book availability of editions injected by bulk get_availability API.
+
+def _fetch_editions(work, requested, provider, selected_id, mode):
+    """Fetch a work's editions, applying the ebooks-only / edition-limit rules.
+
+    Book availability of the fetched editions is injected by the bulk
+    get_availability API inside get_sorted_editions().
+    """
     edition_count = work.edition_count if work and work.edition_count else 1
-    mode = query_params.get("mode")
     ebooks_only = (mode == "ebooks") or (mode != "all" and edition_count > 10)
 
     # For performance reasons, limit to 10 ebooks.
     # Tradeoff: limits our ability to select best edition.
     editions_limit = None if mode in ("all", "ebooks") else 10
     # keys ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-    if edition:
-        keys = [edition.key]
+    if requested:
+        keys = [requested.key]
     elif provider:
         # provider is only ever set alongside selected_id, above.
         assert selected_id is not None
@@ -380,35 +368,73 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
     if not editions:
         editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
-    availabilities = {e.availability.get("identifier"): e.availability for e in editions}
+    return editions, editions_limit
 
-    previews = [e for e in editions if e.get("ocaid")]
 
-    # No edition selected yet: pick one (matching the requested provider/id, else the default best edition)
-    if editions and not edition:
-        if provider:
-            edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
-        else:
-            edition, provider = bp.get_best_edition(editions)
+def _select_edition(editions, requested, provider, selected_id, page):
+    """Pick the edition to render: the explicitly requested one, the one
+    matching a requested provider/id, else the default best edition."""
+    if not editions:
+        return requested or page, provider
+    if requested:
+        return requested, provider
+    if provider:
+        return next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0]), provider
+    from openlibrary.book_providers import get_best_edition
 
-    # Just in case edition is not set, treat as work
-    edition = edition or page
+    return get_best_edition(editions)
 
+
+def _attach_availability(edition, availabilities):
+    """Seed the selected edition's availability from the bulk map, falling
+    back to the ground-truth API for that edition only when bulk errored
+    (the one outbound call left on book pages)."""
     if not edition.get("availability"):
         edition["availability"] = (edition.get("ocaid") and availabilities.get(edition["ocaid"])) or {}
 
-    # Ground-truth fallback: only for the selected edition, only when bulk availability errored.
     ocaid = edition.get("ocaid")
     if edition.get("availability", {}).get("status") == "error" and ocaid:
         try:
             if gt := lending.get_cached_groundtruth_availability(ocaid):
-                # Copy to avoid mutating the shared dict in availabilities/editions
+                # Copy, not mutate: the bulk dict may be shared with availabilities/editions
                 edition["availability"] = {**edition["availability"], **gt}
         except Exception:
             # Unlike the old template-side call (caught by Templetor's
             # saferender()), an uncaught exception here would 500 the whole
             # page. Keep the bulk ("error") availability instead.
             logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
+
+
+def prepare_book_page(page, query_params, user=None) -> BookPageContext:
+    """Resolves the work, selected edition, and lending state for a /works
+    or /books page. Ported from type/edition/view.html so that no
+    lending/availability I/O (including the ground-truth fallback) happens
+    from inside a template.
+
+    :param page: the Work or Edition already loaded for this request.
+    :param query_params: a mapping supporting `.get(name, default)`, e.g. `web.input()`.
+    :param user: the logged-in user, if any (only used to gate loan/waitlist checks).
+    """
+    work, show_observations = _resolve_work(page)
+
+    # This can happen when looking at past versions of an edition whose
+    # work has since been merged.
+    if work.type.key == "/type/redirect":
+        redir = work
+        if (fetched := get_document(redir.key)) is not None:
+            work = fetched
+        else:
+            logger.warning("get_document(%r) returned None for redirect %r", redir.key, page.key)
+        work["title"] = "↪ " + redir.key
+
+    requested, provider, selected_id = _resolve_edition_request(page, query_params)
+    editions, editions_limit = _fetch_editions(work, requested, provider, selected_id, query_params.get("mode"))
+    availabilities = {e.availability.get("identifier"): e.availability for e in editions}
+
+    previews = [e for e in editions if e.get("ocaid")]
+
+    edition, provider = _select_edition(editions, requested, provider, selected_id, page)
+    _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(
         edition or work,
