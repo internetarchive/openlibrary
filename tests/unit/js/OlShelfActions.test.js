@@ -154,6 +154,25 @@ describe('ol-shelf-actions rating', () => {
         expect(q(el, '.stars .caption').textContent).toBe('Clear rating');
     });
 
+    // The server only auto-shelves when it isn't overwriting an explicit
+    // choice, so the optimistic update has to make the same distinction.
+    test.each([
+        ['an unshelved book', null, SHELF.ALREADY_READ],
+        ['a Want to Read book', SHELF.WANT_TO_READ, SHELF.ALREADY_READ],
+        ['a Currently Reading book', SHELF.CURRENTLY_READING, SHELF.CURRENTLY_READING],
+        ['a Stopped Reading book', SHELF.STOPPED_READING, SHELF.STOPPED_READING],
+    ])('rating %s leaves it on the right shelf', async(_label, shelf, expected) => {
+        stubFetch();
+        const el = await mount({ shelf });
+        const events = [];
+        el.addEventListener('ol-book-state-change', e => events.push(e.detail));
+        qa(el, '.star')[3].click();
+        expect(el.shelf).toBe(expected);
+        await tick(el);
+        expect(el.shelf).toBe(expected);
+        expect(events).toEqual([{ key: '/works/OL1W', shelf: expected, rating: 4 }]);
+    });
+
     test('clicking the current star clears the rating', async() => {
         stubFetch();
         const el = await mount({ rating: 2, shelf: SHELF.ALREADY_READ });
@@ -555,12 +574,12 @@ describe('ol-shelf-actions rejected writes', () => {
     // leave the book on a shelf it was never put on.
     test('a rejected rating rolls back the shelf it implied too', async() => {
         stubFetch({ failWith: 500 });
-        const el = await mount({ shelf: SHELF.CURRENTLY_READING });
+        const el = await mount({ shelf: SHELF.WANT_TO_READ });
         qa(el, '.star')[3].click();
         expect(el.shelf).toBe(SHELF.ALREADY_READ);
         await tick(el);
         expect(el.rating).toBeNull();
-        expect(el.shelf).toBe(SHELF.CURRENTLY_READING);
+        expect(el.shelf).toBe(SHELF.WANT_TO_READ);
     });
 
     test('a second write while one is in flight is dropped', async() => {

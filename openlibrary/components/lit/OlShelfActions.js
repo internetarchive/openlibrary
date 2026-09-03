@@ -1293,8 +1293,11 @@ export class OlShelfActions extends LitElement {
 
     async _onRate(n) {
         const next = this.rating === n ? null : n;
-        // The server moves a rated book to Already Read.
-        const optimistic = next ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
+        // Mirrors the server, which moves a rated book to Already Read only when
+        // it is unshelved or on Want to Read — Currently Reading and Stopped
+        // Reading are explicit choices it will not overwrite.
+        const autoShelves = !this.shelf || this.shelf === SHELF.WANT_TO_READ;
+        const optimistic = next && autoShelves ? { rating: next, shelf: SHELF.ALREADY_READ } : { rating: next };
         return this._mutate(optimistic, async() => {
             await setRating(this.book.key, next, { editionKey: this.book.editionKey });
             trackEvent('StarRating', next ? 'BookRated' : 'RatingCleared');
