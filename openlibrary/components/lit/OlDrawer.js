@@ -24,7 +24,7 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * @element ol-drawer
  *
  * @prop {Boolean} open - Whether the drawer is currently visible.
- * @prop {String} placement - Which edge the drawer slides from:
+ * @prop {'start' | 'end'} placement - Which edge the drawer slides from:
  *     `'start'` (left in LTR) or `'end'` (right in LTR). Default: `'end'`
  * @prop {String} label - Accessible label for the drawer dialog.
  * @prop {Boolean} closeOnScrimClick - Whether clicking the scrim closes the
