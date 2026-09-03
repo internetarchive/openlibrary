@@ -1,13 +1,15 @@
 /**
  * Unit tests for <ol-shelf-actions>: shelf/rating requests and their optimistic
  * updates, the state-change event, and the add-to-list pane (load, filter,
- * toggle, create). Network is stubbed at `fetch`.
+ * toggle, create, and the recently-used lists it leans on). Network is stubbed
+ * at `fetch`.
  */
 import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
 import { fmt } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
+import { clearRecentLists, getRecentLists, noteListUsed } from '../../../openlibrary/components/lit/utils/recent-lists.js';
 
 const BOOK = { key: '/works/OL1W', title: 'Project Hail Mary', firstPublishYear: 2021, editionKey: 'OL9M' };
 
@@ -31,6 +33,11 @@ function stubFetch({ failWith } = {}) {
     });
 }
 
+/** Pads the stub past FILTER_THRESHOLD, the count at which the pane offers a filter. */
+function padLists(n = 7) {
+    for (let i = 0; i < n; i++) listData[`/people/tester/lists/OL1${i}L`] = { listName: `Filler ${i}`, members: [] };
+}
+
 beforeAll(() => {
     global.ResizeObserver = class { observe() {} disconnect() {} };
     window.matchMedia = query => ({
@@ -40,6 +47,7 @@ beforeAll(() => {
 
 beforeEach(() => {
     resetListsStore();
+    clearRecentLists();
 });
 
 afterEach(() => {
@@ -192,6 +200,7 @@ describe('ol-shelf-actions lists pane', () => {
 
     test('filter narrows the rows', async() => {
         stubFetch();
+        padLists();
         const el = await mount();
         q(el, '.group:last-child .row').click();
         await tick(el);
@@ -260,6 +269,72 @@ describe('ol-shelf-actions lists pane', () => {
     });
 });
 
+describe('ol-shelf-actions lists pane, sized to the reader', () => {
+    const openPane = async(el) => {
+        el.shadowRoot.querySelector('.group:last-child .row').click();
+        await tick(el);
+    };
+
+    test('offers no filter until there are enough lists to need one', async() => {
+        stubFetch();
+        const el = await mount();
+        await openPane(el);
+        expect(q(el, '.pane:nth-child(2) .input')).toBeNull();
+        // Focus lands on the first list instead, so the pane is still workable
+        // from the keyboard.
+        expect(el.shadowRoot.activeElement).toBe(qa(el, '.list-row input')[0]);
+    });
+
+    test('offers one once the lists stop being scannable', async() => {
+        stubFetch();
+        padLists();
+        const el = await mount();
+        await openPane(el);
+        const input = q(el, '.pane:nth-child(2) .input');
+        expect(input.getAttribute('aria-label')).toBe('Filter lists…');
+        expect(el.shadowRoot.activeElement).toBe(input);
+    });
+
+    test('with no lists yet, the pane is the create form', async() => {
+        stubFetch();
+        listData = {};
+        const el = await mount();
+        await openPane(el);
+        expect(q(el, '.pane:nth-child(2) .caption').textContent).toBe('Create your first list');
+        const form = q(el, 'form.field');
+        expect(form.querySelector('.input').getAttribute('aria-label')).toBe('List name');
+        expect(el.shadowRoot.activeElement).toBe(form.querySelector('.input'));
+        // Nothing else competing: no filter, no rows, and no second way in.
+        expect(qa(el, '.list-row')).toHaveLength(0);
+        expect(q(el, '.lists-header ol-button')).toBeNull();
+    });
+
+    test('the first list drops the create form and leaves a row', async() => {
+        stubFetch();
+        listData = {};
+        const el = await mount();
+        await openPane(el);
+        const form = q(el, 'form.field');
+        form.querySelector('input').value = 'Gothic autumn';
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+        await tick(el);
+        expect(q(el, '.pane:nth-child(2) .caption')).toBeNull();
+        expect(q(el, 'form.field')).toBeNull();
+        expect(qa(el, '.list-row .name').map(n => n.textContent)).toEqual(['Gothic autumn']);
+    });
+
+    test('Escape out of that form leaves the pane, not the form', async() => {
+        stubFetch();
+        listData = {};
+        const el = await mount();
+        await openPane(el);
+        q(el, 'form.field .input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await tick(el);
+        expect(el._pane).toBe('main');
+        expect(q(el, 'ol-popover').open).toBe(true);
+    });
+});
+
 describe('ol-shelf-actions shared lists', () => {
     async function createList(el, name) {
         q(el, '.group:last-child .row').click();
@@ -300,6 +375,149 @@ describe('ol-shelf-actions shared lists', () => {
         expect(fetches()).toBe(before);
     });
 
+});
+
+describe('recent lists store', () => {
+    test('keeps the lists per user, most recent first, three at most', () => {
+        ['/l/1', '/l/2', '/l/3', '/l/4'].forEach((key, i) => noteListUsed('/people/a', key, `L${i + 1}`));
+        noteListUsed('/people/b', '/l/9', 'Theirs');
+        expect(getRecentLists('/people/a').map(r => r.key)).toEqual(['/l/4', '/l/3', '/l/2']);
+        expect(getRecentLists('/people/b')).toEqual([{ key: '/l/9', name: 'Theirs' }]);
+    });
+
+    test('using a list again moves it up rather than repeating it', () => {
+        noteListUsed('/people/a', '/l/1', 'One');
+        noteListUsed('/people/a', '/l/2', 'Two');
+        noteListUsed('/people/a', '/l/1', 'One');
+        expect(getRecentLists('/people/a').map(r => r.key)).toEqual(['/l/1', '/l/2']);
+    });
+
+    test('forgets lists last used too long ago to still be a session', () => {
+        const stale = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        window.localStorage.setItem('ol.recentLists', JSON.stringify({ '/people/a': [{ key: '/l/1', name: 'Old', ts: stale }] }));
+        expect(getRecentLists('/people/a')).toEqual([]);
+    });
+});
+
+describe('ol-shelf-actions recent lists', () => {
+    const openPane = async(el) => {
+        el.shadowRoot.querySelector('.group:last-child .row').click();
+        await tick(el);
+    };
+
+    const names = (el, sel = '.list-row .name') => qa(el, sel).map(n => n.textContent);
+
+    async function reopen(el) {
+        const popover = q(el, 'ol-popover');
+        popover.open = false;
+        await tick(el);
+        popover.open = true;
+        await tick(el);
+    }
+
+    async function toggle(el, index, checked) {
+        const input = qa(el, '.list-row input')[index];
+        input.checked = checked;
+        input.dispatchEvent(new Event('change'));
+        await tick(el);
+    }
+
+    test('a used list moves to the front of the store, but never under the open pane', async() => {
+        stubFetch();
+        const el = await mount();
+        await openPane(el);
+        await toggle(el, 1, false);
+        // The store matches what a reload would show — the server sorts by
+        // last_modified, and the write we just made bumped it.
+        expect(Object.keys(getLists())[0]).toBe('/people/tester/lists/OL2L');
+        // The pane keeps the order it opened with, so no row moves mid-session.
+        expect(names(el)).toEqual(['Summer 2026', 'Sci-fi to reread']);
+        await reopen(el);
+        await openPane(el);
+        expect(names(el)).toEqual(['Sci-fi to reread', 'Summer 2026']);
+    });
+
+    test('the next book offers the last list used, one tap away', async() => {
+        stubFetch();
+        const el = await mount();
+        await openPane(el);
+        await toggle(el, 0, true);
+
+        const next = await mount({ book: { ...BOOK, key: '/works/OL2W' } });
+        await tick(next);
+        const shortcut = q(next, '.row.shortcut');
+        expect(shortcut.querySelector('.label').textContent).toBe('Summer 2026');
+        expect(shortcut.getAttribute('aria-checked')).toBe('false');
+
+        shortcut.click();
+        await tick(next);
+        const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL2W' }] });
+        expect(q(next, '.row.shortcut').getAttribute('aria-checked')).toBe('true');
+    });
+
+    test('the shortcut renders from the remembered name, so the panel never grows a row mid-open', async() => {
+        noteListUsed('/people/tester', '/people/tester/lists/OL1L', 'Summer 2026');
+        stubFetch();
+        global.fetch = jest.fn(() => new Promise(() => {})); // lists never arrive
+        const el = await mount();
+        expect(getLists()).toBeNull();
+        expect(q(el, '.row.shortcut .label').textContent).toBe('Summer 2026');
+    });
+
+    test('a remembered list that has since gone takes its row with it', async() => {
+        noteListUsed('/people/tester', '/people/tester/lists/OL9L', 'Deleted');
+        stubFetch();
+        const el = await mount();
+        await tick(el);
+        expect(q(el, '.row.shortcut')).toBeNull();
+    });
+
+    test('pins the recent lists above the rest once there are enough to scroll', async() => {
+        stubFetch();
+        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        noteListUsed('/people/tester', '/people/tester/lists/OL5L', 'List 5');
+        const el = await mount();
+        await openPane(el);
+        const groups = qa(el, '.group-lists');
+        expect(groups.map(g => g.getAttribute('aria-label'))).toEqual(['Recently used', 'Other lists']);
+        expect([...groups[0].querySelectorAll('.name')].map(n => n.textContent)).toEqual(['List 5']);
+        // Pinned rows are hoisted, not copied.
+        expect([...groups[1].querySelectorAll('.name')].map(n => n.textContent)).not.toContain('List 5');
+    });
+
+    test('leaves a short list of lists alone', async() => {
+        noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
+        stubFetch();
+        const el = await mount();
+        await openPane(el);
+        expect(qa(el, '.group-lists')).toHaveLength(0);
+        expect(q(el, '.pane:nth-child(2) .input')).toBeNull();
+        expect(names(el)).toEqual(['Summer 2026', 'Sci-fi to reread']);
+    });
+
+    test('Enter toggles the first filtered row and says which', async() => {
+        stubFetch();
+        padLists();
+        const el = await mount();
+        await openPane(el);
+        const input = q(el, '.pane:nth-child(2) .input');
+        // Nothing typed, nothing to commit to.
+        expect(q(el, '.list-row.target')).toBeNull();
+
+        input.value = 'summer';
+        input.dispatchEvent(new Event('input'));
+        await el.updateComplete;
+        expect(q(el, '.list-row.target .name').textContent).toBe('Summer 2026');
+
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }));
+        await tick(el);
+        const post = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
+        expect(q(el, '.pane:nth-child(2) .sr-only').textContent).toBe('Added to Summer 2026');
+        // The filter stays put: the row it matched is right there, now checked.
+        expect(input.value).toBe('summer');
+    });
 });
 
 describe('ol-shelf-actions hide-rating', () => {

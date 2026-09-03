@@ -30,6 +30,9 @@
             <b>Shelf ids.</b> 1 Want to Read, 2 Currently Reading, 3 Already Read, 4 Stopped Reading — the same ids as <code>Bookshelves.PRESET_BOOKSHELVES</code> and the <code>bookshelf_id</code> the endpoint takes. From JS, import <code>SHELF</code> from <code>lit/utils/books-api.js</code> instead of writing the number.
         </p>
         <p>
+            <b>Recently used lists.</b> Curation runs in bursts — many books into one list in a sitting — so the component remembers the last three lists the reader put a book in or took one out of, per user, for a fortnight (<code>lit/utils/recent-lists.js</code>, <code>localStorage</code>). The most recent one gets a one-tap row on the main pane, so the common add never opens the lists pane at all; from five lists up, the recent ones are pinned above the rest inside it, and the filter field appears on the same terms as <a href="#select-popover">Select Popover</a>'s (both read <code>FILTER_THRESHOLD</code>). Order is snapshotted when the popover opens and held until it closes, so a row never moves under the reader mid-session. With no lists at all the pane is the create form, headed <i>Create your first list</i> — nothing to filter, and one thing to do.
+        </p>
+        <p>
             <b>Requests.</b> Shelves post to <code>/works/OL…W/bookshelves.json</code>, ratings to <code>/works/OL…W/ratings.json</code>, check-ins to <code>/works/OL…W/check-ins</code> and <code>DELETE /check-ins/…</code>, lists through <code>/partials/MyBooksDropperLists.json</code> (read) and the lists/seeds endpoints (write). A 401 on any of them redirects to login.
         </p>
     </div>

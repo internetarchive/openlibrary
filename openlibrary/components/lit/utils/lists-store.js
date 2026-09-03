@@ -45,16 +45,26 @@ export async function loadLists() {
     return lists;
 }
 
-/** Optimistic membership toggle; rolls back and rethrows on failure. */
+/**
+ * Optimistic membership toggle; rolls back and rethrows on failure.
+ *
+ * The toggled list moves to the front: the server sorts by last_modified and
+ * this write bumps it, so a reload would show it there anyway. Readers render
+ * from an order they snapshot when they open, so no row moves under a cursor.
+ */
 export async function toggleListSeed(listKey, seedKey, inList) {
     const list = lists[listKey];
     const before = list.members;
+    const beforeOrder = lists;
     list.members = inList ? [...before, seedKey] : before.filter(k => k !== seedKey);
+    // Re-listing a key it already holds only moves it; the spread keeps the value.
+    lists = { [listKey]: list, ...lists };
     notify();
     try {
         await (inList ? addToList(listKey, seedKey) : removeFromList(listKey, seedKey));
     } catch (error) {
         list.members = before;
+        lists = beforeOrder;
         notify();
         throw error;
     }

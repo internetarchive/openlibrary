@@ -6,6 +6,8 @@ import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, deleteCheckIn, redirectToLogin } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
+import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import { MONTHS, formatReadDate, quickYears, partialDate } from './utils/dates.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
@@ -29,11 +31,15 @@ export const DEFAULT_LABELS = {
     listName: 'List name',
     create: 'Create',
     filterLists: 'Filter lists…',
-    noLists: 'You have no lists yet.',
+    createFirstList: 'Create your first list',
     noMatchingLists: 'No lists match.',
     loadingLists: 'Loading lists…',
     itemsInList: '%(count)s items',
     inLists: 'In %(count)s of your lists',
+    recentLists: 'Recently used',
+    otherLists: 'Other lists',
+    addedToList: 'Added to %(name)s',
+    removedFromList: 'Removed from %(name)s',
     errorGeneric: 'Something went wrong. Please try again.',
     whenFinished: 'When did you finish this book?',
     today: 'Today',
@@ -54,6 +60,13 @@ const SHELF_ICON = {
 };
 
 const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));
+
+/**
+ * Lists needed before the recent ones are pinned to the top. Lower than the
+ * shared FILTER_THRESHOLD the field answers to: pinning costs a hairline and
+ * starts paying before there is enough to scroll, a filter costs a control.
+ */
+const PIN_THRESHOLD = 5;
 
 /**
  * The panes in the track, in order. The track's width and slide are both
@@ -112,6 +125,9 @@ export class OlShelfActions extends LitElement {
         _listsLoading: { state: true },
         _listsFailed: { state: true },
         _listFilter: { state: true },
+        _order: { state: true },
+        _recent: { state: true },
+        _announce: { state: true },
         _creating: { state: true },
         _createBusy: { state: true },
         _hoverRating: { state: true },
@@ -310,12 +326,14 @@ export class OlShelfActions extends LitElement {
            mid-scale reads as a flicker. They keep the press fill, not the
            squeeze. */
         .group.shelves .row,
-        .group.dates .row {
+        .group.dates .row,
+        .row.shortcut {
             transition: none;
         }
 
         .group.shelves .row:active,
-        .group.dates .row:active {
+        .group.dates .row:active,
+        .row.shortcut:active {
             transform: none;
         }
 
@@ -617,6 +635,28 @@ export class OlShelfActions extends LitElement {
             flex: 0 0 auto;
         }
 
+        /* The recent lists, above the rest. Same inset rule as the panel's
+           other separators, drawn under the group rather than between rows. */
+        .group-lists.pinned {
+            position: relative;
+            padding-bottom: var(--spacing-inset-xs);
+            margin-bottom: var(--spacing-inset-xs);
+        }
+
+        .group-lists.pinned::after {
+            content: "";
+            position: absolute;
+            inset-inline: var(--spacing-inset-md);
+            bottom: 0;
+            height: 1px;
+            background: var(--color-border-subtle);
+        }
+
+        /* What Enter commits to, marked so the key is never a guess. */
+        .list-row.target {
+            box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+        }
+
         .list-row .name {
             flex: 1;
             min-width: 0;
@@ -628,6 +668,18 @@ export class OlShelfActions extends LitElement {
         .count {
             color: var(--color-text-secondary);
             font-size: var(--font-size-label-medium);
+        }
+
+        /* Live region: read out, never laid out. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
         }
 
         .empty,
@@ -675,6 +727,9 @@ export class OlShelfActions extends LitElement {
         this._listsLoading = false;
         this._listsFailed = false;
         this._listFilter = '';
+        this._order = [];
+        this._recent = [];
+        this._announce = '';
         this._creating = false;
         this._createBusy = false;
         this._hoverRating = 0;
@@ -791,7 +846,40 @@ export class OlShelfActions extends LitElement {
                     ${this._listCount ? html`<span class="count" aria-label=${this.t('inLists', { count: this._listCount })}>${this._listCount}</span>` : nothing}
                     <ol-icon class="obd-icon trail" name="chevron-right"></ol-icon>
                 </button>
+                ${this._renderRecentShortcut()}
             </div>
+        `;
+    }
+
+    /**
+     * The list the reader was last working in, one tap away. A curation
+     * session is many books into the same list, and on mobile the filter
+     * costs a tap and a keyboard over the names — so the pane is the slow
+     * path there, and this is the whole flow.
+     */
+    _renderRecentShortcut() {
+        const recent = this._recent[0];
+        if (!recent) return nothing;
+        const list = getLists()?.[recent.key];
+        // Loaded lists are the authority on the name and on membership; until
+        // they arrive the remembered name carries the row, so the panel does
+        // not grow one mid-open. A list that has gone takes the row with it.
+        if (getLists() && !list) return nothing;
+        const inList = !!list?.members.includes(this._seedKey);
+        return html`
+            <button
+                type="button"
+                class="row shortcut"
+                role="menuitemcheckbox"
+                aria-checked=${inList ? 'true' : 'false'}
+                @click=${() => this._onListToggle(recent.key, !inList)}
+            >
+                <!-- Not the entry row's list-plus: two rows with one icon read
+                     as two ways to do the same thing. -->
+                <ol-icon class="obd-icon" name="list"></ol-icon>
+                <span class="label">${list?.listName || recent.name}</span>
+                ${inList ? html`<ol-icon class="obd-icon trail" name="check"></ol-icon>` : nothing}
+            </button>
         `;
     }
 
@@ -964,18 +1052,20 @@ export class OlShelfActions extends LitElement {
     }
 
     _renderLists() {
+        const creating = this._creating || this._firstList;
         return html`
             <div class="lists-header">
                 <button type="button" class="back" @click=${this._backToMain}>
                     <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
                 </button>
-                ${this._creating ? nothing : html`
+                ${creating ? nothing : html`
                     <ol-button size="small" @click=${this._startCreate}>
                         <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
                     </ol-button>
                 `}
             </div>
-            ${this._creating ? html`
+            ${creating ? html`
+                ${this._firstList ? html`<div class="caption">${this.t('createFirstList')}</div>` : nothing}
                 <form class="field" @submit=${this._onCreateSubmit}>
                     <input
                         class="input"
@@ -990,7 +1080,7 @@ export class OlShelfActions extends LitElement {
                     />
                     <ol-button type="submit" variant="primary" size="small" ?disabled=${this._createBusy}>${this.t('create')}</ol-button>
                 </form>
-            ` : html`
+            ` : this._listTotal > FILTER_THRESHOLD ? html`
                 <div class="field">
                     <input
                         class="input"
@@ -999,10 +1089,12 @@ export class OlShelfActions extends LitElement {
                         aria-label=${this.t('filterLists')}
                         .value=${this._listFilter}
                         @input=${e => { this._listFilter = e.target.value; }}
+                        @keydown=${this._onFilterKeydown}
                     />
                 </div>
-            `}
+            ` : nothing}
             <div class="list-items">${this._renderListItems()}</div>
+            <span class="sr-only" role="status">${this._announce}</span>
         `;
     }
 
@@ -1011,18 +1103,36 @@ export class OlShelfActions extends LitElement {
         if (this._listsLoading || (lists === null && !this._listsFailed)) {
             return html`<div class="loading" role="status"><ol-icon class="obd-icon spinner" name="loader"></ol-icon>${this.t('loadingLists')}</div>`;
         }
-        const entries = Object.entries(lists || {});
-        if (!entries.length) return html`<div class="empty">${this.t('noLists')}</div>`;
-        const filter = this._listFilter.trim().toLowerCase();
-        const shown = filter ? entries.filter(([, l]) => l.listName.toLowerCase().includes(filter)) : entries;
-        if (!shown.length) return html`<div class="empty">${this.t('noMatchingLists')}</div>`;
+        // No lists at all: the create form above is the whole pane.
+        if (!Object.keys(lists || {}).length) return nothing;
+        const { pinned, rest } = this._visibleKeys(lists);
+        if (!pinned.length && !rest.length) return html`<div class="empty">${this.t('noMatchingLists')}</div>`;
+        // The first row is what Enter toggles, and says so once there is a
+        // filter to have typed; without one, Enter has no obvious target.
+        const target = this._listFilter.trim() ? (pinned[0] ?? rest[0]) : null;
+        if (!pinned.length) return this._renderListRows(lists, rest, target);
+        const group = (keys, label, isPinned) => html`
+            <div class="group-lists ${classMap({ pinned: isPinned })}" role="group" aria-label=${this.t(label)}>
+                ${this._renderListRows(lists, keys, target)}
+            </div>
+        `;
+        // The rule under the pinned group is a separator, so it needs both
+        // sides; a filter that matched only recents leaves the rows plain.
+        return html`
+            ${group(pinned, 'recentLists', rest.length > 0)}
+            ${rest.length ? group(rest, 'otherLists', false) : nothing}
+        `;
+    }
+
+    _renderListRows(lists, keys, target) {
         // Filtering shuffles which list sits at each index, so key the rows
         // to keep Lit from rebuilding them; the other lists in this file are
         // static and fine with index reconciliation.
-        return repeat(shown, ([key]) => key, ([key, list]) => {
+        return repeat(keys, key => key, key => {
+            const list = lists[key];
             const checked = list.members.includes(this._seedKey);
             return html`
-                <label class="list-row">
+                <label class="list-row ${classMap({ target: key === target })}">
                     <input type="checkbox" .checked=${checked} @change=${e => this._onListToggle(key, e.target.checked)} />
                     <span class="name">${list.listName}</span>
                     <span class="count" aria-label=${this.t('itemsInList', { count: list.members.length })}>${list.members.length}</span>
@@ -1082,10 +1192,12 @@ export class OlShelfActions extends LitElement {
         this._creating = false;
         this._pickingDate = false;
         this._listFilter = '';
+        this._announce = '';
+        this._snapshotLists();
         // Prefetch so the "in N lists" count is right on the first open, not
         // only after a trip to the lists pane. One request per page — every
         // popover reads the shared lists store.
-        if (this.userKey) this._loadLists({ quiet: true });
+        if (this.userKey) this._loadLists({ quiet: true }).then(() => this._snapshotLists());
     }
 
     _onCloseRequest(e) {
@@ -1297,14 +1409,33 @@ export class OlShelfActions extends LitElement {
     async _openLists() {
         this._pane = 'lists';
         await this.updateComplete;
-        // Desktop lands on the filter so the user can type straight away. On
-        // mobile (ol-popover's tray breakpoint) the soft keyboard would cover
-        // the lists they came here to see, so take the back button instead —
-        // the pane the focus came from is inert now and would strand it.
+        const landed = this._focusListsPane();
+        const loading = this._loadLists();
+        if (landed) return;
+        // Nothing to land on while the lists were still coming in. What the
+        // pane leads with is decided by how many there turn out to be, so try
+        // again once it knows.
+        await loading;
+        await this.updateComplete;
+        if (this._pane === 'lists') this._focusListsPane();
+    }
+
+    /**
+     * Desktop lands on whatever the pane leads with — the filter, the name
+     * field of the create form, or the first list. On mobile (ol-popover's
+     * tray breakpoint) a text field would raise the soft keyboard over the
+     * lists they came here to see, so take the back button instead; the pane
+     * the focus came from is inert now and would strand it.
+     */
+    _focusListsPane() {
         const pane = `.pane:nth-child(${PANES.indexOf('lists') + 1})`;
-        const target = window.matchMedia('(max-width: 767px)').matches ? '.back' : '.input';
-        this.shadowRoot.querySelector(`${pane} ${target}`)?.focus({ preventScroll: true });
-        this._loadLists();
+        const mobile = window.matchMedia('(max-width: 767px)').matches;
+        // A selector list matches the first of them in document order, and the
+        // fields both sit above the rows.
+        const target = mobile ? '.back' : '.input, .list-row input';
+        const el = this.shadowRoot.querySelector(`${pane} ${target}`);
+        el?.focus({ preventScroll: true });
+        return !!el;
     }
 
     async _backToMain() {
@@ -1313,6 +1444,59 @@ export class OlShelfActions extends LitElement {
         this._pickingDate = false;
         await this.updateComplete;
         this.shadowRoot.querySelector('.pane:nth-child(1) .group:last-child .row')?.focus({ preventScroll: true });
+    }
+
+    /**
+     * Freeze the order the lists are shown in, and which of them count as
+     * recent, for as long as the popover stays open. Adding to a list moves it
+     * to the front of the store; taking the order live would move the row the
+     * reader just used out from under the one they are reaching for next.
+     */
+    _snapshotLists() {
+        this._order = Object.keys(getLists() || {});
+        this._recent = getRecentLists(this.userKey);
+    }
+
+    /**
+     * The snapshot, minus lists that have gone and with anything the store has
+     * gained since in front — a list created here or in a sibling popover
+     * belongs at the top, which is where the store puts it.
+     */
+    _orderedKeys(lists) {
+        const seen = new Set(this._order);
+        return [
+            ...Object.keys(lists).filter(key => !seen.has(key)),
+            ...this._order.filter(key => key in lists),
+        ];
+    }
+
+    /** The recent lists worth pinning above the rest: still real, and enough lists to matter. */
+    _pinnedKeys(lists) {
+        if (this._listTotal < PIN_THRESHOLD) return [];
+        return this._recent.map(entry => entry.key).filter(key => key in lists);
+    }
+
+    /**
+     * The list keys the pane shows, in render order and under the filter.
+     * Shared with the Enter handler, so what it toggles is always the row the
+     * reader can see is first.
+     */
+    _visibleKeys(lists) {
+        const filter = this._listFilter.trim().toLowerCase();
+        const keep = key => !filter || lists[key].listName.toLowerCase().includes(filter);
+        const pinned = this._pinnedKeys(lists).filter(keep);
+        const seen = new Set(pinned);
+        return { pinned, rest: this._orderedKeys(lists).filter(key => !seen.has(key) && keep(key)) };
+    }
+
+    /** How many lists the reader has, once they are in. */
+    get _listTotal() {
+        return Object.keys(getLists() || {}).length;
+    }
+
+    /** Loaded, and there are none — so the pane opens on the create form. */
+    get _firstList() {
+        return getLists() !== null && !this._listTotal;
     }
 
     /** How many of the user's (loaded) lists contain this book. */
@@ -1341,14 +1525,38 @@ export class OlShelfActions extends LitElement {
     }
 
     async _onListToggle(listKey, checked) {
+        const name = getLists()?.[listKey]?.listName || '';
         try {
             // The store applies the change optimistically and rolls it back
             // for us on failure.
             await toggleListSeed(listKey, this._seedKey, checked);
+            // Either way round the reader is working in this list: taking a
+            // book back out is as good a signal as putting one in.
+            noteListUsed(this.userKey, listKey, name);
             trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
         } catch (error) {
             this._fail(error);
         }
+    }
+
+    /**
+     * Enter toggles the first row, so a filtered add is type-and-commit with
+     * no reach for the mouse. Focus stays in the field, which is where the
+     * next book's three characters go — and where nothing announces the row
+     * that changed, hence the live region.
+     */
+    _onFilterKeydown(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const lists = getLists();
+        if (!lists || !this._listFilter.trim()) return;
+        const { pinned, rest } = this._visibleKeys(lists);
+        const key = pinned[0] ?? rest[0];
+        if (!key) return;
+        const name = lists[key].listName;
+        const checked = !lists[key].members.includes(this._seedKey);
+        this._announce = this.t(checked ? 'addedToList' : 'removedFromList', { name });
+        this._onListToggle(key, checked);
     }
 
     async _startCreate() {
@@ -1358,6 +1566,8 @@ export class OlShelfActions extends LitElement {
     }
 
     async _cancelCreate() {
+        // With no lists the pane is the form; there is nothing to cancel back to.
+        if (this._firstList) return this._backToMain();
         this._creating = false;
         await this.updateComplete;
         this.shadowRoot.querySelector('.field .input')?.focus({ preventScroll: true });
@@ -1371,6 +1581,9 @@ export class OlShelfActions extends LitElement {
         try {
             // The store prepends the new list, so every popover shows it first.
             const key = await createUserList(this.userKey, name, this._seedKey);
+            // A list made mid-session is the one about to be filled. It renders
+            // first without any help: the snapshot has never seen the key.
+            noteListUsed(this.userKey, key, name);
             trackEvent('Lists', 'CreateList');
             this._creating = false;
             this.dispatchEvent(new CustomEvent('ol-list-created', {
