@@ -110,7 +110,11 @@ class view(core.view):
             return core.view.GET(self, path)
 
         # context.user avoids a second, non-memoized get_user() round-trip.
-        book_page_context = prepare_book_page(p, i, context.user)
+        try:
+            book_page_context = prepare_book_page(p, i, context.user)
+        except Exception:
+            logger.exception("prepare_book_page failed for %r; falling back to core.view", path)
+            return core.view.GET(self, path)
         return render.viewpage(p, book_page_context)
 
 
@@ -330,7 +334,10 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     # work has since been merged.
     if work.type.key == "/type/redirect":
         redir = work
-        work = get_document(redir.key)
+        if (fetched := get_document(redir.key)) is not None:
+            work = fetched
+        else:
+            logger.warning("get_document(%r) returned None for redirect %r", redir.key, page.key)
         work["title"] = "↪ " + redir.key
 
     edition = web.storage({})
@@ -394,7 +401,9 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     ocaid = edition.get("ocaid")
     if edition.get("availability", {}).get("status") == "error" and ocaid:
         try:
-            edition["availability"].update(lending.get_cached_groundtruth_availability(ocaid))
+            if gt := lending.get_cached_groundtruth_availability(ocaid):
+                # Copy to avoid mutating the shared dict in availabilities/editions
+                edition["availability"] = {**edition["availability"], **gt}
         except Exception:
             # Unlike the old template-side call (caught by Templetor's
             # saferender()), an uncaught exception here would 500 the whole
