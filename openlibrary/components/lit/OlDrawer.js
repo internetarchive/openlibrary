@@ -36,6 +36,8 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * @cssprop [--ol-drawer-scrim-color=hsla(0, 0%, 0%, 0.5)] - Scrim color.
  * @cssprop [--ol-drawer-enter-duration=400ms] - Slide-in duration.
  * @cssprop [--ol-drawer-exit-duration=300ms] - Slide-out duration.
+ * @cssprop [--ol-drawer-scroll-padding=0] - Inset kept clear when Tab scrolls a
+ *     focused element into view, for drawers with a sticky header or footer.
  *
  * @fires ol-drawer-show - Fired when the drawer begins opening.
  * @fires ol-drawer-after-show - Fired after the enter transition completes.
@@ -74,6 +76,7 @@ export class OlDrawer extends LitElement {
             --ol-drawer-enter-duration: 400ms;
             --ol-drawer-exit-duration: 300ms;
             --ol-drawer-easing: cubic-bezier(0.23, 1, 0.32, 1);
+            --ol-drawer-scroll-padding: 0;
 
             display: contents;
         }
@@ -149,6 +152,10 @@ export class OlDrawer extends LitElement {
             max-width: 100%;
             background: var(--light-beige);
             overflow-y: auto;
+            /* Keeps a Tab stop scrolled into view clear of any sticky header or
+               footer the consumer slots in; the panel is shadow DOM, so this
+               inset is only reachable through the custom property. */
+            scroll-padding-block: var(--ol-drawer-scroll-padding);
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             transition: transform var(--ol-drawer-exit-duration) var(--ol-drawer-easing);
@@ -525,7 +532,13 @@ export class OlDrawer extends LitElement {
             nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
         }
 
-        focusable[nextIndex].focus({ preventScroll: true });
+        // Scroll deliberately rather than letting focus() do it: focus scrolls
+        // every ancestor, which is the off-screen-panel bug `overflow: clip`
+        // guards against. `nearest` moves only the panel's own scroller, and
+        // only when the target isn't already visible.
+        const next = focusable[nextIndex];
+        next.focus({ preventScroll: true });
+        next.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
 
     /**
