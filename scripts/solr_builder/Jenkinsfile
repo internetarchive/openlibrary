@@ -18,6 +18,7 @@ pipeline {
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
+    booleanParam(name: 'SKIP_IA_METADATA', defaultValue: false, description: 'If true, skips fetching edition metadata from archive.org (testing only; ia_* fields will be empty in solr)')
     string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
     string(name: 'PIP_INDEX_URL', defaultValue: '', description: 'Path to custom PIP index (needed on prod)')
     string(name: 'HTTPS_PROXY', defaultValue: '', description: 'Proxy for HTTP requests (needed on prod)')
@@ -212,7 +213,7 @@ pipeline {
                   when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=70 docker compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
+                      sh "CHUNK_ETA=70 SKIP_IA_METADATA=${params.SKIP_IA_METADATA ? 1 : 0} docker compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
                       solr_commit()
                     }
                   }
@@ -233,7 +234,7 @@ pipeline {
                   when { expression { return params.INDEX_ORPHANS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=35 docker compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      sh "CHUNK_ETA=35 SKIP_IA_METADATA=${params.SKIP_IA_METADATA ? 1 : 0} docker compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
                       solr_commit()
                     }
                   }
@@ -273,7 +274,7 @@ pipeline {
                   when { expression { return params.INDEX_AUTHORS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
+                      sh "SKIP_IA_METADATA=${params.SKIP_IA_METADATA ? 1 : 0} docker compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
                       solr_commit()
                     }
                   }
@@ -294,7 +295,7 @@ pipeline {
                   when { expression { return params.INDEX_LISTS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker compose run --name ol_run_lists --rm -T ol ./index-type.sh list ${params.MAX_CORES} lists"
+                      sh "SKIP_IA_METADATA=${params.SKIP_IA_METADATA ? 1 : 0} docker compose run --name ol_run_lists --rm -T ol ./index-type.sh list ${params.MAX_CORES} lists"
                       solr_commit()
                     }
                   }

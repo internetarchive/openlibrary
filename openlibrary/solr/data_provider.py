@@ -103,6 +103,7 @@ class DataProvider:
 
     def __init__(self) -> None:
         self.ia_cache: dict[str, dict | None] = {}
+        self.skip_ia_metadata = False
 
     @staticmethod
     async def _get_lite_metadata(ocaids: Sequence[str], _recur_depth=0, _max_recur_depth=3):
@@ -178,6 +179,9 @@ class DataProvider:
         raise NotImplementedError
 
     def get_metadata(self, identifier: str):
+        if self.skip_ia_metadata:
+            logger.debug("IA metadata fetching disabled")
+            return None
         if identifier in self.ia_cache:
             logger.debug("IA metadata cache hit")
             return self.ia_cache[identifier]

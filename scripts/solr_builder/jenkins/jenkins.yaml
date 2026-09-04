@@ -1,0 +1,15 @@
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          # Resolved from the ADMIN_PASSWORD environment variable at container
+          # startup; never baked into the image.
+          password: "${ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+unclassified:
+  location:
+    url: "${JENKINS_URL:http://localhost:8080}"
