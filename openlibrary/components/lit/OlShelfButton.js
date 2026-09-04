@@ -13,6 +13,10 @@ export const DEFAULT_LABELS = {
     ...ACTION_LABELS,
     save: 'Save %(title)s to your reading log',
     saved: '%(title)s is on your reading log',
+    // The main half's accessible name: the shelf it toggles plus the book, so
+    // one of twenty in a list still says which. The shelf name leads because
+    // it is the visible label.
+    shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
 };
 
@@ -76,6 +80,7 @@ export class OlShelfButton extends LitElement {
         placement: { type: String },
         labels: { type: Object },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        _announce: { state: true },
     };
 
     static styles = css`
@@ -255,6 +260,18 @@ export class OlShelfButton extends LitElement {
         .save--on {
             color: var(--primary-blue);
         }
+
+        /* Live region: read out, never laid out. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
     `;
 
     constructor() {
@@ -268,10 +285,18 @@ export class OlShelfButton extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this._announce = '';
     }
 
     t(key, vars) {
         return translate(this.labels, DEFAULT_LABELS, key, vars);
+    }
+
+    /** Read `message` out through the live region; cleared first so a repeat is still a change. */
+    async _say(message) {
+        this._announce = '';
+        await this.updateComplete;
+        this._announce = message;
     }
 
     get _on() {
@@ -321,11 +346,16 @@ export class OlShelfButton extends LitElement {
         const label = this.t(SHELF_LABEL[this.shelf ?? SHELF.WANT_TO_READ]);
         return html`
             <div class="split ${classMap({ 'split--on': on })}">
+                <!-- A toggle: the label names the shelf, pressed means the book
+                     is on it. The tint and check say the same thing on screen. -->
                 <button
                     type="button"
                     class="main ${classMap({ 'main--on': on })}"
+                    aria-pressed=${on ? 'true' : 'false'}
+                    aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
                     @click=${this._onMainClick}
                 >${on ? html`<ol-icon name="check"></ol-icon>` : nothing}<span>${label}</span></button>
+                <span class="sr-only" role="status">${this._announce}</span>
                 ${this._withActions(html`
                     <button
                         type="button"
@@ -366,6 +396,10 @@ export class OlShelfButton extends LitElement {
         const target = previous ?? SHELF.WANT_TO_READ;
         const next = previous === null ? SHELF.WANT_TO_READ : null;
         this._emitState(next);
+        // The pressed state flips when the surface hands the shelf back down;
+        // this says what happened in words, whether or not the reader's screen
+        // reader announces state changes on a focused button.
+        this._say(next === null ? this.t('removedFromShelf') : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[next]) }));
         this._pending = true;
         try {
             await setShelf(this.workKey, target, { editionKey: this.editionKey });

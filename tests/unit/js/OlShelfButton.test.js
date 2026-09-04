@@ -244,3 +244,40 @@ describe('ol-shelf-button pass-through to the popover', () => {
         expect(q(el, 'ol-shelf-actions').hideRating).toBe(false);
     });
 });
+
+describe('ol-shelf-button accessible name and state', () => {
+    test('the main half names the book and reports pressed', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester' });
+        const main = q(el, '.main');
+        expect(main.getAttribute('aria-label')).toBe('Want to Read: The Two Towers');
+        expect(main.getAttribute('aria-pressed')).toBe('false');
+        el.shelf = SHELF.CURRENTLY_READING;
+        await el.updateComplete;
+        expect(main.getAttribute('aria-label')).toBe('Currently Reading: The Two Towers');
+        expect(main.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    test('a main click is announced, on and off', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester' });
+        const live = q(el, '.sr-only');
+        expect(live.getAttribute('role')).toBe('status');
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+        expect(live.textContent).toBe('Added to Want to Read');
+        el.shelf = SHELF.WANT_TO_READ;
+        await el.updateComplete;
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+        expect(live.textContent).toBe('Removed from shelf');
+    });
+
+    test('translated labels reach the name', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire', shelfToggle: '%(title)s — %(shelf)s' } });
+        expect(q(el, '.main').getAttribute('aria-label')).toBe('The Two Towers — À lire');
+    });
+});

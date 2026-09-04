@@ -5,7 +5,7 @@
  * at `fetch`.
  */
 import { OlShelfActions } from '../../../openlibrary/components/lit/OlShelfActions.js';
-import { fmt } from '../../../openlibrary/components/lit/utils/labels.js';
+import { fmt, plural, translate } from '../../../openlibrary/components/lit/utils/labels.js';
 import { SHELF } from '../../../openlibrary/components/lit/utils/books-api.js';
 import { quickYears } from '../../../openlibrary/components/lit/utils/dates.js';
 import { getLists, resetListsStore } from '../../../openlibrary/components/lit/utils/lists-store.js';
@@ -85,13 +85,44 @@ describe('fmt', () => {
     });
 });
 
+describe('plural labels', () => {
+    const FORMS = { one: '%(count)s item', other: '%(count)s items' };
+
+    afterEach(() => {
+        document.documentElement.removeAttribute('lang');
+    });
+
+    test('picks the form for the count', () => {
+        expect(plural(FORMS, 1)).toBe('%(count)s item');
+        expect(plural(FORMS, 0)).toBe('%(count)s items');
+        expect(plural(FORMS, 12)).toBe('%(count)s items');
+    });
+
+    test('translate resolves a plural set and interpolates it', () => {
+        expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 1 })).toBe('1 item');
+        expect(translate({}, { itemsInList: FORMS }, 'itemsInList', { count: 2 })).toBe('2 items');
+    });
+
+    test('uses the page language\'s rules, and falls back to other', () => {
+        // Russian: 1 → one, 3 → few, 5 → many, 21 → one.
+        document.documentElement.lang = 'ru';
+        const ru = { one: 'один', few: 'несколько', many: 'много', other: 'other' };
+        expect(plural(ru, 1)).toBe('один');
+        expect(plural(ru, 3)).toBe('несколько');
+        expect(plural(ru, 5)).toBe('много');
+        expect(plural(ru, 21)).toBe('один');
+        // A translation that only supplies the forms it has still resolves.
+        expect(plural({ other: 'x' }, 3)).toBe('x');
+    });
+});
+
 describe('ol-shelf-actions shelves', () => {
-    test('renders header and four shelf rows with the current one checked', async() => {
+    test('renders header and four shelf rows with the current one pressed', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.CURRENTLY_READING });
         expect(q(el, '.header').textContent.replace(/\s+/g, ' ').trim()).toBe('Project Hail Mary (2021)');
-        const rows = qa(el, '.row[role="menuitemradio"]');
-        expect(rows.map(r => r.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false', 'false']);
+        const rows = qa(el, '.group.shelves .row');
+        expect(rows.map(r => r.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false', 'false']);
     });
 
     test('clicking a shelf posts it, updates optimistically, and emits state', async() => {
@@ -99,7 +130,7 @@ describe('ol-shelf-actions shelves', () => {
         const el = await mount();
         const events = [];
         el.addEventListener('ol-book-state-change', e => events.push(e.detail));
-        qa(el, '.row[role="menuitemradio"]')[0].click();
+        qa(el, '.group.shelves .row')[0].click();
         expect(el.shelf).toBe(SHELF.WANT_TO_READ);
         await tick(el);
         const post = calls.find(c => c.url === '/works/OL1W/bookshelves.json');
@@ -112,7 +143,7 @@ describe('ol-shelf-actions shelves', () => {
     test('clicking the current shelf removes it', async() => {
         stubFetch();
         const el = await mount({ shelf: SHELF.WANT_TO_READ });
-        qa(el, '.row[role="menuitemradio"]')[0].click();
+        qa(el, '.group.shelves .row')[0].click();
         expect(el.shelf).toBeNull();
         await tick(el);
         // Server toggles off when it receives the current shelf id.
@@ -133,7 +164,7 @@ describe('ol-shelf-actions shelves', () => {
     test('rolls back and toasts on failure', async() => {
         stubFetch({ failWith: 500 });
         const el = await mount();
-        qa(el, '.row[role="menuitemradio"]')[2].click();
+        qa(el, '.group.shelves .row')[2].click();
         expect(el.shelf).toBe(SHELF.ALREADY_READ);
         await tick(el);
         expect(el.shelf).toBeNull();
@@ -466,13 +497,13 @@ describe('ol-shelf-actions recent lists', () => {
         await tick(next);
         const shortcut = q(next, '.row.shortcut');
         expect(shortcut.querySelector('.label').textContent).toBe('Summer 2026');
-        expect(shortcut.getAttribute('aria-checked')).toBe('false');
+        expect(shortcut.getAttribute('aria-pressed')).toBe('false');
 
         shortcut.click();
         await tick(next);
         const post = calls.filter(c => c.url === '/people/tester/lists/OL1L/seeds.json').pop();
         expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL2W' }] });
-        expect(q(next, '.row.shortcut').getAttribute('aria-checked')).toBe('true');
+        expect(q(next, '.row.shortcut').getAttribute('aria-pressed')).toBe('true');
     });
 
     test('the shortcut renders from the remembered name, so the panel never grows a row mid-open', async() => {
@@ -533,7 +564,7 @@ describe('ol-shelf-actions recent lists', () => {
         await tick(el);
         const post = calls.find(c => c.url === '/people/tester/lists/OL1L/seeds.json');
         expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/works/OL1W' }] });
-        expect(q(el, '.pane:nth-child(2) .sr-only').textContent).toBe('Added to Summer 2026');
+        expect(q(el, '.sr-only').textContent).toBe('Added to Summer 2026');
         // The filter stays put: the row it matched is right there, now checked.
         expect(input.value).toBe('summer');
     });
@@ -789,7 +820,7 @@ describe('ol-shelf-actions check-in pane', () => {
             return el;
         };
         const marked = el => paneRows(el)
-            .filter(r => r.getAttribute('aria-current') === 'true')
+            .filter(r => r.getAttribute('aria-pressed') === 'true')
             .map(r => r.querySelector('.label').textContent);
 
         test('today\'s date marks Today', async() => {
@@ -993,5 +1024,222 @@ describe('ol-shelf-actions check-in pane', () => {
         await tick(el);
         expect(event.defaultPrevented).toBe(true);
         expect(el._pane).toBe('main');
+    });
+});
+
+describe('ol-shelf-actions screen reader and keyboard', () => {
+    test('a shelf click keeps focus on the row through the request', async() => {
+        stubFetch();
+        const el = await mount();
+        const row = qa(el, '.group.shelves .row')[1];
+        row.focus();
+        row.click();
+        // Mid-flight: the group is busy, the row is not disabled, focus stays.
+        await el.updateComplete;
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('true');
+        expect(row.disabled).toBe(false);
+        expect(el.shadowRoot.activeElement).toBe(row);
+        await tick(el);
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('false');
+        expect(el.shadowRoot.activeElement).toBe(row);
+    });
+
+    test('a star click keeps focus on the star', async() => {
+        stubFetch();
+        const el = await mount();
+        const star = qa(el, '.star')[2];
+        star.focus();
+        star.click();
+        await tick(el);
+        expect(star.disabled).toBe(false);
+        expect(el.shadowRoot.activeElement).toBe(star);
+    });
+
+    test('shelf and rating changes are announced', async() => {
+        stubFetch();
+        const el = await mount();
+        const live = q(el, '.sr-only');
+        expect(live.getAttribute('role')).toBe('status');
+        // Outside the track, so it is never inside an inert pane.
+        expect(live.closest('.track')).toBeNull();
+
+        qa(el, '.group.shelves .row')[1].click();
+        await tick(el);
+        expect(live.textContent).toBe('Added to Currently Reading');
+
+        qa(el, '.group.shelves .row')[1].click();
+        await tick(el);
+        expect(live.textContent).toBe('Removed from shelf');
+
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(live.textContent).toBe('Rated 4 of 5. Added to Already Read');
+
+        q(el, '.stars .clear').click();
+        await tick(el);
+        expect(live.textContent).toBe('Rating cleared');
+    });
+
+    test('the same announcement twice running is re-spoken', async() => {
+        stubFetch();
+        const el = await mount();
+        const live = q(el, '.sr-only');
+        el._say('Added to Summer 2026');
+        await tick(el);
+        expect(live.textContent).toBe('Added to Summer 2026');
+        el._say('Added to Summer 2026');
+        // Cleared on the first update, set on the next: a change either way.
+        await el.updateComplete;
+        expect(live.textContent).toBe('');
+        await tick(el);
+        expect(live.textContent).toBe('Added to Summer 2026');
+    });
+
+    test('shelf rows are toggle buttons in a named group, not menu items', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.WANT_TO_READ });
+        const group = q(el, '.group.shelves');
+        expect(group.getAttribute('role')).toBe('group');
+        expect(group.getAttribute('aria-label')).toBe('Reading log');
+        const rows = qa(el, '.group.shelves .row');
+        expect(rows.every(r => r.getAttribute('role') === null)).toBe(true);
+        expect(rows.map(r => r.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false']);
+    });
+
+    test('stars keep their names, and the current one is the single tab stop', async() => {
+        stubFetch();
+        const el = await mount({ rating: 3 });
+        const stars = qa(el, '.star');
+        expect(stars.map(s => s.getAttribute('aria-label'))).toEqual(['Rate 1 of 5', 'Rate 2 of 5', 'Rate 3 of 5', 'Rate 4 of 5', 'Rate 5 of 5']);
+        expect(stars.map(s => s.getAttribute('aria-checked'))).toEqual(['false', 'false', 'true', 'false', 'false']);
+        expect(stars.map(s => s.getAttribute('tabindex'))).toEqual(['-1', '-1', '0', '-1', '-1']);
+    });
+
+    test('unrated, the first star is the tab stop', async() => {
+        stubFetch();
+        const el = await mount();
+        expect(qa(el, '.star').map(s => s.getAttribute('tabindex'))).toEqual(['0', '-1', '-1', '-1', '-1']);
+    });
+
+    test('arrow keys move between stars without rating, and preview like hover', async() => {
+        stubFetch();
+        const el = await mount({ rating: 2 });
+        const stars = qa(el, '.star');
+        stars[1].focus();
+        const press = (target, key) => target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+
+        press(stars[1], 'ArrowRight');
+        expect(el.shadowRoot.activeElement).toBe(stars[2]);
+        await el.updateComplete;
+        // Focus previews: three stars filled, but nothing was posted.
+        expect(qa(el, '.star ol-icon').map(i => i.hasAttribute('filled'))).toEqual([true, true, true, false, false]);
+        expect(calls.some(c => c.url.endsWith('/ratings.json'))).toBe(false);
+        expect(el.rating).toBe(2);
+
+        press(stars[2], 'ArrowLeft');
+        press(stars[1], 'ArrowUp');
+        expect(el.shadowRoot.activeElement).toBe(stars[0]);
+        press(stars[0], 'ArrowLeft');
+        expect(el.shadowRoot.activeElement).toBe(stars[4]);
+        press(stars[4], 'End');
+        expect(el.shadowRoot.activeElement).toBe(stars[4]);
+        press(stars[4], 'Home');
+        expect(el.shadowRoot.activeElement).toBe(stars[0]);
+        // An unrelated key is left alone.
+        const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+        stars[0].dispatchEvent(tab);
+        expect(tab.defaultPrevented).toBe(false);
+    });
+
+    test('the check-in question names its group and rows are toggle buttons', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ });
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        const pane = q(el, '.pane:nth-child(3)');
+        const group = pane.querySelector('.group.dates');
+        const question = pane.querySelector('#check-in-question');
+        expect(question.textContent).toBe('When did you finish this book?');
+        expect(group.getAttribute('aria-labelledby')).toBe('check-in-question');
+        const rows = [...group.querySelectorAll('.row')];
+        expect(rows.every(r => r.hasAttribute('aria-pressed'))).toBe(true);
+        expect(rows.every(r => r.getAttribute('aria-current') === null)).toBe(true);
+    });
+
+    test('Other date only claims aria-controls once the fields exist', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ });
+        qa(el, '.group.shelves .row')[2].click();
+        await tick(el);
+        const toggle = q(el, '.date-toggle');
+        expect(toggle.hasAttribute('aria-controls')).toBe(false);
+        toggle.click();
+        await tick(el);
+        expect(toggle.getAttribute('aria-controls')).toBe('date-fields');
+        expect(el.shadowRoot.getElementById('date-fields')).not.toBeNull();
+    });
+
+    test('saving a date announces it and returns focus to Already Read', async() => {
+        stubFetch();
+        const el = await mount({ shelf: SHELF.ALREADY_READ });
+        const alreadyRead = qa(el, '.group.shelves .row')[2];
+        alreadyRead.click();
+        await tick(el);
+        q(el, '.pane:nth-child(3) .row').click(); // Today
+        await tick(el);
+        await tick(el);
+        expect(el._pane).toBe('main');
+        expect(el.shadowRoot.activeElement).toBe(alreadyRead);
+        expect(q(el, '.sr-only').textContent).toMatch(/^Finished /);
+    });
+
+    test('leaving the lists pane returns focus to Add to list', async() => {
+        stubFetch();
+        const el = await mount();
+        const entry = q(el, '.group.lists-entry .row');
+        entry.click();
+        await tick(el);
+        q(el, '.pane:nth-child(2) .back').click();
+        await tick(el);
+        expect(el.shadowRoot.activeElement).toBe(entry);
+    });
+
+    test('the lists pane is a named group', async() => {
+        stubFetch();
+        const el = await mount();
+        const pane = q(el, '.pane:nth-child(2)');
+        expect(pane.getAttribute('role')).toBe('group');
+        expect(pane.getAttribute('aria-label')).toBe('Add to list');
+        expect(q(el, '.pane:nth-child(1)').hasAttribute('role')).toBe(false);
+    });
+
+    test('creating a list lands focus on its row', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group.lists-entry .row').click();
+        await tick(el);
+        q(el, '.lists-header ol-button').click();
+        await tick(el);
+        const input = q(el, 'form.field .input');
+        expect(input.disabled).toBe(false);
+        input.value = 'New one';
+        q(el, 'form.field').dispatchEvent(new Event('submit', { cancelable: true }));
+        await tick(el);
+        await tick(el);
+        expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .list-row input'));
+    });
+
+    test('list item counts are pluralised', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group.lists-entry .row').click();
+        await tick(el);
+        expect(qa(el, '.list-row .count').map(c => c.getAttribute('aria-label'))).toEqual(['1 item', '1 item']);
+        listData['/people/tester/lists/OL1L'].members.push('/works/OL8W');
+        resetListsStore();
+        const next = await mount();
+        q(next, '.group.lists-entry .row').click();
+        await tick(next);
+        expect(qa(next, '.list-row .count')[0].getAttribute('aria-label')).toBe('2 items');
     });
 });
