@@ -11,6 +11,7 @@ from lxml.etree import ParseError as LxmlParseError
 from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
+from openlibrary.core import jinja as jinja_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import load_translations
 from openlibrary.utils.request_context import req_context
@@ -33,6 +34,14 @@ class RenderableUndefined(jinja2.Undefined):
     """
 
     __eq__ = __ne__ = __lt__ = __gt__ = __le__ = __ge__ = lambda s, o: s
+
+    def __getattr__(self, name: str) -> RenderableUndefined:
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return RenderableUndefined()
+
+    def __getitem__(self, key: object) -> RenderableUndefined:
+        return RenderableUndefined()
 
 
 def _create_validation_env() -> jinja2.Environment:
@@ -104,6 +113,31 @@ def assert_valid_html(html_string: str) -> None:
         lxml_html.fromstring(html_string, parser=parser)
     except LxmlParseError as e:
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
+
+
+def test_register_site_layout_uses_jinja_template(monkeypatch):
+    """The registered Infogami source should delegate to the Jinja site wrapper."""
+    registered = {}
+
+    class Render:
+        def add_source(self, source):
+            registered.update(source)
+
+    monkeypatch.setattr("infogami.utils.template.render", Render())
+
+    rendered = "<html>"
+
+    def mock_render(template_name, **kwargs):
+        assert template_name == "site.html.jinja"
+        assert kwargs == {"page": "page"}
+        return rendered
+
+    monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
+    jinja_module.register_site_layout()
+
+    site_template = registered["site"]
+    assert site_template.filename == "openlibrary/templates/site.html.jinja"
+    assert site_template("page") == rendered
 
 
 class TestGetJinjaEnv:

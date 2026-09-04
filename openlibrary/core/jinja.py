@@ -12,11 +12,15 @@ from markupsafe import escape as _markupsafe_escape
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
     """Render a Jinja template and return the resulting HTML string.
 
-    This is a generic helper to render any Jinja template from the macros
-    directory and pass it values from Templetor templates.
+    A generic helper to render any Jinja template from the macros or
+    templates directory and pass it values, from Templetor templates,
+    other Jinja templates, or plain Python.
 
     Usage in Templetor template:
         $:render_template("MyTemplate.html.jinja", foo="bar")
+
+    Usage in Python (e.g. serving the site layout):
+        render_jinja_template("site.html.jinja", page=page)
     """
     env = get_jinja_env()
     template = env.get_template(template_name)
@@ -82,7 +86,16 @@ def get_jinja_env() -> Environment:
     # Import is deferred to avoid circular imports at module level.
     from infogami.utils.view import render_template
 
-    env.globals["render_templetor_template"] = render_template
+    def _render_templetor_template(name: str, *args: Any, **kwargs: Any) -> Markup:
+        """Render a Templetor template and return it as trusted HTML.
+
+        ``Markup`` because a rendered template is HTML by construction and
+        the env autoescapes — without it every call site would need
+        ``|safe`` (see ``icon`` below for the same rationale).
+        """
+        return Markup(str(render_template(name, *args, **kwargs)))
+
+    env.globals["render_templetor_template"] = _render_templetor_template
 
     def _icon(name: str, size: str = "md", label: str = "", extra_class: str = "") -> Markup:
         """Draw an icon from the icon sprite. See /developers/design/icons.
@@ -119,3 +132,27 @@ def get_jinja_env() -> Environment:
     # ``install_gettext_callables`` auto-registers ``_``, ``gettext``, and
     # ``ngettext`` in ``env.globals`` — no manual globals registration needed.
     return env
+
+
+class _SiteLayoutTemplate:
+    """``site`` pile entry whose ``filename`` satisfies saferender()'s error path."""
+
+    filename = "openlibrary/templates/site.html.jinja"
+
+    def __call__(self, page: Any) -> str:
+        return render_jinja_template("site.html.jinja", page=page)
+
+
+def register_site_layout() -> None:
+    """Serve infogami's ``site`` page wrapper from Jinja.
+
+    Infogami wraps every rendered page in a ``site`` template looked up
+    from a pile of template sources (``render.site(...)`` in
+    ``infogami/utils/delegate.py``); openlibrary's Templetor ``site.html``
+    used to win that lookup.  Adding this source makes the Jinja layout
+    win instead, so the layout needs no Templetor wrapper file at all.
+    """
+    # Import is deferred to avoid circular imports at module level.
+    from infogami.utils import template
+
+    template.render.add_source({"site": _SiteLayoutTemplate()})
