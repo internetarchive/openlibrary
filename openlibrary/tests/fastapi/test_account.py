@@ -129,6 +129,7 @@ def test_login_sets_s3_cookie_when_s3_keys_present(fastapi_client):
     with (
         patch("openlibrary.fastapi.account.audit_accounts") as mock_audit,
         patch("openlibrary.fastapi.account.generate_login_code_for_user") as mock_gen_code,
+        patch("openlibrary.fastapi.account.encrypt_s3_keys", return_value="encrypted_token") as mock_encrypt,
     ):
         mock_audit.return_value = {
             "ol_username": "testuser",
@@ -142,6 +143,7 @@ def test_login_sets_s3_cookie_when_s3_keys_present(fastapi_client):
             follow_redirects=False,
         )
         assert response.status_code == 303
+        mock_encrypt.assert_called_once_with("test_access", "test_secret")
         set_cookies = [val for key, val in response.headers.multi_items() if key.lower() == "set-cookie"]
         assert any("s3=" in header for header in set_cookies)
 

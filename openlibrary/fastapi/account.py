@@ -351,7 +351,12 @@ async def logout(request: Request) -> Response:
     # Clear all auth cookies (same as web.py does)
     response.delete_cookie(config.login_cookie_name)
     response.delete_cookie("pd")
-    response.delete_cookie("s3")
+    response.delete_cookie(
+        "s3",
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+    )
     response.delete_cookie("sfw")
 
     return response

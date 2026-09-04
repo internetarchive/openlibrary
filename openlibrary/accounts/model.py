@@ -84,9 +84,7 @@ def generate_hash(secret_key, text, salt=None) -> str:
 
 
 def get_secret_key():
-    if hasattr(config, "infobase") and isinstance(config.infobase, dict):
-        return config.infobase.get("secret_key", "secret")
-    return getattr(config, "secret_key", "secret")
+    return config.infobase["secret_key"]
 
 
 def _get_fernet():
