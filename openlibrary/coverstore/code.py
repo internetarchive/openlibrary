@@ -422,9 +422,12 @@ class cover_details:
         d = _query(category, key, value)
 
         if key == "id":
-            web.header("Content-Type", "application/json")
+            # Only set application/json on the success path; setting it before
+            # the lookup leaked a second Content-Type header onto 404/500
+            # error pages.
             d = db.details(value)
             if d:
+                web.header("Content-Type", "application/json")
                 if isinstance(d["created"], datetime.datetime):
                     d["created"] = d["created"].isoformat()
                     d["last_modified"] = d["last_modified"].isoformat()

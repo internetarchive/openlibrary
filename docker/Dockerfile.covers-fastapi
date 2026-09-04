@@ -1,0 +1,34 @@
+# Minimal standalone container for the FastAPI-based coverstore.
+# It has no web.py / infogami dependencies and only installs what it needs.
+FROM python:3.14-slim
+
+WORKDIR /openlibrary
+
+RUN pip install --no-cache-dir \
+    fastapi==0.136.3 \
+    uvicorn==0.49.0 \
+    "psycopg[binary,pool]==3.2.12" \
+    Pillow==12.2.0 \
+    python-multipart==0.0.32 \
+    PyYAML==6.0.3 \
+    httpx==0.28.1
+
+COPY openlibrary/coverstore_fastapi ./openlibrary/coverstore_fastapi
+# The legacy config's default_image points at static/images/empty.gif,
+# resolved relative to the working directory.
+COPY static/images/empty.gif ./static/images/empty.gif
+
+# The legacy coverstore connects to postgres without an explicit user, so
+# libpq uses the OS username -- which must be the `openlibrary` db role.
+# UID 999 matches the legacy oldev image so a shared data volume works.
+RUN useradd -m -u 999 openlibrary \
+    && mkdir -p /var/lib/coverstore \
+    && chown -R openlibrary /var/lib/coverstore
+
+USER openlibrary
+
+EXPOSE 7075
+
+# --proxy-headers keeps request.url.scheme correct behind an nginx proxy,
+# mirroring how the legacy gunicorn setup handled X-Scheme.
+CMD ["uvicorn", "openlibrary.coverstore_fastapi.app:app", "--host", "0.0.0.0", "--port", "7075", "--proxy-headers", "--forwarded-allow-ips=*"]
