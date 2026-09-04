@@ -20,7 +20,7 @@ $var history: $page.history
 
 $ olid = page.key.split('/')[-1]
 
-$ books = page.get_books(q=query_param('q'))
+$ books = page.get_books(q=query_param('q'), sort=query_param('sort', 'editions'), page=query_param('page', 1), rows=20, mode=query_param('mode', ''))
 $ book_list_excerpt = ''
 $if books and books.docs:
     $ book_titles_excerpt = [work.title for work in books.docs[:8]]

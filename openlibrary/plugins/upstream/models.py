@@ -480,19 +480,18 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split("/")[-1]
 
-    def get_books(self, q=""):
-        i = web.input(sort="editions", page=1, rows=20, mode="")
+    def get_books(self, q="", sort="editions", page=1, rows=20, mode=""):
         try:
             # safeguard from passing zero/negative offsets to solr
-            page = max(1, int(i.page))
-        except ValueError:
+            page = max(1, int(page))
+        except (ValueError, TypeError):
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=i.sort,
+            sort=sort or "editions",
             page=page,
-            rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            rows=rows or 20,
+            has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
             request_label="AUTHOR_BOOKS_PAGE",
