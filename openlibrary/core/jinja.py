@@ -141,18 +141,3 @@ class _SiteLayoutTemplate:
 
     def __call__(self, page: Any) -> str:
         return render_jinja_template("site.html.jinja", page=page)
-
-
-def register_site_layout() -> None:
-    """Serve infogami's ``site`` page wrapper from Jinja.
-
-    Infogami wraps every rendered page in a ``site`` template looked up
-    from a pile of template sources (``render.site(...)`` in
-    ``infogami/utils/delegate.py``); openlibrary's Templetor ``site.html``
-    used to win that lookup.  Adding this source makes the Jinja layout
-    win instead, so the layout needs no Templetor wrapper file at all.
-    """
-    # Import is deferred to avoid circular imports at module level.
-    from infogami.utils import template
-
-    template.render.add_source({"site": _SiteLayoutTemplate()})

@@ -115,16 +115,8 @@ def assert_valid_html(html_string: str) -> None:
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
 
 
-def test_register_site_layout_uses_jinja_template(monkeypatch):
-    """The registered Infogami source should delegate to the Jinja site wrapper."""
-    registered = {}
-
-    class Render:
-        def add_source(self, source):
-            registered.update(source)
-
-    monkeypatch.setattr("infogami.utils.template.render", Render())
-
+def test_site_layout_template_uses_jinja_template(monkeypatch):
+    """The ``site`` pile entry should delegate to the Jinja site wrapper."""
     rendered = "<html>"
 
     def mock_render(template_name, **kwargs):
@@ -133,9 +125,8 @@ def test_register_site_layout_uses_jinja_template(monkeypatch):
         return rendered
 
     monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
-    jinja_module.register_site_layout()
 
-    site_template = registered["site"]
+    site_template = jinja_module._SiteLayoutTemplate()
     assert site_template.filename == "openlibrary/templates/site.html.jinja"
     assert site_template("page") == rendered
 
