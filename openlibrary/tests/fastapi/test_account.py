@@ -125,6 +125,34 @@ def test_login_deletes_pending_action_cookie_on_valid_redirect(fastapi_client):
         assert not any("pending_action=" in header for header in set_cookies)
 
 
+def test_login_sets_s3_cookie_when_s3_keys_present(fastapi_client):
+    with (
+        patch("openlibrary.fastapi.account.audit_accounts") as mock_audit,
+        patch("openlibrary.fastapi.account.generate_login_code_for_user") as mock_gen_code,
+    ):
+        mock_audit.return_value = {
+            "ol_username": "testuser",
+            "s3_keys": {"access": "test_access", "secret": "test_secret"},
+        }
+        mock_gen_code.return_value = "token"
+
+        response = fastapi_client.post(
+            "/account/login",
+            data={"username": "testuser", "password": "password"},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303
+        set_cookies = [val for key, val in response.headers.multi_items() if key.lower() == "set-cookie"]
+        assert any("s3=" in header for header in set_cookies)
+
+
+def test_logout_deletes_s3_cookie(fastapi_client):
+    response = fastapi_client.post("/account/logout", follow_redirects=False)
+    assert response.status_code == 303
+    set_cookies = [val for key, val in response.headers.multi_items() if key.lower() == "set-cookie"]
+    assert any('s3=""' in header or "s3=;" in header for header in set_cookies)
+
+
 class TestAnonymizeAccount:
     def test_success(self, fastapi_client):
         resp, mock_account = _anonymize_post(fastapi_client)

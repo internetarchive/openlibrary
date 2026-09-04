@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
-from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user
+from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.fastapi.auth import (
@@ -317,6 +317,18 @@ async def login(
         max_age=expires,
     )
 
+    # Set encrypted s3 cookie if IA returned S3 keys (same semantics as legacy)
+    if s3_keys := audit.get("s3_keys"):
+        token = encrypt_s3_keys(s3_keys["access"], s3_keys["secret"])
+        response.set_cookie(
+            "s3",
+            token,
+            max_age=expires,
+            httponly=True,
+            secure=request.url.scheme == "https",
+            samesite="lax",
+        )
+
     # Increment stats (same as web.py)
     stats.increment("ol.account.xauth.login")
 
@@ -339,6 +351,7 @@ async def logout(request: Request) -> Response:
     # Clear all auth cookies (same as web.py does)
     response.delete_cookie(config.login_cookie_name)
     response.delete_cookie("pd")
+    response.delete_cookie("s3")
     response.delete_cookie("sfw")
 
     return response
