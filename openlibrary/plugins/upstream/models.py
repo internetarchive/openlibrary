@@ -484,7 +484,7 @@ class Author(models.Author):
         try:
             # safeguard from passing zero/negative offsets to solr
             page = max(1, int(page))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             page = 1
         return works_by_author(
             self.get_olid(),
