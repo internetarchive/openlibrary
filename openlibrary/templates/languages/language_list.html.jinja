@@ -1,0 +1,9 @@
+<ul class="locale-options {{ classes | default('') }}">
+    {% for lang in get_supported_languages().values() %}
+        <li><a href="#"
+   lang="{{ lang['code'] }}"
+   data-lang-id="{{ lang['code'] }}"
+   title="{{ lang['localized'] }}">{{ lang['native'] }}</a></li>
+        {# detect-missing-i18n-skip-line #}
+    {% endfor %}
+</ul>
