@@ -121,12 +121,8 @@ def build_inventory() -> list[Template]:
     return sorted(set(templates), key=lambda t: (t.kind, t.relpath, t.name))
 
 
-def build_corpus() -> dict[str, str]:
-    """Read every git-tracked source file (hermetic: untracked scratch files
-    can't change the verdict).  ``--recurse-submodules`` is load-bearing --
-    references like ``render.viewpage`` live in vendor/infogami (make git).
-    """
-    files = (
+def _git_tracked_files() -> list[str]:
+    return (
         subprocess.run(
             ["git", "ls-files", "--recurse-submodules", "-z"],
             cwd=REPO_ROOT,
@@ -136,21 +132,32 @@ def build_corpus() -> dict[str, str]:
         .stdout.decode()
         .split("\0")
     )
+
+
+def _infogami_disk_files() -> list[str]:
+    """List infogami files from disk when git can't see them."""
+    root = REPO_ROOT / "vendor" / "infogami"
+    if not root.is_dir():
+        return []
+    return [path.relative_to(REPO_ROOT).as_posix() for path in sorted(root.rglob("*")) if path.is_file() and "__pycache__" not in path.parts]
+
+
+def build_corpus() -> dict[str, str]:
+    """Scan every git-tracked source file. Untracked files don't count.
+
+    Refs like ``render.viewpage`` live in vendor/infogami, so run ``make git``.
+    In worktrees without submodule metadata, read those files from disk.
+    """
+    files = _git_tracked_files()
+    if disk_files := _infogami_disk_files():
+        files = sorted(set(files) | set(disk_files))
     if not any(rel.startswith("vendor/infogami/") for rel in files):
-        infogami_root = REPO_ROOT / "vendor" / "infogami"
-        # A worktree may contain the checked-out submodule files without the
-        # git metadata that lets `git ls-files --recurse-submodules` see them.
-        # Require a stable source file before trusting the filesystem walk: an
-        # uninitialized submodule leaves an empty directory behind, which must
-        # not silently produce an incomplete corpus.
-        if not (infogami_root / "infogami" / "core" / "code.py").is_file():
-            raise RuntimeError(
-                "git ls-files returned no vendor/infogami files and no usable "
-                "infogami checkout exists on disk. Run `make git` "
-                "(git submodule update --init) so the scan can see infogami's "
-                "template references."
-            )
-        files.extend(path.relative_to(REPO_ROOT).as_posix() for path in sorted(infogami_root.rglob("*")) if path.is_file())
+        raise RuntimeError(
+            "git ls-files returned no vendor/infogami files and no usable "
+            "infogami checkout exists on disk. Run `make git` "
+            "(git submodule update --init) so the scan can see infogami's "
+            "template references."
+        )
     corpus: dict[str, str] = {}
     for rel in files:
         path = REPO_ROOT / rel
