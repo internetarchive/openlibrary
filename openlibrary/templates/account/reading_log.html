@@ -71,7 +71,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $if not is_filtered:
           $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
 
-        $ layout = get_remembered_layout()
+        $ layout = get_remembered_layout(query_param('layout'), cookies().get('LBL'))
         $:render_template("search/layout_options.html", selected_layout=layout)
       </div>
     </div>

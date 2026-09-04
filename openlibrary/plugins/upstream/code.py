@@ -371,7 +371,7 @@ def _fetch_editions(work, requested, provider, selected_id, mode):
     return editions, editions_limit
 
 
-def _select_edition(editions, requested, provider, selected_id, page):
+def _select_edition(editions, requested, provider, selected_id, page, provider_pref: str | None = None):
     """Pick the edition to render: the explicitly requested one, the one
     matching a requested provider/id, else the default best edition."""
     if not editions:
@@ -382,7 +382,7 @@ def _select_edition(editions, requested, provider, selected_id, page):
         return next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0]), provider
     from openlibrary.book_providers import get_best_edition
 
-    return get_best_edition(editions)
+    return get_best_edition(editions, provider_pref=provider_pref)
 
 
 def _attach_availability(edition, availabilities):
@@ -433,7 +433,14 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
 
     previews = [e for e in editions if e.get("ocaid")]
 
-    edition, provider = _select_edition(editions, requested, provider, selected_id, page)
+    edition, provider = _select_edition(
+        editions,
+        requested,
+        provider,
+        selected_id,
+        page,
+        provider_pref=query_params.get("providerPref"),
+    )
     _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(
