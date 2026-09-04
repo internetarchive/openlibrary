@@ -126,7 +126,7 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
 
     monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
 
-    site_template = jinja_module._SiteLayoutTemplate()
+    site_template = jinja_module.SiteLayoutTemplate()
     assert site_template.filename == "openlibrary/templates/site.html.jinja"
     assert site_template("page") == rendered
 

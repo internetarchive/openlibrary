@@ -23,7 +23,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
-from openlibrary.core.jinja import _SiteLayoutTemplate, render_jinja_template
+from openlibrary.core.jinja import SiteLayoutTemplate, render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -1166,7 +1166,7 @@ def setup():
 
     # Infogami wraps every page in its Templetor ``site`` template; serve
     # the site layout from Jinja instead.
-    template.render.add_source({"site": _SiteLayoutTemplate()})
+    template.render.add_source({"site": SiteLayoutTemplate()})
 
     sentry.setup()
     home.setup()

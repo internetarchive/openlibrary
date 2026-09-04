@@ -134,7 +134,7 @@ def get_jinja_env() -> Environment:
     return env
 
 
-class _SiteLayoutTemplate:
+class SiteLayoutTemplate:
     """``site`` pile entry whose ``filename`` satisfies saferender()'s error path."""
 
     filename = "openlibrary/templates/site.html.jinja"
