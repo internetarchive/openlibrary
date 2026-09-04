@@ -12,11 +12,15 @@ from markupsafe import escape as _markupsafe_escape
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
     """Render a Jinja template and return the resulting HTML string.
 
-    This is a generic helper to render any Jinja template from the macros
-    directory and pass it values from Templetor templates.
+    A generic helper to render any Jinja template from the macros or
+    templates directory and pass it values, from Templetor templates,
+    other Jinja templates, or plain Python.
 
     Usage in Templetor template:
         $:render_template("MyTemplate.html.jinja", foo="bar")
+
+    Usage in Python (e.g. serving the site layout):
+        render_jinja_template("site.html.jinja", page=page)
     """
     env = get_jinja_env()
     template = env.get_template(template_name)
@@ -121,6 +125,15 @@ def get_jinja_env() -> Environment:
     return env
 
 
+class _SiteLayoutTemplate:
+    """``site`` pile entry whose ``filename`` satisfies saferender()'s error path."""
+
+    filename = "openlibrary/templates/site.html.jinja"
+
+    def __call__(self, page: Any) -> str:
+        return render_jinja_template("site.html.jinja", page=page)
+
+
 def register_site_layout() -> None:
     """Serve infogami's ``site`` page wrapper from Jinja.
 
@@ -133,12 +146,4 @@ def register_site_layout() -> None:
     # Import is deferred to avoid circular imports at module level.
     from infogami.utils import template
 
-    def site(page) -> str:
-        return render_jinja_template("site.html.jinja", page=page)
-
-    # saferender() reads ``t.filename`` when a template raises, to decide
-    # on the failover message; set it so errors fall over to infogami's
-    # own bare site.html and log the Jinja path like a disk template would.
-    site.filename = "openlibrary/templates/site.html.jinja"  # type: ignore[attr-defined]
-
-    template.render.add_source({"site": site})
+    template.render.add_source({"site": _SiteLayoutTemplate()})
