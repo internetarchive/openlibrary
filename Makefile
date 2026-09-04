@@ -9,7 +9,8 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components icons i18n lint frontend \
+	e2e-up e2e-stack e2e-assets e2e-index e2e-reindex test-e2e
 
 all: git css js components icons lit-components i18n
 
@@ -102,3 +103,54 @@ test-i18n:
 
 test:
 	make test-py && npm run test && make test-i18n
+
+# End-to-end tests
+# ----------------
+# Playwright drives a real browser on the host against the dev stack in Docker.
+# `make e2e-up` once per session, then `make test-e2e` as often as you like.
+# See tests/e2e/README.md.
+
+E2E_PORT ?= 8080
+E2E_SERVICES = db memcached mockservices infobase covers solr web fast_web
+E2E_URL = http://localhost:$(E2E_PORT)
+
+e2e-up: e2e-stack e2e-assets e2e-index
+	npx playwright install chromium chromium-headless-shell
+
+e2e-stack:
+	docker compose up -d $(E2E_SERVICES)
+	@echo "Waiting for $(E2E_URL) ..."
+	@for i in $$(seq 1 90); do \
+		curl -sf -o /dev/null $(E2E_URL)/ && exit 0; \
+		sleep 2; \
+	done; \
+	echo "Timed out. Try: docker compose logs web fast_web" >&2; \
+	exit 1
+
+# static/build ships inside the image, built from master at image build time.
+# Rebuild it from this working tree, or the browser tests stale bundles and
+# passes against code that isn't yours.
+e2e-assets:
+	docker compose run --rm home npm run build-assets
+
+# Solr starts empty, and the search, subject and author specs skip themselves
+# when it has no documents -- a skipped test reads exactly like a pass. Query
+# through the web container: a Solr that answers on localhost can still be
+# unreachable from the app, which fails as a dozen confusing test failures.
+e2e-index:
+	@count=$$(docker compose exec -T web curl -sf "http://solr:8983/solr/openlibrary/select?q=*:*&rows=0" | grep -o '"numFound":[0-9]*' | cut -d: -f2); \
+	if [ -z "$$count" ]; then \
+		echo "The web container can't reach Solr. Try: docker compose up -d --force-recreate solr" >&2; \
+		exit 1; \
+	elif [ "$$count" = "0" ]; then \
+		docker compose run --rm home make reindex-solr; \
+	else \
+		echo "Solr has $$count documents; skipping reindex (make e2e-reindex to force)."; \
+	fi
+
+e2e-reindex:
+	docker compose run --rm home make reindex-solr
+
+PLAYWRIGHT_ARGS ?=
+test-e2e:
+	npx playwright test $(PLAYWRIGHT_ARGS)
