@@ -150,15 +150,14 @@ describe('ol-shelf-actions shelves', () => {
         expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json').init.body.get('bookshelf_id')).toBe('1');
     });
 
-    // Clicking the shelf you are on is the way off it, so the link would be a
-    // second way of doing the same thing — except on Already Read, whose row
-    // goes to the date pane instead.
-    test('only Already Read offers a Remove from shelf link', async() => {
+    // Clicking the shelf you are on is the way off it, so a link on this pane
+    // would be a second way of doing the same thing. Already Read is the
+    // exception, and its way off lives in the pane its row leads to.
+    test('no shelf offers a remove link on the main pane', async() => {
         stubFetch();
-        for (const shelf of [null, SHELF.WANT_TO_READ, SHELF.CURRENTLY_READING, SHELF.STOPPED_READING]) {
-            expect(q(await mount({ shelf }), '.clear-shelf')).toBeNull();
+        for (const shelf of [null, ...Object.values(SHELF)]) {
+            expect(q(await mount({ shelf }), '.group.shelves .clear')).toBeNull();
         }
-        expect(q(await mount({ shelf: SHELF.ALREADY_READ }), '.clear-shelf')).not.toBeNull();
     });
 
     test('rolls back and toasts on failure', async() => {
@@ -527,13 +526,53 @@ describe('ol-shelf-actions recent lists', () => {
         stubFetch();
         [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
         noteListUsed('/people/tester', '/people/tester/lists/OL5L', 'List 5');
-        const el = await mount();
+        // A book on none of them, so recency is the only thing pinning rows.
+        const el = await mount({ book: { ...BOOK, key: '/works/OL8W' } });
         await openPane(el);
         const groups = qa(el, '.group-lists');
         expect(groups.map(g => g.getAttribute('aria-label'))).toEqual(['Recently used', 'Other lists']);
         expect([...groups[0].querySelectorAll('.name')].map(n => n.textContent)).toEqual(['List 5']);
         // Pinned rows are hoisted, not copied.
         expect([...groups[1].querySelectorAll('.name')].map(n => n.textContent)).not.toContain('List 5');
+    });
+
+    test('pins the lists the book is on above the recent ones', async() => {
+        stubFetch();
+        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        listData['/people/tester/lists/OL6L'].members = [BOOK.key];
+        noteListUsed('/people/tester', '/people/tester/lists/OL5L', 'List 5');
+        const el = await mount();
+        await openPane(el);
+        const groups = qa(el, '.group-lists');
+        expect(groups.map(g => g.getAttribute('aria-label'))).toEqual(['On this book and recently used', 'Other lists']);
+        // Members first, in store order, then the recents that are not members.
+        expect([...groups[0].querySelectorAll('.name')].map(n => n.textContent)).toEqual(['Sci-fi to reread', 'List 6', 'List 5']);
+        expect([...groups[1].querySelectorAll('.name')].map(n => n.textContent)).toEqual(['Summer 2026', 'List 3', 'List 4']);
+    });
+
+    test('a list the book is on is pinned once, even when it is also recent', async() => {
+        stubFetch();
+        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        noteListUsed('/people/tester', '/people/tester/lists/OL2L', 'Sci-fi to reread');
+        const el = await mount();
+        await openPane(el);
+        expect(names(el).filter(n => n === 'Sci-fi to reread')).toHaveLength(1);
+    });
+
+    test('ticking a box leaves the row where it is until the pane is reopened', async() => {
+        stubFetch();
+        [3, 4, 5, 6].forEach(n => { listData[`/people/tester/lists/OL${n}L`] = { listName: `List ${n}`, members: [] }; });
+        const el = await mount();
+        await openPane(el);
+        const before = names(el);
+        expect(before[0]).toBe('Sci-fi to reread');
+        // Add the book to the last list: it stays put for this open...
+        await toggle(el, before.length - 1, true);
+        expect(names(el)).toEqual(before);
+        // ...and is pinned next time, where it no longer moves under a cursor.
+        await reopen(el);
+        await openPane(el);
+        expect(names(el).slice(0, 2).sort()).toEqual([before[before.length - 1], 'Sci-fi to reread'].sort());
     });
 
     test('leaves a short list of lists alone', async() => {
@@ -636,10 +675,10 @@ describe('ol-shelf-actions rejected writes', () => {
 
 const checkInWrites = () => calls.filter(c => c.url.includes('/check-ins'));
 const checkInPane = el => el.shadowRoot.querySelectorAll('.pane')[2];
-const paneRows = el => [...checkInPane(el).querySelectorAll('.row')];
+const paneRows = el => [...checkInPane(el).querySelectorAll('.dates .row')];
 const yearRows = el => [...checkInPane(el).querySelectorAll('.row.year')];
 const otherDateRow = el => checkInPane(el).querySelector('.row.date-toggle');
-const clearDateLink = el => checkInPane(el).querySelector('.clear-date');
+const notReadLink = el => checkInPane(el).querySelector('.not-read .row');
 
 describe('quickYears', () => {
     test('one year once the new year has bedded in', () => {
@@ -931,9 +970,9 @@ describe('ol-shelf-actions check-in pane', () => {
         expect([body.year, body.month, body.day]).toEqual([2024, 6, null]);
     });
 
-    // Every other row on the pane replaces one date with another, so deleting
-    // the event is the only way back to an unanswered question.
-    describe('removing the date', () => {
+    // Every other row on the pane replaces one date with another, so coming
+    // off the shelf is the only way back to an unanswered question.
+    describe('"I didn\'t read this"', () => {
         const openPane = async(props = {}) => {
             const el = await mount({ shelf: SHELF.ALREADY_READ, ...props });
             qa(el, '.group.shelves .row')[2].click();
@@ -941,67 +980,54 @@ describe('ol-shelf-actions check-in pane', () => {
             return el;
         };
 
-        test('is offered only once a date is recorded', async() => {
+        // Not conditional on a date: it is the way off the shelf, and the
+        // shelf's own row leads here rather than toggling off.
+        test('is offered whether or not a date is recorded', async() => {
             stubFetch();
-            expect(clearDateLink(await openPane())).toBeNull();
-            expect(clearDateLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
+            expect(notReadLink(await openPane())).not.toBeNull();
+            expect(notReadLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
         });
 
-        test('deletes the event and unanswers the pane', async() => {
+        test('takes the book off the shelf and slides back', async() => {
             stubFetch();
             const el = await openPane({ readDate: '2025', eventId: 12 });
-            const events = [];
-            el.addEventListener('ol-book-check-in', e => events.push(e.detail));
-            clearDateLink(el).click();
+            notReadLink(el).click();
+            expect(el._pane).toBe('main');
             await tick(el);
 
-            expect(calls.filter(c => c.url === '/check-ins/12' && c.init.method === 'DELETE')).toHaveLength(1);
+            expect(calls.find(c => c.url === '/works/OL1W/bookshelves.json').init.body.get('bookshelf_id')).toBe('3');
+            expect(el.shelf).toBeNull();
+            // The server deletes the check-in with the shelving, so the date
+            // goes without a DELETE of its own.
             expect(el.readDate).toBeNull();
             expect(el.eventId).toBeNull();
-            expect(events).toEqual([{ key: '/works/OL1W', date: null, eventId: null }]);
-            // The book stays on the shelf; only the date went.
-            expect(el.shelf).toBe(SHELF.ALREADY_READ);
-            expect(el._pane).toBe('main');
+            expect(checkInWrites()).toHaveLength(0);
         });
 
-        test('a failed removal keeps the date', async() => {
+        test('so the next check-in adds an event instead of amending the deleted one', async() => {
+            stubFetch();
+            const el = await openPane({ readDate: '2025', eventId: 12 });
+            notReadLink(el).click();
+            await tick(el);
+
+            el.shelf = SHELF.ALREADY_READ;
+            await tick(el);
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            yearRows(el)[0].click();
+            await tick(el);
+            expect(JSON.parse(checkInWrites()[0].init.body).event_id).toBeNull();
+        });
+
+        test('a failed removal puts the book and its date back', async() => {
             stubFetch({ failWith: 500 });
             const el = await openPane({ readDate: '2025', eventId: 12 });
-            clearDateLink(el).click();
+            notReadLink(el).click();
             await tick(el);
+            expect(el.shelf).toBe(SHELF.ALREADY_READ);
             expect(el.readDate).toBe('2025');
             expect(el.eventId).toBe(12);
         });
-    });
-
-    test('removing the book from its shelf drops the date the server deleted with it', async() => {
-        stubFetch();
-        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
-        // The Remove-from-shelf link: for Already Read, clicking the shelf row
-        // amends the date instead.
-        q(el, '.clear-shelf').click();
-        await tick(el);
-        expect(el.shelf).toBeNull();
-        expect(el.readDate).toBeNull();
-        expect(el.eventId).toBeNull();
-        // So the next check-in adds an event instead of amending event 12.
-        el.shelf = SHELF.ALREADY_READ;
-        await tick(el);
-        qa(el, '.group.shelves .row')[2].click();
-        await tick(el);
-        yearRows(el)[0].click();
-        await tick(el);
-        expect(JSON.parse(checkInWrites()[0].init.body).event_id).toBeNull();
-    });
-
-    test('a failed removal puts the date back', async() => {
-        stubFetch({ failWith: 500 });
-        const el = await mount({ shelf: SHELF.ALREADY_READ, readDate: '2025', eventId: 12 });
-        q(el, '.clear-shelf').click();
-        await tick(el);
-        expect(el.shelf).toBe(SHELF.ALREADY_READ);
-        expect(el.readDate).toBe('2025');
-        expect(el.eventId).toBe(12);
     });
 
     test('a removal made outside the popover drops it too', async() => {
