@@ -18,7 +18,7 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
             $:macros.icon("globe", size="sm", label=_('Change Website Language'))
           </summary>
           <div class="language-dropdown-component">
-            $:render_template('languages/language_list', classes="dropdown-menu")
+            $:render_jinja_template('languages/language_list.html.jinja', classes="dropdown-menu")
           </div>
         </details>
       </div>
