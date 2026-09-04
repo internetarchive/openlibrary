@@ -14,7 +14,7 @@ from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_re
 
 DEFAULT_CONFIG_PATH = "conf/openlibrary.yml"
 DEFAULT_BATCH_SIZE = 20_000
-
+DEFAULT_LOWER_BOUND = 0
 
 def init(conf_path):
     init_signal_handler()
@@ -48,7 +48,7 @@ def main(args):
     max_upper_bound = find_upper_bound()
 
     # Backfill new IDs in batches
-    lower_bound = 0
+    lower_bound = args.lower_bound
     while lower_bound < max_upper_bound and not was_shutdown_requested():
         start = time.perf_counter()
         backfill_rows(lower_bound, lower_bound + args.batch_size)
@@ -61,6 +61,7 @@ def _parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("-c", "--config", default=DEFAULT_CONFIG_PATH, help="Path to openlibrary configuration yaml")
     p.add_argument("-b", "--batch-size", default=DEFAULT_BATCH_SIZE, type=int)
+    p.add_argument("-l", "--lower-bound", default=DEFAULT_LOWER_BOUND, type=int)
     p.set_defaults(func=main)
     return p.parse_args()
 
