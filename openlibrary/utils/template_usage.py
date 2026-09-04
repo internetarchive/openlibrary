@@ -139,7 +139,14 @@ def _infogami_disk_files() -> list[str]:
     root = REPO_ROOT / "vendor" / "infogami"
     if not root.is_dir():
         return []
-    return [path.relative_to(REPO_ROOT).as_posix() for path in sorted(root.rglob("*")) if path.is_file() and "__pycache__" not in path.parts]
+    files: list[str] = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix not in CORPUS_SUFFIXES:
+            continue
+        rel = path.relative_to(REPO_ROOT).as_posix()
+        if rel not in CORPUS_SKIP_FILES:
+            files.append(rel)
+    return sorted(files)
 
 
 def build_corpus() -> dict[str, str]:
@@ -149,8 +156,8 @@ def build_corpus() -> dict[str, str]:
     In worktrees without submodule metadata, read those files from disk.
     """
     files = _git_tracked_files()
-    if disk_files := _infogami_disk_files():
-        files = sorted(set(files) | set(disk_files))
+    if not any(rel.startswith("vendor/infogami/") for rel in files):
+        files.extend(_infogami_disk_files())
     if not any(rel.startswith("vendor/infogami/") for rel in files):
         raise RuntimeError(
             "git ls-files returned no vendor/infogami files and no usable "
