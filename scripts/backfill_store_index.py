@@ -55,7 +55,7 @@ def main(args):
         backfill_rows(lower_bound, lower_bound + args.batch_size)
         lower_bound += args.batch_size
         elapsed = time.perf_counter() - start
-        print(f"Chunk updated in {elapsed:.6f} seconds")
+        print(f"Block updated in {elapsed:.6f} seconds.  Next block starts with ID {lower_bound}", flush=True)
 
 
 def _parse_args():
