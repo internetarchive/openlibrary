@@ -16,6 +16,7 @@ DEFAULT_CONFIG_PATH = "conf/openlibrary.yml"
 DEFAULT_BATCH_SIZE = 20_000
 DEFAULT_LOWER_BOUND = 0
 
+
 def init(conf_path):
     init_signal_handler()
     setup_for_script(conf_path)
