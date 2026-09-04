@@ -98,7 +98,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     searching: 'Searching…',
     noResults: 'No results found',
     // Softer empty state used when the catalog search came back empty but the
-    // "Found inside books" band below has matches — a bare "No results found"
+    // "Search inside books" band below has matches — a bare "No results found"
     // above visible results would read as a contradiction.
     noCatalogResults: 'No matching books or authors',
     // Screen-reader-only live announcement when results land: first %s = rows
@@ -106,6 +106,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
     resultsAnnounce: 'Showing %s of %s results',
+    authorResults: 'Authors',
     topResults: 'Books',
     untitled: 'Untitled',
     authorLabel: 'Author',
@@ -118,20 +119,18 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
-    // "Found inside books" band: %s = the number of books with matches (not
-    // match occurrences), formatted client-side. seeAllInsideShort is the footer
-    // see-all button's visible text and seeAllInsideNarrow its narrow-viewport
-    // form; seeAllInside is the accessible name at both widths. Plural-only like
-    // seeAllMany: the button renders only when the total exceeds the >=1 hits
-    // shown inline, so the count is always >= 2.
-    foundInside: 'Found inside books',
-    seeAllInsideShort: 'Search inside %s books',
-    seeAllInsideNarrow: 'Search inside (%s)',
+    // "Search inside books" band: %s = the number of books with matches (not
+    // match occurrences), formatted client-side. seeAllInsideShort is the band
+    // see-all button's visible text, seeAllInside its accessible name.
+    // Plural-only like seeAllMany: the button renders only when the total
+    // exceeds the >=1 hits shown inline, so the count is always >= 2.
+    insideHeading: 'Search inside books',
+    seeAllInsideShort: 'Search Inside %s books',
     seeAllInside: 'See all matches found in %s books',
     // The same button while no total has been measured for what's in the input
     // (mid-edit, or just after a filter toggle) — the link still holds, so the
     // button stays and only the count drops.
-    seeAllInsidePlain: 'Search inside',
+    seeAllInsidePlain: 'Search Inside',
 };
 
 /**

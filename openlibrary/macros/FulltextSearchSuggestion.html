@@ -15,7 +15,7 @@ $ num_found = commify(total)
 $ see_all_url = "/search/inside?%s" % urlencode(dict(q=query))
 $# Same split as the modal's footer button (SearchModal._renderFulltextSeeAll):
 $# a short visible label, with the full sentence as the accessible name.
-$ see_all_label = ungettext('Search inside %(count)s book', 'Search inside %(count)s books', total, count=num_found)
+$ see_all_label = ungettext('Search Inside %(count)s book', 'Search Inside %(count)s books', total, count=num_found)
 $ see_all_aria = ungettext('See all matches found in %(count)s book', 'See all matches found in %(count)s books', total, count=num_found)
 
 $if not shown and total:
@@ -25,7 +25,7 @@ $if not shown and total:
   <section class="fulltext-suggestions fulltext-suggestions--compact" aria-labelledby="fulltext-suggestions-heading">
     <h2 id="fulltext-suggestions-heading" class="search-results-section-label fulltext-suggestions__header">
       $:macros.icon("text-search", size="sm")
-      <span>$_("Found inside books")</span>
+      <span>$_("Search inside books")</span>
     </h2>
     <ol-button variant="primary" href="$see_all_url" aria-label="$see_all_aria" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
       $see_all_label
@@ -37,7 +37,7 @@ $elif shown:
     <h2 id="fulltext-suggestions-heading" class="search-results-section-label fulltext-suggestions__header">
       $# Decorative: flags these as matches from inside the scans, not catalogue records.
       $:macros.icon("text-search", size="sm")
-      <span>$_("Found inside books")</span>
+      <span>$_("Search inside books")</span>
     </h2>
     <ul class="list-books list-books--fulltext">
       $for row in shown:

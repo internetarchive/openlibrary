@@ -1,5 +1,5 @@
 /**
- * Helpers for the search modal's "Found inside books" band — parsing the
+ * Helpers for the search modal's "Search inside books" band — parsing the
  * IA fulltext API's snippet markup and hit fields into renderable data.
  * Kept free of Lit/DOM so they're unit-testable.
  */

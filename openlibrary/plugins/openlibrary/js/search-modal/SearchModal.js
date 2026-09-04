@@ -386,12 +386,12 @@ export class SearchModal extends LitElement {
             text-transform: uppercase;
         }
 
-        /* A heading that starts a new section mid-list (e.g. "Found inside
+        /* A heading that starts a new section mid-list (e.g. "Search inside
            books" after the top results) gets clear air separating it from
            the rows above. */
         .results-list + .results-heading { margin-top: var(--spacing-lg); }
 
-        /* Heading with a leading glyph (the "Found inside books" band): the
+        /* Heading with a leading glyph (the "Search inside books" band): the
            icon flags that these rows are a different kind of match — text
            from inside the scans, not catalogue records. */
         .results-heading--icon {
@@ -568,20 +568,59 @@ export class SearchModal extends LitElement {
             text-align: center;
         }
 
-        /* ── "Found inside books" band ─────────────────────────────── */
+        /* ── "Search inside books" band ────────────────────────────── */
 
-        /* Snippet passage from inside the book, as a small quote card in the
-           row's trailing column — the same card the /search/inside page uses
-           (.fsi-quote). The row is the link, so the card is inert: it sits on
-           the hovered row rather than highlighting on its own. */
-        .ft-quote {
-            flex: 0 1 46%;
-            min-width: 0;
-            box-sizing: border-box;
-            padding: var(--spacing-sm) var(--spacing-md);
+        /* The band is a card of its own, inset from the full-bleed rows above
+           it: these are matches from inside the scans, and the frame says so
+           before the heading does. Everything the band owns lives in the card
+           — heading, snippet rows, and the see-all that leads to the full
+           /search/inside surface. */
+        .ft-band {
+            margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
             border: var(--border-card);
             border-radius: var(--border-radius-card);
-            background-color: var(--color-surface);
+            background-color: var(--color-surface-sunken);
+            overflow: hidden;
+        }
+
+        /* Inside the card the heading is a titled bar: the card's top border
+           gives it the separation the standalone heading needed margin for.
+           The band's rules match the card's own border rather than the list
+           hairline above, which is a shade off this fill and barely
+           registers on it. */
+        .ft-band .results-heading {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
+        /* Rows sit inset to the card, and the first leans on the heading's
+           rule rather than drawing a second line under it. */
+        .ft-band .result {
+            padding-left: var(--spacing-md);
+            padding-right: var(--spacing-md);
+        }
+
+        .ft-band .results-list li { border-top-color: var(--color-border-subtle); }
+        .ft-band .results-list li:first-child { border-top: none; }
+
+        /* The card's own footer, holding the see-all under the rows it
+           summarises. */
+        .ft-band__footer {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-top: 1px solid var(--color-border-subtle);
+        }
+
+        /* Snippet passage from inside the book, marked by a rule down its left
+           edge — the quotation convention, and the same treatment .fsi-quote
+           carries on /search and /search/inside. Not boxed: the band is
+           already a card, and cards nested in it read as chrome around the one
+           thing — the passage — the patron came to the band for. The bar is
+           inert here; the row is the link, so hover belongs to the row. */
+        .ft-quote {
+            display: block;
+            margin-top: var(--spacing-2xs);
+            padding: var(--spacing-3xs) 0 var(--spacing-3xs) var(--spacing-md);
+            border-left: 3px solid var(--color-border-muted);
             color: var(--color-text);
             font-family: var(--font-family-quote);
             font-size: var(--font-size-body-medium);
@@ -589,8 +628,8 @@ export class SearchModal extends LitElement {
             overflow-wrap: anywhere;
         }
 
-        /* The quote card leaves the title about half the row, so let it wrap
-           to a second line before clamping instead of truncating at one. */
+        /* These titles are long ones (scanned volumes carry their subtitles),
+           so let them wrap to a second line before clamping. */
         .ft-result .result__title {
             display: -webkit-box;
             -webkit-box-orient: vertical;
@@ -598,19 +637,23 @@ export class SearchModal extends LitElement {
             white-space: normal;
         }
 
-        /* Clamp the passage so a long OCR run can't balloon the row. */
+        /* Clamp the passage so a long OCR run can't balloon the row. Three
+           lines at full row width is already more text than the four the
+           half-width column held. */
         .ft-quote__text {
             display: -webkit-box;
             -webkit-box-orient: vertical;
-            -webkit-line-clamp: 4;
+            -webkit-line-clamp: 3;
             overflow: hidden;
         }
 
-        /* Same match treatment as the /search/inside quote cards
-           (.fsi-quote strong): amber highlight, medium weight. The padding
-           bleeds outward so the box doesn't push the punctuation after it. */
+        /* Match treatment follows the /search/inside quote cards (.fsi-quote
+           strong) — amber highlight, medium weight — one step up the ramp:
+           those sit on white, these on the band's tinted fill, where amber-50
+           all but disappears. The padding bleeds outward so the box doesn't
+           push the punctuation after it. */
         .ft-quote mark {
-            background-color: var(--amber-50);
+            background-color: var(--amber-100);
             color: inherit;
             font-weight: 500;
             border-radius: var(--border-radius-sm);
@@ -788,8 +831,7 @@ export class SearchModal extends LitElement {
 
         .footer ol-button { flex-shrink: 0; }
 
-        /* The primary "See N books" holds the right edge; the fulltext
-           see-all (when present) sits before it, on the left. */
+        /* The primary "See N books" holds the right edge. */
         .footer ol-button:last-child { margin-left: auto; }
 
         /* Two-tier button labels: both forms are slotted and one is hidden by
@@ -807,15 +849,9 @@ export class SearchModal extends LitElement {
                outside the scrolling body). */
             .footer { background: var(--color-surface); }
 
-            /* Two buttons share this row on mobile — swap in the short labels. */
+            /* Narrow rows, long counts — swap in the short labels. */
             .footer .label-wide { display: none; }
             .footer .label-narrow { display: inline; }
-
-            /* Compact counts keep the English pair inside a small phone, but a
-               translation of "Search inside" can be half again as long and the
-               buttons don't shrink. Let the primary wrap under the fulltext one
-               rather than overflow the dialog. */
-            .footer { flex-wrap: wrap; row-gap: var(--spacing-xs); }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
@@ -829,11 +865,6 @@ export class SearchModal extends LitElement {
             }
             .search-icon { display: none; }
             .back-btn { margin-left: 0; }
-
-            /* No room for a side-by-side card: the quote wraps beneath the
-               cover/meta row at full width. */
-            .ft-result { flex-wrap: wrap; }
-            .ft-quote { flex-basis: 100%; }
         }
     `;
 
@@ -853,7 +884,7 @@ export class SearchModal extends LitElement {
         // Set when the patron commits to /search (click or Enter) and the page
         // begins navigating; mirrors how a pressed result uses _navigatingKey.
         this._seeAllLoading = false;
-        // Same, for the fulltext band's "Search inside N books" footer button.
+        // Same, for the band's "Search Inside N books" button.
         this._ftSeeAllLoading = false;
         this._hasSearched  = false;
         // Whether the last search ended in a transport/HTTP error rather than
@@ -909,7 +940,7 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
 
-        // "Found inside books" band. When it fetches is FulltextBand's call —
+        // "Search inside books" band. When it fetches is FulltextBand's call —
         // the modal reports what happened (query changed, Solr settled, Solr
         // failed) and mirrors the result into reactive state.
         this._ftHits  = [];
@@ -1199,7 +1230,6 @@ export class SearchModal extends LitElement {
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
-                    ${this._renderFulltextSeeAll()}
                     ${this._renderSeeAll()}
                 </div>
             </ol-dialog>
@@ -1283,6 +1313,7 @@ export class SearchModal extends LitElement {
         return html`
             <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
+                    <h3 class="results-heading">${this._i18n.authorResults}</h3>
                     <ul class="results-list author-suggestion">
                         ${repeat(this._authorSuggestions, a => a.key, (a, i) => this._renderAuthorSuggestion(a, i))}
                     </ul>
@@ -1303,7 +1334,7 @@ export class SearchModal extends LitElement {
         return dedupeFulltextHits(this._ftHits, this._results).slice(0, FULLTEXT_LIMIT);
     }
 
-    // The "Found inside books" band: Search Inside snippet matches rendered
+    // The "Search inside books" band: Search Inside snippet matches rendered
     // after the metadata results (and as the no-results rescue). Hidden
     // entirely until a fulltext response with hits lands — no spinner, no
     // empty state: a secondary surface earns its space only when it has
@@ -1313,27 +1344,31 @@ export class SearchModal extends LitElement {
         if (hits.length === 0) return nothing;
         const q = this._query.trim();
         return html`
-            <h3 class="results-heading results-heading--icon">
-                ${SearchModal._textSearchIcon}<span>${this._i18n.foundInside}</span>
-            </h3>
-            <ul class="results-list">
-                ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
-            </ul>
+            <div class="ft-band">
+                <h3 class="results-heading results-heading--icon">
+                    ${SearchModal._textSearchIcon}<span>${this._i18n.insideHeading}</span>
+                </h3>
+                <ul class="results-list">
+                    ${hits.map((hit, i) => this._renderFulltextHit(hit, q, i))}
+                </ul>
+                <div class="ft-band__footer">${this._renderFulltextSeeAll()}</div>
+            </div>
         `;
     }
 
-    // The band's see-all: a secondary button on the footer's left, opposite
-    // the primary "See N books" — always in view, even with the band scrolled
-    // away. Present whenever the band is: /search/inside is a bigger surface
-    // (more context per hit, its own filters, a shareable URL), so the door is
-    // worth offering even when the rows above cover the whole result set.
+    // The band's see-all, in the card's own footer under the snippet rows it
+    // summarises. Present whenever the band is: /search/inside is a bigger
+    // surface (more context per hit, its own filters, a shareable URL), so the
+    // door is worth offering even when the rows above cover the whole result
+    // set.
     //
     // The *count* is what has to earn its place. It shows only when it's both
     // current (see _ftTotalIsCurrent) and larger than the rows already on
-    // screen: "Search inside 23,783 books", "Search inside (23,783)" when
-    // narrow, the full sentence as the accessible name. Otherwise the button
-    // falls back to a plain "Search inside" — the link is still honest, only
-    // the number isn't in hand.
+    // screen: "Search Inside 23,783 books", with the full sentence as the
+    // accessible name. Otherwise the button falls back to a plain "Search
+    // Inside" — the link is still honest, only the number isn't in hand.
+    // The button owns a row of the card at every width, so unlike the footer
+    // primary it never needs a narrow form.
     _renderFulltextSeeAll() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return nothing;
@@ -1348,7 +1383,7 @@ export class SearchModal extends LitElement {
                 aria-label=${counted ? this._seeAllInsideLabel() : plain}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
-            >${counted ? this._responsiveLabel(this._seeAllInsideShortLabel(), this._seeAllInsideNarrowLabel()) : plain}</ol-button>
+            >${counted ? this._seeAllInsideShortLabel() : plain}</ol-button>
         `;
     }
 
@@ -1362,16 +1397,9 @@ export class SearchModal extends LitElement {
         return this._ftSearchKey === fulltextSearchParams(this._query.trim(), this._fulltextFilters()).toString();
     }
 
-    // The footer button's visible label, e.g. "Search inside 134 books".
+    // The band button's label, e.g. "Search Inside 134 books".
     _seeAllInsideShortLabel() {
         return sprintf(this._i18n.seeAllInsideShort, this._ftTotal.toLocaleString());
-    }
-
-    // The same label on narrow viewports, where it shares the footer row with
-    // the primary, e.g. "Search inside (135K)". Rounding costs nothing here —
-    // the fulltext total is approximate to begin with.
-    _seeAllInsideNarrowLabel() {
-        return sprintf(this._i18n.seeAllInsideNarrow, compactCount(this._ftTotal));
     }
 
     // Accessible name for the same button — the full sentence, e.g.
@@ -1404,9 +1432,9 @@ export class SearchModal extends LitElement {
                         <span class="result__title">${hit.title || this._i18n.untitled}</span>
                         ${hit.author ? html`<span class="result__author">${hit.author}</span>` : nothing}
                         ${hit.year ? html`<span class="result__year">${hit.year}</span>` : nothing}
-                    </span>
-                    <span class="ft-quote">
-                        <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                        <span class="ft-quote">
+                            <span class="ft-quote__text">…${segments.map(s => s.match ? html`<mark>${s.text}</mark>` : s.text)}…</span>
+                        </span>
                     </span>
                 </a>
             </li>`;

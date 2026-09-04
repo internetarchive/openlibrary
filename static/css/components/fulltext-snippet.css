@@ -1,30 +1,22 @@
-/* Search Inside quote cards (/search/inside, macros/FulltextSnippet.html).
-   Each matched passage is its own small card — the whole card is the link into
-   BookReader — laid out two-up in a full-width row below the details/CTA. */
+/* Search Inside quoted passages (/search/inside, macros/FulltextSnippet.html).
+   Each passage is a link into BookReader, marked by a rule down its left edge —
+   the quotation convention — rather than boxed as a card: the rows already sit
+   on their own tinted surface, and a card inside a card frames the passage
+   instead of showing it. Stacked full width so a passage gets the whole
+   measure rather than half of it, matching the search modal's band. */
 .fsi-quotes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-inline-md);
+  gap: var(--spacing-stack-sm);
   margin: var(--spacing-stack-sm) 0 0;
   padding: 0;
   list-style: none;
 }
 
-/* --width-breakpoint-tablet: 768px */
-@media (min-width: 768px) {
-  .fsi-quotes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 .fsi-quote:any-link {
   display: block;
-  height: 100%;
-  box-sizing: border-box;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background-color: var(--color-surface);
+  padding: var(--spacing-3xs) 0 var(--spacing-3xs) var(--spacing-md);
+  border-left: 3px solid var(--color-border-muted);
   font-family: var(--font-family-quote);
   font-size: var(--font-size-body-medium);
   line-height: var(--line-height-relaxed);
@@ -33,17 +25,26 @@
   overflow-wrap: anywhere;
 }
 
-.fsi-quote:hover,
+/* No card left to fill, so the rule carries the hover: the passage under the
+   pointer is the one whose bar darkens. */
+.fsi-quote:hover {
+  border-left-color: var(--color-border);
+}
+
 .fsi-quote:focus-visible {
-  background-color: var(--color-control-hover);
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-left-color: var(--color-border);
 }
 
 /* The matched terms. A highlight rather than bold: at small serif sizes bold
-   alone barely registers against surrounding OCR text. Padding bleeds outward
-   so the highlight box breathes without pushing the punctuation after it. */
+   alone barely registers against surrounding OCR text. One step up the amber
+   ramp from the white cards these used to sit in — on the row's tinted
+   surface amber-50 all but disappears. Padding bleeds outward so the
+   highlight box breathes without pushing the punctuation after it. */
 .fsi-quote strong {
   font-weight: 500;
-  background-color: var(--amber-50);
+  background-color: var(--amber-100);
   border-radius: var(--border-radius-sm);
   padding: 0 var(--spacing-inline-xs);
   margin: 0 calc(-1 * var(--spacing-inline-xs));

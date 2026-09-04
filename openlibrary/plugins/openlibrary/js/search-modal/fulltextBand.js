@@ -1,5 +1,5 @@
 /**
- * State and fetching for the search modal's "Found inside books" band.
+ * State and fetching for the search modal's "Search inside books" band.
  *
  * Search Inside is a rescue-and-passages surface, not an every-query one, and
  * the 2020 rollback of always-on fulltext was a load story — so the decision of

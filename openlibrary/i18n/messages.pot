@@ -931,7 +931,7 @@ msgstr ""
 msgid "Add a new book"
 msgstr ""
 
-#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html work_search.html
+#: SearchNavigation.html authors/index.html.jinja lib/nav_foot.html merge/authors.html openlibrary/plugins/openlibrary/authors.py publishers/view.html search/search_modal_i18n.html work_search.html
 msgid "Authors"
 msgstr ""
 
@@ -5652,7 +5652,7 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: SearchNavigation.html search/inside.html
+#: SearchNavigation.html search/inside.html search/search_modal_i18n.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5806,26 +5806,17 @@ msgid "Remove \"%s\" from recent searches"
 msgstr ""
 
 #: FulltextSearchSuggestion.html search/search_modal_i18n.html
-msgid "Found inside books"
+msgid "Search inside books"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "Search inside %s books"
-msgstr ""
-
-#: search/search_modal_i18n.html
-#, python-format
-msgid "Search inside (%s)"
+msgid "Search Inside %s books"
 msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all matches found in %s books"
-msgstr ""
-
-#: PreviewSearchInside.html search/search_modal_i18n.html
-msgid "Search inside"
 msgstr ""
 
 #: search/sort_options.html
@@ -7079,8 +7070,8 @@ msgstr ""
 
 #: FulltextSearchSuggestion.html
 #, python-format
-msgid "Search inside %(count)s book"
-msgid_plural "Search inside %(count)s books"
+msgid "Search Inside %(count)s book"
+msgid_plural "Search Inside %(count)s books"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -7161,6 +7152,10 @@ msgstr ""
 
 #: PreviewSearchInside.html
 msgid "Search inside book"
+msgstr ""
+
+#: PreviewSearchInside.html
+msgid "Search inside"
 msgstr ""
 
 #: Profile.html

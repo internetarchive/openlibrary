@@ -293,13 +293,7 @@ describe('see-all button labels', () => {
     test('the visible label is the short form, total formatted for the locale', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
-        expect(modal._seeAllInsideShortLabel()).toBe('Search inside 134,731 books');
-    });
-
-    test('the narrow form drops the unit and rounds the count', () => {
-        const modal = new SearchModal();
-        modal._ftTotal = 134731;
-        expect(modal._seeAllInsideNarrowLabel()).toBe('Search inside (135K)');
+        expect(modal._seeAllInsideShortLabel()).toBe('Search Inside 134,731 books');
     });
 
     test('the accessible name spells out the full sentence', () => {
@@ -348,8 +342,8 @@ describe('fulltext see-all freshness', () => {
 });
 
 describe('catalog see-all labels', () => {
-    // The there's-more case is the only one with a distinct narrow form: it is
-    // also the only one that shares the footer with the fulltext see-all.
+    // The there's-more case is the only one with a distinct narrow form; the
+    // rest are short enough to stand as they are.
     test('offers a shorter form when there are more results than rows shown', () => {
         const modal = new SearchModal();
         modal._hasSearched = true;

@@ -108,7 +108,9 @@
   --color-background: var(--paper); /* page canvas — what body paints */
   --color-surface: var(--white); /* cards, inputs, dropdowns */
   --color-surface-raised: var(--white);
-  --color-surface-sunken: var(--neutral-100);
+  /* A step lighter than -header: recessed panels and image wells should read as
+     a shade off the surface around them, not as a filled block. */
+  --color-surface-sunken: var(--neutral-50);
   --color-surface-header: var(--neutral-100);
 
   /* Links */
