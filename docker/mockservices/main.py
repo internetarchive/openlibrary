@@ -402,8 +402,11 @@ async def loans(request: Request) -> JSONResponse:
 
         # 4. User borrow history query
         if action == "user_borrow_history":
-            limit = int(params.get("limit", 25))
-            offset = int(params.get("offset", 0))
+            try:
+                limit = int(params.get("limit", 25))
+                offset = int(params.get("offset", 0))
+            except (TypeError, ValueError):
+                limit, offset = 25, 0
             items = _loan_history[userid][offset : offset + limit]
             return JSONResponse({"history": {"items": items}})
 
