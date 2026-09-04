@@ -488,9 +488,9 @@ class Author(models.Author):
             page = 1
         return works_by_author(
             self.get_olid(),
-            sort=sort or "editions",
+            sort=sort,
             page=page,
-            rows=rows or 20,
+            rows=rows,
             has_fulltext=mode == "ebooks",
             query=q,
             facet=True,
