@@ -325,7 +325,7 @@ async def login(
             token,
             max_age=expires,
             httponly=True,
-            secure=request.url.scheme == "https",
+            secure=True,
             samesite="lax",
         )
 
@@ -354,7 +354,7 @@ async def logout(request: Request) -> Response:
     response.delete_cookie(
         "s3",
         httponly=True,
-        secure=request.url.scheme == "https",
+        secure=True,
         samesite="lax",
     )
     response.delete_cookie("sfw")
