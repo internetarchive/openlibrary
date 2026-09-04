@@ -753,14 +753,11 @@ ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name("ia"))
 prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
 
-def get_provider_order(
-    prefer_ia: bool = False, provider_pref: str | None = None
-) -> list[AbstractBookProvider]:
+def get_provider_order(prefer_ia: bool = False, provider_pref: str | None = None) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = provider_pref
-    if provider_overrides:
+    if provider_overrides := provider_pref:
         new_order: list[AbstractBookProvider] = []
         for name in provider_overrides.split(","):
             if name == "*":
@@ -778,9 +775,7 @@ def get_provider_order(
     return provider_order
 
 
-def get_book_providers(
-    ed_or_solr: Edition | dict, provider_pref: str | None = None
-) -> Iterator[AbstractBookProvider]:
+def get_book_providers(ed_or_solr: Edition | dict, provider_pref: str | None = None) -> Iterator[AbstractBookProvider]:
     # On search results which don't have an edition selected, we want to display
     # IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
