@@ -1,0 +1,51 @@
+{% set async_load = async_load | default(false) %}
+
+<div id="subjectPublishingHistory" data-async-load="{{ async_load | tojson }}" data-key="{{ key | tojson }}">
+
+    <div class="head">
+        <h2 class="inline">{{ _("Publishing History") }}</h2>
+
+        <span class="shift">
+            {{ _('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.') | safe }}
+        </span>
+
+        {% if not async_load %}
+            <span class="count hidden chartZoom">
+                &nbsp;<a href="javascript:;" class="resetSelection small">{{ _("Reset chart") }}</a> {{ _("or continue zooming in.") }}
+            </span>
+            <span class="count chartUnzoom">
+                &nbsp;{{ _('This graph charts editions published on this subject.') }}
+            </span>
+        {% endif %}
+    </div>
+
+    {% if async_load %}
+        <div class="chart">
+            <span class="loadingIndicator"></span>
+            <span class="small async-partial-retry hidden">
+                {{ _("Something went wrong.") }} <a href="#" class="retry-btn">{{ _("Retry") }}</a>
+            </span>
+        </div>
+    {% else %}
+        <script type="text/json+graph" id="graph-json-chartPubHistory">
+            {{ publishing_history | tojson }}
+        </script>
+
+        <div class="chart">
+            <div class="chartYaxis">{{ _("Editions Published") }}</div>
+
+            <div id="chartPubHistory" class="thisChart">
+                <noscript>{{ _("You need to have JavaScript turned on to see the nifty chart!") }}</noscript>
+            </div>
+
+            <div class="chartXaxis">{{ _("Year of Publication") }}</div>
+        </div>
+    {% endif %}
+
+    {# 
+        .chart uses desktop CSS floats. 
+        Clearing floats here prevents the wrapper from collapsing to just the header height. 
+    #}
+
+    <div class="clearfix"></div>
+</div>
