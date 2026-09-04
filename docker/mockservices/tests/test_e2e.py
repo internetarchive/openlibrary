@@ -156,16 +156,84 @@ class TestS3Auth:
         assert resp.json()["authorized"] is False
 
 
-def test_loan_post_returns_empty_success():
-    resp = _post("/services/loans/loan/")
-    assert resp.status_code == 200
-    assert resp.json() == {}
+class TestLoansLifecycle:
+    def test_loan_query_empty_by_default(self):
+        resp = _post("/services/loans/loan/", json={"method": "loan.query", "userid": "@test_user_empty"})
+        assert resp.status_code == 200
+        assert resp.json() == {"result": []}
+
+    def test_borrow_and_query_and_return_lifecycle(self):
+        user = "@test_patron_1"
+        book_id = "testbook123"
+
+        # 1. Borrow book
+        borrow_resp = _post(
+            "/services/loans/loan/",
+            data={"action": "borrow_book", "identifier": book_id, "userid": user},
+        )
+        assert borrow_resp.status_code == 200
+        borrow_data = borrow_resp.json()
+        assert borrow_data.get("status") == "ok"
+        assert borrow_data["result"]["loan"]["identifier"] == book_id
+        assert borrow_data["result"]["loan"]["userid"] == user
+
+        # 2. Query active loans
+        query_resp = _post(
+            "/services/loans/loan/",
+            json={"method": "loan.query", "userid": user},
+        )
+        assert query_resp.status_code == 200
+        active_loans = query_resp.json().get("result", [])
+        assert any(loan["identifier"] == book_id for loan in active_loans)
+
+        # 3. Return book
+        return_resp = _post(
+            "/services/loans/loan/",
+            data={"action": "return_loan", "identifier": book_id, "userid": user},
+        )
+        assert return_resp.status_code == 200
+        assert return_resp.json().get("status") == "ok"
+
+        # 4. Query active loans again - should be empty
+        query_resp2 = _post(
+            "/services/loans/loan/",
+            json={"method": "loan.query", "userid": user},
+        )
+        assert query_resp2.status_code == 200
+        assert not any(loan["identifier"] == book_id for loan in query_resp2.json().get("result", []))
+
+        # 5. Query user borrow history
+        history_resp = _post(
+            "/services/loans/loan/",
+            data={"action": "user_borrow_history", "userid": user},
+        )
+        assert history_resp.status_code == 200
+        history_items = history_resp.json().get("history", {}).get("items", [])
+        assert any(item["identifier"] == book_id for item in history_items)
 
 
-def test_availability_post():
-    resp = _post("/services/availability/")
-    assert resp.status_code == 200
-    assert "responses" in resp.json()
+class TestAvailability:
+    def test_availability_get(self):
+        resp = _get("/services/availability/", params={"identifier": "book1,book2"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["success"] is True
+        assert "book1" in body["responses"]
+        assert "book2" in body["responses"]
+        assert "status" in body["responses"]["book1"]
+
+    def test_availability_post_json(self):
+        resp = _post("/services/availability/", json={"identifier": ["bookA", "bookB"]})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["success"] is True
+        assert "bookA" in body["responses"]
+        assert "bookB" in body["responses"]
+
+    def test_availability_deterministic_results(self):
+        resp1 = _get("/services/availability/", params={"identifier": "fixed_book_id"})
+        resp2 = _get("/services/availability/", params={"identifier": "fixed_book_id"})
+        assert resp1.json()["responses"]["fixed_book_id"] == resp2.json()["responses"]["fixed_book_id"]
 
 
 def test_borrow_status():
