@@ -5816,7 +5816,12 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 #, python-format
-msgid "See all matches found in %s books"
+msgid "%s match found inside books"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "%s matches found inside books"
 msgstr ""
 
 #: search/sort_options.html
@@ -7072,13 +7077,6 @@ msgstr ""
 #, python-format
 msgid "Search Inside %(count)s book"
 msgid_plural "Search Inside %(count)s books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "See all matches found in %(count)s book"
-msgid_plural "See all matches found in %(count)s books"
 msgstr[0] ""
 msgstr[1] ""
 

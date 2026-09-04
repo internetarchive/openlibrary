@@ -120,17 +120,22 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
     // "Search inside books" band: %s = the number of books with matches (not
-    // match occurrences), formatted client-side. seeAllInsideShort is the band
-    // see-all button's visible text, seeAllInside its accessible name.
-    // Plural-only like seeAllMany: the button renders only when the total
-    // exceeds the >=1 hits shown inline, so the count is always >= 2.
+    // match occurrences), formatted client-side. seeAllInside is the band
+    // see-all button's visible text and its accessible name — one string, so
+    // what a voice-control user reads is what they can say. Plural-only like
+    // seeAllMany: the button renders only when the total exceeds the >=1 hits
+    // shown inline, so the count is always >= 2.
     insideHeading: 'Search inside books',
-    seeAllInsideShort: 'Search Inside %s books',
-    seeAllInside: 'See all matches found in %s books',
+    seeAllInside: 'Search Inside %s books',
     // The same button while no total has been measured for what's in the input
     // (mid-edit, or just after a filter toggle) — the link still holds, so the
     // button stays and only the count drops.
     seeAllInsidePlain: 'Search Inside',
+    // Live-region sentence appended when the band has rows on screen: %s = the
+    // snippet rows shown (1–3), not the backend total. Picked by count
+    // client-side like seeOne/seeMany.
+    insideAnnounceOne: '%s match found inside books',
+    insideAnnounceMany: '%s matches found inside books',
 };
 
 /**

@@ -1364,26 +1364,26 @@ export class SearchModal extends LitElement {
     //
     // The *count* is what has to earn its place. It shows only when it's both
     // current (see _ftTotalIsCurrent) and larger than the rows already on
-    // screen: "Search Inside 23,783 books", with the full sentence as the
-    // accessible name. Otherwise the button falls back to a plain "Search
-    // Inside" — the link is still honest, only the number isn't in hand.
-    // The button owns a row of the card at every width, so unlike the footer
-    // primary it never needs a narrow form.
+    // screen: "Search Inside 23,783 books". Otherwise the button falls back to
+    // a plain "Search Inside" — the link is still honest, only the number
+    // isn't in hand. The visible text is the accessible name too (no
+    // aria-label): it's already a full sentence, and a name that differs from
+    // the label breaks voice control's "click Search Inside". The button owns
+    // a row of the card at every width, so unlike the footer primary it never
+    // needs a narrow form.
     _renderFulltextSeeAll() {
         const shown = this._visibleFtHits().length;
         if (shown === 0) return nothing;
         const counted = this._ftTotalIsCurrent() && this._ftTotal > shown;
         const q = this._query.trim();
         const href = `/search/inside?${fulltextSearchParams(q, this._fulltextFilters()).toString()}`;
-        const plain = this._i18n.seeAllInsidePlain;
         return html`
             <ol-button
                 variant="secondary"
                 href=${href}
-                aria-label=${counted ? this._seeAllInsideLabel() : plain}
                 ?loading=${this._ftSeeAllLoading}
                 @click=${this._onFulltextSeeAll}
-            >${counted ? this._seeAllInsideShortLabel() : plain}</ol-button>
+            >${counted ? this._seeAllInsideLabel() : this._i18n.seeAllInsidePlain}</ol-button>
         `;
     }
 
@@ -1398,12 +1398,6 @@ export class SearchModal extends LitElement {
     }
 
     // The band button's label, e.g. "Search Inside 134 books".
-    _seeAllInsideShortLabel() {
-        return sprintf(this._i18n.seeAllInsideShort, this._ftTotal.toLocaleString());
-    }
-
-    // Accessible name for the same button — the full sentence, e.g.
-    // "See all matches found in 134 books".
     _seeAllInsideLabel() {
         return sprintf(this._i18n.seeAllInside, this._ftTotal.toLocaleString());
     }
@@ -1968,8 +1962,21 @@ export class SearchModal extends LitElement {
     // Screen-reader announcement for the live region: the result count once a
     // search lands, "no results" when a search came back empty, and nothing
     // while idle/typing/loading (so the region stays quiet until there's news).
+    // The "Search inside books" band is appended as a second sentence whenever
+    // it has rows on screen. It lands on its own schedule, after the catalog
+    // settles, and the region is aria-atomic — so the whole text re-announces
+    // and a patron who heard "No matching books or authors" then hears that
+    // three matches turned up inside books. Sighted users see the band appear.
     _resultsAnnouncement() {
         if (!this._shouldAutocomplete()) return '';
+        const catalog = this._catalogAnnouncement();
+        if (!catalog) return '';
+        const band = this._bandAnnouncement();
+        return band ? `${catalog}. ${band}` : catalog;
+    }
+
+    // The catalog half of the announcement, or '' while there's no news yet.
+    _catalogAnnouncement() {
         if (this._results.length === 0) {
             if (!this._hasSearched || this._loading) return '';
             return this._visibleFtHits().length ? this._i18n.noCatalogResults : this._i18n.noResults;
@@ -1977,6 +1984,15 @@ export class SearchModal extends LitElement {
         const shown = this._results.length;
         const total = typeof this._numFound === 'number' ? this._numFound : shown;
         return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
+    }
+
+    // The band half: how many snippet rows are on screen, e.g. "3 matches
+    // found inside books". Counts the rows the patron can reach, not the
+    // backend total — that number lives on the see-all button.
+    _bandAnnouncement() {
+        const shown = this._visibleFtHits().length;
+        if (shown === 0) return '';
+        return sprintf(shown === 1 ? this._i18n.insideAnnounceOne : this._i18n.insideAnnounceMany, shown.toLocaleString());
     }
 
     _onAvailabilityToggle(e) {

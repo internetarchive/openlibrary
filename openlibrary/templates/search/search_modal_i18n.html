@@ -5,7 +5,7 @@ $# trigger's `data-i18n-ui` attribute and read client-side by
 $# search-modal/constants.js (searchModalStringsFromElement). The keys and
 $# English source strings here must match DEFAULT_SEARCH_MODAL_STRINGS in that
 $# same file. `%s` (in "See all %s books", "Remove … from recent searches",
-$# "See all matches found in %s books", …) is filled in client-side via sprintf. (Availability option labels live in search/availability_i18n.html.)
+$# "Search Inside %s books", …) is filled in client-side via sprintf. (Availability option labels live in search/availability_i18n.html.)
 $# The *Narrow keys are shorter forms of the label above them, shown on narrow
 $# viewports where the footer holds two buttons; the longer form stays the
 $# button's accessible name at both widths, so keep the two saying the same thing.
@@ -41,8 +41,9 @@ $     "inLanguage":          _("In %s"),
 $     "recentSearches":      _("Recent searches"),
 $     "removeRecent":        _('Remove "%s" from recent searches'),
 $     "insideHeading":       _("Search inside books"),
-$     "seeAllInsideShort":   _("Search Inside %s books"),
-$     "seeAllInside":        _("See all matches found in %s books"),
+$     "seeAllInside":        _("Search Inside %s books"),
 $     "seeAllInsidePlain":   _("Search Inside"),
+$     "insideAnnounceOne":   _("%s match found inside books"),
+$     "insideAnnounceMany":  _("%s matches found inside books"),
 $ }
 $json_encode(search_modal_i18n)

@@ -13,10 +13,10 @@ $def render_snippets(query, row):
 
 $ num_found = commify(total)
 $ see_all_url = "/search/inside?%s" % urlencode(dict(q=query))
-$# Same split as the modal's footer button (SearchModal._renderFulltextSeeAll):
-$# a short visible label, with the full sentence as the accessible name.
+$# Same label as the modal's band button (SearchModal._renderFulltextSeeAll).
+$# The visible text doubles as the accessible name — no aria-label — so what a
+$# voice-control user reads is what they can say.
 $ see_all_label = ungettext('Search Inside %(count)s book', 'Search Inside %(count)s books', total, count=num_found)
-$ see_all_aria = ungettext('See all matches found in %(count)s book', 'See all matches found in %(count)s books', total, count=num_found)
 
 $if not shown and total:
   $# Every fetched hit is a book the page already lists (see `exclude` in
@@ -27,7 +27,7 @@ $if not shown and total:
       $:macros.icon("text-search", size="sm")
       <span>$_("Search inside books")</span>
     </h2>
-    <ol-button variant="primary" href="$see_all_url" aria-label="$see_all_aria" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+    <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
       $see_all_label
       $:macros.icon("arrow-right", size="sm", slot="icon-end")
     </ol-button>
@@ -47,7 +47,7 @@ $elif shown:
           $:macros.FulltextResultIA(query, row, extra_row=render_snippets(query, row))
     </ul>
     <div class="fulltext-suggestions__footer">
-      <ol-button variant="primary" href="$see_all_url" aria-label="$see_all_aria" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
+      <ol-button variant="primary" href="$see_all_url" data-ol-link-track="SearchInsideSuggestion|SeeAllClick">
         $see_all_label
         $:macros.icon("arrow-right", size="sm", slot="icon-end")
       </ol-button>

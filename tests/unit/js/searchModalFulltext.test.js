@@ -289,17 +289,58 @@ describe('fulltextSearchParams', () => {
     });
 });
 
-describe('see-all button labels', () => {
-    test('the visible label is the short form, total formatted for the locale', () => {
+describe('see-all button label', () => {
+    test('carries the total, formatted for the locale', () => {
         const modal = new SearchModal();
         modal._ftTotal = 134731;
-        expect(modal._seeAllInsideShortLabel()).toBe('Search Inside 134,731 books');
+        expect(modal._seeAllInsideLabel()).toBe('Search Inside 134,731 books');
+    });
+});
+
+describe('live-region announcement', () => {
+    // A settled search with the given catalog rows and band hits on screen.
+    const settled = ({ results = [], numFound = results.length, ftHits = [] } = {}) => {
+        const modal = new SearchModal();
+        modal._query = 'it was the best of times';
+        modal._hasSearched = true;
+        modal._loading = false;
+        modal._results = results;
+        modal._numFound = numFound;
+        modal._ftHits = ftHits;
+        return modal;
+    };
+    const hits = (n) => Array.from({ length: n }, (_, i) => ({ ia: `scan${i}` }));
+
+    test('an empty catalog with no band reads as no results', () => {
+        expect(settled()._resultsAnnouncement()).toBe('No results found');
     });
 
-    test('the accessible name spells out the full sentence', () => {
-        const modal = new SearchModal();
-        modal._ftTotal = 134731;
-        expect(modal._seeAllInsideLabel()).toBe('See all matches found in 134,731 books');
+    // The band is the rescue: a patron who only hears "no matching books"
+    // never learns the passage was found inside three of them.
+    test('an empty catalog with a band names the catalog gap and the band rows', () => {
+        expect(settled({ ftHits: hits(3) })._resultsAnnouncement())
+            .toBe('No matching books or authors. 3 matches found inside books');
+    });
+
+    test('a band under catalog results is appended to the count', () => {
+        const modal = settled({ results: [{ key: '/works/OL1W' }], numFound: 42, ftHits: hits(1) });
+        expect(modal._resultsAnnouncement()).toBe('Showing 1 of 42 results. 1 match found inside books');
+    });
+
+    test('band rows already listed as catalog rows are not counted', () => {
+        const modal = settled({ results: [{ key: '/works/OL1W', ia: ['scan0'] }], numFound: 1, ftHits: hits(1) });
+        expect(modal._resultsAnnouncement()).toBe('Showing 1 of 1 results');
+    });
+
+    test('the band counts the rows on screen, capped like the render', () => {
+        expect(settled({ ftHits: hits(9) })._resultsAnnouncement())
+            .toBe('No matching books or authors. 3 matches found inside books');
+    });
+
+    test('stays quiet while the catalog is still loading', () => {
+        const modal = settled({ ftHits: hits(3) });
+        modal._loading = true;
+        expect(modal._resultsAnnouncement()).toBe('');
     });
 });
 
