@@ -18,6 +18,7 @@ from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, Run
 from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
+from openlibrary.core.env import get_ol_env
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
@@ -55,6 +56,13 @@ def _safe_redirect(url: str, default: str = "/") -> str:
     if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
         return default
     return url
+
+
+def _cookie_secure() -> bool:
+    # Secure cookies are dropped over plain http (Safari drops them even on
+    # localhost), so only set Secure outside local dev. Read per request so
+    # tests can override LOCAL_DEV.
+    return not get_ol_env().LOCAL_DEV
 
 
 class AccountLoansResponse(BaseModel):
@@ -306,7 +314,7 @@ async def login(
         login_code,
         max_age=expires,
         httponly=True,
-        secure=request.url.scheme == "https",
+        secure=_cookie_secure(),
         samesite="lax",
     )
 
@@ -325,7 +333,7 @@ async def login(
             token,
             max_age=expires,
             httponly=True,
-            secure=True,
+            secure=_cookie_secure(),
             samesite="lax",
         )
 
@@ -354,7 +362,7 @@ async def logout(request: Request) -> Response:
     response.delete_cookie(
         "s3",
         httponly=True,
-        secure=True,
+        secure=_cookie_secure(),
         samesite="lax",
     )
     response.delete_cookie("sfw")
