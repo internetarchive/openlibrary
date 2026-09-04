@@ -818,7 +818,10 @@ def get_best_edition(
     editions: list[Edition],
     provider_pref: str | None = None,
 ) -> tuple[Edition | None, AbstractBookProvider | None]:
-    provider_order = get_provider_order(True, provider_pref=provider_pref)
+    if provider_pref:
+        provider_order = get_provider_order(True, provider_pref=provider_pref)
+    else:
+        provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
     provider_rank_lookup: dict[AbstractBookProvider | None, int] = {provider: i for i, provider in enumerate(provider_order)}

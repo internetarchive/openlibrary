@@ -382,7 +382,9 @@ def _select_edition(editions, requested, provider, selected_id, page, provider_p
         return next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0]), provider
     from openlibrary.book_providers import get_best_edition
 
-    return get_best_edition(editions, provider_pref=provider_pref)
+    if provider_pref:
+        return get_best_edition(editions, provider_pref=provider_pref)
+    return get_best_edition(editions)
 
 
 def _attach_availability(edition, availabilities):
