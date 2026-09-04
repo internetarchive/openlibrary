@@ -3,11 +3,12 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 from fastapi import FastAPI, Request, Response
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.proxy import _rebase_redirect, proxy_to_webpy
+from openlibrary.fastapi.proxy import _new_upstream_client, _rebase_redirect, proxy_to_webpy
 
 
 def _make_app():
@@ -231,3 +232,26 @@ def test_upstream_failure_propagates():
 
     assert response.status_code == 500
     assert fake_client.closed is False
+
+
+def test_upstream_cookies_do_not_leak_to_the_next_visitor():
+    """A login through the proxy must not log in the next anonymous visitor.
+
+    The client is shared by every proxied request, so an upstream Set-Cookie it
+    kept would be attached to the next request arriving without a Cookie header.
+    """
+    seen_cookie_headers = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_cookie_headers.append(request.headers.get("cookie"))
+        return httpx.Response(200, headers={"set-cookie": "session=someone-elses; Path=/"}, content=b"ok")
+
+    real_client = _new_upstream_client(transport=httpx.MockTransport(handler))
+
+    with _proxy_client(real_client) as client:
+        client.post("/account/login", content=b"")
+        client.cookies.clear()  # a different visitor, with no session of their own
+        client.get("/")
+
+    assert seen_cookie_headers == [None, None]
+    assert not list(real_client.cookies.jar)

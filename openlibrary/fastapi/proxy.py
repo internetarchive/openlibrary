@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from http.cookiejar import CookieJar
 from typing import TYPE_CHECKING
 from urllib.parse import urlsplit, urlunsplit
 
@@ -16,8 +17,27 @@ if TYPE_CHECKING:
 # web.py's host as the proxy addresses it (see the upstream URL below).
 WEBPY_NETLOC = "web:8080"
 
-# This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
-get_async_session = cache_per_event_loop(lambda: httpx.AsyncClient(follow_redirects=False, timeout=None))
+
+class _DiscardingCookieJar(CookieJar):
+    """A jar that stores nothing.
+
+    The client below is shared by every proxied request, so an upstream
+    Set-Cookie would otherwise be kept and attached to the next request that
+    arrives without a Cookie header of its own -- serving an anonymous visitor
+    as whoever logged in last. Each request forwards its own Cookie header.
+    """
+
+    def set_cookie(self, cookie) -> None:
+        return
+
+
+def _new_upstream_client(**kwargs) -> httpx.AsyncClient:
+    """The client every proxied request shares. Tests inject a `transport`."""
+    # This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
+    return httpx.AsyncClient(follow_redirects=False, timeout=None, cookies=_DiscardingCookieJar(), **kwargs)
+
+
+get_async_session = cache_per_event_loop(_new_upstream_client)
 
 
 def _rebase_redirect(location: str, client_scheme: str, client_netloc: str) -> str:
@@ -38,6 +58,8 @@ async def proxy_to_webpy(request: Request) -> Response:
     """Forward request to web.py on http://web:8080."""
     url = f"http://{WEBPY_NETLOC}{request.url.path}?{request.url.query}"
 
+    # The client's own Cookie header rides along in `headers`; never pass
+    # cookies= as well, which would route them through the shared client jar.
     headers = dict(request.headers)
     headers.pop("host", None)
 
@@ -48,7 +70,6 @@ async def proxy_to_webpy(request: Request) -> Response:
             url=url,
             headers=headers,
             content=request.stream(),
-            cookies=request.cookies,
         ),
         stream=True,
     )
