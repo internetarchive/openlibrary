@@ -7,9 +7,10 @@ from __future__ import annotations
 import logging
 import os
 from typing import Annotated
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlencode, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -19,13 +20,16 @@ from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
+from openlibrary.core.follows import PubSub
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
     require_authenticated_user,
 )
+from openlibrary.fastapi.utils import set_flash_cookie
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.fastapi.account")
 
@@ -53,7 +57,7 @@ class AnonymizeResponse(BaseModel):
 def _safe_redirect(url: str, default: str = "/") -> str:
     """Return url only if it is a same-origin path; fall back to default."""
     parsed = urlparse(url)
-    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
+    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith(("//", "/\\")):
         return default
     return url
 
@@ -231,13 +235,167 @@ def account_loan_history_json(
 
 
 class LoginForm(BaseModel):
-    """Login form data - matches web.py forms.Login"""
+    """Login form data - matches web.py's web.input defaults.
 
-    username: str
-    password: str
+    All fields default like web.py's `web.input(username="", password="",
+    redirect=None, ...)`: in particular username/password are optional so an
+    S3-key login (access/secret) can be posted without them, and an empty
+    redirect means "no redirect", which falls back to /account/books.
+    """
+
+    username: str = ""
+    password: str = ""
     remember: bool = False
-    redirect: str = "/"
+    redirect: str = ""
     action: str = ""
+    access: str | None = None
+    secret: str | None = None
+    test: bool = False
+
+
+def _set_login_cookies_on_response(
+    response: Response,
+    audit: dict,
+    ol_username: str,
+    email: str = "",
+    remember: bool = False,
+) -> OpenLibraryAccount | None:
+    """Set all session cookies after a successful login.
+
+    Mirrors web.py's _set_login_cookies (session, pd, s3, sfw, yrg_banner).
+    Returns the OL account for post-login actions.
+    """
+    expires = 3600 * 24 * 365 if remember else None
+
+    # Session cookie (same format as web.py's Account.generate_login_code())
+    response.set_cookie(
+        config.login_cookie_name,
+        generate_login_code_for_user(ol_username),
+        max_age=expires,
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite="lax",
+    )
+
+    # Print disability access flag (empty value deletes the cookie, like web.py)
+    response.set_cookie(
+        "pd",
+        "1" if audit.get("special_access") else "",
+        max_age=expires if audit.get("special_access") else 0,
+    )
+
+    # Encrypted s3 cookie when IA returned S3 keys (same semantics as legacy)
+    if s3_keys := audit.get("s3_keys"):
+        token = encrypt_s3_keys(s3_keys["access"], s3_keys["secret"])
+        response.set_cookie(
+            "s3",
+            token,
+            max_age=expires,
+            httponly=True,
+            secure=_cookie_secure(),
+            samesite="lax",
+        )
+
+    # Safe-mode and yearly-reading-goal banner cookies
+    ol_account = OpenLibraryAccount.get_by_email(email) if email else None
+    if ol_account and (ol_user := ol_account.get_user()):
+        sfw_value = "yes" if ol_user.get_safe_mode() == "yes" else ""
+        response.set_cookie("sfw", sfw_value, max_age=expires if sfw_value else 0)
+        if pref_key := ol_user.preferences().get("yrg_banner_pref"):
+            response.set_cookie(pref_key, "1", max_age=3600 * 24 * 365)
+
+    return ol_account
+
+
+def _json_login_error(error: str) -> JSONResponse:
+    """web.py's account_login_json 400 body: {"error", "errorDisplayString"}."""
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"error": error, "errorDisplayString": get_login_error(error)},
+    )
+
+
+async def _login_json(request: Request) -> Response:
+    """Mirror web.py's account_login_json for JSON request bodies.
+
+    S3 keys (access/secret) log the user in directly; username/password falls
+    back to infogami's own login, exactly like legacy.
+    """
+    body = await request.json()
+    access = body.get("access")
+    secret = body.get("secret")
+    test = body.get("test", False)
+
+    # Try S3 authentication first, fallback to infogami user/pass
+    if access and secret:
+        audit = audit_accounts(
+            email=None,
+            password=None,
+            require_link=True,
+            s3_access_key=access,
+            s3_secret_key=secret,
+            test=test,
+        )
+        if error := audit.get("error"):
+            return _json_login_error(error)
+        if not (ol_username := audit.get("ol_username")):
+            return _json_login_error("undefined_error")
+        email = audit.get("ia_email") or audit.get("ol_email")
+        response = Response(status_code=status.HTTP_200_OK)
+        _set_login_cookies_on_response(response, audit, ol_username, email=email or "")
+        return response
+
+    # Fallback to infogami user/pass (same as legacy)
+    username = body.get("username", "")
+    password = body.get("password", "")
+    try:
+        site.get().login(username, password)
+    except Exception as e:  # noqa: BLE001 - mirror web.py, which 400s on any login failure
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    response = Response(status_code=status.HTTP_200_OK)
+    response.set_cookie(
+        config.login_cookie_name,
+        site.get()._conn.get_auth_token(),
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite="lax",
+    )
+    return response
+
+
+def _perform_post_login_action(response: Response, action: str, ol_account: OpenLibraryAccount | None) -> None:
+    """Mirror web.py's perform_post_login_action (follow subscriptions).
+
+    Subscribes the user and queues the confirmation flash on the response.
+    Unknown actions are ignored, same as legacy.
+    """
+    if not action:
+        return
+    op, _, args = action.partition(":")
+    if op != "follow" or not args or not ol_account:
+        return
+    if publisher_account := OpenLibraryAccount.get_by_username(args):
+        PubSub.subscribe(subscriber=ol_account.username, publisher=args)
+        publisher_name = publisher_account["data"]["displayname"]
+        set_flash_cookie(response, "note", f"You are now following {publisher_name}!")
+
+
+def _login_error_response(redirect: str, action: str, username: str, message: str) -> Response:
+    """Redirect back to the login form with the error shown as a flash banner.
+
+    Mirrors web.py's render_error (form re-shown, inputs preserved, message
+    displayed): GET /account/login is still rendered by web.py, which reads
+    the flash cookie in the site layout.
+    """
+    params = {"redirect": redirect, "action": action}
+    if username:
+        params["username"] = username
+    response = Response(
+        status_code=status.HTTP_303_SEE_OTHER,
+        headers={"Location": f"/account/login?{urlencode(params)}"},
+    )
+    set_flash_cookie(response, "error", message)
+    return response
 
 
 @router.post("/account/login")
@@ -257,47 +415,51 @@ async def login(
     This reuses all existing authentication logic from the legacy system.
     """
 
+    # A JSON body follows web.py's account_login_json: S3 keys (access/secret)
+    # are required for password-less login.
+    if (request.headers.get("content-type") or "").lower().startswith("application/json"):
+        return await _login_json(request)
+
+    # web.py's web.input() merges query string params with the posted form
+    # (the public openlibrary/api.py client logs in via query string).
+    q = request.query_params
+    username = form_data.username or q.get("username", "")
+    password = form_data.password or q.get("password", "")
+    remember = form_data.remember or q.get("remember", "").lower() in ("yes", "true", "on", "1")
+    redirect = form_data.redirect or q.get("redirect", "")
+    action = form_data.action or q.get("action", "")
+    access = form_data.access or q.get("access") or request.headers.get("x-s3-access")
+    secret = form_data.secret or q.get("secret") or request.headers.get("x-s3-secret")
+    test = form_data.test or q.get("test", "").lower() in ("yes", "true", "on", "1")
+
     # Call the EXACT same audit function that web.py uses
     audit = audit_accounts(
-        email=form_data.username,
-        password=form_data.password,
+        email="" if (access and secret) else username,
+        password=password,
         require_link=True,
-        s3_access_key=None,
-        s3_secret_key=None,
-        test=False,
+        s3_access_key=access,
+        s3_secret_key=secret,
+        test=test,
     )
 
-    # Check for authentication errors
+    # Authentication errors go back to the login form with a message,
+    # mirroring web.py's render_error
     if error := audit.get("error"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=get_login_error(error),
-        )
+        return _login_error_response(redirect, action, username, get_login_error(error))
 
     # Extract user info from audit result
     ol_username = audit.get("ol_username")
     if not ol_username:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login succeeded but no username found",
-        )
+        return _login_error_response(redirect, action, username, get_login_error("undefined_error"))
 
-    # Determine cookie expiration
-    expires = 3600 * 24 * 365 if form_data.remember else None
-
-    # Generate auth token (same way web.py does it via Account.generate_login_code())
-    login_code = generate_login_code_for_user(ol_username)
-
-    blacklist = [
-        "/account/login",
-        "/account/create",
-        "/account/verify",
-    ]
+    # web.py lands on the account books page whenever the redirect is missing,
+    # unsafe, or loops back to an account page.
+    blacklist = ["/account/login", "/account/create", "/account/verify"]
     is_valid_redirect = True
-    redirect_url = _safe_redirect(form_data.redirect, default="")
+    redirect_url = _safe_redirect(redirect, default="")
     if not redirect_url or any(path in redirect_url for path in blacklist):
         is_valid_redirect = False
-        redirect_url = "/"
+        redirect_url = "/account/books"
 
     # Create response with redirect
     response = Response(
@@ -308,34 +470,12 @@ async def login(
     if is_valid_redirect:
         response.delete_cookie("pending_action")
 
-    # Set session cookie (same as web.py)
-    response.set_cookie(
-        config.login_cookie_name,
-        login_code,
-        max_age=expires,
-        httponly=True,
-        secure=_cookie_secure(),
-        samesite="lax",
-    )
+    email = ("" if (access and secret) else username) or audit.get("ia_email") or audit.get("ol_email")
 
-    # Set print disability flag if user has special access
-    response.set_cookie(
-        "pd",
-        str(int(audit.get("special_access", 0))) if audit.get("special_access") else "",
-        max_age=expires,
-    )
+    ol_account = _set_login_cookies_on_response(response, audit, ol_username, email=email, remember=remember)
 
-    # Set encrypted s3 cookie if IA returned S3 keys (same semantics as legacy)
-    if s3_keys := audit.get("s3_keys"):
-        token = encrypt_s3_keys(s3_keys["access"], s3_keys["secret"])
-        response.set_cookie(
-            "s3",
-            token,
-            max_age=expires,
-            httponly=True,
-            secure=_cookie_secure(),
-            samesite="lax",
-        )
+    # Perform any post-login action (same as web.py's perform_post_login_action)
+    _perform_post_login_action(response, action, ol_account)
 
     # Increment stats (same as web.py)
     stats.increment("ol.account.xauth.login")
@@ -351,9 +491,21 @@ async def logout(request: Request) -> Response:
     This mirrors the web.py logout functionality.
     """
 
+    # Return to the referring page (same as infogami logout). Browsers send the
+    # full URL, so only honor same-origin referrers -- a forged Referer must
+    # not bounce patrons offsite (legacy web.py redirects it raw).
+    parsed_referer = urlparse(request.headers.get("referer", "/"))
+    if parsed_referer.netloc and parsed_referer.netloc != request.headers.get("host", ""):
+        location = "/"
+    else:
+        referer_path = parsed_referer.path or "/"
+        if parsed_referer.query:
+            referer_path += f"?{parsed_referer.query}"
+        location = _safe_redirect(referer_path, default="/")
+
     response = Response(
         status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": "/"},
+        headers={"Location": location},
     )
 
     # Clear all auth cookies (same as web.py does)
