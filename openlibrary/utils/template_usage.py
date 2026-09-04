@@ -137,11 +137,20 @@ def build_corpus() -> dict[str, str]:
         .split("\0")
     )
     if not any(rel.startswith("vendor/infogami/") for rel in files):
-        raise RuntimeError(
-            "git ls-files returned no vendor/infogami files -- the submodule "
-            "is not initialized. Run `make git` (git submodule update --init) "
-            "so the scan can see infogami's template references."
-        )
+        infogami_root = REPO_ROOT / "vendor" / "infogami"
+        # A worktree may contain the checked-out submodule files without the
+        # git metadata that lets `git ls-files --recurse-submodules` see them.
+        # Require a stable source file before trusting the filesystem walk: an
+        # uninitialized submodule leaves an empty directory behind, which must
+        # not silently produce an incomplete corpus.
+        if not (infogami_root / "infogami" / "core" / "code.py").is_file():
+            raise RuntimeError(
+                "git ls-files returned no vendor/infogami files and no usable "
+                "infogami checkout exists on disk. Run `make git` "
+                "(git submodule update --init) so the scan can see infogami's "
+                "template references."
+            )
+        files.extend(path.relative_to(REPO_ROOT).as_posix() for path in sorted(infogami_root.rglob("*")) if path.is_file())
     corpus: dict[str, str] = {}
     for rel in files:
         path = REPO_ROOT / rel
