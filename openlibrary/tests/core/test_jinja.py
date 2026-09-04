@@ -34,6 +34,14 @@ class RenderableUndefined(jinja2.Undefined):
 
     __eq__ = __ne__ = __lt__ = __gt__ = __le__ = __ge__ = lambda s, o: s
 
+    def __getattr__(self, name: str) -> RenderableUndefined:
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return RenderableUndefined()
+
+    def __getitem__(self, key: object) -> RenderableUndefined:
+        return RenderableUndefined()
+
 
 def _create_validation_env() -> jinja2.Environment:
     """Create a Jinja environment with ``RenderableUndefined`` for structural validation.

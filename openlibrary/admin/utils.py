@@ -4,6 +4,7 @@ import web
 
 from infogami.utils import delegate, features
 from infogami.utils.view import render_template
+from openlibrary.core.jinja import render_jinja_template
 
 
 def admin_processor(handler):
@@ -17,9 +18,10 @@ def admin_processor(handler):
     delegate.context.setdefault("usergroup", "admin")
 
     page = handler()
-    return render_template("site", page)
+    return render_jinja_template("site.html.jinja", page=page)
 
 
 def notfound():
-    msg = render_template("site", render_template("notfound", web.ctx.path, create=False))
+    page = render_template("notfound", web.ctx.path, create=False)
+    msg = render_jinja_template("site.html.jinja", page=page)
     return web.notfound(msg)

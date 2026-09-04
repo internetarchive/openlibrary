@@ -119,3 +119,26 @@ def get_jinja_env() -> Environment:
     # ``install_gettext_callables`` auto-registers ``_``, ``gettext``, and
     # ``ngettext`` in ``env.globals`` — no manual globals registration needed.
     return env
+
+
+def register_site_layout() -> None:
+    """Serve infogami's ``site`` page wrapper from Jinja.
+
+    Infogami wraps every rendered page in a ``site`` template looked up
+    from a pile of template sources (``render.site(...)`` in
+    ``infogami/utils/delegate.py``); openlibrary's Templetor ``site.html``
+    used to win that lookup.  Adding this source makes the Jinja layout
+    win instead, so the layout needs no Templetor wrapper file at all.
+    """
+    # Import is deferred to avoid circular imports at module level.
+    from infogami.utils import template
+
+    def site(page) -> str:
+        return render_jinja_template("site.html.jinja", page=page)
+
+    # saferender() reads ``t.filename`` when a template raises, to decide
+    # on the failover message; set it so errors fall over to infogami's
+    # own bare site.html and log the Jinja path like a disk template would.
+    site.filename = "openlibrary/templates/site.html.jinja"  # type: ignore[attr-defined]
+
+    template.render.add_source({"site": site})
