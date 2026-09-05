@@ -147,7 +147,7 @@ a.ol-button-static:visited {
 }
 
 .ol-button-static {
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 
 @media (hover: hover) and (pointer: fine) {

@@ -115,7 +115,7 @@ export class SearchModal extends LitElement {
     static styles = css`
         :host {
             font-family: var(--font-family-body);
-            color: var(--darker-grey);
+            color: var(--color-text);
         }
 
         /* Visually hidden but available to screen readers (used by the
@@ -154,8 +154,6 @@ export class SearchModal extends LitElement {
 
         .search-icon {
             flex-shrink: 0;
-            width: 20px;
-            height: 20px;
             color: var(--color-text-muted);
         }
 
@@ -187,7 +185,7 @@ export class SearchModal extends LitElement {
             display: inline-flex;
             align-items: center;
             padding: var(--spacing-2xs) var(--spacing-sm);
-            background: var(--white);
+            background: var(--color-surface);
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-button);
             color: var(--color-text-muted);
@@ -200,7 +198,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .esc-pill:hover { background: var(--lightest-grey); }
+            .esc-pill:hover { background: var(--color-control-hover); }
         }
 
         .esc-pill:focus-visible {
@@ -230,11 +228,6 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        .back-btn ol-icon {
-            width: 24px;
-            height: 24px;
-        }
-
         .back-btn:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
@@ -261,15 +254,10 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        .clear-btn ol-icon {
-            width: 16px;
-            height: 16px;
-        }
-
         @media (hover: hover) and (pointer: fine) {
             .clear-btn:hover {
-                background: var(--lightest-grey);
-                color: var(--darker-grey);
+                background: var(--color-control-hover);
+                color: var(--color-text);
             }
         }
 
@@ -301,7 +289,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
+            color: var(--color-text);
             font: inherit;
             font-size: 13px;
             font-weight: 600;
@@ -309,7 +297,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .clear-all:hover { background: var(--lightest-grey); }
+            .clear-all:hover { background: var(--color-control-hover); }
         }
 
         .clear-all:focus-visible {
@@ -374,10 +362,10 @@ export class SearchModal extends LitElement {
             padding: 0;
         }
 
-        /* Hairline above every row. Deliberately fainter than the
-           modal's section dividers (--color-border-subtle) so the lines read
-           as texture rather than structure. Adjacent rows share one line. */
-        .results-list li { border-top: 1px solid var(--lightest-grey); }
+        /* Hairline above every row, on the faintest border step so the lines
+           read as texture rather than structure. Adjacent rows share one line;
+           the first row keeps its rule, closing the gap under the heading. */
+        .results-list li { border-top: 1px solid var(--color-border-extra-subtle); }
 
         /* Sets the author suggestion apart from the "Top results" works below.
            The row hairlines draw the dividing line; this just adds air. */
@@ -398,14 +386,14 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .result:hover { background: var(--lightest-grey); }
+            .result:hover { background: var(--color-hover-overlay); }
         }
 
         /* Both the author suggestion and the work rows are single anchors, so
            the same focus highlight covers the whole row. */
         .result:focus-visible {
             outline: none;
-            background: var(--lightest-grey);
+            background: var(--color-hover-overlay);
             box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
         }
 
@@ -422,7 +410,7 @@ export class SearchModal extends LitElement {
             width: 36px;
             height: 50px;
             object-fit: cover;
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-thumbnail);
         }
 
@@ -440,11 +428,9 @@ export class SearchModal extends LitElement {
             height: 36px;
             overflow: hidden;
             color: var(--color-text-muted);
-            background: var(--lightest-grey);
+            background: var(--color-surface-sunken);
             border-radius: var(--border-radius-avatar);
         }
-
-        .result__avatar ol-icon { width: 20px; height: 20px; }
 
         .result__avatar-photo {
             position: absolute;
@@ -464,7 +450,7 @@ export class SearchModal extends LitElement {
         .result__title {
             display: block;
             overflow: hidden;
-            color: var(--darker-grey);
+            color: var(--color-text);
             font-weight: 600;
             text-decoration: none;
             text-overflow: ellipsis;
@@ -509,8 +495,8 @@ export class SearchModal extends LitElement {
             font-weight: 600;
             letter-spacing: 0.02em;
             white-space: nowrap;
-            color: var(--open-green);
-            background: hsla(126, 100%, 30%, 0.1);
+            color: var(--color-success-fg);
+            background: var(--color-success-bg);
         }
 
         /* Quiet "In <language>" hint shown under the Readable pill when the
@@ -584,8 +570,6 @@ export class SearchModal extends LitElement {
             color: var(--color-text-muted);
         }
 
-        .result__recent-icon ol-icon { width: 18px; height: 18px; }
-
         .result__remove-recent {
             flex-shrink: 0;
             display: flex;
@@ -609,13 +593,11 @@ export class SearchModal extends LitElement {
         .recent-result:hover .result__remove-recent,
         .recent-result:focus-within .result__remove-recent { opacity: 1; }
 
-        /* One step darker than the row's hover background, so the button
-           reads as its own target inside the highlighted row. */
+        /* An opaque fill over the row's translucent hover overlay, so the
+           button reads as its own target inside the highlighted row. */
         @media (hover: hover) and (pointer: fine) {
-            .result__remove-recent:hover { background: var(--lighter-grey); }
+            .result__remove-recent:hover { background: var(--color-control-hover); }
         }
-
-        .result__remove-recent ol-icon { width: 16px; height: 16px; }
 
         .result__remove-recent:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
@@ -639,7 +621,7 @@ export class SearchModal extends LitElement {
 
         .results.is-navigating .result.is-target {
             opacity: 1;
-            background: var(--lightest-grey);
+            background: var(--color-hover-overlay);
         }
 
         .result.is-target .result__cover,
@@ -666,7 +648,7 @@ export class SearchModal extends LitElement {
             box-sizing: border-box;
             width: 18px;
             height: 18px;
-            border: 2px solid var(--white);
+            border: 2px solid var(--color-text-inverse);
             border-right-color: transparent;
             border-radius: var(--border-radius-circle);
         }
@@ -702,7 +684,7 @@ export class SearchModal extends LitElement {
             .results { max-height: none; flex: 1; }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
-            .footer { background: var(--white); }
+            .footer { background: var(--color-surface); }
 
             /* Flat search row: no boxed field — the back arrow and input read
                as one line under the bar's bottom divider (kept from the base
@@ -1759,13 +1741,13 @@ export class SearchModal extends LitElement {
 
     // ── Static icons ─────────────────────────────────────────────────────
 
-    static _clockIcon = html`<ol-icon name="clock"></ol-icon>`;
+    static _clockIcon = html`<ol-icon name="clock" size="sm"></ol-icon>`;
 
     static _searchIcon = html`<ol-icon class="search-icon" name="search"></ol-icon>`;
 
-    static _closeIcon = html`<ol-icon name="x"></ol-icon>`;
+    static _closeIcon = html`<ol-icon name="x" size="sm"></ol-icon>`;
 
-    static _backIcon = html`<ol-icon name="arrow-left"></ol-icon>`;
+    static _backIcon = html`<ol-icon name="arrow-left" size="lg"></ol-icon>`;
 
     static _personIcon = html`<ol-icon name="user"></ol-icon>`;
 }

@@ -312,7 +312,7 @@ export class OLMarkdownEditor extends LitElement {
       border-radius: var(--border-radius-input);
       padding: var(--spacing-xs) var(--spacing-md);
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color var(--duration-fast) var(--ease-state);
       font-family: var(--font-family-body);
     }
 

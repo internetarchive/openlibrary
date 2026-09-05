@@ -467,7 +467,7 @@
   font: inherit;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 
 /* A subtle darken of the canvas the header sits on. (--beige is a near match
@@ -489,7 +489,7 @@
   top: 0;
   width: 16px;
   height: 16px;
-  transition: transform 150ms ease-out;
+  transition: transform var(--duration-fast) var(--ease-enter);
 }
 
 .browse-popover[open] .down-arrow {
@@ -715,7 +715,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .search-bar-trigger:hover {
-    background-color: var(--lightest-grey);
+    background-color: var(--color-control-hover);
   }
 }
 
@@ -727,7 +727,7 @@
 /* Press feedback scales the whole field, including its border, rather than
    just the inner button — otherwise the border stays put and detaches. */
 .search-bar-component {
-  transition: transform 0.1s ease;
+  transition: transform var(--duration-press);
 }
 
 .search-bar-component:has(.search-bar-trigger:active) {
@@ -853,7 +853,7 @@
   padding: var(--spacing-xs);
   text-decoration: none;
   /* Hover changes snap in instantly; only the press-scale animates. */
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 
 .drawer-menu__login-links a:active {
@@ -927,7 +927,7 @@
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: var(--border-radius-circle);
-  animation: ol-drawer-menu-spin 0.7s linear infinite;
+  animation: ol-drawer-menu-spin var(--duration-spin) linear infinite;
 }
 
 @keyframes ol-drawer-menu-spin {

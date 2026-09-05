@@ -41,7 +41,7 @@ class OlScoreGauge extends LitElement {
             fill: none;
             stroke: currentColor;
             stroke-linecap: round;
-            transition: stroke-dashoffset 0.3s;
+            transition: stroke-dashoffset var(--duration-slow) var(--ease-enter);
         }
 
         .value {
@@ -74,11 +74,11 @@ class OlScoreGauge extends LitElement {
      * @returns {String}
      */
     _colorVar() {
-        if (this.percentage >= 80) return 'var(--scorecard-excellent, #4caf50)';
-        if (this.percentage >= 60) return 'var(--scorecard-good, #8bc34a)';
-        if (this.percentage >= 40) return 'var(--scorecard-moderate, #ffc107)';
-        if (this.percentage >= 20) return 'var(--scorecard-needs-work, #ff9800)';
-        return 'var(--scorecard-poor, #f44336)';
+        if (this.percentage >= 80) return 'var(--green-500)';
+        if (this.percentage >= 60) return 'var(--green-400)';
+        if (this.percentage >= 40) return 'var(--amber-500)';
+        if (this.percentage >= 20) return 'var(--amber-600)';
+        return 'var(--red-500)';
     }
 
     /** @returns {import('lit').TemplateResult} */
@@ -192,7 +192,7 @@ export class OlScorecard extends LitElement {
         }
 
         .collapsed-toggle:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -222,7 +222,7 @@ export class OlScorecard extends LitElement {
         }
 
         .header:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -246,7 +246,7 @@ export class OlScorecard extends LitElement {
         .tab-separator {
             align-self: stretch;
             width: var(--border-width-divider, 1px);
-            background: var(--color-border-subtle, #ddd);
+            background: var(--color-border-subtle);
         }
 
         .tab {
@@ -269,9 +269,9 @@ export class OlScorecard extends LitElement {
         }
 
         ol-score-gauge {
-            background: var(--white, white);
+            background: var(--white);
             border-radius: 100px;
-            box-shadow: 0 0 4px 2px var(--white, white);
+            box-shadow: 0 0 4px 2px var(--white);
         }
 
         button.tab:hover ol-score-gauge {
@@ -279,7 +279,7 @@ export class OlScorecard extends LitElement {
         }
 
         button.tab[aria-selected="true"] {
-            background: var(--lightest-grey, #ededed);
+            background: var(--lightest-grey);
         }
 
         button.tab[aria-selected="true"] .tab-label {
@@ -287,7 +287,7 @@ export class OlScorecard extends LitElement {
         }
 
         button.tab:focus-visible {
-            outline: var(--focus-width, 2px) solid var(--color-focus-ring, #1a73e8);
+            outline: var(--focus-width, 2px) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -314,7 +314,7 @@ export class OlScorecard extends LitElement {
         .checks-heading {
             margin: 0;
             padding: var(--spacing-inset-sm, 8px) var(--spacing-inset-md, 16px) var(--spacing-inset-xs, 4px);
-            color: var(--accessible-grey, #767676);
+            color: var(--accessible-grey);
             font-size: var(--font-size-label-medium, 12px);
             font-weight: normal;
             letter-spacing: 0.04em;
@@ -393,8 +393,8 @@ export class OlScorecard extends LitElement {
             padding: var(--spacing-inset-sm, 8px);
             border-radius: var(--border-radius-md, 6px);
             font-size: var(--font-size-label-medium, 12px);
-            background-color: var(--scorecard-warning-bg, hsl(32deg 100% 90%));
-            color: var(--scorecard-warning-text, hsl(32deg 100% 35%));
+            background-color: var(--color-warning-bg);
+            color: var(--color-warning-fg);
         }
 
         .outdated-banner-icon {

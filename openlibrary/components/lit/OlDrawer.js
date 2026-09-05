@@ -37,8 +37,8 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  * @cssprop [--ol-drawer-scrim-blur=var(--overlay-backdrop-blur)] - Blur radius
  *     applied to the page behind the scrim. The drawer is modal, so it blurs;
  *     see docs/ai/design.md#blur-follows-modality-not-viewport-width.
- * @cssprop [--ol-drawer-enter-duration=400ms] - Slide-in duration.
- * @cssprop [--ol-drawer-exit-duration=300ms] - Slide-out duration.
+ * @cssprop [--ol-drawer-enter-duration=var(--duration-slower)] - Slide-in duration.
+ * @cssprop [--ol-drawer-exit-duration=var(--duration-slow)] - Slide-out duration.
  * @cssprop [--ol-drawer-scroll-padding=0] - Inset kept clear when Tab scrolls a
  *     focused element into view, for drawers with a sticky header or footer.
  *
@@ -77,9 +77,9 @@ export class OlDrawer extends LitElement {
             --ol-drawer-width: 300px;
             --ol-drawer-scrim-color: var(--overlay-backdrop-color);
             --ol-drawer-scrim-blur: var(--overlay-backdrop-blur);
-            --ol-drawer-enter-duration: 400ms;
-            --ol-drawer-exit-duration: 300ms;
-            --ol-drawer-easing: cubic-bezier(0.23, 1, 0.32, 1);
+            --ol-drawer-enter-duration: var(--duration-slower);
+            --ol-drawer-exit-duration: var(--duration-slow);
+            --ol-drawer-easing: var(--ease-enter);
             --ol-drawer-scroll-padding: 0;
 
             display: contents;
@@ -132,7 +132,7 @@ export class OlDrawer extends LitElement {
            modal, so it blurs. The blur is what lets the dim stay light — 32%
            over a page of covers still reads as content; blurred, it doesn't.
            Declared constant and carried by opacity, never animated as a
-           radius: this layer is viewport-sized and the slide runs 400ms. */
+           radius: this layer is viewport-sized and the slide runs --duration-slower. */
         .scrim {
             position: absolute;
             inset: 0;

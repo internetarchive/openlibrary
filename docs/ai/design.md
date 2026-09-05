@@ -55,6 +55,19 @@ Set `scroll-margin-top` on anchor targets so a sticky header doesn't cover them 
 }
 ```
 
+### Breakpoints
+
+Custom properties can't be used in `@media`, so breakpoints are hard-coded px values with the token name in a comment. The scale is in `tokens/breakpoints.css`: 375 (`mobile-s`), 425 (`mobile-m`), 450 (`mobile`), 768 (`tablet`), 960 (`desktop`).
+
+- Write `min-width: N` for at-or-above and `max-width: N-1` for below — `767px` is the correct mirror of `768px`. Never `N+1`: `min-width: 769px` leaves a one-pixel hole at exactly 768 where neither rule applies.
+- Don't introduce values off the scale. `480px`, `600px`, `800px`, `769px` and `961px` exist in the codebase; they're the migration list, not precedent.
+
+```css
+/* --width-breakpoint-tablet */
+@media (min-width: 768px) { … }
+@media (max-width: 767px) { … }
+```
+
 ## Components
 
 Before writing new markup or CSS, check whether an existing component already does the job. Every row is documented with live examples and a generated API table at `/developers/design`; the *Avoid* column is the same text the design page shows, sourced from `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py` — change it there and here together.
@@ -84,6 +97,20 @@ Before writing new markup or CSS, check whether an existing component already do
 | Icon | `ol-icon` | One icon from the Open Library set | Only for icons from the set; don't use it to embed arbitrary SVG. |
 
 `ol-otp-login` is also registered but is a single login flow, not a reusable component. For when to build something new versus enhance a template, see [When to Build a Component](web-components.md#when-to-build-a-component).
+
+## Icons
+
+One set — sources in `static/icons/src/`, built into `static/icons/sprite.svg` — and two ways to draw from it. Pick by who renders the markup:
+
+| Markup rendered by | Use | Why |
+|---|---|---|
+| The server — Templetor or Jinja templates, macros | the `icon()` macro (`openlibrary/macros/icon.html`): `icon("name", size="md", label="…")` | Sprite `<use>` — one cached request covers every icon on the page |
+| Client-side JS, or anything inside a shadow root | `<ol-icon name="name" size="md" label="…">` | Inlines the glyph — sprite `<use>` is unreliable across shadow roots |
+
+- **Never hand-inline an `<svg>` for a glyph that is in the set.** If a glyph is missing, add it to `static/icons/src/` so both paths get it.
+- **Size is the `size` argument** — `sm` 16px, `md` 20px (default), `lg` 24px, from `tokens/icon-sizes.css`, which also corrects stroke width per size. Don't set width or height on the SVG.
+- **`label` decides the semantics.** Omit it for decorative icons (rendered `aria-hidden`); pass it when the icon is the control's only content.
+- Inside `ol-button`, pass `slot="icon-start"` or `slot="icon-end"` (the macro takes a `slot` argument) and let the button size and gap it.
 
 ## Design Tokens
 
@@ -117,9 +144,11 @@ Semantic tokens reference primitives and describe purpose, not appearance.
 --border-radius-card: var(--border-radius-lg);
 ```
 
-The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-muted`, `-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`).
+The main semantic groups in `colors.css`: text (`--color-text`, `-heading`, `-secondary`, `-muted`, `-inverse`), icons (`--color-icon-muted`), surfaces (`--color-background`, `--color-surface`, `-raised`, `-sunken`, `-header`), links (`--color-link`, `-hover`, `-visited`), primary action (`--color-primary`, `-hover`, `-active`, `-subtle`, `--color-on-primary`), borders (`--color-border`, `-muted`, `-subtle`, `-extra-subtle`, `-hover`, `-focused`, `-error`, `--color-focus-ring`), and status (`--color-{info,success,error,warning}-{fg,bg,border}`).
 
-Two of these are a **decorative tier** and carry that caveat in `colors.css`: `--color-border-muted` (1.6:1 on white) and `--color-icon-muted` (2.5:1). In new code they're for dividers and inert chrome — anything a user has to *read*, or that is the sole marker of a control's edge, needs `--color-border` or darker.
+Three of these are a **decorative tier** and carry that caveat in `colors.css`: `--color-border-muted` (1.6:1 on white), `--color-border-extra-subtle` (1.11:1) and `--color-icon-muted` (2.5:1). In new code they're for dividers and inert chrome — anything a user has to *read*, or that is the sole marker of a control's edge, needs `--color-border` or darker.
+
+The three border weights are a scale, not three names for the same job. `--color-border-subtle` (1.3:1) is the everyday divider. `--color-border-extra-subtle` is for a separator that *repeats* — the rules between rows of a result list — where the everyday weight accumulates into a grid and the list starts reading as a spreadsheet.
 
 You will find existing control borders on `--color-border-muted`. They were migrated at their original weight so the token rollout stayed a no-op; that they sit below 3:1 is a pre-existing gap to fix deliberately, not a precedent to copy.
 
@@ -145,8 +174,14 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/spacing.css` | Spacing scale |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
 | `static/css/tokens/font-families.css` | Font families and sizes |
+| `static/css/tokens/motion.css` | Easing primitives and semantic motion tokens (`--ease-enter`, `--duration-base`, …) |
 | `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
 | `static/css/tokens/borders.css` | Border and shadow tokens, plus the modal overlay scrim (`--overlay-backdrop-color` / `--overlay-backdrop-blur`) |
+| `static/css/tokens/z-index.css` | Stacking primitives and semantic layers (`--z-index-sticky`, `-dropdown`, `-modal`, `-toast`, …) plus `--z-index-local-*` for layering inside an `isolation: isolate` root |
+| `static/css/tokens/breakpoints.css` | Breakpoint scale — reference only, see [Breakpoints](#breakpoints) |
+| `static/css/tokens/control-heights.css` | Outer heights for single-line controls |
+| `static/css/tokens/icon-sizes.css` | Icon size and per-size stroke tokens |
+| `static/css/tokens/line-heights.css` | Line-height scale |
 
 ### Tokens in Shadow DOM
 
@@ -232,7 +267,7 @@ color changes.
 /* Good - hover is instant; only the press-scale animates */
 .button {
   background: var(--color-surface);
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 .button:hover {
   background: var(--color-control-hover);
@@ -315,6 +350,47 @@ Scale a control on `:active` only if it is **self-contained**: it has its own vi
 
 Tokens live in `static/css/tokens/press.css`. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
 
+### Motion: pick the token for what is happening, not a curve
+
+Every duration and easing comes from `tokens/motion.css`. Choose by what the element is doing:
+
+| What's happening | Easing | Duration |
+|---|---|---|
+| A surface appears (popover, dialog, banner) | `--ease-enter` | `--duration-base` (200ms); large surfaces like the drawer and toast use `--duration-slower` (400ms) |
+| That surface leaves | `--ease-exit` — same curve, shorter | `--duration-fast` or `--duration-base`; `--duration-slow` (300ms) for large surfaces. Exit ≤ enter, always |
+| Something already on screen moves (segmented pill, a reorder) | `--ease-move` | `--duration-base` |
+| A control changes state (checked, selected, loading, focused) | `--ease-state` | `--duration-fast` (150ms), `--duration-base` for a crossfade |
+| Press | none needed | `--duration-press` (80ms), `transform` only |
+| A spinner | `linear` | `--duration-spin` (700ms) per revolution |
+
+Never write a raw `cubic-bezier()` or a bare `200ms` in a component. If a surface needs a different curve, add a named primitive to `motion.css` and a semantic token that references it — the codebase had reached five hand-written curves and three spinner speeds before these tokens existed.
+
+```css
+/* Bad - a bespoke curve and a magic number */
+.tray { transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Good - says what it is */
+.tray { transition: transform var(--duration-slow) var(--ease-enter); }
+```
+
+### Honor `prefers-reduced-motion`
+
+Every transition and animation gets a `prefers-reduced-motion: reduce` override that sets it to `none`. Motion is enhancement; users who asked for less get the end state immediately. Ten of the eleven animated Lit components already do this — match them, including in `static/css`, where most animated files still don't.
+
+```css
+.panel {
+  transition: transform 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+}
+```
+
+**Never wait on `transitionend` or `animationend` unconditionally.** Under `reduce` the element has no transition, so the event never fires — a close handler waiting for the exit animation leaves a drawer stuck open with focus trapped. Read the computed duration and run the callback immediately when it is `0s`, with a timer fallback for dropped events (backgrounded tabs). `OlDrawer._afterTransition()` is the reference; `OlDialog` handles the same case for its open/close keyframes.
+
 ### Practical Tips
 
 | Scenario | Solution |
@@ -384,6 +460,10 @@ What checks each rule today. "Review" means only a human or the Copilot UI check
 | No font-weight change on hover | Review |
 | Hover is instant / border tracks fill / fill direction | Review |
 | Press feedback tiers | Review |
+| Motion via tokens, no raw curves or durations | Review |
 | Blur follows modality; shared scrim tokens | Review |
 | 16px text-entry controls | Review |
 | Hover gated to hover-capable pointers | Review |
+| Reduced-motion override on every transition/animation | Review |
+| Breakpoints on the token scale, `max-width: N-1` | Review |
+| Icons via macro / `ol-icon`, never inline SVG | Review |

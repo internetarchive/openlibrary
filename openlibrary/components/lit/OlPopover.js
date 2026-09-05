@@ -152,8 +152,8 @@ export class OlPopover extends LitElement {
 
         .panel[data-state="entering"] {
             transition:
-                opacity 200ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-base) var(--ease-enter),
+                transform var(--duration-base) var(--ease-enter);
         }
 
         .panel[data-state="exiting"] {
@@ -161,8 +161,8 @@ export class OlPopover extends LitElement {
             transform: scale(0.95);
             pointer-events: none;
             transition:
-                opacity 150ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 150ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-fast) var(--ease-exit),
+                transform var(--duration-fast) var(--ease-exit);
             will-change: transform, opacity;
         }
 
@@ -197,13 +197,13 @@ export class OlPopover extends LitElement {
         }
 
         .backdrop[data-state="entering"] {
-            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-slow) var(--ease-enter);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-base) var(--ease-enter);
         }
 
         /* ── Mobile tray panel ── */
@@ -238,14 +238,14 @@ export class OlPopover extends LitElement {
         }
 
         .panel.tray[data-state="entering"] {
-            transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-slow) var(--ease-enter);
         }
 
         .panel.tray[data-state="exiting"] {
             opacity: 1;
             transform: translateY(100%);
             pointer-events: none;
-            transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-base) var(--ease-enter);
             will-change: transform;
         }
 
@@ -884,11 +884,11 @@ export class OlPopover extends LitElement {
         if (dragY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
             // Swipe dismiss — animate to off-screen, then close
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = 'translateY(100%)';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '0';
             }
 
@@ -915,11 +915,11 @@ export class OlPopover extends LitElement {
         } else {
             // Snap back to open position
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = '';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '';
             }
 

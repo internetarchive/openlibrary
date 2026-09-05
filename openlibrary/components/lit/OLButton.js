@@ -190,7 +190,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             text-decoration: none;
             /* Hover color changes are instant (see docs/ai/design.md); only the
                :active press-scale animates. */
-            transition: transform 0.08s;
+            transition: transform var(--duration-press);
         }
 
         /* Press feedback — tactile scale on activation. The raised shadow and
@@ -376,9 +376,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             justify-content: center;
             gap: var(--spacing-2xs);
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         /* Slotted icons take the size's icon dimension regardless of the SVG's own
@@ -419,9 +419,9 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             filter: blur(3px);
             pointer-events: none;
             transition:
-                opacity 0.24s ease,
-                transform 0.24s ease,
-                filter 0.24s ease;
+                opacity var(--duration-base) var(--ease-state),
+                transform var(--duration-base) var(--ease-state),
+                filter var(--duration-base) var(--ease-state);
         }
 
         .spinner::before {
@@ -442,7 +442,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         :host([loading]) .spinner::before {
-            animation: ol-button-spin 0.7s linear infinite;
+            animation: ol-button-spin var(--duration-spin) linear infinite;
         }
 
         @keyframes ol-button-spin {
@@ -475,7 +475,7 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             margin-left: calc(var(--spacing-2xs) * -1);
             margin-right: calc(var(--spacing-2xs) * -1);
             background: currentcolor;
-            transition: transform 150ms ease-out;
+            transition: transform var(--duration-fast) var(--ease-enter);
             -webkit-mask: var(--chevron) center / 16px no-repeat;
             mask: var(--chevron) center / 16px no-repeat;
         }

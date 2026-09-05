@@ -1,0 +1,35 @@
+/**
+ * Motion
+ * ======
+ * Durations and easing for transitions and animations. Two tiers, like colors:
+ * primitives are named Penner curves; semantic tokens answer the question a
+ * component actually has — is something entering, leaving, moving, or changing
+ * state? Reach for the semantic token. Add a primitive only when a semantic
+ * token will reference it.
+ *
+ * Hover never transitions color (see docs/ai/design.md, "Animations"). Exits
+ * reuse the enter curve at a shorter duration; exit <= enter.
+ */
+:root {
+  /* Primitives */
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-cubic: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Semantic easing */
+  --ease-enter: var(--ease-out-quint); /* a surface appearing: popover, drawer, toast, banner */
+  --ease-exit: var(--ease-out-quint); /* the same surface leaving, at a shorter duration */
+  --ease-move: var(--ease-in-out-cubic); /* something already on screen repositioning */
+  --ease-state: ease; /* checked / selected / disabled changes — never hover */
+
+  /* Durations */
+  --duration-press: 80ms; /* transform on :active */
+  --duration-fast: 150ms; /* small state changes */
+  --duration-base: 200ms; /* enter/exit of small and medium surfaces */
+  --duration-slow: 300ms; /* exit of large surfaces */
+  --duration-slower: 400ms; /* enter of large surfaces: drawer, toast */
+  --duration-spin: 700ms; /* one revolution of any spinner, linear */
+}

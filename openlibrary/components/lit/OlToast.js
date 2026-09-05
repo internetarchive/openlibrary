@@ -79,10 +79,9 @@ export class OlToast extends LitElement {
 
     static styles = css`
         :host {
-            /* Sonner's curve — a strong ease-out with a hint of overshoot.
-               Shared by enter, exit, and stack re-shuffles so the toasts
+            /* One curve for enter, exit, and stack re-shuffles so the toasts
                move as one system (paired-elements rule). */
-            --ol-toast-ease: cubic-bezier(0.21, 1.02, 0.73, 1);
+            --ol-toast-ease: var(--ease-enter);
 
             display: block;
             width: max-content;
@@ -90,8 +89,8 @@ export class OlToast extends LitElement {
             font-family: var(--font-family-body);
             pointer-events: auto;
             transition:
-                transform 400ms var(--ol-toast-ease),
-                opacity 400ms var(--ol-toast-ease);
+                transform var(--duration-slower) var(--ol-toast-ease),
+                opacity var(--duration-slower) var(--ol-toast-ease);
 
             /* Enter starting point: hidden, sitting below its final spot.
                The component flips data-mounted one frame after connecting,

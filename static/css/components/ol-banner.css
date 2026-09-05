@@ -39,8 +39,8 @@ ol-banner {
   /* Exit only — banners show on every page view, so they must not
      animate in (frequency principle) */
   transition:
-    opacity 200ms ease-out,
-    transform 200ms ease-out;
+    opacity var(--duration-base) var(--ease-enter),
+    transform var(--duration-base) var(--ease-enter);
 }
 
 ol-banner[variant="success"] {

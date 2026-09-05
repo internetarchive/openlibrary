@@ -348,7 +348,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             border-top-color: var(--accessible-grey);
             border-radius: 50%;
             flex-shrink: 0;
-            animation: ol-sp-spin 0.65s linear infinite;
+            animation: ol-sp-spin var(--duration-spin) linear infinite;
         }
 
         @media (prefers-reduced-motion: reduce) {
