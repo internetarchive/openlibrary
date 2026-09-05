@@ -22,7 +22,7 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import entity_decode, render_macro
+from openlibrary.plugins.upstream.utils import entity_decode, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
@@ -78,7 +78,8 @@ class MyBooksDropperListsPartial:
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
 
-        dropper = render_template("lists/dropper_lists", user_lists)
+        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
+        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -88,7 +89,7 @@ class MyBooksDropperListsPartial:
         }
 
         return {
-            "dropper": str(dropper),
+            "dropper": dropper,
             "listData": list_data,
         }
 
