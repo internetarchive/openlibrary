@@ -32,13 +32,16 @@ Email: configure smtp_server=mockservices, smtp_port=1025, dummy_sendmail=False
 """
 
 import asyncio
+import hashlib
 import itertools
 import json as jsonlib
 import logging
 import random
+import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 from fastapi import FastAPI, Header, Request
@@ -103,6 +106,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                     "itemname": "@" + _DEV_SCREENNAME,
                     "verified": True,
                     "locked": False,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
                 },
             }
         )
@@ -118,6 +123,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                     "itemname": "@" + _DEV_SCREENNAME,
                     "screenname": _DEV_SCREENNAME,
                     "verified": True,
+                    "access": _DEV_S3["access"],
+                    "secret": _DEV_S3["secret"],
                 },
             }
         )
@@ -137,6 +144,8 @@ async def xauth(op: str, request: Request) -> JSONResponse:
                         "itemname": "@" + _DEV_SCREENNAME,
                         "screenname": _DEV_SCREENNAME,
                         "token": _DEV_TOKEN,
+                        "access": _DEV_S3["access"],
+                        "secret": _DEV_S3["secret"],
                     },
                 }
             )
@@ -208,11 +217,199 @@ async def s3auth(authorization: Annotated[str | None, Header()] = None) -> JSONR
 # ---------------------------------------------------------------------------
 # IA Loans API  (was /internal/fake/loans in account.py)
 # POST /services/loans/loan/
+#
+# Supports:
+#   - Borrowing: s3_loan_api(action="borrow_book" / "browse_book", identifier=...)
+#   - Returning: s3_loan_api(action="return_loan", identifier=...)
+#   - Active loans query: ia_lending_api.find_loans(userid=...) / method="loan.query"
+#   - Loan history query: s3_loan_api(action="user_borrow_history", limit=..., offset=...)
 # ---------------------------------------------------------------------------
+
+_active_loans: dict[str, dict[str, dict]] = defaultdict(dict)
+_loan_history: dict[str, list[dict]] = defaultdict(list)
+_loans_lock = asyncio.Lock()
+
+
+async def _extract_request_params(request: Request) -> dict[str, Any]:
+    params: dict[str, Any] = dict(request.query_params)
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                params.update(body)
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+    elif "form" in content_type:
+        try:
+            form = await request.form()
+            params.update({key: val for key, val in form.items() if isinstance(val, str)})
+        except (ValueError, RuntimeError):  # fmt: skip
+            pass
+    return params
+
+
+def _normalize_userid(uid: str | None) -> str:
+    if not uid:
+        return "@" + _DEV_SCREENNAME
+    if uid.startswith("ol:"):
+        return "@" + uid[len("ol:") :]
+    if not uid.startswith("@"):
+        return "@" + uid
+    return uid
+
+
+AVAILABILITY_VARIANTS = [
+    # 0. "Read" (Open Access / Public Domain)
+    {
+        "status": "open",
+        "is_readable": True,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 1. "Borrow" (CDL available to borrow / browse)
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": True,
+        "is_previewable": True,
+    },
+    # 2. "Join Waitlist" (All copies on loan, waitlist open)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": True,
+        "num_waitlist": 3,
+        "is_previewable": True,
+    },
+    # 3. "Checked Out" (All copies on loan, waitlist closed)
+    {
+        "status": "borrow_unavailable",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": False,
+        "available_to_browse": False,
+        "available_to_waitlist": False,
+        "is_previewable": True,
+    },
+    # 4. "Preview Only" (Previewable on BookReader)
+    {
+        "status": "preview_only",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": True,
+    },
+    # 5. "Print Disabled" / DAISY (Restricted to print-disabled patrons)
+    {
+        "status": "printdisabled",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_printdisabled": True,
+        "is_previewable": False,
+    },
+    # 6. "Locate" (No digital copies on IA)
+    {
+        "status": "error",
+        "is_readable": False,
+        "is_lendable": False,
+        "is_previewable": False,
+    },
+]
+
+
+def _deterministic_availability(item_id: str) -> dict[str, Any]:
+    idx = int(hashlib.md5(item_id.encode("utf-8")).hexdigest(), 16) % len(AVAILABILITY_VARIANTS)
+    res = AVAILABILITY_VARIANTS[idx].copy()
+    res["identifier"] = item_id
+    return res
 
 
 @app.post("/services/loans/loan/")
-async def loans() -> JSONResponse:
+async def loans(request: Request) -> JSONResponse:
+    params = await _extract_request_params(request)
+    action = params.get("action")
+    method = params.get("method")
+    identifier = params.get("identifier")
+    userid = _normalize_userid(params.get("userid"))
+
+    async with _loans_lock:
+        # 0. S3 groundtruth availability query
+        if action == "availability" and identifier:
+            avail = _deterministic_availability(identifier)
+            return JSONResponse({"status": "ok", "lending_status": avail})
+
+        # 1. Query active loans
+        if method == "loan.query":
+            user_loans = _active_loans[userid]
+            if identifier:
+                loan = user_loans.get(identifier)
+                return JSONResponse({"result": [loan] if loan else []})
+            return JSONResponse({"result": list(user_loans.values())})
+
+        if method == "waitinglist.query":
+            return JSONResponse({"result": []})
+
+        # 2. Borrow a book
+        if action in ("borrow_book", "browse_book") and identifier:
+            loan_id = next(_next_loan_uid)
+            now = datetime.now(UTC)
+            until_str = (now + timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
+            loan_obj = {
+                "_key": f"/loans/{loan_id}",
+                "id": loan_id,
+                "identifier": identifier,
+                "userid": userid,
+                "ol_key": None,
+                "format": "bookreader",
+                "resource_id": identifier,
+                "loaned_at": time.time(),
+                "created": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "until": until_str,
+                "expiry": until_str,
+                "fulfilled": True,
+                "loan_link": f"/stream/{identifier}",
+                "book": f"/books/ia:{identifier}",
+            }
+            _active_loans[userid][identifier] = loan_obj
+
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "loan_id": f"a1000001-0001-4000-8000-{loan_id:012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+
+            return JSONResponse({"status": "ok", "result": {"loan": loan_obj}})
+
+        # 3. Return a book
+        if action == "return_loan" and identifier:
+            _active_loans[userid].pop(identifier, None)
+            now_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
+            history_record = {
+                "identifier": identifier,
+                "updatedate": now_str,
+                "loan_id": f"a1000001-0001-4000-8000-{next(_next_loan_uid):012x}",
+            }
+            _loan_history[userid] = [h for h in _loan_history[userid] if h.get("identifier") != identifier]
+            _loan_history[userid].insert(0, history_record)
+            return JSONResponse({"status": "ok"})
+
+        # 4. User borrow history query
+        if action == "user_borrow_history":
+            try:
+                limit = int(params.get("limit", 25))
+                offset = int(params.get("offset", 0))
+            except TypeError, ValueError:
+                limit, offset = 25, 0
+            items = _loan_history[userid][offset : offset + limit]
+            return JSONResponse({"history": {"items": items}})
+
     return JSONResponse({})
 
 
@@ -324,14 +521,34 @@ async def loan_changes(action: str, after_uid: int = 0, limit: int = 1000) -> JS
 
 
 # ---------------------------------------------------------------------------
-# IA Availability API v2  (was not mocked — pointed at real archive.org)
-# POST /services/availability/
+# IA Availability API v2
+# GET/POST /services/availability/
 # ---------------------------------------------------------------------------
 
 
-@app.post("/services/availability/")
-async def availability() -> JSONResponse:
-    return JSONResponse({"responses": {}})
+@app.api_route("/services/availability/", methods=["GET", "POST"])
+async def availability(
+    request: Request,
+    identifier: str | None = None,
+    openlibrary_work: str | None = None,
+    openlibrary_edition: str | None = None,
+) -> JSONResponse:
+    raw_ids: str | list[str] = identifier or openlibrary_work or openlibrary_edition or ""
+    if not raw_ids and request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                raw_ids = body.get("identifier") or body.get("openlibrary_work") or body.get("openlibrary_edition") or ""
+        except (ValueError, UnicodeDecodeError):  # fmt: skip
+            pass
+
+    if isinstance(raw_ids, list):
+        ids = [str(i).strip() for i in raw_ids if str(i).strip()]
+    else:
+        ids = [i.strip() for i in str(raw_ids).split(",") if i.strip()]
+
+    responses = {item_id: _deterministic_availability(item_id) for item_id in ids}
+    return JSONResponse({"success": True, "responses": responses})
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +678,7 @@ def _matomo_form_int(form, key: str, default: int) -> int:
     raw = form.get(key, default)
     try:
         return int(str(raw))
-    except TypeError, ValueError:
+    except (TypeError, ValueError):  # fmt: skip
         raise ValueError(f"{key} must be an integer, got {raw!r}") from None
 
 
