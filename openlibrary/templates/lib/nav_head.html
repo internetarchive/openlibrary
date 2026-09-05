@@ -103,9 +103,11 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
     <li class="drawer-menu__subsection">$_("My Open Library")</li>
     $if ctx.user:
       <li class="drawer-menu__item">
+        $# Two spans, not a <br>: the row is a column flex container, where a
+        $# line break is an empty flex item rather than a break.
         <a href="/account/books" data-ol-link-track="Hamburger|MyBooks">
-          $_("My Books")
-          <br><span class="drawer-menu__subheading">$_("Loans, Reading Log, Lists, Stats")</span>
+          <span>$_("My Books")</span>
+          <span class="drawer-menu__subheading">$_("Loans, Reading Log, Lists, Stats")</span>
         </a>
       </li>
       <li class="drawer-menu__item">

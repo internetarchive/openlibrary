@@ -117,7 +117,13 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             /* One height across every menu row; a described or wrapping row
                grows past it. */
             min-height: var(--menu-row-height);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            /* Inset from the panel edge so the hover fill reads as a pill
+               rather than a band running edge to edge. The padding gives back
+               what the margin takes, so the radio column stays at 16px. */
+            margin-inline: var(--spacing-inset-xs);
+            padding-block: var(--spacing-inset-sm);
+            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+            border-radius: var(--border-radius-button);
             line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
@@ -136,9 +142,10 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         }
 
         /* Nested options are a subset of the option above them; indent the
-           whole row so the hierarchy reads at a glance. */
+           whole row so the hierarchy reads at a glance. Less the row's own
+           inset, so the indent is measured from the panel. */
         .item--nested .item-row {
-            padding-left: var(--spacing-inset-xl);
+            padding-left: calc(var(--spacing-inset-xl) - var(--spacing-inset-xs));
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -152,14 +159,9 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+        /* No selected-row styling: the radio is the state. A tint plus a blue
+           label on top of a checked radio says the same thing three times, and
+           it makes the selected row look hovered. */
 
         .item-radio {
             flex-shrink: 0;
@@ -184,12 +186,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         .item-label {
             display: block;
             color: var(--darker-grey);
-            font-weight: 500;
-        }
-
-        .item--selected .item-label {
-            color: var(--color-link);
-            font-weight: 600;
+            font-weight: 400;
         }
 
         .item-description {
@@ -198,10 +195,6 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             color: var(--color-text-muted);
             font-size: 12px;
             line-height: 1.35;
-        }
-
-        .item--selected .item-description {
-            color: var(--color-link);
         }
 
         .item-count {
@@ -361,7 +354,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
-        return html`<li class="item ${isSelected ? 'item--selected' : ''} ${item.nested ? 'item--nested' : ''}">
+        return html`<li class="item ${item.nested ? 'item--nested' : ''}">
                 <label class="item-row">
                     <input
                         type="radio"

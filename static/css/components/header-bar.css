@@ -503,11 +503,14 @@
   }
 }
 
+/* The 4px side padding is the menu-row gutter: rows carry the rest of their
+ * 16px label offset as their own padding, so the hover fill reads as a pill
+ * inside the panel rather than a band running to its edges. */
 .header-bar .browse-popover__panel {
   box-sizing: border-box;
   width: 240px;
   max-width: calc(100vw - 24px);
-  padding: var(--spacing-inset-sm);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
   text-align: left;
 }
 
@@ -529,15 +532,16 @@
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-inline-md);
-  padding: var(--spacing-inset-sm);
-  border-radius: var(--border-radius-md);
+  padding: var(--spacing-inset-sm)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  border-radius: var(--border-radius-button);
   color: var(--color-text);
   text-decoration: none;
 }
 
 .navigation-component .browse-feature:hover,
 .navigation-component .browse-feature:focus-visible {
-  background-color: var(--lightest-grey);
+  background-color: var(--color-hover-overlay);
 }
 
 .header-bar .browse-feature__icon {
@@ -552,8 +556,8 @@
   color: var(--primary-blue);
 }
 
-/* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
- * so the icon would wash out. Deepen the tile to --beige to keep it distinct. */
+/* The hover fill darkens the panel under the tile too, so deepen the tile to
+ * --beige to keep it reading as a tile rather than dissolving into the row. */
 .browse-feature:hover .browse-feature__icon,
 .browse-feature:focus-visible .browse-feature__icon {
   background: var(--beige);
@@ -604,9 +608,10 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-inline-md);
-  min-height: var(--control-height-medium);
-  padding: var(--spacing-2xs) var(--spacing-inset-sm);
-  border-radius: var(--border-radius-md);
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  border-radius: var(--border-radius-button);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
   text-decoration: none;
@@ -620,7 +625,7 @@
 
 .header-bar .browse-popover__link:hover,
 .header-bar .browse-popover__link:focus-visible {
-  background-color: var(--lightest-grey);
+  background-color: var(--color-hover-overlay);
 }
 
 /* ── Search trigger button ───────────────────────────────────────────────
@@ -754,10 +759,13 @@
  * These styles target the menu items, not the drawer shell (which is in Shadow DOM).
  */
 
+/* The 4px side padding is the menu-row gutter: rows carry the rest of their
+ * 16px label offset as their own padding, so the hover fill reads as a pill
+ * inside the drawer rather than a band running to its edges. */
 .drawer-menu {
   list-style: none;
   margin: 0;
-  padding: var(--spacing-inset-sm);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
   border: none;
 }
 
@@ -768,7 +776,8 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--dark-grey);
-  padding: var(--spacing-2xl) var(--spacing-inset-sm) var(--spacing-2xs);
+  padding: var(--spacing-2xl)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs)) var(--spacing-2xs);
   list-style: none;
 }
 
@@ -776,7 +785,11 @@
   padding-top: var(--spacing-sm);
 }
 
+/* Anchors the merge-request badge, which sits at the row's trailing edge.
+ * Rows are divided by a hairline, as in the production hamburger menu; the
+ * last row of the list drops it so the menu doesn't end on a stray line. */
 .drawer-menu__item {
+  position: relative;
   margin: 0;
   list-style: none;
   border-bottom: 1px solid var(--color-border-subtle);
@@ -786,18 +799,25 @@
   border-bottom: none;
 }
 
+/* Column flex rather than a block: it centres a single-line row on the shared
+ * menu-row height, and still stacks the one row that carries a subheading.
+ * Padding stays under the row height so min-height is what sets it. */
 .drawer-menu__item a,
 .drawer-menu__item a:link,
 .drawer-menu__item a:visited,
 .drawer-menu__item button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--menu-row-height);
   text-decoration: none;
   color: var(--dark-grey);
   white-space: nowrap;
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
-  padding: var(--spacing-sm) var(--spacing-inset-sm);
+  padding: var(--spacing-2xs)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
   border-radius: var(--border-radius-button);
-  display: block;
 }
 
 .drawer-menu__item button {
@@ -812,18 +832,28 @@
 @media (hover: hover) and (pointer: fine) {
   .drawer-menu__item a:hover,
   .drawer-menu__item button:hover {
-    background-color: var(--white);
+    background-color: var(--color-hover-overlay);
   }
 }
 
+/* Out of flow: the row is a flex container, which would be pushed off a float
+ * rather than letting it sit over the row's trailing edge. */
 .drawer-menu__badge {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  transform: translateY(-50%);
   color: var(--white);
   background-color: var(--primary-blue);
   font-size: 0.9em;
   padding: 2px 6px 1px;
-  border-radius: 4px;
-  float: right;
+  border-radius: var(--border-radius-badge);
   text-transform: uppercase;
+}
+
+/* Keep the label clear of the badge now that it no longer displaces text. */
+.drawer-menu__item:has(.drawer-menu__badge) a {
+  padding-right: var(--spacing-3xl);
 }
 
 .drawer-menu__subheading {
@@ -832,13 +862,14 @@
   color: var(--accessible-grey);
 }
 
+/* No side margin: the buttons' outer edges line up with the menu rows' pills. */
 .drawer-menu__login-links {
   display: flex;
   border-bottom: none;
   justify-content: space-evenly;
   column-gap: var(--spacing-lg);
-  padding: var(--spacing-sm) var(--spacing-inset-sm);
-  margin: 0 var(--spacing-inset-sm);
+  padding: var(--spacing-sm) 0;
+  margin: 0;
   list-style: none;
 }
 
@@ -920,7 +951,7 @@
   box-sizing: border-box;
   position: absolute;
   top: 50%;
-  right: var(--spacing-inset-sm);
+  right: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
   width: 16px;
   height: 16px;
   margin-top: -8px;

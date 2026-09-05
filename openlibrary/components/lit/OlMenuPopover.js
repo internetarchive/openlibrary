@@ -92,26 +92,32 @@ export class OlMenuPopover extends LitElement {
         .item {
             display: flex;
             align-items: center;
-            width: 100%;
             box-sizing: border-box;
             /* One height across every menu row; a wrapping label grows past it. */
             min-height: var(--menu-row-height);
-            margin: 0;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            /* Inset from the panel edge so the hover fill reads as a pill
+               rather than a band running edge to edge. The padding gives back
+               what the margin takes, so the label column stays at 16px. */
+            margin: 0 var(--spacing-inset-xs);
+            padding-block: var(--spacing-inset-sm);
+            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
             border: 0;
+            border-radius: var(--border-radius-button);
             background: none;
             color: var(--darker-grey);
             font-family: inherit;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 400;
             line-height: 1.4;
             text-align: left;
             cursor: pointer;
         }
 
-        /* Nested items are a subset of the item above them. */
+        /* Nested items are a subset of the item above them. Less the row's own
+           inset, so the indent is measured from the panel like every other
+           label offset. */
         .item--nested {
-            padding-left: var(--spacing-inset-xl);
+            padding-left: calc(var(--spacing-inset-xl) - var(--spacing-inset-xs));
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -120,16 +126,12 @@ export class OlMenuPopover extends LitElement {
             }
         }
 
-        /* No radio to carry the state, so the row shows it — same tint and
-           weight ol-options-popover uses. */
+        /* No radio on the row to carry the state, so the label carries it —
+           colour only, since a weight change would re-measure the label and
+           shift the row. The fill stays reserved for hover, which then reads
+           the same on the current row as on any other. */
         .item[aria-checked="true"] {
-            background: var(--color-control-selected-bg);
             color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item[aria-checked="true"]:hover {
-            background: var(--color-control-selected-bg-hover);
         }
 
         .item:focus-visible {

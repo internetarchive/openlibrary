@@ -146,9 +146,11 @@ html:has(.ds) {
   white-space: nowrap;
 }
 
-.ds__nav-list a:hover {
-  background-color: var(--color-surface-sunken);
-  color: var(--color-text);
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-list a:hover {
+    background-color: var(--color-surface-sunken);
+    color: var(--color-text);
+  }
 }
 
 .ds__nav-list a.is-current {
@@ -209,15 +211,41 @@ html:has(.ds) {
   border-bottom: 0;
 }
 
-/* Inside the tray the nav stacks, as in the desktop sidebar. Link padding is
-   left at the base value: the tray is touched, not clicked. */
+/* Inside the tray the nav stacks, as in the desktop sidebar — but here it is a
+   menu, so its links follow the menu-row contract (see
+   tokens/control-heights.css): one row height, and a 4px gutter here that the
+   rows give back as padding, so labels stay 16px from the panel and the hover
+   fill reads as a pill rather than a band. */
 .ds__nav-popover .ds__nav {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md)
+  padding: var(--spacing-inset-sm) var(--spacing-inset-xs)
     var(--spacing-inset-lg);
 }
 
 .ds__nav-popover .ds__nav-list {
   display: block;
+}
+
+.ds__nav-popover .ds__nav-list a {
+  display: flex;
+  align-items: center;
+  min-height: var(--menu-row-height);
+  padding: var(--spacing-2xs)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  font-size: var(--font-size-body-medium);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ds__nav-popover .ds__nav-list a:hover {
+    background-color: var(--color-hover-overlay);
+  }
+}
+
+/* The current row is marked in colour only: a weight change would re-measure
+   the label and shift the row. Declared after the hover rule so a hovered
+   current row keeps its colour. */
+.ds__nav-popover .ds__nav-list a.is-current {
+  color: var(--color-link);
+  font-weight: inherit;
 }
 
 .ds__nav-popover .ds__nav-group {
@@ -227,6 +255,8 @@ html:has(.ds) {
 
 .ds__nav-popover .ds__nav-group-title {
   display: block;
+  padding: var(--spacing-inset-xs)
+    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
 }
 
 .ds__empty {
