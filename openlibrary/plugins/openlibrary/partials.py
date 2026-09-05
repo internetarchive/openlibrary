@@ -392,14 +392,14 @@ class SubjectPublishingHistoryPartial:
             facet_fields=[{"name": "publish_year", "limit": -1}],
             request_label="SUBJECT_PUBLISHING_HISTORY",
         )
-        macro = render_macro(
-            "PublishingHistory",
-            (),
+
+        template = get_jinja_env().get_template("PublishingHistory.html.jinja")
+        html = template.render(
             publishing_history=subject.get("publishing_history", []),
             async_load=False,
             key=key,
         )
-        return {"partials": str(macro["__body__"])}
+        return {"partials": html}
 
 
 class SubjectRelatedPartial:
