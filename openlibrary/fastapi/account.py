@@ -9,26 +9,18 @@ import logging
 import os
 import time
 from typing import Annotated, Literal
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlencode, urlparse
 
 import internetarchive as ia
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile, status
-from PIL import Image, ImageOps
-from typing import Annotated
-from urllib.parse import unquote, urlencode, urlparse
-
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
+from PIL import Image, ImageOps
 from pydantic import BaseModel, Field
 
 from infogami import config
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs
-from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user, get_s3_keys
-from openlibrary.core import stats
-from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
-from openlibrary.core.env import get_ol_env
-from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user
+from openlibrary.accounts.model import audit_accounts, encrypt_s3_keys, generate_login_code_for_user, get_s3_keys
 from openlibrary.core import stats
 from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.env import get_ol_env
