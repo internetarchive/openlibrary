@@ -7466,7 +7466,8 @@ msgid "Not yet deployed"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
-msgid "Deploy failed (merge conflict)"
+#, python-format
+msgid "Conflict with %(culprit)s"
 msgstr ""
 
 #: TestingEnvironment.html.jinja
