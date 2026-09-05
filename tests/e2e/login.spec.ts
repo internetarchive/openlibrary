@@ -20,11 +20,9 @@ test.describe('Login page @smoke', () => {
         await expect(page.locator('input[name="password"]')).toBeVisible();
     });
 
-    // FIXME: the FastAPI login route answers a failed form POST with
-    // 400 {"detail": ...} (openlibrary/fastapi/account.py), so the browser gets
-    // raw JSON instead of the login page carrying a flash error. This test
-    // describes the behaviour to restore; drop the fixme once it is.
-    test.fixme('wrong password shows an error and stays on the login page', async ({ page }) => {
+    test('wrong password shows an error and stays on the login page', async ({ page }) => {
+        // A failed form login is a 303 back to /account/login with the error in
+        // the flash cookie (openlibrary/fastapi/account.py, _login_error_response).
         // The dev mock IA auth accepts any non-empty password except the
         // sentinel "bad_password" (docker/mockservices/main.py), so this is
         // the only wrong password that fails in both dev and production.
