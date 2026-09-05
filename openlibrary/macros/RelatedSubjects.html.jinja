@@ -1,0 +1,37 @@
+{% set subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)] %}
+{% macro render_subjects(subjects) %}
+    {% if subjects | length > 0 %}
+        <ol-chip-group gap="small">
+            {% for s in subjects %}
+                <ol-chip size="small" href="{{ s.key }}">
+                    {{ s.name }}
+                </ol-chip>
+            {% endfor %}
+        </ol-chip-group>
+    {% else %}
+        <span class="title"><em>{{ _("None found.") }}</em></span>
+    {% endif %}
+{% endmacro %}
+<div id="subjectRelatedFacets"
+     data-async-load="{{ async_load | default(false) | tojson | force_escape }}"
+     data-key="{{ key | default(none) | tojson | force_escape }}">
+    <div class="head" id="subjectRelated">
+        <h2>{{ _("Related...") }}</h2>
+    </div>
+    {% for category, label, limit in subject_list %}
+        <div class="contentQuarter link-box link-box--with-header">
+            <h3 class="black collapse uppercase">{{ label }}</h3>
+            {% if async_load %}
+                <span class="small loadingIndicator">{{ _("Loading...") }}</span>
+            {% else %}
+                {{ render_subjects(page[category][:limit]) }}
+            {% endif %}
+        </div>
+    {% endfor %}
+    {% if async_load %}
+        <span class="small async-partial-retry hidden">{{ _("Something went wrong.") }} <a href="#" class="retry-btn">{{ _("Retry") }}</a></span>
+    {% endif %}
+    {# .contentQuarter floats on desktop widths (layout/index.css); clear it
+       inside this wrapper so the wrapper's own box isn't collapsed to nothing. #}
+    <div class="clearfix"></div>
+</div>
