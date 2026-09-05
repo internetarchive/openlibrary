@@ -80,6 +80,7 @@ COMPONENTS = (
         "design/components/button.html.jinja",
         group="Actions",
         tag="ol-button",
+        avoid="For a state that stays on or off, use Toggle. For a filter that can be removed, use Chip.",
     ),
     Component(
         "toggle",
@@ -103,6 +104,7 @@ COMPONENTS = (
         "design/components/chip.html.jinja",
         group="Actions",
         tag="ol-chip",
+        avoid="A chip is a removable or selectable filter. A one-shot action is a Button.",
     ),
     Component(
         "chip-group",
@@ -110,6 +112,7 @@ COMPONENTS = (
         "design/components/chip-group.html.jinja",
         group="Actions",
         tag="ol-chip-group",
+        avoid="Only for laying out Chips; don't wrap other controls in it.",
     ),
     Component(
         "pagination",
@@ -117,6 +120,7 @@ COMPONENTS = (
         "design/components/pagination.html.jinja",
         group="Actions",
         tag="ol-pagination",
+        avoid="For an open-ended feed, load more in place instead of paging.",
     ),
     # --- Overlays --------------------------------------------------------
     Component(
@@ -133,6 +137,7 @@ COMPONENTS = (
         "design/components/popover.html.jinja",
         group="Overlays",
         tag="ol-popover",
+        avoid="Use the composed variants (Select, Options, Menu) before a bare Popover; reserve it for custom panel content.",
     ),
     Component(
         "select-popover",
@@ -140,6 +145,7 @@ COMPONENTS = (
         "design/components/select-popover.html.jinja",
         group="Overlays",
         tag="ol-select-popover",
+        avoid="For a single choice use Options Popover; for four or fewer choices use Segmented Control.",
     ),
     Component(
         "options-popover",
@@ -147,6 +153,7 @@ COMPONENTS = (
         "design/components/options-popover.html.jinja",
         group="Overlays",
         tag="ol-options-popover",
+        avoid="Multiple selections belong in a Select Popover.",
     ),
     Component(
         "menu-popover",
@@ -162,6 +169,7 @@ COMPONENTS = (
         "design/components/dialog.html.jinja",
         group="Overlays",
         tag="ol-dialog",
+        avoid="For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner.",
     ),
     Component(
         "drawer",
@@ -186,12 +194,14 @@ COMPONENTS = (
         "design/components/banner.html.jinja",
         group="Feedback",
         tag="ol-banner",
+        avoid="Page-level and persistent. For confirmation of an action the user just took, use Toast.",
     ),
     Component(
         "message",
         "Message",
         "design/components/message.html.jinja",
         group="Feedback",
+        avoid="Inline, next to the thing it describes. For page-level notices use Banner.",
     ),
     Component(
         "scorecard",
@@ -199,6 +209,7 @@ COMPONENTS = (
         "design/components/scorecard.html.jinja",
         group="Feedback",
         tag="ol-scorecard",
+        avoid="Purpose-built for the book-quality score; don't repurpose it as a generic gauge.",
     ),
     # --- Content ---------------------------------------------------------
     Component(
@@ -207,6 +218,7 @@ COMPONENTS = (
         "design/components/carousel.html.jinja",
         group="Content",
         tag="ol-carousel",
+        avoid="For fewer than about six items, lay them out in a row instead.",
     ),
     Component(
         "read-more",
@@ -214,6 +226,7 @@ COMPONENTS = (
         "design/components/read-more.html.jinja",
         group="Content",
         tag="ol-read-more",
+        avoid="Only for prose. Don't hide controls or lists behind it.",
     ),
     Component(
         "markdown-editor",
@@ -221,6 +234,7 @@ COMPONENTS = (
         "design/components/markdown-editor.html.jinja",
         group="Content",
         tag="ol-markdown-editor",
+        avoid="For a plain text field use <textarea>; this is for Markdown bodies only.",
     ),
     # A stub on purpose: icons have a section of their own, and this row exists
     # so someone scanning the component list finds them rather than concluding
@@ -231,6 +245,7 @@ COMPONENTS = (
         "design/components/icon.html.jinja",
         group="Content",
         tag="ol-icon",
+        avoid="Only for icons from the set; don't use it to embed arbitrary SVG.",
         api_table=False,
     ),
 )

@@ -34,7 +34,7 @@ These rules apply to every line you write or modify, in any file. Much of `stati
 }
 ```
 
-**Tabular numbers:** Use `font-variant-numeric: tabular-nums` for numbers that change dynamically (counters, prices, timers).
+**Tabular numbers:** Use `font-variant-numeric: tabular-nums` for numbers that change dynamically (counters, prices, timers), so the text doesn't shift width as digits change.
 
 ```css
 .counter {
@@ -42,29 +42,48 @@ These rules apply to every line you write or modify, in any file. Much of `stati
 }
 ```
 
-### Text Wrapping
-
-Use `text-wrap: balance` on headings for better line breaks.
-
-```css
-h1,
-h2,
-h3 {
-  text-wrap: balance;
-}
-```
-
 ## Visual Design
 
 ### Scroll Margins
 
-Set `scroll-margin-top` for scrollable elements to ensure proper space above elements when scrolling to anchors:
+Set `scroll-margin-top` on anchor targets so a sticky header doesn't cover them when scrolling to a fragment. Derive the offset from the header's height token, never a bare pixel value:
 
 ```css
+/* page-design.css — the design page's sticky masthead */
 [id] {
-  scroll-margin-top: 80px; /* Height of sticky header */
+  scroll-margin-top: calc(var(--ds-masthead-height) + var(--spacing-inset-md));
 }
 ```
+
+## Components
+
+Before writing new markup or CSS, check whether an existing component already does the job. Every row is documented with live examples and a generated API table at `/developers/design`; the *Avoid* column is the same text the design page shows, sourced from `COMPONENTS` in `openlibrary/plugins/openlibrary/design.py` — change it there and here together.
+
+| Component | Tag | Use it for | Avoid |
+|---|---|---|---|
+| Button | `ol-button` | One-shot actions, including form submit/reset | For a state that stays on or off, use Toggle. For a filter that can be removed, use Chip. |
+| Toggle | `ol-toggle` | A setting that is on or off | For picking one of several options use Segmented Control. |
+| Segmented Control | `ol-segmented-control` | Pick one of a few options, shown side by side | More than about four options belong in a Select Popover. |
+| Chip | `ol-chip` | A selectable or removable filter | A chip is a removable or selectable filter. A one-shot action is a Button. |
+| Chip Group | `ol-chip-group` | Wrapping layout for a set of Chips | Only for laying out Chips; don't wrap other controls in it. |
+| Pagination | `ol-pagination` | Navigate numbered pages of results | For an open-ended feed, load more in place instead of paging. |
+| Tooltip | `ol-tooltip` | A short hint on hover or focus | Never put essential information or interactive content in a tooltip. |
+| Popover | `ol-popover` | An anchored panel with custom content | Use the composed variants (Select, Options, Menu) before a bare Popover; reserve it for custom panel content. |
+| Select Popover | `ol-select-popover` | Pick several values from a list | For a single choice use Options Popover; for four or fewer choices use Segmented Control. |
+| Options Popover | `ol-options-popover` | Pick one value from a list | Multiple selections belong in a Select Popover. |
+| Menu Popover | `ol-menu-popover` | Pick one action from a list | A choice that is read or submitted later is a value, not an action — use Options Popover. |
+| Dialog | `ol-dialog` | A centered modal interruption | For a task with its own scrolling content, use Drawer. For a passive message, use Toast or Banner. |
+| Drawer | `ol-drawer` | A modal panel that slides in from a viewport edge | A centered interruption is a Dialog. A panel anchored to its trigger is a Popover. |
+| Toast | `ol-toast` | Transient confirmation of something that just happened (`ol-toast-region` hosts them) | Anything the reader must act on belongs in a Dialog or a Banner. |
+| Banner | `ol-banner` | A persistent page-level announcement | Page-level and persistent. For confirmation of an action the user just took, use Toast. |
+| Message | `.ol-message` | An inline notice next to the thing it describes (CSS classes, no tag) | Inline, next to the thing it describes. For page-level notices use Banner. |
+| Scorecard | `ol-scorecard` | The book-quality score (`ol-score-gauge` is its internal gauge) | Purpose-built for the book-quality score; don't repurpose it as a generic gauge. |
+| Carousel | `ol-carousel` | A horizontal, page-based row of items | For fewer than about six items, lay them out in a row instead. |
+| Read More | `ol-read-more` | Collapse long prose behind an expander | Only for prose. Don't hide controls or lists behind it. |
+| Markdown Editor | `ol-markdown-editor` | WYSIWYG editing of a Markdown body | For a plain text field use <textarea>; this is for Markdown bodies only. |
+| Icon | `ol-icon` | One icon from the Open Library set | Only for icons from the set; don't use it to embed arbitrary SVG. |
+
+`ol-otp-login` is also registered but is a single login flow, not a reusable component. For when to build something new versus enhance a template, see [When to Build a Component](web-components.md#when-to-build-a-component).
 
 ## Design Tokens
 
@@ -161,8 +180,7 @@ modality. Never key a blur off a breakpoint — the first modal surface on deskt
 Every modal surface reads the same two tokens, `--overlay-backdrop-color` and
 `--overlay-backdrop-blur`. Don't hand-roll a per-component scrim value: a
 hamburger drawer that dims harder than a confirm dialog reads as the more
-serious interruption, which is backwards. `ol-drawer` carried its own `0.5`
-black for exactly that reason until the three were unified.
+serious interruption, which is backwards.
 
 **The blur is what lets the dim stay light.** 32% black over a page of book
 covers still leaves a legible, busy field competing with the panel — you can
@@ -186,11 +204,9 @@ Two consequences worth knowing before adding a scrim to something new:
   keep it that way, and see [Overlays and the top
   layer](web-components.md#overlays-and-the-top-layer) for the full trap.
 - **Nested modals compound**, since each scrim blurs whatever is painted below
-  it. A popover tray opened from inside the drawer stacks two layers: ~0.54
-  effective dim and ~4.2px of blur, with the drawer panel itself pushed back
-  along with the page. Measured, that reads as intentional depth rather than a
-  bug — but it is the reason the shared token is light. Two 0.5 scrims would
-  not survive the same stacking.
+  it. A popover tray opened from inside the drawer stacks two scrims, and the
+  drawer panel is pushed back along with the page. That reads as depth rather
+  than a bug — but only because the shared token is light. Don't raise it.
 
 ## Animations
 
@@ -280,19 +296,32 @@ one declaration, so there's nothing to keep in sync.
 Both still obey "hover is instant" above — no transition on the color/filter
 change; only the `:active` press-scale animates.
 
+### Press feedback: self-contained controls squeeze, rows and surfaces don't
+
+Scale a control on `:active` only if it is **self-contained**: it has its own visible boundary (fill, border, or shadow) separating it from its neighbors, and pressing it completes an action. Buttons, chips, icon buttons, pagination items, and carousel arrows qualify. Menu rows and drawer items press with a fill and no squeeze — their edges touch their siblings, so a shrinking row reads as the panel moving rather than the row being pressed. Surfaces (popover, dialog, drawer, toast) are never pressed; their `scale(0.95)` is an enter animation, not press feedback.
+
+**Pick the tier by width, not importance.** The percentage is tuned so the edge travels about 1.5px: 3% is sub-pixel on a 32px icon button and a 15px lurch on a 500px search bar.
+
+```css
+/* Square icon controls (26–40px) */
+.icon-button:active { transform: scale(var(--press-scale-compact)); } /* 0.92 */
+
+/* Text controls (60–160px) */
+.button:active { transform: scale(var(--press-scale)); }              /* 0.97 */
+
+/* Stretched controls: full-width buttons, the search bar (200px+) */
+.search-bar:active { transform: scale(var(--press-scale-wide)); }     /* 0.985 */
+```
+
+Tokens live in `static/css/tokens/press.css`. The press transition is the one place a hover-adjacent transition is allowed — `transform` only, never color (see [Hover state changes are instant](#hover-state-changes-are-instant)).
+
 ### Practical Tips
 
 | Scenario | Solution |
 | --- | --- |
-| Make a control feel responsive | Scale it on `:active` only if it is a self-contained control: it has its own visible boundary (fill, border, or shadow) separating it from its neighbors, and pressing it completes an action. Buttons, chips, icon buttons, pagination items, and carousel arrows qualify. Menu rows and drawer items press with a fill, no squeeze: their edges touch their siblings, so a shrinking row reads as the panel moving rather than the row being pressed. Surfaces (popover, dialog, drawer, toast) are never pressed; their `scale(0.95)` is an enter animation, not press feedback. |
-| Press-scale looks exaggerated or invisible | Pick the tier by width, not importance: `--press-scale-compact` (0.92) for square icon controls, `--press-scale` (0.97) for text controls, `--press-scale-wide` (0.985) for stretched controls like `full-width` buttons and the search bar. Each is tuned so the edge travels ~1.5px; 3% is sub-pixel at 32px and a 15px lurch at 500px. See `static/css/tokens/press.css`. |
 | Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
-| Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
 | Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |
-| Shaky/jittery animations | Add `will-change: transform` |
-| Hover causes flicker | Animate child element, not parent |
-| Popover scales from wrong point | Set `transform-origin` to trigger location |
 | Sequential tooltips feel slow | Skip delay/animation after first tooltip |
 | Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` — see [Mobile](#mobile) |
 
@@ -342,3 +371,19 @@ Use the same query to decide which affordance to render in markup. For example, 
   .dismiss-keyboard { display: block; }
 }
 ```
+
+## Enforcement
+
+What checks each rule today. "Review" means only a human or the Copilot UI checklist (`.github/instructions/ui.instructions.md`) catches it; those are the candidates for a lint. When a rule gains a check, shorten its entry above to a pointer here.
+
+| Rule | Checked by |
+|---|---|
+| No raw colors; tokens for `color`, `background-color`, `font-family`, `z-index` | stylelint `color-no-hex`, `color-named`, `declaration-strict-value` — `static/**/*.css` and `openlibrary/**/*.css` only, **not** CSS inside Lit `static styles` |
+| Semantic tokens meet WCAG AA | `tests/unit/js/token-contrast.test.js` (palette matrix), `tests/unit/js/design-contrast.test.js` (design-page badges) |
+| Deprecated aliases | Review |
+| No font-weight change on hover | Review |
+| Hover is instant / border tracks fill / fill direction | Review |
+| Press feedback tiers | Review |
+| Blur follows modality; shared scrim tokens | Review |
+| 16px text-entry controls | Review |
+| Hover gated to hover-capable pointers | Review |
