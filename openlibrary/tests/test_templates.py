@@ -56,6 +56,18 @@ def test_login_template_does_not_bind_password_value():
     assert "$form.password.value" not in template
 
 
+def test_advanced_search_preserves_search_state():
+    nav = Path("openlibrary/macros/SearchNavigation.html").read_text(encoding="utf-8")
+    advanced = Path("openlibrary/templates/search/advancedsearch.html").read_text(encoding="utf-8")
+
+    assert "href=\"$changequery(_path='/advancedsearch', page=None)\"" in nav
+    assert "value=\"$query_param('q', '')\"" in advanced
+    assert "value=\"$query_param('title', '')\"" in advanced
+    assert "value=\"$query_param('author', '')\"" in advanced
+    assert "$for k, values in param.items():" in advanced
+    assert '<input type="hidden" name="$k"' in advanced
+
+
 def test_no_role_trio_in_source():
     """No source file should use all three of is_admin(), is_librarian(),
     is_super_librarian() on the same line -- use is_librarian_or_higher() instead.
