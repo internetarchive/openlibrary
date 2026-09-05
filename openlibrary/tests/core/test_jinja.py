@@ -11,6 +11,7 @@ from lxml.etree import ParseError as LxmlParseError
 from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
+from openlibrary.core import jinja as jinja_module
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import load_translations
 from openlibrary.utils.request_context import req_context
@@ -33,6 +34,14 @@ class RenderableUndefined(jinja2.Undefined):
     """
 
     __eq__ = __ne__ = __lt__ = __gt__ = __le__ = __ge__ = lambda s, o: s
+
+    def __getattr__(self, name: str) -> RenderableUndefined:
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        return RenderableUndefined()
+
+    def __getitem__(self, key: object) -> RenderableUndefined:
+        return RenderableUndefined()
 
 
 def _create_validation_env() -> jinja2.Environment:
@@ -65,19 +74,13 @@ def _create_validation_env() -> jinja2.Environment:
     env.install_gettext_callables(_gettext, _ngettext, newstyle=True)
     env.policies["ext.i18n.trimmed"] = True
 
-    try:
-        from infogami.utils.view import render_template as _render_templetor  # noqa: PLC0415
+    # Stubbed: this env only validates template structure, without infogami's
+    # runtime template disk-loading or template globals.
+    def _stub_render_templetor(*a, **kw):
+        return ""
 
-        env.globals["render_templetor_template"] = _render_templetor
-    except ImportError:
+    env.globals["render_templetor_template"] = _stub_render_templetor
 
-        def _stub(*a, **kw):
-            return ""
-
-        env.globals["render_templetor_template"] = _stub
-
-    # Stubbed: this env only validates template structure, and the real macro
-    # needs infogami's template globals.
     env.globals["icon"] = lambda *a, **kw: ""
 
     # The TestingEnvironment macro renders a Vue component via
@@ -110,6 +113,22 @@ def assert_valid_html(html_string: str) -> None:
         lxml_html.fromstring(html_string, parser=parser)
     except LxmlParseError as e:
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
+
+
+def test_site_layout_template_uses_jinja_template(monkeypatch):
+    """The ``site`` pile entry should delegate to the Jinja site wrapper."""
+    rendered = "<html>"
+
+    def mock_render(template_name, **kwargs):
+        assert template_name == "site.html.jinja"
+        assert kwargs == {"page": "page"}
+        return rendered
+
+    monkeypatch.setattr(jinja_module, "render_jinja_template", mock_render)
+
+    site_template = jinja_module.SiteLayoutTemplate()
+    assert site_template.filename == "openlibrary/templates/site.html.jinja"
+    assert site_template("page") == rendered
 
 
 class TestGetJinjaEnv:
@@ -148,6 +167,12 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert "icon" in env.globals
         assert callable(env.globals["icon"])
+
+    def test_has_render_templetor_template_global(self):
+        """Should expose render_templetor_template in globals."""
+        env = get_jinja_env()
+        assert "render_templetor_template" in env.globals
+        assert callable(env.globals["render_templetor_template"])
 
     def test_has_autoescape_enabled(self):
         """Should have autoescaping enabled."""
@@ -278,7 +303,7 @@ def test_all_jinja_templates_render_valid_html(request_context_fixture, subtests
 
     for path in sorted(templates):
         rel = path.relative_to(TEMPLATES_DIR)
-        with subtests.test(template=str(rel)):
-            tpl = env.get_template(str(rel))
+        with subtests.test(template=rel.as_posix()):
+            tpl = env.get_template(rel.as_posix())
             output = tpl.render()
             assert_valid_html(output)

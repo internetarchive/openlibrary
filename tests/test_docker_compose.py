@@ -44,3 +44,20 @@ class TestDockerCompose:
         for service_name in ("web", "fast_web"):
             assert "OL_DEPLOYMENT_NAME=testing" in staging_dc["services"][service_name]["environment"]
             assert "OL_DEPLOYMENT_NAME=production" in prod_dc["services"][service_name]["environment"]
+
+    def test_node_exporter_matches_across_environments(self):
+        """
+        node-exporter should be configured identically in staging and production
+        (aside from production's per-server 'profiles' field) so that the metrics
+        we collect are consistent across environments.
+        """
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+
+        staging_node_exporter = dict(staging_dc["services"]["node-exporter"])
+        prod_node_exporter = dict(prod_dc["services"]["node-exporter"])
+        del prod_node_exporter["profiles"]
+
+        assert staging_node_exporter == prod_node_exporter, "node-exporter config differs between staging and production"
