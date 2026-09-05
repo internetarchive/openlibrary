@@ -676,6 +676,92 @@ prune_docker () {
     return 0
 }
 
+# Which compose service runs nginx on each host; the compose profile is the
+# hostname. Hosts absent from this list don't run nginx.
+nginx_service_for() {
+    case "$1" in
+        ol-www0)    echo "web_nginx" ;;
+        ol-home0)   echo "infobase_nginx" ;;
+        ol-covers0) echo "covers_nginx" ;;
+        *)          echo "" ;;
+    esac
+}
+
+# Validate the nginx config that the olsystem deploy just shipped.
+#
+# olsystem carries the ModSecurity ruleset, and docker/ol-nginx-start.sh execs
+# `nginx -g` with no prior `nginx -t` -- so a bad rule is not a failed deploy, it
+# is an [emerg] at startup that crash-loops the container and takes the site
+# down. See internetarchive/olsystem#420. Catching it here, immediately after the
+# olsystem deploy, means the running containers are still serving the previous
+# (good) config and nothing is user-visible yet.
+#
+# `exec` against the live container is the right call at THIS point in the
+# deploy: olsystem is bind-mounted as a directory (../olsystem:/olsystem), so the
+# running container already sees the freshly deployed rules. Do not reuse this
+# after an openlibrary code transfer -- copy_to_servers replaces /opt/openlibrary
+# wholesale (rm -rf + mv), which leaves the single-FILE bind mounts
+# (nginx.conf, web_nginx.conf) as orphaned inodes still holding the previous
+# deploy's config. A check there would need `run --rm --no-deps` instead, and
+# never --service-ports, which would contend for :80/:443 with the live container.
+check_nginx_config() {
+    if [[ "$SKIP_NGINX_CHECK" == "1" ]]; then
+        echo "[Warning] Skipping nginx config test (SKIP_NGINX_CHECK=1)"
+        return 0
+    fi
+
+    HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
+    local COMPOSE_FILE="compose.yaml:compose.production.yaml"
+    local FAILED=0
+    local CHECKED=0
+    local SERVICE
+    local SERVER
+
+    echo "[Now] Testing nginx config against the newly deployed olsystem rules..."
+    for SERVER_NAME in $HOSTNAMES; do
+        SERVICE=$(nginx_service_for "$SERVER_NAME")
+        if [[ -z "$SERVICE" ]]; then
+            continue
+        fi
+        CHECKED=1
+
+        SERVER="${SERVER_NAME}${SERVER_SUFFIX}"
+        echo -n "   $SERVER ($SERVICE) ... "
+
+        if OUTPUT=$(ssh "$SERVER" "
+            set -e
+            cd /opt/openlibrary
+            COMPOSE_FILE='$COMPOSE_FILE' HOSTNAME=\$HOSTNAME docker compose --profile $SERVER_NAME exec -T $SERVICE nginx -t
+        " 2>&1); then
+            echo "✓"
+        else
+            echo "⚠"
+            echo "$OUTPUT"
+            FAILED=1
+        fi
+    done
+
+    if [ $CHECKED -eq 0 ]; then
+        echo "   No nginx hosts in this deploy; nothing to test."
+        return 0
+    fi
+
+    if [ $FAILED -eq 1 ]; then
+        echo ""
+        echo "[Error] nginx config test FAILED on one or more hosts (see output above)."
+        echo "        olsystem is already deployed, but the new config is invalid --"
+        echo "        restarting nginx now would take the site down (olsystem#420)."
+        echo "        The running containers are still serving the previous config."
+        echo ""
+        echo "        Fix the ruleset in olsystem and deploy it again, or roll back"
+        echo "        using the copy left in /opt/olsystem_previous on each host."
+        echo "        To proceed anyway (NOT recommended), set SKIP_NGINX_CHECK=1."
+        clean_exit
+    fi
+
+    return 0
+}
+
 recreate_services() {
     echo "[Now] Restarting services, keep an eye on sentry/grafana (~3m as of 2024-12-09)"
     echo "- Sentry: https://sentry.archive.org/organizations/ia-ux/issues/?project=7&statsPeriod=1d"
@@ -716,6 +802,10 @@ deploy_wizard() {
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time deploy_olsystem
+        # Gate on `nginx -t` here, not at restart time: olsystem ships the
+        # ModSecurity ruleset, and a bad rule only surfaces as an nginx [emerg]
+        # once something restarts. Fail now, while the site is still up.
+        check_nginx_config
     fi
     echo ""
 
@@ -724,20 +814,35 @@ deploy_wizard() {
     done
     echo ""
 
-    read -p "[Now] Run openlibrary deploy? [Y/n]..." answer
+    # Y = run every step with its default; p = pick the steps individually.
+    read -p "[Now] Run openlibrary deploy? [Y/n/p]..." answer
     answer=${answer:-Y}
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        read -p "[Now] Transfer codebase to servers? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_CODE=1
+    if [[ "$answer" =~ ^[YyPp]$ ]]; then
+        if [[ "$answer" =~ ^[Pp]$ ]]; then
+            read -p "[Now] Transfer codebase to servers? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_CODE=1
+            fi
 
-        read -p "[Now] Deploy Docker Images? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_IMAGES=1
+            read -p "[Now] Deploy Docker Images? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Nn]$ ]]; then
+                SKIP_OL_TRANSFER_IMAGES=1
+            fi
 
-        read -p "[Now] Tag deploy? [Y/n]..." answer
-        answer=${answer:-Y}
-        [[ "$answer" =~ ^[Yy]$ ]] && TAG_DEPLOY=1
+            read -p "[Now] Tag deploy? [Y/n]..." step_answer
+            step_answer=${step_answer:-Y}
+            if [[ "$step_answer" =~ ^[Yy]$ ]]; then
+                TAG_DEPLOY=1
+            fi
+        else
+            # Full deploy. TAG_DEPLOY must be set explicitly here: it is otherwise
+            # only ever set by the "Tag deploy?" sub-prompt above, so without this
+            # line tagging silently stops happening while the deploy still reports
+            # success.
+            TAG_DEPLOY=1
+        fi
 
         time deploy_openlibrary
         echo ""
@@ -805,6 +910,7 @@ else
     echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
     echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
     echo "          TAG_DEPLOY=1              tag this commit as the deploy (set automatically by wizard)"
+    echo "          SKIP_NGINX_CHECK=1        skip the \`nginx -t\` test run after the olsystem deploy"
     exit 1
 fi
 
