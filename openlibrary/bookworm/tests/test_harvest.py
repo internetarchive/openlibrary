@@ -141,3 +141,48 @@ def test_harvest_all_continues_when_one_feed_errors(bookworm_db):
     assert by_feed["betterworldbooks"]["records"] == 2  # healthy feed unaffected
     assert by_feed["lenny"]["records"] == 0
     assert by_feed["lenny"].get("error") is True
+
+
+def test_dry_run_writes_nothing_and_leaves_the_cursor_alone(bookworm_db):
+    """A dry run must be genuinely inert: no import items, no cursor advance.
+
+    This is what makes it safe to validate a newly registered feed against
+    production before letting it write.
+    """
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    session = FakeSession({"https://bwb/opds": feed_page("bwb")})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW, dry_run=True)
+
+    # It still reports what it *would* have done.
+    assert result["records"] == 2
+    assert result["dry_run"] is True
+    assert list(bookworm_db.select("import_item")) == []
+    assert FeedRegistry.get_by_id(feed.id).last_updated is None
+
+
+def test_dry_run_on_a_modified_since_feed_leaves_the_cursor_alone(bookworm_db):
+    """The native path advances to run time, so it needs its own guard."""
+    FeedRegistry.register("project_gutenberg", "https://g/opds/search?sort=fil", id_strategy="gutenberg", cursor_style=CURSOR_MODIFIED_SINCE)
+    feed = FeedRegistry.find("project_gutenberg", "https://g/opds/search?sort=fil")
+    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 7, 20))
+    feed = FeedRegistry.get_by_id(feed.id)
+    session = FakeSession({feed.request_url(datetime.datetime(2026, 7, 20, tzinfo=datetime.UTC)): feed_page("gutenberg")})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW, dry_run=True)
+
+    assert result["records"] == 3
+    assert list(bookworm_db.select("import_item")) == []
+    assert str(FeedRegistry.get_by_id(feed.id).last_updated).startswith("2026-07-20")
+
+
+def test_dry_run_applies_to_every_feed_in_harvest_all(bookworm_db):
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    session = FakeSession({"https://bwb/opds": feed_page("bwb"), "https://lenny/opds": feed_page("lenny")})
+
+    results = harvest.harvest_all(session=session, dry_run=True)
+
+    assert all(r.get("dry_run") for r in results)
+    assert list(bookworm_db.select("import_item")) == []
