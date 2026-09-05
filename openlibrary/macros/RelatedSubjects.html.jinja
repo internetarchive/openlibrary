@@ -3,9 +3,7 @@
     {% if subjects | length > 0 %}
         <ol-chip-group gap="small">
             {% for s in subjects %}
-                <ol-chip size="small" href="{{ s.key }}">
-                    {{ s.name }}
-                </ol-chip>
+                <ol-chip size="small" href="{{ s.key }}">{{ s.name }}</ol-chip>
             {% endfor %}
         </ol-chip-group>
     {% else %}
