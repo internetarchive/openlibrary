@@ -21,10 +21,17 @@ class FakeFeed:
 @pytest.fixture
 def runner(monkeypatch):
     """Stub out config loading and harvesting; record what the runner asked for."""
-    calls: dict = {"harvest_feed": [], "harvest_all": 0, "sleeps": []}
+    calls: dict = {"harvest_feed": [], "harvest_all": 0, "sleeps": [], "setup_requests": 0, "load_config": None}
     feeds = [FakeFeed("lenny"), FakeFeed("project_gutenberg")]
 
-    monkeypatch.setattr(bookworm_harvest, "load_config", lambda path: None)
+    def fake_load_config(path):
+        calls["load_config"] = path
+
+    def fake_setup_requests():
+        calls["setup_requests"] += 1
+
+    monkeypatch.setattr(bookworm_harvest, "load_config", fake_load_config)
+    monkeypatch.setattr(bookworm_harvest, "setup_requests", fake_setup_requests)
     monkeypatch.setattr(bookworm_harvest.FeedRegistry, "all", staticmethod(lambda: feeds))
 
     def fake_harvest_feed(feed, **kwargs):
@@ -43,6 +50,19 @@ def runner(monkeypatch):
 
     monkeypatch.setattr(bookworm_harvest.time, "sleep", fake_sleep)
     return calls
+
+
+class TestProxySetup:
+    def test_proxy_config_is_applied_before_any_fetch(self, runner):
+        """ol-home0 reaches provider feeds only through an authenticated proxy.
+
+        setup_requests() exports http_proxy / no_proxy_addresses from
+        openlibrary.yml into the environment; skipping it means every fetch
+        goes direct and times out.
+        """
+        bookworm_harvest.main(ol_config="prod.yml")
+        assert runner["load_config"] == "prod.yml"
+        assert runner["setup_requests"] == 1
 
 
 class TestFeedSelection:

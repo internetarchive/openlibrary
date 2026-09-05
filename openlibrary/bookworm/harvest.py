@@ -24,7 +24,6 @@ from typing import Any
 
 import requests
 
-from infogami import config
 from openlibrary.bookworm import opds
 from openlibrary.bookworm.registry import FeedRegistry
 from openlibrary.core.imports import Batch
@@ -44,30 +43,18 @@ allowlist it *by*.
 """
 
 
-def proxies_from_config() -> dict[str, str]:
-    """Explicit proxy settings from ``openlibrary.yml``, if any are configured.
-
-    Open Library's cron container reaches the internet only through an
-    authenticated Squid proxy, and the credentials belong with the rest of the
-    deployment config rather than in the container environment (where they show
-    up in ``docker inspect`` and every ``env`` dump).
-
-    Returns ``{}`` when nothing is configured, which leaves ``requests`` to fall
-    back to ``HTTP_PROXY``/``HTTPS_PROXY`` in the environment as before.
-    """
-    configured = {}
-    for scheme in ("http", "https"):
-        if value := config.get(f"{scheme}_proxy"):
-            configured[scheme] = value
-    return configured
-
-
 def build_session() -> requests.Session:
-    """A session that identifies itself and honours configured proxies."""
+    """A session that identifies itself to providers.
+
+    Proxying is deliberately NOT configured here. ``setup_requests()`` exports
+    ``http_proxy``/``no_proxy_addresses`` from ``openlibrary.yml`` into the
+    environment (the pattern coverstore, add_book and affiliate_server all use),
+    and ``requests`` reads the environment itself. So this works whether the
+    proxy comes from the config file or is already set in the container env,
+    and there is one place that knows how OL expresses proxy settings.
+    """
     session = requests.Session()
     session.headers["User-Agent"] = USER_AGENT
-    if proxies := proxies_from_config():
-        session.proxies.update(proxies)
     return session
 
 

@@ -36,6 +36,7 @@ import time
 from openlibrary.bookworm import harvest
 from openlibrary.bookworm.registry import FeedRegistry
 from openlibrary.config import load_config
+from openlibrary.plugins.upstream.utils import setup_requests
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.bookworm.cron")
@@ -104,6 +105,12 @@ def main(
     """
     logging.basicConfig(level=logging.INFO)
     load_config(ol_config)
+    # Exports http_proxy / no_proxy_addresses from openlibrary.yml into the
+    # environment, where requests picks them up. ol-home0 reaches provider
+    # feeds only through an authenticated proxy, so without this every fetch
+    # fails -- and the credentials stay in the config file rather than the
+    # container environment.
+    setup_requests()
 
     if not continuous:
         failed = _report(_run_pass(provider, max_pages, dry_run), dry_run)
