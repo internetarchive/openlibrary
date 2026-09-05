@@ -1,7 +1,6 @@
 {% set async_load = async_load | default(false) %}
-<div id="subjectPublishingHistory"
-     data-async-load="{{ async_load | tojson }}"
-     data-key="{{ key | tojson }}">
+{% set publishing_history = publishing_history | default([]) %}
+{% set key = key | default("") %}
     <div class="head">
         <h2 class="inline">{{ _("Publishing History") }}</h2>
         <span class="shift">
