@@ -151,6 +151,9 @@ e2e-index:
 e2e-reindex:
 	docker compose run --rm home make reindex-solr
 
+# A thin wrapper over the npm script, the way `test` wraps `npm run test`, so
+# Playwright is invoked in exactly one place. Not folded into `test`: that runs
+# on any checkout, and these need the stack up and Solr populated.
 PLAYWRIGHT_ARGS ?=
 test-e2e:
-	npx playwright test $(PLAYWRIGHT_ARGS)
+	npm run test:e2e -- $(PLAYWRIGHT_ARGS)
