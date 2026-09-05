@@ -2,15 +2,26 @@
 
 from __future__ import annotations
 
+import io
 from unittest.mock import MagicMock, patch
 from urllib.parse import unquote
 
+from PIL import Image
+
 from infogami import config
 from openlibrary.core.auth import ExpiredTokenError, MissingKeyError
+from openlibrary.fastapi.account import sanitize_image
 from openlibrary.utils.request_context import RequestContextVars, req_context, site
 
 _DEFAULT_HEADER = "LOW ak:sk"
 _SENTINEL = object()
+
+
+def _make_jpeg_bytes(color: str = "blue", size: tuple[int, int] = (100, 100)) -> bytes:
+    """Render a small valid JPEG to bytes with Pillow."""
+    buf = io.BytesIO()
+    Image.new("RGB", size, color=color).save(buf, format="JPEG")
+    return buf.getvalue()
 
 
 def _anonymize_post(
@@ -612,3 +623,223 @@ class TestAnonymizeAccount:
 
         assert resp.status_code == 500
         assert resp.json()["detail"] == "Internal Server Error"
+
+
+class TestAvatarUpload:
+    def _make_account(self, *, avatar_updated=None, s3_keys=None):
+        account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        if avatar_updated is not None:
+            account["avatar_updated"] = avatar_updated
+        if s3_keys is not None:
+            account["s3_keys"] = s3_keys
+        return account
+
+    def _set_up_site_and_memcache(self, monkeypatch, mock_account, *, with_account_doc=None):
+        """Point the site ContextVar at a mock store and stub memcache.
+
+        with_account_doc: when given, site.get("/people/...") returns a mock
+        user whose get_account() returns this dict, so get_avatar_url can
+        observe avatar_updated.
+        """
+        mock_site = MagicMock()
+        mock_site.store = {"account/testuser": mock_account}
+        if with_account_doc is None:
+            mock_site.get.return_value = None
+        else:
+            mock_user = MagicMock()
+            mock_user.get_account.return_value = with_account_doc
+            mock_site.get.return_value = mock_user
+        site.set(mock_site)
+
+        # get_avatar_url is memoized with a computed memcache key; patch the
+        # underlying client so the invalidation delete can be observed.
+        mock_memcache = MagicMock()
+        mock_memcache.get.return_value = None
+        monkeypatch.setattr("openlibrary.core.cache.memcache_cache.memcache", mock_memcache)
+        return mock_site, mock_memcache
+
+    def test_upload_avatar_unauthenticated(self, fastapi_client):
+        response = fastapi_client.post("/account/avatar")
+        assert response.status_code == 401
+
+    def test_upload_avatar_mock_stores_locally_and_skips_ia(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        """Mock uploads (local dev / fake keys) store a local file and never hit IA."""
+        mock_account = self._make_account(s3_keys={"access": "mock_access", "secret": "mock_secret"})
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+        self._set_up_site_and_memcache(monkeypatch, mock_account)
+
+        mock_write = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.write_local_avatar", mock_write)
+        mock_get_item = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", mock_get_item)
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("test_avatar.jpg", _make_jpeg_bytes(), "image/jpeg")},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["avatar_url"].startswith("/people/testuser/avatar?v=")
+        assert mock_write.call_args.args[0] == "testuser"
+        assert len(mock_write.call_args.args[1]) > 0  # sanitized JPEG bytes
+        assert "avatar_updated" not in mock_account
+        mock_get_item.assert_not_called()
+
+    def test_upload_avatar_real_path_uploads_to_ia_and_bumps_timestamp(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        """A real upload writes the file to IA and bumps the avatar timestamp."""
+        mock_account = self._make_account(s3_keys={"access": "AKIA-test", "secret": "test-secret"})
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+        _, mock_memcache = self._set_up_site_and_memcache(monkeypatch, mock_account, with_account_doc=mock_account)
+
+        mock_item = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", lambda itemname: mock_item)
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("test_avatar.jpg", _make_jpeg_bytes(), "image/jpeg")},
+        )
+
+        assert response.status_code == 200
+        mock_item.upload.assert_called_once()
+        assert "avatar.jpg" in mock_item.upload.call_args.args[0]
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["avatar_url"] == f"https://archive.org/services/img/@testuser-archive?v={mock_account['avatar_updated']}"
+        assert mock_account["avatar_updated"]
+        assert any(call.args and call.args[0] == "user-avatar-testuser" for call in mock_memcache.delete.call_args_list)
+
+    def test_upload_avatar_exif_orientation_is_baked_in(self):
+        """A photo flagged as rotated by EXIF is re-encoded upright."""
+        # A wide image with EXIF orientation 6 (rotate 90 CW) should decode as
+        # tall after sanitize_image bakes the orientation into the pixels.
+        img = Image.new("RGB", (200, 100), color="red")
+        buf = io.BytesIO()
+        exif = Image.Exif()
+        exif[0x0112] = 6  # Orientation: rotate 90 CW
+        img.save(buf, format="JPEG", exif=exif)
+
+        out = Image.open(sanitize_image(buf.getvalue(), "testuser"))
+        assert out.size == (100, 200)
+
+    def test_upload_avatar_invalid_file_type(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("test.txt", b"not an image file content", "text/plain")},
+        )
+
+        assert response.status_code == 400
+        assert "Invalid or corrupt image file" in response.json()["detail"]
+
+    def test_upload_avatar_file_too_large(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+
+        large_bytes = b"x" * (6 * 1024 * 1024)  # 6 MB
+
+        response = fastapi_client.post(
+            "/account/avatar",
+            files={"file": ("large.jpg", large_bytes, "image/jpeg")},
+        )
+
+        assert response.status_code == 400
+        assert "File size exceeds 5MB limit" in response.json()["detail"]
+
+    def test_delete_avatar_unauthenticated(self, fastapi_client):
+        response = fastapi_client.delete("/account/avatar")
+        assert response.status_code == 401
+
+    def test_delete_avatar_success(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        """Mock removal (fake keys) clears OL state without touching IA."""
+        mock_account = self._make_account(
+            avatar_updated=1234567,
+            s3_keys={"access": "mock_access", "secret": "mock_secret"},
+        )
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+        _, mock_memcache = self._set_up_site_and_memcache(monkeypatch, mock_account)
+
+        mock_delete = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.delete_local_avatar", mock_delete)
+        mock_get_item = MagicMock()
+        monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", mock_get_item)
+
+        response = fastapi_client.delete("/account/avatar")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "success"
+        assert data["message"] == "Profile picture removed successfully"
+        assert "avatar_updated" not in mock_account
+        mock_delete.assert_called_once_with("testuser")
+        mock_get_item.assert_not_called()
+        assert any(call.args and call.args[0] == "user-avatar-testuser" for call in mock_memcache.delete.call_args_list)
+
+    def test_delete_avatar_real_path_removes_file_and_metadata(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        """A real removal deletes the IA file and clears the item image metadata."""
+        mock_account = self._make_account(
+            avatar_updated=1234567,
+            s3_keys={"access": "AKIA-test", "secret": "test-secret"},
+        )
+        monkeypatch.setattr(
+            "openlibrary.accounts.OpenLibraryAccount.get_by_username",
+            lambda username: mock_account,
+        )
+        self._set_up_site_and_memcache(monkeypatch, mock_account)
+
+        mock_file = MagicMock()
+        mock_file.delete.return_value = MagicMock(status_code=204)
+        mock_item = MagicMock()
+        mock_item.item_metadata = {"metadata": {"image": "avatar.jpg"}}
+        mock_item.get_file.return_value = mock_file
+        monkeypatch.setattr("openlibrary.fastapi.account.ia.get_item", lambda itemname: mock_item)
+
+        response = fastapi_client.delete("/account/avatar")
+
+        assert response.status_code == 200
+        mock_item.modify_metadata.assert_called_once()
+        assert mock_item.modify_metadata.call_args.args[0] == {"image": None}
+        mock_file.delete.assert_called_once()
+        assert "avatar_updated" not in mock_account
+
+    def test_delete_avatar_no_avatar_exists(self, fastapi_client, mock_authenticated_user, monkeypatch):
+        mock_account = {
+            "internetarchive_itemname": "@testuser-archive",
+            "username": "testuser",
+        }
+        monkeypatch.setattr("openlibrary.fastapi.account.read_local_avatar", lambda username: None)
+        mock_site = MagicMock()
+        mock_site.store = {"account/testuser": mock_account}
+        site.set(mock_site)
+
+        response = fastapi_client.delete("/account/avatar")
+
+        assert response.status_code == 400
+        assert "No custom profile picture exists to remove" in response.json()["detail"]

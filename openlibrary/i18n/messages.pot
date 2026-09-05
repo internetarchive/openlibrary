@@ -4004,7 +4004,7 @@ msgstr ""
 msgid "Upload Image"
 msgstr ""
 
-#: covers/add.html
+#: covers/add.html type/user/avatar_i18n.html
 msgid "Uploading..."
 msgstr ""
 
@@ -6831,6 +6831,30 @@ msgstr ""
 msgid "Backreferences"
 msgstr ""
 
+#: type/user/avatar_i18n.html
+msgid "Please choose an image file first."
+msgstr ""
+
+#: type/user/avatar_i18n.html
+msgid "Uploaded successfully!"
+msgstr ""
+
+#: type/user/avatar_i18n.html
+msgid "Upload failed."
+msgstr ""
+
+#: type/user/avatar_i18n.html
+msgid "Removing..."
+msgstr ""
+
+#: type/user/avatar_i18n.html
+msgid "Photo removed successfully!"
+msgstr ""
+
+#: type/user/avatar_i18n.html
+msgid "Failed to remove photo."
+msgstr ""
+
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
@@ -6838,6 +6862,18 @@ msgstr ""
 
 #: type/user/edit.html
 msgid "Currently Editing:"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Profile Picture"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Upload Photo"
+msgstr ""
+
+#: type/user/edit.html
+msgid "Remove Photo"
 msgstr ""
 
 #: type/user/edit.html

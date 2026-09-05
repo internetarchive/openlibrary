@@ -1032,9 +1032,23 @@ class User(Thing):
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit("/people/", maxsplit=1)[-1]
         user = site.get().get(f"/people/{username}")
-        itemname = user.get_account().get("internetarchive_itemname")
+        account = user.get_account() if user else {}
+        itemname = account.get("internetarchive_itemname") or f"@{username}"
+        if not itemname.startswith("@"):
+            itemname = f"@{itemname}"
+        url = f"https://archive.org/services/img/{itemname}"
+        if avatar_updated := account.get("avatar_updated"):
+            url += f"?v={avatar_updated}"
+        return url
 
-        return f"https://archive.org/services/img/{itemname}"
+    @classmethod
+    def invalidate_avatar_url_cache(cls, username: str) -> None:
+        """Drop the memoized get_avatar_url entry for this user.
+
+        The key must match the one computed by the memoize decorator's keyfunc
+        on get_avatar_url above; update both if that lambda changes.
+        """
+        cache.memcache_cache.delete(f"user-avatar-{username}")
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
