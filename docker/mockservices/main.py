@@ -405,7 +405,7 @@ async def loans(request: Request) -> JSONResponse:
             try:
                 limit = int(params.get("limit", 25))
                 offset = int(params.get("offset", 0))
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 limit, offset = 25, 0
             items = _loan_history[userid][offset : offset + limit]
             return JSONResponse({"history": {"items": items}})
