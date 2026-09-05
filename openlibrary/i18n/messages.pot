@@ -1869,7 +1869,7 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: PublishingHistory.html admin/imports.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja admin/imports.html publishers/view.html
 msgid "You need to have JavaScript turned on to see the nifty chart!"
 msgstr ""
 
@@ -5379,7 +5379,7 @@ msgstr[1] ""
 msgid "0 ebooks"
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja publishers/view.html
 msgid "Publishing History"
 msgstr ""
 
@@ -5387,11 +5387,11 @@ msgstr ""
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja publishers/view.html
 msgid "Reset chart"
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja publishers/view.html
 msgid "or continue zooming in."
 msgstr ""
 
@@ -5399,11 +5399,11 @@ msgstr ""
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja publishers/view.html
 msgid "Editions Published"
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
+#: PublishingHistory.html PublishingHistory.html.jinja publishers/view.html
 msgid "Year of Publication"
 msgstr ""
 
@@ -7140,19 +7140,19 @@ msgstr ""
 msgid "Component"
 msgstr ""
 
-#: PublishingHistory.html
+#: PublishingHistory.html PublishingHistory.html.jinja
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
-#: PublishingHistory.html
+#: PublishingHistory.html PublishingHistory.html.jinja
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: PublishingHistory.html RelatedSubjects.html
+#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html
 msgid "Something went wrong."
 msgstr ""
 
-#: PublishingHistory.html RelatedSubjects.html
+#: PublishingHistory.html PublishingHistory.html.jinja RelatedSubjects.html
 msgid "Retry"
 msgstr ""
 
