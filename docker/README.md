@@ -204,6 +204,32 @@ No restart is required. If `webnet` no longer exists, recreating it _should_ fix
 
 To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
 
+### npm fails with `ENOTEMPTY: directory not empty, rmdir ...` (Docker Desktop on macOS)
+
+Commands that run npm inside a container (e.g. `make css`/`js`, `npm run build-assets`, or `npm install`) fail consistently with an error such as:
+
+```log
+npm error code ENOTEMPTY
+npm error syscall rmdir
+npm error path /openlibrary/node_modules/webpack/lib
+npm error ENOTEMPTY: directory not empty, rmdir '/openlibrary/node_modules/webpack/lib'
+make: *** [Makefile:20: node_modules] Error 217
+```
+
+Sometimes accompanied by `npm ls` reporting packages as `UNMET DEPENDENCY` even though the directories visibly exist. On macOS, one known cause is Docker Desktop's **Docker VMM (beta)** virtual machine backend corrupting writes to named volumes (such as `ol-nodemodules`, the volume backing `/openlibrary/node_modules`).
+
+To resolve:
+
+1. In Docker Desktop, go to Settings → General → **Virtual machine options** and switch from "Docker VMM" to the **Apple Virtualization framework** (it's fine to keep VirtioFS selected for file sharing), then Apply & restart.
+2. Recreate the corrupted volume so it's repopulated from a healthy state:
+
+   ```sh
+   docker rm openlibrary-web-1 openlibrary-home-1  # only if these exited containers still reference the volume
+   docker volume rm openlibrary_ol-nodemodules
+   ```
+
+3. Re-run your npm command, e.g. `docker compose run --rm web make css`. (If other `*_ol-nodemodules` volumes were populated while Docker VMM was active — e.g. volumes for other clones/worktrees — recreate them the same way.)
+
 ### Permission denied errors on SELinux
 
 SELinux implements [Mandatory Access Controls (MAC)](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/virtualization_security_guide/sect-virtualization_security_guide-svirt-mac). Even if normal file permissions (user/group/other) would allow access, SELinux can still block resulting in permission denied errors. By adding the `z` or `Z` [bind mount options for Docker/Podman](https://docs.docker.com/engine/storage/bind-mounts/#configure-the-selinux-label) this allows the container process to access the files, by changing the MAC label.
