@@ -93,6 +93,13 @@ export class OLReadMore extends LitElement {
             text-decoration: underline;
         }
 
+        /* Inset ring: the toggle is full-bleed, so an outward offset would draw
+           outside the container it sits on. */
+        .toggle-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: -2px;
+        }
+
         .toggle-btn.hidden {
             display: none;
         }

@@ -79,10 +79,9 @@ export class OlToast extends LitElement {
 
     static styles = css`
         :host {
-            /* Sonner's curve — a strong ease-out with a hint of overshoot.
-               Shared by enter, exit, and stack re-shuffles so the toasts
+            /* One curve for enter, exit, and stack re-shuffles so the toasts
                move as one system (paired-elements rule). */
-            --ol-toast-ease: cubic-bezier(0.21, 1.02, 0.73, 1);
+            --ol-toast-ease: var(--ease-enter);
 
             display: block;
             width: max-content;
@@ -90,8 +89,8 @@ export class OlToast extends LitElement {
             font-family: var(--font-family-body);
             pointer-events: auto;
             transition:
-                transform 400ms var(--ol-toast-ease),
-                opacity 400ms var(--ol-toast-ease);
+                transform var(--duration-slower) var(--ol-toast-ease),
+                opacity var(--duration-slower) var(--ol-toast-ease);
 
             /* Enter starting point: hidden, sitting below its final spot.
                The component flips data-mounted one frame after connecting,
@@ -175,13 +174,10 @@ export class OlToast extends LitElement {
             color: var(--darker-grey);
             font-size: var(--font-size-body-medium);
             line-height: 1.4;
-            /* Borderless surface: a hairline ring plus two soft layers,
-               in place of a hard border */
-            border-radius: var(--border-radius-notification);
-            box-shadow:
-                0 0 0 1px var(--icon-link-grey),
-                0 1px 2px -1px var(--icon-link-grey),
-                0 2px 4px 0 var(--icon-link-grey);
+            /* Same edge as ol-popover and ol-dialog: one overlay surface */
+            border: var(--border-overlay);
+            border-radius: var(--border-radius-overlay);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         .toast__progress {

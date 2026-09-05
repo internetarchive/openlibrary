@@ -44,7 +44,6 @@
   position: relative;
   margin: 0 auto;
   background-color: transparent;
-  transition: background-color 0.2s;
 
   /* When Preview button is a text link, have it take up only the width
    of the content (not full 100% width) */

@@ -71,8 +71,8 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
 
             /* A crisp ease-out (no overshoot) for the slide — the pill should
                feel like it snaps to the new segment, not bounce. */
-            --slide-duration: 0.25s;
-            --slide-ease: cubic-bezier(0.32, 0.72, 0, 1);
+            --slide-duration: var(--duration-base);
+            --slide-ease: var(--ease-move);
         }
 
         :host([full-width]) {
@@ -228,9 +228,9 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
                Color is intentionally NOT transitioned so hover darkening is
                instant — the hover effect must give immediate feedback. */
             transition:
-                background-color 0.15s,
-                border-color 0.15s,
-                box-shadow 0.15s;
+                background-color var(--duration-fast),
+                border-color var(--duration-fast),
+                box-shadow var(--duration-fast);
         }
 
         :host([full-width]) .segment {
@@ -254,7 +254,7 @@ export class OlSegmentedControl extends FormAssociatedMixin(LitElement) {
         }
 
         .segment:active:not(:disabled) {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         /* The selected segment's raised-white-pill look now lives on the

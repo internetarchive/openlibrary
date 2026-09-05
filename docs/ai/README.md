@@ -247,7 +247,7 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 These companion docs cover specific areas in depth:
 
-- [Accessibility](a11y/index.md) — WCAG 2.1 AA target, ARIA patterns in Lit components, tooling plan, open issues
+- [Accessibility](web-components.md#accessibility) — focus, ARIA across shadow roots, keyboard patterns for Lit components
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
 - [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations, mobile
 - [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events, focus + shadow DOM

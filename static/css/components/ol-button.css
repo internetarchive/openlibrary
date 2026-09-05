@@ -147,7 +147,7 @@ a.ol-button-static:visited {
 }
 
 .ol-button-static {
-  transition: transform 0.08s;
+  transition: transform var(--duration-press);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -165,7 +165,7 @@ a.ol-button-static:visited {
 /* Press feedback — tactile scale on activation. The raised shadow and
    specular highlight stay put through the press. */
 .ol-button-static:active {
-  transform: scale(0.97);
+  transform: scale(var(--press-scale));
 }
 
 .ol-button-static:focus-visible {

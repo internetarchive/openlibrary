@@ -117,7 +117,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             height: var(--toggle-track-height);
             border-radius: var(--border-radius-pill);
             background: var(--_toggle-track);
-            transition: background-color 150ms ease;
+            transition: background-color var(--duration-fast) var(--ease-state);
         }
 
         .toggle__knob {
@@ -129,7 +129,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
             border-radius: var(--border-radius-circle);
             background: var(--_toggle-knob);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-            transition: transform 150ms ease;
+            transition: transform var(--duration-fast) var(--ease-state);
         }
 
         :host([checked]) .toggle__knob {
@@ -139,6 +139,7 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .toggle,
             .toggle__switch,
             .toggle__knob {
                 transition: none;
@@ -193,6 +194,15 @@ export class OlToggle extends FormAssociatedMixin(FocusableHostMixin(LitElement)
                 var(--box-shadow-raised),
                 inset 0 1px 0 var(--_toggle-inset-highlight);
             box-shadow: var(--_toggle-raised-shadow);
+            /* Hover colors snap in; only the press-scale animates. */
+            transition: transform var(--duration-press);
+        }
+
+        /* Press feedback — the button variant is a self-contained control (its
+           own border, fill, and raised shadow), so it squeezes on press like
+           ol-button. Its text-control width puts it in the default tier. */
+        :host([variant="button"]) .toggle:active {
+            transform: scale(var(--press-scale));
         }
 
         /* The base .toggle:focus-visible ring is a single box-shadow, but the

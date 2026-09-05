@@ -126,8 +126,8 @@ export class OpenLibraryOTP extends LitElement {
             }
             .ol-otp-email-form button[type='submit'] {
                 padding: 8px 16px;
-                background: var(--ia-button-primary-bg, #4b4bdf);
-                color: var(--ia-button-primary-color, #fff);
+                background: var(--color-primary);
+                color: var(--color-on-primary);
                 border: none;
                 border-radius: 4px;
                 font-size: 1rem;
@@ -140,7 +140,7 @@ export class OpenLibraryOTP extends LitElement {
                 cursor: not-allowed;
             }
             .ol-otp-error {
-                color: var(--color-danger, #c00);
+                color: var(--color-danger);
                 font-size: 0.9rem;
                 margin: 0;
             }
@@ -227,7 +227,7 @@ export class OpenLibraryOTP extends LitElement {
 
         .trigger-btn {
             background: var(--color-primary);
-            color: var(--ia-button-primary-color, #fff);
+            color: var(--color-on-primary);
             border: none;
             border-radius: 4px;
             padding: 8px 16px;

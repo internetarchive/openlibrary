@@ -16,3 +16,39 @@
   --control-height-medium: 32px;
   --control-height-large: 38px;
 }
+
+/*
+ * Menu rows are a different shape: rows inside a panel — a popover, a drawer —
+ * sized to be comfortably tappable rather than to line up beside a button. One
+ * height across every menu/popover row keeps them scannable.
+ *
+ * Applied as `min-height` — a row with a description or a wrapping label grows
+ * past it — so keep the row's own vertical padding under the height, or the
+ * padding sets it instead and rows drift apart again.
+ *
+ * A row is inset from its panel by `--menu-row-inset` and rounded, so its hover
+ * fill reads as a pill rather than a band running to the panel's edges. The
+ * row gives that inset back as `--menu-row-padding-inline`, which keeps the
+ * label column at 16px from the panel:
+ *
+ *   margin-inline: var(--menu-row-inset);
+ *   padding-inline: var(--menu-row-padding-inline);
+ *   border-radius: var(--border-radius-button);
+ *
+ * Light-DOM panels that can't set a margin on the row (the browse popover, the
+ * hamburger drawer) put the inset on the panel's own side padding instead; the
+ * row's padding is the same either way.
+ */
+:root {
+  --menu-row-height: 36px;
+  --menu-row-inset: var(--spacing-inset-xs);
+  --menu-row-padding-inline: calc(var(--spacing-inset-md) - var(--menu-row-inset));
+}
+
+/* With a mouse there is no thumb to land, so rows drop to the medium control
+   height and a menu reads as a stack of medium controls inside a panel. */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --menu-row-height: var(--control-height-medium);
+  }
+}

@@ -43,7 +43,19 @@ _MIN_RAMP_STEPS = 3
 # Marks a tier as belonging to one component, not the shared vocabulary.
 _INTERNAL_MARKER = "@internal"
 # Reading order for the Foundations page. Anything not listed sorts to the end.
-_DISPLAY_ORDER = ("colors", "font-families", "line-heights", "spacing", "border-radius", "borders", "control-heights", "z-index", "breakpoints")
+_DISPLAY_ORDER = (
+    "colors",
+    "font-families",
+    "line-heights",
+    "typography",
+    "spacing",
+    "border-radius",
+    "borders",
+    "control-heights",
+    "press",
+    "z-index",
+    "breakpoints",
+)
 
 
 @dataclass(frozen=True)

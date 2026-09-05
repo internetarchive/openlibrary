@@ -8,8 +8,8 @@
 {% import "design/" + section.id + ".html.jinja" as page with context %}
 <div class="ds" data-ds-root>
     <header class="ds__masthead">
-        <div class="ds__masthead-row">
-            <h1 class="ds__title">Design system</h1>
+        <div class="ds__masthead-inner">
+            <h1 class="ds__title">Design System</h1>
             <nav class="ds__tabs" aria-label="Design system sections">
                 {% for candidate in sections %}
                     <a class="ds__tab{% if candidate.id == section.id %} ds__tab--current{% endif %}"

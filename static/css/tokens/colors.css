@@ -108,7 +108,9 @@
   --color-background: var(--paper); /* page canvas — what body paints */
   --color-surface: var(--white); /* cards, inputs, dropdowns */
   --color-surface-raised: var(--white);
-  --color-surface-sunken: var(--neutral-100);
+  /* A step lighter than -header: recessed panels and image wells should read as
+     a shade off the surface around them, not as a filled block. */
+  --color-surface-sunken: var(--neutral-50);
   --color-surface-header: var(--neutral-100);
 
   /* Links */
@@ -134,7 +136,7 @@
 
   /* Hover for flat rows — menu items, list rows, popover items. See-through, so
      it darkens whatever surface the row sits on rather than forcing one grey. */
-  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
+  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
 
   /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);
@@ -158,6 +160,7 @@
   --color-border-error: var(--red-500);
   --color-border-muted: var(--neutral-300); /* dividers — decorative, 1.6:1 on white */
   --color-border-subtle: var(--neutral-200);
+  --color-border-extra-subtle: var(--neutral-100); /* repeated row separators — decorative, 1.11:1 on white */
   --color-focus-ring: var(--blue-500);
 
   /* Messages and notices. Info borrows the blue ramp rather than its own hue. */

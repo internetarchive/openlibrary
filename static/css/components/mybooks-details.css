@@ -235,9 +235,6 @@
   color: var(--primary-blue);
   text-decoration: none;
   border-bottom: 2px solid var(--link-blue);
-  transition:
-    color 0.2s ease,
-    border-bottom-color 0.2s ease;
 }
 
 .pending-action-container .pending-action-link:hover {

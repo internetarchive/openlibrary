@@ -3,6 +3,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -129,6 +130,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
         /* ── Filter input ────────────────────────────────────────── */
 
+        /* Uniform padding; at 8px inside the 16px panel the field's 8px
+           radius sits concentric with the panel corners. */
         .filter {
             position: relative;
             padding: var(--spacing-inset-sm);
@@ -185,7 +188,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
@@ -204,10 +207,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-medium);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         .item {
@@ -218,7 +221,17 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            box-sizing: border-box;
+            /* One height across every menu row. */
+            min-height: var(--menu-row-height);
+            /* Inset from the panel edge so the hover fill reads as a pill
+               rather than a band running edge to edge. The padding gives back
+               what the margin takes, so the checkbox column stays at 16px. */
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-button);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
@@ -234,23 +247,16 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+        /* No selected-row styling: the checkbox is the state, and the selected
+           group pins the chosen items to the top of the panel. A tint on top of
+           both only makes the row look hovered. */
 
         .item-checkbox {
             flex-shrink: 0;
             width: 16px;
             height: 16px;
             margin: 0;
-            accent-color: var(--primary-blue);
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
@@ -343,7 +349,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             border-top-color: var(--accessible-grey);
             border-radius: 50%;
             flex-shrink: 0;
-            animation: ol-sp-spin 0.65s linear infinite;
+            animation: ol-sp-spin var(--duration-spin) linear infinite;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -359,7 +365,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.items = [];
         this.selected = [];
         this.label = '';
-        this.searchThreshold = 8;
+        this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = 'Filter…';
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
@@ -417,7 +423,6 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
@@ -618,7 +623,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _renderItem(item) {
         const isSelected = (this.selected || []).includes(item.value);
         return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
+            <li class="item">
                 <label class="item-row">
                     <input
                         type="checkbox"

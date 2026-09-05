@@ -145,7 +145,7 @@ export class OlCarousel extends LitElement {
             padding: 0;
             background: var(--_indicator-color);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background var(--duration-base);
         }
 
         .indicator:focus-visible {
@@ -289,7 +289,7 @@ export class OlCarousel extends LitElement {
             background: none;
             cursor: pointer;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity var(--duration-base);
             padding: 0;
         }
 
@@ -340,7 +340,7 @@ export class OlCarousel extends LitElement {
         /* Tactile press: nudge the icon down in scale, matching ol-button,
            ol-chip, ol-pagination et al. Snaps (no transition) like the others. */
         .arrow:active .arrow-icon {
-            transform: scale(0.92);
+            transform: scale(var(--press-scale-compact));
         }
 
         .arrow ol-icon {

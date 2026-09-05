@@ -39,7 +39,6 @@
   color: var(--ile-toolbar-text-color);
   text-decoration: none;
   border-left: 2px dotted var(--ile-toolbar-text-color);
-  transition: background 0.2s;
   cursor: pointer;
 }
 #ile-selection-actions {

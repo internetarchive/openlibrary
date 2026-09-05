@@ -256,7 +256,6 @@ export class OLMarkdownEditor extends LitElement {
       padding: var(--spacing-inset-xs);
       cursor: pointer;
       color: var(--darker-grey);
-      transition: background 0.15s ease, color 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -268,7 +267,7 @@ export class OLMarkdownEditor extends LitElement {
       .toolbar-btn:hover:not(:disabled) { background: var(--color-hover-overlay); }
     }
 
-    .toolbar-btn:active:not(:disabled) { transform: scale(0.95); }
+    .toolbar-btn:active:not(:disabled) { transform: scale(var(--press-scale-compact)); }
 
     .toolbar-btn.is-active {
       background: var(--light-grey);
@@ -313,13 +312,19 @@ export class OLMarkdownEditor extends LitElement {
       border-radius: var(--border-radius-input);
       padding: var(--spacing-xs) var(--spacing-md);
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color var(--duration-fast) var(--ease-state);
       font-family: var(--font-family-body);
     }
 
     .link-input:focus {
       border: var(--border-input-focused);
       box-shadow: var(--box-shadow-focus);
+    }
+
+    /* iOS zooms in on focus when the input font is < 16px; bump it up on
+       mobile to suppress that. */
+    @media (max-width: 767px) {
+      .link-input { font-size: var(--font-size-body-large); }
     }
 
     .error-state {

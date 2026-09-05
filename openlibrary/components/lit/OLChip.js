@@ -126,7 +126,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         }
 
         .chip:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         .chip:focus-visible {

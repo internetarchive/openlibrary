@@ -92,7 +92,7 @@ export class OlDialog extends LitElement {
             --ol-dialog-width-large: 800px;
             --ol-dialog-padding: var(--spacing-xl);
             --ol-dialog-border-radius: var(--border-radius-overlay);
-            --ol-dialog-animation-duration: 200ms;
+            --ol-dialog-animation-duration: var(--duration-base);
             --ol-dialog-backdrop-color: var(--overlay-backdrop-color);
             --ol-dialog-backdrop-blur: var(--overlay-backdrop-blur);
             --ol-dialog-top-offset: clamp(40px, 8vh, 96px);
@@ -122,11 +122,11 @@ export class OlDialog extends LitElement {
         dialog[open] {
             display: flex;
             flex-direction: column;
-            animation: dialog-open var(--ol-dialog-animation-duration) ease-out;
+            animation: dialog-open var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         dialog.closing {
-            animation: dialog-close var(--ol-dialog-animation-duration) ease-in;
+            animation: dialog-close var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
         /* The blur does the separating, so the dim can stay light — enough to
@@ -136,11 +136,11 @@ export class OlDialog extends LitElement {
             background-color: var(--ol-dialog-backdrop-color);
             backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
             -webkit-backdrop-filter: blur(var(--ol-dialog-backdrop-blur));
-            animation: backdrop-fade-in var(--ol-dialog-animation-duration) ease-out;
+            animation: backdrop-fade-in var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         dialog.closing::backdrop {
-            animation: backdrop-fade-out var(--ol-dialog-animation-duration) ease-in;
+            animation: backdrop-fade-out var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
         @keyframes dialog-open {
@@ -196,11 +196,11 @@ export class OlDialog extends LitElement {
         }
 
         :host([placement="top"]) dialog[open] {
-            animation: dialog-open-top var(--ol-dialog-animation-duration) ease-out;
+            animation: dialog-open-top var(--ol-dialog-animation-duration) var(--ease-enter);
         }
 
         :host([placement="top"]) dialog.closing {
-            animation: dialog-close-top var(--ol-dialog-animation-duration) ease-in;
+            animation: dialog-close-top var(--ol-dialog-animation-duration) var(--ease-exit);
         }
 
         @keyframes dialog-open-top {
