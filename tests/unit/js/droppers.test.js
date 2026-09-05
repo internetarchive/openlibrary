@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import sinon from 'sinon';
 import { initDroppers, initGenericDroppers } from '../../../openlibrary/plugins/openlibrary/js/dropper';
 import { Dropper } from '../../../openlibrary/plugins/openlibrary/js/dropper/Dropper';

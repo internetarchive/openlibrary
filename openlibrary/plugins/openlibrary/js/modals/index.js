@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import 'jquery-colorbox';
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.css';

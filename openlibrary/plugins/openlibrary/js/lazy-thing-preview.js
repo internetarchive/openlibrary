@@ -1,4 +1,5 @@
 // @ts-check
+import $ from 'jquery';
 import debounce from 'lodash/debounce';
 import chunk from 'lodash/chunk';
 
