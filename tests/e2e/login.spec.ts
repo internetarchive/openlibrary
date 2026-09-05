@@ -41,15 +41,16 @@ test.describe('Login page @smoke', () => {
 
     test('form login with valid credentials signs the patron in', async ({ page }) => {
         // The form authenticates against IA by email, unlike login.json. Reached
-        // directly, it posts an empty redirect field and lands on the home page;
-        // only the OTP component defaults to My Books.
+        // directly it posts an empty redirect, and the login route treats that as
+        // "no redirect" and falls back to My Books (openlibrary/fastapi/account.py),
+        // which then resolves to the patron's own /people/<user>/books.
         test.skip(!E2E_EMAIL, 'No credentials for this environment — set OL_E2E_EMAIL / OL_E2E_PASSWORD');
         const errors = collectConsoleErrors(page);
         await page.goto('/account/login');
         await page.fill('input[name="username"]', E2E_EMAIL);
         await page.fill('input[name="password"]', E2E_PASSWORD);
         await page.click('button[name="login"]');
-        await page.waitForURL(url => url.pathname === '/', { timeout: 10_000 });
+        await page.waitForURL(/\/(account|people\/[^/]+)\/books/, { timeout: 10_000 });
         const header = page.locator('#header-bar').first();
         await expect(header).toBeVisible();
         await expect(header.locator('a[href="/account/books"]').first()).toBeAttached();
