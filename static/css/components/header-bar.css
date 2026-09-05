@@ -535,12 +535,9 @@
   text-decoration: none;
 }
 
-/* Fade in on hover, but snap back instantly on hover-off (transition lives on
- * the hover state, so the base state has none). */
 .navigation-component .browse-feature:hover,
 .navigation-component .browse-feature:focus-visible {
   background-color: var(--lightest-grey);
-  transition: background-color 0.12s ease;
 }
 
 .header-bar .browse-feature__icon {
@@ -556,12 +553,10 @@
 }
 
 /* The row hover fill (--lightest-grey) shares the resting tile's 93% lightness,
- * so the icon would wash out. Deepen the tile to --beige to keep it distinct.
- * Fade in with the row, snap back instantly on hover-off. */
+ * so the icon would wash out. Deepen the tile to --beige to keep it distinct. */
 .browse-feature:hover .browse-feature__icon,
 .browse-feature:focus-visible .browse-feature__icon {
   background: var(--beige);
-  transition: background-color 0.12s ease;
 }
 
 .header-bar .browse-feature__body {
@@ -679,7 +674,6 @@
   width: 38px;
   min-height: 38px;
   border-radius: var(--border-radius-input);
-  transition: background-color 0.15s ease;
 }
 
 /* Match the search magnifier and the hamburger. The link states outrank

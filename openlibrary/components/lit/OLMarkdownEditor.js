@@ -256,7 +256,6 @@ export class OLMarkdownEditor extends LitElement {
       padding: var(--spacing-inset-xs);
       cursor: pointer;
       color: var(--darker-grey);
-      transition: background 0.15s ease, color 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;

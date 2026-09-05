@@ -65,7 +65,7 @@ Always use semantic tokens instead of hardcoded values. Stylelint will reject ra
 .my-card { border-radius: 8px; }
 ```
 
-If no semantic token exists for your use case, create one in the appropriate file under `static/css/tokens/` rather than reaching for a primitive or hardcoded value. See the [Design Token Guide](design.md#design-tokens) for the two-tier system.
+If no semantic token exists for your use case, create one in the appropriate file under `static/css/tokens/` rather than reaching for a primitive or hardcoded value. See the [Design Token Guide](design.md#design-tokens) for the two-tier system. This applies to every declaration you write or modify, legacy files included — see [Scope](design.md#scope) for how far to go when editing a file that predates the tokens.
 
 ## Connecting CSS to Templates
 

@@ -1,6 +1,14 @@
 # Design
 
-Design patterns and conventions for all Open Library UI — templates, Vue components, Lit web components, and plain HTML/CSS alike. These guidelines apply whenever you're writing or modifying frontend code.
+Design patterns and conventions for all Open Library UI — templates, Vue components, Lit web components, and plain HTML/CSS alike.
+
+## Scope
+
+These rules apply to every line you write or modify, in any file. Much of `static/css` predates them, so:
+
+- **Don't match the surrounding legacy convention when it conflicts with a rule here.** The file's existing `--grey` or ungated `:hover` is not a precedent.
+- **Fix the declaration you touch, not the file.** Changing a hover background? Move that value to a semantic token. Rewriting the whole rule block? Gate it to hover-capable pointers too. Leave untouched neighbors alone — whole-file migrations are their own PR.
+- **`legacy.css` and `legacy-tools.css` are delete-only.** Move rules out; never edit them toward compliance in place.
 
 ## Typography
 
@@ -104,7 +112,7 @@ This indirection enables visual redesigns, dark mode, and brand refreshes by cha
 
 ### Deprecated aliases
 
-The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige`, `--primary-blue`, …) at the ramps so old consumers keep working. Never use these in new code; when touching a file that uses one, migrate it to a semantic token.
+The bottom of `colors.css` re-points every legacy token name (`--grey`, `--beige`, `--primary-blue`, …) at the ramps so old consumers keep working. Never use these in new code; when you modify a declaration that uses one, migrate that declaration to a semantic token (see [Scope](#scope)).
 
 ### Which tier to use
 

@@ -6,7 +6,7 @@
 
 **Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor (legacy) / **Jinja2 (preferred for new code)** templates · jQuery, Vue 3, Lit · webpack · Solr 10
 
-> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
+> 📖 **Guides:** [`docs/ai/i18n.md`](docs/ai/i18n.md) — i18n best practices for Templetor, Jinja, and client-side strings. [`docs/ai/design.md`](docs/ai/design.md) — read before touching `static/css/`, templates, macros, or `openlibrary/components/`; [`docs/ai/web-components.md`](docs/ai/web-components.md) — also read before touching `openlibrary/components/lit/`. [`docs/ai/README.md`](docs/ai/README.md) — full architecture and data-model.
 
 > 🏗️ **FastAPI:** When working on FastAPI endpoints, always load the [FastAPI skill](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and follow the existing patterns in the codebase. Don't invent new architectural patterns — match what's already there.
 
