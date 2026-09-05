@@ -1,4 +1,5 @@
 import textwrap
+from collections.abc import Callable
 from functools import cache as functools_cache
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,31 @@ import web
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
+
+# Shared template helper fallback table.
+# Maps each helper name to its fallback callable returning a safe default value.
+# Used both in get_jinja_env() (with live web.template.Template.globals lookup)
+# and in tests/validation environments.
+# To add a helper, add one entry here.
+TEMPLATE_GLOBAL_HELPERS: dict[str, Callable[..., Any]] = {
+    "stats_summary": dict,
+    "query_param": lambda name, default=None: default,
+    "is_bot": lambda: False,
+    "static_url": lambda path: f"/static/{path}",
+    "get_supported_languages": dict,
+    "get_git_revision_short_hash": lambda: "",
+}
+
+
+def _make_template_helper(name: str, fallback: Callable[..., Any]) -> Callable[..., Any]:
+    """Create a wrapper that calls the template global if present, or fallback."""
+
+    def helper(*args: Any, **kwargs: Any) -> Any:
+        if func := web.template.Template.globals.get(name):
+            return func(*args, **kwargs)
+        return fallback(*args, **kwargs) if callable(fallback) else fallback
+
+    return helper
 
 
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
@@ -112,48 +138,9 @@ def get_jinja_env() -> Environment:
     # system primitive any template may need.
     env.globals["icon"] = _icon
 
-    def _stats_summary() -> dict[str, Any]:
-        """Return the request performance stats summary dict from Template globals."""
-        if func := web.template.Template.globals.get("stats_summary"):
-            return func()
-        return {}
-
-    def _query_param(name: str, default: Any = None) -> Any:
-        """Return the query parameter value from web.input / web.ctx."""
-        if func := web.template.Template.globals.get("query_param"):
-            return func(name, default)
-        return default
-
-    def _is_bot() -> bool:
-        """Return whether the current request user agent is a recognized bot."""
-        if func := web.template.Template.globals.get("is_bot"):
-            return func()
-        return False
-
-    def _static_url(path: str) -> str:
-        """Return the cache-busted or CDN URL for a static asset."""
-        if func := web.template.Template.globals.get("static_url"):
-            return func(path)
-        return f"/static/{path}"
-
-    def _get_supported_languages() -> dict[str, Any]:
-        """Return the dictionary of supported interface languages."""
-        if func := web.template.Template.globals.get("get_supported_languages"):
-            return func()
-        return {}
-
-    def _get_git_revision_short_hash() -> str:
-        """Return the deployed git revision short hash, or empty string."""
-        if func := web.template.Template.globals.get("get_git_revision_short_hash"):
-            return func()
-        return ""
-
-    env.globals["stats_summary"] = _stats_summary
-    env.globals["query_param"] = _query_param
-    env.globals["is_bot"] = _is_bot
-    env.globals["static_url"] = _static_url
-    env.globals["get_supported_languages"] = _get_supported_languages
-    env.globals["get_git_revision_short_hash"] = _get_git_revision_short_hash
+    # Register shared template helpers from TEMPLATE_GLOBAL_HELPERS
+    for name, fallback in TEMPLATE_GLOBAL_HELPERS.items():
+        env.globals[name] = _make_template_helper(name, fallback)
 
     # Context proxy for request-level context (e.g. ctx.get('show_ol_shell', True))
     from infogami.utils.context import context as _infogami_context

@@ -14,7 +14,7 @@ from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
 from openlibrary.core import jinja as jinja_module
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.jinja import TEMPLATE_GLOBAL_HELPERS, get_jinja_env
 from openlibrary.i18n import load_translations
 from openlibrary.utils.request_context import req_context
 
@@ -96,12 +96,9 @@ def _create_validation_env() -> jinja2.Environment:
 
     env.globals["render_component"] = _stub_render_component
 
-    env.globals["stats_summary"] = dict
-    env.globals["query_param"] = lambda name, default=None: default
-    env.globals["is_bot"] = lambda: False
-    env.globals["static_url"] = lambda path: f"/static/{path}"
-    env.globals["get_supported_languages"] = dict
-    env.globals["get_git_revision_short_hash"] = lambda: ""
+    # Register all template helper fallbacks from the shared table
+    for name, fallback in TEMPLATE_GLOBAL_HELPERS.items():
+        env.globals[name] = fallback
     env.globals["ctx"] = RenderableUndefined()
 
     env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
@@ -193,25 +190,21 @@ class TestGetJinjaEnv:
         assert "render_templetor_template" in env.globals
         assert callable(env.globals["render_templetor_template"])
 
-    def test_has_footer_helpers_in_globals(self):
-        """Should expose all shared footer helpers and ctx in globals."""
+    def test_has_template_helpers_in_globals(self):
+        """Should expose all shared template helpers from TEMPLATE_GLOBAL_HELPERS and ctx in globals."""
         env = get_jinja_env()
-        for helper in (
-            "stats_summary",
-            "query_param",
-            "is_bot",
-            "static_url",
-            "get_supported_languages",
-            "get_git_revision_short_hash",
-        ):
+        for helper in TEMPLATE_GLOBAL_HELPERS:
             assert helper in env.globals
             assert callable(env.globals[helper])
         assert "ctx" in env.globals
 
-    def test_footer_helpers_return_safe_defaults_when_globals_missing(self, monkeypatch):
-        """Footer helpers should return safe defaults if Template globals are not populated."""
+    def test_template_helpers_return_safe_defaults_when_globals_missing(self, monkeypatch):
+        """Template helpers should return safe defaults if Template globals are not populated."""
         monkeypatch.setattr(web.template.Template, "globals", {})
         env = get_jinja_env()
+        for helper in TEMPLATE_GLOBAL_HELPERS:
+            assert helper in env.globals
+            assert callable(env.globals[helper])
         assert env.globals["stats_summary"]() == {}
         assert env.globals["query_param"]("debug", "default_val") == "default_val"
         assert env.globals["is_bot"]() is False
