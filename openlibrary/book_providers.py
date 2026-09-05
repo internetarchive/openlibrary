@@ -753,15 +753,11 @@ ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name("ia"))
 prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
 
-def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
+def get_provider_order(prefer_ia: bool = False, provider_pref: str | None = None) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = None
-    # Need this to work in test environments
-    if "env" in web.ctx:
-        provider_overrides = web.input(providerPref=None, _method="GET").providerPref
-    if provider_overrides:
+    if provider_overrides := provider_pref:
         new_order: list[AbstractBookProvider] = []
         for name in provider_overrides.split(","):
             if name == "*":
@@ -779,7 +775,7 @@ def get_provider_order(prefer_ia: bool = False) -> list[AbstractBookProvider]:
     return provider_order
 
 
-def get_book_providers(ed_or_solr: Edition | dict) -> Iterator[AbstractBookProvider]:
+def get_book_providers(ed_or_solr: Edition | dict, provider_pref: str | None = None) -> Iterator[AbstractBookProvider]:
     # On search results which don't have an edition selected, we want to display
     # IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
@@ -798,7 +794,7 @@ def get_book_providers(ed_or_solr: Edition | dict) -> Iterator[AbstractBookProvi
         ]
         prefer_ia = bool(ia_ocaids)
 
-    provider_order = get_provider_order(prefer_ia)
+    provider_order = get_provider_order(prefer_ia, provider_pref=provider_pref)
     for provider in provider_order:
         if provider.get_identifiers(ed_or_solr):
             yield provider
@@ -820,8 +816,12 @@ def get_acquisitions(solr_edition: dict, edition: Edition) -> list[Acquisition]:
 
 def get_best_edition(
     editions: list[Edition],
+    provider_pref: str | None = None,
 ) -> tuple[Edition | None, AbstractBookProvider | None]:
-    provider_order = get_provider_order(True)
+    if provider_pref:
+        provider_order = get_provider_order(True, provider_pref=provider_pref)
+    else:
+        provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
     provider_rank_lookup: dict[AbstractBookProvider | None, int] = {provider: i for i, provider in enumerate(provider_order)}
