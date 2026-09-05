@@ -137,20 +137,20 @@ color changes.
 ```css
 /* Bad - hover background eases in, feels laggy */
 .button {
-  background: var(--white);
+  background: var(--color-surface);
   transition: background-color 0.15s ease;
 }
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 
 /* Good - hover is instant; only the press-scale animates */
 .button {
-  background: var(--white);
+  background: var(--color-surface);
   transition: transform 0.08s;
 }
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 .button:active {
   transform: scale(0.97);
@@ -165,20 +165,22 @@ Two rules keep hover feedback coherent across our controls (`ol-button`,
 **1. The border moves with the fill.** When a control darkens (or lightens) its
 fill on hover, its border must shift by the same amount. A fill that darkens
 inside a static outline reads as two disconnected pieces; moving both together
-reads as one solid shape. Match the magnitude — our light controls drop the fill
-~7% in lightness (`--white` → `--lightest-grey`) and the border tracks it (`--color-border-subtle`
-→ `--light-grey`, both ~7%).
+reads as one solid shape. Match the magnitude — our light controls step the fill
+one rung down the ramp (`--color-surface` → `--color-control-hover`) and the border
+tracks it (`--color-border-subtle` → `--color-border-muted`), each a 6–9% drop in
+lightness. `OLButton.js` is the reference implementation; keep these examples in
+lockstep with it.
 
 ```css
 /* Bad - fill darkens inside a frozen border */
 .button:hover {
-  background: var(--lightest-grey);
+  background: var(--color-control-hover);
 }
 
 /* Good - border tracks the fill by the same amount */
 .button:hover {
-  background: var(--lightest-grey);
-  border-color: var(--light-grey);
+  background: var(--color-control-hover);
+  border-color: var(--color-border-muted);
 }
 ```
 
@@ -196,7 +198,7 @@ one declaration, so there's nothing to keep in sync.
 /* Light fill: darken fill + border on hover */
 :host([variant="secondary"]) .control:hover {
   background-color: var(--color-control-hover);
-  border-color: var(--light-grey);
+  border-color: var(--color-border-muted);
 }
 
 /* Saturated fill: lighten the whole thing at once */
@@ -213,7 +215,7 @@ change; only the `:active` press-scale animates.
 
 | Scenario | Solution |
 | --- | --- |
-| Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
+| Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` — buttons only. Menu rows and drawer items press with a fill, no squeeze: a shrinking row reads as the panel moving rather than the row being pressed. |
 | Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
 | Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |
@@ -249,12 +251,12 @@ Wrap hover styles in `@media (hover: hover) and (pointer: fine)` so they only ap
 
 ```css
 .chip {
-  background: var(--white);
+  background: var(--color-surface);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .chip:hover {
-    background: var(--lightest-grey);
+    background: var(--color-control-hover);
   }
 }
 ```

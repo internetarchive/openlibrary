@@ -3,6 +3,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
 import { FormAssociatedMixin } from './utils/form-associated-mixin.js';
+import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -218,7 +219,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             align-items: center;
             gap: var(--spacing-inline-md);
+            box-sizing: border-box;
+            /* One height across every menu row. */
+            min-height: var(--menu-row-height);
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
         }
@@ -250,7 +255,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             width: 16px;
             height: 16px;
             margin: 0;
-            accent-color: var(--primary-blue);
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
@@ -359,7 +364,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         this.items = [];
         this.selected = [];
         this.label = '';
-        this.searchThreshold = 8;
+        this.searchThreshold = FILTER_THRESHOLD;
         this.placeholder = 'Filter…';
         this.unselectedHeading = '';
         this.selectedHeading = 'SELECTED';
@@ -417,7 +422,6 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}

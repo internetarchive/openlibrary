@@ -232,7 +232,7 @@ disconnectedCallback() {
 ```css
 /* Visible focus for keyboard users */
 button:focus-visible {
-  outline: 2px solid var(--focus-color);
+  outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
