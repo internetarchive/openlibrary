@@ -4,9 +4,9 @@ from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
+from infogami.utils.view import public, render_template
 from pydantic import BaseModel
 
-from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
@@ -414,14 +414,9 @@ class SubjectRelatedPartial:
             facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
             request_label="SUBJECT_RELATED",
         )
-        macro = render_macro(
-            "RelatedSubjects",
-            (),
-            page=subject,
-            async_load=False,
-            key=key,
-        )
-        return {"partials": str(macro["__body__"])}
+        template = get_jinja_env().get_template("RelatedSubjects.html.jinja")
+        html = template.render(page=subject, async_load=False, key=key)
+        return {"partials": html}
 
 
 @dataclass
