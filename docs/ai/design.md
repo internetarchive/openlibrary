@@ -128,7 +128,7 @@ Raw values with no semantic meaning — the base palette. `colors.css` defines f
 --neutral-800: hsl(41, 14%, 21%);
 --blue-500: hsl(210, 82%, 40%);
 --spacing-lg: 1rem;
---border-radius-lg: 9px;
+--border-radius-lg: 12px;
 ```
 
 You should rarely use primitives directly in component or template styles.
@@ -174,6 +174,7 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/spacing.css` | Spacing scale |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
 | `static/css/tokens/font-families.css` | Font families and sizes |
+| `static/css/tokens/typography.css` | Text-style roles, one token per property (`--font-size-overline`, `--font-weight-overline`, `--letter-spacing-overline`, `--text-transform-overline`); apply a role's tokens together |
 | `static/css/tokens/motion.css` | Easing primitives and semantic motion tokens (`--ease-enter`, `--duration-base`, …) |
 | `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
 | `static/css/tokens/borders.css` | Border and shadow tokens, plus the modal overlay scrim (`--overlay-backdrop-color` / `--overlay-backdrop-blur`) |

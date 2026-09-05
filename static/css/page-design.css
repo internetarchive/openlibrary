@@ -30,7 +30,10 @@
 .ds {
   --ds-gutter: var(--spacing-inset-md);
   --ds-sidebar-width: 208px;
+  /* Title stacked over the section tabs. */
   --ds-masthead-height: 112px;
+  /* Backgrounds run edge to edge; the masthead row and the page body cap at this. */
+  --ds-max-width: 1240px;
 
   padding: 0 var(--ds-gutter) var(--spacing-inset-xl);
   color: var(--color-text);
@@ -55,51 +58,61 @@ html:has(.ds) {
   top: 0;
   z-index: var(--z-index-level-2);
   margin: 0 calc(var(--ds-gutter) * -1);
-  padding: var(--spacing-inset-md) var(--ds-gutter);
-  background-color: var(--color-surface-header);
+  /* No bottom padding: the tabs run down to the divider so the current tab's
+     underline sits on it. */
+  padding: var(--spacing-inset-md) var(--ds-gutter) 0;
+  background-color: var(--color-surface);
   border-bottom: var(--border-divider);
 }
 
-.ds__masthead-row {
+.ds__masthead-inner {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-inline-xl);
-  align-items: baseline;
+  flex-direction: column;
+  gap: var(--spacing-stack-sm);
+  max-width: var(--ds-max-width);
+  margin: 0 auto;
 }
 
 .ds__title {
   margin: 0;
-  font-size: var(--font-size-title-large);
+  font-size: var(--font-size-headline-medium);
   color: var(--color-text);
 }
 
+/* Section tabs. Plain links, since each one loads a page. Underline-style so
+   they read as navigation rather than a control, and scroll rather than wrap
+   so four sections fit a phone. Bleeds to the viewport edge on mobile so the
+   scroll runs to the screen edge rather than stopping at the gutter. */
 .ds__tabs {
   display: flex;
-  gap: var(--spacing-inline-md);
+  margin: 0 calc(var(--ds-gutter) * -1);
+  padding: 0 var(--ds-gutter);
   overflow-x: auto;
+  /* A scrollbar under a tab row reads as a second divider; the cut-off last
+     label is cue enough. */
+  scrollbar-width: none;
+}
+
+.ds__tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .ds__tab {
   flex-shrink: 0;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
-  border-radius: var(--border-radius-button);
-  color: var(--color-text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+  /* Transparent on every tab so the current one's underline shifts nothing. */
+  border-bottom: 2px solid transparent;
   font-size: var(--font-size-label-large);
-  text-decoration: none;
   white-space: nowrap;
 }
 
-/* Nav chrome stays neutral — blue is reserved for links in content. The
-   masthead is already neutral-100, so hover lifts to white. */
-.ds__tab:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+/* Pull the first label flush with the title (mobile) or the content column (desktop). */
+.ds__tab:first-child {
+  margin-left: calc(var(--spacing-md) * -1);
 }
 
-.ds__tab--current,
-.ds__tab--current:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+.ds__tab--current {
+  border-bottom-color: var(--color-text);
   font-weight: 600;
 }
 
@@ -110,6 +123,8 @@ html:has(.ds) {
   flex-direction: column;
   gap: var(--spacing-stack-lg);
   align-items: stretch;
+  max-width: var(--ds-max-width);
+  margin: 0 auto;
   padding-top: var(--spacing-stack-lg);
 }
 
@@ -140,7 +155,7 @@ html:has(.ds) {
   display: block;
   padding: var(--spacing-inset-sm);
   border-radius: var(--border-radius-button);
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   font-size: var(--font-size-label-medium);
   text-decoration: none;
   white-space: nowrap;
@@ -149,7 +164,6 @@ html:has(.ds) {
 @media (hover: hover) and (pointer: fine) {
   .ds__nav-list a:hover {
     background-color: var(--color-surface-sunken);
-    color: var(--color-text);
   }
 }
 
@@ -169,10 +183,10 @@ html:has(.ds) {
   display: none;
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   color: var(--color-text-muted);
-  font-size: var(--font-size-label-small);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
 }
 
 /* Sits above the nav in the sidebar, separated by a rule so it reads as a
@@ -217,8 +231,7 @@ html:has(.ds) {
    rows give back as padding, so labels stay 16px from the panel and the hover
    fill reads as a pill rather than a band. */
 .ds__nav-popover .ds__nav {
-  padding: var(--spacing-inset-sm) var(--spacing-inset-xs)
-    var(--spacing-inset-lg);
+  padding: var(--spacing-inset-sm) var(--menu-row-inset) var(--spacing-inset-lg);
 }
 
 .ds__nav-popover .ds__nav-list {
@@ -229,8 +242,7 @@ html:has(.ds) {
   display: flex;
   align-items: center;
   min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
   font-size: var(--font-size-body-medium);
 }
 
@@ -255,8 +267,7 @@ html:has(.ds) {
 
 .ds__nav-popover .ds__nav-group-title {
   display: block;
-  padding: var(--spacing-inset-xs)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  padding: var(--spacing-inset-xs) var(--menu-row-padding-inline);
 }
 
 .ds__empty {
@@ -295,10 +306,10 @@ html:has(.ds) {
   padding-bottom: var(--spacing-stack-xs);
   margin-bottom: var(--spacing-stack-md);
   border-bottom: var(--border-divider);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
   color: var(--color-text-muted);
 }
 
@@ -1274,10 +1285,10 @@ fieldset.ds-demo-row {
 
 .ds-state-grid__head {
   color: var(--color-text-secondary);
-  font-size: var(--font-size-label-medium);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-overline);
+  letter-spacing: var(--letter-spacing-overline);
+  text-transform: var(--text-transform-overline);
 }
 
 .ds-longform {
@@ -1382,10 +1393,40 @@ fieldset.ds-demo-row {
   text-decoration: none;
 }
 
+/* Same fight for color: nav chrome stays neutral, since blue is reserved for
+   links in content. */
+.ds a.ds__tab {
+  color: var(--color-text-secondary);
+}
+
+.ds a.ds__tab:hover,
+.ds a.ds__tab--current {
+  color: var(--color-text);
+}
+
 @media only screen and (min-width: 768px) {
   .ds {
     --ds-gutter: var(--spacing-inset-xl);
-    --ds-masthead-height: 72px;
+    /* Title and tabs share one row. */
+    --ds-masthead-height: 61px;
+  }
+
+  /* One row, each half aligned to its column below: the title sits over the
+     sidebar and the section tabs over the content they change. Baseline
+     alignment keeps the title level with the tab labels. */
+  .ds__masthead-inner {
+    flex-direction: row;
+    gap: var(--spacing-section-gap);
+    align-items: baseline;
+  }
+
+  .ds__title {
+    flex: 0 0 var(--ds-sidebar-width);
+  }
+
+  .ds__tabs {
+    margin: 0;
+    padding: 0;
   }
 
   .ds__layout {

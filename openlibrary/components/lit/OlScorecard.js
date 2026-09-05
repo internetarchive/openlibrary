@@ -314,11 +314,11 @@ export class OlScorecard extends LitElement {
         .checks-heading {
             margin: 0;
             padding: var(--spacing-inset-sm, 8px) var(--spacing-inset-md, 16px) var(--spacing-inset-xs, 4px);
-            color: var(--accessible-grey);
-            font-size: var(--font-size-label-medium, 12px);
-            font-weight: normal;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
             list-style: none;
         }
 

@@ -510,7 +510,7 @@
   box-sizing: border-box;
   width: 240px;
   max-width: calc(100vw - 24px);
-  padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
+  padding: var(--spacing-inset-sm) var(--menu-row-inset);
   text-align: left;
 }
 
@@ -532,8 +532,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-inline-md);
-  padding: var(--spacing-inset-sm)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  padding: var(--spacing-inset-sm) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   text-decoration: none;
@@ -609,8 +608,7 @@
   align-items: center;
   gap: var(--spacing-inline-md);
   min-height: var(--menu-row-height);
-  padding: var(--spacing-2xs)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
   border-radius: var(--border-radius-button);
   color: var(--color-text);
   font-size: var(--font-size-body-medium);
@@ -760,12 +758,11 @@
  */
 
 /* The 4px side padding is the menu-row gutter: rows carry the rest of their
- * 16px label offset as their own padding, so the hover fill reads as a pill
- * inside the drawer rather than a band running to its edges. */
+ * 16px label offset as their own padding, matching the other menu panels. */
 .drawer-menu {
   list-style: none;
   margin: 0;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
+  padding: var(--spacing-inset-sm) var(--menu-row-inset);
   border: none;
 }
 
@@ -776,8 +773,7 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--dark-grey);
-  padding: var(--spacing-2xl)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs)) var(--spacing-2xs);
+  padding: var(--spacing-2xl) var(--menu-row-padding-inline) var(--spacing-2xs);
   list-style: none;
 }
 
@@ -801,7 +797,9 @@
 
 /* Column flex rather than a block: it centres a single-line row on the shared
  * menu-row height, and still stacks the one row that carries a subheading.
- * Padding stays under the row height so min-height is what sets it. */
+ * Padding stays under the row height so min-height is what sets it.
+ * No pill radius here: rows are divided by hairlines for now, and a rounded
+ * hover fill butting against a straight rule looks broken. */
 .drawer-menu__item a,
 .drawer-menu__item a:link,
 .drawer-menu__item a:visited,
@@ -815,9 +813,7 @@
   white-space: nowrap;
   font-family: var(--font-family-body);
   font-size: var(--font-size-body-medium);
-  padding: var(--spacing-2xs)
-    calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
-  border-radius: var(--border-radius-button);
+  padding: var(--spacing-2xs) var(--menu-row-padding-inline);
 }
 
 .drawer-menu__item button {
@@ -841,7 +837,7 @@
 .drawer-menu__badge {
   position: absolute;
   top: 50%;
-  right: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  right: var(--menu-row-padding-inline);
   transform: translateY(-50%);
   color: var(--white);
   background-color: var(--primary-blue);
@@ -951,7 +947,7 @@
   box-sizing: border-box;
   position: absolute;
   top: 50%;
-  right: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+  right: var(--menu-row-padding-inline);
   width: 16px;
   height: 16px;
   margin-top: -8px;

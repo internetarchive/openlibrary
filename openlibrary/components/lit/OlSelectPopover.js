@@ -130,11 +130,11 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
 
         /* ── Filter input ────────────────────────────────────────── */
 
-        /* Side padding matches the rows' inset so the field's edges line up
-           with the pills below it. */
+        /* Uniform padding; at 8px inside the 16px panel the field's 8px
+           radius sits concentric with the panel corners. */
         .filter {
             position: relative;
-            padding: var(--spacing-inset-sm) var(--spacing-inset-xs);
+            padding: var(--spacing-inset-sm);
             border-bottom: var(--border-divider);
         }
 
@@ -169,7 +169,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .filter-icon {
             position: absolute;
             top: 50%;
-            left: calc(var(--spacing-inset-xs) + 10px);
+            left: calc(var(--spacing-inset-sm) + 10px);
             width: 14px;
             height: 14px;
             color: var(--color-text-muted);
@@ -188,7 +188,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
@@ -207,10 +207,10 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-medium);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         .item {
@@ -227,9 +227,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             /* Inset from the panel edge so the hover fill reads as a pill
                rather than a band running edge to edge. The padding gives back
                what the margin takes, so the checkbox column stays at 16px. */
-            margin-inline: var(--spacing-inset-xs);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
             border-radius: var(--border-radius-button);
             line-height: var(--line-height-control);
             cursor: pointer;

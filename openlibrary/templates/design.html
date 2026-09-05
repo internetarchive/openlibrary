@@ -5,5 +5,7 @@ $# `data` is the DesignContext built in openlibrary/plugins/openlibrary/design.p
 $# Everything below the shell lives in openlibrary/templates/design/.
 $# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('full-width')
 
 $:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, api=data.api, token_categories=data.token_categories, icons=data.icons)

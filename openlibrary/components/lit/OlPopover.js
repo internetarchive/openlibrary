@@ -126,14 +126,16 @@ export class OlPopover extends LitElement {
         /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
            border, padding, overflow, system colors) so the top-layer panel is
            laid out purely by the inline top/left we compute. Must precede
-           .panel.tray, which restates its own inset and margin. */
+           .panel.tray, which restates its own inset and margin. The border is
+           restated rather than zeroed: this rule outranks .panel, and the
+           hairline is what separates the panel from the page. */
         .panel[popover] {
             inset: auto;
             width: auto;
             height: auto;
             margin: 0;
             padding: 0;
-            border: none;
+            border: var(--border-overlay);
             overflow: visible;
             color: inherit;
         }

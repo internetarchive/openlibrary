@@ -73,7 +73,7 @@ export class OlMenuPopover extends LitElement {
         .menu {
             display: flex;
             flex-direction: column;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
             overflow-y: auto;
         }
 
@@ -81,10 +81,10 @@ export class OlMenuPopover extends LitElement {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         /* Real <button>s so Enter/Space activate natively; the keydown handler
@@ -98,17 +98,18 @@ export class OlMenuPopover extends LitElement {
             /* Inset from the panel edge so the hover fill reads as a pill
                rather than a band running edge to edge. The padding gives back
                what the margin takes, so the label column stays at 16px. */
-            margin: 0 var(--spacing-inset-xs);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+            margin: 0 var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
             border: 0;
             border-radius: var(--border-radius-button);
             background: none;
-            color: var(--darker-grey);
+            /* A real <button>, so the page ink has to be inherited explicitly. */
+            color: inherit;
             font-family: inherit;
             font-size: 14px;
             font-weight: 400;
-            line-height: 1.4;
+            line-height: var(--line-height-control);
             text-align: left;
             cursor: pointer;
         }
@@ -117,7 +118,7 @@ export class OlMenuPopover extends LitElement {
            inset, so the indent is measured from the panel like every other
            label offset. */
         .item--nested {
-            padding-left: calc(var(--spacing-inset-xl) - var(--spacing-inset-xs));
+            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
         }
 
         @media (hover: hover) and (pointer: fine) {

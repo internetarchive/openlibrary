@@ -350,10 +350,10 @@ export class SearchModal extends LitElement {
             margin: 0;
             padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
             color: var(--color-text-muted);
-            font-size: var(--font-size-label-small);
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         .results-list {
@@ -560,6 +560,9 @@ export class SearchModal extends LitElement {
            and the clock icon so everything lines up on one baseline. */
         .recent-result .result__meta,
         .recent-result .result__recent-icon { align-self: center; }
+
+        /* A past query, not a book title — lighter than the result rows. */
+        .recent-result .result__title { font-weight: 500; }
 
         .result__recent-icon {
             flex-shrink: 0;

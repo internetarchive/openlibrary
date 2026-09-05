@@ -218,6 +218,10 @@
         <span class="ds-preview-type" style="font-size: var({{ token.name }});">Ag</span>
     {% elif category.id == "font-families" %}
         <span class="ds-preview-type" style="font-family: var({{ token.name }});">Ag</span>
+    {% elif category.id == "typography" %}
+        {# --font-weight-overline → font-weight: the property is the name minus its role. #}
+        <span class="ds-preview-type"
+              style="{{ token.name[2:].rsplit('-', 1)[0] }}: var({{ token.name }})">Sort by</span>
     {% elif category.id == "line-heights" %}
         <span class="ds-preview-leading" style="line-height: var({{ token.name }})">Ag
             <br>

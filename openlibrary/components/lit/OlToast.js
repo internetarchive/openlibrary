@@ -174,13 +174,10 @@ export class OlToast extends LitElement {
             color: var(--darker-grey);
             font-size: var(--font-size-body-medium);
             line-height: 1.4;
-            /* Borderless surface: a hairline ring plus two soft layers,
-               in place of a hard border */
-            border-radius: var(--border-radius-notification);
-            box-shadow:
-                0 0 0 1px var(--icon-link-grey),
-                0 1px 2px -1px var(--icon-link-grey),
-                0 2px 4px 0 var(--icon-link-grey);
+            /* Same edge as ol-popover and ol-dialog: one overlay surface */
+            border: var(--border-overlay);
+            border-radius: var(--border-radius-overlay);
+            box-shadow: var(--box-shadow-overlay);
         }
 
         .toast__progress {

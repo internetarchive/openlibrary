@@ -136,7 +136,7 @@
 
   /* Hover for flat rows — menu items, list rows, popover items. See-through, so
      it darkens whatever surface the row sits on rather than forcing one grey. */
-  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 12%, transparent);
+  --color-hover-overlay: color-mix(in srgb, var(--ink-overlay) 8%, transparent);
 
   /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);

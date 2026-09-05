@@ -58,7 +58,7 @@
      specular highlight as above; see ol-button[elevation="floating"]. */
   --box-shadow-floating: 0 1px 4px hsla(44, 60%, 18%, 0.15);
 
-  /* Overlay surface — the floating panel behind popovers, menus, and dialogs.
+  /* Overlay surface — the floating panel behind popovers, menus, dialogs, and toasts.
      The hairline border draws the edge that a soft shadow alone loses against
      a white page; because the border carries the definition, the shadow can
      stay light and read as depth rather than as a smudge. Shares the divider

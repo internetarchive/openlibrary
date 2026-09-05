@@ -89,7 +89,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
             overflow-y: auto;
         }
 
@@ -97,10 +97,10 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--color-text-muted);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            font-size: var(--font-size-overline);
+            font-weight: var(--font-weight-overline);
+            letter-spacing: var(--letter-spacing-overline);
+            text-transform: var(--text-transform-overline);
         }
 
         /* ── Items ───────────────────────────────────────────────── */
@@ -120,9 +120,9 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             /* Inset from the panel edge so the hover fill reads as a pill
                rather than a band running edge to edge. The padding gives back
                what the margin takes, so the radio column stays at 16px. */
-            margin-inline: var(--spacing-inset-xs);
-            padding-block: var(--spacing-inset-sm);
-            padding-inline: calc(var(--spacing-inset-md) - var(--spacing-inset-xs));
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
             border-radius: var(--border-radius-button);
             line-height: var(--line-height-control);
             cursor: pointer;
@@ -145,7 +145,7 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
            whole row so the hierarchy reads at a glance. Less the row's own
            inset, so the indent is measured from the panel. */
         .item--nested .item-row {
-            padding-left: calc(var(--spacing-inset-xl) - var(--spacing-inset-xs));
+            padding-left: calc(var(--spacing-inset-xl) - var(--menu-row-inset));
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -185,7 +185,6 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         .item-label {
             display: block;
-            color: var(--darker-grey);
             font-weight: 400;
         }
 

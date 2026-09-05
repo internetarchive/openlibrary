@@ -1,0 +1,24 @@
+/**
+ * Typography
+ * ==========
+ * Text styles: one token per property, grouped by the role the text plays.
+ * A role's tokens are meant to be applied together — a consumer sets each
+ * property from its token rather than picking one and hard-coding the rest.
+ * Font families and the size ramp live in font-families.css; this file is the
+ * start of a full text-style set that will eventually cover headings and body.
+ */
+
+/**
+ * Overline
+ * ========
+ * The small all-caps heading over a group: popover section headings
+ * ("Sort by"), search-modal result groups ("Top results"), design-page nav
+ * groups. Sits on --font-size-label-medium at a medium weight, and tracks
+ * slightly tight so the caps read as one word rather than a row of letters.
+ */
+:root {
+  --font-size-overline: var(--font-size-label-medium);
+  --font-weight-overline: 500;
+  --letter-spacing-overline: 0.02em;
+  --text-transform-overline: uppercase;
+}
