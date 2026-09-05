@@ -23,7 +23,7 @@ class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
         self.public_key = public_key
         self._private_key = private_key
-        validator = web.form.Validator("Recaptcha failed", self.validate)
+        validator = web.form.Validator("Recaptcha failed", self._validate_form)
 
         web.form.Input.__init__(self, "recaptcha", validator)
         self.description = "Validator for recaptcha v2"
@@ -31,16 +31,21 @@ class Recaptcha(web.form.Input):
 
         self.error = None
 
-    def validate(self, value=None):
+    def _validate_form(self, value=None):
+        return self.validate(
+            response=web.input().get("g-recaptcha-response"),
+            remoteip=web.ctx.ip,
+        )
+
+    def validate(self, response: str | None = None, remoteip: str | None = None):
         def accept_error(error_codes: list[str]) -> bool:
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
-        i = web.input()
         url = config.get("recaptcha_url")
         params = {
             "secret": self._private_key,
-            "response": i.get("g-recaptcha-response"),
-            "remoteip": web.ctx.ip,
+            "response": response,
+            "remoteip": remoteip,
         }
 
         try:
