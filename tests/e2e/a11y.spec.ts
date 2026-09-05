@@ -27,6 +27,13 @@ async function gotoSettled(page: Page, path: string): Promise<void> {
     await page.route('https://archive.org/**', (route) => route.abort());
     await page.goto(path);
     await expect(page.locator('#header-bar').first()).toBeVisible();
+    // A logged-in patron's lists dropper renders a loading placeholder inside
+    // its <ul>. Scanning during that window reports a `list` violation for
+    // markup that is gone a moment later, so wait it out before scanning.
+    await page
+        .locator('.list-overview-loading-indicator')
+        .waitFor({ state: 'detached', timeout: 10_000 })
+        .catch(() => {});
 }
 
 test.describe('Accessibility @a11y', () => {

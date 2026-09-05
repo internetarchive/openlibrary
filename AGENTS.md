@@ -46,6 +46,18 @@ npm run lint-fix            # Auto-fix JS/CSS
 npm run watch               # Dev mode with hot reload
 ```
 
+**End-to-end tests** run on the host, not in Docker — Playwright drives a real
+browser against the dev stack:
+
+```bash
+make e2e-up      # stack, assets, Solr index, browser — once per session
+make test-e2e    # run the specs; PLAYWRIGHT_ARGS="search --headed" to narrow
+```
+
+`make e2e-up` rebuilds `static/build` from your working tree. Without it the
+browser loads the bundles baked into the image from master, so a spec covering
+your own JS passes without running your code. See `tests/e2e/README.md`.
+
 ### Code Style
 
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes

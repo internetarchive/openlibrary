@@ -275,3 +275,31 @@ def test_cookie_header_is_forwarded_without_cookies_param():
     assert "cookies" not in fake_client.build_kwargs
     sent_headers = {k.lower(): v for k, v in fake_client.build_kwargs["headers"].items()}
     assert sent_headers["cookie"] == "session=abc; s3=xyz"
+
+
+def test_upstream_cookies_do_not_leak_to_the_next_visitor():
+    """A login through the proxy must not log in the next anonymous visitor.
+
+    The client is shared by every proxied request, so an upstream Set-Cookie it
+    kept would be attached to the next request arriving without a Cookie header.
+    """
+    seen_cookie_headers = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_cookie_headers.append(request.headers.get("cookie"))
+        return httpx.Response(200, headers={"set-cookie": "session=someone-elses; Path=/"}, content=b"ok")
+
+    real_client = httpx.AsyncClient(
+        follow_redirects=False,
+        timeout=None,
+        cookies=StatelessCookieJar(),
+        transport=httpx.MockTransport(handler),
+    )
+
+    with _proxy_client(real_client) as client:
+        client.post("/account/login", content=b"")
+        client.cookies.clear()  # a different visitor, with no session of their own
+        client.get("/")
+
+    assert seen_cookie_headers == [None, None]
+    assert not list(real_client.cookies.jar)
