@@ -194,15 +194,21 @@ export class OLButton extends FormAssociatedMixin(FocusableHostMixin(LitElement)
         }
 
         /* Press feedback — tactile scale on activation. The raised shadow and
-           specular highlight stay put through the press. */
+           specular highlight stay put through the press. The scale is tiered by
+           width so the edge travels ~1.5px (see static/css/tokens/press.css). */
         .control:active {
-            transform: scale(0.97);
+            transform: scale(var(--press-scale));
         }
 
         /* Icon-only shapes are small enough that 3% is sub-pixel; press harder so
            the feedback registers. */
         :host([shape]) .control:active {
-            transform: scale(0.93);
+            transform: scale(var(--press-scale-compact));
+        }
+
+        /* Stretched buttons are wide enough that 3% reads as a lurch; press softer. */
+        :host([full-width]) .control:active {
+            transform: scale(var(--press-scale-wide));
         }
 
         :host([full-width]) .control {

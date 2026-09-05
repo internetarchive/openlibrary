@@ -118,6 +118,7 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/spacing.css` | Spacing scale |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
 | `static/css/tokens/font-families.css` | Font families and sizes |
+| `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
 
 ### Tokens in Shadow DOM
 
@@ -153,7 +154,7 @@ color changes.
   background: var(--color-control-hover);
 }
 .button:active {
-  transform: scale(0.97);
+  transform: scale(var(--press-scale));
 }
 ```
 
@@ -215,7 +216,8 @@ change; only the `:active` press-scale animates.
 
 | Scenario | Solution |
 | --- | --- |
-| Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` — buttons only. Menu rows and drawer items press with a fill, no squeeze: a shrinking row reads as the panel moving rather than the row being pressed. |
+| Make a control feel responsive | Scale it on `:active` only if it is a self-contained control: it has its own visible boundary (fill, border, or shadow) separating it from its neighbors, and pressing it completes an action. Buttons, chips, icon buttons, pagination items, and carousel arrows qualify. Menu rows and drawer items press with a fill, no squeeze: their edges touch their siblings, so a shrinking row reads as the panel moving rather than the row being pressed. Surfaces (popover, dialog, drawer, toast) are never pressed; their `scale(0.95)` is an enter animation, not press feedback. |
+| Press-scale looks exaggerated or invisible | Pick the tier by width, not importance: `--press-scale-compact` (0.92) for square icon controls, `--press-scale` (0.97) for text controls, `--press-scale-wide` (0.985) for stretched controls like `full-width` buttons and the search bar. Each is tuned so the edge travels ~1.5px; 3% is sub-pixel at 32px and a 15px lurch at 500px. See `static/css/tokens/press.css`. |
 | Icon next to a button label | Put the SVG in `ol-button`'s `icon-start` / `icon-end` slot — it's sized to the button (14/16/18px by size) and gapped automatically; don't set width/height/margin on the SVG or add a `::part(label)` gap |
 | Hover on a solid/colored button | Lighten with `filter: brightness(1.1)`, not a darker color — see [above](#hover-moves-the-whole-control-and-its-direction-depends-on-the-fill) |
 | Hover border looks detached from fill | Shift `border-color` by the same amount as the fill |

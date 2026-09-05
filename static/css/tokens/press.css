@@ -1,0 +1,20 @@
+/*
+ * Press feedback scale
+ * ====================
+ * Controls squeeze on :active so the press reads as physical. The percentage
+ * is tiered by control width so the edge always travels about 1.5px: 3% on a
+ * 32px icon button is sub-pixel, and 3% on a 500px search bar is a 15px lurch.
+ *
+ * Pick the tier by the control's width, not its importance:
+ * - compact: square icon controls (26-40px)
+ * - default: text controls (60-160px)
+ * - wide: stretched controls (200px+, e.g. full-width buttons, the search bar)
+ *
+ * Only self-contained controls scale (see docs/ai/design.md, "Animations").
+ * Menu rows and surfaces (popovers, drawers, dialogs) never do.
+ */
+:root {
+  --press-scale-compact: 0.92;
+  --press-scale: 0.97;
+  --press-scale-wide: 0.985;
+}

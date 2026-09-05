@@ -478,9 +478,9 @@
   background-color: var(--beige-three);
 }
 
-/* Tactile press feedback, matching ol-button's scale(0.97) on activation. */
+/* Tactile press feedback, matching ol-button's press-scale on activation. */
 .navigation-component .browse-popover__trigger:active {
-  transform: scale(0.97);
+  transform: scale(var(--press-scale));
 }
 
 /* Stroked chevron matching the web-component popovers (OlSelectPopover etc.).
@@ -737,7 +737,7 @@
 }
 
 .search-bar-component:has(.search-bar-trigger:active) {
-  transform: scale(0.985);
+  transform: scale(var(--press-scale-wide));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -863,7 +863,7 @@
 }
 
 .drawer-menu__login-links a:active {
-  transform: scale(0.97);
+  transform: scale(var(--press-scale));
 }
 
 .drawer-menu__login-primary,

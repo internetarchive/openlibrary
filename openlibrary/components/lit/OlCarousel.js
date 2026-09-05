@@ -340,7 +340,7 @@ export class OlCarousel extends LitElement {
         /* Tactile press: nudge the icon down in scale, matching ol-button,
            ol-chip, ol-pagination et al. Snaps (no transition) like the others. */
         .arrow:active .arrow-icon {
-            transform: scale(0.92);
+            transform: scale(var(--press-scale-compact));
         }
 
         .arrow ol-icon {
