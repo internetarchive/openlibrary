@@ -18,26 +18,24 @@ if TYPE_CHECKING:
 WEBPY_NETLOC = "web:8080"
 
 
-class _DiscardingCookieJar(CookieJar):
-    """A jar that stores nothing.
+class StatelessCookieJar(CookieJar):
+    """Prevent httpx from storing upstream Set-Cookie headers in the shared client."""
 
-    The client below is shared by every proxied request, so an upstream
-    Set-Cookie would otherwise be kept and attached to the next request that
-    arrives without a Cookie header of its own -- serving an anonymous visitor
-    as whoever logged in last. Each request forwards its own Cookie header.
-    """
+    def extract_cookies(self, response, request):
+        pass
 
-    def set_cookie(self, cookie) -> None:
-        return
+    def set_cookie(self, cookie):
+        pass
 
 
-def _new_upstream_client(**kwargs) -> httpx.AsyncClient:
-    """The client every proxied request shares. Tests inject a `transport`."""
-    # This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
-    return httpx.AsyncClient(follow_redirects=False, timeout=None, cookies=_DiscardingCookieJar(), **kwargs)
-
-
-get_async_session = cache_per_event_loop(_new_upstream_client)
+# This timeout would set a global OpenLibrary timeout for all requests, which this code shouldn't handle.
+get_async_session = cache_per_event_loop(
+    lambda: httpx.AsyncClient(
+        follow_redirects=False,
+        timeout=None,
+        cookies=StatelessCookieJar(),
+    )
+)
 
 
 def _rebase_redirect(location: str, client_scheme: str, client_netloc: str) -> str:
@@ -54,12 +52,23 @@ def _rebase_redirect(location: str, client_scheme: str, client_netloc: str) -> s
     return urlunsplit(parts._replace(scheme=client_scheme, netloc=client_netloc))
 
 
+def _get_set_cookies(headers) -> list[str]:
+    """Return all Set-Cookie values from httpx headers or plain-dict test doubles."""
+    get_list = getattr(headers, "get_list", None)
+    if callable(get_list):
+        return get_list("set-cookie")
+    value = headers.get("set-cookie") if hasattr(headers, "get") else None
+    if not value:
+        return []
+    return value if isinstance(value, list) else [value]
+
+
 async def proxy_to_webpy(request: Request) -> Response:
     """Forward request to web.py on http://web:8080."""
-    url = f"http://{WEBPY_NETLOC}{request.url.path}?{request.url.query}"
+    url = f"http://{WEBPY_NETLOC}{request.url.path}"
+    if request.url.query:
+        url += f"?{request.url.query}"
 
-    # The client's own Cookie header rides along in `headers`; never pass
-    # cookies= as well, which would route them through the shared client jar.
     headers = dict(request.headers)
     headers.pop("host", None)
 
@@ -73,8 +82,8 @@ async def proxy_to_webpy(request: Request) -> Response:
         ),
         stream=True,
     )
-
-    filtered_headers = {k: v for k, v in resp.headers.items() if k.lower() not in ("content-encoding", "transfer-encoding", "content-length", "x-served-by")}
+    excluded = {"content-encoding", "transfer-encoding", "content-length", "x-served-by", "set-cookie"}
+    filtered_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded}
     filtered_headers["X-Proxied-By"] = "FastAPI"
     filtered_headers["X-Served-By"] = "web.py"
 
@@ -96,4 +105,10 @@ async def proxy_to_webpy(request: Request) -> Response:
             # (per-event-loop) and must not be closed here.
             await resp.aclose()
 
-    return StreamingResponse(stream_body(), status_code=resp.status_code, headers=filtered_headers)
+    response = StreamingResponse(stream_body(), status_code=resp.status_code, headers=filtered_headers)
+
+    # 2. Append all cookies cleanly so none are dropped
+    for cookie in _get_set_cookies(resp.headers):
+        response.headers.append("set-cookie", cookie)
+
+    return response

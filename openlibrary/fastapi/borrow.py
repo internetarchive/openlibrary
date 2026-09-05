@@ -9,14 +9,13 @@ logic; only the redirect/flash/cookie/404 handling differs per framework.
 
 from __future__ import annotations
 
-import json
 from typing import Annotated
-from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from infogami import config
+from openlibrary.fastapi.utils import set_flash_cookie
 from openlibrary.plugins.upstream.borrow import (
     BorrowNotFound,
     BorrowParams,
@@ -72,16 +71,7 @@ async def borrow(
             if result.clear_login_cookie:
                 response.delete_cookie(config.login_cookie_name)
             if result.flash:
-                flash_type, flash_message = result.flash
-                flash_json = json.dumps([{"type": flash_type, "message": flash_message}])
-                # web.py's flash cookie reader (infogami.utils.flash / web.cookies())
-                # unconditionally percent-decodes the raw cookie value, symmetric with
-                # web.setcookie()'s percent-encoding on write. Starlette's default
-                # cookie quoting instead backslash-escapes values containing commas
-                # (RFC 2109 style), which web.py's decoder can't reverse -- so the
-                # flash message would silently vanish unless we percent-encode it
-                # ourselves here to match web.py's wire format.
-                response.set_cookie("flash", quote(flash_json, safe=""))
+                set_flash_cookie(response, *result.flash)
             return response
         case _:
             # The interstitial render_template() result, returned as-is --
