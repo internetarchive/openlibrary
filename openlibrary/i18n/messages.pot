@@ -443,7 +443,7 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
-#: RelatedSubjects.html account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -2148,7 +2148,7 @@ msgstr ""
 msgid "Admin Center"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "People"
 msgstr ""
 
@@ -4501,7 +4501,7 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja SearchNavigation.html SubjectTags.html lib/nav_foot.html openlibrary/plugins/openlibrary/nav.py openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -5416,7 +5416,7 @@ msgstr ""
 msgid "Search for books published by %(publisher)s"
 msgstr ""
 
-#: RelatedSubjects.html publishers/view.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja publishers/view.html
 msgid "None found."
 msgstr ""
 
@@ -6182,7 +6182,7 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "Places"
 msgstr ""
 
@@ -6638,7 +6638,7 @@ msgstr ""
 msgid "Derived from seed metadata"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/list/view_body.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja SubjectTags.html openlibrary/plugins/worksearch/code.py type/list/view_body.html
 msgid "Times"
 msgstr ""
 
@@ -7148,11 +7148,11 @@ msgstr ""
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: PublishingHistory.html RelatedSubjects.html
+#: PublishingHistory.html RelatedSubjects.html RelatedSubjects.html.jinja
 msgid "Something went wrong."
 msgstr ""
 
-#: PublishingHistory.html RelatedSubjects.html
+#: PublishingHistory.html RelatedSubjects.html RelatedSubjects.html.jinja
 msgid "Retry"
 msgstr ""
 
@@ -7204,7 +7204,7 @@ msgstr ""
 msgid "View MARC"
 msgstr ""
 
-#: RelatedSubjects.html
+#: RelatedSubjects.html RelatedSubjects.html.jinja
 msgid "Related..."
 msgstr ""
 
