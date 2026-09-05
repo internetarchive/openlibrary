@@ -166,7 +166,7 @@ $(function() {
     // conditionally load for avatar / profile picture upload on user edit page
     const avatarContainer = document.querySelector('.formElement.avatar');
     if (avatarContainer) {
-        import(/* webpackChunkName: "avatar" */ './avatar')
+        import('./avatar')
             .then(module => module.initAvatarUpload(avatarContainer));
     }
 
