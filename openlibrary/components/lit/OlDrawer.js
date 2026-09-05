@@ -33,7 +33,10 @@ import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
  *     `true`. Attribute: `close-on-escape`.
  *
  * @cssprop [--ol-drawer-width=300px] - Width of the drawer panel.
- * @cssprop [--ol-drawer-scrim-color=hsla(0, 0%, 0%, 0.5)] - Scrim color.
+ * @cssprop [--ol-drawer-scrim-color=var(--overlay-backdrop-color)] - Scrim color.
+ * @cssprop [--ol-drawer-scrim-blur=var(--overlay-backdrop-blur)] - Blur radius
+ *     applied to the page behind the scrim. The drawer is modal, so it blurs;
+ *     see docs/ai/design.md#blur-follows-modality-not-viewport-width.
  * @cssprop [--ol-drawer-enter-duration=400ms] - Slide-in duration.
  * @cssprop [--ol-drawer-exit-duration=300ms] - Slide-out duration.
  * @cssprop [--ol-drawer-scroll-padding=0] - Inset kept clear when Tab scrolls a
@@ -72,7 +75,8 @@ export class OlDrawer extends LitElement {
     static styles = css`
         :host {
             --ol-drawer-width: 300px;
-            --ol-drawer-scrim-color: hsla(0, 0%, 0%, 0.5);
+            --ol-drawer-scrim-color: var(--overlay-backdrop-color);
+            --ol-drawer-scrim-blur: var(--overlay-backdrop-blur);
             --ol-drawer-enter-duration: 400ms;
             --ol-drawer-exit-duration: 300ms;
             --ol-drawer-easing: cubic-bezier(0.23, 1, 0.32, 1);
@@ -124,11 +128,18 @@ export class OlDrawer extends LitElement {
 
         /* ── Scrim ── */
 
+        /* Same scrim as ol-dialog and the ol-popover tray: the drawer is
+           modal, so it blurs. The blur is what lets the dim stay light — 32%
+           over a page of covers still reads as content; blurred, it doesn't.
+           Declared constant and carried by opacity, never animated as a
+           radius: this layer is viewport-sized and the slide runs 400ms. */
         .scrim {
             position: absolute;
             inset: 0;
             background: var(--ol-drawer-scrim-color);
             opacity: 0;
+            backdrop-filter: blur(var(--ol-drawer-scrim-blur));
+            -webkit-backdrop-filter: blur(var(--ol-drawer-scrim-blur));
             transition: opacity var(--ol-drawer-exit-duration) var(--ol-drawer-easing);
         }
 

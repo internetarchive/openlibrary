@@ -127,10 +127,70 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
 | `static/css/tokens/font-families.css` | Font families and sizes |
 | `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
+| `static/css/tokens/borders.css` | Border and shadow tokens, plus the modal overlay scrim (`--overlay-backdrop-color` / `--overlay-backdrop-blur`) |
 
 ### Tokens in Shadow DOM
 
 CSS custom properties inherit through the shadow boundary, so design tokens work directly inside Lit component `static styles` blocks without any extra wiring.
+
+## Overlays
+
+### Blur follows modality, not viewport width
+
+An overlay dims and blurs the page behind it **if and only if it is modal** — it
+traps focus, inerts the background, and the page behind genuinely cannot be
+reached. The blur is not decoration; it is how "the page is inert" gets
+rendered. An overlay whose page stays interactive gets no scrim and no blur: its
+own border and shadow do the separating, and dimming a page you can still click
+is a lie.
+
+| Surface | Modal? | Scrim + blur |
+|---|---|---|
+| `ol-dialog` | yes — native `showModal()` | yes |
+| `ol-drawer` | yes — `showModal()` + focus trap | yes |
+| `ol-popover` mobile tray | yes — `aria-modal`, scrim, scroll lock | yes |
+| `ol-popover` desktop panel | no — Tab leaves, page stays live | no |
+| `ol-tooltip` | no | no |
+
+The one pair that looks like a viewport rule is `ol-popover`, whose tray blurs
+and whose desktop panel doesn't. **That is not a mobile rule.** The 767px check
+in `OlPopover` picks the *shape*; modality follows from the shape; blur follows
+modality. Never key a blur off a breakpoint — the first modal surface on desktop
+(or non-modal panel on mobile) breaks it.
+
+Every modal surface reads the same two tokens, `--overlay-backdrop-color` and
+`--overlay-backdrop-blur`. Don't hand-roll a per-component scrim value: a
+hamburger drawer that dims harder than a confirm dialog reads as the more
+serious interruption, which is backwards. `ol-drawer` carried its own `0.5`
+black for exactly that reason until the three were unified.
+
+**The blur is what lets the dim stay light.** 32% black over a page of book
+covers still leaves a legible, busy field competing with the panel — you can
+read the titles through it. The blur destroys that detail so nothing behind
+reads as content any more, which is what buys the dim the freedom to stay at
+0.32 and keep the page feeling present rather than switched off. Drop the blur
+and you inevitably compensate with more black.
+
+**Declare the blur constant; animate only opacity.** Never transition a blur
+radius — the layer is viewport-sized and the drawer's enter runs 400ms. Setting
+`backdrop-filter` on the scrim and transitioning the scrim's `opacity` fades the
+blur in with it for free, since an element's opacity carries its own
+`backdrop-filter`. This is also what makes the drawer's swipe-to-dismiss work:
+it drives `opacity` directly from drag progress and the blur tracks it.
+
+Two consequences worth knowing before adding a scrim to something new:
+
+- **`backdrop-filter` establishes a containing block**, so a blurred scrim is a
+  positioning trap for any `position: fixed` descendant. Our scrims have no
+  descendants (the drawer's panel is a *sibling* of its scrim, not a child) —
+  keep it that way, and see [Overlays and the top
+  layer](web-components.md#overlays-and-the-top-layer) for the full trap.
+- **Nested modals compound**, since each scrim blurs whatever is painted below
+  it. A popover tray opened from inside the drawer stacks two layers: ~0.54
+  effective dim and ~4.2px of blur, with the drawer panel itself pushed back
+  along with the page. Measured, that reads as intentional depth rather than a
+  bug — but it is the reason the shared token is light. Two 0.5 scrims would
+  not survive the same stacking.
 
 ## Animations
 

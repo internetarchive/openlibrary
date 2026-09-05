@@ -259,6 +259,8 @@ A shadow-DOM component that is server-rendered can still look right before upgra
 
 ## Overlays and the top layer
 
+This section covers where an overlay is *positioned*. For what it should *look* like — specifically when the page behind gets a scrim and a blur, which is a function of modality and not of viewport width — see [Blur follows modality](design.md#blur-follows-modality-not-viewport-width) in design.md.
+
 Any panel that is **anchored to a trigger and positioned from viewport coordinates** — a popover, tooltip, menu, picker — must be promoted to the **top layer**. `position: fixed` is not enough and is the single most common way an overlay ships broken.
 
 A fixed element's containing block is the viewport *only* if no ancestor establishes one. `transform`, `filter`, `perspective`, `backdrop-filter`, `contain` and `will-change` all do — including a bare `translateZ(0)` someone added for GPU compositing, and the transformed track inside a carousel. Under one of those, coordinates read from `getBoundingClientRect()` are resolved against the wrong origin and the panel lands far from its trigger, clipped by the container. Measured on the design-system docs inside a `translateZ(0)` wrapper: **`ol-popover` 441×364px off, `ol-tooltip` 436×367px off**. The top layer also escapes ancestor `isolation: isolate` and z-index stacking, which no z-index value can.
