@@ -1,4 +1,5 @@
 import textwrap
+from collections.abc import Callable
 from functools import cache as functools_cache
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,31 @@ import web
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 from markupsafe import escape as _markupsafe_escape
+
+# Shared template helper fallback table.
+# Maps each helper name to its fallback callable returning a safe default value.
+# Used both in get_jinja_env() (with live web.template.Template.globals lookup)
+# and in tests/validation environments.
+# To add a helper, add one entry here.
+TEMPLATE_GLOBAL_HELPERS: dict[str, Callable[..., Any]] = {
+    "stats_summary": dict,
+    "query_param": lambda name, default=None: default,
+    "is_bot": lambda: False,
+    "static_url": lambda path: f"/static/{path}",
+    "get_supported_languages": dict,
+    "get_git_revision_short_hash": lambda: "",
+}
+
+
+def _make_template_helper(name: str, fallback: Callable[..., Any]) -> Callable[..., Any]:
+    """Create a wrapper that calls the template global if present, or fallback."""
+
+    def helper(*args: Any, **kwargs: Any) -> Any:
+        if func := web.template.Template.globals.get(name):
+            return func(*args, **kwargs)
+        return fallback(*args, **kwargs) if callable(fallback) else fallback
+
+    return helper
 
 
 def render_jinja_template(template_name: str, **kwargs: Any) -> str:
@@ -111,6 +137,15 @@ def get_jinja_env() -> Environment:
     # An exception to the "10 or more templates" rule below: an icon is a design
     # system primitive any template may need.
     env.globals["icon"] = _icon
+
+    # Register shared template helpers from TEMPLATE_GLOBAL_HELPERS
+    for name, fallback in TEMPLATE_GLOBAL_HELPERS.items():
+        env.globals[name] = _make_template_helper(name, fallback)
+
+    # Context proxy for request-level context (e.g. ctx.get('show_ol_shell', True))
+    from infogami.utils.context import context as _infogami_context
+
+    env.globals["ctx"] = _infogami_context
 
     # A force-escape filter that works even under autoescape=True.
     # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping

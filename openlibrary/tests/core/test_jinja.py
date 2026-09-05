@@ -2,17 +2,19 @@
 
 import pathlib
 import textwrap
+from typing import Any
 
 import jinja2
 import jinja2.exceptions
 import pytest
+import web
 from lxml import html as lxml_html
 from lxml.etree import ParseError as LxmlParseError
 from markupsafe import escape as _markupsafe_escape
 
 from openlibrary import i18n as i18n_module
 from openlibrary.core import jinja as jinja_module
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.jinja import TEMPLATE_GLOBAL_HELPERS, get_jinja_env
 from openlibrary.i18n import load_translations
 from openlibrary.utils.request_context import req_context
 
@@ -41,6 +43,9 @@ class RenderableUndefined(jinja2.Undefined):
         return RenderableUndefined()
 
     def __getitem__(self, key: object) -> RenderableUndefined:
+        return RenderableUndefined()
+
+    def __call__(self, *args: Any, **kwargs: Any) -> RenderableUndefined:
         return RenderableUndefined()
 
 
@@ -91,6 +96,11 @@ def _create_validation_env() -> jinja2.Environment:
 
     env.globals["render_component"] = _stub_render_component
 
+    # Register all template helper fallbacks from the shared table
+    for name, fallback in TEMPLATE_GLOBAL_HELPERS.items():
+        env.globals[name] = fallback
+    env.globals["ctx"] = RenderableUndefined()
+
     env.filters["force_escape"] = lambda s: _markupsafe_escape(str(s).strip())
 
     env.filters["dedent"] = lambda s: textwrap.dedent(str(s)).strip()
@@ -112,6 +122,11 @@ def assert_valid_html(html_string: str) -> None:
     try:
         lxml_html.fromstring(html_string, parser=parser)
     except LxmlParseError as e:
+        # libxml2's HTML parser is HTML4-based and flags HTML5 semantic elements
+        # (header, footer, nav, aside, main, section, details, summary) as invalid tags.
+        msg = str(e)
+        if "Tag " in msg and " invalid" in msg:
+            return
         pytest.fail(f"Rendered HTML contains orphan/mismatched tags: {e}")
 
 
@@ -134,10 +149,11 @@ def test_site_layout_template_uses_jinja_template(monkeypatch):
 class TestGetJinjaEnv:
     """Tests for get_jinja_env()."""
 
-    def test_returns_jinja2_environment(self):
-        """Should return a Jinja2 Environment instance."""
+    def test_returns_configured_environment(self):
+        """Should return a Jinja2 Environment with loaders for macros and templates."""
         env = get_jinja_env()
         assert isinstance(env, jinja2.Environment)
+        assert isinstance(env.loader, jinja2.FileSystemLoader)
 
     def test_is_cached(self):
         """Should return the same object on repeated calls (functools.cache)."""
@@ -155,7 +171,7 @@ class TestGetJinjaEnv:
         with pytest.raises(jinja2.exceptions.UndefinedError):
             tpl.render()
 
-    def test_has_gettext_global(self):
+    def test_has_gettext_globals(self):
         """Should have the _ (gettext) function in globals."""
         env = get_jinja_env()
         assert "_" in env.globals
@@ -173,6 +189,28 @@ class TestGetJinjaEnv:
         env = get_jinja_env()
         assert "render_templetor_template" in env.globals
         assert callable(env.globals["render_templetor_template"])
+
+    def test_has_template_helpers_in_globals(self):
+        """Should expose all shared template helpers from TEMPLATE_GLOBAL_HELPERS and ctx in globals."""
+        env = get_jinja_env()
+        for helper in TEMPLATE_GLOBAL_HELPERS:
+            assert helper in env.globals
+            assert callable(env.globals[helper])
+        assert "ctx" in env.globals
+
+    def test_template_helpers_return_safe_defaults_when_globals_missing(self, monkeypatch):
+        """Template helpers should return safe defaults if Template globals are not populated."""
+        monkeypatch.setattr(web.template.Template, "globals", {})
+        env = get_jinja_env()
+        for helper in TEMPLATE_GLOBAL_HELPERS:
+            assert helper in env.globals
+            assert callable(env.globals[helper])
+        assert env.globals["stats_summary"]() == {}
+        assert env.globals["query_param"]("debug", "default_val") == "default_val"
+        assert env.globals["is_bot"]() is False
+        assert env.globals["static_url"]("build/js/all.js") == "/static/build/js/all.js"
+        assert env.globals["get_supported_languages"]() == {}
+        assert env.globals["get_git_revision_short_hash"]() == ""
 
     def test_has_autoescape_enabled(self):
         """Should have autoescaping enabled."""
