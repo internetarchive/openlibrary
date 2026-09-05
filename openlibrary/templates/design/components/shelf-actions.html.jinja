@@ -1,0 +1,39 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        The per-book action popover: the four reading-log shelves, a star rating, an "Add to list" pane that slides in with a filter and inline list creation, and a check-in pane that asks when the reader finished the book. It composes <a href="#popover">Popover</a> for the shell; you supply the trigger. State is optimistic — the UI updates first, an error toast rolls it back — and every accepted change fires <code>ol-book-state-change</code> so the surrounding card can follow. Only render it for signed-in readers; send everyone else to log in.
+    </p>
+    {% call ex.example("Standalone", "Give it a book, the current shelf/rating, and the reader's key (needed to create lists). book takes JSON in the attribute, or the object itself if you set the .book property from JS; shelf and rating are plain numbers. The trigger is whatever you slot in. Signed in, this demo opens on your real state for The Lord of the Rings and saves every change to your account.",
+        code="<ol-shelf-actions\n  user-key=\"/people/you\"\n  shelf=\"1\"\n  book='{\"key\": \"/works/OL27448W\",\n         \"title\": \"The Lord of the Rings\",\n         \"firstPublishYear\": 1954}'>\n  <button slot=\"trigger\">Save</button>\n</ol-shelf-actions>") %}
+        {# Server-rendered opening state — this demo writes to the reader's
+           actual reading log, so it opens on what's there. #}
+        {% set lotr = reading_state.get('OL27448W') or {} %}
+        <ol-shelf-actions id="demo-shelf-actions" user-key="{{ user_key }}" book='{"key": "/works/OL27448W", "title": "The Lord of the Rings", "firstPublishYear": 1954}' {% if lotr.get('shelf') %}shelf="{{ lotr['shelf'] }}"{% endif %} {% if lotr.get('rating') %}rating="{{ lotr['rating'] }}"{% endif %} {% if lotr.get('read_date') %}read-date="{{ lotr['read_date'] }}" event-id="{{ lotr['event_id'] }}"{% endif %}>
+            <ol-button slot="trigger">
+                Save
+            </ol-button>
+        </ol-shelf-actions>
+        <p>Last change: <strong id="demo-shelf-actions-out">—</strong></p>
+        <script>
+            (function () {
+                const el = document.getElementById('demo-shelf-actions');
+                const show = (e) => {
+                    document.getElementById('demo-shelf-actions-out').textContent = JSON.stringify(e.detail);
+                };
+                el.addEventListener('ol-book-state-change', show);
+                el.addEventListener('ol-book-check-in', show);
+            })();
+        </script>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Shelf ids.</b> 1 Want to Read, 2 Currently Reading, 3 Already Read, 4 Stopped Reading — the same ids as <code>Bookshelves.PRESET_BOOKSHELVES</code> and the <code>bookshelf_id</code> the endpoint takes. From JS, import <code>SHELF</code> from <code>lit/utils/books-api.js</code> instead of writing the number.
+        </p>
+        <p>
+            <b>Recently used lists.</b> Curation runs in bursts — many books into one list in a sitting — so the component remembers the last three lists the reader put a book in or took one out of, per user, for a fortnight (<code>lit/utils/recent-lists.js</code>, <code>localStorage</code>). The most recent one gets a one-tap row on the main pane, so the common add never opens the lists pane at all; from five lists up, the recent ones are pinned above the rest inside it, and the filter field appears on the same terms as <a href="#select-popover">Select Popover</a>'s (both read <code>FILTER_THRESHOLD</code>). Order is snapshotted when the popover opens and held until it closes, so a row never moves under the reader mid-session. With no lists at all the pane is the create form, headed <i>Create your first list</i> — nothing to filter, and one thing to do.
+        </p>
+        <p>
+            <b>Requests.</b> Shelves post to <code>/works/OL…W/bookshelves.json</code>, ratings to <code>/works/OL…W/ratings.json</code>, check-ins to <code>/works/OL…W/check-ins</code> and <code>DELETE /check-ins/…</code>, lists through <code>/partials/MyBooksDropperLists.json</code> (read) and the lists/seeds endpoints (write). A 401 on any of them redirects to login.
+        </p>
+    </div>
+{% endmacro %}

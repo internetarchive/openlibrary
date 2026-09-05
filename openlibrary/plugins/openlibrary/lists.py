@@ -44,6 +44,10 @@ from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils import olid_to_key
 from openlibrary.utils.request_context import site
 
+# One pattern for every seed type: delegate keys its `pages` registry by the raw
+# regex text, so both handlers below must register the identical string.
+SEED_LISTS_PATH = r"(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
     name_part = key.split("/")[-1].replace(",", "_").replace("__", "_")
@@ -289,7 +293,7 @@ def convert_list(list):
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
@@ -596,7 +600,7 @@ class lists_json:
 
 
 class lists_yaml(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = SEED_LISTS_PATH
     encoding = "yml"
     content_type = "text/yaml"
 

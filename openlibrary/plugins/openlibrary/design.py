@@ -22,7 +22,12 @@ from pathlib import Path
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from openlibrary import accounts
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
+from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
+from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.design")
 
@@ -233,6 +238,30 @@ COMPONENTS = (
         tag="ol-icon",
         api_table=False,
     ),
+    # --- Books -----------------------------------------------------------
+    # The domain layer: everything here knows what a book is. Generic pieces
+    # they compose (Button, Popover) stay in their own sections.
+    Component(
+        "book-cover",
+        "Book Cover",
+        "design/components/book-cover.html.jinja",
+        group="Books",
+        tag="ol-book-cover",
+    ),
+    Component(
+        "shelf-button",
+        "Shelf Button",
+        "design/components/shelf-button.html.jinja",
+        group="Books",
+        tag="ol-shelf-button",
+    ),
+    Component(
+        "shelf-actions",
+        "Shelf Actions",
+        "design/components/shelf-actions.html.jinja",
+        group="Books",
+        tag="ol-shelf-actions",
+    ),
 )
 
 # Icon sources, one SVG per icon, grouped into folders by provenance. The file
@@ -356,17 +385,48 @@ class DesignContext:
     groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
+    # The book demos write to the signed-in reader's real reading log and
+    # lists, so they need their key; empty sends the demo to log in instead.
+    user_key: str = ""
+    # Their shelf/rating/check-in for the demo works, keyed by OLID, so the
+    # demos open on real state without a client fetch:
+    # {"OL69612W": {"shelf": 3, "rating": 4, "read_date": "2026-08", "event_id": 7}}.
+    reading_state: dict = field(default_factory=dict)
     icons: list[str] = field(default_factory=list)
+
+
+# The works the book demos read and write; must match the demo templates.
+DEMO_WORK_OLIDS = ("OL69612W", "OL27448W")
+
+
+def demo_reading_state(username: str) -> dict[str, dict]:
+    """The reader's shelf, rating, and last finish date for each demo work, keyed by OLID."""
+    numeric_ids = [int(extract_numeric_id_from_olid(olid)) for olid in DEMO_WORK_OLIDS]
+    shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, numeric_ids)}
+    ratings = Ratings.get_users_ratings_of_works(username, numeric_ids)
+    check_ins = {work_id: BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH) for work_id in numeric_ids}
+    return {
+        olid: {
+            "shelf": shelves.get(work_id),
+            "rating": ratings.get(work_id),
+            "read_date": check_ins[work_id]["event_date"] if check_ins[work_id] else None,
+            "event_id": check_ins[work_id]["id"] if check_ins[work_id] else None,
+        }
+        for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)
+    }
 
 
 def build_context(section_id: str) -> DesignContext:
     section = next(candidate for candidate in SECTIONS if candidate.id == section_id)
-    context = DesignContext(section=section)
+    user = accounts.get_current_user()
+    context = DesignContext(section=section, user_key=user.key if user else "")
     if section_id == "foundations":
         context.token_categories = load_token_categories()
     elif section_id == "components":
         # Playground renders no API tables, so it pays for none.
         context.api = load_components()
+        if user:
+            context.reading_state = demo_reading_state(user.key.split("/")[-1])
     elif section_id == "icons":
         context.icons = load_icons()
         # <ol-icon> is one of three ways to draw a glyph, so the Icons section

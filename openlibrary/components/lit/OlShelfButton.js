@@ -1,0 +1,417 @@
+import { LitElement, css, html, nothing } from 'lit';
+import { classMap } from 'lit/directives/class-map.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
+import { translate } from './utils/labels.js';
+import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
+import { showToast } from './OlToastRegion.js';
+import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
+import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
+import './OlShelfActions.js';
+import './OlIcon.js';
+
+export const DEFAULT_LABELS = {
+    ...ACTION_LABELS,
+    save: 'Save %(title)s to your reading log',
+    saved: '%(title)s is on your reading log',
+    // The main half's accessible name: the shelf it toggles plus the book, so
+    // one of twenty in a list still says which. The shelf name leads because
+    // it is the visible label.
+    shelfToggle: '%(shelf)s: %(title)s',
+    shelfMenu: 'More options for %(title)s',
+};
+
+/**
+ * The control that puts a book on a reading-log shelf, in the two shapes the
+ * site needs: a bordered split button for a row (`split`), and a round bookmark
+ * that floats over cover art (`icon`).
+ *
+ * Both open the same `<ol-shelf-actions>` popover; the split variant adds a main
+ * half that toggles between Want to Read and off without opening anything.
+ * Signed out, either shape sends the visitor to log in with the intent
+ * remembered.
+ *
+ * **Stateless by design.** It never writes to `shelf` or `rating` itself — it
+ * emits `ol-book-state-change` and the surface that owns the book applies it,
+ * which then flows back down. That keeps one book's state correct when the same
+ * book appears twice on a page, and it means an optimistic update and its
+ * rollback are the same code path in both directions.
+ *
+ * @element ol-shelf-button
+ *
+ * @prop {String} variant - "split" (default) or "icon"
+ * @prop {String} workKey - "/works/OL…W", the book this acts on
+ * @prop {String} editionKey - "OL…M", recorded with the shelf change when known
+ * @prop {String} bookTitle - Used in the accessible labels. Named `book-title`
+ *     because a `title` attribute would draw a native browser tooltip
+ * @prop {Number} shelf - Current shelf id (1–4), or null when on none
+ * @prop {Number} rating - Current rating (1–5), or null. Passed through to the
+ *     popover and echoed on every state change
+ * @prop {String} readDate - Check-in date, whole or partial, shown on the
+ *     popover's Already Read row. Applied by the surface, like shelf and rating
+ * @prop {Number} eventId - Id of that check-in, so editing the date amends it
+ * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
+ *     visitor to log in instead of opening the popover
+ * @prop {String} placement - ol-popover placement for the actions panel;
+ *     unset uses its default
+ * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
+ *     already show a rating control for the same book
+ * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
+ *
+ * @fires ol-book-state-change - The shelf or rating changed, optimistically or
+ *     rolled back. detail: { key, shelf, rating }
+ * @fires ol-book-check-in - Re-fired from the popover when a finish date is
+ *     saved. detail: { key, date, eventId }
+ */
+export class OlShelfButton extends LitElement {
+    /** A shelf change is in flight. Deliberately not reactive: it gates the
+        second click, it does not change how the button looks. */
+    _pending = false;
+
+    static properties = {
+        variant: { type: String, reflect: true },
+        workKey: { type: String, attribute: 'work-key' },
+        editionKey: { type: String, attribute: 'edition-key' },
+        bookTitle: { type: String, attribute: 'book-title' },
+        shelf: { type: Number },
+        rating: { type: Number },
+        readDate: { type: String, attribute: 'read-date' },
+        eventId: { type: Number, attribute: 'event-id' },
+        userKey: { type: String, attribute: 'user-key' },
+        placement: { type: String },
+        labels: { type: Object },
+        hideRating: { type: Boolean, attribute: 'hide-rating' },
+        _announce: { state: true },
+    };
+
+    static styles = css`
+        :host {
+            display: block;
+            font-family: var(--font-family-body);
+        }
+
+        ol-icon {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 16px;
+        }
+
+        /* ── Split variant ────────────────────────────────────────── */
+
+        /* The two halves are one fused shape, so the container carries the
+           secondary ol-button treatment: raised shadow, inset specular edge,
+           and the press-scale (:active propagates up from either half). */
+        .split {
+            display: flex;
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            overflow: hidden;
+            background: var(--white);
+            --control-highlight-strength: 35%;
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+            transition: transform 0.08s;
+        }
+
+        .split:active {
+            transform: scale(0.97);
+        }
+
+        .split--on {
+            border-color: var(--color-control-selected-border);
+            background: var(--color-control-selected-bg);
+            /* Opaque twin of the tint, so the specular edge tones to it. */
+            --control-surface: var(--color-control-selected-surface);
+        }
+
+        .main,
+        .more {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: calc(var(--control-height-medium) - 2px);
+            border: 0;
+            background: none;
+            color: var(--color-text);
+            font-family: var(--font-family-button);
+            font-size: var(--font-size-body-medium);
+            cursor: pointer;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 0 var(--spacing-sm);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .main span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .main--on {
+            color: var(--color-link);
+        }
+
+        .split > ol-shelf-actions {
+            display: flex;
+        }
+
+        .more {
+            width: 40px;
+            border-left: 1px solid var(--color-border-subtle);
+        }
+
+        .split--on .more {
+            border-left-color: var(--color-control-selected-border);
+            color: var(--color-link);
+        }
+
+        .main:hover,
+        .more:hover {
+            background: var(--color-hover-overlay);
+        }
+
+        /* When on, hover deepens the blue tint instead of graying it. */
+        .split--on .main:hover,
+        .split--on .more:hover {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        .main:focus-visible,
+        .more:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -2px;
+        }
+
+        /* ── Icon variant ─────────────────────────────────────────── */
+
+        /* An outlined bookmark until the book is on a shelf, then filled. The
+           host is positioned by whatever it floats over (ol-book-cover's overlay
+           slot), so everything in here stays in flow. */
+        .save {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--color-text);
+            cursor: pointer;
+            --control-highlight-strength: 35%;
+            transition: transform 0.08s;
+        }
+
+        /* The visible circle is smaller than the 32px hit target. Same inset
+           specular edge as ol-button; the drop shadow is heavier since it floats
+           over cover art. */
+        .save::before {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border-radius: var(--border-radius-circle);
+            background: var(--white);
+            box-shadow:
+                0 1px 4px var(--boxshadow-black),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+        }
+
+        .save ol-icon {
+            position: relative;
+            width: 14px;
+            height: 14px;
+            --ol-icon-stroke-width: 2.5;
+        }
+
+        .save:hover {
+            transform: scale(1.08);
+        }
+
+        .save:active {
+            transform: scale(0.95);
+        }
+
+        .save:focus-visible {
+            outline: none;
+        }
+
+        .save:focus-visible::before {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        /* Saved: the circle stays white; only the bookmark fills, in blue. */
+        .save--on {
+            color: var(--primary-blue);
+        }
+
+        /* Live region: read out, never laid out. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+    `;
+
+    constructor() {
+        super();
+        this.variant = 'split';
+        this.workKey = '';
+        this.editionKey = '';
+        this.bookTitle = '';
+        this.shelf = null;
+        this.rating = null;
+        this.userKey = '';
+        this.labels = {};
+        this.hideRating = false;
+        this._announce = '';
+    }
+
+    t(key, vars) {
+        return translate(this.labels, DEFAULT_LABELS, key, vars);
+    }
+
+    /** Read `message` out through the live region; cleared first so a repeat is still a change. */
+    async _say(message) {
+        this._announce = '';
+        await this.updateComplete;
+        this._announce = message;
+    }
+
+    get _on() {
+        return this.shelf !== null && this.shelf !== undefined;
+    }
+
+    render() {
+        return this.variant === 'icon' ? this._renderIcon() : this._renderSplit();
+    }
+
+    /**
+     * Wrap a trigger in the actions popover when there is a reader to act for.
+     * Signed out the trigger stands alone and its click goes to login.
+     */
+    _withActions(trigger) {
+        if (!this.userKey) return trigger;
+        return html`
+            <ol-shelf-actions
+                .book=${{ key: this.workKey, title: this.bookTitle, editionKey: this.editionKey }}
+                .shelf=${this.shelf}
+                .rating=${this.rating}
+                .readDate=${this.readDate}
+                .eventId=${this.eventId}
+                .labels=${this.labels}
+                user-key=${this.userKey}
+                placement=${ifDefined(this.placement)}
+                ?hide-rating=${this.hideRating}
+            >${trigger}</ol-shelf-actions>
+        `;
+    }
+
+    _renderIcon() {
+        const on = this._on;
+        return this._withActions(html`
+            <button
+                type="button"
+                slot="trigger"
+                class="save ${classMap({ 'save--on': on })}"
+                aria-label=${on ? this.t('saved', { title: this.bookTitle }) : this.t('save', { title: this.bookTitle })}
+                @click=${this.userKey ? undefined : this._onLoggedOut}
+            ><ol-icon name="bookmark" ?filled=${on}></ol-icon></button>
+        `);
+    }
+
+    _renderSplit() {
+        const on = this._on;
+        const label = this.t(SHELF_LABEL[this.shelf ?? SHELF.WANT_TO_READ]);
+        return html`
+            <div class="split ${classMap({ 'split--on': on })}">
+                <!-- A toggle: the label names the shelf, pressed means the book
+                     is on it. The tint and check say the same thing on screen. -->
+                <button
+                    type="button"
+                    class="main ${classMap({ 'main--on': on })}"
+                    aria-pressed=${on ? 'true' : 'false'}
+                    aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
+                    @click=${this._onMainClick}
+                >${on ? html`<ol-icon name="check"></ol-icon>` : nothing}<span>${label}</span></button>
+                <span class="sr-only" role="status">${this._announce}</span>
+                ${this._withActions(html`
+                    <button
+                        type="button"
+                        slot="trigger"
+                        class="more"
+                        aria-label=${this.t('shelfMenu', { title: this.bookTitle })}
+                        @click=${this.userKey ? undefined : this._onLoggedOut}
+                    ><ol-icon name="chevron-down"></ol-icon></button>
+                `)}
+            </div>
+        `;
+    }
+
+    _emitState(shelf, rating = this.rating) {
+        this.dispatchEvent(new CustomEvent('ol-book-state-change', {
+            bubbles: true,
+            composed: true,
+            detail: { key: this.workKey, shelf, rating },
+        }));
+    }
+
+    _onLoggedOut(e) {
+        e.preventDefault();
+        // No resumeUrl: come back to the page they were on. On a book page that
+        // is the same thing, but from a list of results it is not — the legacy
+        // dropper returned them to their results too.
+        redirectToLogin({ action: this.t('wantToRead'), title: this.bookTitle });
+    }
+
+    async _onMainClick(e) {
+        if (!this.userKey) return this._onLoggedOut(e);
+        // The shelf we emit only comes back down as a property a tick later, so
+        // a second click before the request lands would toggle twice on the
+        // server while the button shows one change.
+        if (this._pending) return;
+        const previous = this.shelf ?? null;
+        // On a shelf → clicking removes; otherwise → Want to Read.
+        const target = previous ?? SHELF.WANT_TO_READ;
+        const next = previous === null ? SHELF.WANT_TO_READ : null;
+        this._emitState(next);
+        // The pressed state flips when the surface hands the shelf back down;
+        // this says what happened in words, whether or not the reader's screen
+        // reader announces state changes on a focused button.
+        this._say(next === null ? this.t('removedFromShelf') : this.t('addedToShelf', { shelf: this.t(SHELF_LABEL[next]) }));
+        this._pending = true;
+        try {
+            await setShelf(this.workKey, target, { editionKey: this.editionKey });
+            trackEvent('ReadingLog', SHELF_EVENT[next]);
+        } catch (error) {
+            this._emitState(previous);
+            if (error?.status === 401) return this._onLoggedOut(e);
+            showToast(this.t('errorGeneric'), { type: 'error' });
+        } finally {
+            this._pending = false;
+        }
+    }
+}
+
+customElements.define('ol-shelf-button', OlShelfButton);

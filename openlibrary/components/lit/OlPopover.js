@@ -51,7 +51,9 @@ function _removeFromOverlayStack(el) {
  * Non-modal: while open it keeps focus within the panel, but Tab/Shift+Tab off
  * either edge closes it and returns focus to the trigger (a keyboard user must
  * be able to Tab out — the page behind stays interactive, so we don't set
- * `aria-modal`). Restores focus to the previously-focused element on close. The
+ * `aria-modal`). The mobile tray is the exception: it has a scrim and locks
+ * scroll, so it is `aria-modal` and a screen reader stays inside it too.
+ * Restores focus to the previously-focused element on close. The
  * host's `aria-label` is forwarded to the inner dialog as its accessible name.
  *
  * @element ol-popover
@@ -59,7 +61,9 @@ function _removeFromOverlayStack(el) {
  * @prop {Boolean} open - Whether the popover is currently open
  * @prop {String} placement - Preferred placement relative to the trigger.
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
- *     "start", "center", or "end". Default: "bottom-center"
+ *     "start", "center", or "end". Default: "bottom-start" — a panel is
+ *     usually wider than the control that opens it, and aligning their leading
+ *     edges keeps it under the trigger instead of straddling it.
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
@@ -295,7 +299,7 @@ export class OlPopover extends LitElement {
     constructor() {
         super();
         this.open = false;
-        this.placement = 'bottom-center';
+        this.placement = 'bottom-start';
         this.offset = 4;
         this.autoClose = true;
         this._position = { top: 0, left: 0 };
@@ -356,6 +360,7 @@ export class OlPopover extends LitElement {
                     data-state="${this._animState}"
                     role="dialog"
                     aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
+                    aria-modal="${ifDefined(this._mobile ? 'true' : undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
                         top: ${this._position.top}px;
@@ -560,16 +565,17 @@ export class OlPopover extends LitElement {
 
     // ── Trigger ARIA ────────────────────────────────────────────
 
+    /**
+     * No aria-controls: the trigger is slotted from outside this shadow root
+     * and the panel's id lives inside it, so the reference could never resolve
+     * — a dangling IDREF is worse than none. haspopup + expanded carry the
+     * relationship.
+     */
     _syncTriggerAria() {
         const trigger = this._triggerEl;
         if (!trigger) return;
         trigger.setAttribute('aria-haspopup', 'dialog');
         trigger.setAttribute('aria-expanded', String(this.open));
-        if (this.open) {
-            trigger.setAttribute('aria-controls', this._panelId);
-        } else {
-            trigger.removeAttribute('aria-controls');
-        }
     }
 
     // ── Focus containment (non-modal: Tab out closes) ───────────
@@ -693,9 +699,9 @@ export class OlPopover extends LitElement {
     }
 
     _parsePlacement(placement) {
-        const parts = (placement || 'bottom-center').split('-');
+        const parts = (placement || 'bottom-start').split('-');
         const side = parts[0] === 'top' ? 'top' : 'bottom';
-        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'center';
+        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'start';
         return [side, align];
     }
 
