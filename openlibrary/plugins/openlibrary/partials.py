@@ -394,7 +394,7 @@ class SubjectPublishingHistoryPartial:
         )
 
         template = get_jinja_env().get_template("PublishingHistory.html.jinja")
-        html = render_template(
+        html = template.render(
             publishing_history=subject.get("publishing_history", []),
             async_load=False,
             key=key,
