@@ -4,6 +4,15 @@ $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('search-page')
 
+$# Lazily-loaded Search Inside suggestions (fulltext-search-suggestion.js
+$# fetches the cached FulltextSearchSuggestion partial into this div).
+$# `exclude` is the ocaids of the scans already listed on the page, so the
+$# band shows books the results above don't.
+$def fulltext_rescue(query, exclude=None):
+    <div id="fulltext-search-suggestion" data-query="$query" data-exclude="$(','.join(exclude or []))">
+        $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+    </div>
+
 <div>
     <div id="contentHead">
       <h1>$_("Search Books")</h1>
@@ -115,24 +124,12 @@ $ bodyclass.append('search-page')
         </div>
 
     $if param and not search_response.docs:
-        $if ctx.path == '/search':
-            $ path_id = 'books'
-        $else:
-            $ path_id = ctx.path.split('/')
         $ query = query_param('q')
-        $# Temporarily (2020-03-26) disable automatically showing full-text
-        $# results because of performance issues due to increased load. See
-        $# this commit to revert.
-        <center>
-          <div class="red">
-            $:_('No <strong>%(path_id)s</strong> directly matched your search.', path_id=path_id)
-            <a href="/books/add">$_('Add a new book?')</a>
+        <div class="search-no-direct-match">
+          <p class="search-no-direct-match__message">$_('No matching books or authors')</p>
+          <ol-button variant="secondary" href="/books/add">$_('Add a new book')</ol-button>
         </div>
-          <hr>
-        </center>
-        <div id="fulltext-search-suggestion" data-query="$query">
-            $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-        </div>
+        $:fulltext_rescue(query)
 
     $elif param and not search_response.error and len(search_response.docs):
         <div class="resultsContainer search-results-container">
@@ -148,6 +145,7 @@ $ bodyclass.append('search-page')
               $_("Books")
               <span class="search-results-section-label__count">$results_stats</span>
             </h2>
+          $ query = query_param('q')
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
@@ -161,6 +159,17 @@ $ bodyclass.append('search-page')
                 $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
           </ul>
           $:macros.OlPagination(page, ceil(search_response.num_found / rows))
+          $# Weak-result rescue, below everything else: metadata search barely
+          $# matched, so check Search Inside too — the same module the
+          $# zero-result branch shows. (Automatic fulltext on *every* results
+          $# page was rolled back on 2020-03-26 for load reasons; this stays
+          $# bounded to the queries metadata search is failing, and the partial
+          $# is now cached and fetch-limited.) ?debug_fulltext=true forces it on
+          $# any query, to evaluate a blended page before any rollout.
+          $# Passage-shaped queries (a quoted phrase, or 5+ words) get the band
+          $# even with results — mirrors the modal's isPassageQuery gate.
+          $if query and (search_response.num_found <= 3 or is_passage_query(query) or query_param('debug_fulltext')):
+            $:fulltext_rescue(query, exclude=[ia for d in search_response.docs for ia in d.get('ia', [])])
         </div>
 <!-- /results -->
 

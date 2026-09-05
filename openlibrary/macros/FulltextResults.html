@@ -1,18 +1,17 @@
-$def with(query, results, page=1)
+$def with(query, rows, total, page=1, results_per_page=20)
 
-$def render_snippet(query, doc):
+$def render_snippets(query, row):
   <div class="serp-extra">
-    $:macros.FulltextSnippet(query, doc=doc)
+    $:macros.FulltextSnippet(query, row=row)
   </div>
 
-$if results and results.get('hits'):
-  $ hits = results['hits'].get('hits', [])
-  $ num_found = results['hits'].get('total', 0)
-  <div id="searchResults">
-    <ul class="list-books">
-      $ docs = (doc for doc in hits if doc.get('edition'))
-      $for doc in docs:
-        $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
-    </ul>
-    $:macros.OlPagination(page, ceil(num_found / 20))
-  </div>
+<div id="searchResults">
+  <ul class="list-books list-books--fulltext">
+    $for row in rows:
+      $if row.edition:
+        $:macros.SearchResultsWork(row.edition, availability=row.availability, extra_row=render_snippets(query, row), include_dropper=True, seq_index=loop.index0, show_title_year=True)
+      $else:
+        $:macros.FulltextResultIA(query, row, extra_row=render_snippets(query, row))
+  </ul>
+  $:macros.OlPagination(page, ceil(total / results_per_page))
+</div>

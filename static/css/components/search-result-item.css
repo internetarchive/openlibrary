@@ -93,7 +93,7 @@
   padding: 0;
   color: var(--color-text);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-family-title);
   line-height: var(--line-height-heading);
 
@@ -101,6 +101,15 @@
      container that previously guarded #5810 (it grew a scrollbar
      under Literata's taller glyph metrics). */
   overflow-wrap: break-word;
+}
+
+/* Publish year on its own line under the author (title / author / year,
+   as in the search modal). */
+.searchResultItem .bookyear {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label-medium);
+  font-family: var(--font-family-body);
 }
 
 .searchResultItem .details {
@@ -375,6 +384,59 @@
     width: 175px;
     text-align: right;
   }
+
+  /* /search/inside: with no facets sidebar, flex gives the cover column the
+     full 175px basis. Cap it at the footprint the covers actually get on
+     /search's list view, where the sidebar shrinks the column to ~105px. */
+  .search-results-container .searchResultItem .bookcover {
+    width: 105px;
+    flex-shrink: 0;
+  }
+
+  .search-results-container .searchResultItem .bookcover :where(img) {
+    width: auto;
+    max-width: 100%;
+    max-height: 170px;
+  }
+
+  /* Fulltext rows: the quoted passages (.serp-extra) sit in a full-width row
+     under the details and CTA columns, with the cover spanning beside it.
+     The rows are sized auto/1fr rather than left to the grid: a cover taller
+     than the text beside it would otherwise have its excess split between
+     both rows, opening a gap between the details and the passages that
+     belong right under them. */
+  .list-books--fulltext .searchResultItem .sri__main {
+    display: grid;
+    grid-template:
+      "cover details cta" auto
+      "cover extra extra" 1fr
+      / auto minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .list-books--fulltext .searchResultItem .bookcover {
+    grid-area: cover;
+  }
+
+  .list-books--fulltext .searchResultItem .details {
+    grid-area: details;
+  }
+
+  .list-books--fulltext .searchResultItem .searchResultItemCTA {
+    grid-area: cta;
+  }
+
+  .list-books--fulltext .searchResultItem .serp-extra {
+    grid-area: extra;
+  }
+}
+
+/* Align the quote cards with the details text; on mobile (stacked flex
+   column, centered) the row still needs its full width. */
+.list-books--fulltext .serp-extra {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-inset-xs) var(--spacing-inset-xs);
 }
 
 /* Normalize cover image height so CTA buttons align across all cards in a row. */

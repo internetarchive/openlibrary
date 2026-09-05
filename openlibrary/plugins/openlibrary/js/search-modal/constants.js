@@ -73,10 +73,21 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     // the modal renders inline — when every hit is already shown there's nothing
     // more to "see all" of. seeOne/seeMany are the all-shown cases; seeAllMany is
     // the there's-more case (always plural, since a lone result is always shown).
+    // The unit is books: numFound is the catalog (work) count, and the author
+    // rows are derived from those same docs rather than counted alongside them.
     seeAll: 'See results',
-    seeOne: 'See %s result',
-    seeMany: 'See %s results',
-    seeAllMany: 'See all %s results',
+    // Shown once a search has settled on zero hits — the button still leads to
+    // /search (facets, advanced search, Search Inside rescue band), so it gets
+    // a destination label instead of promising results that aren't there.
+    seeNone: 'Go to full search',
+    seeOne: 'See %s book',
+    seeMany: 'See %s books',
+    seeAllMany: 'See all %s books',
+    // Narrow-viewport form of seeAllMany: the footer holds two buttons there and
+    // the wide label crowds the fulltext one. Only the there's-more case needs a
+    // short form — the others already fit. The wide form stays the button's
+    // accessible name at both widths (see _renderSeeAll).
+    seeAllManyNarrow: 'All %s books',
     clearAll: 'Clear all',
     filtersAria: 'Search filters',
     availabilityLabel: 'Availability',
@@ -86,12 +97,17 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languagesLoading: 'Loading…',
     searching: 'Searching…',
     noResults: 'No results found',
+    // Softer empty state used when the catalog search came back empty but the
+    // "Search inside books" band below has matches — a bare "No results found"
+    // above visible results would read as a contradiction.
+    noCatalogResults: 'No matching books or authors',
     // Screen-reader-only live announcement when results land: first %s = rows
     // shown in the modal, second %s = total matches. e.g. "Showing 7 of 134,731
     // results". Sighted users see the list appear; this gives assistive tech the
     // same feedback (see the aria-live region in SearchModal.render).
     resultsAnnounce: 'Showing %s of %s results',
-    topResults: 'Top results',
+    authorResults: 'Authors',
+    topResults: 'Books',
     untitled: 'Untitled',
     authorLabel: 'Author',
     // Result-row access badge, shown for any readable book (public-domain or
@@ -103,6 +119,23 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
+    // "Search inside books" band: %s = the number of books with matches (not
+    // match occurrences), formatted client-side. seeAllInside is the band
+    // see-all button's visible text and its accessible name — one string, so
+    // what a voice-control user reads is what they can say. Plural-only like
+    // seeAllMany: the button renders only when the total exceeds the >=1 hits
+    // shown inline, so the count is always >= 2.
+    insideHeading: 'Search inside books',
+    seeAllInside: 'Search Inside %s books',
+    // The same button while no total has been measured for what's in the input
+    // (mid-edit, or just after a filter toggle) — the link still holds, so the
+    // button stays and only the count drops.
+    seeAllInsidePlain: 'Search Inside',
+    // Live-region sentence appended when the band has rows on screen: %s = the
+    // snippet rows shown (1–3), not the backend total. Picked by count
+    // client-side like seeOne/seeMany.
+    insideAnnounceOne: '%s match found inside books',
+    insideAnnounceMany: '%s matches found inside books',
 };
 
 /**

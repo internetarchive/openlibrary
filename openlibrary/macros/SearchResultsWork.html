@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, extra_row=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, show_title_year=False)
 
 $code:
   max_rendered_authors = 9
@@ -51,6 +51,18 @@ $code:
     full_work_title = edition_work.get('title', '') + (': ' + edition_work['subtitle'] if edition_work.get('subtitle') else '')
   else:
     full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
+
+  # Year shown on its own line below the author. Only data already on the
+  # record — never a second lookup: solr docs carry first_publish_year; infogami editions
+  # carry publish_date, from which we pull the 4-digit year.
+  title_year = None
+  if show_title_year:
+    if doc_type.startswith('solr_'):
+      title_year = doc.get('first_publish_year')
+    elif doc_type == 'infogami_edition':
+      title_year = extract_year(selected_ed.get('publish_date') or '') or None
+    elif doc_type == 'infogami_work':
+      title_year = extract_year(doc.get('first_publish_date') or '') or None
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
@@ -121,6 +133,8 @@ $code:
               ]
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url)
         </span>
+        $if title_year:
+          <span class="bookyear">$title_year</span>
         <span class="resultStats">
           $ ratings_count = doc.get('ratings_count') or 0
           $ ratings_avg = doc.get('ratings_average', None)
@@ -272,6 +286,11 @@ $code:
         $if rating:
           $:rating
     </div>
+
+    $# Full-width row under the details/CTA columns (the cover spans beside
+    $# it); .list-books--fulltext grids .sri__main to place it.
+    $if extra_row:
+      $:extra_row
   </div>
 
   $if footer:
