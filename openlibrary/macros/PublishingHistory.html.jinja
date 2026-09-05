@@ -1,12 +1,15 @@
 {% set async_load = async_load | default(false) %}
 {% set publishing_history = publishing_history | default([]) %}
 {% set key = key | default("") %}
-<div class="head">
-    <h2 class="inline">{{ _("Publishing History") }}</h2>
-    <span class="shift">
-        {{ _("This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>.") | safe }}
-    </span>
-    {% if not async_load %}
+<div id="subjectPublishingHistory"
+    data-async-load="{{ async_load | tojson }}"
+    data-key="{{ key | tojson }}">
+    <div class="head">
+        <h2 class="inline">{{ _("Publishing History") }}</h2>
+        <span class="shift">
+            {{ _("This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>.") | safe }}
+        </span>
+        {% if not async_load %}
         <span class="count hidden chartZoom">
             &nbsp;<a href="javascript:;" class="resetSelection small">{{ _("Reset chart") }}</a> {{ _("or continue zooming in.") }}
         </span>
