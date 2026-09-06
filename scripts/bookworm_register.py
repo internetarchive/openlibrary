@@ -16,15 +16,17 @@ into a ticket. Registration is idempotent (``FeedRegistry.register`` is keyed on
     python scripts/bookworm_register.py --ol-config /olsystem/etc/openlibrary.yml \\
         --provider project_gutenberg --since 2026-08-28
 
-A registered feed is **live on the next harvest** -- ``FeedRegistry.all()`` has
-no status filter -- so register a feed only when you are ready for it to run,
-and use ``bookworm_harvest.py --dry-run --provider <name>`` to validate it first.
+Feeds register as ``pending`` and scheduled runs skip them, so registering is
+safe. Validate first, then activate::
+
+    python scripts/bookworm_harvest.py --ol-config ... --provider lenny --dry-run
+    python scripts/bookworm_register.py --ol-config ... --provider lenny --activate
 """
 
 import datetime
 import logging
 
-from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, FeedRegistry
+from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, STATUS_ACTIVE, FeedRegistry
 from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -69,6 +71,7 @@ def main(
     provider: str | None = None,
     since: str | None = None,
     reseed: bool = False,
+    activate: bool = False,
     show: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -82,6 +85,9 @@ def main(
         unseeded first run is thousands of paged fetches; a recent date makes it
         minutes, and the cursor catches up on its own.
     :param show: print the current registry and exit without writing.
+    :param activate: mark the feed active so scheduled runs harvest it. Feeds
+        register as ``pending`` and are skipped by ``harvest_all`` until this is
+        set, which is what lets you dry-run one before it can write.
     :param reseed: allow ``--since`` to move the cursor of an ALREADY registered
         feed. Off by default so a routine re-run can never replay history; the
         recovery path for "registered it, then realised the backfill is too
@@ -96,7 +102,7 @@ def main(
         if not feeds:
             print("feed_registry is empty")
         for row in feeds:
-            print(f"#{row.id} {row.provider_name}\n    url={row.url}\n    last_updated={row.last_updated}\n    data={row.data}")
+            print(f"#{row.id} {row.provider_name}  [{row.status}]\n    url={row.url}\n    last_updated={row.last_updated}\n    data={row.data}")
         return
 
     if provider and provider not in FEEDS:
@@ -142,6 +148,12 @@ def main(
 
         # Only seed a cursor on first registration; re-running must never rewind
         # a feed that has already made progress.
+        if activate:
+            FeedRegistry.set_status(feed.id, STATUS_ACTIVE)
+            logger.info("    activated: scheduled runs will now harvest %s", name)
+        else:
+            logger.info("    status=%s (not harvested by scheduled runs; re-run with --activate)", feed.status)
+
         if cursor and (not existing or reseed):
             FeedRegistry.advance(feed.id, last_updated=cursor)
             logger.info("    %s cursor to %s", "reseeded" if existing else "seeded", cursor.date())

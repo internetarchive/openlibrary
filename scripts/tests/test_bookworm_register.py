@@ -163,3 +163,33 @@ class TestShow:
         out = capsys.readouterr().out
         assert "lenny" in out
         assert "project_gutenberg" not in out
+
+
+class TestActivation:
+    def test_registering_does_not_activate(self, registry_db):
+        """Registering must be safe: a new feed is not picked up by cron."""
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        assert registered()["lenny"].is_active is False
+
+    def test_activate_flag_activates(self, registry_db):
+        bookworm_register.main(ol_config="x.yml", provider="lenny", activate=True)
+        assert registered()["lenny"].is_active is True
+
+    def test_activating_an_existing_feed_preserves_its_cursor(self, registry_db):
+        """The two-step rollout: register, validate, then activate -- without
+        rewinding whatever progress a validation run made."""
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        FeedRegistry.advance(registered()["lenny"].id, last_updated=datetime.datetime(2026, 9, 1))
+
+        bookworm_register.main(ol_config="x.yml", provider="lenny", activate=True)
+
+        feed = registered()["lenny"]
+        assert feed.is_active is True
+        assert str(feed.last_updated).startswith("2026-09-01")
+        assert feed.supports_modified_since is True  # connector config survived
+
+    def test_show_reports_status(self, registry_db, capsys):
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        capsys.readouterr()
+        bookworm_register.main(ol_config="x.yml", show=True)
+        assert "[pending]" in capsys.readouterr().out

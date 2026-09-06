@@ -270,13 +270,21 @@ def _harvest_by_full_crawl(
 
 
 def harvest_all(session: requests.Session | None = None, max_pages: int | None = None, dry_run: bool = False) -> list[dict[str, Any]]:
-    """Harvest every registered feed once (the bookworm cron tick).
+    """Harvest every ACTIVE registered feed once (the bookworm cron tick).
 
     Each feed is isolated: one feed erroring (network, parse, submit) is logged
     and reported, but must not starve the feeds that follow it.
+
+    Feeds still `pending` are skipped -- see STATUS_PENDING in registry.py.
     """
     results: list[dict[str, Any]] = []
     for feed in FeedRegistry.all():
+        # Only feeds that have been explicitly activated. A newly registered
+        # feed is `pending` so it can be inspected and dry-run first; harvesting
+        # it by name with --provider still works in the meantime.
+        if not feed.is_active:
+            logger.info("skipping %s (status=%s; activate it to include it in scheduled runs)", feed.provider_name, feed.status)
+            continue
         try:
             results.append(harvest_feed(feed, session=session, max_pages=max_pages, dry_run=dry_run))
         except Exception:

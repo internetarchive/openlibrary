@@ -49,9 +49,8 @@ environment already populated externally works too.
 
 ## Rolling out a feed
 
-Register only when you are ready for the feed to run: `FeedRegistry.all()` has
-no status filter, so **a registered feed is live on the next harvest.** There is
-no staged state; `--dry-run` is how you validate first.
+Feeds register as **`pending`** and scheduled runs skip them, so registering is
+safe. Validate, then activate.
 
 ```bash
 CFG=/olsystem/etc/openlibrary.yml
@@ -59,15 +58,18 @@ CFG=/olsystem/etc/openlibrary.yml
 # 1. what is registered now
 python scripts/bookworm_register.py --ol-config $CFG --show
 
-# 2. register one feed (idempotent; never rewinds a cursor that has progressed)
+# 2. register (pending — cron will not touch it yet; idempotent, and it never
+#    rewinds a cursor that has already progressed)
 python scripts/bookworm_register.py --ol-config $CFG --provider lenny
 
-# 3. validate before it can write: fetches and parses, writes nothing,
-#    leaves the cursor alone
+# 3. validate: fetches and parses, writes nothing, leaves the cursor alone
 python scripts/bookworm_harvest.py --ol-config $CFG --provider lenny --dry-run
 
-# 4. one real pass, then look at what landed
+# 4. one real pass by name (still pending, so cron stays out of the way)
 python scripts/bookworm_harvest.py --ol-config $CFG --provider lenny
+
+# 5. happy with what landed? hand it to cron
+python scripts/bookworm_register.py --ol-config $CFG --provider lenny --activate
 ```
 
 ```sql
@@ -137,10 +139,10 @@ is visible as a non-zero exit.
 cursor past the pages it did not fetch, permanently skipping them. Reset that
 feed's `last_updated` afterwards.
 
-**Registering is going live.** See above.
-
-**`data.status` does nothing.** It is recorded but not enforced; it does not
-gate harvesting.
+**Only active feeds are harvested on a schedule.** A `pending` feed is skipped
+by `harvest_all` but can still be run by name with `--provider`, which is what
+makes the validate-then-activate sequence above possible. Rows written before
+status gating existed carry no status and are treated as active.
 
 **Cursor direction.** `modified_since` feeds advance to the *run start* time
 (conservative: may re-fetch, never skips). Full-crawl feeds advance to the

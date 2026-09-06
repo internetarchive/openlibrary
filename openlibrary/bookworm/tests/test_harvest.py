@@ -69,6 +69,20 @@ def bookworm_db():
         db.query(f"DROP TABLE IF EXISTS {table};")
 
 
+def _register_active(provider_name: str, url: str, **kwargs) -> FeedRegistry:
+    """Register a feed and activate it.
+
+    Scheduled harvests only pick up ACTIVE feeds, so a test exercising
+    harvest_all has to opt in the same way an operator does.
+    """
+    feed = FeedRegistry.register(provider_name, url, **kwargs)
+    assert feed is not None
+    FeedRegistry.set_status(feed.id, "active")
+    activated = FeedRegistry.get_by_id(feed.id)
+    assert activated is not None
+    return activated
+
+
 def test_harvest_bwb_submits_import_items_carrying_acquisitions(bookworm_db):
     FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
     feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
@@ -107,8 +121,8 @@ def test_harvest_gutenberg_injects_modified_since_and_open_access(bookworm_db):
 
 
 def test_harvest_all_covers_every_feed(bookworm_db):
-    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
-    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
     session = FakeSession({"https://bwb/opds": feed_page("bwb"), "https://lenny/opds": feed_page("lenny")})
 
     results = harvest.harvest_all(session=session)
@@ -131,8 +145,8 @@ def test_one_malformed_publication_is_skipped_not_fatal(bookworm_db):
 
 
 def test_harvest_all_continues_when_one_feed_errors(bookworm_db):
-    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
-    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
     # lenny's URL is absent from the session -> FakeSession.get raises KeyError mid-harvest.
     session = FakeSession({"https://bwb/opds": feed_page("bwb")})
 
@@ -178,8 +192,8 @@ def test_dry_run_on_a_modified_since_feed_leaves_the_cursor_alone(bookworm_db):
 
 
 def test_dry_run_applies_to_every_feed_in_harvest_all(bookworm_db):
-    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
-    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
     session = FakeSession({"https://bwb/opds": feed_page("bwb"), "https://lenny/opds": feed_page("lenny")})
 
     results = harvest.harvest_all(session=session, dry_run=True)
@@ -341,3 +355,37 @@ def test_a_long_backfill_lands_in_one_batch_even_across_midnight(bookworm_db, mo
     harvest.harvest_feed(feed, session=session, now=NOW)
 
     assert len(list(bookworm_db.select("import_batch"))) == 1
+
+
+def test_harvest_all_skips_pending_feeds(bookworm_db):
+    """A registration must be stageable: registering a feed used to make it live
+    on the very next cron tick, with no way to inspect it first."""
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    active = FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    FeedRegistry.set_status(active.id, "active")
+    session = FakeSession({"https://bwb/opds": feed_page("bwb"), "https://lenny/opds": feed_page("lenny")})
+
+    results = harvest.harvest_all(session=session)
+
+    assert {r["feed"] for r in results} == {"betterworldbooks"}
+    assert list(bookworm_db.select("import_item"))  # the active feed still ran
+
+
+def test_a_pending_feed_can_still_be_harvested_explicitly(bookworm_db):
+    """--provider must reach a pending feed, or it could never be validated."""
+    feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    result = harvest.harvest_feed(FeedRegistry.get_by_id(feed.id), session=session, now=NOW, dry_run=True)
+
+    assert result["records"] == 3
+
+
+def test_legacy_rows_without_a_status_still_harvest(bookworm_db):
+    """Rows written before status existed must not silently stop."""
+    feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    # A blob with no "status" key at all, as rows predating status gating have.
+    FeedRegistry.advance(feed.id, last_updated=None, data={"id_strategy": "self_link"})
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    assert {r["feed"] for r in harvest.harvest_all(session=session)} == {"lenny"}

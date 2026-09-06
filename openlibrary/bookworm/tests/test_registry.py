@@ -61,3 +61,41 @@ def test_all_lists_in_order(registry_db):
     FeedRegistry.register("a", "https://a/opds")
     FeedRegistry.register("b", "https://b/opds")
     assert [r.provider_name for r in FeedRegistry.all()] == ["a", "b"]
+
+
+class TestStatusGating:
+    """``status`` was written on registration but never read, so a registered
+    feed was live on the next harvest and a registration could not be staged."""
+
+    def test_a_new_feed_is_pending_not_active(self, registry_db):
+        feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+        assert feed.status == "pending"
+        assert feed.is_active is False
+
+    def test_activate_makes_it_harvestable(self, registry_db):
+        feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+        FeedRegistry.set_status(feed.id, "active")
+        assert FeedRegistry.get_by_id(feed.id).is_active is True
+
+    def test_activating_preserves_the_rest_of_the_config(self, registry_db):
+        """The status lives in the same jsonb blob as the connector config, so a
+        careless write would drop id_strategy/cursor_style."""
+        feed = FeedRegistry.register("project_gutenberg", "https://g/opds", id_strategy="gutenberg", cursor_style=CURSOR_MODIFIED_SINCE)
+        FeedRegistry.set_status(feed.id, "active")
+
+        reloaded = FeedRegistry.get_by_id(feed.id)
+        assert reloaded.id_strategy == "gutenberg"
+        assert reloaded.supports_modified_since is True
+        assert reloaded.is_active is True
+
+    def test_activating_does_not_disturb_the_cursor(self, registry_db):
+        feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+        FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 9, 1))
+        FeedRegistry.set_status(feed.id, "active")
+        assert str(FeedRegistry.get_by_id(feed.id).last_updated).startswith("2026-09-01")
+
+    def test_a_row_with_no_status_is_treated_as_active(self, registry_db):
+        """Rows created before status existed must keep harvesting."""
+        feed = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+        FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2026, 9, 1), data={"id_strategy": "self_link"})
+        assert FeedRegistry.get_by_id(feed.id).is_active is True
