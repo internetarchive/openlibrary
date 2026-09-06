@@ -1,40 +1,36 @@
 {% macro render(query, doc) %}
-{% set ia = doc.get('fields', {}).get('identifier', [''])[0] %}
-{% set ia_base_url = "https://archive.org" %}
-{% set availability = doc.get('availability', {}) %}
-{% set snippet = doc.get('highlight', {}).get('text', [''])[0] %}
-{% set page_nums = doc.get('fields', {}).get('page_num', []) %}
-
-{% if page_nums | length == 1 and page_nums[0] is sequence and page_nums[0] is not string %}
-    {% set page_nums = page_nums[0] %}
-{% endif %}
-
-{% set page = page_nums | map('string') | join(', ') %}
-
-{% if snippet %}
-    <div class="fsi-snippet">
-        <div class="fsi-snippet__main">
-            <div class="fsi-snippet__quotation-mark">{{ _('❝') }}</div>
-            <a class="fsi-snippet__link"
-               href="{{ ia_base_url }}/details/{{ ia }}"
-               data-ol-link-track="SearchInsideSuggestion|QuoteClick">
-                …{{ snippet
-                    | replace("<", "&laquo;")
-                    | replace(">", "&raquo;")
-                    | replace("{{{", "<mark class='highlight'><strong>")
-                    | replace("}}}", "</strong></mark>")
+    {% set ia = doc.get('fields', {}).get('identifier', [''])[0] %}
+    {% set ia_base_url = "https://archive.org" %}
+    {% set availability = doc.get('availability', {}) %}
+    {% set snippet = doc.get('highlight', {}).get('text', [''])[0] %}
+    {% set page_nums = doc.get('fields', {}).get('page_num', []) %}
+    {% if page_nums | length == 1 and page_nums[0] is sequence and page_nums[0] is not string %}
+        {% set page_nums = page_nums[0] %}
+    {% endif %}
+    {% set page = page_nums | map('string') | join(', ') %}
+    {% if snippet %}
+        <div class="fsi-snippet">
+            <div class="fsi-snippet__main">
+                <div class="fsi-snippet__quotation-mark">{{ _("❝") }}</div>
+                <a class="fsi-snippet__link"
+                   href="{{ ia_base_url }}/details/{{ ia }}"
+                   data-ol-link-track="SearchInsideSuggestion|QuoteClick">
+                    …{{ snippet
+                        | replace('<', '&laquo;')
+                        | replace(">", "&raquo;")
+                        | replace("{{{", "<mark class='highlight'><strong>")
+                        | replace("}}}", "</strong></mark>")
                     | safe
-                }}…
-            </a>&nbsp;
-            <div class="fsi-snippet__quotation-mark">{{ _('❞') }}</div>
-            {% if page %}
-                <span class="fsi-snippet__page-num" href="{{ ia_base_url }}/details/{{ ia }}">
-                    <a data-ol-link-track="SearchInsideSuggestion|QuoteClick">
-                        {{ _('Page: %(page)s', page=page) }}
-                    </a>
-                </span>
-            {% endif %}
+                    }}…
+                </a>&nbsp;
+                <div class="fsi-snippet__quotation-mark">{{ _("❞") }}</div>
+                {% if page %}
+                    <span class="fsi-snippet__page-num"
+                          href="{{ ia_base_url }}/details/{{ ia }}">
+                        <a data-ol-link-track="SearchInsideSuggestion|QuoteClick">{{ _('Page: %(page)s', page=page) }}</a>
+                    </span>
+                {% endif %}
+            </div>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
 {% endmacro %}
