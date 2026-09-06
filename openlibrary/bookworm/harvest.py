@@ -23,6 +23,8 @@ import logging
 from typing import Any
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 from openlibrary.bookworm import opds
 from openlibrary.bookworm.registry import FeedRegistry
@@ -58,8 +60,13 @@ confirmed.
 """
 
 
+MAX_RETRIES = 3
+RETRY_BACKOFF = 1.0
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+
+
 def build_session() -> requests.Session:
-    """A session that identifies itself to providers.
+    """A session that identifies itself to providers and rides out blips.
 
     Proxying is deliberately NOT configured here. ``setup_requests()`` exports
     ``http_proxy``/``no_proxy_addresses`` from ``openlibrary.yml`` into the
@@ -70,6 +77,28 @@ def build_session() -> requests.Session:
     """
     session = requests.Session()
     session.headers["User-Agent"] = USER_AGENT
+
+    # A backfill from the beginning is thousands of sequential fetches, and a
+    # single transient failure aborts the whole crawl. That is safe -- the
+    # cursor does not advance, so the next run resumes -- but a long backfill
+    # may then never finish. Retry connection/read errors, rate limits and
+    # server errors, with backoff so a struggling provider is not hammered.
+    #
+    # 4xx is deliberately absent: a 403 is a decision, not a blip, and retrying
+    # it looks like abuse. raise_on_status=False keeps raise_for_status() in
+    # iter_pages as the single place a bad status becomes an exception.
+    retry = Retry(
+        total=MAX_RETRIES,
+        connect=MAX_RETRIES,
+        read=MAX_RETRIES,
+        backoff_factor=RETRY_BACKOFF,
+        status_forcelist=RETRY_STATUSES,
+        allowed_methods=frozenset({"GET"}),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
     return session
 
 
