@@ -186,3 +186,57 @@ def test_dry_run_applies_to_every_feed_in_harvest_all(bookworm_db):
 
     assert all(r.get("dry_run") for r in results)
     assert list(bookworm_db.select("import_item")) == []
+
+
+def test_a_future_modified_timestamp_cannot_push_the_cursor_forward(bookworm_db):
+    """One bad ``modified`` must not permanently strand a feed's back-catalogue.
+
+    A publication dated 2126 (provider typo, bad epoch conversion, clock skew)
+    used to set the cursor to 2126. Every later run then filtered out every real
+    record, and the "nothing newer, advance to now" fallback quietly recovered
+    the cursor to the present -- leaving the entire back-catalogue below it,
+    unharvestable, with no error and a zero exit.
+    """
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    poisoned = json.loads((SAMPLES / "bwb.json").read_text())
+    poisoned[0]["metadata"]["modified"] = "2126-01-01T00:00:00Z"
+    session = FakeSession({"https://bwb/opds": {"publications": poisoned, "links": []}})
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    cursor = _as_utc(FeedRegistry.get_by_id(feed.id).last_updated)
+    assert cursor <= NOW, f"cursor advanced into the future: {cursor}"
+
+
+def test_max_pages_truncation_is_reported(bookworm_db):
+    """Truncating a crawl still advances the cursor, so it must not be silent."""
+    FeedRegistry.register("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    page1 = {"publications": json.loads((SAMPLES / "bwb.json").read_text()), "links": [{"rel": "next", "href": "https://bwb/opds?page=2"}]}
+    session = FakeSession({"https://bwb/opds": page1, "https://bwb/opds?page=2": feed_page("bwb")})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW, max_pages=1)
+
+    assert result["truncated"] is True
+
+
+def test_a_pagination_loop_is_reported_not_silently_treated_as_end_of_feed(bookworm_db):
+    """A feed whose rel=next points back at itself would otherwise yield page 1
+    forever, advance the cursor, and exit green."""
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    looping = {"publications": json.loads((SAMPLES / "lenny.json").read_text()), "links": [{"rel": "next", "href": "https://lenny/opds"}]}
+    session = FakeSession({"https://lenny/opds": looping})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert result["truncated"] is True
+
+
+def test_an_untruncated_crawl_is_not_flagged(bookworm_db):
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    assert "truncated" not in harvest.harvest_feed(feed, session=session, now=NOW)

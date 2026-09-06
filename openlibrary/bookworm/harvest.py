@@ -37,9 +37,11 @@ USER_AGENT = "OpenLibraryBot/1.0 (+https://openlibrary.org; openlibrary@archive.
 """Identify ourselves to providers.
 
 Two reasons this is not the ``requests`` default. Cloudflare (in front of Better
-World Books) blocks ``python-requests/x.y.z`` outright, and a provider that
+World Books) commonly blocks ``python-requests/x.y.z``, and a provider that
 wants to allowlist our crawler needs a stable name and a contact address to
-allowlist it *by*.
+allowlist it *by*. Note the BWB 403 has not been traced to the User-Agent
+specifically -- see scripts/bookworm_register.py for what was actually
+confirmed.
 """
 
 
@@ -65,17 +67,29 @@ def _as_utc(value: datetime.datetime | str | None) -> datetime.datetime | None:
     return dt.replace(tzinfo=datetime.UTC) if dt.tzinfo is None else dt.astimezone(datetime.UTC)
 
 
-def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None):
-    """Yield OPDS pages, following ``rel=next``."""
+def iter_pages(start_url: str, session: requests.Session, max_pages: int | None = None, state: dict | None = None):
+    """Yield OPDS pages, following ``rel=next``.
+
+    Stopping early -- a pagination loop, or the ``max_pages`` cap -- is
+    indistinguishable from reaching the end of the feed, and the caller advances
+    the cursor either way. So record it in ``state`` when it happens: a
+    truncated crawl that silently advances the cursor skips every page it never
+    fetched, permanently.
+    """
     url: str | None = start_url
     seen: set[str] = set()
     page_num = 0
     while url:
         if url in seen:
+            logger.warning("pagination loop at %s; stopping (cursor will advance past unfetched pages)", url)
+            if state is not None:
+                state["truncated"] = True
             return
         seen.add(url)
         page_num += 1
         if max_pages is not None and page_num > max_pages:
+            if state is not None:
+                state["truncated"] = True
             return
         resp = session.get(url, timeout=REQUEST_TIMEOUT, headers={"Accept": "application/opds+json"})
         resp.raise_for_status()
@@ -141,8 +155,9 @@ def _harvest_native(
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
 
+    page_state: dict = {}
     records: list[dict[str, Any]] = []
-    for page in iter_pages(feed.request_url(since), session, max_pages=max_pages):
+    for page in iter_pages(feed.request_url(since), session, max_pages=max_pages, state=page_state):
         for raw in page.get("publications") or []:
             # The server already returned only records modified since the cursor,
             # so keep every record and ignore its timestamp.
@@ -157,7 +172,7 @@ def _harvest_native(
     _submit(feed, records)
     FeedRegistry.advance(feed.id, last_updated=now.replace(tzinfo=None))
     logger.info("harvested %s: %d records", feed.provider_name, len(records))
-    return {"feed": feed.provider_name, "records": len(records)}
+    return {"feed": feed.provider_name, "records": len(records), **page_state}
 
 
 def _harvest_by_full_crawl(
@@ -179,9 +194,10 @@ def _harvest_by_full_crawl(
     since = _as_utc(feed.last_updated) or EPOCH
     parser_feed = feed.to_feed()
 
+    page_state: dict = {}
     records: list[dict[str, Any]] = []
     max_modified = since
-    for page in iter_pages(feed.url, session, max_pages=max_pages):
+    for page in iter_pages(feed.url, session, max_pages=max_pages, state=page_state):
         for raw in page.get("publications") or []:
             record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
             if modified is not None:
@@ -198,10 +214,17 @@ def _harvest_by_full_crawl(
     _submit(feed, records)
     # Advance to the newest modified we saw; if nothing was newer, advance to now
     # so an idle feed doesn't re-scan from the same old cursor every run.
-    new_cursor = max_modified if max_modified > since else now
+    #
+    # Clamped to `now`: one publication with a bad `modified` (a provider typo,
+    # a bad epoch conversion, clock skew) would otherwise park the cursor in the
+    # future. Every subsequent run then filters out every real record, and the
+    # `else now` fallback quietly "recovers" the cursor to the present -- so the
+    # entire back-catalogue ends up below the cursor and is never harvested
+    # again, with no error and a zero exit.
+    new_cursor = min(max_modified, now) if max_modified > since else now
     FeedRegistry.advance(feed.id, last_updated=new_cursor.replace(tzinfo=None))
     logger.info("harvested %s (full crawl): %d records", feed.provider_name, len(records))
-    return {"feed": feed.provider_name, "records": len(records)}
+    return {"feed": feed.provider_name, "records": len(records), **page_state}
 
 
 def harvest_all(session: requests.Session | None = None, max_pages: int | None = None, dry_run: bool = False) -> list[dict[str, Any]]:

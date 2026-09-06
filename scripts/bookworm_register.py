@@ -54,10 +54,13 @@ FEEDS: dict[str, dict] = {
 DEFAULT_PROVIDERS = ("lenny", "project_gutenberg")
 """Registered by default.
 
-Better World Books is deliberately excluded: as of 2026-09-04 its feed sits
-behind Cloudflare, which blocks our proxy's egress with a 403. Registering it
-would make every harvest pass report a failing feed. Add it with
-``--provider betterworldbooks`` once they allowlist us.
+Better World Books is deliberately excluded. As of 2026-09-05 its feed returns
+403 from Cloudflare. Confirmed on the Squid side that this is NOT our proxy
+denying it -- the access log shows the CONNECT allowed and tunnelled
+(TCP_TUNNEL/200), so the 403 comes from Cloudflare inside the TLS tunnel.
+Whether that is IP reputation or bot-signature is not established. Registering
+it would make every harvest pass report a failing feed; add it with
+``--provider betterworldbooks`` once BWB allowlists us.
 """
 
 
@@ -65,6 +68,7 @@ def main(
     ol_config: str = "/openlibrary/conf/openlibrary.yml",
     provider: str | None = None,
     since: str | None = None,
+    reseed: bool = False,
     show: bool = False,
     dry_run: bool = False,
 ) -> None:
@@ -78,13 +82,17 @@ def main(
         unseeded first run is thousands of paged fetches; a recent date makes it
         minutes, and the cursor catches up on its own.
     :param show: print the current registry and exit without writing.
+    :param reseed: allow ``--since`` to move the cursor of an ALREADY registered
+        feed. Off by default so a routine re-run can never replay history; the
+        recovery path for "registered it, then realised the backfill is too
+        large" without hand-written SQL.
     :param dry_run: report what would be registered without writing.
     """
     logging.basicConfig(level=logging.INFO)
     load_config(ol_config)
 
     if show:
-        feeds = FeedRegistry.all()
+        feeds = [f for f in FeedRegistry.all() if not provider or f.provider_name == provider]
         if not feeds:
             print("feed_registry is empty")
         for row in feeds:
@@ -109,6 +117,17 @@ def main(
             logger.info("[dry run] would register %s -> %s", name, spec["url"])
             continue
 
+        # register() is keyed on provider_name + url, so editing a feed's URL
+        # creates a SECOND live row for the same provider -- both harvested
+        # every pass, with independent cursors, competing for the same batch.
+        if stale := [f for f in FeedRegistry.all() if f.provider_name == name and f.url != spec["url"]]:
+            logger.warning(
+                "%s is already registered at a DIFFERENT url: %s. Registering %s as well leaves both live; delete the stale row if it is superseded.",
+                name,
+                ", ".join(f.url for f in stale),
+                spec["url"],
+            )
+
         existing = FeedRegistry.find(name, spec["url"])
         feed: FeedRegistry | None = FeedRegistry.register(
             name,
@@ -123,11 +142,15 @@ def main(
 
         # Only seed a cursor on first registration; re-running must never rewind
         # a feed that has already made progress.
-        if cursor and not existing:
+        if cursor and (not existing or reseed):
             FeedRegistry.advance(feed.id, last_updated=cursor)
-            logger.info("    seeded cursor to %s", cursor.date())
+            logger.info("    %s cursor to %s", "reseeded" if existing else "seeded", cursor.date())
         elif cursor and existing:
-            logger.info("    cursor left at %s (already registered; --since ignored)", feed.last_updated)
+            logger.warning(
+                "    --since ignored: %s is already registered with cursor %s. Re-run with --reseed to move it.",
+                name,
+                feed.last_updated,
+            )
 
 
 if __name__ == "__main__":

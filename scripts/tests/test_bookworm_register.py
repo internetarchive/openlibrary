@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from typing import Final
 
 import pytest
@@ -105,3 +106,60 @@ class TestSafety:
         bookworm_register.main(ol_config="x.yml", show=True)
         assert FeedRegistry.all() == []
         assert "empty" in capsys.readouterr().out
+
+
+class TestReseed:
+    def test_reseed_moves_an_existing_cursor(self, registry_db):
+        """The recovery path for 'registered it, then realised the backfill is
+        too large' -- without hand-written SQL."""
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg")
+        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=datetime.datetime(2020, 1, 1))
+
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg", since="2026-08-28", reseed=True)
+
+        assert str(registered()["project_gutenberg"].last_updated).startswith("2026-08-28")
+
+    def test_reseed_is_required_to_move_it(self, registry_db):
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg")
+        FeedRegistry.advance(registered()["project_gutenberg"].id, last_updated=datetime.datetime(2020, 1, 1))
+
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg", since="2026-08-28")
+
+        assert str(registered()["project_gutenberg"].last_updated).startswith("2020-01-01")
+
+
+class TestUrlChange:
+    def test_a_changed_url_warns_about_the_stale_row(self, registry_db, caplog, monkeypatch):
+        """register() is keyed on provider_name + url, so editing a feed's URL
+        leaves TWO live rows for one provider, both harvested every pass."""
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg")
+        monkeypatch.setitem(bookworm_register.FEEDS["project_gutenberg"], "url", "https://opds.pglaf.org/opds/search?sort=fil")
+
+        with caplog.at_level(logging.WARNING):
+            bookworm_register.main(ol_config="x.yml", provider="project_gutenberg")
+
+        assert "DIFFERENT url" in caplog.text
+        assert len([f for f in FeedRegistry.all() if f.provider_name == "project_gutenberg"]) == 2
+
+
+class TestShow:
+    def test_show_prints_a_registered_feed(self, registry_db, capsys):
+        """The empty-registry case never exercises the print loop at all."""
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        capsys.readouterr()
+
+        bookworm_register.main(ol_config="x.yml", show=True)
+
+        out = capsys.readouterr().out
+        assert "lenny" in out
+        assert "lennyforlibraries.org" in out
+
+    def test_show_honours_provider(self, registry_db, capsys):
+        bookworm_register.main(ol_config="x.yml")
+        capsys.readouterr()
+
+        bookworm_register.main(ol_config="x.yml", provider="lenny", show=True)
+
+        out = capsys.readouterr().out
+        assert "lenny" in out
+        assert "project_gutenberg" not in out
