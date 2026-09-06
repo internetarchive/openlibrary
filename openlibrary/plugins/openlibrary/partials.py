@@ -23,7 +23,7 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import entity_decode, json_encode, render_macro
+from openlibrary.plugins.upstream.utils import entity_decode, json_encode, render_macro, urlencode
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
