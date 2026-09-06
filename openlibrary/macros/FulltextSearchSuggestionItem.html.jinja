@@ -5,18 +5,15 @@
     'solr_work' if not doc.get('editions') else
     'solr_edition'
 ) %}
-
 {% set selected_ed = doc %}
 {% if doc_type == 'solr_edition' %}
     {% set selected_ed = doc.get('editions')[0] %}
 {% endif %}
-
 {% if doc_type.startswith('infogami_') %}
     {% set book_url = doc.url() %}
 {% else %}
     {% set book_url = doc.key %}
 {% endif %}
-
 {% if doc_type == 'solr_edition' %}
     {% set work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key) %}
 {% else %}
@@ -27,24 +24,20 @@
         {% set work_edition_url = book_url %}
     {% endif %}
 {% endif %}
-
 {% set work_edition_all_url = work_edition_url %}
 {% if '?' in work_edition_url %}
     {% set work_edition_all_url = work_edition_all_url + '&mode=all' %}
 {% else %}
     {% set work_edition_all_url = work_edition_all_url + '?mode=all' %}
 {% endif %}
-
 {% set edition_work = none %}
 {% if doc_type == 'infogami_edition' and 'works' in doc %}
     {% set edition_work = doc['works'][0] %}
 {% endif %}
-
 {% set full_title = selected_ed.get('title', '') %}
 {% if selected_ed.get('subtitle') %}
     {% set full_title = full_title + ': ' + selected_ed.subtitle %}
 {% endif %}
-
 {% if doc_type == 'infogami_edition' and edition_work %}
     {% set full_work_title = edition_work.get('title', '') %}
     {% if edition_work.get('subtitle') %}
@@ -56,14 +49,16 @@
         {% set full_work_title = full_work_title + ': ' + doc.subtitle %}
     {% endif %}
 {% endif %}
-
 {% set blur_cover = "fsi__bookcover-img-blur" if blur else "" %}
-
-<div class="fsi" itemscope itemtype="https://schema.org/Book" {{ attrs | safe }}>
+<div class="fsi"
+     itemscope
+     itemtype="https://schema.org/Book"
+     {{ attrs | safe }}>
     <div class="fsi__main">
         <span class="fsi__book-cover">
             {% set cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png" %}
-            <a data-ol-link-track="SearchInsideSuggestion|BookClick" href="{{ work_edition_url }}">
+            <a data-ol-link-track="SearchInsideSuggestion|BookClick"
+               href="{{ work_edition_url }}">
                 <img class="fsi__book-cover-img {{ blur_cover }}"
                      itemprop="image"
                      src="{{ cover }}"
@@ -100,9 +95,8 @@
                             {% endfor %}
                         {% endif %}
                     {% endif %}
-
                     {% if not authors %}
-                        <em>{{ _('Unknown author') }}</em>
+                        <em>{{ _("Unknown author") }}</em>
                     {% else %}
                         {% set author_data = [] %}
                         {% for a in authors %}
@@ -111,13 +105,11 @@
                                 'url': a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
                             }) %}
                         {% endfor %}
-                        {{ render_templetor_template(
-                            "BookByline",
+                        {{ render_templetor_template("BookByline",
                             author_data,
                             limit=max_rendered_authors,
                             overflow_url=work_edition_url,
-                            attrs='class="results"'
-                        ) }}
+                            attrs='class="results"') }}
                     {% endif %}
                 </p>
             </div>
