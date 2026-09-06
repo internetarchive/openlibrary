@@ -11,7 +11,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
-from openlibrary.core.jinja import get_jinja_env
+from openlibrary.core.jinja import get_jinja_env, render_jinja_template
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
@@ -66,9 +66,17 @@ class ReadingGoalProgressPartial:
     @classmethod
     def generate(cls, year: int) -> dict:
         goal = get_reading_goals(year=year)
-        component = render_template("reading_goals/reading_goal_progress", [goal])
+        component = render_jinja_template(
+            "reading_goals/reading_goal_progress.html.jinja",
+            goals=[goal],
+            # One-off helper so the template can render its own nested
+            # reading_goal_form/native_dialog templates (see core/jinja.py
+            # guidance: pass one-off helpers as render kwargs instead of
+            # adding a new env global for a single template).
+            render_jinja_template=render_jinja_template,
+        )
 
-        return {"partials": str(component)}
+        return {"partials": component}
 
 
 class MyBooksDropperListsPartial:
