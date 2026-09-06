@@ -292,9 +292,9 @@ def test_records_are_staged_incrementally_not_all_at_the_end(bookworm_db, monkey
     submits = []
     original = harvest._submit
 
-    def recording_submit(feed_arg, records_arg, now_arg=None):
+    def recording_submit(feed_arg, records_arg):
         submits.append(len(records_arg))
-        return original(feed_arg, records_arg, now_arg)
+        return original(feed_arg, records_arg)
 
     monkeypatch.setattr(harvest, "_submit", recording_submit)
 
@@ -341,12 +341,11 @@ def test_batch_is_date_scoped_like_every_other_importer(bookworm_db):
 
     harvest.harvest_feed(feed, session=session, now=NOW)
 
-    assert [b.name for b in bookworm_db.select("import_batch")] == ["lenny-opds-2026-07-30"]
+    assert [b.name for b in bookworm_db.select("import_batch")] == ["lenny-opds"]
 
 
-def test_a_long_backfill_lands_in_one_batch_even_across_midnight(bookworm_db, monkeypatch):
-    """The batch name is derived from the run's start time, not wall clock, so a
-    multi-hour backfill does not fork into two batches partway through."""
+def test_a_long_backfill_lands_in_one_batch(bookworm_db, monkeypatch):
+    """Incremental flushing must not fork a crawl across batches."""
     monkeypatch.setattr(harvest, "SUBMIT_BATCH_SIZE", 5)
     FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
     feed = FeedRegistry.find("lenny", "https://lenny/opds")

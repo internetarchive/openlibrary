@@ -102,10 +102,22 @@ replay history. To move the cursor of a feed that is already registered, add
 
 ### Batches
 
-Each run stages into a date-scoped batch, `{provider}-opds-{YYYY-MM-DD}`,
-matching the convention in `bwb_opds_imports.py` and the other importers. The
-name comes from the run's start time, so a long backfill stays in one batch even
-if it crosses midnight.
+Each feed has one stable batch, `{provider}-opds` — a predictable namespace, so
+a feed's whole queue is one query:
+
+```sql
+SELECT i.status, count(*) FROM import_item i
+  JOIN import_batch b ON b.id = i.batch_id
+ WHERE b.name = 'lenny-opds' GROUP BY i.status;
+```
+
+Deliberately not date-scoped, unlike `bwb_opds_imports.py`. That convention
+exists for append-only importers, where a date is the only way to ask what a run
+brought in. A feed re-offering a record updates its existing row rather than
+adding one, so a date would segment nothing and would fragment the per-feed
+view. Batch size is bounded by the feed's corpus rather than by uptime, and
+`import_item.batch_id` is indexed. For recency, use `import_item.import_time`,
+which is per record and more precise than a batch date.
 
 Dedup is independent of batching: `Batch.dedupe_items` filters on `ia_id` across
 the whole `import_item` table, so a record staged last month is not re-added

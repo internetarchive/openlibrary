@@ -158,27 +158,32 @@ def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[
         return None, None
 
 
-def batch_name(feed: FeedRegistry, now: datetime.datetime | None = None) -> str:
-    """Date-scoped batch name, matching every other OL importer.
+def batch_name(feed: FeedRegistry) -> str:
+    """One stable batch per feed: ``{provider_name}-opds``.
 
-    bwb_opds_imports uses ``bwb-opds-%Y-%m-%d``, import_bookdash/import_itan use
-    a monthly suffix. A single permanent ``{provider}-opds`` batch would instead
-    accumulate forever -- a ~78k backfill plus every hourly increment in one row
-    -- leaving no way to ask what a given day's run brought in, or to retry it.
+    Deliberately NOT date-scoped, unlike ``bwb_opds_imports`` and the other
+    importers. That convention exists because those importers are append-only --
+    a new row per import event -- so the date is the only way to ask what a given
+    run brought in. A feed re-offering a record updates the existing
+    ``import_item`` row rather than adding one, so a date would segment nothing
+    and would fragment the per-feed view instead.
 
-    Dedup is unaffected: ``Batch.dedupe_items`` filters on ``ia_id`` across the
-    whole ``import_item`` table, not per batch, so a record already staged last
-    month is not re-added to today's batch.
+    Size is therefore bounded by the feed's corpus, not by how long we have been
+    running, and ``import_item.batch_id`` is indexed. "What did this feed do
+    recently" is ``import_time``, which is per record and more precise than a
+    batch date.
+
+    The name is derived rather than stored on the registry row: derivation needs
+    no migration and cannot drift from the feed it names.
     """
-    now = now or datetime.datetime.now(datetime.UTC)
-    return f"{feed.provider_name}-opds-{now:%Y-%m-%d}"
+    return f"{feed.provider_name}-opds"
 
 
-def _submit(feed: FeedRegistry, records: list[dict[str, Any]], now: datetime.datetime | None = None) -> None:
+def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> None:
     """Queue harvested records into ``import_item`` for ImportBot to load."""
     if not records:
         return
-    name = batch_name(feed, now)
+    name = batch_name(feed)
     batch = Batch.find(name) or Batch.new(name)
     batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
 
@@ -226,7 +231,7 @@ def _harvest_native(
                 records.append(record)
                 total += 1
         if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
-            _submit(feed, records, now)
+            _submit(feed, records)
             logger.info("%s: staged %d records so far", feed.provider_name, total)
             records = []
 
@@ -234,7 +239,7 @@ def _harvest_native(
         logger.info("[dry run] %s: %d records, cursor left at %s", feed.provider_name, total, feed.last_updated)
         return {"feed": feed.provider_name, "records": total, "dry_run": True}
 
-    _submit(feed, records, now)
+    _submit(feed, records)
     FeedRegistry.advance(feed.id, last_updated=now.replace(tzinfo=None))
     logger.info("harvested %s: %d records", feed.provider_name, total)
     return {"feed": feed.provider_name, "records": total, **page_state}
@@ -274,7 +279,7 @@ def _harvest_by_full_crawl(
                 records.append(record)
                 total += 1
         if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
-            _submit(feed, records, now)
+            _submit(feed, records)
             logger.info("%s: staged %d records so far", feed.provider_name, total)
             records = []
 
@@ -282,7 +287,7 @@ def _harvest_by_full_crawl(
         logger.info("[dry run] %s (full crawl): %d records, cursor left at %s", feed.provider_name, total, feed.last_updated)
         return {"feed": feed.provider_name, "records": total, "dry_run": True}
 
-    _submit(feed, records, now)
+    _submit(feed, records)
     # Advance to the newest modified we saw; if nothing was newer, advance to now
     # so an idle feed doesn't re-scan from the same old cursor every run.
     #
