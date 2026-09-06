@@ -25,8 +25,9 @@ CREATE TABLE feed_registry (
 IMPORT_BATCH_DDL: Final = "CREATE TABLE import_batch (id integer primary key, name text, submitter text, submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
 IMPORT_ITEM_DDL: Final = """
 CREATE TABLE import_item (
-    id serial primary key, batch_id integer, status text default 'pending', error text,
-    ia_id text, data text, ol_key text, comments text, submitter text, UNIQUE (batch_id, ia_id)
+    id integer primary key, batch_id integer, added_time timestamp, import_time timestamp,
+    status text default 'pending', error text, ia_id text, data text, ol_key text,
+    comments text, submitter text, UNIQUE (batch_id, ia_id)
 );
 """
 
@@ -388,3 +389,69 @@ def test_legacy_rows_without_a_status_still_harvest(bookworm_db):
     session = FakeSession({"https://lenny/opds": feed_page("lenny")})
 
     assert {r["feed"] for r in harvest.harvest_all(session=session)} == {"lenny"}
+
+
+def test_a_changed_price_is_restaged_for_the_catalog(bookworm_db):
+    """The reason the Feed Registry exists: a BWB price change must reach the
+    catalog. add_items would drop it, because the ia_id already exists."""
+    _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    page = feed_page("bwb")
+    session = FakeSession({"https://bwb/opds": page})
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    before = {r.ia_id: json.loads(r.data) for r in bookworm_db.select("import_item")}
+    first_id = next(iter(before))
+    original_price = before[first_id]["acquisitions"][0]["data"].get("price")
+
+    # The provider raises a price and bumps `modified`.
+    changed = json.loads(json.dumps(page))
+    for pub in changed["publications"]:
+        for link in pub.get("links", []):
+            if (link.get("properties") or {}).get("price"):
+                link["properties"]["price"]["value"] = 99.99
+        pub["metadata"]["modified"] = "2126-01-01T00:00:00Z".replace("2126", "2026")
+    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    feed = FeedRegistry.get_by_id(feed.id)
+
+    harvest.harvest_feed(feed, session=FakeSession({"https://bwb/opds": changed}), now=NOW)
+
+    after = {r.ia_id: (json.loads(r.data) if r.data else None) for r in bookworm_db.select("import_item")}
+    assert len(after) == len(before), "a price change must not create a second row"
+    new_price = after[first_id]["acquisitions"][0]["data"]["price"]
+    assert new_price != original_price
+    assert new_price["value"] == 99.99
+    assert {r.status for r in bookworm_db.select("import_item")} == {"pending"}
+
+
+def test_an_unchanged_republish_does_not_requeue(bookworm_db):
+    """Re-offering identical records must not re-queue them -- that is the
+    firehose behaviour that previously overwhelmed the database."""
+    _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+    feed = FeedRegistry.find("betterworldbooks", "https://bwb/opds")
+    session = FakeSession({"https://bwb/opds": feed_page("bwb")})
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    bookworm_db.query("UPDATE import_item SET status='created'")
+
+    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    result = harvest.harvest_feed(FeedRegistry.get_by_id(feed.id), session=FakeSession({"https://bwb/opds": feed_page("bwb")}), now=NOW)
+
+    assert result.get("refreshed", 0) == 0
+    assert result.get("unchanged", 0) > 0
+    assert {r.status for r in bookworm_db.select("import_item")} == {"created"}
+
+
+def test_an_all_unchanged_run_reports_unchanged_rather_than_silence(bookworm_db, monkeypatch):
+    """An operator reading the log needs to see that a run found nothing new,
+    not an empty result that looks like the gate never ran."""
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    # Pretend every record's acquisitions already match what is stored.
+    monkeypatch.setattr(harvest, "_drop_unchanged", lambda feed_arg, records: [])
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert result["unchanged"] == result["records"] > 0

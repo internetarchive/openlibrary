@@ -28,6 +28,34 @@ if TYPE_CHECKING:
     from openlibrary.core.models import Edition
 
 
+def _record_changed(stored: str | None, incoming: str | None) -> bool:
+    """Whether a staged record differs from what is already queued.
+
+    Compares parsed JSON rather than raw text so key ordering cannot masquerade
+    as a change.
+
+    A NULL ``stored`` means the row already completed and had its data cleared
+    by :meth:`ImportItem.set_status`. There is nothing to compare against, so it
+    counts as CHANGED: the caller only offers records a feed has already flagged
+    as modified, and treating "cannot tell" as "unchanged" would mean a price
+    that changes after its first successful import never reaches the catalog
+    again -- silently defeating the whole point of the feed. Callers that can
+    compare against durable state (the acquisitions table, say) should filter
+    before calling.
+    """
+    if incoming is None:
+        return False
+    if stored is None:
+        return True
+    try:
+        return json.loads(stored) != json.loads(incoming)
+    except TypeError, ValueError:
+        # Unparsable stored data: prefer leaving the row alone over re-queuing
+        # a corpus on a parse error.
+        logger.warning("could not compare staged record; leaving it unchanged")
+        return False
+
+
 class Batch(web.storage):
     def __init__(self, mapping, *requires, **defaults):
         """
@@ -82,6 +110,97 @@ class Batch(web.storage):
 
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get("ia_id") not in already_present]
+
+    IN_FLIGHT_STATUSES = ("processing",)
+    """Statuses meaning manage-imports has claimed the row; do not touch it."""
+
+    def add_or_refresh_items(self, items: list[dict]) -> dict[str, int]:
+        """Insert new items, and refresh CHANGED ones in place instead of skipping.
+
+        ``add_items`` skips anything whose ``ia_id`` already exists, anywhere, at
+        any status. That is right for firehose sources -- Amazon price lookups
+        and daily archive.org imports re-offer unchanged records constantly, and
+        re-queuing them is what previously overwhelmed the database.
+
+        It is wrong for a registered feed, which is a change stream: the provider
+        returns a record because it changed, and dropping it discards the update
+        we asked for -- a Better World Books price, say. This variant compares
+        content and re-queues only what actually differs, so the protection
+        against re-processing unchanged records is kept.
+
+        A row whose ``data`` is NULL (cleared by :meth:`ImportItem.set_status`
+        once it completed) counts as changed, since there is nothing left to
+        compare against and the caller only offers records a feed already
+        flagged as modified. Callers with durable prior state should filter
+        first -- :mod:`openlibrary.bookworm.harvest` compares against the
+        acquisitions table.
+
+        Rows claimed by manage-imports (``status='processing'``) are left alone
+        rather than yanked mid-flight.
+
+        Additive and opt-in -- ``add_items`` is untouched, so no existing
+        importer changes behaviour.
+
+        :return: counts keyed ``added``, ``refreshed``, ``unchanged``,
+            ``skipped_in_flight``.
+        """
+        normalized = self.normalize_items(items)
+        counts = {"added": 0, "refreshed": 0, "unchanged": 0, "skipped_in_flight": 0}
+        if not normalized:
+            return counts
+
+        ia_ids = [item["ia_id"] for item in normalized if item.get("ia_id")]
+        existing = {
+            row.ia_id: row
+            for row in db.query(
+                "SELECT id, ia_id, data, status FROM import_item WHERE ia_id IN $ia_ids",
+                vars={"ia_ids": ia_ids},
+            )
+        }
+
+        to_insert = []
+        for item in normalized:
+            row = existing.get(item.get("ia_id"))
+            if row is None:
+                to_insert.append(item)
+                counts["added"] += 1
+                continue
+            if row.status in self.IN_FLIGHT_STATUSES:
+                counts["skipped_in_flight"] += 1
+                continue
+            if not _record_changed(row.data, item.get("data")):
+                counts["unchanged"] += 1
+                continue
+            db.update(
+                "import_item",
+                where="id=$id",
+                vars={"id": row.id},
+                data=item.get("data"),
+                status="pending",
+                error=None,
+                import_time=None,
+            )
+            counts["refreshed"] += 1
+
+        if to_insert:
+            # Mirrors add_items: bulk insert, falling back per row so one
+            # collision cannot lose the rest of the batch.
+            try:
+                db.get_db().multiple_insert("import_item", to_insert)
+            except UniqueViolation:
+                for item in to_insert:
+                    with contextlib.suppress(UniqueViolation):
+                        db.get_db().insert("import_item", **item)
+
+        logger.info(
+            "batch %s: %d added, %d refreshed, %d unchanged, %d in flight",
+            self.name,
+            counts["added"],
+            counts["refreshed"],
+            counts["unchanged"],
+            counts["skipped_in_flight"],
+        )
+        return counts
 
     def normalize_items(self, items: list[str] | list[dict]) -> list[dict]:
         return [
