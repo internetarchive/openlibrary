@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from hashlib import md5
-from typing import Literal, NotRequired, TypedDict
+from typing import Literal, NamedTuple, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
@@ -10,7 +10,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.helpers import affiliate_id, commify
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
@@ -20,12 +20,16 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.code import is_bot
+from openlibrary.plugins.openlibrary.code import changequery, is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import entity_decode, json_encode, render_macro
+from openlibrary.plugins.upstream.utils import get_language_name, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
+    SearchResponse,
     compute_work_search_html_fields,
+    get_active_availability,
+    get_availability_label,
+    get_facet_map,
     run_solr_query_async,
     work_search_async,
 )
@@ -35,6 +39,7 @@ from openlibrary.plugins.worksearch.subjects import (
     get_subject_async,
 )
 from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import get_request_lang
 from openlibrary.views.loanstats import get_trending_books
 
 
@@ -326,13 +331,192 @@ class AffiliateLinksPartial:
         return {"partials": html}
 
 
+# Search sidebar facets: how many entries each facet shows before "More", and
+# how many more each click reveals. Read by hydrateFacets() in search.js from
+# the sidebar's data-config attribute.
+SEARCH_FACETS_CONFIG = {"start_facet_count": 5, "facet_inc": 10}
+
+# data-ol-link-track labels of the sidebar facet chips, by facet header.
+SEARCH_FACET_TRACK_NAMES = {
+    "has_fulltext": "Ebook",
+    "author_key": "Author",
+    "subject_facet": "Subjects",
+    "person_facet": "People",
+    "place_facet": "Places",
+    "time_facet": "Times",
+    "first_publish_year": "FirstPublished",
+    "publisher_facet": "Publisher",
+    "language": "Language",
+}
+
+
+@public
+def render_search_facets(
+    param: dict,
+    facet_counts: dict[str, list[tuple[str, str, int]]] | None = None,
+    async_load: bool = True,
+    path: str | None = None,
+    query: dict | None = None,
+    show_merge_authors: bool = False,
+) -> str:
+    """Render the search sidebar facets (search/work_search_facets.html.jinja).
+
+    Called from work_search.html with async_load=True ("Loading..." placeholders
+    that search.js replaces) and from SearchFacetsPartial with the real facet
+    counts. `query` is the current query string as a dict (list values for
+    repeated params); add_facet_url() extends it with the clicked facet value.
+    """
+    query = query or {}
+
+    def add_facet_url(k: str, v: str) -> str:
+        if k != "has_fulltext":
+            return changequery(query=dict(query), page=None, _path=path, **{k: param.get(k, []) + [v]})
+        else:
+            return changequery(query=dict(query), page=None, _path=path, **{k: v})
+
+    def add_track(key: str) -> str:
+        """KeyError will be raised if key is not in SEARCH_FACET_TRACK_NAMES."""
+        return "SearchFacet|" + SEARCH_FACET_TRACK_NAMES[key]
+
+    facets = []
+    for header, label in get_facet_map():
+        # Readability (has_fulltext) is owned by the "Readable Only" toggle in
+        # the filter row now, so it's no longer offered as a sidebar facet.
+        if header in ("has_fulltext", "public_scan_b"):
+            continue
+        counts: list[tuple] = [(None, None, None)] if async_load else [i for i in (facet_counts or {})[header] if i[0] not in param.get(header, [])]
+        if len(counts) <= 1 and not async_load:
+            continue
+        facets.append((header, label, counts))
+
+    template = get_jinja_env().get_template("search/work_search_facets.html.jinja")
+    return template.render(
+        facets=facets,
+        async_load=async_load,
+        show_merge_authors=show_merge_authors,
+        start_facet_count=SEARCH_FACETS_CONFIG["start_facet_count"],
+        add_facet_url=add_facet_url,
+        add_track=add_track,
+        commify=commify,
+        config_json=json_encode(SEARCH_FACETS_CONFIG),
+        param_json=json_encode(param),
+        async_load_json=json_encode(async_load),
+    )
+
+
+class SelectedSearchFacets(NamedTuple):
+    """Return type of render_selected_search_facets()."""
+
+    html: str
+    # The search page's document title (search.js assigns it to document.title),
+    # or None when nothing is rendered: no search params, or a Solr error.
+    title: str | None
+
+
+@public
+def render_selected_search_facets(
+    param: dict,
+    search_response: SearchResponse,
+    q_param: str,
+    path: str | None = None,
+    query: dict | None = None,
+) -> SelectedSearchFacets:
+    """Render the "selected facets" chips (search/work_search_selected_facets.html.jinja)
+    and build the search page's document title.
+
+    Called from work_search.html (`.html`) and from SearchFacetsPartial.
+    """
+    query = query or {}
+    fulltext_names = {"true": "Ebooks", "false": "Exclude ebooks"}
+    facet_map = get_facet_map()
+    # get_language_name() needs the request's UI language to pick the
+    # translated language name. Use get_request_lang() instead of get_lang(),
+    # since this runs both on the web.py server (work_search.html) and on the
+    # FastAPI partials endpoint, and FastAPI doesn't populate web.ctx.lang —
+    # get_request_lang() reads the unified req_context.
+    user_lang = get_request_lang()
+    # Facets surfaced by the filter row rather than as chips here, mirroring the
+    # header search modal: `has_fulltext` / `public_scan` / `print_disabled` by
+    # the availability toggle, and `language` by the language popover. Excluded
+    # from the facet_map chip loop below.
+    special_handled = {"has_fulltext", "public_scan_b", "language"}
+
+    def del_facet_url(k: str, v: str) -> str:
+        if k != "has_fulltext":
+            return changequery(page=None, _path=path, query=dict(query), **{k: [i for i in param.get(k, []) if i != v]})
+        else:
+            return changequery(page=None, _path=path, query=dict(query), **{k: None})
+
+    active_availability = get_active_availability(param) if param else "all"
+    selected_languages = list(param.get("language", [])) if param else []
+
+    # Build the (header, value, display) tuples for the non-special facet chips
+    # (subject_facet, author_key, etc.). For most facets the raw URL value is
+    # already a usable display name, so we render the chip even when
+    # facet_counts is empty (e.g. a zero-result search, or a value outside
+    # Solr's facet.limit top-N). `author_key` is the exception: its raw value
+    # is an OL ID like "OL12345A" — we keep gating it on facet_counts
+    # resolving a display name rather than rendering the bare ID.
+    def build_other_chips() -> list[tuple[str, str, str]]:
+        if not param:
+            return []
+        facet_counts = search_response.facet_counts or {}
+        chips = []
+        for header, _label in facet_map:
+            if header in special_handled:
+                continue
+            selected = param.get(header, [])
+            if not selected:
+                continue
+            display_by_key = {k: d for k, d, _count in facet_counts.get(header, [])}
+            for v in selected:
+                if header == "author_key" and v not in display_by_key:
+                    # Wait for the async sidebar request to resolve the name
+                    # so we don't render the bare OL ID on the chip.
+                    continue
+                chips.append((header, v, display_by_key.get(v, v)))
+        return chips
+
+    other_chips = build_other_chips()
+    # Availability and language are surfaced by the filter row (the toggle and
+    # the language popover), mirroring the header search modal — they get no
+    # chips here. Only the remaining facets (author, subject, year, …) do.
+    show_chips_bar = bool(other_chips)
+
+    title = None
+    if param and not search_response.error:
+        title_parts: list = []
+        if q_param:
+            title_parts.append(q_param)
+        if active_availability != "all":
+            title_parts.append(get_availability_label(active_availability))
+        for lang_code in selected_languages:
+            title_parts.append(get_language_name("/languages/" + lang_code, user_lang))
+        title_parts.extend(chip_display for _header, _v, chip_display in other_chips)
+        title = _("%(title)s - search", title=", ".join(title_parts))
+    else:
+        show_chips_bar = False
+
+    template = get_jinja_env().get_template("search/work_search_selected_facets.html.jinja")
+    html = template.render(
+        show_chips_bar=show_chips_bar,
+        other_chips=other_chips,
+        del_facet_url=del_facet_url,
+        fulltext_names=fulltext_names,
+        active_availability=active_availability,
+        param=param,
+        search_response=search_response,
+    )
+    return SelectedSearchFacets(html=html, title=title)
+
+
 class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
     @classmethod
     async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
         user = get_current_user()
-        show_merge_authors = user and user.is_librarian_or_higher()
+        show_merge_authors = bool(user and user.is_librarian_or_higher())
 
         path = data.get("path")
         query = data.get("query", "")
@@ -353,8 +537,7 @@ class SearchFacetsPartial:
             request_label="BOOK_SEARCH_FACETS",
         )
 
-        sidebar = render_template(
-            "search/work_search_facets",
+        sidebar = render_search_facets(
             param,
             facet_counts=search_response.facet_counts,
             async_load=False,
@@ -363,21 +546,13 @@ class SearchFacetsPartial:
             show_merge_authors=show_merge_authors,
         )
 
-        active_facets = render_template(
-            "search/work_search_selected_facets",
-            param,
-            search_response,
-            param.get("q", ""),
-            path=path,
-            query=parsed_qs,
-        )
+        active_facets = render_selected_search_facets(param, search_response, param.get("q", ""), path=path, query=parsed_qs)
 
         return {
-            "sidebar": str(sidebar),
-            # Templetor's `$var title:` HTML-escapes its value; unescape it
-            # since search.js assigns this straight to document.title (#9787).
-            "title": entity_decode(active_facets.title),
-            "activeFacets": str(active_facets).strip(),
+            "sidebar": sidebar,
+            # Plain text; search.js assigns it straight to document.title (#9787).
+            "title": active_facets.title,
+            "activeFacets": active_facets.html.strip(),
         }
 
 

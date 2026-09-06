@@ -1,0 +1,57 @@
+{# "Selected facets" chips shown above the search results.
+   Rendered by render_selected_search_facets() in openlibrary/plugins/openlibrary/partials.py,
+   which builds `other_chips` (see build_other_chips() there), the remove-facet URLs
+   (`del_facet_url`) and the search page's document title. #}
+{% set facet_tooltips = {
+    'first_publish_year': _('First published in'),
+    'publisher_facet': _('Published by'),
+    'author_key': _('Author'),
+} %}
+{% if show_chips_bar %}
+    <div class="selected-search-facets">
+        {# Other facets (author, subject, year, etc.). Most render immediately
+           off the URL params — facet_counts is used only to prettify the
+           display label where available. `author_key` is the exception: see
+           build_other_chips() in partials.py. #}
+        {% for header, v, chip_display in other_chips %}
+            {% set chip_title = facet_tooltips.get(header, '') %}
+            {% if chip_title %}
+                <ol-chip selected size="small" accessible-label="{{ chip_title }}: {{ chip_display }}" href="{{ del_facet_url(header, v) }}">
+                    {{ chip_display }}
+                </ol-chip>
+            {% else %}
+                <ol-chip selected size="small" href="{{ del_facet_url(header, v) }}">
+                    {{ chip_display }}
+                </ol-chip>
+            {% endif %}
+        {% endfor %}
+        {% if search_response.facet_counts %}
+            {# Legacy non-UI facets: only render when facet_counts is loaded
+               (these aren't sticky filters owned by the new filter row).
+               When an availability value is active the toggle in the filter row
+               already represents has_fulltext — skip the legacy chip so we don't
+               show a redundant "Ebooks" chip for the same param. #}
+            {% if 'has_fulltext' in param and active_availability == 'all' %}
+                {% for k, display, count in search_response.facet_counts.get('has_fulltext', []) %}
+                    {% if k in param.get('has_fulltext', []) %}
+                        <ol-chip selected size="small" href="{{ del_facet_url('has_fulltext', k) }}">
+                            {{ fulltext_names.get(k, '') }}
+                        </ol-chip>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% if 'public_scan_b' in param %}
+                {% for k, display, count in search_response.facet_counts.get('public_scan_b', []) %}
+                    {% if k in param.get('public_scan_b', []) %}
+                        {# TODO: Consider removing public_scan_b handling. No UI exposes
+                           this facet (the sidebar skips it), so it only triggers via
+                           manually crafted URLs like /search?public_scan_b=true. #}
+                        <ol-chip selected size="small" href="{{ del_facet_url('public_scan_b', k) }}">
+                            {{ _("Only Classic eBooks") if display == 'true' else _("Classic eBooks hidden") }}
+                        </ol-chip>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endif %}
