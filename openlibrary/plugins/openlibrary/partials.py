@@ -10,9 +10,10 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.helpers import affiliate_id, commify
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.book_providers import get_book_provider, get_cover_url
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -435,9 +436,21 @@ class FullTextSuggestionsPartial:
         if not hits.get("total"):
             macro = "<div></div>"
         else:
-            macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
-        return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
-
+            template = get_jinja_env().get_template("FulltextSearchSuggestion.html.jinja")
+            html = template.render(
+            query=query,
+            results=data,
+            commify=commify,
+            urlencode=urlencode,
+            urlquote=quote,
+            get_book_provider=get_book_provider,
+            get_cover_url=get_cover_url,
+        )
+        macro = html
+        return FullTextSuggestionsPartialResult(
+            body={"partials": str(macro)},
+            has_error="error" in data,
+        )
 
 class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
