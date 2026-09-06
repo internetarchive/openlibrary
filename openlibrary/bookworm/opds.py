@@ -8,8 +8,11 @@ Built on pydantic models so heterogeneous feeds validate and map uniformly:
 - **Better World Books** — ISBN identifier, ``acquisition/buy`` links with a price.
 - **Project Gutenberg** — identifier is a ``gutenberg.org/ebooks/<id>`` URL,
   ``acquisition/open-access`` (free) links.
-- **Lenny** — no ``metadata.identifier``; the id comes from the ``self`` link,
-  ``acquisition/open-access`` links.
+- **Lenny** — no ``metadata.identifier``; the id comes from the ``self`` link.
+  Open-access titles carry ``acquisition/open-access``; borrowable ones carry
+  ``acquisition/borrow`` with ``properties.availability`` and an
+  ``properties.authenticate`` pointer to the provider's OPDS Authentication
+  Document. Most of a Lenny catalogue is the latter.
 
 Feeds also vary in shape (``author`` may be a dict or a list; ``language`` a str
 or a list), which the models normalize. Extends the OPDS types drafted in #12852.
@@ -26,8 +29,13 @@ from openlibrary.plugins.upstream.utils import get_marc21_language
 
 BUY_REL = "http://opds-spec.org/acquisition/buy"
 OPEN_ACCESS_REL = "http://opds-spec.org/acquisition/open-access"
+BORROW_REL = "http://opds-spec.org/acquisition/borrow"
 # rel -> the access value we store on the acquisition
-ACQUISITION_ACCESS = {BUY_REL: "buy", OPEN_ACCESS_REL: "open-access"}
+ACQUISITION_ACCESS = {
+    BUY_REL: "buy",
+    OPEN_ACCESS_REL: "open-access",
+    BORROW_REL: "borrow",
+}
 
 
 def _as_list(value: Any) -> list:
@@ -42,9 +50,15 @@ class Price(BaseModel):
     value: float
 
 
+class Availability(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    state: str | None = None
+
+
 class LinkProperties(BaseModel):
     model_config = ConfigDict(extra="allow")
     price: Price | None = None
+    availability: Availability | None = None
 
 
 class Link(BaseModel):
@@ -154,6 +168,11 @@ def build_acquisitions(pub: Publication, feed: Feed, local_id: str) -> list[dict
             data["title"] = link.title
         if link.properties and link.properties.price:
             data["price"] = link.properties.price.model_dump()
+        # Whether the copy can be borrowed right now. Without it a borrow CTA
+        # cannot tell "available" from "all copies out", and the flat fields
+        # would be the only thing a consumer reads.
+        if link.properties and (avail := link.properties.availability) and avail.state:
+            data["availability"] = avail.state
         data["link"] = link.model_dump(mode="json", exclude_none=True)
         items.append({"provider_name": feed.provider_name, "local_id": local_id, "data": data})
     return items
