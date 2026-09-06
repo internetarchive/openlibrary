@@ -1,0 +1,72 @@
+{# List cards for the book page "Lists" carousel.
+   `cards` is built by BookPageListsPartial.get_list_card(): all DB lookups happen there. #}
+{% macro render_follow_button(owner_username, is_subscribed) %}
+    {{ render_templetor_template("follow/follow", owner_username, following=is_subscribed, request_path="/people/" + owner_username, link_track="ListCardCarousel|Follow") }}
+{% endmacro %}
+{% macro list_card(card) %}
+    {% set cached_info = card.showcase %}
+    {% set owner = card.owner %}
+    <div class="list-follow-card">
+        <a class="list-follow-card__header" href="{{ card.url }}">
+            <div class="list-follow-card__title" title="{{ cached_info['title'] }}">{{ cached_info['title'] }}</div>
+            <div class="list-follow-card__num-books">{{ ngettext("%(count)d book", "%(count)d books", cached_info['count'], count=cached_info['count']) }}</div>
+        </a>
+        <a class="list-follow-card__covers" href="{{ card.url }}">
+            {% for img_url in cached_info["covers"] %}
+                {% set cover_url = img_url.replace("-S.jpg", "-M.jpg") if img_url else "/static/images/icons/avatar_book-sm.png" %}
+                <img src="{{ cover_url }}"
+                     alt="{{ _('Cover of book') }}"
+                     loading="lazy"
+                     width="80" />
+            {% endfor %}
+        </a>
+        <!-- Bottom section: owner info or community label -->
+        {% if owner %}
+            {% set owner_username = owner.key.split('/')[-1] %}
+            <div class="list-follow-card__bottom">
+                <div class="list-follow-card__user">
+                    <a href="{{ owner.key }}">
+                        <img src="{{ owner.key }}/avatar"
+                             alt="{{ _('Avatar of the owner of the list') }}" />
+                    </a>
+                    <div class="list-follow-card__username">
+                        {% if not card.own_list %}
+                            <a class="list-follow-card__username-link"
+                               href="{{ owner.key }}"
+                               title="{{ owner_username }}">@{{ owner_username }}</a>
+                        {% else %}
+                            <a class="list-follow-card__username-link" href="{{ owner.key }}">{{ _("You") }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="list-follow-card__follow-button">
+                    {% if not card.own_list %}
+                        {% if card.is_public %}
+                            {{ render_follow_button(owner_username, card.is_subscribed) }}
+                        {% else %}
+                            <div title="{{ _('This patron has not enabled following') }}">
+                                <button class="list-follow-card__private-button">
+                                    <span class="pvt-icon">{{ _("🔒︎") }}</span>
+                                    <span class="pvt-text">{{ _("Follow") }}</span>
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="list-follow-card__bottom-community">
+                <div class="list-follow-card__user">
+                    <img src="/static/images/openlibrary-128x128.png"
+                         alt="{{ _('OpenLibrary Logo') }}" />
+                    <div class="list-follow-card__community-label">
+                        <i>{{ _("Community List") }}</i>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}
+{% for card in cards %}
+    {{ list_card(card) }}
+{% endfor %}

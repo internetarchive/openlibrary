@@ -21,8 +21,12 @@ from openlibrary.core.vendors import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
-from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import json_encode, render_macro
+from openlibrary.plugins.openlibrary.lists import (
+    convert_list,
+    get_lists_async,
+    get_user_lists,
+)
+from openlibrary.plugins.upstream.utils import get_user_object, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
@@ -436,6 +440,34 @@ class FullTextSuggestionsPartial:
 class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
 
+    # Number of list cards shown in the carousel
+    LIMIT = 5
+
+    @classmethod
+    def get_list_card(cls, lst, user, user_key) -> dict:
+        """Load everything one list card needs, so the template does no DB calls.
+
+        `lst` is the web.storage dict from `get_list_data`, so the full List is
+        re-loaded for `get_url()` and `get_patron_showcase()`.
+        """
+        own_list = lst.owner and lst.owner.key == user_key
+        converted = convert_list(lst.key)
+        card = {
+            "url": converted.get_url(),
+            "showcase": converted.get_patron_showcase(),
+            "owner": lst.owner,
+            "own_list": own_list,
+            "is_public": False,
+            "is_subscribed": False,
+        }
+        if lst.owner and not own_list:
+            owner_username = lst.owner.key.split("/")[-1]
+            owner_account = get_user_object(owner_username)
+            settings = owner_account.get_users_settings()
+            card["is_public"] = settings and settings.get("public_readlog", "no") == "yes"
+            card["is_subscribed"] = user and user.is_subscribed_user(owner_username)
+        return card
+
     @classmethod
     async def generate_async(cls, workId: str, editionId: str) -> dict:
         results: dict = {"partials": []}
@@ -450,8 +482,15 @@ class BookPageListsPartial:
         else:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(f'"{k}"' for k in keys)
             all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
-            lists_template = render_template("lists/carousel", lists, all_url)
-            results["partials"].append(str(lists_template))
+            user = get_current_user()
+            user_key = user and user.key
+            template = get_jinja_env().get_template("lists/carousel.html.jinja")
+            html = template.render(
+                cards=[cls.get_list_card(lst, user, user_key) for lst in lists[: cls.LIMIT]],
+                has_more=len(lists) > cls.LIMIT,
+                all_url=all_url,
+            )
+            results["partials"].append(html)
 
         return results
 
