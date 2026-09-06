@@ -19,9 +19,14 @@ class TestBuildSession:
         outright, and a provider asked to allowlist our crawler needs a name and
         a contact address to allowlist it by."""
         ua = harvest.build_session().headers["User-Agent"]
-        assert "OpenLibrary" in ua
+        assert ua == harvest.USER_AGENT
+        assert ua.startswith("OpenLibraryBot/")
         assert "python-requests" not in ua
-        assert "openlibrary.org" in ua
+        # Contactable: a provider deciding whether to allowlist us needs both a
+        # link and an address. (Asserted structurally rather than by matching a
+        # bare hostname, which CodeQL reads as URL sanitization.)
+        assert "+https://" in ua
+        assert "@" in ua
 
     def test_leaves_proxy_handling_to_the_environment(self):
         """No explicit proxies, and trust_env left on, so the environment

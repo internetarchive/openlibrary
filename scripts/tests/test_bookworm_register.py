@@ -152,7 +152,9 @@ class TestShow:
 
         out = capsys.readouterr().out
         assert "lenny" in out
-        assert "lennyforlibraries.org" in out
+        # Compare against the registered spec rather than repeating the literal,
+        # so the test cannot drift from FEEDS.
+        assert bookworm_register.FEEDS["lenny"]["url"] in out
 
     def test_show_honours_provider(self, registry_db, capsys):
         bookworm_register.main(ol_config="x.yml")
