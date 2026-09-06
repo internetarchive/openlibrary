@@ -30,6 +30,19 @@ from openlibrary.core.imports import Batch
 
 logger = logging.getLogger("openlibrary.bookworm.harvest")
 
+SUBMIT_BATCH_SIZE = 1000
+"""Flush staged records to ``import_item`` every N records rather than at the end.
+
+A backfill from the beginning is ~78k publications for Gutenberg. Accumulating
+all of them before a single ``_submit`` meant holding the whole feed in memory,
+then one ``WHERE ia_id IN (...)`` dedupe query and one ``multiple_insert`` of
+that size. Flushing as we page bounds both.
+
+Safe to flush mid-crawl because the cursor only advances after the whole feed
+succeeds: a failure partway through re-fetches from the same cursor next run and
+re-submits, where ``Batch.add_items`` drops what is already present.
+"""
+
 REQUEST_TIMEOUT = 60
 EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC)
 
@@ -116,11 +129,28 @@ def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[
         return None, None
 
 
-def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> None:
+def batch_name(feed: FeedRegistry, now: datetime.datetime | None = None) -> str:
+    """Date-scoped batch name, matching every other OL importer.
+
+    bwb_opds_imports uses ``bwb-opds-%Y-%m-%d``, import_bookdash/import_itan use
+    a monthly suffix. A single permanent ``{provider}-opds`` batch would instead
+    accumulate forever -- a ~78k backfill plus every hourly increment in one row
+    -- leaving no way to ask what a given day's run brought in, or to retry it.
+
+    Dedup is unaffected: ``Batch.dedupe_items`` filters on ``ia_id`` across the
+    whole ``import_item`` table, not per batch, so a record already staged last
+    month is not re-added to today's batch.
+    """
+    now = now or datetime.datetime.now(datetime.UTC)
+    return f"{feed.provider_name}-opds-{now:%Y-%m-%d}"
+
+
+def _submit(feed: FeedRegistry, records: list[dict[str, Any]], now: datetime.datetime | None = None) -> None:
     """Queue harvested records into ``import_item`` for ImportBot to load."""
     if not records:
         return
-    batch = Batch.find(f"{feed.provider_name}-opds") or Batch.new(f"{feed.provider_name}-opds")
+    name = batch_name(feed, now)
+    batch = Batch.find(name) or Batch.new(name)
     batch.add_items([{"ia_id": rec["source_records"][0], "data": rec} for rec in records])
 
 
@@ -157,6 +187,7 @@ def _harvest_native(
 
     page_state: dict = {}
     records: list[dict[str, Any]] = []
+    total = 0
     for page in iter_pages(feed.request_url(since), session, max_pages=max_pages, state=page_state):
         for raw in page.get("publications") or []:
             # The server already returned only records modified since the cursor,
@@ -164,15 +195,20 @@ def _harvest_native(
             record, _modified = _parse_publication(raw, parser_feed, feed.provider_name)
             if record:
                 records.append(record)
+                total += 1
+        if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
+            _submit(feed, records, now)
+            logger.info("%s: staged %d records so far", feed.provider_name, total)
+            records = []
 
     if dry_run:
-        logger.info("[dry run] %s: %d records, cursor left at %s", feed.provider_name, len(records), feed.last_updated)
-        return {"feed": feed.provider_name, "records": len(records), "dry_run": True}
+        logger.info("[dry run] %s: %d records, cursor left at %s", feed.provider_name, total, feed.last_updated)
+        return {"feed": feed.provider_name, "records": total, "dry_run": True}
 
-    _submit(feed, records)
+    _submit(feed, records, now)
     FeedRegistry.advance(feed.id, last_updated=now.replace(tzinfo=None))
-    logger.info("harvested %s: %d records", feed.provider_name, len(records))
-    return {"feed": feed.provider_name, "records": len(records), **page_state}
+    logger.info("harvested %s: %d records", feed.provider_name, total)
+    return {"feed": feed.provider_name, "records": total, **page_state}
 
 
 def _harvest_by_full_crawl(
@@ -197,6 +233,7 @@ def _harvest_by_full_crawl(
     page_state: dict = {}
     records: list[dict[str, Any]] = []
     max_modified = since
+    total = 0
     for page in iter_pages(feed.url, session, max_pages=max_pages, state=page_state):
         for raw in page.get("publications") or []:
             record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
@@ -206,12 +243,17 @@ def _harvest_by_full_crawl(
                 max_modified = max(max_modified, modified)
             if record:
                 records.append(record)
+                total += 1
+        if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
+            _submit(feed, records, now)
+            logger.info("%s: staged %d records so far", feed.provider_name, total)
+            records = []
 
     if dry_run:
-        logger.info("[dry run] %s (full crawl): %d records, cursor left at %s", feed.provider_name, len(records), feed.last_updated)
-        return {"feed": feed.provider_name, "records": len(records), "dry_run": True}
+        logger.info("[dry run] %s (full crawl): %d records, cursor left at %s", feed.provider_name, total, feed.last_updated)
+        return {"feed": feed.provider_name, "records": total, "dry_run": True}
 
-    _submit(feed, records)
+    _submit(feed, records, now)
     # Advance to the newest modified we saw; if nothing was newer, advance to now
     # so an idle feed doesn't re-scan from the same old cursor every run.
     #
@@ -223,8 +265,8 @@ def _harvest_by_full_crawl(
     # again, with no error and a zero exit.
     new_cursor = min(max_modified, now) if max_modified > since else now
     FeedRegistry.advance(feed.id, last_updated=new_cursor.replace(tzinfo=None))
-    logger.info("harvested %s (full crawl): %d records", feed.provider_name, len(records))
-    return {"feed": feed.provider_name, "records": len(records), **page_state}
+    logger.info("harvested %s (full crawl): %d records", feed.provider_name, total)
+    return {"feed": feed.provider_name, "records": total, **page_state}
 
 
 def harvest_all(session: requests.Session | None = None, max_pages: int | None = None, dry_run: bool = False) -> list[dict[str, Any]]:

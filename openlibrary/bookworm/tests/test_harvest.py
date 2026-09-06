@@ -240,3 +240,104 @@ def test_an_untruncated_crawl_is_not_flagged(bookworm_db):
     session = FakeSession({"https://lenny/opds": feed_page("lenny")})
 
     assert "truncated" not in harvest.harvest_feed(feed, session=session, now=NOW)
+
+
+def _many_pages(provider_url: str, pages: int, per_page: int) -> dict:
+    """A synthetic multi-page feed of unique publications."""
+    template = json.loads((SAMPLES / "lenny.json").read_text())[0]
+    feed_pages = {}
+    n = 0
+    for page in range(pages):
+        pubs = []
+        for _ in range(per_page):
+            n += 1
+            pub = json.loads(json.dumps(template))
+            for link in pub["links"]:
+                if link["rel"] == "self":
+                    link["href"] = f"https://lenny/opds/item/{n}"
+            pub["metadata"]["title"] = f"Book {n}"
+            pubs.append(pub)
+        url = provider_url if page == 0 else f"{provider_url}?page={page}"
+        nxt = [{"rel": "next", "href": f"{provider_url}?page={page + 1}"}] if page + 1 < pages else []
+        feed_pages[url] = {"publications": pubs, "links": nxt}
+    return feed_pages
+
+
+def test_records_are_staged_incrementally_not_all_at_the_end(bookworm_db, monkeypatch):
+    """A backfill from the beginning is ~78k publications for Gutenberg.
+
+    Accumulating all of them before one _submit held the whole feed in memory
+    and issued a single enormous dedupe IN(...) and multiple_insert. Flushing as
+    we page bounds both.
+    """
+    monkeypatch.setattr(harvest, "SUBMIT_BATCH_SIZE", 10)
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession(_many_pages("https://lenny/opds", pages=5, per_page=10))
+
+    submits = []
+    original = harvest._submit
+
+    def recording_submit(feed_arg, records_arg, now_arg=None):
+        submits.append(len(records_arg))
+        return original(feed_arg, records_arg, now_arg)
+
+    monkeypatch.setattr(harvest, "_submit", recording_submit)
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert result["records"] == 50
+    assert len(submits) > 1, f"expected incremental flushes, got one submit of {submits}"
+    assert max(submits) <= 10, f"a flush exceeded SUBMIT_BATCH_SIZE: {submits}"
+    assert len(list(bookworm_db.select("import_item"))) == 50
+
+
+def test_incremental_flushing_still_writes_every_record_once(bookworm_db, monkeypatch):
+    monkeypatch.setattr(harvest, "SUBMIT_BATCH_SIZE", 3)
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession(_many_pages("https://lenny/opds", pages=4, per_page=5))
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    rows = list(bookworm_db.select("import_item"))
+    assert len(rows) == 20
+    assert len({r.ia_id for r in rows}) == 20  # no duplicates from the flushing
+
+
+def test_dry_run_still_stages_nothing_when_flushing_would_trigger(bookworm_db, monkeypatch):
+    """The flush is inside the page loop, so it must respect dry_run too."""
+    monkeypatch.setattr(harvest, "SUBMIT_BATCH_SIZE", 2)
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession(_many_pages("https://lenny/opds", pages=3, per_page=5))
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW, dry_run=True)
+
+    assert result["records"] == 15
+    assert list(bookworm_db.select("import_item")) == []
+    assert FeedRegistry.get_by_id(feed.id).last_updated is None
+
+
+def test_batch_is_date_scoped_like_every_other_importer(bookworm_db):
+    """A single permanent {provider}-opds batch would accumulate forever."""
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert [b.name for b in bookworm_db.select("import_batch")] == ["lenny-opds-2026-07-30"]
+
+
+def test_a_long_backfill_lands_in_one_batch_even_across_midnight(bookworm_db, monkeypatch):
+    """The batch name is derived from the run's start time, not wall clock, so a
+    multi-hour backfill does not fork into two batches partway through."""
+    monkeypatch.setattr(harvest, "SUBMIT_BATCH_SIZE", 5)
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    session = FakeSession(_many_pages("https://lenny/opds", pages=4, per_page=5))
+
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert len(list(bookworm_db.select("import_batch"))) == 1

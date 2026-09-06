@@ -78,18 +78,42 @@ SELECT b.name, count(*) FROM import_item i
 
 ### Sizing the first run
 
-An unseeded feed backfills its whole history. Gutenberg carries ~78k items at
-25 per page — roughly 3,100 sequential fetches. Seed the cursor to bound it;
-the feed catches up on its own from there:
+An unseeded feed backfills its whole history — for Gutenberg that is ~78k items
+at 25 per page, roughly 3,100 sequential fetches. That is the intended v1
+behaviour: harvest Gutenberg from the beginning.
+
+Records are staged to `import_item` in chunks of `SUBMIT_BATCH_SIZE` (1,000) as
+the crawl pages, so neither memory nor any single SQL statement scales with the
+size of the backfill. A failure partway through does not advance the cursor, so
+the next run resumes and re-stages only what is missing.
+
+To bound a backfill instead, seed the cursor at registration:
 
 ```bash
 python scripts/bookworm_register.py --ol-config $CFG \
     --provider project_gutenberg --since 2026-08-28
 ```
 
-`--since` applies **only on first registration**, so it cannot be used to rewind
-a feed that is already running. To deliberately rewind one, update
-`feed_registry.last_updated` directly.
+`--since` applies **only on first registration**, so a routine re-run can never
+replay history. To move the cursor of a feed that is already registered, add
+`--reseed`.
+
+### Batches
+
+Each run stages into a date-scoped batch, `{provider}-opds-{YYYY-MM-DD}`,
+matching the convention in `bwb_opds_imports.py` and the other importers. The
+name comes from the run's start time, so a long backfill stays in one batch even
+if it crosses midnight.
+
+Dedup is independent of batching: `Batch.dedupe_items` filters on `ia_id` across
+the whole `import_item` table, so a record staged last month is not re-added
+today.
+
+> **Re-harvesting does not update already-staged rows.** Because dedup is by
+> `ia_id` alone, a record whose price, format or acquisition URL changes is
+> correctly re-harvested by the cursor and then dropped as "already present".
+> The cursor can only ever add records that have never been seen. If a parsing
+> fix needs to reach rows that are already staged, delete them first.
 
 ## Cron
 
