@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 from pathlib import Path
 from typing import Final
 
@@ -624,3 +625,39 @@ class TestSuspectEmptyFeed:
 
         assert results["lenny"].get("error") is True
         assert results["betterworldbooks"]["records"] == 2
+
+
+def test_duplicate_provider_ids_are_surfaced(caplog):
+    """A provider mis-assigning ids would otherwise fail silently.
+
+    Lenny derives lenny_id positionally by zipping two separately-filtered
+    queries; if they diverge, publications inherit the wrong book's id. We
+    cannot detect a shift (ids stay unique, just attached to the wrong books),
+    but a collision is detectable -- and on Postgres it is otherwise silent:
+    import_item is UNIQUE (batch_id, ia_id), so the insert's UniqueViolation
+    fallback drops the second record while the run still reports it as added.
+    """
+    feed = FeedRegistry(provider_name="lenny", data={"id_strategy": "self_link"})
+    records = [
+        {"title": "Crime and Punishment", "source_records": ["lenny:51008637"]},
+        {"title": "A Different Book", "source_records": ["lenny:51008637"]},
+    ]
+
+    with caplog.at_level(logging.ERROR):
+        harvest._warn_on_duplicate_ids(feed, records)
+
+    assert "two publications claim id lenny:51008637" in caplog.text
+    assert "A Different Book" in caplog.text
+
+
+def test_distinct_provider_ids_are_not_flagged(caplog):
+    feed = FeedRegistry(provider_name="lenny", data={"id_strategy": "self_link"})
+    records = [
+        {"title": "One", "source_records": ["lenny:1"]},
+        {"title": "Two", "source_records": ["lenny:2"]},
+    ]
+
+    with caplog.at_level(logging.ERROR):
+        harvest._warn_on_duplicate_ids(feed, records)
+
+    assert "claim id" not in caplog.text

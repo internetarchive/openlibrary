@@ -212,11 +212,36 @@ re-derive on our side; the cursor will not deliver it.
 newest `modified` seen, or to now when nothing was newer — so an idle
 full-crawl feed's cursor moves forward on an empty run.
 
+## Lenny specifics
+
+Confirmed with the Lenny maintainer, 2026-09-06:
+
+- **Expect 94 records, not 96.** `numberOfItems` reports 96 (a raw DB count),
+  the feed serves 95 publications, and one of those ("LAMMA", OL52247138M) has
+  no author in Open Library so our validator rejects it. The 96th is likely
+  simply absent from OL's search index rather than filtered, so treat it as
+  indefinitely absent rather than arriving with any particular fix
+  (ArchiveLabs/lenny#203).
+- **Never raise the page size.** We follow `rel=next` and never send a `limit`,
+  inheriting their 50. A single `?limit=200` request returns HTTP 504; large
+  single requests are the failure mode, not frequency. A 504 is safe for us:
+  `raise_for_status()` runs before `resp.json()`, so it raises rather than
+  parsing a partial body, and the cursor stays put.
+- **`lenny_id` is assigned positionally** by zipping two separately-filtered
+  queries. Verified sound today (all 95 `self` ids resolve to the right book),
+  but if those lists ever diverge, publications inherit the next book's id --
+  wrong borrow href, and a patron borrows the wrong book. We cannot detect a
+  shift, only a collision, which `_warn_on_duplicate_ids` logs at ERROR.
+- **Auth flow is in motion.** `properties.authenticate` points at the OPDS
+  Authentication Document and is correct, but the flow behind it is being
+  reworked (PKCE). Re-read the document; never hardcode anything inferred from
+  the current version.
+
 ## Current feeds
 
 | Provider | Cursor | Notes |
 |---|---|---|
-| `lenny` | `modified_since` | verified server-side filtering (96 items unfiltered, 0 since 2026-09-01) |
+| `lenny` | `modified_since` | ~94 records. See the notes below before rolling out. |
 | `project_gutenberg` | `modified_since` | ~78k items; seed the cursor |
 | `betterworldbooks` | `client` (full crawl) | **not registered by default** — Cloudflare 403s our proxy egress. Register with `--provider betterworldbooks` once allowlisted. |
 

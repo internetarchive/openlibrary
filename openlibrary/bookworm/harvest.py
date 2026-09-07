@@ -279,6 +279,37 @@ def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[d
     return kept
 
 
+def _warn_on_duplicate_ids(feed: FeedRegistry, records: list[dict[str, Any]]) -> None:
+    """Surface two publications in one harvest claiming the same id.
+
+    A provider can mis-assign ids: Lenny derives ``lenny_id`` positionally by
+    zipping two separately-filtered queries, so if those lists ever diverge every
+    publication after the divergence inherits the next book's id -- wrong ``self``
+    link, wrong borrow href. Verified sound today, but it is a provider-side
+    invariant we cannot check, and the consequence is a patron borrowing the
+    wrong book.
+
+    We cannot detect a shift (the ids stay unique, they are just attached to the
+    wrong publications), but a collision is detectable and would otherwise be
+    silent: ``import_item`` is UNIQUE on ``(batch_id, ia_id)``, so the second
+    record is dropped by the insert's conflict fallback while the run still
+    reports it as added.
+    """
+    seen: dict[str, str] = {}
+    for rec in records:
+        ia_id = rec["source_records"][0]
+        title = rec.get("title") or "?"
+        if (previous := seen.get(ia_id)) is not None:
+            logger.error(
+                "%s: two publications claim id %s (%r and %r) -- the provider may be mis-assigning ids; one will be dropped",
+                feed.provider_name,
+                ia_id,
+                previous,
+                title,
+            )
+        seen[ia_id] = title
+
+
 def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> dict[str, int]:
     """Queue harvested records into ``import_item`` for ImportBot to load.
 
@@ -295,6 +326,7 @@ def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> dict[str, int]
     """
     if not records:
         return {}
+    _warn_on_duplicate_ids(feed, records)
     kept = _drop_unchanged(feed, records)
     # Report what the durable gate dropped as "unchanged" too, so a run where
     # nothing changed says so rather than reporting silence.
