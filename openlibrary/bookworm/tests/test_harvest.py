@@ -471,14 +471,13 @@ def test_an_all_unchanged_run_reports_unchanged_rather_than_silence(bookworm_db,
 
 
 def test_gate_two_drops_an_unchanged_multi_link_publication(bookworm_db):
-    """The catalog persists only the LAST acquisition of a publication.
+    """A multi-link publication must compare equal when nothing changed.
 
-    `acquisitions` is unique on (local_id, provider_name) and
-    _save_acquisitions upserts every acquisition under that same key, so N
-    format links collapse into one row holding the last. Comparing the FIRST
-    against it reported "changed" on every run for any multi-link publication --
-    Gutenberg lists several formats per book -- so this gate was 0% effective
-    for the largest corpus, leaving only the provider's own `modified` claim.
+    `acquisitions` is unique on (local_id, provider_name), so every link of one
+    publication shares a row. The catalog stores them all under
+    `{"acquisitions": [...]}` and this gate compares the same shape, so a
+    Gutenberg book offering epub, html and txt is recognised as unchanged
+    instead of being re-queued on every run forever.
     """
     _register_active("project_gutenberg", "https://g/opds", id_strategy="gutenberg")
     feed = FeedRegistry.find("project_gutenberg", "https://g/opds")
@@ -503,9 +502,14 @@ def test_gate_two_drops_an_unchanged_multi_link_publication(bookworm_db):
     staged = json.loads(next(iter(bookworm_db.select("import_item"))).data)
     assert len(staged["acquisitions"]) == 2, "fixture must actually be multi-link"
 
-    # Exactly what the catalog leaves behind: the LAST acquisition, one row.
-    persisted = staged["acquisitions"][-1]
-    Acquisition.upsert(work_id=1, edition_id=1, provider_name="project_gutenberg", local_id=persisted["local_id"], data=persisted["data"])
+    # Exactly what the catalog leaves behind: ONE row holding EVERY link.
+    Acquisition.upsert(
+        work_id=1,
+        edition_id=1,
+        provider_name="project_gutenberg",
+        local_id=staged["acquisitions"][0]["local_id"],
+        data={"acquisitions": [acq["data"] for acq in staged["acquisitions"]]},
+    )
     bookworm_db.query("UPDATE import_item SET status='created', data=NULL")
 
     FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))

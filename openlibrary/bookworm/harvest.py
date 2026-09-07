@@ -190,7 +190,7 @@ def batch_name(feed: FeedRegistry) -> str:
 
 
 def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Drop records whose stored acquisition already matches what we parsed.
+    """Drop records whose stored acquisitions already match what we parsed.
 
     The feed's own ``modified`` is the first gate, but it is a third party's
     claim: a provider that re-publishes or reindexes its catalogue can bump every
@@ -202,25 +202,16 @@ def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[d
     which :meth:`ImportItem.set_status` clears once a row completes and so cannot
     answer this for exactly the records that have been around longest.
 
-    Compares the **last** acquisition, because that is the only one that gets
-    persisted. ``acquisitions`` is unique on ``(local_id, provider_name)`` and
-    ``add_book._save_acquisitions`` upserts every acquisition in the record under
-    that same key, so N links for one publication collapse into one row holding
-    the last. Comparing ``acquisitions[0]`` against it therefore reported
-    "changed" on every run for any multi-link publication -- Gutenberg lists
-    several format links per book -- making this gate 0% effective for exactly
-    the feed with the largest corpus.
-
-    That collapse is itself a defect in the catalog (links 1..N-1 are silently
-    discarded), but it is pre-existing and out of scope here; this function only
-    has to compare faithfully against what is actually stored.
+    Compares the WHOLE acquisition set, in the same shape
+    ``add_book._save_acquisitions`` stores -- ``{"acquisitions": [...]}`` -- so a
+    change to any link is detected and none has to be guessed at.
 
     Raises rather than failing open: returning every record on a read error
     would reset every previously-imported record to ``pending``, so a DB blip
     would become a mass re-queue. Propagating leaves the cursor un-advanced and
     the next run simply retries.
     """
-    comparable = {rec["acquisitions"][-1]["local_id"]: rec for rec in records if rec.get("acquisitions")}
+    comparable = {rec["acquisitions"][0]["local_id"]: rec for rec in records if rec.get("acquisitions")}
     if not comparable:
         return records
 
@@ -233,9 +224,9 @@ def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[d
             # Nothing durable to compare against; gate 1 is the only filter.
             kept.append(rec)
             continue
-        persisted = acquisitions[-1]
-        previous = stored.get(persisted["local_id"])
-        if previous is None or previous.get("data") != persisted.get("data"):
+        previous = stored.get(acquisitions[0]["local_id"])
+        incoming = {"acquisitions": [acq.get("data") or {} for acq in acquisitions]}
+        if previous is None or previous.get("data") != incoming:
             kept.append(rec)
     if dropped := len(records) - len(kept):
         logger.info("%s: %d record(s) unchanged since last import, not re-queued", feed.provider_name, dropped)

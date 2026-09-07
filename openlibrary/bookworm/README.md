@@ -123,13 +123,23 @@ Dedup is independent of batching: `Batch.dedupe_items` filters on `ia_id` across
 the whole `import_item` table, so a record staged last month is not re-added
 today.
 
-> **Only the last acquisition of a publication is persisted.** `acquisitions` is
-> unique on `(local_id, provider_name)` and the catalog upserts every
-> acquisition of a record under that same key, so a publication with several
-> format links (Gutenberg lists epub, txt, ...) collapses to one row holding the
-> last. Change detection compares that same last link, so it is faithful — but
-> links 1..N-1 are not stored anywhere. That is a pre-existing catalog
-> limitation, not something this harvester can fix.
+### How acquisitions are stored
+
+One row per `(provider_name, local_id)`, whose `data` is
+
+```json
+{"acquisitions": [{"access": "buy", "price": {...}, "url": "..."}, {"access": "open-access", "format": "application/epub+zip", ...}]}
+```
+
+— **every** link the publication offers, not just one. Price, epub and html
+coexist.
+
+**The feed is authoritative, so each save replaces that blob rather than
+merging into it.** A link the provider has withdrawn disappears instead of
+lingering forever. Replacement is scoped to `(provider_name, local_id)`, so one
+provider's harvest can never clobber another's: an edition carrying both a BWB
+price and a Gutenberg epub has two rows, each replaced independently by its own
+feed.
 
 > **A queued row is not refreshed.** Only rows at a terminal status
 > (`created`/`modified`/`found`/`failed`) are updated in place. `manage-imports`

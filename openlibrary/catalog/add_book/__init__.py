@@ -1019,6 +1019,10 @@ def load(
 def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
     """Upsert acquisition rows for a just-created/matched edition (#12844).
 
+    One row per ``(provider_name, local_id)``, whose ``data`` is
+    ``{"acquisitions": [...]}`` holding EVERY acquisition the publication
+    offers -- price, epub, html -- rather than only the last one written.
+
     Guard: an acquisition is only written when its ``provider_name`` names a
     feed registered in ``feed_registry``. ImportBot posts feed records to the
     (privileged, ``can_write``-gated) ``/api/import`` endpoint, so the trust
@@ -1045,6 +1049,13 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
     registered = FeedRegistry.provider_names()
     work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
     edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    # Group by the row's identity before writing. `acquisitions` is UNIQUE on
+    # (local_id, provider_name), so upserting each acquisition of a publication
+    # separately made them overwrite one another and only the LAST survived --
+    # a Gutenberg book offering epub, html and txt kept one link, and a
+    # publication with both a price and a download kept whichever came last.
+    # One row now holds all of them.
+    grouped: dict[tuple[str, str], list[dict]] = {}
     for acq in acquisitions:
         provider_name = acq.get("provider_name")
         local_id = acq.get("local_id")
@@ -1054,12 +1065,20 @@ def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
         if provider_name not in registered:
             logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
             continue
+        grouped.setdefault((provider_name, local_id), []).append(acq.get("data") or {})
+
+    for (provider_name, local_id), entries in grouped.items():
+        # The whole set is written, not merged into what is already there: the
+        # feed is authoritative for its own publication, so a link the provider
+        # has withdrawn must disappear rather than linger forever. A dict rather
+        # than a bare list so provider-level fields can be added later without
+        # breaking readers.
         Acquisition.upsert(
             work_id=work_id,
             edition_id=edition_id,
             provider_name=provider_name,
             local_id=local_id,
-            data=acq.get("data") or {},
+            data={"acquisitions": entries},
         )
 
 
