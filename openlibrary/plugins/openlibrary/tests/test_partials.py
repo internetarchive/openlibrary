@@ -62,9 +62,15 @@ LISTS = [web.storage(key=f"/people/u/lists/OL{n}L", owner=None) for n in (1, 2, 
 class TestBookPageListsPartial:
     """The Jinja render must degrade the way the Templetor render did, not 500."""
 
-    @pytest.mark.asyncio
-    async def test_broken_card_is_skipped(self, request_context_fixture, caplog):
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        # Set in the sync fixture, not inside the async test: pytest-asyncio runs
+        # the coroutine in a copied context, so a token created there cannot be
+        # reset by the fixture's teardown.
         request_context_fixture(lang="en")
+
+    @pytest.mark.asyncio
+    async def test_broken_card_is_skipped(self, caplog):
         good = _community_card("Fine list")
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
@@ -84,8 +90,7 @@ class TestBookPageListsPartial:
         assert "skipping list card /people/u/lists/OL2L" in caplog.text
 
     @pytest.mark.asyncio
-    async def test_render_failure_keeps_old_fallback(self, request_context_fixture, caplog):
-        request_context_fixture(lang="en")
+    async def test_render_failure_keeps_old_fallback(self, caplog):
         with (
             patch("openlibrary.plugins.openlibrary.partials.get_lists_async", AsyncMock(return_value=LISTS)),
             patch("openlibrary.plugins.openlibrary.partials.get_current_user", return_value=None),
