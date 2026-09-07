@@ -5,7 +5,7 @@
 #}
 {% import "design/_example.html.jinja" as ex %}
 {% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content')] %}
-{% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
+{% set SELECT_ITEMS = '[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]' %}
 {% macro nav() %}
     <ul class="ds__nav-list">
         {% for id, title in CHECKS %}<li><a href="#{{ id }}">{{ title }}</a></li>{% endfor %}

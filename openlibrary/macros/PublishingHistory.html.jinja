@@ -3,7 +3,7 @@
      data-key="{{ key_json }}">
     <div class="head">
         <h2 class="inline">{{ _("Publishing History") }}</h2>
-        <span class="shift">{{ _("This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>.") | safe }}</span>
+        <span class="shift">{{ _('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.') | safe }}</span>
         {% if not async_load %}
             <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">{{ _("Reset chart") }}</a> {{ _("or continue zooming in.") }}</span>
             <span class="count chartUnzoom">&nbsp;{{ _("This graph charts editions published on this subject.") }}</span>

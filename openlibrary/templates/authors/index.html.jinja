@@ -23,17 +23,18 @@
             {% set work_count = doc['work_count'] %}
             {% set work_count_str = ngettext('%(count)d book', '%(count)d books', work_count, count=work_count) %}
             {% set ns = namespace(date='') %}
-            {% if 'birth_date' in doc or 'death_date' in doc %}
+            {% if "birth_date" in doc or "death_date" in doc %}
                 {% set ns.date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '') %}
-            {% elif 'date' in doc %}
+            {% elif "date" in doc %}
                 {% set ns.date = doc['date'] %}
             {% endif %}
             <li class="sansserif">
-                <a href="{{ doc['key'] }}" class="larger">{{ name }}</a>&nbsp;<span class="brown small">{{ ns.date }}</span>
+                <a href="{{ doc['key'] }}"
+                   class="larger">{{ name }}</a>&nbsp;<span class="brown small">{{ ns.date }}</span>
                 <br />
                 <span class="small grey"><b>{{ work_count_str }}</b>
                     {% if work_count %}
-                        {% if 'top_subjects' in doc %}
+                        {% if "top_subjects" in doc %}
                             {{ _('about %(subjects)s', subjects=', '.join(doc['top_subjects'])) }},
                         {% endif %}
                         {{ _('including <i>%(topwork)s</i>', topwork=doc.get('top_work', '') | force_escape) | safe }}
