@@ -1428,12 +1428,9 @@ def create_thing(data: dict) -> Thing:
 
 
 @public
-def get_ia_host(allow_dev: bool = False) -> str:
-    if allow_dev:
-        web_input = web.input()
-        dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
-        if dev_host and re.match("^[a-zA-Z0-9-.]+$", dev_host):
-            return dev_host + ".archive.org"
+def get_ia_host(allow_dev: bool = False, dev_host: str = "") -> str:
+    if allow_dev and dev_host and re.match("^[a-zA-Z0-9-.]+$", dev_host):
+        return dev_host + ".archive.org"
 
     return "archive.org"
 

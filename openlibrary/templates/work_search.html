@@ -1,6 +1,6 @@
 $def with (q_param, search_response, works, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
 
-$ layout = get_remembered_layout()
+$ layout = get_remembered_layout(query_param('layout'), cookies().get('LBL'))
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('search-page')
 
