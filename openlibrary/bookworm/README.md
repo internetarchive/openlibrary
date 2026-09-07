@@ -342,6 +342,43 @@ SELECT b.name, i.status, count(*) FROM import_item i
 
 Expect ~94 rows in `lenny-opds` at `pending`.
 
+### 6b. Preview what the catalog would match — BEFORE it writes anything
+
+Do this before step 7. `add_book.load(rec, save=False)` makes the full
+match/merge decision and returns the edition it settled on, but allocates
+placeholder keys and never reaches `_save_acquisitions` — so nothing is created
+and no acquisition is attached.
+
+```bash
+python scripts/bookworm_preview_match.py --ol-config $CFG --provider lenny
+```
+
+**The expected failure is not a create — it is a confident match to the wrong
+edition.** Lenny's collection is public-domain classics, which are the most
+duplicated records in the catalog:
+
+| title | OL works | editions in top work |
+|---|---|---|
+| Frankenstein | 2,538 | 2,188 |
+| Dracula | 2,134 | 1,918 |
+| Crime and Punishment | 1,298 | 1,179 |
+| Alice's Adventures in Wonderland | 843 | 3,547 |
+| The Art of War | 813 | 1,542 |
+
+`build_pool` matches on title/ISBN/LCCN/OCLC/ocaid and ignores `identifiers.*`,
+so it finds a large pool for essentially every record and picks one. With 1,500+
+equally-good same-title candidates, no heuristic ranking reliably lands on the
+one edition Lenny actually holds. A create at least leaves a traceable record; a
+wrong-edition match reports no error, looks completely successful, and attaches a
+borrow link to a book the provider does not hold.
+
+**Do not proceed to step 7 until `matched a DIFFERENT edition` is zero.** For
+this feed the id is not a hint to weigh against title evidence — it is the
+answer, and the title evidence is actively misleading because every candidate
+matches equally well. The fix is provider-specific pooling on the edition the
+`self` link names (see `find_wikisource_src` for the precedent), which turns a
+guess into a lookup.
+
 ### 7. Let ImportBot drain, then read the status split
 
 For Lenny this can be measured **exactly**, not statistically: its `self` link id
