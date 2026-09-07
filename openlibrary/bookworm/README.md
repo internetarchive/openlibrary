@@ -216,21 +216,36 @@ full-crawl feed's cursor moves forward on an empty run.
 
 Confirmed with the Lenny maintainer, 2026-09-06:
 
-- **Expect 94 records, not 96.** `numberOfItems` reports 96 (a raw DB count),
-  the feed serves 95 publications, and one of those ("LAMMA", OL52247138M) has
-  no author in Open Library so our validator rejects it. The likely mechanism
-  for the missing 96th: an item whose edition does not resolve in OL search
-  never becomes a publication (`_enrich_items` returns nothing for it) while
-  `Item.count()` still counts it — so it is probably a bad edition id on their
-  side rather than a filter, and may never be importable. Plan for 94
-  (ArchiveLabs/lenny#203, ArchiveLabs/lenny#214).
+- **96 held, 95 published, 94 importable — three numbers, two unrelated
+  causes.** Keep them apart or the accounting stops making sense.
+  - **96 → 95.** One item Lenny holds never becomes a publication: an item whose
+    `openlibrary_edition` does not resolve in OL search drops out of
+    `_enrich_items` while `Item.count()` still counts it. Localized from outside
+    by bisecting `modified_since` (`numberOfItems` respects the same filter, so
+    the count-vs-publications gap is a probe): inserted ~04:28:48–52Z on
+    2026-08-28, sorting alphabetically between "Moonbit" and "Multispecies
+    Storytelling", the one 7.11s interval in an otherwise 1.67s-median bulk
+    import. Consistent with #214 rather than with any cover filter, so treat it
+    as a data-entry error on their side, not as pending a fix
+    (ArchiveLabs/lenny#203, ArchiveLabs/lenny#214).
+  - **95 → 94.** "LAMMA" (OL52247138M) *is* in the feed and *does* resolve; it
+    is separately unimportable because it has no author in Open Library, which
+    our validator requires. Different record, different cause.
+  - So plan for 94, and expect `numberOfItems` to read one higher than the
+    publications we actually get. Harmless today: `_check_page_is_credible`
+    rejects a page only when it has **zero** publications alongside a non-zero
+    `numberOfItems`, so a persistent gap of one does not trip it. Do not
+    "tighten" that check into an equality comparison.
 - **Their edition ids are not validated on entry.** `LennyAPI.add()` checks only
   `Item.exists(openlibrary_edition)` — a local duplicate check — and the route
   takes the edition number as a bare form field, so a typo'd, deleted or simply
   wrong id is accepted and served (ArchiveLabs/lenny#214). We rely on that id to
   pick the edition, so the catalog verifies it resolves before trusting it
   (`resolve_edition_ref`) and falls back to ordinary matching when it does not.
-  Step 6b is where a bad id shows up, as a `would CREATE`.
+  Step 6b is where a bad id shows up, as a `would CREATE`. One such row is
+  already predicted (see above), so `would CREATE: 1` at step 6b is the expected
+  reading, not a surprise — but confirm it is *that* record before proceeding,
+  and report anything beyond it to Lenny.
 - **Never raise the page size.** We follow `rel=next` and never send a `limit`,
   inheriting their 50. A single `?limit=200` request returns HTTP 504; large
   single requests are the failure mode, not frequency. A 504 is safe for us:
