@@ -166,6 +166,11 @@ class FeedRegistry(web.storage):
         return (self.data or {}).get("id_strategy", "isbn")
 
     @property
+    def local_id_is_ol_edition(self) -> bool:
+        """Whether this feed's local id is itself an OL edition number."""
+        return bool((self.data or {}).get("local_id_is_ol_edition", False))
+
+    @property
     def cursor_style(self) -> CursorStyle:
         return (self.data or {}).get("cursor_style", CURSOR_CLIENT)
 
@@ -197,4 +202,8 @@ class FeedRegistry(web.storage):
 
     def to_feed(self) -> Feed:
         """The :class:`~openlibrary.bookworm.opds.Feed` parser config for this row."""
-        return Feed(provider_name=self.provider_name, id_strategy=self.id_strategy)
+        return Feed(
+            provider_name=self.provider_name,
+            id_strategy=self.id_strategy,
+            local_id_is_ol_edition=self.local_id_is_ol_edition,
+        )

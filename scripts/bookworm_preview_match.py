@@ -13,18 +13,32 @@ acquisition is attached.
     python scripts/bookworm_preview_match.py --ol-config /olsystem/etc/openlibrary.yml \\
         --provider lenny
 
-Why this matters more than a status count. Feeds of public-domain classics hit
-the most-duplicated records in the catalog -- "Frankenstein" spans thousands of
-works, "Alice's Adventures in Wonderland" thousands of editions -- so title
-matching finds a large pool for essentially every record and picks one. The
-likely failure is therefore not a missing match or a duplicate edition; it is a
-confident match to the WRONG edition, which looks completely successful and
-reports no error.
+Why this matters more than a status count. ``build_pool`` matches on title,
+OCLC, LCCN, ocaid and ISBN, and ignores ``identifiers.*`` -- so a feed record
+carrying only a title, authors and a provider id is pooled on its title alone.
+Feeds of public-domain classics hit the most duplicated records in the catalog
+("Frankenstein" spans thousands of works, "Alice's Adventures in Wonderland"
+thousands of editions), so that pool is enormous and something in it gets
+picked. The likely failure is therefore not a missing match or a duplicate
+edition; it is a confident match to the WRONG edition, which looks completely
+successful and reports no error.
 
-When a feed's ``local_id`` is itself an Open Library edition number (Lenny
-encodes it in the ``self`` link: ``/opds/51008637`` -> ``OL51008637M``) the
-expected answer is known, and this reports the split exactly rather than
-statistically. Pass ``--no-expect-edition-ids`` for feeds where it isn't.
+A feed whose ``local_id`` is itself an Open Library edition number can answer
+the question instead of being guessed at: registered with
+``local_id_is_ol_edition``, its records carry ``openlibrary: OL<id>M``, and the
+catalog narrows the pool to that edition. Lenny is such a feed (``/opds/51008637``
+-> ``/books/OL51008637M``). For those feeds this tool is a verification that the
+id was honoured, and each bucket has a specific meaning:
+
+- ``matched a DIFFERENT edition`` -- the id was ignored. Usually the registered
+  row predates the config (``register`` does not update an existing data blob).
+- ``would CREATE a new edition`` -- the named edition does not resolve, i.e. a
+  bad id at the source. The catalog falls back to ordinary matching rather than
+  saving against a key that is not there.
+- ``no edition resolved`` -- the record raised; read the logged exception.
+
+Pass ``--no-expect-edition-ids`` for feeds whose ids are not OL editions; the
+run then reports what was matched without claiming an expected answer.
 
 Requires a working catalog connection, so run it where ``manage-imports`` runs.
 """
@@ -48,11 +62,17 @@ NO_ANSWER = "no edition resolved"
 
 
 def expected_edition_key(record: dict) -> str | None:
-    """The edition a record names, when its ``local_id`` is an OL edition number.
+    """The edition a record names, or None if it names none.
 
-    Returns None when the id is not numeric, i.e. the feed does not encode an
-    edition and there is nothing to compare against.
+    Prefers the ``openlibrary`` field, which is what the catalog is actually
+    handed, so a match against it means the id was honoured rather than
+    coincidentally agreed with. Falls back to the acquisition's ``local_id`` so
+    the tool still reports a split for a feed registered before
+    ``local_id_is_ol_edition`` existed -- which is one of the failures worth
+    catching.
     """
+    if ol_id := record.get("openlibrary"):
+        return f"/books/{ol_id}"
     acquisitions = record.get("acquisitions") or []
     local_id = acquisitions[0].get("local_id") if acquisitions else None
     if not local_id or not str(local_id).isdigit():

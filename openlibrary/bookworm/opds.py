@@ -123,10 +123,16 @@ class Feed(BaseModel):
     ``isbn`` (from ``urn:isbn:`` in ``metadata.identifier``), ``gutenberg`` (the
     numeric id in the ``gutenberg.org/ebooks/<id>`` identifier URL), or
     ``self_link`` (the last path segment of the ``self`` link — Lenny).
+
+    ``local_id_is_ol_edition`` says the extracted id is itself an Open Library
+    edition number, so a record can name its edition outright instead of leaving
+    the catalog to infer it from the title. Separate from ``id_strategy`` because
+    how an id is extracted and what that id means are different questions.
     """
 
     provider_name: str
     id_strategy: str  # "isbn" | "gutenberg" | "self_link"
+    local_id_is_ol_edition: bool = False
 
 
 ISBN_URN_PREFIX = "urn:isbn:"
@@ -210,6 +216,15 @@ def to_import_record(pub: Publication, feed: Feed) -> dict[str, Any] | None:
         record["identifiers"] = {"project_gutenberg": [local_id]}
     elif feed.id_strategy == "self_link":
         record["identifiers"] = {feed.provider_name: [local_id]}
+    if feed.local_id_is_ol_edition and local_id.isdigit():
+        # This feed's local id IS an OL edition number, so say which edition the
+        # record is, rather than letting build_pool guess from the title. That
+        # guess is at its worst here: build_pool ignores ``identifiers.*``, so a
+        # feed like this one is pooled on title alone -- against the thousands of
+        # same-title editions that public-domain classics accumulate. The catalog
+        # verifies the id resolves before trusting it (resolve_edition_ref), which
+        # matters because providers do not always validate the id they were given.
+        record["openlibrary"] = f"OL{local_id}M"
     # A ``cover`` URL is intentionally NOT emitted. OL's server-side cover fetch
     # is gated by two host allowlists (none of these feed hosts satisfy), and on
     # the match/merge path — which feed re-imports hit constantly — add_cover()

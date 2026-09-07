@@ -79,3 +79,19 @@ class TestClassify:
     def test_expectations_can_be_turned_off(self):
         bucket, _, _ = classify(record("51008637"), reply("/books/OL999M"), expect_edition_ids=False)
         assert bucket == MATCHED_EXPECTED
+
+
+def test_expected_edition_key_prefers_the_named_edition():
+    """The ``openlibrary`` field is what the catalog is actually handed.
+
+    Matching against it means the id was honoured, not that the answer happened
+    to agree.
+    """
+    named = {"openlibrary": "OL51008637M", "acquisitions": [{"local_id": "999"}]}
+    assert expected_edition_key(named) == "/books/OL51008637M"
+
+
+def test_expected_edition_key_falls_back_to_the_acquisition_id():
+    """So a feed registered before ``local_id_is_ol_edition`` existed still
+    reports a split -- which is one of the failures worth catching."""
+    assert expected_edition_key({"acquisitions": [{"local_id": "51008637"}]}) == "/books/OL51008637M"

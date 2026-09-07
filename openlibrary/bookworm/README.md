@@ -218,10 +218,19 @@ Confirmed with the Lenny maintainer, 2026-09-06:
 
 - **Expect 94 records, not 96.** `numberOfItems` reports 96 (a raw DB count),
   the feed serves 95 publications, and one of those ("LAMMA", OL52247138M) has
-  no author in Open Library so our validator rejects it. The 96th is likely
-  simply absent from OL's search index rather than filtered, so treat it as
-  indefinitely absent rather than arriving with any particular fix
-  (ArchiveLabs/lenny#203).
+  no author in Open Library so our validator rejects it. The likely mechanism
+  for the missing 96th: an item whose edition does not resolve in OL search
+  never becomes a publication (`_enrich_items` returns nothing for it) while
+  `Item.count()` still counts it — so it is probably a bad edition id on their
+  side rather than a filter, and may never be importable. Plan for 94
+  (ArchiveLabs/lenny#203, ArchiveLabs/lenny#214).
+- **Their edition ids are not validated on entry.** `LennyAPI.add()` checks only
+  `Item.exists(openlibrary_edition)` — a local duplicate check — and the route
+  takes the edition number as a bare form field, so a typo'd, deleted or simply
+  wrong id is accepted and served (ArchiveLabs/lenny#214). We rely on that id to
+  pick the edition, so the catalog verifies it resolves before trusting it
+  (`resolve_edition_ref`) and falls back to ordinary matching when it does not.
+  Step 6b is where a bad id shows up, as a `would CREATE`.
 - **Never raise the page size.** We follow `rel=next` and never send a `limit`,
   inheriting their 50. A single `?limit=200` request returns HTTP 504; large
   single requests are the failure mode, not frequency. A 504 is safe for us:
@@ -372,12 +381,34 @@ one edition Lenny actually holds. A create at least leaves a traceable record; a
 wrong-edition match reports no error, looks completely successful, and attaches a
 borrow link to a book the provider does not hold.
 
-**Do not proceed to step 7 until `matched a DIFFERENT edition` is zero.** For
-this feed the id is not a hint to weigh against title evidence — it is the
-answer, and the title evidence is actively misleading because every candidate
-matches equally well. The fix is provider-specific pooling on the edition the
-`self` link names (see `find_wikisource_src` for the precedent), which turns a
-guess into a lookup.
+**Do not proceed to step 7 until `matched a DIFFERENT edition` is zero.**
+
+For this feed it should be zero, because Lenny's records **name** their edition:
+its `self` link id is the OL edition number, the feed is registered with
+`local_id_is_ol_edition: true`, and `to_import_record` therefore emits
+`openlibrary: OL<id>M`. `build_pool` narrows the pool to that edition alone —
+the same way a wikisource id narrows to itself — and `find_quick_match` returns
+it, so the title evidence never gets a vote. Verify that is actually what
+happened rather than assuming it:
+
+- **`matched a DIFFERENT edition` > 0** — the id is being ignored. Check the row
+  really carries `local_id_is_ol_edition` (`--show`); config added to `FEEDS`
+  after a feed was first registered is **not** applied to the existing row, and
+  the script warns about exactly this. Do not import.
+- **`would CREATE a new edition` > 0** — the named edition does not resolve in
+  Open Library. That is a data-entry error on Lenny's side, not ours: `add()`
+  checks only for a local duplicate and never validates that `OL<id>M` exists
+  (ArchiveLabs/lenny#214), so a typo'd or deleted id is accepted, stored and
+  served. The catalog deliberately falls back to ordinary matching rather than
+  saving against a key that is not there. Report the ids to Lenny; do not paper
+  over them here.
+- **`no edition resolved` > 0** — read the logged exception. The author
+  validator rejecting a record (see "LAMMA" below) shows up here.
+
+The general gap behind all of this — `build_pool` ignoring `identifiers.*`, so
+any feed whose provider id maps to an OL record is pooled on title alone — is
+tracked separately, because fixing it changes matching for every import path in
+Open Library.
 
 ### 7. Let ImportBot drain, then read the status split
 

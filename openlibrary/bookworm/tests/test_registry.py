@@ -50,6 +50,25 @@ def test_to_feed_carries_id_strategy(registry_db):
     assert feed.id_strategy == "isbn"
 
 
+def test_to_feed_carries_the_ol_edition_flag(registry_db):
+    """A feed whose local id IS an OL edition number has to say so.
+
+    The parser needs it to decide whether a record can name its edition outright
+    instead of being matched on title alone.
+    """
+    FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link", data={"local_id_is_ol_edition": True})
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    assert feed.local_id_is_ol_edition is True
+    assert feed.to_feed().local_id_is_ol_edition is True
+
+
+def test_the_ol_edition_flag_defaults_off(registry_db):
+    FeedRegistry.register("project_gutenberg", "https://g/opds", id_strategy="gutenberg")
+    feed = FeedRegistry.find("project_gutenberg", "https://g/opds")
+    assert feed.local_id_is_ol_edition is False
+    assert feed.to_feed().local_id_is_ol_edition is False
+
+
 def test_advance_moves_cursor(registry_db):
     row = FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
     cursor = datetime.datetime(2026, 7, 20, 12, 0, 0)

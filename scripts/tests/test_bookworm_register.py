@@ -61,6 +61,41 @@ class TestDefaults:
         assert registered()["lenny"].supports_modified_since is True
 
 
+class TestConnectorConfig:
+    def test_lenny_records_that_its_ids_are_ol_editions(self, registry_db):
+        """Without this, Lenny records are matched on title alone."""
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        assert registered()["lenny"].local_id_is_ol_edition is True
+
+    def test_other_feeds_do_not_claim_it(self, registry_db):
+        bookworm_register.main(ol_config="x.yml", provider="project_gutenberg")
+        assert registered()["project_gutenberg"].local_id_is_ol_edition is False
+
+    def test_config_added_after_registration_warns_that_it_is_not_applied(self, registry_db, caplog):
+        """register() returns an existing row without touching its data blob.
+
+        So connector config added to FEEDS later never reaches the database, and
+        the symptom -- records matched on title alone because
+        ``local_id_is_ol_edition`` never arrived -- looks nothing like the cause.
+        """
+        FeedRegistry.register(
+            "lenny",
+            bookworm_register.FEEDS["lenny"]["url"],
+            id_strategy="self_link",
+            cursor_style=bookworm_register.FEEDS["lenny"]["cursor_style"],
+        )
+        with caplog.at_level(logging.WARNING):
+            bookworm_register.main(ol_config="x.yml", provider="lenny")
+        assert "stale connector config" in caplog.text
+        assert "local_id_is_ol_edition" in caplog.text
+
+    def test_no_warning_when_the_config_already_matches(self, registry_db, caplog):
+        bookworm_register.main(ol_config="x.yml", provider="lenny")
+        with caplog.at_level(logging.WARNING):
+            bookworm_register.main(ol_config="x.yml", provider="lenny")
+        assert "stale connector config" not in caplog.text
+
+
 class TestIdempotence:
     def test_re_running_does_not_duplicate(self, registry_db):
         bookworm_register.main(ol_config="x.yml")

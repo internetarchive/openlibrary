@@ -39,6 +39,10 @@ FEEDS: dict[str, dict] = {
         # Verified 2026-09-04: honours ?modified_since (96 items unfiltered, 0
         # since 2026-09-01), so it does not need a full crawl each run.
         "cursor_style": CURSOR_MODIFIED_SINCE,
+        # Lenny's self-link id IS the OL edition number (/opds/51008637 ->
+        # /books/OL51008637M, verified: "The Art of War"), so records can name
+        # their edition instead of being matched on title alone.
+        "local_id_is_ol_edition": True,
     },
     "project_gutenberg": {
         "url": "https://opds-test.pglaf.org/opds/search?sort=fil",
@@ -135,11 +139,28 @@ def main(
             )
 
         existing = FeedRegistry.find(name, spec["url"])
+        extra = {k: v for k, v in spec.items() if k not in ("url", "id_strategy", "cursor_style")}
+        if existing:
+            # register() is idempotent and returns the existing row WITHOUT
+            # touching its data blob, so connector config added to FEEDS after a
+            # feed was first registered never reaches the database. Silent, and
+            # the symptom (records matched on title alone because
+            # local_id_is_ol_edition never arrived) looks nothing like the cause.
+            drift = {
+                k: v for k, v in {"id_strategy": spec["id_strategy"], "cursor_style": spec["cursor_style"], **extra}.items() if (existing.data or {}).get(k) != v
+            }
+            if drift:
+                logger.warning(
+                    "%s is registered with stale connector config; %s will NOT be applied. Delete the row and re-register to pick it up.",
+                    name,
+                    drift,
+                )
         feed: FeedRegistry | None = FeedRegistry.register(
             name,
             spec["url"],
             id_strategy=spec["id_strategy"],
             cursor_style=spec["cursor_style"],
+            data=extra or None,
         )
         if feed is None:
             logger.error("failed to register %s", name)

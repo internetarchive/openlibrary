@@ -456,6 +456,38 @@ def find_wikisource_src(rec: dict) -> str | None:
     return None
 
 
+def find_ol_edition_ref(rec: dict) -> str | None:
+    """The ``/books/OL...M`` key an import record names outright, if any.
+
+    Some sources know exactly which edition they are describing -- a provider
+    feed whose own local id IS the Open Library edition number, for instance --
+    and pass it as ``openlibrary``. For those records the edition is not a thing
+    to be inferred from the bibliographic data; it is given.
+    """
+    if ol_id := rec.get("openlibrary"):
+        return f"/books/{ol_id}"
+    return None
+
+
+def resolve_edition_ref(ol_key: str) -> str | None:
+    """The live edition an ``/books/OL...M`` reference resolves to, or None.
+
+    A named id is only as good as whoever typed it. Lenny, for example, accepts
+    the Open Library edition number as an unvalidated form field
+    (ArchiveLabs/lenny#214), so a typo'd, deleted or simply wrong id arrives
+    looking exactly like a good one -- and ``_load`` would then dereference the
+    key unconditionally. Redirects are followed; anything that does not resolve
+    to a live edition returns None, so a caller can fall back to ordinary
+    matching instead of saving against a key that is not there.
+    """
+    thing = site.get().get(ol_key)
+    if is_redirect(thing):
+        thing = site.get().get(thing.location)
+    if not thing or thing.type.key != "/type/edition":
+        return None
+    return thing.key
+
+
 def build_pool(rec: dict) -> dict[str, list[str]]:
     """
     Searches for existing edition matches on title and bibliographic keys.
@@ -466,6 +498,24 @@ def build_pool(rec: dict) -> dict[str, list[str]]:
     """
     pool = defaultdict(set)
     match_fields = ("title", "oclc_numbers", "lccn", "ocaid")
+
+    if ol_key := find_ol_edition_ref(rec):
+        if verified := resolve_edition_ref(ol_key):
+            # The record names its edition and that edition exists: this IS the
+            # answer, not a candidate to weigh against title evidence. Narrow the
+            # pool to it, the same way a wikisource id narrows to itself.
+            #
+            # Deliberately checked BEFORE the title pool rather than relying on
+            # find_quick_match, which only runs when build_pool returned
+            # something. A record with no same-title match in the catalog -- an
+            # obscure local-history pamphlet, exactly the material a
+            # library-in-a-box feed carries -- would otherwise skip the shortcut
+            # and create a duplicate of the edition it just named. The id should
+            # win most decisively where there is nothing else to go on.
+            return {"openlibrary": [verified]}
+        # A dangling id is a data-entry error at the source, not a reason to skip
+        # matching altogether: fall through to the ordinary pool.
+        logger.warning("import record names %s, which does not resolve to an edition; matching normally", ol_key)
 
     if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
@@ -494,8 +544,12 @@ def find_quick_match(rec: dict) -> str | None:
     :param dict rec: Edition record
     :return: First key matched of format "/books/OL..M" or None if no match found.
     """
-    if "openlibrary" in rec:
-        return "/books/" + rec["openlibrary"]
+    if (ol_key := find_ol_edition_ref(rec)) and (verified := resolve_edition_ref(ol_key)):
+        # The record names its edition and that edition exists: that is the
+        # answer. A named id that does NOT resolve deliberately falls through to
+        # the checks below rather than returning a key _load() would dereference
+        # and raise on.
+        return verified
 
     if ws_match := find_wikisource_src(rec):
         # If this is a wikisource import, ONLY consider a match if the same wikisource ID
