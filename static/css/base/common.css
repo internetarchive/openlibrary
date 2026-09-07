@@ -75,14 +75,14 @@ h1,
 h2,
 h3 {
   font-family: var(--font-family-heading);
-  color: var(--color-text-secondary);
+  color: var(--color-text-heading);
   font-weight: var(--font-weight-heading);
 }
 h4,
 h5,
 h6 {
   font-family: var(--font-family-subheading);
-  color: var(--color-text-secondary);
+  color: var(--color-text-heading);
   font-weight: var(--font-weight-subheading);
 }
 div.head {

@@ -108,12 +108,12 @@
 /**
  * Heading
  * =======
- * Section headings, h1–h3. The size ramp carries the hierarchy per element,
- * so the role has no size token.
+ * Section headings, h1–h3. Medium weight in body ink; the size ramp carries
+ * the hierarchy per element, so the role has no size token.
  */
 :root {
   --font-family-heading: var(--font-family-sans);
-  --font-weight-heading: var(--font-weight-semibold);
+  --font-weight-heading: var(--font-weight-medium);
   --line-height-heading: var(--line-height-snug); /* also result and work titles that wrap */
 }
 
