@@ -193,3 +193,156 @@ full-crawl feed's cursor moves forward on an empty run.
 | `lenny` | `modified_since` | verified server-side filtering (96 items unfiltered, 0 since 2026-09-01) |
 | `project_gutenberg` | `modified_since` | ~78k items; seed the cursor |
 | `betterworldbooks` | `client` (full crawl) | **not registered by default** — Cloudflare 403s our proxy egress. Register with `--provider betterworldbooks` once allowlisted. |
+
+---
+
+## Deploying Lenny to ol-home0
+
+End-to-end runbook for the first live feed. Every step is reversible until step 7,
+and nothing is harvested until step 6.
+
+Prerequisites: PR #13565 merged or patch-deployed, and `feed_registry` present.
+
+### 1. Patch deploy the code (skip if merged and released)
+
+`patchdeploy.sh` applies a PR diff inside a container. The cron container is the
+`cron-jobs` service on `ol-home0`:
+
+```bash
+# from a checkout on your workstation
+SERVERS=ol-home0 SERVICE=cron-jobs ./scripts/deployment/patchdeploy.sh 13565
+```
+
+Undo with `APPLY_OPTIONS=-R` and the same command. Note the script's own warning:
+patch deploys cannot rebuild js/css — irrelevant here, this PR is Python only.
+
+Verify inside the container:
+
+```bash
+ssh ol-home0.us.archive.org
+docker exec -it openlibrary-cron-jobs-1 bash
+python scripts/bookworm_register.py --help   # should list --activate and --reseed
+```
+
+### 2. Confirm proxy egress works
+
+The harvester reaches provider feeds only through Squid, authenticated. This must
+return `200`, not `407` or a timeout:
+
+```bash
+curl -s -o /dev/null -m 20 -w "%{http_code}\n" https://lennyforlibraries.org/v1/api/opds
+```
+
+`407` means the container's proxy env carries no credentials. `000` with an empty
+`remote_ip` on an HTTPS URL is a *masked* `407` — check with plain HTTP through
+the proxy before concluding it is a network problem.
+
+### 3. Create the tables
+
+`acquisitions` may already exist from #12851 — check before creating:
+
+```sql
+\dt acquisitions
+\dt feed_registry
+```
+
+Copy the DDL from `openlibrary/core/schema.sql` (`CREATE TABLE feed_registry`,
+`CREATE TABLE acquisitions`, plus their indexes). Use the schema, not a ticket.
+
+### 4. Register Lenny — it will NOT harvest yet
+
+```bash
+CFG=/olsystem/etc/openlibrary.yml
+python scripts/bookworm_register.py --ol-config $CFG --show          # expect empty
+python scripts/bookworm_register.py --ol-config $CFG --provider lenny
+python scripts/bookworm_register.py --ol-config $CFG --show          # expect [pending]
+```
+
+A `pending` feed is skipped by scheduled runs, so this is safe even if a cron
+entry already exists.
+
+### 5. Validate against production without writing
+
+```bash
+python scripts/bookworm_harvest.py --ol-config $CFG --provider lenny --dry-run
+```
+
+Expect roughly `feed lenny: 94 records (dry run, nothing written)`. Confirm it
+really wrote nothing:
+
+```sql
+SELECT count(*) FROM import_item;                                  -- 0
+SELECT last_updated FROM feed_registry WHERE provider_name='lenny'; -- NULL
+```
+
+### 6. One real pass, by name
+
+Still outside cron, because the feed is `pending`:
+
+```bash
+python scripts/bookworm_harvest.py --ol-config $CFG --provider lenny
+```
+
+```sql
+SELECT b.name, i.status, count(*) FROM import_item i
+  JOIN import_batch b ON b.id = i.batch_id
+ GROUP BY b.name, i.status;
+```
+
+Expect ~94 rows in `lenny-opds` at `pending`.
+
+### 7. Let ImportBot drain, then read the status split
+
+This is the step that decides whether the rest of the rollout is safe.
+
+```sql
+SELECT i.status, count(*) FROM import_item i
+  JOIN import_batch b ON b.id = i.batch_id
+ WHERE b.name = 'lenny-opds' GROUP BY i.status;
+```
+
+- mostly `found` / `modified` → feed records are matching existing editions. Good.
+- mostly `created` → the catalog is creating new editions for books Open Library
+  already has. **Stop.** `build_pool` matches on title/ISBN/LCCN/OCLC/ocaid and
+  ignores `identifiers.lenny`, so provider-specific pooling is needed first (see
+  `find_wikisource_src` for the precedent). Continuing would duplicate editions
+  at Gutenberg scale.
+
+Then confirm acquisitions actually landed:
+
+```sql
+SELECT provider_name, count(*) FROM acquisitions GROUP BY provider_name;
+SELECT data FROM acquisitions LIMIT 1;   -- {"acquisitions": [...]}
+```
+
+### 8. Hand it to cron
+
+```bash
+python scripts/bookworm_register.py --ol-config $CFG --provider lenny --activate
+```
+
+Then the crontab entry on the cron container:
+
+```cron
+17 * * * * cd /openlibrary && python scripts/bookworm_harvest.py --ol-config /olsystem/etc/openlibrary.yml >> /var/log/bookworm-harvest.log 2>&1
+```
+
+Single pass per tick so cron sees the exit status. It exits non-zero if **any**
+feed errored, and logs one line per feed.
+
+### 9. Confirm steady state after two ticks
+
+```
+feed lenny: 0 records
+```
+or a small `unchanged` count. If you see a large `refreshed` count on every tick,
+change detection is not working — that is the signal something regressed, and it
+means the import queue is churning.
+
+### Rolling back
+
+- Stop harvesting without losing anything: set the feed back to pending —
+  `UPDATE feed_registry SET data = jsonb_set(data, '{status}', '"pending"') WHERE provider_name='lenny';`
+- Un-apply the code: `APPLY_OPTIONS=-R SERVERS=ol-home0 SERVICE=cron-jobs ./scripts/deployment/patchdeploy.sh 13565`
+- Re-harvest from scratch: `DELETE FROM import_item WHERE batch_id = (SELECT id FROM import_batch WHERE name='lenny-opds');`
+  then `UPDATE feed_registry SET last_updated = NULL WHERE provider_name='lenny';`
