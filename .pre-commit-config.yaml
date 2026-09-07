@@ -42,25 +42,25 @@ repos:
         exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
 
   - repo: https://github.com/djlint/djLint
-    rev: v1.43.2
+    rev: v1.46.0
     hooks:
       - id: djlint-reformat-jinja
       - id: djlint-jinja
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+    rev: '0.26'
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.1
+    rev: v0.16.6
     hooks:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.21.0
+    rev: v0.21.1
     hooks:
     - id: cython-lint
 
@@ -90,7 +90,7 @@ repos:
         exclude: (^|/)tests?/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.0
+    rev: v2.3.1
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -116,7 +116,7 @@ repos:
         args: [--fix, --allow-empty-input]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.8.0
+    rev: v10.10.0
     hooks:
       - id: eslint
         types: [file]
@@ -175,7 +175,7 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.2.2
+    rev: 4.3.0
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
@@ -190,6 +190,6 @@ repos:
         exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.29.0
+    rev: v1.30.0
     hooks:
       - id: zizmor
