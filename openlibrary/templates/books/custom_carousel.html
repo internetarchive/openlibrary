@@ -52,7 +52,7 @@ $if test or (books and len(books) >= min_books):
               $ loan = book.get('loan')
               $if loan:
                 $ book2['loan'] = loan
-              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
+              $:render_carousel_card(book2, lazy_load, layout, key=key, secondary_action=secondary_action)
         </div>
       </div>
     </div>

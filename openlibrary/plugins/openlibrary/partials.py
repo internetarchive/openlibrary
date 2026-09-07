@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass, fields
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -190,6 +191,9 @@ def _render_carousel_card_loan_status(book, *, work_key: str, secondary_action: 
     return Markup(str(macro["__body__"]))
 
 
+logger = logging.getLogger("openlibrary.plugins.openlibrary.partials")
+
+
 def build_carousel_card_context(book, lazy: bool, layout: str | None, key: str, secondary_action: bool = False) -> CarouselCardContext:
     """Resolve everything books/custom_carousel_card.html.jinja needs to render."""
     url = book.get("key") or book.url
@@ -221,6 +225,29 @@ def build_carousel_card_context(book, lazy: bool, layout: str | None, key: str, 
     )
 
 
+@public
+def render_carousel_card(book, lazy: bool, layout: str | None, key: str, secondary_action: bool = False) -> str:
+    """Templetor-facing bridge for the Jinja carousel card partial.
+
+    Builds the render context and renders books/custom_carousel_card.html.jinja.
+    Failures are isolated per-card so one bad card doesn't break the whole
+    carousel or Load More response.
+    """
+    try:
+        ctx = build_carousel_card_context(book, lazy, layout, key, secondary_action=secondary_action)
+        ctx_kwargs = {field.name: getattr(ctx, field.name) for field in fields(ctx)}
+        template = get_jinja_env().get_template("books/custom_carousel_card.html.jinja")
+        return template.render(
+            **ctx_kwargs,
+            datetime_from_isoformat=datetime_from_isoformat,
+            datestr=datestr,
+            datetimestr_utc=datetimestr_utc,
+        )
+    except Exception:
+        logger.exception("Failed to render carousel card for book %r", getattr(book, "key", book))
+        return ""
+
+
 class CarouselCardPartial:
     """Handler for carousel "load_more" requests"""
 
@@ -246,16 +273,20 @@ class CarouselCardPartial:
             book["authors"] = work.get("authors", [])
             book = web.storage(book)
 
-            ctx = build_carousel_card_context(book, lazy, params.layout, params.key)
-            ctx_kwargs = {field.name: getattr(ctx, field.name) for field in fields(ctx)}
-            cards.append(
-                template.render(
-                    **ctx_kwargs,
-                    datetime_from_isoformat=datetime_from_isoformat,
-                    datestr=datestr,
-                    datetimestr_utc=datetimestr_utc,
+            try:
+                ctx = build_carousel_card_context(book, lazy, params.layout, params.key)
+                ctx_kwargs = {field.name: getattr(ctx, field.name) for field in fields(ctx)}
+                cards.append(
+                    template.render(
+                        **ctx_kwargs,
+                        datetime_from_isoformat=datetime_from_isoformat,
+                        datestr=datestr,
+                        datetimestr_utc=datetimestr_utc,
+                    )
                 )
-            )
+            except Exception:
+                logger.exception("Failed to render carousel card for book %r", getattr(book, "key", book))
+                continue
 
         return {"partials": cards}
 
