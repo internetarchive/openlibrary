@@ -214,18 +214,15 @@
               style="border-top: var({{ token.name }}) solid var(--color-border)"></span>
     {% elif category.id == "borders" %}
         <span class="ds-preview-box" style="border: var({{ token.name }});"></span>
-    {% elif category.id == "font-families" and "size" in token.name %}
-        <span class="ds-preview-type" style="font-size: var({{ token.name }});">Ag</span>
-    {% elif category.id == "font-families" %}
-        <span class="ds-preview-type" style="font-family: var({{ token.name }});">Ag</span>
-    {% elif category.id == "typography" %}
-        {# --font-weight-overline → font-weight: the property is the name minus its role. #}
-        <span class="ds-preview-type"
-              style="{{ token.name[2:].rsplit('-', 1)[0] }}: var({{ token.name }})">Sort by</span>
-    {% elif category.id == "line-heights" %}
+    {% elif token.css_property == "line-height" %}
         <span class="ds-preview-leading" style="line-height: var({{ token.name }})">Ag
             <br>
         Ag</span>
+    {% elif token.css_property %}
+        {# A role token previews as the text it styles; a primitive as a glyph pair. #}
+        {% set samples = {"overline": "Sort by", "heading": "Book Details", "subheading": "Edition Identifiers"} %}
+        <span class="ds-preview-type"
+              style="{{ token.css_property }}: var({{ token.name }})">{{ samples.get(token.name.rsplit("-", 1)[1], "Ag") }}</span>
     {% elif category.id == "breakpoints" %}
         <span class="ds-preview-bar ds-preview-bar--scaled"
               style="inline-size: calc(var({{ token.name }}) / 8)"></span>

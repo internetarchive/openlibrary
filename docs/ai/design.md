@@ -46,7 +46,7 @@ The principles these rules serve — and the tensions between them — are on `/
 
 ### Text-style roles
 
-`tokens/typography.css` defines text styles as one token per property, grouped by the role the text plays. Apply a role's tokens **together** — setting the size from the token and hand-coding the weight or tracking is how six copies of "overline" drifted apart. The first role is **overline**, the small all-caps heading over a group (a popover's "Sort by", the search modal's "Top results", a scorecard label):
+`tokens/typography.css` holds every text token: the primitives (families, the size ramp, the four weights `--font-weight-regular/medium/semibold/bold`, line heights) and the roles built from them, one token per property. Apply a role's tokens **together** — setting the size from the token and hand-coding the weight or tracking is how six copies of "overline" drifted apart. Never write a bare weight; take it from a role, or from a weight primitive where no role fits. Headings take the **heading** role (h1–h3) or **subheading** (h4–h6) in `base/common.css`. The **overline** role is the small all-caps heading over a group (a popover's "Sort by", the search modal's "Top results", a scorecard label):
 
 ```css
 .section-heading {
@@ -225,8 +225,7 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/colors.css` | Color primitives, semantic color tokens, deprecated legacy aliases |
 | `static/css/tokens/spacing.css` | Spacing scale |
 | `static/css/tokens/border-radius.css` | Border radius primitives and semantic tokens |
-| `static/css/tokens/font-families.css` | Font families and sizes |
-| `static/css/tokens/typography.css` | Text-style roles, one token per property (`--font-size-overline`, `--font-weight-overline`, `--letter-spacing-overline`, `--text-transform-overline`); apply a role's tokens together |
+| `static/css/tokens/typography.css` | All text tokens: family, size, weight, and line-height primitives, then the text-style roles (`heading`, `subheading`, `overline`) one token per property; apply a role's tokens together |
 | `static/css/tokens/motion.css` | Easing primitives and semantic motion tokens (`--ease-enter`, `--duration-base`, …) |
 | `static/css/tokens/press.css` | Press-feedback scale tiers (`--press-scale-compact` / `--press-scale` / `--press-scale-wide`) |
 | `static/css/tokens/borders.css` | Border and shadow tokens, plus the modal overlay scrim (`--overlay-backdrop-color` / `--overlay-backdrop-blur`) |
@@ -234,7 +233,6 @@ Always use semantic tokens. If one doesn't exist for your use case, create it in
 | `static/css/tokens/breakpoints.css` | Breakpoint scale — reference only, see [Breakpoints](#breakpoints) |
 | `static/css/tokens/control-heights.css` | Outer heights for single-line controls, plus the menu-row height and pill inset (`--menu-row-height` / `-inset` / `-padding-inline`) |
 | `static/css/tokens/icon-sizes.css` | Icon size and per-size stroke tokens |
-| `static/css/tokens/line-heights.css` | Line-height scale |
 
 ### Tokens in Shadow DOM
 
