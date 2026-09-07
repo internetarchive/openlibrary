@@ -9,6 +9,7 @@ import web
 from openlibrary.bookworm import harvest, opds
 from openlibrary.bookworm.harvest import _as_utc
 from openlibrary.bookworm.registry import CURSOR_MODIFIED_SINCE, FeedRegistry
+from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.db import get_db
 
 SAMPLES = Path(__file__).parent / "samples"
@@ -23,6 +24,13 @@ CREATE TABLE feed_registry (
 );
 """
 IMPORT_BATCH_DDL: Final = "CREATE TABLE import_batch (id integer primary key, name text, submitter text, submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
+ACQUISITIONS_DDL: Final = """
+CREATE TABLE acquisitions (
+    id integer primary key, work_id integer not null, edition_id integer not null,
+    provider_name text not null, local_id text not null, data text not null,
+    created timestamp, updated timestamp, UNIQUE (local_id, provider_name)
+);
+"""
 IMPORT_ITEM_DDL: Final = """
 CREATE TABLE import_item (
     id integer primary key, batch_id integer, added_time timestamp, import_time timestamp,
@@ -61,12 +69,15 @@ class FakeSession:
 def bookworm_db():
     web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
     db = get_db()
-    for table in ("import_item", "import_batch", "feed_registry"):
+    for table in ("import_item", "import_batch", "feed_registry", "acquisitions"):
         db.query(f"DROP TABLE IF EXISTS {table};")
-    for ddl in (FEED_REGISTRY_DDL, IMPORT_BATCH_DDL, IMPORT_ITEM_DDL):
+    # acquisitions is REQUIRED: _drop_unchanged reads it, and without the table
+    # it silently took its exception fallback and every gate-2 assertion below
+    # was vacuous.
+    for ddl in (FEED_REGISTRY_DDL, IMPORT_BATCH_DDL, IMPORT_ITEM_DDL, ACQUISITIONS_DDL):
         db.query(ddl)
     yield db
-    for table in ("import_item", "import_batch", "feed_registry"):
+    for table in ("import_item", "import_batch", "feed_registry", "acquisitions"):
         db.query(f"DROP TABLE IF EXISTS {table};")
 
 
@@ -334,8 +345,8 @@ def test_dry_run_still_stages_nothing_when_flushing_would_trigger(bookworm_db, m
     assert FeedRegistry.get_by_id(feed.id).last_updated is None
 
 
-def test_batch_is_date_scoped_like_every_other_importer(bookworm_db):
-    """A single permanent {provider}-opds batch would accumulate forever."""
+def test_each_feed_has_one_stable_batch_name(bookworm_db):
+    """One predictable namespace per feed, deliberately not date-scoped."""
     FeedRegistry.register("lenny", "https://lenny/opds", id_strategy="self_link")
     feed = FeedRegistry.find("lenny", "https://lenny/opds")
     session = FakeSession({"https://lenny/opds": feed_page("lenny")})
@@ -411,6 +422,8 @@ def test_a_changed_price_is_restaged_for_the_catalog(bookworm_db):
             if (link.get("properties") or {}).get("price"):
                 link["properties"]["price"]["value"] = 99.99
         pub["metadata"]["modified"] = "2126-01-01T00:00:00Z".replace("2126", "2026")
+    # Only terminal rows are refreshable, so simulate ImportBot completing it.
+    bookworm_db.query("UPDATE import_item SET status='created'")
     FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
     feed = FeedRegistry.get_by_id(feed.id)
 
@@ -455,3 +468,96 @@ def test_an_all_unchanged_run_reports_unchanged_rather_than_silence(bookworm_db,
     result = harvest.harvest_feed(feed, session=session, now=NOW)
 
     assert result["unchanged"] == result["records"] > 0
+
+
+def test_gate_two_drops_an_unchanged_multi_link_publication(bookworm_db):
+    """The catalog persists only the LAST acquisition of a publication.
+
+    `acquisitions` is unique on (local_id, provider_name) and
+    _save_acquisitions upserts every acquisition under that same key, so N
+    format links collapse into one row holding the last. Comparing the FIRST
+    against it reported "changed" on every run for any multi-link publication --
+    Gutenberg lists several formats per book -- so this gate was 0% effective
+    for the largest corpus, leaving only the provider's own `modified` claim.
+    """
+    _register_active("project_gutenberg", "https://g/opds", id_strategy="gutenberg")
+    feed = FeedRegistry.find("project_gutenberg", "https://g/opds")
+    pub = {
+        "metadata": {
+            "type": "http://schema.org/Book",
+            "title": "Multi Format",
+            "identifier": "https://www.gutenberg.org/ebooks/1342",
+            "author": [{"name": "Jane Austen"}],
+            "language": ["en"],
+            "modified": "2026-09-01T00:00:00Z",
+        },
+        "links": [
+            {"rel": "self", "href": "https://g/opds/1342", "type": "application/opds-publication+json"},
+            {"rel": "http://opds-spec.org/acquisition/open-access", "href": "https://g/1342.epub", "type": "application/epub+zip"},
+            {"rel": "http://opds-spec.org/acquisition/open-access", "href": "https://g/1342.txt", "type": "text/plain"},
+        ],
+    }
+    session = FakeSession({"https://g/opds": {"publications": [pub], "links": []}})
+    harvest.harvest_feed(feed, session=session, now=NOW)
+
+    staged = json.loads(next(iter(bookworm_db.select("import_item"))).data)
+    assert len(staged["acquisitions"]) == 2, "fixture must actually be multi-link"
+
+    # Exactly what the catalog leaves behind: the LAST acquisition, one row.
+    persisted = staged["acquisitions"][-1]
+    Acquisition.upsert(work_id=1, edition_id=1, provider_name="project_gutenberg", local_id=persisted["local_id"], data=persisted["data"])
+    bookworm_db.query("UPDATE import_item SET status='created', data=NULL")
+
+    FeedRegistry.advance(feed.id, last_updated=datetime.datetime(2020, 1, 1))
+    result = harvest.harvest_feed(
+        FeedRegistry.get_by_id(feed.id),
+        session=FakeSession({"https://g/opds": {"publications": [pub], "links": []}}),
+        now=NOW,
+    )
+
+    assert result.get("refreshed", 0) == 0, "an unchanged multi-link publication must not be re-queued"
+    assert result["unchanged"] == 1
+    assert [r.status for r in bookworm_db.select("import_item")] == ["created"]
+
+
+def test_gate_two_raises_rather_than_failing_open(bookworm_db, monkeypatch):
+    """Returning every record on a read error would reset every
+    previously-imported record to pending -- a DB blip becoming a mass re-queue.
+    Propagating leaves the cursor un-advanced so the next run retries."""
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+
+    def boom(provider_name, local_ids):
+        raise RuntimeError("acquisitions unavailable")
+
+    monkeypatch.setattr(Acquisition, "find_many", staticmethod(boom))
+    session = FakeSession({"https://lenny/opds": feed_page("lenny")})
+
+    with pytest.raises(RuntimeError):
+        harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert FeedRegistry.get_by_id(feed.id).last_updated is None, "cursor must not advance"
+
+
+def test_the_cursor_does_not_advance_past_a_rejected_publication(bookworm_db):
+    """A publication with a parsable `modified` but no author is rejected by
+    to_import_record. Advancing the cursor past it would mean a later fix — or a
+    provider adding the missing author — could never surface it again."""
+    _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+    feed = FeedRegistry.find("lenny", "https://lenny/opds")
+    rejected = {
+        "metadata": {"type": "http://schema.org/Book", "title": "No Author", "language": ["en"], "modified": "2026-08-15T00:00:00Z"},
+        "links": [
+            {"rel": "self", "href": "https://lenny/opds/999", "type": "application/opds-publication+json"},
+            {"rel": "http://opds-spec.org/acquisition/borrow", "href": "https://lenny/999/borrow", "type": "text/html"},
+        ],
+    }
+    session = FakeSession({"https://lenny/opds": {"publications": [rejected], "links": []}})
+
+    result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+    assert result["records"] == 0
+    cursor = _as_utc(FeedRegistry.get_by_id(feed.id).last_updated)
+    assert cursor > _as_utc(datetime.datetime(2026, 8, 15, tzinfo=datetime.UTC)) or cursor == _as_utc(NOW), (
+        "an empty run advances to now, but must not adopt the rejected record's own timestamp"
+    )

@@ -123,6 +123,21 @@ Dedup is independent of batching: `Batch.dedupe_items` filters on `ia_id` across
 the whole `import_item` table, so a record staged last month is not re-added
 today.
 
+> **Only the last acquisition of a publication is persisted.** `acquisitions` is
+> unique on `(local_id, provider_name)` and the catalog upserts every
+> acquisition of a record under that same key, so a publication with several
+> format links (Gutenberg lists epub, txt, ...) collapses to one row holding the
+> last. Change detection compares that same last link, so it is faithful — but
+> links 1..N-1 are not stored anywhere. That is a pre-existing catalog
+> limitation, not something this harvester can fix.
+
+> **A queued row is not refreshed.** Only rows at a terminal status
+> (`created`/`modified`/`found`/`failed`) are updated in place. `manage-imports`
+> never claims a row — it stays `pending` while being processed — so overwriting
+> a queued row would race a worker holding the old copy and the update would be
+> silently discarded. A change arriving while a row is queued is applied on a
+> later run instead.
+
 > **Re-harvesting does not update already-staged rows.** Because dedup is by
 > `ia_id` alone, a record whose price, format or acquisition URL changes is
 > correctly re-harvested by the cursor and then dropped as "already present".

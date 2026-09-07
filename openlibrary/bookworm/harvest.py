@@ -190,41 +190,52 @@ def batch_name(feed: FeedRegistry) -> str:
 
 
 def _drop_unchanged(feed: FeedRegistry, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Drop records whose acquisitions already match what is stored.
+    """Drop records whose stored acquisition already matches what we parsed.
 
     The feed's own ``modified`` is the first gate, but it is a third party's
-    claim: a provider that re-publishes or reindexes its catalogue can bump
-    every timestamp without changing anything. Without a second gate that would
-    re-queue the entire corpus -- the firehose behaviour that previously
-    overwhelmed the database.
+    claim: a provider that re-publishes or reindexes its catalogue can bump every
+    timestamp without changing anything. Without a second gate that would
+    re-queue the corpus -- the firehose behaviour that previously overwhelmed the
+    database.
 
     Compares against the acquisitions table rather than ``import_item.data``,
-    which is cleared once a row completes and so cannot answer this for exactly
-    the records that have been around longest.
+    which :meth:`ImportItem.set_status` clears once a row completes and so cannot
+    answer this for exactly the records that have been around longest.
 
-    Records with no acquisitions are always kept: there is nothing to compare,
-    and their bibliographic data may still have changed.
+    Compares the **last** acquisition, because that is the only one that gets
+    persisted. ``acquisitions`` is unique on ``(local_id, provider_name)`` and
+    ``add_book._save_acquisitions`` upserts every acquisition in the record under
+    that same key, so N links for one publication collapse into one row holding
+    the last. Comparing ``acquisitions[0]`` against it therefore reported
+    "changed" on every run for any multi-link publication -- Gutenberg lists
+    several format links per book -- making this gate 0% effective for exactly
+    the feed with the largest corpus.
+
+    That collapse is itself a defect in the catalog (links 1..N-1 are silently
+    discarded), but it is pre-existing and out of scope here; this function only
+    has to compare faithfully against what is actually stored.
+
+    Raises rather than failing open: returning every record on a read error
+    would reset every previously-imported record to ``pending``, so a DB blip
+    would become a mass re-queue. Propagating leaves the cursor un-advanced and
+    the next run simply retries.
     """
-    wanted = {rec["acquisitions"][0]["local_id"]: rec for rec in records if rec.get("acquisitions")}
-    if not wanted:
+    comparable = {rec["acquisitions"][-1]["local_id"]: rec for rec in records if rec.get("acquisitions")}
+    if not comparable:
         return records
 
-    try:
-        stored = Acquisition.find_many(feed.provider_name, list(wanted))
-    except Exception:
-        # Never let the optimisation break the harvest; worst case we re-offer
-        # a record and add_or_refresh_items compares it again.
-        logger.exception("could not read stored acquisitions for %s; not filtering", feed.provider_name)
-        return records
+    stored = Acquisition.find_many(feed.provider_name, list(comparable))
 
     kept = []
     for rec in records:
         acquisitions = rec.get("acquisitions")
         if not acquisitions:
+            # Nothing durable to compare against; gate 1 is the only filter.
             kept.append(rec)
             continue
-        previous = stored.get(acquisitions[0]["local_id"])
-        if previous is None or previous.get("data") != acquisitions[0].get("data"):
+        persisted = acquisitions[-1]
+        previous = stored.get(persisted["local_id"])
+        if previous is None or previous.get("data") != persisted.get("data"):
             kept.append(rec)
     if dropped := len(records) - len(kept):
         logger.info("%s: %d record(s) unchanged since last import, not re-queued", feed.provider_name, dropped)
@@ -239,6 +250,11 @@ def _submit(feed: FeedRegistry, records: list[dict[str, Any]]) -> dict[str, int]
     price, say -- and ``add_items`` would drop it because the ``ia_id`` already
     exists. Unchanged records are still left alone, so this does not re-queue a
     corpus.
+
+    Only records whose row has reached a terminal status get refreshed; a queued
+    row is left for the worker that may already be holding it, and is picked up
+    on a later run once it has completed. See
+    :attr:`Batch.REFRESHABLE_STATUSES`.
     """
     if not records:
         return {}
@@ -340,13 +356,18 @@ def _harvest_by_full_crawl(
     for page in iter_pages(feed.url, session, max_pages=max_pages, state=page_state):
         for raw in page.get("publications") or []:
             record, modified = _parse_publication(raw, parser_feed, feed.provider_name)
+            if modified is not None and modified <= since:
+                continue  # already seen; keep scanning (feed order isn't guaranteed)
+            if not record:
+                # Rejected by to_import_record (no title/authors/resolvable id).
+                # Deliberately does NOT advance max_modified: doing so moved the
+                # cursor past a publication that was never staged, so a later
+                # fix to the record would never see it again.
+                continue
             if modified is not None:
-                if modified <= since:
-                    continue  # already seen; keep scanning (feed order isn't guaranteed)
                 max_modified = max(max_modified, modified)
-            if record:
-                records.append(record)
-                total += 1
+            records.append(record)
+            total += 1
         if not dry_run and len(records) >= SUBMIT_BATCH_SIZE:
             _merge_counts(staged, _submit(feed, records))
             logger.info("%s: staged %d records so far", feed.provider_name, total)

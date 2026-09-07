@@ -111,8 +111,21 @@ class Batch(web.storage):
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get("ia_id") not in already_present]
 
-    IN_FLIGHT_STATUSES = ("processing",)
-    """Statuses meaning manage-imports has claimed the row; do not touch it."""
+    REFRESHABLE_STATUSES = ("created", "modified", "found", "failed")
+    """Terminal statuses -- the only rows safe to refresh.
+
+    A row that is ``pending`` or ``staged`` is QUEUED, and ``manage-imports``
+    (``import_all`` -> ``find_pending()``) never claims it -- it stays ``pending``
+    for the whole in-flight window. So replacing a queued row's ``data`` races a
+    worker that has already read the old copy into memory: the worker imports the
+    stale record, then ``set_status`` writes the terminal status and NULLs
+    ``data``, discarding the update with no error.
+
+    Refusing to touch queued rows removes that race entirely. Nothing is lost:
+    once the row reaches a terminal status its ``data`` is NULL, so the next
+    harvest that sees a genuine change refreshes it then. ``processing`` is
+    excluded too -- it is written only by the on-demand staged path.
+    """
 
     def add_or_refresh_items(self, items: list[dict]) -> dict[str, int]:
         """Insert new items, and refresh CHANGED ones in place instead of skipping.
@@ -150,11 +163,19 @@ class Batch(web.storage):
             return counts
 
         ia_ids = [item["ia_id"] for item in normalized if item.get("ia_id")]
+        if not ia_ids:
+            return counts
+
+        # Scoped to THIS batch. The unique key is (batch_id, ia_id), so the same
+        # ia_id can legitimately exist in another importer's batch -- an
+        # unscoped read collapses those non-deterministically, and turning that
+        # read into a write would let a feed refresh (and effectively steal)
+        # another batch's row.
         existing = {
             row.ia_id: row
             for row in db.query(
-                "SELECT id, ia_id, data, status FROM import_item WHERE ia_id IN $ia_ids",
-                vars={"ia_ids": ia_ids},
+                "SELECT id, ia_id, data, status FROM import_item WHERE batch_id=$batch_id AND ia_id IN $ia_ids",
+                vars={"batch_id": self.id, "ia_ids": ia_ids},
             )
         }
 
@@ -165,22 +186,31 @@ class Batch(web.storage):
                 to_insert.append(item)
                 counts["added"] += 1
                 continue
-            if row.status in self.IN_FLIGHT_STATUSES:
+            if row.status not in self.REFRESHABLE_STATUSES:
+                # Queued or in flight: leave it for the worker that may already
+                # be holding it.
                 counts["skipped_in_flight"] += 1
                 continue
             if not _record_changed(row.data, item.get("data")):
                 counts["unchanged"] += 1
                 continue
-            db.update(
+            # Status predicate closes the window between the SELECT above and
+            # this write. ol_key is cleared because the row is no longer a
+            # completed import pointing at an edition.
+            updated = db.update(
                 "import_item",
-                where="id=$id",
-                vars={"id": row.id},
+                where="id=$id AND status=$status",
+                vars={"id": row.id, "status": row.status},
                 data=item.get("data"),
                 status="pending",
                 error=None,
                 import_time=None,
+                ol_key=None,
             )
-            counts["refreshed"] += 1
+            if updated:
+                counts["refreshed"] += 1
+            else:
+                counts["skipped_in_flight"] += 1
 
         if to_insert:
             # Mirrors add_items: bulk insert, falling back per row so one

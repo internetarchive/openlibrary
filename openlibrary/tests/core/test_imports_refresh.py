@@ -138,18 +138,69 @@ class TestUnchangedRecords:
         assert rows(import_db)["betterworldbooks:1"].status == "pending"
 
 
-class TestInFlightRecords:
-    def test_a_row_being_processed_is_not_yanked(self, import_db):
-        """manage-imports claims rows by setting status='processing'; resetting
-        one mid-flight races with the importer."""
+class TestQueuedRecords:
+    """Only TERMINAL rows are refreshed.
+
+    manage-imports' `import_all` claims nothing -- `find_pending()` selects
+    status='pending' and the row stays `pending` for the whole in-flight window.
+    So overwriting a queued row's data races a worker that already read the old
+    copy: it imports the stale record, then set_status writes the terminal status
+    and NULLs data, discarding the update with no error.
+    """
+
+    @pytest.mark.parametrize("status", ["pending", "staged", "processing"])
+    def test_a_queued_row_is_not_overwritten(self, import_db, status):
         batch = Batch.new("bwb-opds")
         batch.add_or_refresh_items([item("betterworldbooks:1", 1.25)])
-        import_db.update("import_item", where="ia_id='betterworldbooks:1'", status="processing")
+        import_db.query(f"UPDATE import_item SET status='{status}'")
 
         result = batch.add_or_refresh_items([item("betterworldbooks:1", 9.99)])
 
         assert result["skipped_in_flight"] == 1
-        assert rows(import_db)["betterworldbooks:1"].status == "processing"
+        assert result["refreshed"] == 0
+        row = rows(import_db)["betterworldbooks:1"]
+        assert row.status == status
+        assert json.loads(row.data)["acquisitions"][0]["data"]["price"] == 1.25  # old copy intact
+
+    @pytest.mark.parametrize("status", ["created", "modified", "found", "failed"])
+    def test_a_terminal_row_is_refreshed(self, import_db, status):
+        batch = Batch.new("bwb-opds")
+        batch.add_or_refresh_items([item("betterworldbooks:1", 1.25)])
+        import_db.query(f"UPDATE import_item SET status='{status}'")
+
+        result = batch.add_or_refresh_items([item("betterworldbooks:1", 9.99)])
+
+        assert result["refreshed"] == 1
+        assert rows(import_db)["betterworldbooks:1"].status == "pending"
+
+    def test_a_refresh_clears_a_stale_ol_key(self, import_db):
+        """A refreshed row is no longer a completed import, so it must not keep
+        pointing at an edition."""
+        batch = Batch.new("bwb-opds")
+        batch.add_or_refresh_items([item("betterworldbooks:1", 1.25)])
+        import_db.query("UPDATE import_item SET status='created', ol_key='/books/OL7M'")
+
+        batch.add_or_refresh_items([item("betterworldbooks:1", 9.99)])
+
+        assert rows(import_db)["betterworldbooks:1"].ol_key is None
+
+
+class TestBatchScoping:
+    def test_another_batch_row_is_not_stolen(self, import_db):
+        """The unique key is (batch_id, ia_id), so the same ia_id can legitimately
+        exist in another importer's batch. An unscoped write would refresh -- and
+        effectively steal -- that row, leaving this batch with none."""
+        other = Batch.new("legacy-importer")
+        other.add_items([item("betterworldbooks:1", 1.25)])
+        import_db.query("UPDATE import_item SET status='created'")
+
+        mine = Batch.new("bwb-opds")
+        result = mine.add_or_refresh_items([item("betterworldbooks:1", 9.99)])
+
+        assert result["added"] == 1, "should insert into MY batch, not touch the other one"
+        by_batch = {r.batch_id: r for r in import_db.select("import_item")}
+        assert len(by_batch) == 2
+        assert json.loads(by_batch[other.id].data)["acquisitions"][0]["data"]["price"] == 1.25
 
 
 class TestIsolation:
@@ -164,11 +215,20 @@ class TestIsolation:
         assert json.loads(row.data)["acquisitions"][0]["data"]["price"] == 1.25  # not refreshed
 
     def test_a_mixed_batch_is_split_correctly(self, import_db):
+        """One call covering every outcome: refreshed, unchanged, queued, added."""
         batch = Batch.new("bwb-opds")
-        batch.add_or_refresh_items([item("betterworldbooks:1", 1.25), item("betterworldbooks:2", 2.0)])
-        import_db.update("import_item", where="ia_id='betterworldbooks:1'", status="created")
+        batch.add_or_refresh_items([item("betterworldbooks:1", 1.25), item("betterworldbooks:2", 2.0), item("betterworldbooks:4", 4.0)])
+        # 1 and 2 have completed; 4 is still queued.
+        import_db.query("UPDATE import_item SET status='created' WHERE ia_id IN ('betterworldbooks:1', 'betterworldbooks:2')")
 
-        result = batch.add_or_refresh_items([item("betterworldbooks:1", 9.99), item("betterworldbooks:2", 2.0), item("betterworldbooks:3", 3.0)])
+        result = batch.add_or_refresh_items(
+            [
+                item("betterworldbooks:1", 9.99),  # changed  -> refreshed
+                item("betterworldbooks:2", 2.0),  # same     -> unchanged
+                item("betterworldbooks:4", 44.0),  # queued   -> skipped
+                item("betterworldbooks:3", 3.0),  # new      -> added
+            ]
+        )
 
-        assert result == {"added": 1, "refreshed": 1, "unchanged": 1, "skipped_in_flight": 0}
-        assert len(list(import_db.select("import_item"))) == 3
+        assert result == {"added": 1, "refreshed": 1, "unchanged": 1, "skipped_in_flight": 1}
+        assert len(list(import_db.select("import_item"))) == 4
