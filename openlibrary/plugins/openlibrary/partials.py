@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -44,6 +45,8 @@ from openlibrary.plugins.worksearch.subjects import (
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
+
+logger = logging.getLogger("openlibrary.partials")
 
 
 def _solr_query_to_subject_key(query: str) -> str:
@@ -442,6 +445,8 @@ class BookPageListsPartial:
 
     # Number of list cards shown in the carousel
     LIMIT = 5
+    # What the Templetor render showed (via infogami's saferender) when a template raised
+    RENDER_FALLBACK = "Unable to render this page."
 
     @classmethod
     def get_list_card(cls, lst, user, user_key) -> dict:
@@ -484,12 +489,26 @@ class BookPageListsPartial:
             all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
             user = get_current_user()
             user_key = user and user.key
-            template = get_jinja_env().get_template("lists/carousel.html.jinja")
-            html = template.render(
-                cards=[cls.get_list_card(lst, user, user_key) for lst in lists[: cls.LIMIT]],
-                has_more=len(lists) > cls.LIMIT,
-                all_url=all_url,
-            )
+            cards: list[dict] = []
+            for lst in lists[: cls.LIMIT]:
+                try:
+                    cards.append(cls.get_list_card(lst, user, user_key))
+                except Exception:
+                    # One broken list (e.g. its owner's account was deleted, so the
+                    # owner doc is no longer a User) must not take the section down.
+                    logger.exception("BookPageLists: skipping list card %s", lst.key)
+            try:
+                template = get_jinja_env().get_template("lists/carousel.html.jinja")
+                html = template.render(
+                    cards=cards,
+                    has_more=len(lists) > cls.LIMIT,
+                    all_url=all_url,
+                )
+            except Exception:
+                # Same fallback infogami's saferender gave the Templetor version,
+                # instead of a 500 that leaves the section spinning.
+                logger.exception("BookPageLists: failed to render lists/carousel.html.jinja")
+                html = cls.RENDER_FALLBACK
             results["partials"].append(html)
 
         return results

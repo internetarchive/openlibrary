@@ -15,7 +15,18 @@ export async function initListsSection(elem) {
 
     await whenVisible(elem);
 
-    const data = await fetchPartials(ids.work, ids.edition).then(resp => resp.json());
+    let data;
+    try {
+        const resp = await fetchPartials(ids.work, ids.edition);
+        if (resp.status !== 200) {
+            throw new Error(`Failed to fetch partials. Status code: ${resp.status}`);
+        }
+        data = await resp.json();
+    } catch {
+        // Stop the spinner instead of leaving the section loading forever
+        loadingIndicator.classList.add('hidden');
+        return;
+    }
 
     // Replace loading indicator with partials
     const listSection = loadingIndicator.parentElement;
