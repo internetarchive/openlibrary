@@ -33,6 +33,27 @@ from openlibrary.core.imports import Batch
 
 logger = logging.getLogger("openlibrary.bookworm.harvest")
 
+
+class SuspectFeedPage(Exception):
+    """A page that claims to hold records but served none.
+
+    Not a transport error -- the response is HTTP 200 and well-formed -- so
+    nothing below would notice. Raised so :func:`harvest_all` reports the feed
+    as failed and, critically, the cursor is NOT advanced.
+
+    Real incident this guards against (ArchiveLabs/lenny#208): Lenny builds its
+    OPDS feed by querying Open Library's own search API, and when that is
+    unreachable *from Lenny* the feed falls back to an empty catalog and returns
+    0 publications at HTTP 200. During the 2026-09-04 OL outage a library
+    holding 96 items served ``numberOfItems: 0``. A harvester that trusts that
+    advances its cursor past the window and never revisits it -- silent,
+    permanent data loss with a green exit code.
+
+    Any feed assembled from another service can fail this way, so the check is
+    not Lenny-specific.
+    """
+
+
 SUBMIT_BATCH_SIZE = 1000
 """Flush staged records to ``import_item`` every N records rather than at the end.
 
@@ -137,11 +158,36 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
         resp = session.get(url, timeout=REQUEST_TIMEOUT, headers={"Accept": "application/opds+json"})
         resp.raise_for_status()
         page = resp.json()
+        _check_page_is_credible(page, url)
         yield page
         url = next(
             (link["href"] for link in (page.get("links") or []) if link.get("rel") == "next" and link.get("href")),
             None,
         )
+
+
+def _check_page_is_credible(page: dict, url: str) -> None:
+    """Reject a page that contradicts itself by serving no records.
+
+    Two signatures, both meaning "the feed says it has content but gave us
+    none":
+
+    * zero publications alongside a ``rel=next`` link -- an empty collection has
+      no next page;
+    * zero publications while ``metadata.numberOfItems`` is greater than zero.
+
+    A genuinely empty feed (nothing new since the cursor) has neither, so this
+    does not fire on the normal caught-up case.
+    """
+    publications = page.get("publications")
+    if publications:
+        return
+
+    has_next = any(link.get("rel") == "next" for link in (page.get("links") or []))
+    if has_next:
+        raise SuspectFeedPage(f"{url}: 0 publications but a rel=next link; treating as a failed fetch")
+    if claimed := (page.get("metadata") or {}).get("numberOfItems") or 0:
+        raise SuspectFeedPage(f"{url}: 0 publications but metadata.numberOfItems={claimed}; treating as a failed fetch")
 
 
 def _parse_publication(raw: dict, feed: opds.Feed, provider_name: str) -> tuple[dict[str, Any] | None, datetime.datetime | None]:

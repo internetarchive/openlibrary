@@ -565,3 +565,62 @@ def test_the_cursor_does_not_advance_past_a_rejected_publication(bookworm_db):
     assert cursor > _as_utc(datetime.datetime(2026, 8, 15, tzinfo=datetime.UTC)) or cursor == _as_utc(NOW), (
         "an empty run advances to now, but must not adopt the rejected record's own timestamp"
     )
+
+
+class TestSuspectEmptyFeed:
+    """A feed assembled from another service can serve an empty catalogue at
+    HTTP 200 when that service is down.
+
+    Real incident (ArchiveLabs/lenny#208): Lenny builds its OPDS feed from Open
+    Library's own search API, and during the 2026-09-04 OL outage a library
+    holding 96 items served `numberOfItems: 0`. Advancing the cursor past that
+    window loses it permanently, with a green exit code.
+    """
+
+    def test_zero_publications_with_a_next_link_is_rejected(self, bookworm_db):
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        feed = FeedRegistry.find("lenny", "https://lenny/opds")
+        session = FakeSession({"https://lenny/opds": {"publications": [], "links": [{"rel": "next", "href": "https://lenny/opds?p=2"}]}})
+
+        with pytest.raises(harvest.SuspectFeedPage):
+            harvest.harvest_feed(feed, session=session, now=NOW)
+
+        assert FeedRegistry.get_by_id(feed.id).last_updated is None, "cursor must not advance"
+
+    def test_zero_publications_while_claiming_items_is_rejected(self, bookworm_db):
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        feed = FeedRegistry.find("lenny", "https://lenny/opds")
+        session = FakeSession({"https://lenny/opds": {"publications": [], "links": [], "metadata": {"numberOfItems": 96}}})
+
+        with pytest.raises(harvest.SuspectFeedPage):
+            harvest.harvest_feed(feed, session=session, now=NOW)
+
+        assert FeedRegistry.get_by_id(feed.id).last_updated is None
+
+    def test_a_genuinely_caught_up_feed_is_fine(self, bookworm_db):
+        """The normal case: nothing new since the cursor. No next link, no
+        claimed items -- must NOT be mistaken for an outage."""
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        feed = FeedRegistry.find("lenny", "https://lenny/opds")
+        session = FakeSession({"https://lenny/opds": {"publications": [], "links": [], "metadata": {"numberOfItems": 0}}})
+
+        result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+        assert result["records"] == 0
+        assert FeedRegistry.get_by_id(feed.id).last_updated is not None, "a real empty run advances"
+
+    def test_the_failure_is_reported_per_feed_not_fatal(self, bookworm_db):
+        """One feed serving an empty catalogue must not starve the others."""
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
+        session = FakeSession(
+            {
+                "https://lenny/opds": {"publications": [], "links": [{"rel": "next", "href": "https://lenny/opds?p=2"}]},
+                "https://bwb/opds": feed_page("bwb"),
+            }
+        )
+
+        results = {r["feed"]: r for r in harvest.harvest_all(session=session)}
+
+        assert results["lenny"].get("error") is True
+        assert results["betterworldbooks"]["records"] == 2

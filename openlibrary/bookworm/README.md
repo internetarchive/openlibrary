@@ -181,6 +181,32 @@ by `harvest_all` but can still be run by name with `--provider`, which is what
 makes the validate-then-activate sequence above possible. Rows written before
 status gating existed carry no status and are treated as active.
 
+**A feed can serve an empty catalogue at HTTP 200.** Lenny builds its OPDS feed
+from Open Library's own search API, so an OL outage makes Lenny return 0
+publications successfully (ArchiveLabs/lenny#208 — during the 2026-09-04
+outage a library holding 96 items served `numberOfItems: 0`). Advancing the
+cursor past that window loses it permanently. `_check_page_is_credible` rejects
+a page serving zero publications that either carries a `rel=next` link or claims
+a non-zero `numberOfItems`; the feed is reported as failed and the cursor stays
+put. Any feed assembled from another service can fail this way.
+
+**`modified` does not mean what you would assume, at least for Lenny.**
+`metadata.modified` is Lenny's own `Item.updated_at`, bumped only when its
+`items` row is UPDATEd. It does **not** move for:
+
+- borrow or return — `Item.borrow()` inserts into `loans` without touching the
+  item, so availability changes are invisible to the cursor;
+- acquisition/borrow link changes — those are computed at feed-build time from
+  the live loan count and never persisted;
+- bibliographic metadata — that comes from Open Library live, so fixing a
+  record in OL will not cause Lenny to re-offer it.
+
+Consequences: `properties.availability.state` in a stored acquisition is a
+snapshot from fetch time and can be up to a harvest interval stale — treat it as
+advisory and re-check at click time, never display it as authoritative. And
+anything OL-sourced (a missing author, say) needs a periodic full pass or a
+re-derive on our side; the cursor will not deliver it.
+
 **Cursor direction.** `modified_since` feeds advance to the *run start* time
 (conservative: may re-fetch, never skips). Full-crawl feeds advance to the
 newest `modified` seen, or to now when nothing was newer — so an idle
