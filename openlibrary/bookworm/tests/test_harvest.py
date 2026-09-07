@@ -578,7 +578,7 @@ class TestSuspectEmptyFeed:
     window loses it permanently, with a green exit code.
     """
 
-    def test_zero_publications_with_a_next_link_is_rejected(self, bookworm_db):
+    def test_zero_publications_with_a_next_link_is_rejected(self, bookworm_db, monkeytime):
         _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
         feed = FeedRegistry.find("lenny", "https://lenny/opds")
         session = FakeSession({"https://lenny/opds": {"publications": [], "links": [{"rel": "next", "href": "https://lenny/opds?p=2"}]}})
@@ -588,7 +588,7 @@ class TestSuspectEmptyFeed:
 
         assert FeedRegistry.get_by_id(feed.id).last_updated is None, "cursor must not advance"
 
-    def test_zero_publications_while_claiming_items_is_rejected(self, bookworm_db):
+    def test_zero_publications_while_claiming_items_is_rejected(self, bookworm_db, monkeytime):
         _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
         feed = FeedRegistry.find("lenny", "https://lenny/opds")
         session = FakeSession({"https://lenny/opds": {"publications": [], "links": [], "metadata": {"numberOfItems": 96}}})
@@ -610,7 +610,7 @@ class TestSuspectEmptyFeed:
         assert result["records"] == 0
         assert FeedRegistry.get_by_id(feed.id).last_updated is not None, "a real empty run advances"
 
-    def test_the_failure_is_reported_per_feed_not_fatal(self, bookworm_db):
+    def test_the_failure_is_reported_per_feed_not_fatal(self, bookworm_db, monkeytime):
         """One feed serving an empty catalogue must not starve the others."""
         _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
         _register_active("betterworldbooks", "https://bwb/opds", id_strategy="isbn")
@@ -661,3 +661,65 @@ def test_distinct_provider_ids_are_not_flagged(caplog):
         harvest._warn_on_duplicate_ids(feed, records)
 
     assert "claim id" not in caplog.text
+
+
+class TestImplausiblePageRetry:
+    """The two ways a feed fails must recover symmetrically.
+
+    A 504 is retried with backoff by the session adapter. A feed answering
+    HTTP 200 with an empty catalogue is invisible to that, and it is the more
+    likely failure -- it is what a provider does when the service it builds its
+    feed from is briefly unreachable. Waiting a whole interval widens the gap.
+    """
+
+    def _empty_then(self, good_page):
+        pages = [
+            {"publications": [], "links": [{"rel": "next", "href": "https://lenny/opds?p=2"}]},
+            good_page,
+        ]
+
+        class Flaky:
+            def __init__(self):
+                self.calls = 0
+
+            def get(self, url, **kwargs):
+                self.calls += 1
+                payload = pages[min(self.calls - 1, len(pages) - 1)]
+
+                class R:
+                    def json(self_inner):
+                        return payload
+
+                    def raise_for_status(self_inner):
+                        pass
+
+                return R()
+
+        return Flaky()
+
+    def test_a_transient_empty_catalogue_recovers_in_tick(self, bookworm_db, monkeytime):
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        feed = FeedRegistry.find("lenny", "https://lenny/opds")
+        session = self._empty_then(feed_page("lenny"))
+
+        result = harvest.harvest_feed(feed, session=session, now=NOW)
+
+        assert result["records"] == 3, "the retry should have picked up the real page"
+        assert session.calls == 2
+        assert FeedRegistry.get_by_id(feed.id).last_updated is not None
+
+    def test_a_persistent_empty_catalogue_still_holds_the_cursor(self, bookworm_db, monkeytime):
+        _register_active("lenny", "https://lenny/opds", id_strategy="self_link")
+        feed = FeedRegistry.find("lenny", "https://lenny/opds")
+        bad = {"publications": [], "links": [{"rel": "next", "href": "https://lenny/opds?p=2"}]}
+        session = FakeSession({"https://lenny/opds": bad})
+
+        with pytest.raises(harvest.SuspectFeedPage):
+            harvest.harvest_feed(feed, session=session, now=NOW)
+
+        assert FeedRegistry.get_by_id(feed.id).last_updated is None
+
+    def test_the_retry_budget_matches_the_transport_one(self):
+        """Symmetry is the point; don't let the two drift apart."""
+        assert harvest.MAX_RETRIES >= 2
+        assert harvest.RETRY_BACKOFF > 0

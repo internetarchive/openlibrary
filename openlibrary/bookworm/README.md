@@ -344,20 +344,49 @@ Expect ~94 rows in `lenny-opds` at `pending`.
 
 ### 7. Let ImportBot drain, then read the status split
 
-This is the step that decides whether the rest of the rollout is safe.
+For Lenny this can be measured **exactly**, not statistically: its `self` link id
+IS the Open Library edition number (`/opds/51008637` -> `OL51008637M`, verified
+against the live feed). So we know which edition every record should have
+matched, and any other outcome is definitely wrong rather than merely suspicious:
 
 ```sql
-SELECT i.status, count(*) FROM import_item i
-  JOIN import_batch b ON b.id = i.batch_id
- WHERE b.name = 'lenny-opds' GROUP BY i.status;
+SELECT
+  CASE
+    WHEN i.ol_key = '/books/OL' || replace(i.ia_id, 'lenny:', '') || 'M'
+      THEN 'matched the self-link edition (correct)'
+    WHEN i.ol_key IS NOT NULL
+      THEN 'matched a DIFFERENT edition (wrong)'
+    ELSE 'no ol_key'
+  END AS outcome,
+  i.status,
+  count(*)
+FROM import_item i JOIN import_batch b ON b.id = i.batch_id
+WHERE b.name = 'lenny-opds'
+GROUP BY 1, 2 ORDER BY 3 DESC;
 ```
 
-- mostly `found` / `modified` → feed records are matching existing editions. Good.
-- mostly `created` → the catalog is creating new editions for books Open Library
-  already has. **Stop.** `build_pool` matches on title/ISBN/LCCN/OCLC/ocaid and
-  ignores `identifiers.lenny`, so provider-specific pooling is needed first (see
-  `find_wikisource_src` for the precedent). Continuing would duplicate editions
-  at Gutenberg scale.
+- `matched the self-link edition` + `found`/`modified` → correct. Proceed.
+- **`created`** → we made a NEW edition for a book Lenny already references by
+  OL id. Lenny keeps pointing at the old edition while our acquisition hangs off
+  the new one, and the two permanently disagree about which record is the book.
+  **Stop.** This is worse than a no-match.
+- **`matched a DIFFERENT edition`** → the acquisition is attached to the wrong
+  book. Stop.
+
+Also confirm the provider id persisted on the edition, because without it
+nothing on our side records which Lenny holding an acquisition came from and
+re-harvesting cannot reconcile:
+
+```bash
+curl -s https://openlibrary.org/books/OL51008637M.json | python3 -c \
+  "import json,sys; print(json.load(sys.stdin).get('identifiers', {}))"
+```
+
+
+
+`build_pool` matches on title/ISBN/LCCN/OCLC/ocaid and ignores
+`identifiers.*`, so matching here is heuristic even though the record carries an
+exact edition id. That gap is the thing this step measures.
 
 Then confirm acquisitions actually landed:
 

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import time
 from typing import Any
 
 import requests
@@ -155,15 +156,43 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
             if state is not None:
                 state["truncated"] = True
             return
-        resp = session.get(url, timeout=REQUEST_TIMEOUT, headers={"Accept": "application/opds+json"})
-        resp.raise_for_status()
-        page = resp.json()
-        _check_page_is_credible(page, url)
+        page = _fetch_page(session, url)
         yield page
         url = next(
             (link["href"] for link in (page.get("links") or []) if link.get("rel") == "next" and link.get("href")),
             None,
         )
+
+
+def _fetch_page(session: requests.Session, url: str) -> dict:
+    """Fetch one page, retrying an implausible response in-tick.
+
+    Transport failures (504, connection reset) are already retried with backoff
+    by the session adapter. A feed that answers HTTP 200 with an empty catalogue
+    is invisible to that, so without this it would wait a whole harvest interval
+    -- and it is the MORE likely failure of the two: it is what a provider does
+    when the service it builds its feed from is briefly unreachable, which is a
+    blip measured in seconds. Waiting an hour just widens the gap it left.
+
+    Same budget and backoff shape as the transport retries, so the two failure
+    modes recover symmetrically. Exhausting them still raises, so the feed is
+    reported failed and the cursor holds.
+    """
+    attempts = MAX_RETRIES + 1
+    for attempt in range(1, attempts + 1):
+        resp = session.get(url, timeout=REQUEST_TIMEOUT, headers={"Accept": "application/opds+json"})
+        resp.raise_for_status()
+        page = resp.json()
+        try:
+            _check_page_is_credible(page, url)
+            return page
+        except SuspectFeedPage:
+            if attempt == attempts:
+                raise
+            delay = RETRY_BACKOFF * (2 ** (attempt - 1))
+            logger.warning("implausible page from %s (attempt %d/%d); retrying in %.1fs", url, attempt, attempts, delay)
+            time.sleep(delay)
+    raise AssertionError("unreachable")  # pragma: no cover
 
 
 def _check_page_is_credible(page: dict, url: str) -> None:
