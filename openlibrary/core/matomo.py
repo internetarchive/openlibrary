@@ -31,9 +31,9 @@ logger = logging.getLogger("openlibrary.matomo")
 DEFAULT_MATOMO_URL = "https://matomo.archive.org"
 DEFAULT_SITE_ID = 6
 
-# A loop guard, not the operative limit: `if not batch` and `if not fresh`
-# already terminate against any well-behaved server. `budget_seconds` is the
-# bound an operator should actually tune.
+# A loop guard, not the operative limit: an empty page already ends the fetch
+# against any well-behaved server. `budget_seconds` is the bound an operator
+# should actually tune.
 MAX_PAGES = 200
 
 # Matomo's own raw-log retention is finite, so a longer request is far more

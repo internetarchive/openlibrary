@@ -1,7 +1,7 @@
 """Make the repo root importable for the tests in this directory.
 
-These tests import ``openlibrary.core.matomo`` to exercise the mock Matomo feed
-over real HTTP. That works inside the dev containers only because
+These tests import ``openlibrary.core.retention`` and ``openlibrary.core.matomo``
+to score the mock Matomo feed. That works inside the dev containers only because
 the image sets ``PYTHONPATH=/openlibrary``; GitHub CI sets no such thing.
 
 pytest's default ``prepend`` import mode inserts a test module's *basedir* onto
