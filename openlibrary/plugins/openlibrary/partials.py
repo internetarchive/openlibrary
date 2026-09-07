@@ -66,16 +66,16 @@ class ReadingGoalProgressPartial:
     @classmethod
     def generate(cls, year: int) -> dict:
         goal = get_reading_goals(year=year)
+        goals = [goal] if goal else []
         component = render_jinja_template(
             "reading_goals/reading_goal_progress.html.jinja",
-            goals=[goal],
+            goals=goals,
             # One-off helper so the template can render its own nested
             # reading_goal_form/native_dialog templates (see core/jinja.py
             # guidance: pass one-off helpers as render kwargs instead of
             # adding a new env global for a single template).
             render_jinja_template=render_jinja_template,
         )
-
         return {"partials": component}
 
 
