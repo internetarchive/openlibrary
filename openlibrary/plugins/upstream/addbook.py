@@ -249,7 +249,10 @@ class addbook(delegate.page):
 
         if not accounts.get_current_user():
             recap = get_recaptcha()
-            if recap and not recap.validate():
+            if recap and not recap.validate(
+                response=i.get("g-recaptcha-response"),
+                remoteip=web.ctx.ip,
+            ):
                 return render_template(
                     "message.html",
                     "Recaptcha solution was incorrect",
@@ -813,12 +816,16 @@ class book_edit(delegate.page):
 
     def POST(self, key):
         i = web.input(v=None, work_key=None, _method="GET")
+        form_data = web.input()
 
-        if spamcheck.is_spam(allow_privileged_edits=True):
+        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
-        if recap and not recap.validate():
+        if recap and not recap.validate(
+            response=form_data.get("g-recaptcha-response"),
+            remoteip=web.ctx.ip,
+        ):
             return render_template(
                 "message.html",
                 "Recaptcha solution was incorrect",
@@ -876,13 +883,17 @@ class work_edit(delegate.page):
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
+        form_data = web.input()
 
-        if spamcheck.is_spam(allow_privileged_edits=True):
+        if spamcheck.is_spam(form_data, allow_privileged_edits=True):
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
 
-        if recap and not recap.validate():
+        if recap and not recap.validate(
+            response=form_data.get("g-recaptcha-response"),
+            remoteip=web.ctx.ip,
+        ):
             return render_template(
                 "message.html",
                 "Recaptcha solution was incorrect",
