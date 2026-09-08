@@ -8194,7 +8194,7 @@ msgstr ""
 msgid "Bookshop.org"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/partials.py
+#: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "%(title)s - search"
 msgstr ""

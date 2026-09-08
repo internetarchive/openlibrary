@@ -1,7 +1,4 @@
 {# Search sidebar facets ("Zoom In").
-   Rendered by render_search_facets() in openlibrary/plugins/openlibrary/partials.py,
-   which filters the facet counts, builds the add-facet URLs (`add_facet_url`) and
-   link-tracking labels (`add_track`), and pre-encodes the JSON data attributes.
    `facets` is a list of (header, label, counts) with counts = [(key, display, count), ...]. #}
 {% macro facet(header, label, counts) %}
     <div class="facet {{ header }}">
