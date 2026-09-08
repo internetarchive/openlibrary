@@ -17,7 +17,8 @@
             <h4 class="facetHead">
                 {{ f.label }}
                 {% if f.merge_url %}
-                    <span class="merge"><a href="{{ f.merge_url }}" title="{{ _('Merge duplicate authors from this search') }}">{{ _("Merge duplicates") }}</a></span>
+                    <span class="merge"><a href="{{ f.merge_url }}"
+   title="{{ _('Merge duplicate authors from this search') }}">{{ _("Merge duplicates") }}</a></span>
                 {% endif %}
             </h4>
             {% if async_load %}

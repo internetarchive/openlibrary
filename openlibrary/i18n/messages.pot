@@ -5910,23 +5910,6 @@ msgid "work"
 msgstr ""
 
 #: search/work_search_facets.html.jinja
-msgid "Merge duplicate authors from this search"
-msgstr ""
-
-#: search/work_search_facets.html.jinja type/work/editions.html
-msgid "Merge duplicates"
-msgstr ""
-
-#: search/work_search_facets.html.jinja
-msgid "Less"
-msgstr ""
-
-#: openlibrary/plugins/worksearch/facets.py
-#, python-format
-msgid "Filter results for %(facet)s"
-msgstr ""
-
-#: search/work_search_facets.html.jinja
 msgid "Zoom In"
 msgstr ""
 
@@ -5936,6 +5919,18 @@ msgstr ""
 
 #: search/work_search_facets.html.jinja
 msgid "Search filters are temporarily unavailable. Please try again later."
+msgstr ""
+
+#: search/work_search_facets.html.jinja
+msgid "Merge duplicate authors from this search"
+msgstr ""
+
+#: search/work_search_facets.html.jinja type/work/editions.html
+msgid "Merge duplicates"
+msgstr ""
+
+#: search/work_search_facets.html.jinja
+msgid "Less"
 msgstr ""
 
 #: site/alert.html
@@ -8374,6 +8369,11 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/facets.py
+#, python-format
+msgid "Filter results for %(facet)s"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/facets.py
