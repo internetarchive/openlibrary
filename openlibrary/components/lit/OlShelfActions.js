@@ -97,6 +97,9 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @prop {Number} eventId - Id of that check-in, so changing the date edits it
  *     rather than recording a second finish
  * @prop {String} userKey  - "/people/<username>", needed to create lists
+ * @prop {Boolean} pending - The reader's state for this book is not known yet.
+ *     The shelf and rating rows dim and ignore clicks until it is: posting the
+ *     shelf a book is already on removes it, so a guess could undo a save
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
  *
@@ -127,6 +130,7 @@ export class OlShelfActions extends LitElement {
         labels: { type: Object },
         placement: { type: String },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        pending: { type: Boolean, reflect: true },
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
@@ -142,6 +146,7 @@ export class OlShelfActions extends LitElement {
         _hoverRating: { state: true },
         _busy: { state: true },
         _pickingDate: { state: true },
+        _amending: { state: true },
         _dateBusy: { state: true },
         _date: { state: true },
     };
@@ -726,6 +731,7 @@ export class OlShelfActions extends LitElement {
         this._createBusy = false;
         this._hoverRating = 0;
         this._busy = false;
+        this.pending = false;
         this._pickingDate = false;
         this._dateBusy = false;
         this._date = { year: '', month: '', day: '' };
@@ -777,6 +783,7 @@ export class OlShelfActions extends LitElement {
             <ol-popover
                 placement=${ifDefined(this.placement)}
                 offset="6"
+                block-outside-clicks
                 aria-label=${this.t('actionsFor', { title })}
                 @ol-popover-open=${this._onOpen}
                 @ol-popover-close=${this._onCloseRequest}
@@ -816,7 +823,7 @@ export class OlShelfActions extends LitElement {
                  several kinds of control, and menuitem roles promise arrow-key
                  navigation the rows don't have. aria-pressed marks the shelf
                  the book is on, which is what the checkmark shows. -->
-            <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._busy}>
+            <div class="group shelves" role="group" aria-label=${this.t('readingLog')} aria-busy=${this._held}>
                 ${SHELF_ROWS.map(row => html`
                     <button
                         type="button"
@@ -831,7 +838,7 @@ export class OlShelfActions extends LitElement {
                 `)}
             </div>
             ${this.hideRating ? nothing : html`
-                <div class="group rating" aria-busy=${this._busy}>
+                <div class="group rating" aria-busy=${this._held}>
                     ${this._renderStars()}
                 </div>
             `}
@@ -1028,13 +1035,15 @@ export class OlShelfActions extends LitElement {
             <!-- Taking back the answer rather than giving another one, so it
                  stands outside the group the question names. Also the only way
                  off Already Read: that shelf's row leads here instead of
-                 toggling off, and coming off it deletes the check-in too. -->
-            <div class="group not-read">
+                 toggling off, and coming off it deletes the check-in too.
+                 Only when amending: someone who just chose the shelf is here
+                 to date the read, not to undo the tap they made a moment ago. -->
+            ${this._amending ? html`<div class="group not-read">
                 <button type="button" class="row" @click=${this._removeFromShelf}>
                     <ol-icon class="obd-icon" name="ban"></ol-icon>
                     <span class="label">${this.t('didNotRead')}</span>
                 </button>
-            </div>
+            </div>` : nothing}
         `;
     }
 
@@ -1274,8 +1283,13 @@ export class OlShelfActions extends LitElement {
      * `announce` is spoken with the optimistic change, as the checkmark is
      * shown with it; a rollback is announced by the error toast.
      */
+    /** No shelf or rating change while one is in flight, or before the state is known. */
+    get _held() {
+        return this._busy || this.pending;
+    }
+
     async _mutate(optimistic, action, announce) {
-        if (this._busy) return;
+        if (this._held) return;
         const snapshot = Object.fromEntries(Object.keys(optimistic).map(key => [key, this[key]]));
         Object.assign(this, optimistic);
         if (announce) this._say(announce);
@@ -1299,7 +1313,7 @@ export class OlShelfActions extends LitElement {
         // shelf is the pane's "I didn't read this" link's job, which is why
         // that link is offered there and nowhere else.
         if (shelfId === SHELF.ALREADY_READ && previous === SHELF.ALREADY_READ) {
-            return this._openCheckIn();
+            return this._openCheckIn({ amending: true });
         }
         return this._postShelf(shelfId);
     }
@@ -1310,7 +1324,7 @@ export class OlShelfActions extends LitElement {
      * pane slides away first, as every other answer here does.
      */
     _removeFromShelf() {
-        if (!this.shelf || this._busy) return;
+        if (!this.shelf || this._held) return;
         this._backToMain();
         return this._postShelf(this.shelf);
     }
@@ -1362,8 +1376,10 @@ export class OlShelfActions extends LitElement {
 
     // ── Check-in ─────────────────────────────────────────────
 
-    async _openCheckIn() {
+    /** `amending`: the book was already on the shelf, so the pane offers a way off it too. */
+    async _openCheckIn({ amending = false } = {}) {
         this._pane = 'checkIn';
+        this._amending = amending;
         // A date the shortcuts cannot express would otherwise sit unseen
         // behind a collapsed row, so the pane opens on it. Focus still lands
         // on the first row: the reader is being shown their answer, not asked

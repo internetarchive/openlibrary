@@ -15,6 +15,11 @@
   margin: 0 auto;
 }
 
+/* Air between the shelf button above and the stars on the book page. */
+.lists-widget-container .star-rating-form {
+  margin-top: var(--spacing-stack-md);
+}
+
 .review {
   display: flex;
   scroll-margin-top: 100px;

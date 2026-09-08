@@ -10,7 +10,8 @@ and attribution as a new section here.
 Glyphs under `static/icons/src/lucide/` are derived from **Lucide**
 (https://lucide.dev), the community fork of Feather Icons. They are normalized
 to Open Library's canonical form (24×24 viewBox, `currentColor`, 2px stroke) but
-the path geometry is Lucide's.
+the path geometry is Lucide's. The `*-filled` glyphs are Open Library's solid
+re-drawings of the matching Lucide outlines.
 
 Lucide is distributed under the ISC License. Feather (its ancestor) is MIT.
 

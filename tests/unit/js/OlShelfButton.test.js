@@ -70,6 +70,18 @@ describe('ol-shelf-button shapes', () => {
         expect(q(el, '.main')).toBeNull();
     });
 
+    test('outline is the icon shape in a bordered square: same trigger, same glyph', async() => {
+        const el = await mount({ variant: 'outline', userKey: '/people/tester' });
+        expect(el.getAttribute('variant')).toBe('outline');
+        expect(q(el, '.save').getAttribute('aria-label')).toBe('Save The Two Towers to your reading log');
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
+        expect(q(el, '.main')).toBeNull();
+        el.shelf = SHELF.ALREADY_READ;
+        await el.updateComplete;
+        expect(q(el, '.save').classList.contains('save--on')).toBe(true);
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
+    });
+
     test('on a shelf, both shapes show it', async() => {
         const split = await mount({ shelf: SHELF.ALREADY_READ, userKey: '/people/tester' });
         expect(q(split, '.main').textContent.trim()).toBe('Already Read');
@@ -83,21 +95,41 @@ describe('ol-shelf-button shapes', () => {
     test('the icon shape draws the shelf\'s glyph once shelved', async() => {
         const off = await mount({ variant: 'icon' });
         expect(q(off, 'ol-icon').getAttribute('name')).toBe('bookmark');
-        expect(q(off, 'ol-icon').hasAttribute('filled')).toBe(false);
 
-        // Only the bookmark fills; the stroked glyphs would turn into blobs.
+        // Shelved: the shelf's own glyph, as a solid shape.
         const wanted = await mount({ variant: 'icon', shelf: SHELF.WANT_TO_READ });
-        expect(q(wanted, 'ol-icon').getAttribute('name')).toBe('bookmark');
-        expect(q(wanted, 'ol-icon').hasAttribute('filled')).toBe(true);
-
+        expect(q(wanted, 'ol-icon').getAttribute('name')).toBe('bookmark-filled');
         const reading = await mount({ variant: 'icon', shelf: SHELF.CURRENTLY_READING });
-        expect(q(reading, 'ol-icon').getAttribute('name')).toBe('book-open');
-        expect(q(reading, 'ol-icon').hasAttribute('filled')).toBe(false);
-
+        expect(q(reading, 'ol-icon').getAttribute('name')).toBe('book-open-filled');
         const read = await mount({ variant: 'icon', shelf: SHELF.ALREADY_READ });
-        expect(q(read, 'ol-icon').getAttribute('name')).toBe('circle-check');
+        expect(q(read, 'ol-icon').getAttribute('name')).toBe('circle-check-filled');
         const stopped = await mount({ variant: 'icon', shelf: SHELF.STOPPED_READING });
-        expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause');
+        expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause-filled');
+    });
+
+    test('a glyph change keeps the old one as an outgoing layer until its animation ends', async() => {
+        const el = await mount({ variant: 'icon' });
+        // First paint: nothing to hand over from.
+        expect(el.shadowRoot.querySelectorAll('ol-icon').length).toBe(1);
+
+        el.shelf = SHELF.ALREADY_READ;
+        await el.updateComplete;
+        const glyphs = el.shadowRoot.querySelectorAll('ol-icon');
+        expect([...glyphs].map((g) => g.getAttribute('name'))).toEqual(['circle-check-filled', 'bookmark']);
+        expect(glyphs[0].classList.contains('glyph--in')).toBe(true);
+        expect(glyphs[1].classList.contains('glyph--out')).toBe(true);
+
+        glyphs[1].dispatchEvent(new Event('animationend'));
+        await el.updateComplete;
+        expect(el.shadowRoot.querySelectorAll('ol-icon').length).toBe(1);
+        expect(q(el, 'ol-icon').classList.contains('glyph--in')).toBe(false);
+
+        // A change mid-swap hands over from the glyph that was showing, not the one already leaving.
+        el.shelf = SHELF.STOPPED_READING;
+        await el.updateComplete;
+        el.shelf = null;
+        await el.updateComplete;
+        expect([...el.shadowRoot.querySelectorAll('ol-icon')].map((g) => g.getAttribute('name'))).toEqual(['bookmark', 'circle-pause-filled']);
     });
 
     test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
@@ -286,6 +318,40 @@ describe('ol-shelf-button pass-through to the popover', () => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester' });
         expect(q(el, 'ol-shelf-actions').hideRating).toBe(false);
+    });
+
+    test('hands pending to ol-shelf-actions, and reflects it', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', pending: true });
+        expect(q(el, 'ol-shelf-actions').pending).toBe(true);
+        expect(el.hasAttribute('pending')).toBe(true);
+    });
+});
+
+describe('ol-shelf-button pending', () => {
+    // The main half toggles: with the shelf unknown it would be guessing, and
+    // a wrong guess posts the shelf the book is on, which removes it.
+    test('the main half does nothing until the state is known', async() => {
+        stubFetch();
+        const el = await mount({ userKey: '/people/tester', pending: true });
+        const seen = [];
+        el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(seen).toEqual([]);
+        expect(fetchCalls).toHaveLength(0);
+
+        el.pending = false;
+        await el.updateComplete;
+        q(el, '.main').click();
+        await new Promise(r => setTimeout(r, 0));
+        expect(seen).toHaveLength(1);
+    });
+
+    test('looks unshelved rather than guessing', async() => {
+        const el = await mount({ variant: 'outline', userKey: '/people/tester', pending: true });
+        expect(q(el, '.save').classList.contains('save--on')).toBe(false);
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
     });
 });
 

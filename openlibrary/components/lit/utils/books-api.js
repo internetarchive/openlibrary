@@ -29,6 +29,14 @@ export const SHELF_ICON = Object.freeze({
     [SHELF.STOPPED_READING]: 'circle-pause',
 });
 
+/** Solid counterparts of SHELF_ICON, for a glyph that floats over cover art. */
+export const SHELF_ICON_FILLED = Object.freeze({
+    [SHELF.WANT_TO_READ]: 'bookmark-filled',
+    [SHELF.CURRENTLY_READING]: 'book-open-filled',
+    [SHELF.ALREADY_READ]: 'circle-check-filled',
+    [SHELF.STOPPED_READING]: 'circle-pause-filled',
+});
+
 /**
  * Matomo action names, kept identical to the legacy dropper's
  * `data-ol-link-track`. Indexed by shelf id; `null` (no shelf) is the removal.

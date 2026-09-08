@@ -67,6 +67,15 @@ function _removeFromOverlayStack(el) {
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
+ * @prop {Boolean} blockOutsideClicks - Whether the click that dismisses the
+ *     popover is swallowed rather than passed to whatever is underneath. By
+ *     default light dismiss lets it through (native `popover=auto` does the
+ *     same), which is a hazard when the page below is made of links: the click
+ *     that closes a menu also follows the link under the pointer. Set this
+ *     when the popover opens over dense, clickable content. Implemented as a
+ *     transparent full-viewport backdrop, so hover and wheel scrolling under
+ *     the panel are blocked while it is open too, like a native menu. The
+ *     popover stays non-modal for assistive tech. Default: false
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
  *
@@ -92,6 +101,7 @@ export class OlPopover extends LitElement {
         placement: { type: String },
         offset: { type: Number },
         autoClose: { type: Boolean, attribute: 'auto-close' },
+        blockOutsideClicks: { type: Boolean, attribute: 'block-outside-clicks' },
         _position: { state: true },
         _transformOrigin: { state: true },
         _animState: { state: true },
@@ -206,6 +216,18 @@ export class OlPopover extends LitElement {
             transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
+        /* ── Desktop click guard ── */
+
+        /* The same element with the scrim removed: invisible, but still a
+           hit-test target so the dismissing click ends here instead of on the
+           link underneath. Nothing to animate. */
+        .backdrop.guard {
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            transition: none;
+        }
+
         /* ── Mobile tray panel ── */
 
         .panel.tray {
@@ -302,6 +324,7 @@ export class OlPopover extends LitElement {
         this.placement = 'bottom-start';
         this.offset = 4;
         this.autoClose = true;
+        this.blockOutsideClicks = false;
         this._position = { top: 0, left: 0 };
         this._transformOrigin = 'top left';
         this._animState = 'closed';
@@ -333,9 +356,9 @@ export class OlPopover extends LitElement {
         return html`
             <slot name="trigger" @click="${this._onTriggerClick}"></slot>
             ${showPanel ? html`
-                ${this._mobile ? html`
+                ${this._mobile || this.blockOutsideClicks ? html`
                     <div
-                        class="backdrop"
+                        class="backdrop ${this._mobile ? '' : 'guard'}"
                         popover="${ifDefined(topLayerAttr())}"
                         data-state="${this._animState}"
                         @click="${this._onBackdropClick}"

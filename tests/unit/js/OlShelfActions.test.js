@@ -645,6 +645,37 @@ describe('ol-shelf-actions hide-rating', () => {
     });
 });
 
+describe('ol-shelf-actions pending', () => {
+    // Posting the shelf a book is already on removes it, so a click before the
+    // state is known could undo a save. Held, not disabled: disabling the
+    // focused row would drop focus to the document.
+    test('marks the shelf and rating groups busy and ignores their clicks', async() => {
+        stubFetch();
+        const el = await mount({ pending: true });
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('true');
+        expect(q(el, '.group.rating').getAttribute('aria-busy')).toBe('true');
+        qa(el, '.group.shelves .row')[0].click();
+        qa(el, '.star')[3].click();
+        await tick(el);
+        expect(el.shelf).toBeNull();
+        expect(el.rating).toBeNull();
+        expect(calls.filter(c => c.url.startsWith('/works/'))).toHaveLength(0);
+    });
+
+    test('lets go once the state arrives', async() => {
+        stubFetch();
+        const el = await mount({ pending: true });
+        el.pending = false;
+        el.shelf = SHELF.CURRENTLY_READING;
+        await el.updateComplete;
+        expect(q(el, '.group.shelves').getAttribute('aria-busy')).toBe('false');
+        expect(qa(el, '.group.shelves .row')[1].getAttribute('aria-pressed')).toBe('true');
+        qa(el, '.group.shelves .row')[0].click();
+        await tick(el);
+        expect(el.shelf).toBe(SHELF.WANT_TO_READ);
+    });
+});
+
 describe('ol-shelf-actions rejected writes', () => {
     // bookshelves.json answers a rejected write with 200 and an `error` key,
     // so a status-only check would let the optimistic update stand.
@@ -1006,6 +1037,28 @@ describe('ol-shelf-actions check-in pane', () => {
             stubFetch();
             expect(notReadLink(await openPane())).not.toBeNull();
             expect(notReadLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
+        });
+
+        // Someone who just tapped Already Read is here to date the read, not
+        // to undo the tap; the main button is a step away if they meant to.
+        test('is not offered right after shelving the book', async() => {
+            stubFetch();
+            const el = await mount();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            expect(el._pane).toBe('checkIn');
+            expect(notReadLink(el)).toBeNull();
+        });
+
+        test('appears once the book is on the shelf and its row is pressed again', async() => {
+            stubFetch();
+            const el = await mount();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            await el._backToMain();
+            qa(el, '.group.shelves .row')[2].click();
+            await tick(el);
+            expect(notReadLink(el)).not.toBeNull();
         });
 
         test('takes the book off the shelf and slides back', async() => {

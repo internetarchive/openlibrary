@@ -123,4 +123,23 @@ describe('Carousel', () => {
         expect(carousel.loadMore.locked).toBe(false);
         expect(carousel.loadMore.allDone).toBe(false);
     });
+
+    test('makes shelf buttons in hidden slides inert, and frees them again when shown', async() => {
+        carousel = new Carousel($('.carousel'));
+        carousel.init();
+        const container = document.querySelector('.carousel');
+        container.innerHTML = `
+            <div class="slick-slide" aria-hidden="false"><ol-shelf-button variant="icon"></ol-shelf-button></div>
+            <div class="slick-slide" aria-hidden="true"><ol-shelf-button variant="icon"></ol-shelf-button></div>
+        `;
+        await flushPromises();
+        const [shown, hidden] = container.querySelectorAll('ol-shelf-button');
+        expect(shown.hasAttribute('inert')).toBe(false);
+        expect(hidden.hasAttribute('inert')).toBe(true);
+
+        // The slide scrolls into view: slick flips aria-hidden.
+        hidden.parentElement.setAttribute('aria-hidden', 'false');
+        await flushPromises();
+        expect(hidden.hasAttribute('inert')).toBe(false);
+    });
 });

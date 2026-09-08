@@ -1,8 +1,9 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -21,15 +22,17 @@ export const DEFAULT_LABELS = {
 };
 
 /**
- * The control that puts a book on a reading-log shelf, in the two shapes the
- * site needs: a bordered split button for a row (`split`), and a round badge
- * that floats over cover art (`icon`): an outlined bookmark until the book is
- * on a shelf, then that shelf's own glyph.
+ * The control that puts a book on a reading-log shelf, in the three shapes the
+ * site needs: a bordered split button for a row (`split`), a round badge that
+ * floats over cover art (`icon`), and that badge's glyph in a bordered square
+ * (`outline`) for a row with room for a button but not a label. The badge and
+ * the square show an outlined bookmark until the book is on a shelf, then that
+ * shelf's own glyph, solid.
  *
- * Both open the same `<ol-shelf-actions>` popover; the split variant adds a main
- * half that toggles between Want to Read and off without opening anything.
- * Signed out, either shape sends the visitor to log in with the intent
- * remembered.
+ * All three open the same `<ol-shelf-actions>` popover; the split variant adds
+ * a main half that toggles between Want to Read and off without opening
+ * anything. Signed out, every shape sends the visitor to log in with the
+ * intent remembered.
  *
  * **Stateless by design.** It never writes to `shelf` or `rating` itself — it
  * emits `ol-book-state-change` and the surface that owns the book applies it,
@@ -39,7 +42,7 @@ export const DEFAULT_LABELS = {
  *
  * @element ol-shelf-button
  *
- * @prop {String} variant - "split" (default) or "icon"
+ * @prop {String} variant - "split" (default), "icon" or "outline"
  * @prop {String} workKey - "/works/OL…W", the book this acts on
  * @prop {String} editionKey - "OL…M", recorded with the shelf change when known
  * @prop {String} bookTitle - Used in the accessible labels. Named `book-title`
@@ -55,6 +58,10 @@ export const DEFAULT_LABELS = {
  * @prop {Number} eventId - Id of that check-in, so editing the date amends it
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
+ * @prop {Boolean} pending - The reader's state for this book is not known yet.
+ *     The button looks unshelved, and the popover holds its rows until the
+ *     surface fills the state in: posting a shelf the book is already on
+ *     removes it, so acting on a guess could undo a save
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
  * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
@@ -89,7 +96,10 @@ export class OlShelfButton extends LitElement {
         placement: { type: String },
         labels: { type: Object },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        pending: { type: Boolean, reflect: true },
         _announce: { state: true },
+        _icon: { state: true },
+        _outgoing: { state: true },
     };
 
     static styles = css`
@@ -241,11 +251,71 @@ export class OlShelfButton extends LitElement {
                     );
         }
 
-        .save ol-icon {
+        /* The circle stays white; only the glyph turns blue once shelved. */
+        .glyph {
             position: relative;
             width: 14px;
             height: 14px;
+            color: var(--primary-blue);
             --ol-icon-stroke-width: 2.5;
+        }
+
+        .glyph[name="bookmark"] {
+            color: var(--color-text);
+        }
+
+        /* A glyph change: the old one shrinks and blurs away over the new one
+           growing in sharp, the same handover as ol-button's label and spinner.
+           Both run for one duration so neither is cut short when the outgoing
+           layer is dropped. */
+        .glyph--in {
+            animation: glyph-in 0.24s ease both;
+        }
+
+        .glyph--out {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            pointer-events: none;
+            animation: glyph-out 0.24s ease both;
+        }
+
+        @keyframes glyph-in {
+            from {
+                opacity: 0;
+                transform: scale(0.4);
+                filter: blur(3px);
+            }
+        }
+
+        @keyframes glyph-out {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+                filter: blur(2px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .glyph--in {
+                animation-name: glyph-fade-in;
+            }
+
+            .glyph--out {
+                animation-name: glyph-fade-out;
+            }
+
+            @keyframes glyph-fade-in {
+                from {
+                    opacity: 0;
+                }
+            }
+
+            @keyframes glyph-fade-out {
+                to {
+                    opacity: 0;
+                }
+            }
         }
 
         .save:hover {
@@ -265,9 +335,60 @@ export class OlShelfButton extends LitElement {
             outline-offset: 2px;
         }
 
-        /* Saved: the circle stays white; only the glyph turns blue. */
-        .save--on {
-            color: var(--primary-blue);
+        /* ── Outline variant ──────────────────────────────────────── */
+
+        /* The same glyph in the split button's bordered, raised shape at icon
+           width. Nothing floats over artwork here, so the circle and its drop
+           shadow go; the hover is a tint, not a grow. */
+        :host([variant="outline"]) .save {
+            box-sizing: border-box;
+            width: var(--control-height-medium);
+            height: var(--control-height-medium);
+            border: 1px solid var(--color-border-subtle);
+            border-radius: var(--border-radius-button);
+            background: var(--white);
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0
+                    color-mix(
+                        in srgb,
+                        var(--white) var(--control-highlight-strength),
+                        var(--control-surface)
+                    );
+        }
+
+        :host([variant="outline"]) .save::before {
+            content: none;
+        }
+
+        :host([variant="outline"]) .glyph {
+            width: 16px;
+            height: 16px;
+            --ol-icon-stroke-width: 2;
+        }
+
+        :host([variant="outline"]) .save--on {
+            border-color: var(--color-control-selected-border);
+            background: var(--color-control-selected-bg);
+            --control-surface: var(--color-control-selected-surface);
+        }
+
+        :host([variant="outline"]) .save:hover {
+            transform: none;
+            background: var(--color-hover-overlay);
+        }
+
+        :host([variant="outline"]) .save--on:hover {
+            background: var(--color-control-selected-bg-hover);
+        }
+
+        :host([variant="outline"]) .save:active {
+            transform: scale(0.97);
+        }
+
+        :host([variant="outline"]) .save:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: -2px;
         }
 
         /* Live region: read out, never laid out. */
@@ -294,7 +415,29 @@ export class OlShelfButton extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this.pending = false;
         this._announce = '';
+        this._icon = 'bookmark';
+        this._outgoing = '';
+    }
+
+    /**
+     * Pick the badge's glyph: an outlined bookmark until shelved, then the
+     * shelf's solid one. After first paint a change keeps the old glyph around
+     * as an outgoing layer, so the swap can animate; the first render just
+     * shows it. Any state change re-runs this, so a rollback animates too.
+     */
+    willUpdate() {
+        if (!this._glyphShaped) return;
+        const icon = this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
+        if (icon === this._icon) return;
+        if (this.hasUpdated) this._outgoing = this._icon;
+        this._icon = icon;
+    }
+
+    /** Drop the outgoing layer once it has left, or if its animation is cut off. */
+    _onGlyphOut() {
+        this._outgoing = '';
     }
 
     t(key, vars) {
@@ -312,8 +455,13 @@ export class OlShelfButton extends LitElement {
         return this.shelf !== null && this.shelf !== undefined;
     }
 
+    /** The badge and the square share one trigger: a glyph, no label. */
+    get _glyphShaped() {
+        return this.variant === 'icon' || this.variant === 'outline';
+    }
+
     render() {
-        return this.variant === 'icon' ? this._renderIcon() : this._renderSplit();
+        return this._glyphShaped ? this._renderIcon() : this._renderSplit();
     }
 
     /**
@@ -333,6 +481,7 @@ export class OlShelfButton extends LitElement {
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 ?hide-rating=${this.hideRating}
+                ?pending=${this.pending}
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
             >${trigger}</ol-shelf-actions>
@@ -341,10 +490,12 @@ export class OlShelfButton extends LitElement {
 
     _renderIcon() {
         const on = this._on;
-        // The shelf's glyph once shelved. Only the bookmark fills well: the
-        // others are stroked shapes that would turn into blobs.
-        const icon = on ? SHELF_ICON[this.shelf] : 'bookmark';
-        const filled = on && this.shelf === SHELF.WANT_TO_READ;
+        // Keyed so a change makes a fresh element and its enter animation
+        // runs; the outgoing copy sits over it until its own animation ends.
+        const outgoing = this._outgoing;
+        const outgoingGlyph = outgoing
+            ? keyed(outgoing, html`<ol-icon class="glyph glyph--out" name=${outgoing} @animationend=${this._onGlyphOut} @animationcancel=${this._onGlyphOut}></ol-icon>`)
+            : nothing;
         return this._withActions(html`
             <button
                 type="button"
@@ -352,7 +503,7 @@ export class OlShelfButton extends LitElement {
                 class="save ${classMap({ 'save--on': on })}"
                 aria-label=${on ? this.t('saved', { title: this.bookTitle }) : this.t('save', { title: this.bookTitle })}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
-            ><ol-icon name=${icon} ?filled=${filled}></ol-icon></button>
+            >${keyed(this._icon, html`<ol-icon class="glyph ${classMap({ 'glyph--in': Boolean(outgoing) })}" name=${this._icon}></ol-icon>`)}${outgoingGlyph}</button>
         `);
     }
 
@@ -413,8 +564,9 @@ export class OlShelfButton extends LitElement {
         if (!this.userKey) return this._onLoggedOut(e);
         // The shelf we emit only comes back down as a property a tick later, so
         // a second click before the request lands would toggle twice on the
-        // server while the button shows one change.
-        if (this._pending) return;
+        // server while the button shows one change. Unknown state is the same
+        // risk: the toggle would be a guess.
+        if (this._pending || this.pending) return;
         const previous = this.shelf ?? null;
         // On a shelf → clicking removes; otherwise → Want to Read.
         const target = previous ?? SHELF.WANT_TO_READ;
