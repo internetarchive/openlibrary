@@ -28,3 +28,4 @@ export { OpenLibraryOTP } from './OpenLibraryOTP.js';
 export { OlCarousel } from './OlCarousel.js';
 export { OlScorecard } from './OlScorecard.js';
 export { OlDrawer } from './OlDrawer.js';
+export { OlNearbyBooks } from './OlNearbyBooks.js';

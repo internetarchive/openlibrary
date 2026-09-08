@@ -496,6 +496,18 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
   $:render_template("books/RelatedWorksCarousel", work)
   $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
 
+  $code:
+    target_ddc = book_page_context.target_ddc if book_page_context else None
+    ed_lang = book_page_context.ed_lang if book_page_context else None
+
+  $if target_ddc and work and work.key:
+    <ol-nearby-books
+      target-ddc="$target_ddc"
+      work-key="$work.key"
+      $if ed_lang:
+        language="$ed_lang"
+    ></ol-nearby-books>
+
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
