@@ -106,6 +106,23 @@ describe('ol-shelf-button popover', () => {
         expect(actions.querySelector('[slot="trigger"]')).not.toBeNull();
     });
 
+    test('carries `open` on the host while the popover is open', async() => {
+        const el = await mount({ userKey: '/people/tester' });
+        const actions = q(el, 'ol-shelf-actions');
+        expect(el.hasAttribute('open')).toBe(false);
+        actions.shadowRoot.querySelector('ol-popover').open = true;
+        await new Promise(r => setTimeout(r, 0));
+        await el.updateComplete;
+        expect(el.hasAttribute('open')).toBe(true);
+        // A close the panel cancels (Escape stepping back a pane) is not a close.
+        const kept = new CustomEvent('ol-popover-close', { bubbles: true, composed: true, cancelable: true });
+        kept.preventDefault();
+        actions.dispatchEvent(kept);
+        expect(el.hasAttribute('open')).toBe(true);
+        actions.dispatchEvent(new CustomEvent('ol-popover-close', { bubbles: true, composed: true, cancelable: true }));
+        expect(el.hasAttribute('open')).toBe(false);
+    });
+
     test('signed out, no popover is built at all', async() => {
         const el = await mount();
         expect(q(el, 'ol-shelf-actions')).toBeNull();

@@ -64,6 +64,11 @@ export const DEFAULT_LABELS = {
  *     rolled back. detail: { key, shelf, rating }
  * @fires ol-book-check-in - Re-fired from the popover when a finish date is
  *     saved. detail: { key, date, eventId }
+ *
+ * @attr {Boolean} open - Present while the actions popover is open. Set by the
+ *     component, never by the page: focus inside a top-layer popover does not
+ *     register as `:focus-within` on the host, so a hover-revealed trigger
+ *     needs this to stay visible under its own menu
  */
 export class OlShelfButton extends LitElement {
     /** A shelf change is in flight. Deliberately not reactive: it gates the
@@ -327,6 +332,8 @@ export class OlShelfButton extends LitElement {
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 ?hide-rating=${this.hideRating}
+                @ol-popover-open=${this._onPopoverOpen}
+                @ol-popover-close=${this._onPopoverClose}
             >${trigger}</ol-shelf-actions>
         `;
     }
@@ -378,6 +385,15 @@ export class OlShelfButton extends LitElement {
             composed: true,
             detail: { key: this.workKey, shelf, rating },
         }));
+    }
+
+    _onPopoverOpen() {
+        this.toggleAttribute('open', true);
+    }
+
+    /** A close the panel cancels (Escape stepping back a pane) is not a close. */
+    _onPopoverClose(e) {
+        if (!e.defaultPrevented) this.toggleAttribute('open', false);
     }
 
     _onLoggedOut(e) {
