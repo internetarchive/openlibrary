@@ -371,7 +371,7 @@ def _fetch_editions(work, requested, provider, selected_id, mode):
     return editions, editions_limit
 
 
-def _select_edition(editions, requested, provider, selected_id, page):
+def _select_edition(editions, requested, provider, selected_id, page, user_lang: str | None = None):
     """Pick the edition to render: the explicitly requested one, the one
     matching a requested provider/id, else the default best edition."""
     if not editions:
@@ -382,7 +382,7 @@ def _select_edition(editions, requested, provider, selected_id, page):
         return next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0]), provider
     from openlibrary.book_providers import get_best_edition
 
-    return get_best_edition(editions)
+    return get_best_edition(editions, user_lang=user_lang)
 
 
 def _attach_availability(edition, availabilities):
@@ -405,7 +405,7 @@ def _attach_availability(edition, availabilities):
             logger.exception("get_cached_groundtruth_availability(%r) failed; keeping bulk availability", ocaid)
 
 
-def prepare_book_page(page, query_params, user=None) -> BookPageContext:
+def prepare_book_page(page, query_params, user=None, user_lang: str | None = None) -> BookPageContext:
     """Resolves the work, selected edition, and lending state for a /works
     or /books page. Ported from type/edition/view.html so that no
     lending/availability I/O (including the ground-truth fallback) happens
@@ -414,7 +414,13 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     :param page: the Work or Edition already loaded for this request.
     :param query_params: a mapping supporting `.get(name, default)`, e.g. `web.input()`.
     :param user: the logged-in user, if any (only used to gate loan/waitlist checks).
+    :param user_lang: the UI language used to boost matching editions, e.g. 'en'.
     """
+    if user_lang is None:
+        from openlibrary.utils.request_context import get_request_lang
+
+        user_lang = get_request_lang()
+
     work, show_observations = _resolve_work(page)
 
     # This can happen when looking at past versions of an edition whose
@@ -433,7 +439,7 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
 
     previews = [e for e in editions if e.get("ocaid")]
 
-    edition, provider = _select_edition(editions, requested, provider, selected_id, page)
+    edition, provider = _select_edition(editions, requested, provider, selected_id, page, user_lang=user_lang)
     _attach_availability(edition, availabilities)
 
     lending_state = lending.get_lending_state(
