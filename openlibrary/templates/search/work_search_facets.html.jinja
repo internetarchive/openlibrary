@@ -1,49 +1,6 @@
 {# Search sidebar facets ("Zoom In").
-   `facets` is a list of (header, label, counts) with counts = [(key, display, count), ...]. #}
-{% macro facet(header, label, counts) %}
-    <div class="facet {{ header }}">
-        <h4 class="facetHead">
-            {{ label }}
-            {% if header == 'author_key' and counts | length > 1 and show_merge_authors %}
-                {% set merge_keys = counts | map(attribute=0) | join(',') %}
-                {% set merge_title = _('Merge duplicate authors from this search') %}
-                <span class="merge"><a href="/authors/merge?records={{ merge_keys }}"
-   title="{{ merge_title }}">{{ _("Merge duplicates") }}</a></span>
-            {% endif %}
-        </h4>
-        {% for k, display, count in counts %}
-            {% set facet_url = none if async_load else add_facet_url(header, k) %}
-            {{ facet_entry(header, display, count, facet_url, hide_entry=loop.index > start_facet_count) }}
-        {% endfor %}
-        {% if counts | length > start_facet_count %}
-            <div class="facetMoreLess">
-                <span class="header_more small" data-header="{{ header }}">
-                    <a href="javascript:;" id="{{ header }}_more">{{ _("More") }}</a>
-                </span>
-                <span id="{{ header }}_bull" class="header_bull small gray">•</span>
-                <span class="header_less small" data-header="{{ header }}">
-                    <a href="javascript:;" id="{{ header }}_less" class="ui-helper-hidden">{{ _("Less") }}</a>
-                </span>
-            </div>
-        {% endif %}
-    </div>
-{% endmacro %}
-{% macro facet_entry(header, display, count, facet_url, hide_entry=False) %}
-    <div class="facetEntry{% if hide_entry %} ui-helper-hidden{% endif %}">
-        {% if async_load %}
-            <span class="small">{{ _("Loading...") }}</span>
-        {% else %}
-            {% set link_title = _('Filter results for %(facet)s', facet=display) %}
-            {% if header == 'has_fulltext' %}
-                {% set link_title = _('Filter results for ebook availability') %}
-                {% set display = _('yes') if display == 'yes' else _('no') %}
-            {% endif %}
-            <ol-chip size="small" href="{{ facet_url }}" title="{{ link_title }}" data-ol-link-track="{{ add_track(header) }}" count="{{ commify(count) }}">
-                {{ display }}
-            </ol-chip>
-        {% endif %}
-    </div>
-{% endmacro %}
+   `facets` are pre-computed FacetGroup objects from render_search_facets() in
+   openlibrary/plugins/worksearch/facets.py. #}
 <div id="searchFacets"
      data-config="{{ config_json }}"
      data-param="{{ param_json }}"
@@ -55,7 +12,36 @@
     </div>
     {# djlint:on #}
     <p class="search-facets-error ui-helper-hidden" role="status">{{ _("Search filters are temporarily unavailable. Please try again later.") }}</p>
-    {% for header, label, counts in facets %}
-        {{ facet(header, label, counts) }}
+    {% for f in facets %}
+        <div class="facet {{ f.header }}">
+            <h4 class="facetHead">
+                {{ f.label }}
+                {% if f.merge_url %}
+                    <span class="merge"><a href="{{ f.merge_url }}" title="{{ _('Merge duplicate authors from this search') }}">{{ _("Merge duplicates") }}</a></span>
+                {% endif %}
+            </h4>
+            {% if async_load %}
+                <div class="facetEntry"><span class="small">{{ _("Loading...") }}</span></div>
+            {% else %}
+                {% for e in f.entries %}
+                    <div class="facetEntry{% if e.hidden %} ui-helper-hidden{% endif %}">
+                        <ol-chip size="small" href="{{ e.url }}" title="{{ e.title }}" data-ol-link-track="{{ e.track }}" count="{{ e.count }}">
+                            {{ e.label }}
+                        </ol-chip>
+                    </div>
+                {% endfor %}
+                {% if f.more_less %}
+                    <div class="facetMoreLess">
+                        <span class="header_more small" data-header="{{ f.header }}">
+                            <a href="javascript:;" id="{{ f.header }}_more">{{ _("More") }}</a>
+                        </span>
+                        <span id="{{ f.header }}_bull" class="header_bull small gray">•</span>
+                        <span class="header_less small" data-header="{{ f.header }}">
+                            <a href="javascript:;" id="{{ f.header }}_less" class="ui-helper-hidden">{{ _("Less") }}</a>
+                        </span>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
     {% endfor %}
 </div>

@@ -5921,21 +5921,9 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: search/work_search_facets.html.jinja
+#: openlibrary/plugins/worksearch/facets.py
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
-
-#: search/work_search_facets.html.jinja
-msgid "Filter results for ebook availability"
-msgstr ""
-
-#: search/work_search_facets.html.jinja
-msgid "yes"
-msgstr ""
-
-#: search/work_search_facets.html.jinja
-msgid "no"
 msgstr ""
 
 #: search/work_search_facets.html.jinja

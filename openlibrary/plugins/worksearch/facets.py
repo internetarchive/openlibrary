@@ -23,7 +23,6 @@ SEARCH_FACETS_CONFIG = {"start_facet_count": 5, "facet_inc": 10}
 
 # data-ol-link-track labels of the sidebar facet chips, by facet header.
 SEARCH_FACET_TRACK_NAMES = {
-    "has_fulltext": "Ebook",
     "author_key": "Author",
     "subject_facet": "Subjects",
     "person_facet": "People",
@@ -33,6 +32,37 @@ SEARCH_FACET_TRACK_NAMES = {
     "publisher_facet": "Publisher",
     "language": "Language",
 }
+
+
+class SelectedFacetChip(NamedTuple):
+    """One removable facet chip on the search results page."""
+
+    label: str
+    # Full accessible label including the tooltip prefix (e.g. "Author: Mark
+    # Twain"), or None when the facet has no tooltip configured.
+    accessible_label: str | None
+    del_url: str
+
+
+class FacetEntry(NamedTuple):
+    """One clickable facet value in the search sidebar."""
+
+    label: str
+    count: str
+    url: str
+    title: str
+    track: str
+    hidden: bool
+
+
+class FacetGroup(NamedTuple):
+    """One facet section (header + entries) in the search sidebar."""
+
+    header: str
+    label: str
+    merge_url: str | None
+    entries: list[FacetEntry]
+    more_less: bool
 
 
 @public
@@ -51,12 +81,10 @@ def render_search_facets(
     current query string as a dict (list values for repeated params).
     """
     query = query or {}
+    start_facet_count = SEARCH_FACETS_CONFIG["start_facet_count"]
 
     def add_facet_url(k: str, v: str) -> str:
-        if k != "has_fulltext":
-            return changequery(query=dict(query), page=None, _path=path, **{k: param.get(k, []) + [v]})
-        else:
-            return changequery(query=dict(query), page=None, _path=path, **{k: v})
+        return changequery(query=dict(query), page=None, _path=path, **{k: param.get(k, []) + [v]})
 
     def add_track(key: str) -> str:
         """KeyError will be raised if key is not in SEARCH_FACET_TRACK_NAMES."""
@@ -67,20 +95,40 @@ def render_search_facets(
         # has_fulltext and public_scan_b are owned by the filter row, not the sidebar.
         if header in ("has_fulltext", "public_scan_b"):
             continue
-        counts: list[tuple] = [(None, None, None)] if async_load else [i for i in (facet_counts or {})[header] if i[0] not in param.get(header, [])]
-        if len(counts) <= 1 and not async_load:
+        if async_load:
+            facets.append(FacetGroup(header, label, merge_url=None, entries=[], more_less=False))
             continue
-        facets.append((header, label, counts))
+        counts = [i for i in (facet_counts or {})[header] if i[0] not in param.get(header, [])]
+        if len(counts) <= 1:
+            continue
+        merge_url = None
+        if header == "author_key" and show_merge_authors:
+            merge_url = "/authors/merge?records=" + ",".join(k for k, _display, _count in counts)
+        entries = [
+            FacetEntry(
+                label=display,
+                count=commify(count),
+                url=add_facet_url(header, k),
+                title=_("Filter results for %(facet)s", facet=display),
+                track=add_track(header),
+                hidden=num > start_facet_count,
+            )
+            for num, (k, display, count) in enumerate(counts, start=1)
+        ]
+        facets.append(
+            FacetGroup(
+                header=header,
+                label=label,
+                merge_url=merge_url,
+                entries=entries,
+                more_less=len(entries) > start_facet_count,
+            )
+        )
 
     template = get_jinja_env().get_template("search/work_search_facets.html.jinja")
     return template.render(
         facets=facets,
         async_load=async_load,
-        show_merge_authors=show_merge_authors,
-        start_facet_count=SEARCH_FACETS_CONFIG["start_facet_count"],
-        add_facet_url=add_facet_url,
-        add_track=add_track,
-        commify=commify,
         config_json=json_encode(SEARCH_FACETS_CONFIG),
         param_json=json_encode(param),
         async_load_json=json_encode(async_load),
@@ -94,16 +142,6 @@ class SelectedSearchFacets(NamedTuple):
     # The search page's document title (search.js assigns it to document.title),
     # or None when nothing is rendered: no search params, or a Solr error.
     title: str | None
-
-
-class SelectedFacetChip(NamedTuple):
-    """One removable facet chip on the search results page."""
-
-    label: str
-    # Full accessible label including the tooltip prefix (e.g. "Author: Mark
-    # Twain"), or None when the facet has no tooltip configured.
-    accessible_label: str | None
-    del_url: str
 
 
 @public
