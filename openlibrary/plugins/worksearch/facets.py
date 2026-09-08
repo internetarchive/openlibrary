@@ -3,7 +3,6 @@
 from typing import NamedTuple
 
 from infogami.utils.view import public
-
 from openlibrary.core.helpers import commify
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import gettext as _
