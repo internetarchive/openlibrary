@@ -1,31 +1,24 @@
 {% macro affiliate_link(store) %}
-    <li class="prices-{{ store.key }}">
-        <a href="{{ store.link }}"
+    <div class="buy-option prices-{{ store.key }}">
+        <a class="buy-option__link"
+           href="{{ store.link }}"
            title="{{ _('Look for this edition for sale at %(store)s', store=store.name) }}"
            data-ol-link-track="BuyLink|{{ store.analytics_key }}"
            target="_blank"
-           rel="noopener noreferrer">{{ store.name }}</a>
-        {% if store.price %}
-            <br>
-            <span name="price">{{ store.price }}{{ store.price_note }}</span>
-        {% endif %}
-    </li>
+           rel="noopener noreferrer">
+            <span class="buy-option__name">{{ store.name }}</span>
+            {% if store.price %}
+                <span class="buy-option__price" name="price">{{ store.price }}{{ store.price_note }}</span>
+            {% endif %}
+        </a>
+    </div>
 {% endmacro %}
-<span class="affiliate-links-section">
-    <ul class="buy-options-table">
+<div class="affiliate-links-section">
+    <div class="buy-options__list">
         {% for store in primary_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-        {% if more_stores %}
-            <li class="more">
-                <details>
-                    <summary>{{ _("More") }}</summary>
-                    <ul>
-                        {% for store in more_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
-                    </ul>
-                </details>
-            </li>
-        {% endif %}
-    </ul>
-    <small>
+        {% for store in more_stores %}{{ affiliate_link(store) | safe }}{% endfor %}
+    </div>
+    <small class="buy-options__disclaimer">
         {{ _("When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>.") | safe }}
     </small>
-</span>
+</div>
