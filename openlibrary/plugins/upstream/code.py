@@ -306,6 +306,8 @@ class BookPageContext:
     previews: list
     show_observations: bool
     lending_state: str
+    target_ddc: str | None = None
+    ed_lang: str | None = None
 
 
 def _resolve_work(page):
@@ -442,6 +444,22 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         check_loan_status=bool(user),
     )
 
+    from openlibrary.plugins.upstream.utils import convert_iso_to_marc
+    from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
+
+    target_ddc = None
+    if edition and edition.get('dewey_decimal_class'):
+        raw_ddcs = edition.get('dewey_decimal_class', [])
+        normalized = [d for raw in raw_ddcs for d in normalize_ddc(raw)]
+        if normalized:
+            target_ddc = choose_sorting_ddc(normalized)
+
+    ed_lang = None
+    if edition and edition.get('languages'):
+        lang_obj = edition.languages[0]
+        lang_key = (lang_obj.key if hasattr(lang_obj, 'key') else str(lang_obj)).split('/')[-1]
+        ed_lang = convert_iso_to_marc(lang_key) or lang_key
+
     return BookPageContext(
         work=work,
         edition=edition,
@@ -450,6 +468,8 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
         previews=previews,
         show_observations=show_observations,
         lending_state=lending_state,
+        target_ddc=target_ddc,
+        ed_lang=ed_lang,
     )
 
 
