@@ -1,4 +1,4 @@
-$def with (list, is_owner)
+$def with (list, is_owner, items, page, page_size, sort)
 
 $ title = list.name
 $ title_with_site = _("%(name)s | Lists | Open Library", name=title)
@@ -6,8 +6,6 @@ $ title_with_site = _("%(name)s | Lists | Open Library", name=title)
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
-$ page = safeint(query_param('page'), 1) - 1
-$ page_size = 50
 $ meta_description = title
 $if list.description:
     $ meta_description = _("%(title)s: %(description)s", title=title, description=list.description)
@@ -30,7 +28,6 @@ $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
-$ sort = query_param('sort', None)
 
 $jsdef render_seed_count(seed_count):
     $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
@@ -104,25 +101,18 @@ $def seed_attrs(seed):
         <div class="clearfix"></div>
 
         <ul id="listResults" class="list-books clearfix $cond(layout == 'grid', 'list-books--grid')">
-            $ component_times['get_seeds'] = time()
-            $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
-            $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
-        $if not seeds:
+        $if not items:
             <p>$_("There are no items on this list.")</p>
             <p>
                 $:_('<a href="/search" target="_blank" rel="noopener noreferrer">Search for book, subjects, or authors</a> to add to your list.')
                 <a href="/help/faq/reading-log#lists" target="_blank" rel="noopener noreferrer">$_('Learn more.')</a>
             </p>
 
-        $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
-        $ work_key_to_solr_edition = {key: work_doc['editions']['docs'][0] for key, work_doc in solr_works.items() if work_doc and work_doc.get('editions', {}).get('docs', [])}
-        $ availabilities = get_availabilities([work_key_to_solr_edition.get(seed.key) or solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
-        $for seed in seeds:
+        $for item in items:
+            $ seed = item.seed
             $if seed.type in ['edition', 'work']:
-                $ doc = solr_works.get(seed.key) or seed.document
-                $ av = availabilities.get(work_key_to_solr_edition[seed.key]['key']) if seed.key in work_key_to_solr_edition else availabilities.get(seed.key)
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=av, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
+                $:macros.SearchResultsWork(item.doc, attrs=seed_attrs(seed), availability=item.availability, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
                 $ default_image = "https://openlibrary.org/static/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()

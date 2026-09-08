@@ -51,7 +51,7 @@
   text-decoration: none;
 }
 .fulltext-suggestions__title a:hover {
-  color: var(--link-blue);
+  color: var(--color-link);
 }
 .fulltext-suggestions__footer {
   display: flex;

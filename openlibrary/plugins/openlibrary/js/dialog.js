@@ -1,6 +1,7 @@
 import 'jquery-ui/ui/widgets/dialog';
 // For dialog boxes (e.g. add to list)
 import 'jquery-colorbox';
+import { trackEvent } from './ol.analytics.js';
 
 /**
  * Wires up confirmation prompts.
@@ -66,6 +67,7 @@ export function initPreviewDialogs() {
     // lazy-loaded carousels) work without re-initialization.
     $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
         e.preventDefault();
+        trackEvent('BookOptions', 'Preview');
         const $button = $(this);
         const dialog = document.getElementById('bookPreview');
         if (!dialog) return;
@@ -93,6 +95,7 @@ export function initPreviewDialogs() {
     // Handle clicking the "Search Inside" button to expand it to the input form
     $(document).off('click.bookSearchTrigger').on('click.bookSearchTrigger', '[data-search-trigger]', function(e) {
         e.preventDefault();
+        trackEvent('BookOptions', 'SearchInside');
         const $triggerBtn = $(this);
         const $btnGroup = $triggerBtn.closest('.cta-button-group');
         $triggerBtn.attr('aria-expanded', 'true');

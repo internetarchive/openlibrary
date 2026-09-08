@@ -204,7 +204,7 @@ def find_author(author: AuthorImportDict) -> list[Author]:
         matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
         # The match is whichever one has the most identifiers in common
         if matched_authors:
-            selected_match = sorted(
+            selected_match = min(
                 matched_authors,
                 key=lambda a: (
                     # First sort by number of matches desc
@@ -212,7 +212,7 @@ def find_author(author: AuthorImportDict) -> list[Author]:
                     # If there's a tie, prioritize lower OL ID
                     extract_numeric_id_from_olid(a.key),
                 ),
-            )[0]
+            )
             return [selected_match]
 
     # Fall back to name/date matching, which we did before introducing identifiers.

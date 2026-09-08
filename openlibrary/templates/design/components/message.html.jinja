@@ -1,0 +1,26 @@
+{% import "design/_example.html.jinja" as ex %}
+{% macro demos() %}
+    <p class="ds-lead">
+        A plain CSS component — no JS, no custom element. Use it for status that belongs next to the thing it describes, inline in the page flow. For page-level announcements use <a href="#banner">Banner</a>; for transient confirmations use <a href="#toast">Toast</a>.
+    </p>
+    {% call ex.example("Variants", "The bare class is styled the same as --info.", output_style="display: flex; flex-direction: column; gap: 8px;") %}
+        <div class="ol-message ol-message--info">Your changes are visible to other librarians immediately.</div>
+        <div class="ol-message ol-message--success">Edition merged successfully.</div>
+        <div class="ol-message ol-message--warning">This record has unresolved import errors.</div>
+        <div class="ol-message ol-message--error">Could not save — the record was modified by someone else.</div>
+    {% endcall %}
+    {% call ex.example("With a heading", "Headings inherit the message's color rather than the page's heading color.") %}
+        <div class="ol-message ol-message--warning">
+            <h4>Import partially completed</h4>
+            38 of 42 records imported. The remaining 4 had missing identifiers.
+        </div>
+    {% endcall %}
+    <div class="ds-notes">
+        <p>
+            <b>Source.</b> <code>static/css/components/ol-message.css</code>. Note it currently hardcodes its <code>hsl()</code> values rather than using the status tokens under Foundations → Colors — worth migrating when next touched.
+        </p>
+        <p>
+            <b>Related.</b> <code>flash-messages.css</code> styles the server-rendered flash region at the top of the page; it isn't reusable markup, but it is where post-redirect confirmations land.
+        </p>
+    </div>
+{% endmacro %}

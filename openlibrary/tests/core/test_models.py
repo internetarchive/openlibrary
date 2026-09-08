@@ -91,6 +91,37 @@ class TestUserGroupMembership:
         )
         assert user.is_librarian_or_higher() is False
 
+    def test_is_super_librarian_or_higher(self, monkeypatch):
+        user = models.User(MockSite(), "/people/test", data={})
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/super-librarians")]),
+        )
+        assert user.is_super_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/admin")]),
+        )
+        assert user.is_super_librarian_or_higher() is True
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[_FakeGroup("/usergroup/librarians")]),
+        )
+        assert user.is_super_librarian_or_higher() is False
+
+        monkeypatch.setattr(
+            models.User,
+            "usergroups",
+            PropertyMock(return_value=[]),
+        )
+        assert user.is_super_librarian_or_higher() is False
+
 
 class MockSite:
     def get(self, key):

@@ -185,6 +185,11 @@ class importapi:
         if not edition:
             return self.error("unknown-error", "Failed to parse import data")
 
+        # Acquisitions ride along on the import record. ImportBot posts feed
+        # records to this (privileged) endpoint, so the guard against arbitrary
+        # callers minting acquisitions from unregistered feeds is enforced
+        # downstream in add_book.load. #12844
+
         try:
             reply = add_book.load(edition, save=not preview)
             # TODO: If any records have been created, return a 201, otherwise 200
@@ -209,7 +214,7 @@ def raise_non_book_marc(marc_record, **kwargs):
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
     # MARC leader$6,7 reference: https://www.loc.gov/marc/bibliographic/bdleader.html
-    ACCEPTED_TYPES = "am"  # a: Language material, m: Computer file
+    ACCEPTED_TYPES = "acm"  # a: Language material, c: Notated music,  m: Computer file
     if not (marc_leaders[6] in ACCEPTED_TYPES and marc_leaders[7] == "m"):
         raise BookImportError("item-not-book", details, **kwargs)
 

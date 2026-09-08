@@ -6727,10 +6727,6 @@ msgstr "Nejhodnocenější knihy (celkově)"
 msgid "We couldn't find any books about"
 msgstr "Nenašli jsme žádné knihy o"
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"

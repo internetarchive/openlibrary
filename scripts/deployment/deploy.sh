@@ -443,22 +443,41 @@ deploy_openlibrary() {
     tar -czf openlibrary_new.tar.gz openlibrary_new
 
     if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
-        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary_new" "openlibrary_new"; then
             cleanup "${DEPLOY_DIR}/openlibrary"
             exit 1
         fi
+
         echo ""
-        # Fix file ownership + Make into a git repo so can easily track local mods
+        echo "Final swap..."
         for SERVER in $FQDNS; do
-            ssh $SERVER "
+            echo -n "   $SERVER ... "
+
+            # Fix file ownership, back up the current copy to openlibrary_previous, swap in the
+            # new one, then make it into a git repo so local mods are easy to track.
+            if OUTPUT=$(ssh $SERVER "
                 set -e
-                sudo chown -R root:staff /opt/openlibrary
-                sudo chmod -R g+rwX /opt/openlibrary
+                sudo chown -R root:staff /opt/openlibrary_new
+                sudo chmod -R g+rwX /opt/openlibrary_new
+
+                sudo rm -rf /opt/openlibrary_previous || true
+                if [ -d /opt/openlibrary ]; then
+                    sudo mv /opt/openlibrary /opt/openlibrary_previous
+                fi
+                sudo mv /opt/openlibrary_new /opt/openlibrary
+
                 cd /opt/openlibrary
                 sudo git init 2>&1 > /dev/null
                 sudo git add . > /dev/null
                 sudo git commit -m 'Deployed openlibrary' > /dev/null
-            "
+            "); then
+                echo "✓"
+            else
+                echo "⚠"
+                echo "$OUTPUT"
+                cleanup "${DEPLOY_DIR}/openlibrary"
+                exit 1
+            fi
         done
 
         if ! prune_docker image; then

@@ -130,12 +130,11 @@ ol-banner > .ol-banner__close {
   background: none;
   border: none;
   border-radius: var(--border-radius-sm);
-  color: var(--accessible-grey);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
-ol-banner > .ol-banner__close svg {
-  display: block;
+ol-banner > .ol-banner__close ol-icon {
   width: 20px;
   height: 20px;
 }

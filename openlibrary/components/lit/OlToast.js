@@ -1,13 +1,17 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
+// Registers <ol-button> for the close control.
+import './OLButton.js';
+import './OlIcon.js';
+import { slotHasContent } from './utils/slot-utils.js';
 
 /**
  * A transient notification message ("toast").
  *
  * The common case sets the message via the `message` (and optional `description`)
  * attributes, which the component styles consistently. For uncommon rich
- * content (links, custom markup), provide light-DOM children instead — the
- * attribute-driven markup is the default slot's fallback, so slotted content
- * automatically replaces it.
+ * content (links, custom markup), provide light-DOM children instead — real
+ * slotted content replaces the attribute-driven markup. Whitespace between the
+ * tags does not count as content, so pretty-printed markup keeps its `message`.
  *
  * The toast announces itself to screen readers, auto-dismisses after
  * `timeout` milliseconds (unless `persistent`), and removes itself from the
@@ -31,8 +35,8 @@ import { LitElement, html, css } from 'lit';
  *
  * @element ol-toast
  *
- * @prop {String}  type       - "info" (default) | "success" | "error".
- *                              Errors use role="alert" / assertive announcements.
+ * @prop {"info" | "success" | "error"} type - Default: "info". Errors use
+ *                              role="alert" / assertive announcements.
  * @prop {String}  message     - The (already translated) message text.
  * @prop {String}  description - Optional secondary line, rendered smaller and muted.
  * @prop {Boolean} persistent - Toast stays until explicitly closed (no timer).
@@ -68,6 +72,9 @@ export class OlToast extends LitElement {
         // live region until one frame after mount, so screen readers
         // announce it as a mutation rather than as already-present content.
         _announce: { state: true },
+        // Internal: whether the default slot holds real content — see
+        // slotHasContent() for why native <slot> fallback can't be used.
+        _hasSlottedContent: { state: true },
     };
 
     static styles = css`
@@ -210,7 +217,7 @@ export class OlToast extends LitElement {
         }
 
         .toast--info .toast__icon {
-            background-color: var(--primary-blue);
+            background-color: var(--color-primary);
         }
 
         .toast--success .toast__icon {
@@ -229,11 +236,11 @@ export class OlToast extends LitElement {
             font-size: var(--font-size-body-large);
             font-weight: 500;
 
-            /* Align single-line text to center of 28px close button height */
+            /* Align single-line text to center of the close button height */
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 28px;
+            min-height: var(--control-height-small);
         }
 
         .toast__message {
@@ -243,51 +250,20 @@ export class OlToast extends LitElement {
         .toast__description {
             display: block;
             margin-top: 2px;
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: var(--font-size-label-medium);
             font-weight: normal;
         }
 
+        /* The close control is an <ol-button shape="icon" variant="ghost" size="small">,
+           which paints itself; only the glyph size lives here. */
         .toast__close {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             flex-shrink: 0;
-            box-sizing: border-box;
-            /* Comfortable hit area (WCAG 2.2 target minimum) */
-            min-width: 28px;
-            min-height: 28px;
-            padding: 0;
-            background: none;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            color: var(--accessible-grey);
-            cursor: pointer;
         }
 
-        .toast__close svg {
-            display: block;
-            width: 20px;
-            height: 20px;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .toast__close:hover {
-                color: var(--darker-grey);
-            }
-        }
-
-        .toast__close:focus {
-            outline: none;
-        }
-
-        .toast__close:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .toast__close:active {
-            transform: scale(0.92);
+        .toast__close ol-icon {
+            width: 16px;
+            height: 16px;
         }
     `;
 
@@ -300,8 +276,6 @@ export class OlToast extends LitElement {
     /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
     static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
 
-    /** Close (X) icon — the stroke-based glyph shared with ol-dialog */
-    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     constructor() {
         super();
@@ -365,6 +339,10 @@ export class OlToast extends LitElement {
             clearTimeout(this._timerId);
             this._timerId = null;
         }
+    }
+
+    _handleSlotChange(event) {
+        this._hasSlottedContent = slotHasContent(event.target);
     }
 
     /**
@@ -450,17 +428,21 @@ export class OlToast extends LitElement {
                 <span class="toast__icon">${icon}</span>
                 <span class="toast__body">
                     ${this._announce ? html`
-                        <slot>
+                        <slot @slotchange=${this._handleSlotChange}></slot>
+                        ${this._hasSlottedContent ? nothing : html`
                             <span class="toast__message">${this.message}</span>
                             ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                        </slot>
+                        `}
                     ` : ''}
                 </span>
-                <button
+                <ol-button
                     class="toast__close"
+                    shape="icon"
+                    variant="ghost"
+                    size="small"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                >${OlToast._closeIcon}</button>
+                ><ol-icon name="x"></ol-icon></ol-button>
                 ${!this.persistent ? html`<div class="toast__progress"></div>` : ''}
             </div>
         `;

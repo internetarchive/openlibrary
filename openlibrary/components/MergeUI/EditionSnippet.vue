@@ -58,7 +58,10 @@ import ISBN from 'isbn3';
 
 export default {
     props: {
-        edition: Object
+        edition: {
+            type: Object,
+            default: () => ({})
+        }
     },
     computed: {
         publish_year() {

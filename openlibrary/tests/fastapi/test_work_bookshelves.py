@@ -1,33 +1,8 @@
 """Tests for the FastAPI work bookshelves endpoints."""
 
-import json
 from unittest.mock import patch
 
 import pytest
-import web
-
-from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
-
-
-class FakeLegacyUser:
-    def __init__(self, username: str = "testuser"):
-        self.key = f"/people/{username}"
-
-
-def mock_web_input_func(data):
-    def _mock_web_input(*args, **kwargs):
-        return web.storage(kwargs | data)
-
-    return _mock_web_input
-
-
-def legacy_bookshelves_json(data, work_id=123):
-    with (
-        patch("openlibrary.plugins.openlibrary.api.web.input", side_effect=mock_web_input_func(data)),
-        patch("openlibrary.accounts.get_current_user", return_value=FakeLegacyUser()),
-        pytest.deprecated_call(match="migrated to fastapi"),
-    ):
-        return json.loads(legacy_work_bookshelves().POST(str(work_id))["rawtext"])
 
 
 @pytest.fixture
@@ -156,49 +131,3 @@ class TestWorkBookshelvesPost:
         response = fastapi_client.post("/works/OL123W/bookshelves.json", data={"bookshelf_id": "1", "edition_id": edition_id})
 
         assert response.status_code == 422
-
-
-class TestWorkBookshelvesLegacyParity:
-    def test_add_response_matches_legacy(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
-        _, add_mock, _, _ = mock_bookshelves_model
-        add_mock.return_value = 1
-        data = {"bookshelf_id": "1", "edition_id": "/books/OL42M"}
-
-        legacy_response = legacy_bookshelves_json(data)
-        fastapi_response = fastapi_client.post("/works/OL123W/bookshelves.json", data=data)
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response
-
-    def test_remove_response_matches_legacy(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
-        read_status_mock, _, remove_mock, _ = mock_bookshelves_model
-        read_status_mock.return_value = 2
-        remove_mock.return_value = 1
-        data = {"bookshelf_id": "-1"}
-
-        legacy_response = legacy_bookshelves_json(data)
-        fastapi_response = fastapi_client.post("/works/OL123W/bookshelves.json", data=data)
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response
-
-    def test_invalid_bookshelf_response_matches_legacy(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
-        data = {"bookshelf_id": "99"}
-
-        legacy_response = legacy_bookshelves_json(data)
-        fastapi_response = fastapi_client.post("/works/OL123W/bookshelves.json", data=data)
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response
-
-    def test_dont_remove_response_matches_legacy(self, fastapi_client, mock_authenticated_user, mock_bookshelves_model):
-        read_status_mock, add_mock, _, _ = mock_bookshelves_model
-        read_status_mock.return_value = 2
-        add_mock.return_value = 1
-        data = {"bookshelf_id": "2", "dont_remove": "true"}
-
-        legacy_response = legacy_bookshelves_json(data)
-        fastapi_response = fastapi_client.post("/works/OL123W/bookshelves.json", data=data)
-
-        assert fastapi_response.status_code == 200
-        assert fastapi_response.json() == legacy_response

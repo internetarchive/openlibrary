@@ -314,6 +314,18 @@ jQuery(function() {
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
+    const subjectPublishingHistory = document.getElementById('subjectPublishingHistory');
+    if (subjectPublishingHistory) {
+        import(/* webpackChunkName: "subjects" */ './subjects')
+            .then((module) => module.initPublishingHistory(subjectPublishingHistory));
+    }
+
+    const subjectRelatedFacets = document.getElementById('subjectRelatedFacets');
+    if (subjectRelatedFacets) {
+        import(/* webpackChunkName: "subjects" */ './subjects')
+            .then((module) => module.initRelatedSubjects(subjectRelatedFacets));
+    }
+
     const searchFilterBar = document.querySelector('.search-filter-row');
     if (searchFilterBar) {
         import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
@@ -326,6 +338,12 @@ jQuery(function() {
     if (resultsFilterToggles.length) {
         import(/* webpackChunkName: "results-filter-toggle" */ './results-filter-toggle')
             .then((module) => module.initResultsFilterToggles(resultsFilterToggles));
+    }
+
+    const designSystem = document.querySelector('[data-ds-root]');
+    if (designSystem) {
+        import(/* webpackChunkName: "design-system" */ './design-system')
+            .then((module) => module.initDesignSystem(designSystem));
     }
 
     // Author-suggestion avatars request photos with ?default=false, so a missing
@@ -442,15 +460,19 @@ jQuery(function() {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
-    $('.hamburger-component .mask-menu').on('click', function() {
-        $('details[open]').not(this).removeAttr('open');
-    });
-
     $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
             $('.header-dropdown > details[open]').removeAttr('open');
         }
     });
+
+    // Header hamburger menu:
+    const hamburgerTrigger = document.querySelector('.hamburger-trigger');
+    const hamburgerDrawer = document.getElementById('hamburger-drawer');
+    if (hamburgerTrigger && hamburgerDrawer) {
+        import(/* webpackChunkName: "hamburger-drawer" */ './hamburger-drawer')
+            .then((module) => module.initHamburgerDrawer(hamburgerTrigger, hamburgerDrawer));
+    }
 
     // Browse menu: send one analytics event each time the popover opens
     // (pointer or keyboard), so we can measure open-rate and click-through.

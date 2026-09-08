@@ -10,10 +10,9 @@ $if results and results.get('hits'):
   $:macros.LoadingIndicator(_("Checking for Search Inside matches"))
     <div id="fulltextSuggestions" class="fulltext-suggestions">
       <div class="fulltext-suggestions__header">
-        <a class="fulltext-suggestions__icon" data-ol-link-track="SearchInsideSuggestion|SeeAllClick" href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
-            <img src="/static/images/icons/icon_search-inside.svg"
-              width="30" height="30"
-              alt="$_('search inside icon')"/>
+        $# The link is named by its icon; the heading beside it repeats the destination.
+        <a class="fulltext-suggestions__icon" data-ol-link-track="SearchInsideSuggestion|SeeAllClick" href="/search/inside?$urlencode(dict(q=query))">
+            $:macros.icon("search-inside", size="lg", label=_('Search Inside'))
         </a>
         <h3 class="fulltext-suggestions__title">
           <a data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
@@ -27,7 +26,8 @@ $if results and results.get('hits'):
         <a class="fulltext-suggestions__footer-link" data-ol-link-track="SearchInsideSuggestion|SeeAllClick"
         href="/search/inside?$urlencode(dict(q=query))">$_('See all %(results_count)s Search Inside Matches', results_count=num_found)
         <span class="fulltext-suggestions__right-chevron">
-          <img  src="/static/images/icons/right-chevron.svg" alt="$_('right chevron')"/>
+          $# Decorative: the link text already says where it goes.
+          $:macros.icon("chevron-right", size="sm")
         </span>
         </a>
       </h3>

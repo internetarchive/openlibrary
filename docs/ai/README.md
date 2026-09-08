@@ -8,7 +8,9 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. FastAPI is the primary entry point on port 8080; unmatched requests are proxied to the legacy web.py app by `openlibrary/fastapi/proxy.py` (the old web.py-on-8080 / FastAPI-on-18080 layout was swapped in #13423).
+
+On startup, the `home` container runs `docker/ol-home-start.sh`, which clones the [GitHub wiki](https://github.com/internetarchive/openlibrary.wiki) into `docs/wiki/` (gitignored). The wiki holds operational/how-to documentation that is **not** in this repo — search `docs/wiki/` locally before turning to a web search.
 
 ## Build Commands
 
@@ -75,6 +77,68 @@ docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
 
+### API writes silently drop `action`/`comment`/`data` or 500
+
+The infogami write API (`/api/save_many`, `/api/write`) only applies custom
+`action`, `comment`, and `data` headers when the request's `Opt` header
+matches the app's configured `http_ext_header_uri`. The dev app sets this to
+`http://openlibrary.org/dev/docs/api` (`openlibrary/plugins/openlibrary/code.py`),
+**not** the infogami default (`http://infogami.org/api`).
+
+- **Mismatch symptom:** saves succeed but are recorded as `default-bulk-update`
+  with no comment or data (silent — action-tagged saves like merges lose their
+  metadata), or `api/save_many` 500s when the custom headers come back `None`.
+- **Fix:** send the matching declaration, e.g.
+  `Opt: "http://openlibrary.org/dev/docs/api"; ns=12` plus
+  `X-12-action: merge-authors`, `X-12-comment: ...`, `X-12-data: {...}`.
+- **Prefer FastAPI endpoints instead:** they share the session auth and need
+  no custom headers — e.g. author merges via
+  `POST http://localhost:8080/authors/merge.json`.
+
+### Scripts must log in via the JSON endpoint
+
+`POST /account/login` with a form body returns **200 but does not set a
+session cookie** — scripts that use it appear logged in but their writes are
+unauthenticated. Always POST JSON to `/account/login.json`:
+
+```bash
+curl -s -c /tmp/ck.txt -X POST http://localhost:8080/account/login.json \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"openlibrary","password":"openlibrary"}'
+```
+
+The dev user `openlibrary` / `openlibrary` is a member of `/usergroup/admin`
+(see `scripts/dev-instance/dev_db.pg_dump`), i.e. a super-librarian.
+`scripts/copydocs.py`'s `~/.olrc` autologin hits the form-POST trap — see its
+docstring.
+
+### copydocs copies current revisions only
+
+`scripts/copydocs.py` copies the *current* revision of each document and
+follows *current* references. It does **not** copy changesets/transactions,
+version history (`?v=`), or references that only exist in older revisions,
+and it deliberately strips `authors` from editions.
+
+If you need older revisions:
+
+- **Fetch one revision directly:** `GET /api/get?key=<key>&v=<revision>`
+  (e.g. `curl 'http://localhost:8080/api/get?key=/books/OL1M&v=2'`). On
+  openlibrary.org the same works via `<key>.json?v=<revision>`.
+- **List a doc's revisions:** `GET /api/versions?query=<url-encoded JSON>` —
+  each entry includes the revision number, changeset id, action, and comment.
+  The `query` JSON must be URL-encoded, e.g.
+  `curl -G 'http://localhost:8080/api/versions' --data-urlencode 'query={"key": "/books/OL1M", "limit": 5}'`.
+- **copydocs `?v=N` keys** (`./scripts/copydocs.py /works/OL1W?v=2`) copy an
+  old revision's *content*, but it is saved as a fresh local revision — local
+  revision numbering and changeset history are still not preserved.
+- **Reproductions that depend on history** (e.g. undo, which fetches
+  `revision − 1`) need the local infobase rows
+  (`transaction`/`thing`/`data`/`version`) to match production — either
+  reconstruct them via `psql` in the `db` container (fetch R and R−1 from
+  production), or — usually simpler — build a synthetic scenario through the
+  API instead of copying history at all (the #5664 reproduction work is a
+  worked example of the API approach).
+
 ## Linting
 
 ```bash
@@ -100,7 +164,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
 
-**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
+**Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app. In local dev, FastAPI is the primary entry point on port 8080; requests it has no route for are proxied to web.py via `openlibrary/fastapi/proxy.py`.
 
 **Key plugins:**
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
@@ -133,7 +197,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
@@ -218,6 +282,7 @@ Deep-dive references for major system domains. Each covers production architectu
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+| GitHub wiki (local clone) | `docs/wiki/` |
 
 ## Contributing to These Docs
 

@@ -1,9 +1,28 @@
+"""The Open Library design system docs at /developers/design.
+
+Four sections share one shell: Components (the landing section), Foundations
+(design tokens), Icons, and Playground. Each section is one long browsable page
+— the goal is density, so an engineer can scan everything available before
+picking something.
+
+Three things here are derived rather than hand-maintained, which is what keeps
+the page from drifting as the system grows:
+
+  * Token documentation is parsed out of the token CSS (see design_tokens.py).
+  * Lit component API tables come from the Custom Elements Manifest.
+  * The sidebar and the component sections are both built from COMPONENTS below,
+    so adding a component means one registry row plus one partial.
+"""
+
 import json
 import logging
+from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 
 logger = logging.getLogger("openlibrary.design")
 
@@ -11,6 +30,215 @@ logger = logging.getLogger("openlibrary.design")
 # `npx cem analyze` (see custom-elements-manifest.config.mjs), which
 # `make lit-components` runs. Generated, not committed — see .gitignore.
 MANIFEST_PATH = Path(__file__).parents[2] / "components" / "lit" / "custom-elements.json"
+
+
+@dataclass(frozen=True)
+class Section:
+    """One tab of the design system docs.
+
+    ``has_code`` gates the show-code toggle: only the component write-ups carry
+    snippets, so the other sections would render a control that toggles nothing.
+    """
+
+    id: str
+    title: str
+    has_code: bool = False
+
+
+SECTIONS = (
+    Section("components", "Components", has_code=True),
+    Section("foundations", "Foundations"),
+    Section("icons", "Icons", has_code=True),
+    Section("playground", "Playground"),
+)
+
+
+@dataclass(frozen=True)
+class Component:
+    """A registry row. Drives the sidebar and the section order.
+
+    ``partial`` names a Jinja template defining a ``demos()`` macro holding the
+    component's write-up. A row with no ``tag`` is a class-based CSS component,
+    which has no manifest entry and so renders without an API table. Clear
+    ``api_table`` for a row that is documented in full somewhere else.
+    """
+
+    id: str
+    title: str
+    partial: str
+    group: str = ""
+    tag: str = ""
+    avoid: str = ""
+    api_table: bool = True
+
+
+COMPONENTS = (
+    # --- Actions ---------------------------------------------------------
+    Component(
+        "button",
+        "Button",
+        "design/components/button.html.jinja",
+        group="Actions",
+        tag="ol-button",
+    ),
+    Component(
+        "toggle",
+        "Toggle",
+        "design/components/toggle.html.jinja",
+        group="Actions",
+        tag="ol-toggle",
+        avoid="For picking one of several options use Segmented Control.",
+    ),
+    Component(
+        "segmented-control",
+        "Segmented Control",
+        "design/components/segmented-control.html.jinja",
+        group="Actions",
+        tag="ol-segmented-control",
+        avoid="More than about four options belong in a Select Popover.",
+    ),
+    Component(
+        "chip",
+        "Chip",
+        "design/components/chip.html.jinja",
+        group="Actions",
+        tag="ol-chip",
+    ),
+    Component(
+        "chip-group",
+        "Chip Group",
+        "design/components/chip-group.html.jinja",
+        group="Actions",
+        tag="ol-chip-group",
+    ),
+    Component(
+        "pagination",
+        "Pagination",
+        "design/components/pagination.html.jinja",
+        group="Actions",
+        tag="ol-pagination",
+    ),
+    # --- Overlays --------------------------------------------------------
+    Component(
+        "tooltip",
+        "Tooltip",
+        "design/components/tooltip.html.jinja",
+        group="Overlays",
+        tag="ol-tooltip",
+        avoid="Never put essential information or interactive content in a tooltip.",
+    ),
+    Component(
+        "popover",
+        "Popover",
+        "design/components/popover.html.jinja",
+        group="Overlays",
+        tag="ol-popover",
+    ),
+    Component(
+        "select-popover",
+        "Select Popover",
+        "design/components/select-popover.html.jinja",
+        group="Overlays",
+        tag="ol-select-popover",
+    ),
+    Component(
+        "options-popover",
+        "Options Popover",
+        "design/components/options-popover.html.jinja",
+        group="Overlays",
+        tag="ol-options-popover",
+    ),
+    Component(
+        "menu-popover",
+        "Menu Popover",
+        "design/components/menu-popover.html.jinja",
+        group="Overlays",
+        tag="ol-menu-popover",
+        avoid="A choice that is read or submitted later is a value, not an action — use Options Popover.",
+    ),
+    Component(
+        "dialog",
+        "Dialog",
+        "design/components/dialog.html.jinja",
+        group="Overlays",
+        tag="ol-dialog",
+    ),
+    Component(
+        "drawer",
+        "Drawer",
+        "design/components/drawer.html.jinja",
+        group="Overlays",
+        tag="ol-drawer",
+        avoid="A centered interruption is a Dialog. A panel anchored to its trigger is a Popover.",
+    ),
+    # --- Feedback --------------------------------------------------------
+    Component(
+        "toast",
+        "Toast",
+        "design/components/toast.html.jinja",
+        group="Feedback",
+        tag="ol-toast",
+        avoid="Anything the reader must act on belongs in a Dialog or a Banner.",
+    ),
+    Component(
+        "banner",
+        "Banner",
+        "design/components/banner.html.jinja",
+        group="Feedback",
+        tag="ol-banner",
+    ),
+    Component(
+        "message",
+        "Message",
+        "design/components/message.html.jinja",
+        group="Feedback",
+    ),
+    Component(
+        "scorecard",
+        "Scorecard",
+        "design/components/scorecard.html.jinja",
+        group="Feedback",
+        tag="ol-scorecard",
+    ),
+    # --- Content ---------------------------------------------------------
+    Component(
+        "carousel",
+        "Carousel",
+        "design/components/carousel.html.jinja",
+        group="Content",
+        tag="ol-carousel",
+    ),
+    Component(
+        "read-more",
+        "Read More",
+        "design/components/read-more.html.jinja",
+        group="Content",
+        tag="ol-read-more",
+    ),
+    Component(
+        "markdown-editor",
+        "Markdown Editor",
+        "design/components/markdown-editor.html.jinja",
+        group="Content",
+        tag="ol-markdown-editor",
+    ),
+    # A stub on purpose: icons have a section of their own, and this row exists
+    # so someone scanning the component list finds them rather than concluding
+    # there is nothing.
+    Component(
+        "icon",
+        "Icon",
+        "design/components/icon.html.jinja",
+        group="Content",
+        tag="ol-icon",
+        api_table=False,
+    ),
+)
+
+# Icon sources, one SVG per icon, grouped into folders by provenance. The file
+# names are the icon names, so the gallery globs them rather than reading a
+# generated list that could drift.
+ICON_SRC_DIR = Path(__file__).parents[3] / "static" / "icons" / "src"
 
 
 def _clean_default(value):
@@ -71,11 +299,12 @@ def _clean_declaration(decl):
     }
 
 
+@cache
 def load_components():
-    """Index cleaned component API data by tag name from the generated manifest.
+    """Component API data by tag name, from the generated manifest.
 
-    Returns an empty dict if the manifest is missing or unreadable so the design
-    page still renders its hand-written live demos, minus the API tables.
+    Cached: it's a build artifact, so it can't change without a restart. Returns
+    empty if unreadable, leaving the live demos minus their API tables.
     """
     try:
         manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -93,11 +322,71 @@ def load_components():
     return components
 
 
-class home(delegate.page):
+@cache
+def load_icons() -> list[str]:
+    """The sorted icon names, taken from the source SVG file names.
+
+    Cached because the set is fixed for the life of the process. A missing
+    directory renders an empty gallery rather than 500ing.
+    """
+    if not (names := sorted(path.stem for path in ICON_SRC_DIR.glob("*/*.svg"))):
+        logger.warning("No icon sources found at %s — the icon gallery will be empty.", ICON_SRC_DIR)
+    return names
+
+
+def _component_groups() -> tuple[tuple[str, list[Component]], ...]:
+    """COMPONENTS bucketed by group, in registry order — Jinja's ``groupby``
+    sorts alphabetically, scrambling the deliberate ordering."""
+    grouped: dict[str, list[Component]] = {}
+    for component in COMPONENTS:
+        grouped.setdefault(component.group, []).append(component)
+    return tuple(grouped.items())
+
+
+# Derived from a module constant, so it is one too rather than per-request work.
+COMPONENT_GROUPS = _component_groups()
+
+
+@dataclass
+class DesignContext:
+    """Everything the shell and one section's body need to render."""
+
+    section: Section
+    sections: tuple[Section, ...] = SECTIONS
+    groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
+    api: dict = field(default_factory=dict)
+    token_categories: list = field(default_factory=list)
+    icons: list[str] = field(default_factory=list)
+
+
+def build_context(section_id: str) -> DesignContext:
+    section = next(candidate for candidate in SECTIONS if candidate.id == section_id)
+    context = DesignContext(section=section)
+    if section_id == "foundations":
+        context.token_categories = load_token_categories()
+    elif section_id == "components":
+        # Playground renders no API tables, so it pays for none.
+        context.api = load_components()
+    elif section_id == "icons":
+        context.icons = load_icons()
+        # <ol-icon> is one of three ways to draw a glyph, so the Icons section
+        # carries its API table too — the Components row only points here.
+        context.api = load_components()
+    return context
+
+
+class design(delegate.page):
     path = "/developers/design"
 
     def GET(self):
-        return render_template("design", load_components())
+        return render_template("design", build_context("components"))
+
+
+class design_section(delegate.page):
+    path = r"/developers/design/(components|foundations|icons|playground)"
+
+    def GET(self, section_id):
+        return render_template("design", build_context(section_id))
 
 
 def setup():

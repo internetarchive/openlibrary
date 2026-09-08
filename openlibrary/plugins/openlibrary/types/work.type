@@ -236,6 +236,16 @@
                 "key": "/type/property"
             },
             "name": "subgenres"
+        },
+        {
+            "expected_type": {
+                "key": "/type/tag"
+            },
+            "unique": false,
+            "type": {
+                "key": "/type/property"
+            },
+            "name": "audiences"
         }
     ],
     "revision": 14

@@ -84,7 +84,7 @@ button.larger {
 .valid,
 .darkgreen,
 .pos {
-  color: var(--dark-green) !important;
+  color: var(--color-success-fg) !important;
 }
 
 .black {
@@ -108,7 +108,7 @@ button.larger {
 }
 
 .lightgreen {
-  color: var(--olive) !important;
+  color: var(--color-success-fg) !important;
 }
 .lightgrey,
 .lightgray {
@@ -116,7 +116,7 @@ button.larger {
 }
 
 .blue {
-  color: var(--link-blue) !important;
+  color: var(--color-link) !important;
 }
 
 .invalid,
@@ -139,12 +139,12 @@ button.larger {
 .lighter,
 .gray,
 .grey {
-  color: var(--grey) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .darkgray,
 .darkgrey {
-  color: var(--dark-grey) !important;
+  color: var(--color-text) !important;
 }
 
 .plain {

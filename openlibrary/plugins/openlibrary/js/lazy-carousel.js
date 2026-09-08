@@ -1,5 +1,5 @@
 import {initialzeCarousels} from './carousel';
-import { buildPartialsUrl } from './utils';
+import { buildPartialsUrl, whenVisible } from './utils';
 
 let relatedBooksTracked = false;
 let bannerClicked = false;
@@ -17,16 +17,8 @@ document.addEventListener('click', (e) => {
  * @param elems {NodeList<HTMLElement>} Collection of placeholder carousel elements
  */
 export function initLazyCarousel(elems) {
-    // Create intersection observer
-    const intersectionObserver = new IntersectionObserver(intersectionCallback, {
-        root: null,
-        rootMargin: '200px',
-        threshold: 0
-    });
-
     elems.forEach(elem => {
-        // Observe element for intersections
-        intersectionObserver.observe(elem);
+        whenVisible(elem).then(() => doFetchAndUpdate(elem));
 
         // Add retry listener
         const retryElem = elem.querySelector('.retry-btn');
@@ -71,6 +63,7 @@ function doFetchAndUpdate(target) {
         })
         .then(data => {
             const newElem = document.createElement('div');
+            newElem.className = 'lazy-carousel-loaded';
             newElem.innerHTML = data.partials.trim();
             const carouselElements = newElem.querySelectorAll('.carousel--progressively-enhanced');
             loadingIndicator.classList.add('hidden');
@@ -142,22 +135,4 @@ function handleRetry(target) {
         carouselFallbackElem.classList.add('hidden');
     }
     doFetchAndUpdate(target);
-}
-
-/**
- * Callback used by the lazy-loaded carousel intersection observer.
- *
- * Unregisters target from observer and fetches carousel HTML.
- *
- * @param entries {Array<IntersectionObserverEntry>}
- * @param observer {IntersectionObserver}
- */
-function intersectionCallback(entries, observer) {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const target = entry.target;
-            observer.unobserve(target);
-            doFetchAndUpdate(target);
-        }
-    });
 }

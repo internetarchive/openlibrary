@@ -1,7 +1,14 @@
 from unittest.mock import patch
 
-from scripts.monitoring.utils import bash_run, limit_server
+from scripts.monitoring.utils import bash_run, graphite_safe, limit_server
 from scripts.utils.scheduler import OlAsyncIOScheduler
+
+
+def test_graphite_safe():
+    assert graphite_safe("nginx-429") == "nginx-429"
+    assert graphite_safe("Bontent/1.0") == "Bontent_1_0"
+    assert graphite_safe("a..b  c") == "a_b_c"
+    assert graphite_safe(".leading.and.trailing.") == "leading_and_trailing"
 
 
 def test_bash_run():

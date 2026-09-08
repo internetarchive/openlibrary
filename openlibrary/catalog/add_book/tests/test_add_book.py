@@ -713,7 +713,7 @@ def test_extra_author(mock_site, add_languages):
                     "When it first became known to Europe that a new continent had "
                     "been discovered, the wise men, philosophers, and especially the "
                     "learned ecclesiastics, were sorely perplexed to account for such "
-                    "a discovery.",
+                    "a discovery."
                 ),
             },
             "subject_places": [
@@ -997,7 +997,7 @@ def test_same_twice(mock_site, add_languages):
         "description": (
             "A macabre mash-up of the children's classic Pat the Bunny and the "
             "present-day zombie phenomenon, with the tactile features of the original "
-            "book revoltingly re-imagined for an adult audience.",
+            "book revoltingly re-imagined for an adult audience."
         ),
         "title": "Pat The Zombie",
         "isbn_13": ["9781607740360"],

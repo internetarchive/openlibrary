@@ -20,7 +20,7 @@
 pre-commit run --files <file1> <file2> ...
 ```
 
-The `mypy` and `generate-pot` hooks will fail on the host (they need `infogami` which only lives in Docker) — that's expected. Everything else must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
+Every hook passes on the host, `mypy` and `generate-pot` included — pre-commit builds an isolated environment per hook, so none of them need Docker. Run `make git` first, though. Both of those hooks read `infogami`, a symlink into the `vendor/infogami` submodule, so while that submodule is unchecked out they fail with `Cannot read file 'infogami'` and `ModuleNotFoundError: No module named 'infogami'`. Everything must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
 
 - **Double quotes** — use `"string"` not `'string'` in all new Python code (the Ruff formatter enforces this)
 - **Import order** — imports must be sorted: stdlib → third-party (alphabetical within each group) → local (ruff isort enforces this)
@@ -91,17 +91,17 @@ cat /tmp/cookies.txt
 2. **Use the session cookie in subsequent requests:**
 ```bash
 # Just use -b to send the cookie automatically (no manual extraction needed)
-curl -X POST "http://localhost:18080/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
-curl "http://localhost:18080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
+curl -X POST "http://localhost:8080/people/openlibrary/lists/OL1L/delete.json" -b /tmp/cookies.txt
+curl "http://localhost:8080/people/openlibrary/lists/OL1L.json" -b /tmp/cookies.txt
 ```
 
-**Note:** Sessions expire — always login fresh before testing. Both web.py (port 8080) and FastAPI (port 18080) share the same auth system.
+**Note:** Sessions expire — always login fresh before testing. In local dev, FastAPI serves on port 8080 and proxies unmatched requests to web.py; both share the same auth system.
 
 ### FastAPI and web.py Interaction
 
-Open Library runs two web servers in parallel:
-- **web.py** (port 8080) — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI
-- **FastAPI** (port 18080) — New async endpoints via nginx proxy
+Open Library runs two web servers:
+- **FastAPI** — primary entry point in local dev (port 8080); unmatched requests proxy to web.py via `openlibrary/fastapi/proxy.py`. All new endpoints go here.
+- **web.py** — **Legacy** (web.py / Infogami) — no new endpoints here, use FastAPI. In local dev it is reached through the FastAPI fallback proxy; in production/staging it is still the front door on port 8080 (FastAPI on 18080).
 
 When testing:
 - Both servers share the same database

@@ -17,13 +17,13 @@ from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
-    get_amazon_metadata,
+    get_amazon_metadata_async,
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import render_macro
+from openlibrary.plugins.upstream.utils import entity_decode, json_encode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
@@ -79,7 +79,8 @@ class MyBooksDropperListsPartial:
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
 
-        dropper = render_template("lists/dropper_lists", user_lists)
+        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
+        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -89,7 +90,7 @@ class MyBooksDropperListsPartial:
         }
 
         return {
-            "dropper": str(dropper),
+            "dropper": dropper,
             "listData": list_data,
         }
 
@@ -337,7 +338,7 @@ class AffiliateLinksPartial:
         if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not bwb_metadata or not bwb_metadata.get("market_price"):
-                amz_metadata = get_amazon_metadata(isbn, resources="prices")
+                amz_metadata = await get_amazon_metadata_async(isbn, resources="prices")
 
         if bwb_metadata and "error" in bwb_metadata:
             bwb_metadata = None
@@ -401,9 +402,49 @@ class SearchFacetsPartial:
 
         return {
             "sidebar": str(sidebar),
-            "title": active_facets.title,
+            # Templetor's `$var title:` HTML-escapes its value; unescape it
+            # since search.js assigns this straight to document.title (#9787).
+            "title": entity_decode(active_facets.title),
             "activeFacets": str(active_facets).strip(),
         }
+
+
+class SubjectPublishingHistoryPartial:
+    """Handler for the subject page's publishing-history chart."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=[{"name": "publish_year", "limit": -1}],
+            request_label="SUBJECT_PUBLISHING_HISTORY",
+        )
+        template = get_jinja_env().get_template("PublishingHistory.html.jinja")
+        html = template.render(
+            publishing_history_json=json_encode(subject.get("publishing_history", [])),
+            async_load=False,
+            key_json=json_encode(key),
+        )
+        return {"partials": html}
+
+
+class SubjectRelatedPartial:
+    """Handler for the subject page's related subjects/places/people/times widget."""
+
+    @classmethod
+    async def generate_async(cls, key: str) -> dict:
+        subject = await get_subject_async(
+            key,
+            details=True,
+            limit=0,
+            facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
+            request_label="SUBJECT_RELATED",
+        )
+        template = get_jinja_env().get_template("RelatedSubjects.html.jinja")
+        html = template.render(page=subject, async_load=False, key=key)
+        return {"partials": html}
 
 
 @dataclass

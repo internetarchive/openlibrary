@@ -51,7 +51,7 @@ div.tutorial__item img {
 /* stylelint-disable selector-max-specificity */
 div.chartHome a:hover,
 #home-stats-charts .statschart:hover a {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 
@@ -135,7 +135,7 @@ div.chartHome a:hover,
   font-size: 18px;
   line-height: var(--line-height-body);
   font-family: var(--font-family-serif);
-  color: var(--dark-grey);
+  color: var(--color-text);
   font-weight: normal;
 }
 /* stylelint-enable selector-max-specificity */

@@ -8,12 +8,16 @@ $def render_carousel_cover(book, lazy, index):
   $ title = book.title
 
   $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
-  $if book.get('cover_url'):
+  $if hasattr(book, 'get_cover_url') and book.get_cover_url('M'):
+    $ cover_url = book.get_cover_url('M')
+  $elif book.get('cover_url'):
     $ cover_url = book.get('cover_url')
   $elif cover_id and cover_id != -1:
     $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
   $elif book.get('ia'):
     $ cover_url = 'https://archive.org/download/%s/page/cover_w180_h360.jpg'% book.get('ia')[0]
+  $elif book.get('ocaid'):
+    $ cover_url = 'https://archive.org/download/%s/page/cover_w180_h360.jpg'% book.get('ocaid')
   $elif book.get('cover_edition_key'):
     $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
   $else:
@@ -66,7 +70,7 @@ $if test or (books and len(books) >= min_books):
     <div class="carousel-section" style="overflow: hidden">
       $if title and url:
         <div class="carousel-section-header">
-          <a name="$key" href="$url">$title<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+          <a name="$key" href="$url">$title$:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")</a>
         </div>
       <div class="mybooks-mobile">
         <div class="showcase showcase--$key">

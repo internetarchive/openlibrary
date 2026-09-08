@@ -51,7 +51,10 @@ import _ from 'lodash';
 
 export default {
     props: {
-        roles: Array
+        roles: {
+            type: Array,
+            default: () => []
+        }
     },
     computed: {
         fields() {

@@ -9,7 +9,7 @@ ul.listLists {
 }
 ul.listLists span {
   display: block;
-  color: var(--grey);
+  color: var(--color-text-secondary);
 }
 ul.listLists li {
   /* See #1388

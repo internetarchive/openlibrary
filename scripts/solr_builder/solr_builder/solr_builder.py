@@ -382,7 +382,7 @@ def build_job_query(
     return f"{q_select} {q_where} {q_order} {q_offset} {q_limit}"
 
 
-async def main(
+async def main(  # noqa: PLR0917 - CLI entrypoint with many optional flags
     cmd: Literal["index", "fetch-end"],
     job: Literal["works", "orphans", "authors", "lists"],
     osp_dump: Path | None = None,

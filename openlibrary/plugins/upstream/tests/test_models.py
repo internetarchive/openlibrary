@@ -163,7 +163,7 @@ class TestEdition:
         ed = self._make_edition(ocaid="testitem00archive")
         with (
             patch("openlibrary.core.lending.is_loaned_out", return_value=False),
-            patch("openlibrary.plugins.upstream.borrow.is_loaned_out", return_value=False),
+            patch("openlibrary.plugins.upstream.models.lending.is_loaned_out_on_ia", return_value=False),
         ):
             loans = ed.get_available_loans()
         assert len(loans) == 1

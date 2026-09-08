@@ -11,8 +11,11 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    ports:
+      - ${WEB_PORT:-8080}:8080
     environment:
       - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
@@ -27,8 +30,11 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
+    ports:
+      - ${FAST_WEB_PORT:-18080}:8080
     environment:
       - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - OL_DEPLOYMENT_NAME=production
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
@@ -375,6 +381,28 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Needed to inspect fail2ban since it runs on the host
       - /var/run/fail2ban:/var/run/fail2ban
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  node-exporter:
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
+    image: prom/node-exporter:v1.12.1
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    # Needed to see the host's network/PIDs instead of the container's
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|run)($$|/)
     logging:
       options:
         max-size: "512m"

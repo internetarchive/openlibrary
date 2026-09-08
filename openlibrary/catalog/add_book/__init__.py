@@ -60,7 +60,7 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_accents
-from openlibrary.utils import dicthash, uniq
+from openlibrary.utils import dicthash, extract_numeric_id_from_olid, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
 from openlibrary.utils.request_context import site
@@ -997,6 +997,73 @@ def should_overwrite_promise_item(edition: Edition, from_marc_record: bool = Fal
 
 
 def load(
+    rec: dict,
+    account_key=None,
+    from_marc_record: bool = False,
+    save: bool = True,
+) -> dict:
+    """Add/match an edition, then upsert any provider ``acquisitions`` it carries.
+
+    ``acquisitions`` is not edition data — it is pulled off the record and, once
+    the edition/work are created or matched, written to the acquisitions table
+    keyed on ``(provider_name, local_id)`` with the resolved work/edition ids.
+    The catalog logic itself lives in :func:`_load`. (#12844)
+    """
+    acquisitions = rec.pop("acquisitions", None)
+    reply = _load(rec, account_key=account_key, from_marc_record=from_marc_record, save=save)
+    if acquisitions and save and reply.get("success"):
+        _save_acquisitions(reply, acquisitions)
+    return reply
+
+
+def _save_acquisitions(reply: dict, acquisitions: list[dict]) -> None:
+    """Upsert acquisition rows for a just-created/matched edition (#12844).
+
+    Guard: an acquisition is only written when its ``provider_name`` names a
+    feed registered in ``feed_registry``. ImportBot posts feed records to the
+    (privileged, ``can_write``-gated) ``/api/import`` endpoint, so the trust
+    boundary can't be the endpoint — it's feed-registry membership. Acquisitions
+    naming an unregistered provider are dropped, so a caller cannot mint
+    acquisitions for an arbitrary (unregistered) provider.
+
+    Scope of the guarantee (v1): this checks the provider *name* only. It does
+    NOT validate the acquisition's ``local_id`` against the record's identifiers
+    or constrain ``data.url``/price. A privileged import caller is therefore
+    trusted not to forge acquisition *content* for a registered provider;
+    tightening that is deferred. Acquisitions missing the required keys are
+    skipped rather than raising.
+
+    The ``FeedRegistry.provider_names()`` read is unguarded ON PURPOSE — unlike
+    ``import_validator`` (which keeps a try/except because validation runs in
+    DB-less contexts), this only runs inside the import pipeline where the DB and
+    ``feed_registry`` table always exist. Don't add a guard here; don't remove
+    the validator's.
+    """
+    from openlibrary.bookworm.registry import FeedRegistry
+    from openlibrary.core.acquisitions import Acquisition
+
+    registered = FeedRegistry.provider_names()
+    work_id = int(extract_numeric_id_from_olid(reply["work"]["key"]))
+    edition_id = int(extract_numeric_id_from_olid(reply["edition"]["key"]))
+    for acq in acquisitions:
+        provider_name = acq.get("provider_name")
+        local_id = acq.get("local_id")
+        if not provider_name or not local_id:
+            logger.warning("Skipping malformed acquisition (missing provider_name/local_id): %r", acq)
+            continue
+        if provider_name not in registered:
+            logger.warning("Dropping acquisition for unregistered provider %r", provider_name)
+            continue
+        Acquisition.upsert(
+            work_id=work_id,
+            edition_id=edition_id,
+            provider_name=provider_name,
+            local_id=local_id,
+            data=acq.get("data") or {},
+        )
+
+
+def _load(
     rec: dict,
     account_key=None,
     from_marc_record: bool = False,

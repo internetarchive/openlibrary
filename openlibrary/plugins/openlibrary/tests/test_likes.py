@@ -6,8 +6,12 @@ import pytest
 import web
 
 from openlibrary.core.likes import Likes
-from openlibrary.plugins.openlibrary.tests.test_followsapi import FakeUser
 from openlibrary.plugins.upstream.likes import get_likes_record, get_patron_likes, likes_control
+
+
+class FakeUser:
+    def __init__(self, key):
+        self.key = f"/people/{key}"
 
 
 def test_like():

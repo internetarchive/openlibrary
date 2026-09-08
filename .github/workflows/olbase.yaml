@@ -20,21 +20,22 @@ jobs:
       TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
+          persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push amd64
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
@@ -50,21 +51,22 @@ jobs:
       TAG_NAME: ${{ github.ref == 'refs/heads/master' && 'latest' || github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
+          persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: "."
           file: "./docker/Dockerfile.olbase"
@@ -81,7 +83,7 @@ jobs:
 
     steps:
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -89,12 +91,12 @@ jobs:
       - name: Combine the manifests of the amd and arm images in a manifest
         run: |
           # Pull out the digests
-          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ env.TAG_NAME }} | jq -r '.manifests[0].digest')
-          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:${{ env.TAG_NAME }}-arm64 | jq -r '.manifests[0].digest')
+          AMD64_DIGEST=$(docker manifest inspect openlibrary/olbase:${TAG_NAME} | jq -r '.manifests[0].digest')
+          ARM64_DIGEST=$(docker manifest inspect openlibrary/olbase:${TAG_NAME}-arm64 | jq -r '.manifests[0].digest')
 
-          docker manifest create openlibrary/olbase:${{ env.TAG_NAME }} \
+          docker manifest create openlibrary/olbase:${TAG_NAME} \
             openlibrary/olbase@${AMD64_DIGEST} \
             openlibrary/olbase@${ARM64_DIGEST}
-          docker manifest annotate openlibrary/olbase:${{ env.TAG_NAME }} openlibrary/olbase@${AMD64_DIGEST}
-          docker manifest annotate openlibrary/olbase:${{ env.TAG_NAME }} openlibrary/olbase@${ARM64_DIGEST}
-          docker manifest push openlibrary/olbase:${{ env.TAG_NAME }}
+          docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${AMD64_DIGEST}
+          docker manifest annotate openlibrary/olbase:${TAG_NAME} openlibrary/olbase@${ARM64_DIGEST}
+          docker manifest push openlibrary/olbase:${TAG_NAME}

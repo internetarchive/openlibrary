@@ -13,7 +13,7 @@
         :merged="merged"
         :cell-selected="cellSelected"
         :class="{ [`wrap-${field.replace(/\|/g, '--')}`]: true }"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
       />
       <MergeRowField
         v-else-if="field in record"
@@ -21,7 +21,7 @@
         :value="record[field]"
         :merged="merged"
         :class="{ selected: cellSelected && cellSelected(record, field) }"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
       />
       <MergeRowEditionField
         v-else-if="field == 'editions'"
@@ -67,24 +67,29 @@ export default {
         },
         editions: {
             type: Array,
+            required: true
         },
         lists: {
             type: Object,
+            default: null
         },
         bookshelves: {
             type: Object,
+            default: null
         },
         ratings: {
             type: Object,
+            default: null
         },
         cellSelected: {
-            type: Function
+            type: Function,
+            default: null
         },
         merged: {
             type: Object,
-            required: false
+            default: null
         },
-        show_diffs: {
+        showDiffs: {
             type: Boolean
         }
     },

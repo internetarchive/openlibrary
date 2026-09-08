@@ -1,5 +1,5 @@
 name: new_pr_labeler
-on:
+on:  # zizmor: ignore[dangerous-triggers] -- FIX ME!
   pull_request_target:
     types:
       - opened
@@ -18,19 +18,22 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v5
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         id: cache-octokit
         with:
           path: 'node_modules'
           # Cache key shared across workflows
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
-        run: npm install @octokit/action
-      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${{ github.event.pull_request.user.login }} ${{ github.event.pull_request.number }} "$PR_BODY"
+        run: npm install @octokit/action  # zizmor: ignore[adhoc-packages]
+      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${GITHUB_EVENT_PULL_REQUEST_USER_LOGIN} ${{ github.event.pull_request.number }} "$PR_BODY"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_EVENT_PULL_REQUEST_USER_LOGIN: ${{ github.event.pull_request.user.login }}

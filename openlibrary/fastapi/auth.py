@@ -165,3 +165,31 @@ async def require_librarian(
 
 
 LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]
+
+
+async def require_maintainer(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency that requires maintainer-level access.
+
+    Checks that the authenticated user is a member of the maintainers or admin
+    usergroup. Returns 403 if the user lacks sufficient permissions.
+
+    Usage:
+        @router.get("/protected")
+        async def protected_route(
+            _: Annotated[AuthenticatedUser, Depends(require_maintainer)],
+        ):
+            return {"message": "You have maintainer access!"}
+    """
+    user = get_current_user()
+    if not (user and user.is_maintainer()):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
+MaintainerDep = Annotated[AuthenticatedUser, Depends(require_maintainer)]

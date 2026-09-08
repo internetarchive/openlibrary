@@ -10,7 +10,7 @@
 }
 
 .link-box h3 {
-  color: var(--grey);
+  color: var(--color-text-secondary);
   margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   text-transform: uppercase;
@@ -26,6 +26,12 @@
   border: none;
   background: none;
   cursor: pointer;
+  padding: 0;
+  color: var(--grey);
+}
+
+.link-box .edit-subject-btn:hover {
+  color: var(--dark-grey);
 }
 
 .link-box .clamp h3 {

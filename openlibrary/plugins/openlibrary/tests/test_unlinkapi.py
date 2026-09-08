@@ -102,12 +102,14 @@ def test_post_passes_comment_through_to_make_dark():
         mock_verify.return_value = True
         mock_web_ctx.site = MagicMock()
         mock_web_ctx.site.things.side_effect = [["/books/OL1M"], []]
-        mock_web_ctx.site.get.return_value = FakeEdition({"key": "/books/OL1M"})
+        edition = FakeEdition({"key": "/books/OL1M"})
+        mock_web_ctx.site.get_many.return_value = [edition]
 
         result = json.loads(unlink_ia_ol().POST()["rawtext"])
 
         assert result == {"status": "ok"}
-        mock_make_dark.assert_called_once_with(mock_web_ctx.site.get.return_value, "foo123", "Wrong item, mismatched during digitization")
+        mock_web_ctx.site.get_many.assert_called_once_with(["/books/OL1M"])
+        mock_make_dark.assert_called_once_with(edition, "foo123", "Wrong item, mismatched during digitization")
 
 
 def test_post_missing_comment_passes_empty_string_through():
@@ -122,8 +124,10 @@ def test_post_missing_comment_passes_empty_string_through():
         mock_verify.return_value = True
         mock_web_ctx.site = MagicMock()
         mock_web_ctx.site.things.side_effect = [["/books/OL1M"], []]
-        mock_web_ctx.site.get.return_value = FakeEdition({"key": "/books/OL1M"})
+        edition = FakeEdition({"key": "/books/OL1M"})
+        mock_web_ctx.site.get_many.return_value = [edition]
 
         json.loads(unlink_ia_ol().POST()["rawtext"])
 
-        mock_make_dark.assert_called_once_with(mock_web_ctx.site.get.return_value, "foo123", "")
+        mock_web_ctx.site.get_many.assert_called_once_with(["/books/OL1M"])
+        mock_make_dark.assert_called_once_with(edition, "foo123", "")

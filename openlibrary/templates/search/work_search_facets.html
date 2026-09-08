@@ -76,6 +76,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
         $:_('Focus your results using these <a href="/search/howto">filters</a>')
     </div>
+    <p class="search-facets-error ui-helper-hidden" role="status">$_('Search filters are temporarily unavailable. Please try again later.')</p>
     $for header, label in get_facet_map():
         $# Readability (has_fulltext) is owned by the "Readable Only" toggle in
         $# the filter row now, so it's no longer offered as a sidebar facet.

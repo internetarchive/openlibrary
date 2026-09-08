@@ -1,12 +1,12 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, lending_state=None)
+$def with (doc, work_key=None, listen=True, secondary_action=False, check_loan_status=False, user_lists=None, post='', is_book_page=False, analytics_override=None, lending_state=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
-$# * allow_expensive_availability_check - whether to check the groundtruth availability
-$#     if can't get availability from specified fields
 $# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_loan_status - whether to check the user's loan status to determine read button
+$# * lending_state - pass in when already resolved (e.g. /works and /books
+$#     pages, via prepare_book_page()) to avoid recomputing it below
 
 $ loanstatus_start_time = time()
 
@@ -16,10 +16,6 @@ $ work_key = work_key or (doc.get('works') and doc.works[0]['key'])
 $ book_title = doc.get('title') if hasattr(doc, 'get') else getattr(doc, 'title', None)
 
 $ user = get_current_user()
-
-$# Replace existing, possibly inaccurate, availability with results ground truth availability API call:
-$if allow_expensive_availability_check and ocaid:
-  $ availability.update(get_cached_groundtruth_availability(ocaid))
 
 $if lending_state is None:
   $ lending_state = get_lending_state(doc, user=user, check_loan_status=check_loan_status)
@@ -54,14 +50,16 @@ $if is_edition:
 
 $def analytics_attr(action):
   $if analytics_override:
-    data-ol-link-track="$analytics_override"
+    data-ol-link-track="$(analytics_override.replace('{action}', action))"
   $else:
     data-ol-link-track="CTAClick|$action"
 
 $if lending_state == 'borrowed':
+  $if secondary_action:
+    $:macros.PreviewSearchInside(ocaid)
   $:macros.ReadButton(ocaid, analytics_attr, loan=user_loan, listen=listen, edition_key=edition_key, book_title=book_title)
   $if secondary_action:
-    $:macros.ReturnForm(ocaid, user_loan['expiry'])
+    $:macros.ReturnForm(ocaid, user_loan['expiry'], analytics_track="LoanStatus|ReturnClick")
 
 $elif lending_state == 'partner':
   $# Partner Trusted Book Provider Read Buttons
@@ -69,9 +67,9 @@ $elif lending_state == 'partner':
 
 $elif lending_state == 'open':
   $# Open / Publicly Readable (Unrestricted)
-  $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
+  $:macros.ReadButton(ocaid, analytics_attr, listen=listen, edition_key=edition_key, book_title=book_title)
 
 $elif lending_state == 'printdisabled':
   $# Exemptions for patrons with Print Disabilities
@@ -149,9 +147,17 @@ $elif lending_state == 'checkedout':
   </div>
 
 $elif lending_state == 'preview_only':
-  $:macros.BookPreview(ocaid, show_only=True)
+  $# PreviewSearchInside already provides a Preview button, so the secondary
+  $# case only needs a note explaining why there's no Read/Borrow button.
   $if secondary_action:
     $:macros.PreviewSearchInside(ocaid)
+    <div class="cta-button-group">
+      <p class="waitinglist-message">
+        <span>$_("Only a preview is available.")</span>
+      </p>
+    </div>
+  $else:
+    $:macros.BookPreview(ocaid, show_only=True)
 
 $else:
   $# Only render LocateButton instead of NotInLibrary when not on an edition's page, for that specific edition.
