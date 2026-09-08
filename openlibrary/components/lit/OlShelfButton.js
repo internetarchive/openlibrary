@@ -43,7 +43,10 @@ export const DEFAULT_LABELS = {
  * @prop {String} editionKey - "OL…M", recorded with the shelf change when known
  * @prop {String} bookTitle - Used in the accessible labels. Named `book-title`
  *     because a `title` attribute would draw a native browser tooltip
- * @prop {Number} shelf - Current shelf id (1–4), or null when on none
+ * @prop {Number} shelf - Current shelf id (1–4), or null when on none.
+ *     Reflected, so the page's CSS can tell a saved book from an unsaved one
+ *     (`ol-shelf-button[shelf]`) — a carousel keeps the saved mark visible
+ *     and shows the rest on hover
  * @prop {Number} rating - Current rating (1–5), or null. Passed through to the
  *     popover and echoed on every state change
  * @prop {String} readDate - Check-in date, whole or partial, shown on the
@@ -72,7 +75,7 @@ export class OlShelfButton extends LitElement {
         workKey: { type: String, attribute: 'work-key' },
         editionKey: { type: String, attribute: 'edition-key' },
         bookTitle: { type: String, attribute: 'book-title' },
-        shelf: { type: Number },
+        shelf: { type: Number, reflect: true },
         rating: { type: Number },
         readDate: { type: String, attribute: 'read-date' },
         eventId: { type: Number, attribute: 'event-id' },

@@ -81,6 +81,14 @@ describe('ol-shelf-button shapes', () => {
         expect(q(icon, 'ol-icon').hasAttribute('filled')).toBe(true);
     });
 
+    test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
+        const el = await mount({ shelf: SHELF.WANT_TO_READ });
+        expect(el.getAttribute('shelf')).toBe('1');
+        el.shelf = null;
+        await el.updateComplete;
+        expect(el.hasAttribute('shelf')).toBe(false);
+    });
+
     test('labels override the shelf names', async() => {
         const el = await mount({ userKey: '/people/tester', labels: { wantToRead: 'À lire' } });
         expect(q(el, '.main').textContent.trim()).toBe('À lire');
