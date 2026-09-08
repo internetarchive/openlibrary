@@ -255,6 +255,27 @@
   right: 0;
 }
 
+/* On a fine pointer the bookmark waits for intent: hover or focus (which also
+   holds it while its popover is open). Once the book is on a shelf the filled
+   mark stays, as status. Touch has nothing to hover, so it is always shown. */
+@media (hover: hover) and (pointer: fine) {
+  .book-cover-wrapper > ol-shelf-button:not([shelf]) {
+    opacity: 0;
+    transition: opacity 0.12s ease-out;
+  }
+
+  .book-cover-wrapper:hover > ol-shelf-button,
+  .book-cover-wrapper > ol-shelf-button:focus-within {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-cover-wrapper > ol-shelf-button:not([shelf]) {
+    transition: none;
+  }
+}
+
 .loan-overlay-badge__waitlist {
   color: var(--soft-green);
   font-size: 0.9em;
