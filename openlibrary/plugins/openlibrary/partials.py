@@ -370,7 +370,6 @@ class SearchFacetsPartial:
 
         return {
             "sidebar": sidebar,
-            # Plain text; search.js assigns it straight to document.title (#9787).
             "title": active_facets.title,
             "activeFacets": active_facets.html.strip(),
         }
