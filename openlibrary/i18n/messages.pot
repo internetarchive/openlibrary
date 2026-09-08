@@ -8194,11 +8194,6 @@ msgstr ""
 msgid "Bookshop.org"
 msgstr ""
 
-#: openlibrary/plugins/worksearch/facets.py
-#, python-format
-msgid "%(title)s - search"
-msgstr ""
-
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
 msgstr ""
@@ -8403,5 +8398,10 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/facets.py
+#, python-format
+msgid "%(title)s - search"
 msgstr ""
 
