@@ -246,6 +246,15 @@
   max-width: 100%;
 }
 
+/* The save bookmark floats over the cover's top-right corner; its visible
+   circle is inset 4px inside the 32px hit target. The loan badge keeps the
+   bottom edge. */
+.book-cover-wrapper > ol-shelf-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 .loan-overlay-badge__waitlist {
   color: var(--soft-green);
   font-size: 0.9em;

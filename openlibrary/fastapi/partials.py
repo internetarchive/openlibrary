@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
+from pydantic import BaseModel, BeforeValidator
 
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
+from openlibrary.fastapi.models import parse_comma_separated_list
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
@@ -21,6 +24,7 @@ from openlibrary.plugins.openlibrary.partials import (
     LazyCarouselPartial,
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
+    ReadingStatePartial,
     SearchFacetsPartial,
     SubjectPublishingHistoryPartial,
     SubjectRelatedPartial,
@@ -151,6 +155,50 @@ async def my_books_dropper_lists_partial(
     # Despite the fact we are not yet using the user directly, it gives us faster
     # auth checking and api documentation.
     return MyBooksDropperListsPartial.generate()
+
+
+MAX_READING_STATE_WORKS = 100
+WORK_OLID = re.compile(r"^OL\d+W$")
+
+
+def parse_work_olids(v: str | list[str]) -> list[str]:
+    """Comma-separated work OLIDs; anything that is not one is a 422, not a 500."""
+    olids = [olid.strip() for olid in parse_comma_separated_list(v) if olid.strip()]
+    if bad := [olid for olid in olids if not WORK_OLID.match(olid)]:
+        raise ValueError(f"Not a work OLID: {bad[0]}")
+    return olids
+
+
+class ReadingStateEntry(BaseModel):
+    shelf: int | None
+    rating: int | None
+    read_date: str | None
+    event_id: int | None
+
+
+class ReadingStateResponse(BaseModel):
+    user_key: str
+    works: dict[str, ReadingStateEntry]
+
+
+@router.get("/partials/ReadingState.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def reading_state_partial(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    work_ids: Annotated[
+        list[str],
+        BeforeValidator(parse_work_olids),
+        Query(description="Comma-separated work OLIDs, e.g. OL1W,OL2W", max_length=MAX_READING_STATE_WORKS),
+    ],
+) -> ReadingStateResponse:
+    """
+    The current user's shelf, rating and last finish date for each work, keyed by OLID.
+
+    Every requested work is present, with nulls where the reader has no state.
+    `<ol-shelf-button>`s the server rendered without state (carousels) are
+    hydrated from this by book-state.js.
+    """
+    states = ReadingStatePartial.generate(user.username, work_ids)
+    return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

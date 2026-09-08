@@ -49,6 +49,9 @@ $if test or (books and len(books) >= min_books):
                               target_data = docs[0]
               $ book2 = target_data if hasattr(target_data, 'key') else storage(target_data)
               $ book2['authors'] = book.get('authors', [])
+              $if target_data is not book:
+                $# An edition doc carries no work key; the shelf button needs it.
+                $ book2['work_key'] = book.get('key')
               $ loan = book.get('loan')
               $if loan:
                 $ book2['loan'] = loan

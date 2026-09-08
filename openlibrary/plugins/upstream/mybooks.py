@@ -24,6 +24,7 @@ from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import add_availability, get_loan_history_data, get_loans_of_user
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -604,6 +605,35 @@ def add_read_statuses(username, works):
         work_olid = work.key.split("/")[-1]
         work["readinglog"] = results_map.get(work_olid)
     return works
+
+
+def work_key_of(doc) -> str | None:
+    """The work behind a Solr doc, work or edition; None for anything else (an author, a subject)."""
+    key = doc.get("key") if hasattr(doc, "get") else getattr(doc, "key", None)
+    if not key:
+        return None
+    if key.startswith("/works/"):
+        return key
+    if key.startswith("/books/") and (works := doc.get("works")):
+        work = works[0]
+        return work.key if hasattr(work, "key") else work.get("key")
+    return None
+
+
+@public
+def reading_state_for(docs) -> dict[str, ReadingState]:
+    """The signed-in reader's shelf, rating and last finish date for the works in `docs`, keyed by work key.
+
+    Empty when signed out. One round of queries for a whole page of rows, so
+    templates call it once before their loop and pass the result down.
+    """
+    user = accounts.get_current_user()
+    if not user:
+        return {}
+    keys = {key for doc in docs if (key := work_key_of(doc))}
+    by_id = {int(extract_numeric_id_from_olid(key)): key for key in keys}
+    states = get_reading_state(user.key.split("/")[-1], list(by_id))
+    return {by_id[work_id]: state for work_id, state in states.items()}
 
 
 class PatronBooknotes:

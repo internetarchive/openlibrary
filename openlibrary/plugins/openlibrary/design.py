@@ -23,9 +23,7 @@ from pathlib import Path
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
-from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
-from openlibrary.core.ratings import Ratings
+from openlibrary.core.reading_state import get_reading_state
 from openlibrary.plugins.openlibrary.design_tokens import load_token_categories
 from openlibrary.utils import extract_numeric_id_from_olid
 
@@ -402,18 +400,8 @@ DEMO_WORK_OLIDS = ("OL69612W", "OL27448W")
 def demo_reading_state(username: str) -> dict[str, dict]:
     """The reader's shelf, rating, and last finish date for each demo work, keyed by OLID."""
     numeric_ids = [int(extract_numeric_id_from_olid(olid)) for olid in DEMO_WORK_OLIDS]
-    shelves = {row.work_id: row.bookshelf_id for row in Bookshelves.get_users_read_status_of_works(username, numeric_ids)}
-    ratings = Ratings.get_users_ratings_of_works(username, numeric_ids)
-    check_ins = {work_id: BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH) for work_id in numeric_ids}
-    return {
-        olid: {
-            "shelf": shelves.get(work_id),
-            "rating": ratings.get(work_id),
-            "read_date": check_ins[work_id]["event_date"] if check_ins[work_id] else None,
-            "event_id": check_ins[work_id]["id"] if check_ins[work_id] else None,
-        }
-        for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)
-    }
+    states = get_reading_state(username, numeric_ids)
+    return {olid: dict(states[work_id]) for olid, work_id in zip(DEMO_WORK_OLIDS, numeric_ids)}
 
 
 def build_context(section_id: str) -> DesignContext:

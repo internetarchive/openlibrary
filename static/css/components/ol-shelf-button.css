@@ -1,0 +1,18 @@
+/**
+ * ol-shelf-button — pre-upgrade sizing for the <ol-shelf-button> custom element.
+ *
+ * The component paints itself in shadow DOM (OlShelfButton.js). Until Lit
+ * upgrades it, reserve the box it will take so a row's CTA column and a
+ * cover's corner don't shift: the split shape is a medium control, the icon
+ * shape a 32px square.
+ */
+
+ol-shelf-button:not(:defined) {
+  display: block;
+  height: var(--control-height-medium);
+}
+
+ol-shelf-button[variant="icon"]:not(:defined) {
+  width: 32px;
+  height: 32px;
+}

@@ -4,6 +4,11 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
+$# book-state.js reads the reader's key to open shelf popovers on carousels,
+$# whose HTML is rendered without a reader (cached, or fetched lazily).
+$if ctx.user:
+  $bodyattrs.append('data-user-key="%s"' % ctx.user.key)
+
 $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search')):
   $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin())):
     $bodyclass.append('show-librarian-tools')
@@ -21,6 +26,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
   $if show_ol_shell:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
+    $:render_template("my_books/shelf_button_i18n")
   $# don't render test-body-mobile for iframes
   <main $:('id="test-body-mobile"' if show_ol_shell else '')>
     $if show_ol_shell:

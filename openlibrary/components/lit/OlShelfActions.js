@@ -110,6 +110,9 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @fires ol-list-created - After the inline form creates a list. Sibling
  *     popovers share the lists store and need no event; this is for surfaces
  *     outside the components. detail: { key, name, seedKey }
+ * @fires ol-list-change - After the book is put in a list or taken out of one,
+ *     for the same surfaces. detail: { key, name, seedKey, member } — `member`
+ *     is whether the book is now in the list
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -1580,6 +1583,11 @@ export class OlShelfActions extends LitElement {
             // book back out is as good a signal as putting one in.
             noteListUsed(this.userKey, listKey, name);
             trackEvent('Lists', checked ? 'AddSeed' : 'RemoveSeed');
+            this.dispatchEvent(new CustomEvent('ol-list-change', {
+                bubbles: true,
+                composed: true,
+                detail: { key: listKey, name, seedKey: this._seedKey, member: checked },
+            }));
         } catch (error) {
             this._fail(error);
         }

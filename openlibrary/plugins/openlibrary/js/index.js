@@ -407,6 +407,20 @@ jQuery(function() {
             });
     }
 
+    // Shelf buttons: hydrate the ones the server rendered without state (carousels,
+    // including ones that load later) and keep every copy of a book in step.
+    if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
+        import(/* webpackChunkName: "book-state" */ './book-state')
+            .then(module => module.initBookState());
+    }
+
+    // The lists a book is on, under the shelf button on its page:
+    const activeListsShowcase = document.querySelector('.already-lists[data-seed-keys]');
+    if (activeListsShowcase) {
+        import(/* webpackChunkName: "active-showcase" */ './lists/active-showcase')
+            .then(module => module.initActiveListsShowcase(activeListsShowcase));
+    }
+
     // My Books Droppers (includes New List Form and Reading Check-Ins):
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper');
     if (myBooksDroppers.length) {

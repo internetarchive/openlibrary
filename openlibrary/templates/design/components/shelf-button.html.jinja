@@ -39,5 +39,8 @@
         <p>
             <b>Signed in only for the popover.</b> Without <code>user-key</code> no popover is built at all; the trigger stands alone and its click goes to login. The demos above pass your key when you are signed in, so they write to your real reading log.
         </p>
+        <p>
+            <b>On the site.</b> Rows and the book page render the split shape through <code>my_books/shelf_button.html.jinja</code>, with the reader's state from <code>reading_state_for()</code> already on it. Carousel cards render the icon shape with no state at all, because their HTML is cached across readers or fetched lazily. <code>book-state.js</code> is the surface behind every button on a page: it hands out the translated labels and the reader's key, fetches the missing state in one batch from <code>/partials/ReadingState.json</code>, and writes every <code>ol-book-state-change</code> onto each button for that work — so the same book in a carousel and in a search row stay in step.
+        </p>
     </div>
 {% endmacro %}

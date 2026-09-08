@@ -13,6 +13,7 @@ from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.reading_state import ReadingState, get_reading_state
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
     amazon_affiliate_url,
@@ -38,6 +39,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
@@ -98,6 +100,19 @@ class MyBooksDropperListsPartial:
         }
 
 
+class ReadingStatePartial:
+    """The reader's opening state for a batch of `<ol-shelf-button>`s.
+
+    For the surfaces the server cannot render it into — carousels, whose HTML
+    is cached across readers or fetched lazily — book-state.js asks for it here.
+    """
+
+    @classmethod
+    def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:
+        work_ids = [int(extract_numeric_id_from_olid(olid)) for olid in work_olids]
+        return {f"OL{work_id}W": state for work_id, state in get_reading_state(username, work_ids).items()}
+
+
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
@@ -135,6 +150,8 @@ class CarouselCardPartial:
             else:
                 book = editions.get("docs", [None])[0]
             book["authors"] = work.get("authors", [])
+            # An edition doc carries no work key; the shelf button needs it.
+            book["work_key"] = work.get("key")
 
             cards.append(
                 render_template(

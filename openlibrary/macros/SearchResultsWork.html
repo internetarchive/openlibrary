@@ -1,4 +1,8 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, reading_state=None)
+
+$# reading_state: the dict reading_state_for() returns for the whole page of
+$# docs, keyed by work key — so one page is one round of queries, not one per
+$# row. Left out, the row looks its own state up.
 
 $code:
   max_rendered_authors = 9
@@ -267,7 +271,14 @@ $code:
               $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
               $if edition_key:
                 $ edition_key = '/books/%s' % edition_key
-          $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
+          $ work_key = (edition_work and edition_work.key) if doc_type == 'infogami_edition' else doc.key
+          $if work_key:
+            $ work_title = edition_work.get('title', '') if doc_type == 'infogami_edition' else doc.get('title', '')
+            $ state = (reading_state if reading_state is not None else reading_state_for([doc])).get(work_key) or {}
+            $:render_jinja_template('my_books/shelf_button.html.jinja', variant='split', work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state, hide_rating=bool(rating))
+          $else:
+            $# An orphaned edition has no work to shelve; the legacy dropper still offers its lists.
+            $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:
           $:rating

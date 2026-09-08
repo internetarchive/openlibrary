@@ -282,6 +282,26 @@ describe('ol-shelf-actions lists pane', () => {
         expect(qa(el, '.list-row .count').map(c => c.textContent)).toEqual(['2', '0']);
     });
 
+    test('toggling a checkbox announces it with ol-list-change', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group:last-child .row').click();
+        await tick(el);
+        const seen = [];
+        el.addEventListener('ol-list-change', e => seen.push(e.detail));
+        const [first, second] = qa(el, '.list-row input');
+        first.checked = true;
+        first.dispatchEvent(new Event('change'));
+        await tick(el);
+        second.checked = false;
+        second.dispatchEvent(new Event('change'));
+        await tick(el);
+        expect(seen).toEqual([
+            { key: '/people/tester/lists/OL1L', name: 'Summer 2026', seedKey: '/works/OL1W', member: true },
+            { key: '/people/tester/lists/OL2L', name: 'Sci-fi to reread', seedKey: '/works/OL1W', member: false },
+        ]);
+    });
+
     test('create list inlines an input, posts, and prepends the new list', async() => {
         stubFetch();
         const el = await mount();

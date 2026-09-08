@@ -1,0 +1,63 @@
+$def with ()
+$# Translated labels for <ol-shelf-button> and the <ol-shelf-actions> popover it
+$# opens. Rendered once per page by site/body.html; book-state.js reads the
+$# input and hands the labels to every button on the page. The keys and English
+$# source strings must match DEFAULT_LABELS in OlShelfButton.js and
+$# OlShelfActions.js. A plural set carries one form per CLDR category the page
+$# language may need; the component picks the form by count.
+$code:
+  labels = {
+      # OlShelfButton.js
+      "save": _("Save %(title)s to your reading log"),
+      "saved": _("%(title)s is on your reading log"),
+      "shelfToggle": _("%(shelf)s: %(title)s"),
+      "shelfMenu": _("More options for %(title)s"),
+      # OlShelfActions.js
+      "actionsFor": _("Actions for %(title)s"),
+      "readingLog": _("Reading log"),
+      "wantToRead": _("Want to Read"),
+      "currentlyReading": _("Currently Reading"),
+      "alreadyRead": _("Already Read"),
+      "stoppedReading": _("Stopped Reading"),
+      "addedToShelf": _("Added to %(shelf)s"),
+      "removedFromShelf": _("Removed from shelf"),
+      "rated": _("Rated %(rating)s of 5"),
+      "ratingCleared": _("Rating cleared"),
+      "dateSaved": _("Finished %(date)s"),
+      "rateThisBook": _("Rate this book"),
+      "rateStar": _("Rate %(rating)s of 5"),
+      "clearRating": _("Clear rating"),
+      "addToList": _("Add to list"),
+      "back": _("Back"),
+      "createList": _("Create a list"),
+      "listName": _("List name"),
+      "create": _("Create"),
+      "filterLists": _("Filter lists…"),
+      "createFirstList": _("Create your first list"),
+      "noMatchingLists": _("No lists match."),
+      "loadingLists": _("Loading lists…"),
+      "itemsInList": {
+          "one": ungettext("%(count)s item", "%(count)s items", 1),
+          "two": ungettext("%(count)s item", "%(count)s items", 2),
+          "few": ungettext("%(count)s item", "%(count)s items", 3),
+          "many": ungettext("%(count)s item", "%(count)s items", 11),
+          "other": ungettext("%(count)s item", "%(count)s items", 100),
+      },
+      "inLists": _("In %(count)s of your lists"),
+      "recentLists": _("Recently used"),
+      "pinnedLists": _("On this book and recently used"),
+      "otherLists": _("Other lists"),
+      "addedToList": _("Added to %(name)s"),
+      "removedFromList": _("Removed from %(name)s"),
+      "errorGeneric": _("Something went wrong. Please try again."),
+      "whenFinished": _("When did you finish this book?"),
+      "today": _("Today"),
+      "inYear": _("In %(year)s"),
+      "otherDate": _("Other date"),
+      "year": _("Year"),
+      "month": _("Month"),
+      "day": _("Day"),
+      "saveDate": _("Save"),
+      "didNotRead": _("I didn’t read this"),
+  }
+<input type="hidden" name="shelf-button-i18n-strings" value="$json_encode(labels)">
