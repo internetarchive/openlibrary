@@ -26,7 +26,7 @@
             {% else %}
                 {% for e in f.entries %}
                     <div class="facetEntry{% if e.hidden %} ui-helper-hidden{% endif %}">
-                        <ol-chip size="small" href="{{ e.url }}" title="{{ e.title }}" data-ol-link-track="{{ e.track }}" count="{{ e.count }}">
+                        <ol-chip size="small" href="{{ e.url }}" title="{{ e.title }}" data-ol-link-track="{{ e.track }}" count="{{ e.count_html }}">
                             {{ e.label }}
                         </ol-chip>
                     </div>

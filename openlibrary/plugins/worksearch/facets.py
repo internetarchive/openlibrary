@@ -48,7 +48,9 @@ class FacetEntry(NamedTuple):
     """One clickable facet value in the search sidebar."""
 
     label: str
-    count: str
+    # Pre-formatted (commified) count rendered into the chip's count attribute.
+    # Named count_html to avoid shadowing tuple.count().
+    count_html: str
     url: str
     title: str
     track: str
@@ -107,7 +109,7 @@ def render_search_facets(
         entries = [
             FacetEntry(
                 label=display,
-                count=commify(count),
+                count_html=commify(count),
                 url=add_facet_url(header, k),
                 title=_("Filter results for %(facet)s", facet=display),
                 track=add_track(header),
