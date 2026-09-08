@@ -3,6 +3,7 @@
 from typing import NamedTuple
 
 from infogami.utils.view import public
+
 from openlibrary.core.helpers import commify
 from openlibrary.core.jinja import get_jinja_env
 from openlibrary.i18n import gettext as _
@@ -96,6 +97,16 @@ class SelectedSearchFacets(NamedTuple):
     title: str | None
 
 
+class SelectedFacetChip(NamedTuple):
+    """One removable facet chip on the search results page."""
+
+    label: str
+    # Full accessible label including the tooltip prefix (e.g. "Author: Mark
+    # Twain"), or None when the facet has no tooltip configured.
+    accessible_label: str | None
+    del_url: str
+
+
 @public
 def render_selected_search_facets(
     param: dict,
@@ -108,7 +119,14 @@ def render_selected_search_facets(
     and build the search page's document title.
     """
     query = query or {}
+    # Built per call (not at module level) so gettext resolves the current
+    # request's language rather than whatever was active at startup.
     fulltext_names = {"true": "Ebooks", "false": "Exclude ebooks"}
+    facet_tooltips = {
+        "first_publish_year": _("First published in"),
+        "publisher_facet": _("Published by"),
+        "author_key": _("Author"),
+    }
     facet_map = get_facet_map()
     # get_language_name() needs the request's UI language to pick the
     # translated language name. Use get_request_lang() instead of get_lang(),
@@ -131,14 +149,22 @@ def render_selected_search_facets(
     active_availability = get_active_availability(param) if param else "all"
     selected_languages = list(param.get("language", [])) if param else []
 
-    # Build the (header, value, display) tuples for the non-special facet chips
-    # (subject_facet, author_key, etc.). For most facets the raw URL value is
-    # already a usable display name, so we render the chip even when
-    # facet_counts is empty (e.g. a zero-result search, or a value outside
-    # Solr's facet.limit top-N). `author_key` is the exception: its raw value
-    # is an OL ID like "OL12345A" — we keep gating it on facet_counts
-    # resolving a display name rather than rendering the bare ID.
-    def build_other_chips() -> list[tuple[str, str, str]]:
+    def make_chip(header: str, v: str, label: str) -> SelectedFacetChip:
+        prefix = facet_tooltips.get(header)
+        return SelectedFacetChip(
+            label=label,
+            accessible_label=f"{prefix}: {label}" if prefix else None,
+            del_url=del_facet_url(header, v),
+        )
+
+    # Build the chips for the non-special facets (subject_facet, author_key,
+    # etc.). For most facets the raw URL value is already a usable display
+    # name, so we render the chip even when facet_counts is empty (e.g. a
+    # zero-result search, or a value outside Solr's facet.limit top-N).
+    # `author_key` is the exception: its raw value is an OL ID like
+    # "OL12345A" — we keep gating it on facet_counts resolving a display name
+    # rather than rendering the bare ID.
+    def build_other_chips() -> list[SelectedFacetChip]:
         if not param:
             return []
         facet_counts = search_response.facet_counts or {}
@@ -155,11 +181,39 @@ def render_selected_search_facets(
                     # Wait for the async sidebar request to resolve the name
                     # so we don't render the bare OL ID on the chip.
                     continue
-                chips.append((header, v, display_by_key.get(v, v)))
+                chips.append(make_chip(header, v, display_by_key.get(v, v)))
+        return chips
+
+    # Legacy non-UI facets: has_fulltext / public_scan_b aren't sticky filters
+    # owned by the filter row, so they still get removable chips here. Only
+    # render when facet_counts is loaded; skip has_fulltext when an
+    # availability value is active, since the toggle in the filter row already
+    # represents it (avoids a redundant "Ebooks" chip for the same param).
+    # Legacy chips are only shown alongside non-special ones — a URL with only
+    # legacy params (e.g. ?has_fulltext=true) gets no chip bar at all.
+    def build_legacy_chips() -> list[SelectedFacetChip]:
+        if not other_chips:
+            return []
+        facet_counts = search_response.facet_counts
+        if not facet_counts:
+            return []
+        chips = []
+        if "has_fulltext" in param and active_availability == "all":
+            for k, _display, _count in facet_counts.get("has_fulltext", []):
+                if k in param.get("has_fulltext", []):
+                    chips.append(make_chip("has_fulltext", k, fulltext_names.get(k, "")))
+        if "public_scan_b" in param:
+            # TODO: Consider removing public_scan_b handling. No UI exposes
+            # this facet (the sidebar skips it), so it only triggers via
+            # manually crafted URLs like /search?public_scan_b=true.
+            for k, display, _count in facet_counts.get("public_scan_b", []):
+                if k in param.get("public_scan_b", []):
+                    label = _("Only Classic eBooks") if display == "true" else _("Classic eBooks hidden")
+                    chips.append(make_chip("public_scan_b", k, label))
         return chips
 
     other_chips = build_other_chips()
-    show_chips_bar = bool(other_chips)
+    chips = other_chips + build_legacy_chips() if param and not search_response.error else []
 
     title = None
     if param and not search_response.error:
@@ -170,19 +224,9 @@ def render_selected_search_facets(
             title_parts.append(get_availability_label(active_availability))
         for lang_code in selected_languages:
             title_parts.append(get_language_name("/languages/" + lang_code, user_lang))
-        title_parts.extend(chip_display for _header, _v, chip_display in other_chips)
+        title_parts.extend(chip.label for chip in other_chips)
         title = _("%(title)s - search", title=", ".join(title_parts))
-    else:
-        show_chips_bar = False
 
     template = get_jinja_env().get_template("search/work_search_selected_facets.html.jinja")
-    html = template.render(
-        show_chips_bar=show_chips_bar,
-        other_chips=other_chips,
-        del_facet_url=del_facet_url,
-        fulltext_names=fulltext_names,
-        active_availability=active_availability,
-        param=param,
-        search_response=search_response,
-    )
+    html = template.render(chips=chips)
     return SelectedSearchFacets(html=html, title=title)
