@@ -448,16 +448,16 @@ def prepare_book_page(page, query_params, user=None) -> BookPageContext:
     from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 
     target_ddc = None
-    if edition and edition.get('dewey_decimal_class'):
-        raw_ddcs = edition.get('dewey_decimal_class', [])
+    if edition and edition.get("dewey_decimal_class"):
+        raw_ddcs = edition.get("dewey_decimal_class", [])
         normalized = [d for raw in raw_ddcs for d in normalize_ddc(raw)]
         if normalized:
             target_ddc = choose_sorting_ddc(normalized)
 
     ed_lang = None
-    if edition and edition.get('languages'):
+    if edition and edition.get("languages"):
         lang_obj = edition.languages[0]
-        lang_key = (lang_obj.key if hasattr(lang_obj, 'key') else str(lang_obj)).split('/')[-1]
+        lang_key = (lang_obj.key if hasattr(lang_obj, "key") else str(lang_obj)).split("/")[-1]
         ed_lang = convert_iso_to_marc(lang_key) or lang_key
 
     return BookPageContext(
