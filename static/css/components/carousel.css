@@ -263,19 +263,12 @@
 @media (hover: hover) and (pointer: fine) {
   .book-cover-wrapper > ol-shelf-button:not([shelf]) {
     opacity: 0;
-    transition: opacity 0.12s ease-out;
   }
 
   .book-cover-wrapper:hover > ol-shelf-button,
   .book-cover-wrapper > ol-shelf-button:focus-within,
   .book-cover-wrapper > ol-shelf-button[open] {
     opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .book-cover-wrapper > ol-shelf-button:not([shelf]) {
-    transition: none;
   }
 }
 
