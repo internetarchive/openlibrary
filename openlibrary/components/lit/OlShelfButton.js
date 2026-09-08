@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { translate } from './utils/labels.js';
-import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
 import { trackEvent } from '../../plugins/openlibrary/js/ol.analytics.js';
 import { DEFAULT_LABELS as ACTION_LABELS } from './OlShelfActions.js';
@@ -22,8 +22,9 @@ export const DEFAULT_LABELS = {
 
 /**
  * The control that puts a book on a reading-log shelf, in the two shapes the
- * site needs: a bordered split button for a row (`split`), and a round bookmark
- * that floats over cover art (`icon`).
+ * site needs: a bordered split button for a row (`split`), and a round badge
+ * that floats over cover art (`icon`): an outlined bookmark until the book is
+ * on a shelf, then that shelf's own glyph.
  *
  * Both open the same `<ol-shelf-actions>` popover; the split variant adds a main
  * half that toggles between Want to Read and off without opening anything.
@@ -202,9 +203,9 @@ export class OlShelfButton extends LitElement {
 
         /* ── Icon variant ─────────────────────────────────────────── */
 
-        /* An outlined bookmark until the book is on a shelf, then filled. The
-           host is positioned by whatever it floats over (ol-book-cover's overlay
-           slot), so everything in here stays in flow. */
+        /* An outlined bookmark until the book is on a shelf, then the shelf's
+           glyph in blue. The host is positioned by whatever it floats over
+           (ol-book-cover's overlay slot), so everything in here stays in flow. */
         .save {
             position: relative;
             display: inline-flex;
@@ -264,7 +265,7 @@ export class OlShelfButton extends LitElement {
             outline-offset: 2px;
         }
 
-        /* Saved: the circle stays white; only the bookmark fills, in blue. */
+        /* Saved: the circle stays white; only the glyph turns blue. */
         .save--on {
             color: var(--primary-blue);
         }
@@ -340,6 +341,10 @@ export class OlShelfButton extends LitElement {
 
     _renderIcon() {
         const on = this._on;
+        // The shelf's glyph once shelved. Only the bookmark fills well: the
+        // others are stroked shapes that would turn into blobs.
+        const icon = on ? SHELF_ICON[this.shelf] : 'bookmark';
+        const filled = on && this.shelf === SHELF.WANT_TO_READ;
         return this._withActions(html`
             <button
                 type="button"
@@ -347,7 +352,7 @@ export class OlShelfButton extends LitElement {
                 class="save ${classMap({ 'save--on': on })}"
                 aria-label=${on ? this.t('saved', { title: this.bookTitle }) : this.t('save', { title: this.bookTitle })}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
-            ><ol-icon name="bookmark" ?filled=${on}></ol-icon></button>
+            ><ol-icon name=${icon} ?filled=${filled}></ol-icon></button>
         `);
     }
 

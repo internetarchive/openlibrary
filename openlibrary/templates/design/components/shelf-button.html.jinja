@@ -12,7 +12,7 @@
         <ol-shelf-button class="demo-secret-garden" user-key="{{ user_key }}" work-key="/works/OL69612W" book-title="The Secret Garden" style="width: 200px;" {% if garden.get('shelf') %}shelf="{{ garden['shelf'] }}"{% endif %} {% if garden.get('rating') %}rating="{{ garden['rating'] }}"{% endif %}>
         </ol-shelf-button>
     {% endcall %}
-    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then filled — the circle stays white so it reads against any artwork. Same book as above, so the two stay in step.",
+    {% call ex.example("Icon", "For a cover, where there is not. An outlined bookmark until the book is on a shelf, then that shelf's own glyph in blue (the bookmark filled for Want to Read) — the circle stays white so it reads against any artwork. Same book as above, so the two stay in step.",
         code="<ol-book-cover src=\"https://covers.openlibrary.org/b/id/12622062-M.jpg\"\n               book-title=\"The Secret Garden\"\n               authors=\"Frances Hodgson Burnett\"\n               href=\"/works/OL69612W\">\n  <ol-shelf-button slot=\"overlay\" variant=\"icon\"\n                   user-key=\"/people/you\"\n                   work-key=\"/works/OL69612W\"\n                   book-title=\"The Secret Garden\">\n  </ol-shelf-button>\n</ol-book-cover>",
         output_style="display: flex; gap: 16px; width: 300px;") %}
         <ol-book-cover src="https://covers.openlibrary.org/b/id/12622062-M.jpg" book-title="The Secret Garden" authors="Frances Hodgson Burnett" href="/works/OL69612W" style="width: 128px;">

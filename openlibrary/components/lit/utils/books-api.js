@@ -21,6 +21,14 @@ export const SHELF_LABEL = Object.freeze({
     [SHELF.STOPPED_READING]: 'stoppedReading',
 });
 
+/** Shelf id → ol-icon name: the glyph a shelf is drawn with wherever it appears. */
+export const SHELF_ICON = Object.freeze({
+    [SHELF.WANT_TO_READ]: 'bookmark',
+    [SHELF.CURRENTLY_READING]: 'book-open',
+    [SHELF.ALREADY_READ]: 'circle-check',
+    [SHELF.STOPPED_READING]: 'circle-pause',
+});
+
 /**
  * Matomo action names, kept identical to the legacy dropper's
  * `data-ol-link-track`. Indexed by shelf id; `null` (no shelf) is the removal.

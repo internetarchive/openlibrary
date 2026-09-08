@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlIcon.js';
-import { SHELF, SHELF_LABEL, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
+import { SHELF, SHELF_LABEL, SHELF_ICON, SHELF_EVENT, setShelf, setRating, setCheckIn, redirectToLogin } from './utils/books-api.js';
 import { getLists, subscribeToLists, loadLists, toggleListSeed, createUserList } from './utils/lists-store.js';
 import { getRecentLists, noteListUsed } from './utils/recent-lists.js';
 import { FILTER_THRESHOLD } from './utils/filter-threshold.js';
@@ -60,13 +60,6 @@ export const DEFAULT_LABELS = {
     day: 'Day',
     saveDate: 'Save',
     didNotRead: 'I didn’t read this',
-};
-
-const SHELF_ICON = {
-    [SHELF.WANT_TO_READ]: 'bookmark',
-    [SHELF.CURRENTLY_READING]: 'book-open',
-    [SHELF.ALREADY_READ]: 'circle-check',
-    [SHELF.STOPPED_READING]: 'circle-pause',
 };
 
 const SHELF_ROWS = Object.values(SHELF).map((id) => ({ id, icon: SHELF_ICON[id], label: SHELF_LABEL[id] }));

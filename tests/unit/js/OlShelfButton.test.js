@@ -78,7 +78,26 @@ describe('ol-shelf-button shapes', () => {
         const icon = await mount({ variant: 'icon', shelf: SHELF.CURRENTLY_READING, userKey: '/people/tester' });
         expect(q(icon, '.save').classList.contains('save--on')).toBe(true);
         expect(q(icon, '.save').getAttribute('aria-label')).toBe('The Two Towers is on your reading log');
-        expect(q(icon, 'ol-icon').hasAttribute('filled')).toBe(true);
+    });
+
+    test('the icon shape draws the shelf\'s glyph once shelved', async() => {
+        const off = await mount({ variant: 'icon' });
+        expect(q(off, 'ol-icon').getAttribute('name')).toBe('bookmark');
+        expect(q(off, 'ol-icon').hasAttribute('filled')).toBe(false);
+
+        // Only the bookmark fills; the stroked glyphs would turn into blobs.
+        const wanted = await mount({ variant: 'icon', shelf: SHELF.WANT_TO_READ });
+        expect(q(wanted, 'ol-icon').getAttribute('name')).toBe('bookmark');
+        expect(q(wanted, 'ol-icon').hasAttribute('filled')).toBe(true);
+
+        const reading = await mount({ variant: 'icon', shelf: SHELF.CURRENTLY_READING });
+        expect(q(reading, 'ol-icon').getAttribute('name')).toBe('book-open');
+        expect(q(reading, 'ol-icon').hasAttribute('filled')).toBe(false);
+
+        const read = await mount({ variant: 'icon', shelf: SHELF.ALREADY_READ });
+        expect(q(read, 'ol-icon').getAttribute('name')).toBe('circle-check');
+        const stopped = await mount({ variant: 'icon', shelf: SHELF.STOPPED_READING });
+        expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause');
     });
 
     test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
