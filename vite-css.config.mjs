@@ -67,11 +67,11 @@ export default defineConfig(({ mode }) => ({
         // `--mode development`); `vite build` defaults to mode 'production'.
         cssMinify: mode !== 'development',
         sourcemap: false,
-        // `vite build --watch` uses the rollup watcher; enable polling for
+        // `vite build --watch` uses the rolldown watcher; enable polling for
         // environments (e.g. docker bind mounts) that need it. This implies
         // watch mode, which is exactly what `watch-polling` is for.
         watch: forcePolling ? { chokidar: { usePolling: true, interval: 1000 } } : null,
-        rollupOptions: {
+        rolldownOptions: {
             input: entries,
             output: {
                 assetFileNames: '[name][extname]',

@@ -25,7 +25,7 @@ export default defineConfig({
         // (~Safari 16), which would ship untranspiled ES2021+ syntax.
         target: ['es2019', 'safari13'],
         outDir: join(BUILD_DIR, '/production'),
-        rollupOptions: {
+        rolldownOptions: {
             input: buildInput,
             output: {
                 entryFileNames: 'ol-[name].js',
