@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Defines functionality for the dropper components.
  * @module dropper/Dropper
