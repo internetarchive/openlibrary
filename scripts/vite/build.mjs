@@ -30,7 +30,6 @@ import vue from "@vitejs/plugin-vue";
 import { readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { AGPL_LICENSE_FOOTER, AGPL_LICENSE_HEADER, commonBuildOptions } from "../../vite-js-shared.mjs";
 import { renderBuiltAssetUrl } from "../../vite-asset-urls.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -129,8 +128,35 @@ function getCssConfig() {
 // -----------------------------------------------------------------
 // JS: ESM `all` + IIFE `sw` + IIFE `partnerLib` -> static/build/js
 // -----------------------------------------------------------------
-// AGPL license header/footer (LibreJS magnet comment). Applied after
-// minification (postBanner/postFooter) so the license survives it.
+/*
+ * AGPLv3 license header/footer (GNU LibreJS magnet comment). Applied via
+ * `output.postBanner` / `output.postFooter` so every emitted file carries
+ * the license after minification. This replaces the Makefile's shell loop
+ * (which prepended the header to every .js file post-build).
+ */
+const AGPL_LICENSE_HEADER = "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0";
+const AGPL_LICENSE_FOOTER = "\n// @license-end";
+
+/*
+ * Options shared by the JS builds. Only the output-shape keys
+ * (entryFileNames/chunkFileNames/format/base) are left to the caller.
+ */
+function commonJsBuildOptions() {
+    return {
+        copyPublicDir: false,
+        sourcemap: true,
+        minify: mode !== "development",
+        // Mirror package.json's browserslist. The binding constraint is Safari
+        // 11.1 / iOS 11.3. Oxc lowers syntax (optional chaining, nullish
+        // coalescing, …) to that floor; API polyfills are covered by the explicit
+        // core-js import at the top of main.js (replaces babel
+        // useBuiltIns:'usage').
+        target: ["safari11.1", "ios11.3"],
+        // Vite only warns about big chunks; `bundlesize` (CI) is the real gate.
+        chunkSizeWarningLimit: 3000,
+    };
+}
+
 function agplOutput(extra) {
     return {
         postBanner: AGPL_LICENSE_HEADER,
@@ -145,7 +171,7 @@ function getJsEsmConfig(outDir) {
         experimental: { renderBuiltUrl: renderBuiltAssetUrl },
         base: "/static/build/js/",
         build: {
-            ...commonBuildOptions({ mode }),
+            ...commonJsBuildOptions(),
             outDir,
             // The Makefile clears the *_new dir before the run.
             // Keep false so IIFE outputs survive next to ESM outputs.
@@ -168,7 +194,7 @@ function getJsIifeConfig(name, entryPath, outDir) {
         ...baseConfig(),
         experimental: { renderBuiltUrl: renderBuiltAssetUrl },
         build: {
-            ...commonBuildOptions({ mode }),
+            ...commonJsBuildOptions(),
             outDir,
             emptyOutDir: false,
             watch: watchOption,
