@@ -89,7 +89,7 @@ $def fulltext_rescue(query, exclude=None):
         $# lets the chip's clear-URL (changequery) preserve q and other filters.
         $# The partials path (partials.py) does the same via parsed_qs.
         <span class="selected-search-facets-container">
-            $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
+            $:render_selected_search_facets(param, search_response, q_param, query=param).html
         </span>
 
         $# num_found_exact is false only when Solr stopped counting early,
@@ -177,7 +177,7 @@ $def fulltext_rescue(query, exclude=None):
 
 
 $if not search_response.error and param and len(search_response.docs):
-    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
+    $:render_search_facets(param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
     $if search_response.time and ctx.user and ctx.user.is_admin():
