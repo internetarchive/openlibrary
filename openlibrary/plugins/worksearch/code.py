@@ -960,7 +960,7 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        return render_template("search/advancedsearch.html", web.input(_method="get"))
 
 
 @dataclass

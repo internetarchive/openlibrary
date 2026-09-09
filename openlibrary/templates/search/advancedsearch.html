@@ -1,41 +1,50 @@
+$def with (param={})
+
 <div id="contentHead">
   <h1>$_('Advanced Search')</h1>
 </div>
 
 <div id="contentBody">
+  $ advanced_fields = set(['q', 'title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'])
+  $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet', 'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b', 'has_fulltext', 'public_scan', 'print_disabled'])
   $:macros.SearchNavigation()
   <form method="get" action="/search" class="siteSearch olform siteSearch--advanced">
     <fieldset class="home">
       <legend>$_('Advanced Search')</legend>
-      <input type="hidden" name="q" id="qtop">
+      <input type="hidden" name="q" id="qtop" value="$query_param('q', '')">
       <div class="formElement">
         <label for="qtop-title">$_('Title')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="title" id="qtop-title" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="title" id="qtop-title" placeholder="" size="35" value="$query_param('title', '')">
       </div>
       <div class="formElement">
         <label for="qtop-author">$_('Author')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="author" id="qtop-author" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="author" id="qtop-author" placeholder="" size="35" value="$query_param('author', '')">
       </div>
       <div class="formElement">
         <label for="qtop-isbn">$_('ISBN')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="isbn" id="qtop-isbn" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="isbn" id="qtop-isbn" placeholder="" size="35" value="$query_param('isbn', '')">
       </div>
       <div class="formElement">
         <label for="qtop-subject">$_('Subject')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="subject" id="qtop-subject" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="subject" id="qtop-subject" placeholder="" size="35" value="$query_param('subject', '')">
       </div>
       <div class="formElement">
         <label for="qtop-place">$_('Place')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="place" id="qtop-place" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="place" id="qtop-place" placeholder="" size="35" value="$query_param('place', '')">
       </div>
       <div class="formElement">
         <label for="qtop-person">$_('Person')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="person" id="qtop-person" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="person" id="qtop-person" placeholder="" size="35" value="$query_param('person', '')">
       </div>
       <div class="formElement">
         <label for="qtop-publisher">$_('Publisher')</label><br>
-        <input type="text" class="siteSearch--advanced-input" name="publisher" id="qtop-publisher" placeholder="" size="35">
+        <input type="text" class="siteSearch--advanced-input" name="publisher" id="qtop-publisher" placeholder="" size="35" value="$query_param('publisher', '')">
       </div>
+      $for k, values in param.items():
+        $if k in advanced_fields or k not in sticky:
+          $continue
+        $for v in values if isinstance(values, list) else [values]:
+          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
     </fieldset>
     <button type="submit" class="cta-btn cta-btn--search">$_('Search')</button>
     <div class="searchPlus">
