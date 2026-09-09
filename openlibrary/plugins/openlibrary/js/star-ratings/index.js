@@ -1,6 +1,5 @@
+import { SHELF } from '../../../../components/lit/utils/books-api.js';
 import { FadingToast } from '../Toast.js';
-import { findDropperForWork } from '../my-books';
-import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
 import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
@@ -68,22 +67,24 @@ function handleRatingSubmission(event, form) {
                         }
                     });
 
-                    // Find dropper that is associated with this star rating affordance:
-                    const dropper = findDropperForWork(form.dataset.workKey);
-                    if (dropper) {
-                        // Mirrors the server, which only auto-shelves rated books as
-                        // "Already Read" when unshelved or on "Want to Read":
-                        const activeShelfId = dropper.getActiveShelfId();
-                        if (activeShelfId === null || activeShelfId === ReadingLogShelves.WANT_TO_READ) {
-                            dropper.updateShelfDisplay(ReadingLogShelves.ALREADY_READ);
-                        }
-                    }
                 } else {  // A rating was deleted
                     clearButton.classList.add('hidden');
                 }
+                announceRating(form.dataset.workKey, rating ?? null);
             })
             .catch((error) => {
                 new FadingToast(error.message).show();
             });
     }
+}
+
+/**
+ * Tell the page's shelf buttons. Mirrors the server, which auto-shelves a
+ * rated book as Already Read only when it is unshelved or on Want to Read.
+ */
+export function announceRating(workKey, rating) {
+    if (!workKey) return;
+    let shelf = document.querySelector(`ol-shelf-button[work-key="${workKey}"]`)?.shelf ?? null;
+    if (rating && (shelf === null || shelf === SHELF.WANT_TO_READ)) shelf = SHELF.ALREADY_READ;
+    document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: workKey, shelf, rating } }));
 }
