@@ -138,6 +138,8 @@
 
   /* Hover for raised controls. Opaque — see --color-control-selected-surface. */
   --color-control-hover: var(--neutral-100);
+  /* Drag handle on a sheet or tray — see-through ink, like --color-hover-overlay. */
+  --color-drag-handle: color-mix(in srgb, var(--ink-overlay) 20%, transparent);
 
   /* Selected look for neutral controls. Shared by ol-button[selected] and
      ol-toggle[variant="button"][checked] so the two can't drift apart. */

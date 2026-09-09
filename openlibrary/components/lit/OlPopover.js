@@ -126,14 +126,16 @@ export class OlPopover extends LitElement {
         /* Neutralize the UA's [popover] defaults (inset: 0, margin: auto,
            border, padding, overflow, system colors) so the top-layer panel is
            laid out purely by the inline top/left we compute. Must precede
-           .panel.tray, which restates its own inset and margin. */
+           .panel.tray, which restates its own inset and margin. The border is
+           restated rather than zeroed: this rule outranks .panel, and the
+           hairline is what separates the panel from the page. */
         .panel[popover] {
             inset: auto;
             width: auto;
             height: auto;
             margin: 0;
             padding: 0;
-            border: none;
+            border: var(--border-overlay);
             overflow: visible;
             color: inherit;
         }
@@ -152,8 +154,8 @@ export class OlPopover extends LitElement {
 
         .panel[data-state="entering"] {
             transition:
-                opacity 200ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 200ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-base) var(--ease-enter),
+                transform var(--duration-base) var(--ease-enter);
         }
 
         .panel[data-state="exiting"] {
@@ -161,8 +163,8 @@ export class OlPopover extends LitElement {
             transform: scale(0.95);
             pointer-events: none;
             transition:
-                opacity 150ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 150ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity var(--duration-fast) var(--ease-exit),
+                transform var(--duration-fast) var(--ease-exit);
             will-change: transform, opacity;
         }
 
@@ -197,13 +199,13 @@ export class OlPopover extends LitElement {
         }
 
         .backdrop[data-state="entering"] {
-            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-slow) var(--ease-enter);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity var(--duration-base) var(--ease-enter);
         }
 
         /* ── Mobile tray panel ── */
@@ -219,7 +221,7 @@ export class OlPopover extends LitElement {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin: 0 12px calc(12px + env(safe-area-inset-bottom));
-            border-radius: 20px;
+            border-radius: var(--border-radius-overlay);
             opacity: 1;
             transform: translateY(100%);
             touch-action: manipulation;
@@ -238,14 +240,14 @@ export class OlPopover extends LitElement {
         }
 
         .panel.tray[data-state="entering"] {
-            transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-slow) var(--ease-enter);
         }
 
         .panel.tray[data-state="exiting"] {
             opacity: 1;
             transform: translateY(100%);
             pointer-events: none;
-            transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform var(--duration-base) var(--ease-enter);
             will-change: transform;
         }
 
@@ -267,7 +269,7 @@ export class OlPopover extends LitElement {
             width: 36px;
             height: 4px;
             border-radius: 2px;
-            background: hsla(0, 0%, 0%, 0.2);
+            background: var(--color-drag-handle);
         }
 
         /* ── Focus sentinel (visually hidden) ── */
@@ -884,11 +886,11 @@ export class OlPopover extends LitElement {
         if (dragY > DISMISS_THRESHOLD || velocity > VELOCITY_THRESHOLD) {
             // Swipe dismiss — animate to off-screen, then close
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = 'translateY(100%)';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '0';
             }
 
@@ -915,11 +917,11 @@ export class OlPopover extends LitElement {
         } else {
             // Snap back to open position
             if (panel) {
-                panel.style.transition = 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                panel.style.transition = 'transform var(--duration-base) var(--ease-enter)';
                 panel.style.transform = '';
             }
             if (backdrop) {
-                backdrop.style.transition = 'opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)';
+                backdrop.style.transition = 'opacity var(--duration-base) var(--ease-enter)';
                 backdrop.style.opacity = '';
             }
 
