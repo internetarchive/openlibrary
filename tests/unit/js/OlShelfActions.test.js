@@ -1380,3 +1380,48 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(qa(next, '.list-row .count')[0].getAttribute('aria-label')).toBe('2 items');
     });
 });
+
+describe('ol-shelf-actions lists-only', () => {
+    const AUTHOR = { key: '/authors/OL3A', title: 'Ursula K. Le Guin' };
+
+    test('opens on the lists pane with the seed as heading, no shelves, stars or back', async() => {
+        stubFetch();
+        listData['/people/tester/lists/OL1L'].members.push('/authors/OL3A');
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        expect(el._pane).toBe('lists');
+        expect(q(el, '.lists-title').textContent).toBe('Ursula K. Le Guin');
+        expect(q(el, '.back')).toBeNull();
+        expect(q(el, '.group.shelves')).toBeNull();
+        expect(q(el, '.group.rating')).toBeNull();
+        // The rows are the reader's lists, checked where the author is a member.
+        const rows = qa(el, '.list-row input');
+        expect(rows).toHaveLength(2);
+        expect(rows.filter(r => r.checked)).toHaveLength(1);
+    });
+
+    test('toggling a list posts the seed and reports the change', async() => {
+        stubFetch();
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        const events = [];
+        el.addEventListener('ol-list-change', e => events.push(e.detail));
+        const row = qa(el, '.list-row input').find(r => !r.checked);
+        row.click();
+        await tick(el);
+        const post = calls.find(c => c.url.endsWith('/seeds.json'));
+        expect(JSON.parse(post.init.body)).toEqual({ add: [{ key: '/authors/OL3A' }] });
+        expect(events[0]).toMatchObject({ seedKey: '/authors/OL3A', member: true });
+    });
+
+    test('escape closes instead of stepping back to a main pane it does not have', async() => {
+        stubFetch();
+        const el = await mount({ book: AUTHOR, listsOnly: true });
+        await tick(el);
+        const popover = q(el, 'ol-popover');
+        const close = new CustomEvent('ol-popover-close', { cancelable: true, detail: { reason: 'escape' } });
+        popover.dispatchEvent(close);
+        expect(close.defaultPrevented).toBe(false);
+        expect(el._pane).toBe('lists');
+    });
+});

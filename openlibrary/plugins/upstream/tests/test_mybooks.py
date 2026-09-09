@@ -69,9 +69,10 @@ class TestShelfButtonFor:
             html = shelf_button_for(doc, **kwargs)
         return html, get_state
 
-    def test_nothing_without_a_work(self):
-        html, get_state = self.render(Thing("/authors/OL3A"))
+    def test_nothing_for_a_doc_that_is_neither_book_nor_author(self):
+        html, get_state = self.render(Thing("/subjects/fantasy"))
         assert html == ""
+        assert shelf_button_for({}) == ""
         get_state.assert_not_called()
 
     def test_a_row_gets_the_reader_and_their_state(self):
@@ -109,6 +110,23 @@ class TestShelfButtonFor:
     def test_the_title_is_escaped(self):
         html, _ = self.render(web.storage(key="/works/OL1W", title='Say "hi" <b>'))
         assert 'book-title="Say &#34;hi&#34; &lt;b&gt;"' in html
+
+    def test_an_author_gets_the_lists_only_control_under_their_name(self):
+        # An author's `title` is an honorific, not a name.
+        html, get_state = self.render(web.storage(key="/authors/OL3A", name="Ursula K. Le Guin", title="OBE"))
+        assert "lists-only" in html
+        assert 'work-key="/authors/OL3A"' in html
+        assert 'book-title="Ursula K. Le Guin"' in html
+        assert 'user-key="/people/tester"' in html
+        assert "edition-key" not in html
+        assert "shelf=" not in html
+        get_state.assert_not_called()
+
+    def test_an_orphaned_edition_can_only_join_a_list(self):
+        html, _ = self.render(Thing("/books/OL2M", title="Orphan"))
+        assert "lists-only" in html
+        assert 'work-key="/books/OL2M"' in html
+        assert "edition-key" not in html
 
 
 class TestReadingStateFor:

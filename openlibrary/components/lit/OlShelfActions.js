@@ -105,6 +105,9 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @prop {Boolean} hideRating - Always drop the stars. Without it they go on
  *     their own whenever a visible `.star-rating-form` for the same book is
  *     on the page, checked at each open
+ * @prop {Boolean} listsOnly - Only the lists pane, opened straight into: for
+ *     a seed with no work to shelve, an author or an edition on its own.
+ *     `book.key` is then that seed's key, and its title the heading
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
@@ -132,6 +135,7 @@ export class OlShelfActions extends LitElement {
         labels: { type: Object },
         placement: { type: String },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        listsOnly: { type: Boolean, attribute: 'lists-only' },
         pending: { type: Boolean, reflect: true },
         _starsElsewhere: { state: true },
         _pane: { state: true },
@@ -537,6 +541,23 @@ export class OlShelfActions extends LitElement {
             height: calc(var(--control-height-small) + 2 * var(--spacing-inset-sm));
         }
 
+        /* Lists-only in a split frame: the slotted trigger is the whole
+           button, so the popover (its flex parent) must fill the host. */
+        :host([lists-only]) ol-popover {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Lists-only: the seed's title stands where Back would be. */
+        .lists-title {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-label-medium);
+        }
+
         .lists-header,
         .pane-header {
             position: relative;
@@ -716,6 +737,7 @@ export class OlShelfActions extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this.listsOnly = false;
         this._starsElsewhere = false;
         this._warm = false;
         // Capture-phase, so the panes exist before ol-popover's own trigger
@@ -787,6 +809,8 @@ export class OlShelfActions extends LitElement {
     /** @param {string} name */
     _renderPane(name) {
         if (name === 'lists') return this._renderLists();
+        // Lists-only never leaves its pane, so the other two stay empty.
+        if (this.listsOnly) return nothing;
         if (name === 'checkIn') return this._renderCheckIn();
         return this._renderMain();
     }
@@ -1118,9 +1142,13 @@ export class OlShelfActions extends LitElement {
         const creating = this._creating || this._firstList;
         return html`
             <div class="lists-header">
-                <button type="button" class="back" @click=${this._backToMain}>
-                    <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
-                </button>
+                ${this.listsOnly ? html`
+                    <span class="lists-title">${this.book.title}</span>
+                ` : html`
+                    <button type="button" class="back" @click=${this._backToMain}>
+                        <ol-icon class="obd-icon" name="chevron-left"></ol-icon>${this.t('back')}
+                    </button>
+                `}
                 ${creating ? nothing : html`
                     <ol-button size="small" @click=${this._startCreate}>
                         <ol-icon slot="icon-start" name="plus"></ol-icon>${this.t('createList')}
@@ -1252,13 +1280,19 @@ export class OlShelfActions extends LitElement {
 
     _onOpen() {
         this._warmUp(); // for opens that arrive without a click
-        this._pane = 'main';
-        this._snap = false;
         this._creating = false;
         this._pickingDate = false;
         this._listFilter = '';
         this._announce = '';
         this._snapshotLists();
+        // Lists-only lands on the pane itself, with nothing to slide in from.
+        if (this.listsOnly) {
+            this._snap = true;
+            this._openLists();
+            return;
+        }
+        this._pane = 'main';
+        this._snap = false;
         // Prefetch so the "in N lists" count is right on the first open, not
         // only after a trip to the lists pane. One request per page — every
         // popover reads the shared lists store.
@@ -1267,7 +1301,7 @@ export class OlShelfActions extends LitElement {
 
     _onCloseRequest(e) {
         // Escape from a sub-pane goes back a step instead of closing.
-        if (e.detail?.reason === 'escape' && this._pane !== 'main') {
+        if (e.detail?.reason === 'escape' && this._pane !== 'main' && !this.listsOnly) {
             e.preventDefault();
             this._backToMain();
             return;
@@ -1275,7 +1309,7 @@ export class OlShelfActions extends LitElement {
         // Reset to the main pane now, so the next open doesn't slide back from
         // the lists pane. `snap` skips the slide while the popover fades out.
         this._snap = true;
-        this._pane = 'main';
+        this._pane = this.listsOnly ? 'lists' : 'main';
         this._creating = false;
         this._pickingDate = false;
     }
@@ -1510,14 +1544,20 @@ export class OlShelfActions extends LitElement {
         const mobile = window.matchMedia('(max-width: 767px)').matches;
         // A selector list matches the first of them in document order, and the
         // fields both sit above the rows.
-        const target = mobile ? '.back' : '.input, .list-row input';
+        // Lists-only has no back button; on mobile the first row stands in for it.
+        const target = mobile ? (this.listsOnly ? '.list-row input, ol-button' : '.back') : '.input, .list-row input';
         const el = this.shadowRoot.querySelector(`${pane} ${target}`);
         el?.focus({ preventScroll: true });
         return !!el;
     }
 
-    /** Focus goes back to the row that led to the pane being left. */
+    /** Focus goes back to the row that led to the pane being left. Lists-only has no main pane: leaving the lists closes. */
     async _backToMain() {
+        if (this.listsOnly) {
+            const popover = this.shadowRoot.querySelector('ol-popover');
+            if (popover) popover.open = false;
+            return;
+        }
         const from = this._pane;
         this._pane = 'main';
         this._creating = false;

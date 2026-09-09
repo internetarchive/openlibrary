@@ -220,32 +220,6 @@ def seed_key_to_seed_type(key: str) -> SeedType:
 
 
 @public
-def get_seed_info(doc):
-    """Takes a thing, determines what type it is, and returns a seed summary"""
-    seed_type = seed_key_to_seed_type(doc.key)
-    match seed_type:
-        case "subject":
-            seed = subject_key_to_seed(doc.key)
-            title = doc.name
-        case "work" | "edition":
-            seed = {"key": doc.key}
-            title = doc.get("title", "untitled")
-        case "author":
-            seed = {"key": doc.key}
-            title = doc.get("name", "name missing")
-        case _:
-            raise ValueError(f"Invalid seed type: {seed_type}")
-    return {
-        "seed": seed,
-        "type": seed_type,
-        "title": web.websafe(title),
-        "remove_dialog_html": _(
-            "Are you sure you want to remove <strong>%(title)s</strong> from your list?",
-            title=web.websafe(title),
-        ),
-    }
-
-
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():

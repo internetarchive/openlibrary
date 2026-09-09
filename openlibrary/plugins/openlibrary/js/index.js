@@ -397,16 +397,6 @@ jQuery(function() {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const droppers = document.querySelectorAll('.dropper');
-    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
-    if (droppers.length || genericDroppers.length) {
-        import(/* webpackChunkName: "droppers" */ './dropper')
-            .then((module) => {
-                module.initDroppers(droppers);
-                module.initGenericDroppers(genericDroppers);
-            });
-    }
-
     // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
         import(/* webpackChunkName: "book-state" */ './book-state')
@@ -418,17 +408,6 @@ jQuery(function() {
     if (activeListsShowcase) {
         import(/* webpackChunkName: "active-showcase" */ './lists/active-showcase')
             .then(module => module.initActiveListsShowcase(activeListsShowcase));
-    }
-
-    // My Books Droppers (includes New List Form and Reading Check-Ins):
-    const myBooksDroppers = document.querySelectorAll('.my-books-dropper');
-    if (myBooksDroppers.length) {
-        const actionableListShowcases = document.querySelectorAll('.actionable-item');
-
-        import(/* webpackChunkName: "my-books" */ './my-books')
-            .then((module) => {
-                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases);
-            });
     }
 
     // TODO: Make these selectors a consistent interface

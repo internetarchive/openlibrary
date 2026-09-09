@@ -14,20 +14,15 @@ $if render_once('lists/widget.i18n-strings'):
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ edition = page if page.key.startswith("/books/") else None
 
-$if work:
-  $:shelf_button_for(page)
-$else:
-  $# Authors and orphaned editions have no work to shelve; the legacy dropper still offers its lists.
-  $:render_template('my_books/dropper', page, async_load=async_load)
+$# A work, or an edition with one, gets the shelf button; an author or an
+$# orphaned edition gets the same control in its lists-only form.
+$:shelf_button_for(page)
 
 $if ctx.user:
-  $# With a work, lists/active-showcase.js fills this from the seed keys; otherwise the legacy dropper JS does.
-  $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key]
-  <ul class="listLists already-lists" $:cond(work, 'data-seed-keys="%s"' % json_encode(seed_keys).replace('"', '&quot;'))>
-    $if async_load:
-      <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
-    $else:
-      $# Never get here?
+  $# lists/active-showcase.js fills this with the lists the seeds are on.
+  $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key] or [page.key]
+  <ul class="listLists already-lists" data-seed-keys="$json_encode(seed_keys)">
+    <div class="list-overview-loading-indicator">$:_('Loading<span class="loading-ellipsis">...</span>')</div>
   </ul>
 
 $if work and include_rating:

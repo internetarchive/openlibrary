@@ -265,15 +265,11 @@ $ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 
             $:macros.LoanStatus(selected_ed, work_key=doc.key)
         </div>
 
-        $if include_dropper:
-          $if shelf_button:
-            <div class="searchResultItemCTA__shelf">
-              $if layout != 'grid':
-                $:shelf_button
-            </div>
-          $else:
-            $# An orphaned edition has no work to shelve; the legacy dropper still offers its lists.
-            $:render_template('my_books/dropper', doc, async_load=True)
+        $if shelf_button:
+          <div class="searchResultItemCTA__shelf">
+            $if layout != 'grid':
+              $:shelf_button
+          </div>
 
         $if rating:
           $:rating

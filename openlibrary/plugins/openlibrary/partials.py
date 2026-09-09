@@ -23,16 +23,12 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
-from openlibrary.plugins.upstream.utils import json_encode, render_macro
+from openlibrary.plugins.upstream.utils import entity_decode, render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
     run_solr_query_async,
     work_search_async,
-)
-from openlibrary.plugins.worksearch.facets import (
-    render_search_facets,
-    render_selected_search_facets,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
@@ -78,14 +74,11 @@ class ReadingGoalProgressPartial:
 
 
 class MyBooksDropperListsPartial:
-    """Handler for the MyBooks dropper list component."""
+    """The reader's lists with their members, for the popover's lists store and the book page's lists strip."""
 
     @classmethod
     def generate(cls) -> dict:
         user_lists = get_user_lists(None)
-
-        template = get_jinja_env().get_template("lists/dropper_lists.html.jinja")
-        dropper = template.render(lists=user_lists, json_encode=json_encode)
         list_data = {
             list_data["key"]: {
                 "members": list_data["list_items"],
@@ -93,11 +86,7 @@ class MyBooksDropperListsPartial:
             }
             for list_data in user_lists
         }
-
-        return {
-            "dropper": dropper,
-            "listData": list_data,
-        }
+        return {"listData": list_data}
 
 
 class ReadingStatePartial:
@@ -349,7 +338,7 @@ class SearchFacetsPartial:
     @classmethod
     async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
         user = get_current_user()
-        show_merge_authors = bool(user and user.is_librarian_or_higher())
+        show_merge_authors = user and user.is_librarian_or_higher()
 
         path = data.get("path")
         query = data.get("query", "")
@@ -370,7 +359,8 @@ class SearchFacetsPartial:
             request_label="BOOK_SEARCH_FACETS",
         )
 
-        sidebar = render_search_facets(
+        sidebar = render_template(
+            "search/work_search_facets",
             param,
             facet_counts=search_response.facet_counts,
             async_load=False,
@@ -379,12 +369,21 @@ class SearchFacetsPartial:
             show_merge_authors=show_merge_authors,
         )
 
-        active_facets = render_selected_search_facets(param, search_response, param.get("q", ""), path=path, query=parsed_qs)
+        active_facets = render_template(
+            "search/work_search_selected_facets",
+            param,
+            search_response,
+            param.get("q", ""),
+            path=path,
+            query=parsed_qs,
+        )
 
         return {
-            "sidebar": sidebar,
-            "title": active_facets.title,
-            "activeFacets": active_facets.html.strip(),
+            "sidebar": str(sidebar),
+            # Templetor's `$var title:` HTML-escapes its value; unescape it
+            # since search.js assigns this straight to document.title (#9787).
+            "title": entity_decode(active_facets.title),
+            "activeFacets": str(active_facets).strip(),
         }
 
 
@@ -400,13 +399,14 @@ class SubjectPublishingHistoryPartial:
             facet_fields=[{"name": "publish_year", "limit": -1}],
             request_label="SUBJECT_PUBLISHING_HISTORY",
         )
-        template = get_jinja_env().get_template("PublishingHistory.html.jinja")
-        html = template.render(
-            publishing_history_json=json_encode(subject.get("publishing_history", [])),
+        macro = render_macro(
+            "PublishingHistory",
+            (),
+            publishing_history=subject.get("publishing_history", []),
             async_load=False,
-            key_json=json_encode(key),
+            key=key,
         )
-        return {"partials": html}
+        return {"partials": str(macro["__body__"])}
 
 
 class SubjectRelatedPartial:
@@ -421,9 +421,14 @@ class SubjectRelatedPartial:
             facet_fields=["subject_facet", "person_facet", "place_facet", "time_facet"],
             request_label="SUBJECT_RELATED",
         )
-        template = get_jinja_env().get_template("RelatedSubjects.html.jinja")
-        html = template.render(page=subject, async_load=False, key=key)
-        return {"partials": html}
+        macro = render_macro(
+            "RelatedSubjects",
+            (),
+            page=subject,
+            async_load=False,
+            key=key,
+        )
+        return {"partials": str(macro["__body__"])}
 
 
 @dataclass

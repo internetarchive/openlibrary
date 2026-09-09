@@ -409,3 +409,34 @@ describe('ol-shelf-button accessible name and state', () => {
         expect(q(el, '.main').getAttribute('aria-label')).toBe('The Two Towers — À lire');
     });
 });
+
+describe('ol-shelf-button lists-only', () => {
+    // A seed with no work to shelve: an author, or an edition on its own.
+    test('the split shape is one "Add to list" trigger, no main half', async() => {
+        const el = await mount({ userKey: '/people/tester', workKey: '/authors/OL3A', editionKey: '', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
+        expect(q(el, '.split--list')).not.toBeNull();
+        expect(q(el, '.more')).toBeNull();
+        const trigger = q(el, '.main');
+        expect(trigger.getAttribute('slot')).toBe('trigger');
+        expect(trigger.textContent).toContain('Add to list');
+        expect(trigger.getAttribute('aria-label')).toBe('Add to list: Ursula K. Le Guin');
+        expect(trigger.hasAttribute('aria-pressed')).toBe(false);
+        expect(q(el, 'ol-shelf-actions').listsOnly).toBe(true);
+    });
+
+    test('the icon shape draws a list-plus and says so', async() => {
+        const el = await mount({ userKey: '/people/tester', variant: 'icon', workKey: '/books/OL2M', bookTitle: 'Orphan', listsOnly: true });
+        expect(q(el, 'ol-icon.glyph').getAttribute('name')).toBe('list-plus');
+        expect(q(el, '.save').getAttribute('aria-label')).toBe('Add Orphan to a list');
+    });
+
+    // jsdom refuses the navigation itself; the cancelled click and the
+    // remembered intent are what is asserted, as for the shelf shapes.
+    test('signed out, the trigger cancels the click and remembers an add-to-list intent', async() => {
+        const el = await mount({ userKey: '', workKey: '/authors/OL3A', bookTitle: 'Ursula K. Le Guin', listsOnly: true });
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+        q(el, '.main').dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(pendingAction()).toMatchObject({ name: 'Ursula K. Le Guin', action: 'Add to list' });
+    });
+});

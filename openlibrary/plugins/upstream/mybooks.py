@@ -378,15 +378,6 @@ class mybooks_readinglog(delegate.page):
 
 
 @public
-def get_patrons_work_read_status(username: str, work_key: str) -> int | None:
-    if not username:
-        return None
-    work_id = extract_numeric_id_from_olid(work_key)
-    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
-    return status_id
-
-
-@public
 class MyBooksTemplate:
     # Reading log shelves
     READING_LOG_KEYS = frozenset(
@@ -645,40 +636,54 @@ def edition_key_of(doc) -> str | None:
     return None
 
 
+def list_seed_of(doc) -> str | None:
+    """A seed with no work to shelve but a list to join: an author, or an edition on its own."""
+    key = doc.get("key") if hasattr(doc, "get") else None
+    return key if key and key.startswith(("/authors/", "/books/")) else None
+
+
 def _shelf_title_of(doc) -> str:
-    """The work's title when an edition carries its work, else the doc's own."""
-    if (works := doc.get("works")) and (title := works[0].get("title")):
+    """The work's title when an edition carries its work, else the doc's own title or name."""
+    key = doc.get("key") or ""
+    # An author's `title` is an honorific ("OBE"), and their `works` a lazy query.
+    if key.startswith("/authors/"):
+        return doc.get("name") or ""
+    if key.startswith("/books/") and (works := doc.get("works")) and (title := works[0].get("title")):
         return title
     return doc.get("title") or ""
 
 
 @public
 def shelf_button_for(doc, variant: str = "split", reading_state: dict[str, ReadingState] | None = None, cached: bool = False) -> str:
-    """The `<ol-shelf-button>` for a work or edition doc, Solr or Infogami; empty when there is no work to shelve.
+    """The `<ol-shelf-button>` for a doc, Solr or Infogami: a work or an edition to shelve, or an
+    author or orphaned edition that can only join a list (`lists-only`). Empty for anything else.
 
     `reading_state` is the page's `reading_state_for()`; left out, the button looks its own up.
     `cached` leaves off the reader's key and state, for HTML shared across readers (carousel
     cards); book-state.js fills both in.
     """
     work_key = work_key_of(doc)
-    if not work_key:
+    seed_key = work_key or list_seed_of(doc)
+    if not seed_key:
         return ""
     user_key = ""
     state: ReadingState | dict[str, Any] = {}
     if not cached:
         user = accounts.get_current_user()
         user_key = user.key if user else ""
+    if work_key and not cached:
         states = reading_state if reading_state is not None else reading_state_for([doc])
         state = states.get(work_key) or {}
     return render_jinja_template(
         "my_books/shelf_button.html.jinja",
         variant=variant,
-        work_key=work_key,
+        work_key=seed_key,
         title=_shelf_title_of(doc),
-        edition_key=edition_key_of(doc),
+        edition_key=edition_key_of(doc) if work_key else None,
         user_key=user_key,
         state=state,
         hydrated=not cached,
+        lists_only=not work_key,
     )
 
 

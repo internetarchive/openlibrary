@@ -1,13 +1,12 @@
 /**
- * The "lists this book is on" strip under the shelf button on a book page.
- * Fed from the lists partial and kept current by the popover's events;
- * removal from the strip itself still goes through ShowcaseItem.
+ * The "lists this book is on" strip under the shelf button on a book or
+ * author page. Fed from the lists partial and kept current by the popover's
+ * events; removal from the strip itself still goes through ShowcaseItem.
  *
  * @module lists/active-showcase
  */
 import { getListPartials } from './ListService';
-import { ShowcaseItem, createActiveShowcaseItem } from './ShowcaseItem';
-import myBooksStore from '../my-books/store';
+import { ShowcaseItem, createActiveShowcaseItem, getShowcases } from './ShowcaseItem';
 import { removeChildren } from '../utils';
 
 /** The list's first member stands in for its cover, as the legacy strip did. */
@@ -19,25 +18,22 @@ function coverFor(list) {
 
 /**
  * @param {HTMLElement} container The `.already-lists` element, carrying the
- *     book's seed keys (work and edition) in `data-seed-keys`.
+ *     seed keys (work and edition, or author) in `data-seed-keys`.
  */
 export async function initActiveListsShowcase(container) {
     const seedKeys = new Set(JSON.parse(container.dataset.seedKeys));
-    const showcases = myBooksStore.getShowcases();
 
-    const has = (listKey, seedKey) => showcases.some(item => item.isShowcaseForListAndSeed(listKey, seedKey));
+    const has = (listKey, seedKey) => getShowcases().some(item => item.isShowcaseForListAndSeed(listKey, seedKey));
 
     const add = (listKey, seedKey, listName, cover) => {
         if (has(listKey, seedKey)) return;
         const li = createActiveShowcaseItem(listKey, seedKey, listName, cover);
         container.appendChild(li);
-        const item = new ShowcaseItem(li);
-        item.initialize();
-        showcases.push(item);
+        new ShowcaseItem(li).initialize();
     };
 
     const remove = (listKey, seedKey) => {
-        for (const item of showcases.filter(item => item.isShowcaseForListAndSeed(listKey, seedKey))) {
+        for (const item of getShowcases().filter(item => item.isShowcaseForListAndSeed(listKey, seedKey))) {
             item.removeSelf();
         }
     };

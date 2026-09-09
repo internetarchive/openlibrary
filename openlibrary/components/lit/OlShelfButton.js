@@ -19,6 +19,7 @@ export const DEFAULT_LABELS = {
     // it is the visible label.
     shelfToggle: '%(shelf)s: %(title)s',
     shelfMenu: 'More options for %(title)s',
+    addToListFor: 'Add %(title)s to a list',
 };
 
 /**
@@ -31,6 +32,9 @@ export const DEFAULT_LABELS = {
  *
  * All three open the same `<ol-shelf-actions>` popover; the split variant adds
  * a main half that toggles Want to Read on and off without opening anything.
+ * With `lists-only` the same shapes serve a seed that has no work to shelve
+ * (an author, an edition on its own): the split becomes one "Add to list"
+ * trigger, the glyph a list-plus, and the popover opens on its lists pane.
  * Once the book is on one of the three reading shelves the main half opens the
  * popover instead: those shelves carry dates, ratings and goal progress, so
  * leaving one goes through the menu, which takes Already Read via its date
@@ -46,7 +50,9 @@ export const DEFAULT_LABELS = {
  * @element ol-shelf-button
  *
  * @prop {String} variant - "split" (default), "icon" or "outline"
- * @prop {String} workKey - "/works/OL…W", the book this acts on
+ * @prop {String} workKey - "/works/OL…W", the book this acts on. With
+ *     `lists-only`, the seed instead: "/authors/OL…A" or "/books/OL…M"
+ * @prop {Boolean} listsOnly - No shelf to act on; only the lists pane
  * @prop {String} editionKey - "OL…M", recorded with the shelf change when known
  * @prop {String} bookTitle - Used in the accessible labels. Named `book-title`
  *     because a `title` attribute would draw a native browser tooltip
@@ -99,6 +105,7 @@ export class OlShelfButton extends LitElement {
         placement: { type: String },
         labels: { type: Object },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
+        listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
         _announce: { state: true },
         _icon: { state: true },
@@ -185,6 +192,12 @@ export class OlShelfButton extends LitElement {
 
         .split > ol-shelf-actions {
             display: flex;
+        }
+
+        /* Lists-only: the trigger is the whole button. */
+        .split--list > ol-shelf-actions {
+            flex: 1;
+            min-width: 0;
         }
 
         .more {
@@ -416,6 +429,7 @@ export class OlShelfButton extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this.listsOnly = false;
         this.pending = false;
         this._announce = '';
         this._icon = 'bookmark';
@@ -428,7 +442,7 @@ export class OlShelfButton extends LitElement {
      */
     willUpdate() {
         if (!this._glyphShaped) return;
-        const icon = this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
+        const icon = this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
         if (icon === this._icon) return;
         if (this.hasUpdated) this._outgoing = this._icon;
         this._icon = icon;
@@ -480,6 +494,7 @@ export class OlShelfButton extends LitElement {
                 user-key=${this.userKey}
                 placement=${ifDefined(this.placement)}
                 ?hide-rating=${this.hideRating}
+                ?lists-only=${this.listsOnly}
                 ?pending=${this.pending}
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
@@ -489,6 +504,8 @@ export class OlShelfButton extends LitElement {
 
     _renderIcon() {
         const on = this._on;
+        const title = this.bookTitle;
+        const label = this.listsOnly ? this.t('addToListFor', { title }) : on ? this.t('saved', { title }) : this.t('save', { title });
         // Keyed so a change makes a fresh element and its enter animation runs.
         const outgoing = this._outgoing;
         const outgoingGlyph = outgoing
@@ -499,13 +516,30 @@ export class OlShelfButton extends LitElement {
                 type="button"
                 slot="trigger"
                 class="save ${classMap({ 'save--on': on })}"
-                aria-label=${on ? this.t('saved', { title: this.bookTitle }) : this.t('save', { title: this.bookTitle })}
+                aria-label=${label}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
             >${keyed(this._icon, html`<ol-icon class="glyph ${classMap({ 'glyph--in': Boolean(outgoing) })}" name=${this._icon}></ol-icon>`)}${outgoingGlyph}</button>
         `);
     }
 
     _renderSplit() {
+        // Lists-only: one labelled trigger in the split's frame, no main half.
+        if (this.listsOnly) {
+            const label = this.t('addToList');
+            return html`
+                <div class="split split--list">
+                    ${this._withActions(html`
+                        <button
+                            type="button"
+                            slot="trigger"
+                            class="main"
+                            aria-label=${this.t('shelfToggle', { shelf: label, title: this.bookTitle })}
+                            @click=${this.userKey ? undefined : this._onLoggedOut}
+                        ><ol-icon name="list-plus"></ol-icon><span>${label}</span></button>
+                    `)}
+                </div>
+            `;
+        }
         const on = this._on;
         const label = this.t(SHELF_LABEL[this.shelf ?? SHELF.WANT_TO_READ]);
         return html`
@@ -559,7 +593,7 @@ export class OlShelfButton extends LitElement {
         // No resumeUrl: come back to the page they were on. On a book page that
         // is the same thing, but from a list of results it is not — the legacy
         // dropper returned them to their results too.
-        redirectToLogin({ action: this.t('wantToRead'), title: this.bookTitle });
+        redirectToLogin({ action: this.t(this.listsOnly ? 'addToList' : 'wantToRead'), title: this.bookTitle });
     }
 
     async _onMainClick(e) {

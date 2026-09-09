@@ -41,7 +41,6 @@
 @import "components/tagging-menu.css";
 @import "components/shareLinks.css";
 @import "components/generic-dropper.css";
-@import "components/mybooks-dropper.css";
 @import "components/subNav.css";
 @import "components/book.css";
 
@@ -81,7 +80,6 @@
 @import "components/librarian-dashboard.css";
 @import "components/cover.css";
 @import "components/readerStats.css";
-@import "components/check-in.css";
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
 @import "components/work.css";
@@ -1528,7 +1526,6 @@ ul.list-books span.resultType {
   width: 100%;
 }
 
-.list-books--grid .searchResultItem .check-in-prompt,
 .list-books--grid .searchResultItem .star-rating-form {
   display: none;
 }

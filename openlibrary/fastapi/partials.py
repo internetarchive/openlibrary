@@ -146,10 +146,9 @@ async def my_books_dropper_lists_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     """
-    Get MyBooks dropper lists HTML and list data for the current user.
+    Get the current user's lists.
 
     Returns:
-    - dropper: HTML string for the dropper lists component
     - listData: dict mapping list keys to their members and names
     """
     # Despite the fact we are not yet using the user directly, it gives us faster
