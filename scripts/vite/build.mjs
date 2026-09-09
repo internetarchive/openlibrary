@@ -13,12 +13,13 @@
  *
  * Use:
  *   node scripts/vite/build.mjs
- *   node scripts/vite/build.mjs --only css|js|components
+ *   node scripts/vite/build.mjs --only css[,js,components]
  *   node scripts/vite/build.mjs --watch --mode development
  *   FORCE_POLLING=true node scripts/vite/build.mjs --watch --mode development
  *   node scripts/vite/build.mjs --help
  *
  * Flags accept space or `=` form (`--only css`, `--only=css`).
+ * `--only` accepts a comma-separated list (`--only js,css`).
  *
  * Env:
  *   BUILD_DIR overrides the outDir for single-group runs.
@@ -43,28 +44,38 @@ const { values } = parseArgs({
     },
 });
 const isWatch = values.watch;
-const only = values.only ?? null;
 const mode = values.mode ?? (isWatch ? "development" : "production");
 const forcePolling = process.env.FORCE_POLLING === "true";
 
 if (values.help) {
-    console.log(`Use: node scripts/vite/build.mjs [--only css|js|components] [--watch] [--mode development|production]
+    console.log(`Use: node scripts/vite/build.mjs [--only css[,js,components]] [--watch] [--mode development|production]
 
 Builds all frontend assets. One command builds all groups in parallel.
 Groups use distinct outDirs: static/build/css, static/build/js,
-static/build/components/production.
+static/build/components/production. --only accepts a comma-separated
+list to run a subset (e.g. --only js,css).
 
-Env: BUILD_DIR overrides the outDir for --only runs (used by the
+Env: BUILD_DIR overrides the outDir for single-job --only runs (used by the
 Makefile for atomic *_new dirs). FORCE_POLLING=true helps file
 watchers on bind mounts (see npm run watch-polling).`);
     process.exit(0);
 }
 
-const VALID_ONLY = new Set(["css", "js", "components"]);
-if (only !== null && !VALID_ONLY.has(only)) {
-    console.error(`Unknown --only "${only}" (use one of: css, js, components)`);
-    process.exit(1);
+const ALL_JOBS = ["css", "js", "components"];
+const onlyRaw = values.only
+    ? values.only
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+    : null;
+if (onlyRaw) {
+    const invalid = onlyRaw.filter((j) => !ALL_JOBS.includes(j));
+    if (invalid.length > 0) {
+        console.error(`Unknown job(s): ${invalid.join(", ")} (valid: ${ALL_JOBS.join(", ")})`);
+        process.exit(1);
+    }
 }
+const selectedJobs = new Set(onlyRaw ?? ALL_JOBS);
 
 // Watch option for the Vite JS API. Null means no watch.
 // Empty object means watch with default file watcher.
@@ -83,10 +94,13 @@ function baseConfig() {
 }
 
 function outDirFor(name, fallback) {
-    if (process.env.BUILD_DIR && only !== null) {
-        // Single-group run (Makefile atomic dir or old npm script).
+    if (process.env.BUILD_DIR && selectedJobs.size === 1) {
+        // Single-job run (Makefile atomic dir or old npm script).
         // Vue/Lit group keeps the `/production` suffix.
-        return only === "components" ? join(resolve(process.env.BUILD_DIR), "production") : resolve(process.env.BUILD_DIR);
+        // With multiple jobs BUILD_DIR is ambiguous, so fall through
+        // to the per-group overrides/defaults.
+        const single = [...selectedJobs][0];
+        return single === "components" ? join(resolve(process.env.BUILD_DIR), "production") : resolve(process.env.BUILD_DIR);
     }
     const override = process.env[`${name}_OUT_DIR`];
     if (override) {
@@ -233,9 +247,13 @@ function virtualVuePlugin() {
         load(id) {
             if (id.startsWith("virtual:vue-wc:")) {
                 const name = id.replace("virtual:vue-wc:", "");
+                // Absolute filesystem paths: virtual modules have no location,
+                // so root-relative `/...` specifiers rely on Vite's root
+                // resolution. Absolute paths resolve deterministically.
+                const compDir = join(root, "openlibrary/components");
                 return [
-                    "import { createWebComponentSimple } from '/openlibrary/components/rollupInputCore.js';",
-                    `import rootComponent from '/openlibrary/components/${name}.vue';`,
+                    `import { createWebComponentSimple } from '${join(compDir, "rollupInputCore.js")}';`,
+                    `import rootComponent from '${join(compDir, `${name}.vue`)}';`,
                     `createWebComponentSimple(rootComponent, '${name}');`,
                     "",
                 ].join("\n");
@@ -262,7 +280,7 @@ function getComponentsConfig() {
             emptyOutDir: true,
             copyPublicDir: false,
             chunkSizeWarningLimit: 600,
-            minify: true,
+            minify: mode !== "development",
             sourcemap: true,
             watch: watchOption,
             rolldownOptions: {
@@ -286,12 +304,20 @@ async function runJs() {
     // Parallel runs risk one build that clears the dir
     // while the other build writes files.
     await build(getJsEsmConfig(outDir));
-    await Promise.all([
-        build(getJsIifeConfig("sw", resolve(root, "openlibrary/plugins/openlibrary/js/service-worker.js"), outDir)),
-        build(
-            getJsIifeConfig("partnerLib", resolve(root, "openlibrary/plugins/openlibrary/js/partner_ol_lib.js"), outDir),
-        ),
-    ]);
+    const iifeJobs = [
+        ["sw", resolve(root, "openlibrary/plugins/openlibrary/js/service-worker.js")],
+        ["partnerLib", resolve(root, "openlibrary/plugins/openlibrary/js/partner_ol_lib.js")],
+    ];
+    const iifeResults = await Promise.allSettled(
+        iifeJobs.map(([name, entry]) => build(getJsIifeConfig(name, entry, outDir))),
+    );
+    const iifeFailures = iifeResults
+        .map((res, i) => ({ res, name: iifeJobs[i][0] }))
+        .filter(({ res }) => res.status === "rejected");
+    if (iifeFailures.length > 0) {
+        const detail = iifeFailures.map(({ name, res }) => `[${name}] ${res.reason?.stack ?? res.reason}`).join("\n");
+        throw new Error(`js IIFE build(s) failed:\n${detail}`);
+    }
 }
 
 async function runComponents() {
@@ -300,24 +326,39 @@ async function runComponents() {
 
 async function run() {
     const jobs = [];
-    if (only === null || only === "css") {
+    if (selectedJobs.has("css")) {
         jobs.push(["css", runCss]);
     }
-    if (only === null || only === "js") {
+    if (selectedJobs.has("js")) {
         jobs.push(["js", runJs]);
     }
-    if (only === null || only === "components") {
+    if (selectedJobs.has("components")) {
         jobs.push(["components", runComponents]);
     }
 
     console.log(`Build start (mode: ${mode}${isWatch ? ", watch" : ""}): ${jobs.map(([name]) => name).join(", ")}`);
 
-    // Groups use distinct outDirs, so groups can run at the same time.
-    await Promise.all(jobs.map(([, fn]) => fn()));
-
-    if (!isWatch) {
-        console.log("All builds done.");
+    if (isWatch) {
+        // Watchers never settle; keep the process alive.
+        await Promise.all(jobs.map(([, fn]) => fn()));
+        return;
     }
+
+    // Groups use distinct outDirs, so groups can run at the same time.
+    // allSettled (not all) so one job failing doesn't mask errors in the
+    // others — CI gets every failure in a single run.
+    const results = await Promise.allSettled(jobs.map(([, fn]) => fn()));
+    let hasFailure = false;
+    results.forEach((res, i) => {
+        if (res.status === "rejected") {
+            hasFailure = true;
+            console.error(`[${jobs[i][0]}] build failed:`, res.reason);
+        }
+    });
+    if (hasFailure) {
+        process.exit(1);
+    }
+    console.log("All builds done.");
 }
 
 await run().catch((err) => {
