@@ -5,9 +5,8 @@ $ cover_host = '//covers.openlibrary.org'
 $ url = book.get('key') or book.url
 $ title = book.get("title", "")
 
-$# The work behind this card, for the shelf button: a work doc is its own,
-$# an edition doc had it handed over by the carousel, an edition record
-$# (a loan) points at it. Nothing to shelve without one.
+$# The work behind this card: a work doc is its own, an edition doc had it
+$# handed over by the carousel, an edition record (a loan) points at it.
 $code:
   work_key = book.get('work_key')
   if not work_key and str(url).startswith('/works/'):
@@ -92,8 +91,7 @@ $else:
           </div>
       </a>
       $if work_key:
-        $# No user-key or state here: the card renders the same for every
-        $# reader (it is cached, or fetched lazily); book-state.js fills both in.
+        $# No user-key or state: the card is cached across readers; book-state.js fills both in.
         <ol-shelf-button variant="icon" work-key="$work_key" book-title="$title"
           $if edition_olid:
             edition-key="$edition_olid"

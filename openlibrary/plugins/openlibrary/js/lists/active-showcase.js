@@ -1,10 +1,7 @@
 /**
  * The "lists this book is on" strip under the shelf button on a book page.
- *
- * Fed from the same lists partial the shelf popover reads, and kept current by
- * the popover's events: a list the reader puts the book in appears, one they
- * take it out of goes. Taking it out from the strip itself still goes through
- * ShowcaseItem, as it did under the legacy dropper.
+ * Fed from the lists partial and kept current by the popover's events;
+ * removal from the strip itself still goes through ShowcaseItem.
  *
  * @module lists/active-showcase
  */

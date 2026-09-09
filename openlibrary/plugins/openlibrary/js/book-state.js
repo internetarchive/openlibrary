@@ -1,24 +1,22 @@
 /**
  * The surface behind every <ol-shelf-button> on a page.
  *
- * The button is stateless: it reports a change and expects whatever owns the
- * book to apply it. On the site that owner is the page, so this module
- * listens at the document and writes each change onto every button for the
- * same work — the same book in a carousel and in a search row stay in step.
+ * The button is stateless: it reports a change and expects its owner to apply
+ * it. This module listens at the document and writes each change onto every
+ * button for the same work, so a book in a carousel and in a search row stay
+ * in step.
  *
- * It also fills in what the server could not. Rows arrive with their state
- * (`data-hydrated`); carousel buttons do not, because their HTML is cached
- * across readers or fetched lazily. Those get the reader's key from
- * <body data-user-key> and their shelf, rating and finish date from one
- * batched request per page, repeated for buttons that arrive later (a lazy
- * carousel, a load-more page). Translated labels come from the hidden input
- * site/body.html renders.
+ * It also fills in what the server could not. Carousel buttons arrive without
+ * state (their HTML is cached across readers, or fetched lazily): they get the
+ * reader's key from <body data-user-key>, labels from the hidden input in
+ * site/body.html, and their state from one batched request, repeated for
+ * buttons that arrive later.
  *
  * @module book-state
  */
 import { buildPartialsUrl } from './utils';
 
-/** What one ReadingState.json request may ask for; matches the server's cap. */
+/** The server's cap on one ReadingState.json request. */
 export const BATCH_SIZE = 100;
 const LABELS_INPUT = 'input[name="shelf-button-i18n-strings"]';
 
@@ -29,7 +27,7 @@ const seen = new WeakSet();
 const requested = new WeakSet();
 let scheduled = false;
 
-/** The translated labels site/body.html rendered, or null if the page has none. */
+/** The labels site/body.html rendered, or null. */
 export function readLabels() {
     const input = document.querySelector(LABELS_INPUT);
     if (!input) return null;
@@ -45,11 +43,10 @@ function userKey() {
 }
 
 function buttonsFor(workKey) {
-    // Work keys are "/works/OL…W": nothing to escape, but quote anyway.
     return document.querySelectorAll(`ol-shelf-button[work-key="${workKey}"]`);
 }
 
-/** Write one ReadingState entry onto a button; `null` state means no state. */
+/** Write one ReadingState entry onto a button. */
 export function applyState(button, state) {
     button.shelf = state?.shelf ?? null;
     button.rating = state?.rating ?? null;
@@ -89,7 +86,7 @@ async function fetchState(buttons) {
             if (!response.ok) throw new Error(`ReadingState → ${response.status}`);
             works = (await response.json()).works;
         } catch {
-            // Let the next pass (a later mutation) try these again.
+            // Retried on the next pass.
             buttons.forEach(b => requested.delete(b));
             continue;
         }
@@ -100,10 +97,7 @@ async function fetchState(buttons) {
     }
 }
 
-/**
- * Give every button on the page its labels and, signed in, the reader's key;
- * then fetch state for the ones the server left without it.
- */
+/** Give every button its labels and the reader's key, then fetch state for the ones the server left without it. */
 export async function hydrate() {
     const key = userKey();
     const fresh = [];
@@ -122,7 +116,7 @@ export async function hydrate() {
     if (fresh.length) await fetchState(fresh);
 }
 
-/** Coalesce a burst of DOM insertions (a carousel's worth of cards) into one pass. */
+/** Coalesce a burst of DOM insertions into one pass. */
 function scheduleHydrate() {
     if (scheduled) return;
     scheduled = true;
@@ -139,7 +133,7 @@ export function initBookState() {
     new MutationObserver(scheduleHydrate).observe(document.body, { childList: true, subtree: true });
 }
 
-/** Forget every button (tests). */
+/** For tests. */
 export function resetBookState() {
     labels = null;
     scheduled = false;

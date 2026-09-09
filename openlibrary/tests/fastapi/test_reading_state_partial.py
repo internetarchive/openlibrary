@@ -3,8 +3,7 @@
 from unittest.mock import patch
 
 URL = "/partials/ReadingState.json"
-# Importing the router module here would run the openlibrary plugin setup
-# before the app fixture does, so the cap is restated rather than imported.
+# Importing the router here would run the plugin setup before the app fixture, so the cap is restated.
 MAX_READING_STATE_WORKS = 100
 
 

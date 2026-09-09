@@ -102,10 +102,8 @@ export class Carousel {
         const observer = new MutationObserver(removeCarouselRoles);
         observer.observe(this.$container[0], { subtree: true, attributeFilter: ['role'] });
 
-        // Slick keeps the links in off-screen slides out of the tab order
-        // (tabindex="-1" wherever it sets aria-hidden), but it cannot reach a
-        // shelf button's real button behind its shadow root. Making the host
-        // inert while its slide is hidden does the same job.
+        // Slick sets tabindex="-1" on links in hidden slides, but cannot reach a
+        // shelf button's real button behind its shadow root; inert does the same job.
         const syncShelfButtons = () => {
             this.$container[0].querySelectorAll('.slick-slide').forEach((slide) => {
                 const hidden = slide.getAttribute('aria-hidden') === 'true';

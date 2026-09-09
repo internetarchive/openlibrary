@@ -194,8 +194,7 @@ def reading_state_partial(
     The current user's shelf, rating and last finish date for each work, keyed by OLID.
 
     Every requested work is present, with nulls where the reader has no state.
-    `<ol-shelf-button>`s the server rendered without state (carousels) are
-    hydrated from this by book-state.js.
+    book-state.js hydrates carousel shelf buttons from this.
     """
     states = ReadingStatePartial.generate(user.username, work_ids)
     return ReadingStateResponse(user_key=user.user_key, works={olid: ReadingStateEntry(**state) for olid, state in states.items()})

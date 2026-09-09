@@ -1,10 +1,7 @@
 /**
- * Unit tests for the search modal's row shelf buttons: state is fetched on
- * intent, not with the search; one batch covers the rows; it is cached across
- * queries; and changes made anywhere on the page reach the same map.
- *
- * Exercised on a SearchModal instance, the way searchModalFacets.test.js
- * does — the rendered row is covered once, at the end.
+ * The search modal's row shelf buttons: state is fetched on intent, in one
+ * batch, cached across queries, and kept in step with changes made anywhere
+ * on the page. Exercised on a SearchModal instance, as searchModalFacets.test.js does.
  */
 
 import { SearchModal } from '../../../openlibrary/plugins/openlibrary/js/search-modal/SearchModal.js';
@@ -140,8 +137,7 @@ describe('changes made elsewhere', () => {
         expect(modal._readingState.get('OL1W')).toMatchObject({ read_date: '2026-09', event_id: 12 });
     });
 
-    // A partial picture would let the popover open on the shelf but not the
-    // date; leaving it unknown means the next intent fetches it whole.
+    // A partial picture would let the popover act on the shelf but not the date.
     test('an unknown book stays unknown', () => {
         const modal = attached();
         document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf: 1, rating: null } }));

@@ -624,8 +624,7 @@ def work_key_of(doc) -> str | None:
 def reading_state_for(docs) -> dict[str, ReadingState]:
     """The signed-in reader's shelf, rating and last finish date for the works in `docs`, keyed by work key.
 
-    Empty when signed out. One round of queries for a whole page of rows, so
-    templates call it once before their loop and pass the result down.
+    Empty when signed out. Call once per page of rows and pass the result down.
     """
     user = accounts.get_current_user()
     if not user:

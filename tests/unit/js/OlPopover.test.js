@@ -260,10 +260,9 @@ describe('ol-popover close fallback', () => {
 });
 
 /**
- * Light dismiss lets the closing click through to whatever sits under the
- * pointer. Over a list of links that means dismissing a menu also navigates.
- * `block-outside-clicks` renders a transparent backdrop that takes the hit
- * instead, without turning the popover modal for assistive tech.
+ * Light dismiss lets the closing click through to whatever is under the
+ * pointer; `block-outside-clicks` renders a transparent backdrop that takes
+ * the hit instead, without turning the popover modal.
  */
 describe('ol-popover block-outside-clicks', () => {
     let popoverApi;
@@ -320,9 +319,7 @@ describe('ol-popover block-outside-clicks', () => {
 
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(onClose.mock.calls[0][0].detail.reason).toBe('outside-click');
-        // The click bubbles through the host as a normal event; what matters
-        // is that the element under the pointer was the backdrop, so page
-        // listeners see the popover as the target, never a link beneath it.
+        // Page listeners see the popover as the target, never a link beneath it.
         expect(pageClick.mock.calls[0][0].target).toBe(el);
         expect(el._animState).toBe('exiting');
     });

@@ -67,15 +67,12 @@ function _removeFromOverlayStack(el) {
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
- * @prop {Boolean} blockOutsideClicks - Whether the click that dismisses the
- *     popover is swallowed rather than passed to whatever is underneath. By
- *     default light dismiss lets it through (native `popover=auto` does the
- *     same), which is a hazard when the page below is made of links: the click
- *     that closes a menu also follows the link under the pointer. Set this
- *     when the popover opens over dense, clickable content. Implemented as a
- *     transparent full-viewport backdrop, so hover and wheel scrolling under
- *     the panel are blocked while it is open too, like a native menu. The
- *     popover stays non-modal for assistive tech. Default: false
+ * @prop {Boolean} blockOutsideClicks - Swallow the click that dismisses the
+ *     popover instead of letting it reach what is underneath. Light dismiss
+ *     (like native `popover=auto`) lets it through, which over a page of links
+ *     also follows the link under the pointer. A transparent backdrop takes the
+ *     hit, so hover and wheel under the panel are blocked too, like a native
+ *     menu. The popover stays non-modal for assistive tech. Default: false
  *
  * @attr aria-label - Forwarded to the inner dialog as its accessible name.
  *
@@ -218,9 +215,8 @@ export class OlPopover extends LitElement {
 
         /* ── Desktop click guard ── */
 
-        /* The same element with the scrim removed: invisible, but still a
-           hit-test target so the dismissing click ends here instead of on the
-           link underneath. Nothing to animate. */
+        /* The scrim made invisible: still a hit-test target, so the dismissing
+           click ends here instead of on the link underneath. */
         .backdrop.guard {
             background: transparent;
             backdrop-filter: none;

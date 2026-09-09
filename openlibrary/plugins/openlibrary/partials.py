@@ -101,11 +101,7 @@ class MyBooksDropperListsPartial:
 
 
 class ReadingStatePartial:
-    """The reader's opening state for a batch of `<ol-shelf-button>`s.
-
-    For the surfaces the server cannot render it into — carousels, whose HTML
-    is cached across readers or fetched lazily — book-state.js asks for it here.
-    """
+    """The opening state for `<ol-shelf-button>`s the server rendered without it (carousels); book-state.js asks here."""
 
     @classmethod
     def generate(cls, username: str, work_olids: list[str]) -> dict[str, ReadingState]:

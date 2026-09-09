@@ -1,10 +1,8 @@
 $def with ()
-$# Translated labels for <ol-shelf-button> and the <ol-shelf-actions> popover it
-$# opens. Rendered once per page by site/body.html; book-state.js reads the
-$# input and hands the labels to every button on the page. The keys and English
-$# source strings must match DEFAULT_LABELS in OlShelfButton.js and
-$# OlShelfActions.js. A plural set carries one form per CLDR category the page
-$# language may need; the component picks the form by count.
+$# Labels for <ol-shelf-button> and <ol-shelf-actions>, rendered once per page
+$# by site/body.html and handed out by book-state.js. Keys and English strings
+$# must match DEFAULT_LABELS in OlShelfButton.js and OlShelfActions.js. A
+$# plural set carries one form per CLDR category; the component picks by count.
 $code:
   labels = {
       # OlShelfButton.js

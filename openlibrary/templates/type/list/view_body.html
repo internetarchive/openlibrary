@@ -113,7 +113,7 @@ $def seed_attrs(seed):
         $for item in items:
             $ seed = item.seed
             $if seed.type in ['edition', 'work']:
-                $:macros.SearchResultsWork(item.doc, attrs=seed_attrs(seed), availability=item.availability, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, reading_state=reading_state, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
+                $:macros.SearchResultsWork(item.doc, attrs=seed_attrs(seed), availability=item.availability, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, reading_state=reading_state, layout=layout, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
                 $ default_image = "https://openlibrary.org/static/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()

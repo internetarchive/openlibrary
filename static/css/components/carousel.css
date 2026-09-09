@@ -246,20 +246,18 @@
   max-width: 100%;
 }
 
-/* The save bookmark floats over the cover's top-right corner; its visible
-   circle is inset 4px inside the 32px hit target. The loan badge keeps the
-   bottom edge. */
+/* Floats over the cover's top-right corner; the visible circle is inset 4px
+   inside the 32px hit target. */
 .book-cover-wrapper > ol-shelf-button {
   position: absolute;
   top: 0;
   right: 0;
 }
 
-/* On a fine pointer the bookmark waits for intent: hover, focus, or its
-   popover being open (`open` is the component's own attribute; focus inside a
-   top-layer popover does not register as :focus-within on the host). Once the
-   book is on a shelf the filled mark stays, as status. Touch has nothing to
-   hover, so it is always shown. */
+/* On a fine pointer the bookmark waits for hover, focus, or its popover being
+   open (`open` is the component's attribute; focus inside a top-layer popover
+   does not register as :focus-within on the host). Once shelved it stays, as
+   status. Touch has nothing to hover, so it is always shown. */
 @media (hover: hover) and (pointer: fine) {
   .book-cover-wrapper > ol-shelf-button:not([shelf]) {
     opacity: 0;

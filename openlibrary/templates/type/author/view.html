@@ -167,7 +167,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $ reading_state = reading_state_for(books.docs)
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_state=reading_state, seq_index=loop.index0)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, reading_state=reading_state, layout=layout, seq_index=loop.index0)
                     </ul>
                 </div>
 

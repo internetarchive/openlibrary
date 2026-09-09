@@ -1,8 +1,7 @@
 /**
- * Unit tests for book-state.js: labels and the reader's key reach every
- * <ol-shelf-button>, state is fetched in one batch for the buttons the server
- * left without it, and a change reported by one button lands on every button
- * for that work. Network is stubbed at `fetch`.
+ * book-state.js: labels and the reader's key reach every button, state is
+ * fetched in one batch for the buttons the server left without it, and a
+ * change on one button lands on every button for that work.
  */
 import '../../../openlibrary/components/lit/OlShelfButton.js';
 import { BATCH_SIZE, hydrate, initBookState, readLabels, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';

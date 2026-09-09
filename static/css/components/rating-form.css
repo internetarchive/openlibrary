@@ -15,7 +15,7 @@
   margin: 0 auto;
 }
 
-/* Air between the shelf button above and the stars on the book page. */
+/* Space below the shelf button on the book page. */
 .lists-widget-container .star-rating-form {
   margin-top: var(--spacing-stack-md);
 }

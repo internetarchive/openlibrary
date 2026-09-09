@@ -97,9 +97,9 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @prop {Number} eventId - Id of that check-in, so changing the date edits it
  *     rather than recording a second finish
  * @prop {String} userKey  - "/people/<username>", needed to create lists
- * @prop {Boolean} pending - The reader's state for this book is not known yet.
- *     The shelf and rating rows dim and ignore clicks until it is: posting the
- *     shelf a book is already on removes it, so a guess could undo a save
+ * @prop {Boolean} pending - The reader's state is not known yet. The shelf and
+ *     rating rows dim and ignore clicks until it is: posting the shelf a book
+ *     is already on removes it, so a guess could undo a save
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
  *
@@ -113,9 +113,8 @@ const PANES = ['main', 'lists', 'checkIn'];
  * @fires ol-list-created - After the inline form creates a list. Sibling
  *     popovers share the lists store and need no event; this is for surfaces
  *     outside the components. detail: { key, name, seedKey }
- * @fires ol-list-change - After the book is put in a list or taken out of one,
- *     for the same surfaces. detail: { key, name, seedKey, member } — `member`
- *     is whether the book is now in the list
+ * @fires ol-list-change - After the book is put in a list or taken out of one.
+ *     detail: { key, name, seedKey, member } — `member` is whether it is in the list now
  *
  * @slot trigger - The button that opens the popover.
  */
@@ -1037,7 +1036,7 @@ export class OlShelfActions extends LitElement {
                  off Already Read: that shelf's row leads here instead of
                  toggling off, and coming off it deletes the check-in too.
                  Only when amending: someone who just chose the shelf is here
-                 to date the read, not to undo the tap they made a moment ago. -->
+                 to date the read, not to undo it. -->
             ${this._amending ? html`<div class="group not-read">
                 <button type="button" class="row" @click=${this._removeFromShelf}>
                     <ol-icon class="obd-icon" name="ban"></ol-icon>

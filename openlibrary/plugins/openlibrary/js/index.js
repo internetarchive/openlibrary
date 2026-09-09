@@ -407,8 +407,7 @@ jQuery(function() {
             });
     }
 
-    // Shelf buttons: hydrate the ones the server rendered without state (carousels,
-    // including ones that load later) and keep every copy of a book in step.
+    // Shelf buttons: hydrate the ones the server rendered without state and keep every copy of a book in step.
     if (document.querySelector('ol-shelf-button, .lazy-carousel')) {
         import(/* webpackChunkName: "book-state" */ './book-state')
             .then(module => module.initBookState());

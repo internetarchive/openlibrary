@@ -4,8 +4,7 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
-$# book-state.js reads the reader's key to open shelf popovers on carousels,
-$# whose HTML is rendered without a reader (cached, or fetched lazily).
+$# For book-state.js: carousel shelf buttons are rendered without a reader.
 $if ctx.user:
   $bodyattrs.append('data-user-key="%s"' % ctx.user.key)
 

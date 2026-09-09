@@ -1,7 +1,6 @@
 """
-A reader's relationship to a batch of works — shelf, rating, and the date they
-last finished it — in one query per table. This is what every surface that
-lists books hands to `<ol-shelf-button>` as its opening state.
+A reader's shelf, rating and last finish date for a batch of works, in one
+query per table: the opening state for `<ol-shelf-button>`.
 """
 
 from __future__ import annotations

@@ -1,8 +1,7 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, reading_state=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, highlighting=None, show_librarian_extras=False, include_dropper=False, blur=False, footer=None, seq_index=None, reading_state=None, layout=None)
 
-$# reading_state: the dict reading_state_for() returns for the whole page of
-$# docs, keyed by work key — so one page is one round of queries, not one per
-$# row. Left out, the row looks its own state up.
+$# reading_state: reading_state_for() for the whole page, keyed by work key,
+$# so one page is one round of queries. Left out, the row looks its own up.
 
 $code:
   max_rendered_authors = 9
@@ -56,6 +55,30 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
 
+$# layout: 'grid' puts the shelf button on the cover as a badge, like a carousel
+$# card; anything else keeps the labelled split in the CTA column. list_books.js
+$# moves it between the two slots when the reader flips the layout.
+$ shelf_button = None
+$if include_dropper:
+  $ edition_key = None
+  $if doc_type == 'solr_edition':
+    $ edition_key = selected_ed['key']
+  $elif doc_type == 'infogami_edition':
+    $ edition_key = doc.key
+  $elif doc_type == 'solr_work':
+    $if doc.get('logged_edition'):
+      $# Prefer logged_edition set when user added book
+      $ edition_key = doc.get('logged_edition')
+    $else:
+      $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
+      $if edition_key:
+        $ edition_key = '/books/%s' % edition_key
+  $ work_key = (edition_work and edition_work.key) if doc_type == 'infogami_edition' else doc.key
+  $if work_key:
+    $ work_title = edition_work.get('title', '') if doc_type == 'infogami_edition' else doc.get('title', '')
+    $ state = (reading_state if reading_state is not None else reading_state_for([doc])).get(work_key) or {}
+    $ shelf_button = render_jinja_template('my_books/shelf_button.html.jinja', variant=('icon' if layout == 'grid' else 'split'), work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state, hide_rating=bool(rating))
+
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
   $if 'log' in doc:
@@ -69,14 +92,18 @@ $code:
   <div class="sri__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png"
-      <a href="$work_edition_url">
-        <img
-          itemprop="image"
-          src="$cover"
-          alt="$_('Cover of: %(title)s', title=full_title)"
-          title="$_('Cover of: %(title)s', title=full_title)"
-          $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
-	  /></a>
+      <span class="book-cover-wrapper">
+        <a href="$work_edition_url">
+          <img
+            itemprop="image"
+            src="$cover"
+            alt="$_('Cover of: %(title)s', title=full_title)"
+            title="$_('Cover of: %(title)s', title=full_title)"
+            $:cond(seq_index is not None and seq_index > 3, 'loading="lazy"')
+            /></a>
+        $if shelf_button and layout == 'grid':
+          $:shelf_button
+      </span>
     $:macros.BookPreview(ocaid)
     </span>
 
@@ -258,24 +285,11 @@ $code:
         </div>
 
         $if include_dropper:
-          $ edition_key = None
-          $if doc_type == 'solr_edition':
-            $ edition_key = selected_ed['key']
-          $elif doc_type == 'infogami_edition':
-            $ edition_key = doc.key
-          $elif doc_type == 'solr_work':
-            $if doc.get('logged_edition'):
-              $# Prefer logged_edition set when user added book
-              $ edition_key = doc.get('logged_edition')
-            $else:
-              $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
-              $if edition_key:
-                $ edition_key = '/books/%s' % edition_key
-          $ work_key = (edition_work and edition_work.key) if doc_type == 'infogami_edition' else doc.key
-          $if work_key:
-            $ work_title = edition_work.get('title', '') if doc_type == 'infogami_edition' else doc.get('title', '')
-            $ state = (reading_state if reading_state is not None else reading_state_for([doc])).get(work_key) or {}
-            $:render_jinja_template('my_books/shelf_button.html.jinja', variant='split', work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state, hide_rating=bool(rating))
+          $if shelf_button:
+            <div class="searchResultItemCTA__shelf">
+              $if layout != 'grid':
+                $:shelf_button
+            </div>
           $else:
             $# An orphaned edition has no work to shelve; the legacy dropper still offers its lists.
             $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)

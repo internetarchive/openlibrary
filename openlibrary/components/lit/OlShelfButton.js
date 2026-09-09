@@ -58,10 +58,9 @@ export const DEFAULT_LABELS = {
  * @prop {Number} eventId - Id of that check-in, so editing the date amends it
  * @prop {String} userKey - "/people/<username>" when signed in; empty sends the
  *     visitor to log in instead of opening the popover
- * @prop {Boolean} pending - The reader's state for this book is not known yet.
- *     The button looks unshelved, and the popover holds its rows until the
- *     surface fills the state in: posting a shelf the book is already on
- *     removes it, so acting on a guess could undo a save
+ * @prop {Boolean} pending - The reader's state is not known yet. The button
+ *     looks unshelved and the popover holds its rows: posting a shelf the book
+ *     is already on removes it, so a guess could undo a save
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
  * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
@@ -166,7 +165,7 @@ export class OlShelfButton extends LitElement {
         .main {
             flex: 1;
             min-width: 0;
-            padding: 0 var(--spacing-sm);
+            padding: 0 var(--spacing-xs);
             white-space: nowrap;
             overflow: hidden;
         }
@@ -185,7 +184,7 @@ export class OlShelfButton extends LitElement {
         }
 
         .more {
-            width: 40px;
+            width: 32px;
             border-left: 1px solid var(--color-border-subtle);
         }
 
@@ -264,10 +263,9 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
         }
 
-        /* A glyph change: the old one shrinks and blurs away over the new one
-           growing in sharp, the same handover as ol-button's label and spinner.
-           Both run for one duration so neither is cut short when the outgoing
-           layer is dropped. */
+        /* Glyph swap: the old one shrinks and blurs out over the new one growing
+           in, like ol-button's label and spinner. One duration for both, so
+           neither is cut short when the outgoing layer is dropped. */
         .glyph--in {
             animation: glyph-in 0.24s ease both;
         }
@@ -337,9 +335,8 @@ export class OlShelfButton extends LitElement {
 
         /* ── Outline variant ──────────────────────────────────────── */
 
-        /* The same glyph in the split button's bordered, raised shape at icon
-           width. Nothing floats over artwork here, so the circle and its drop
-           shadow go; the hover is a tint, not a grow. */
+        /* The split button's bordered, raised shape at icon width. No circle or
+           drop shadow, and the hover is a tint, not a grow. */
         :host([variant="outline"]) .save {
             box-sizing: border-box;
             width: var(--control-height-medium);
@@ -422,10 +419,8 @@ export class OlShelfButton extends LitElement {
     }
 
     /**
-     * Pick the badge's glyph: an outlined bookmark until shelved, then the
-     * shelf's solid one. After first paint a change keeps the old glyph around
-     * as an outgoing layer, so the swap can animate; the first render just
-     * shows it. Any state change re-runs this, so a rollback animates too.
+     * Pick the badge's glyph. After first paint a change keeps the old glyph
+     * as an outgoing layer so the swap animates; a rollback animates too.
      */
     willUpdate() {
         if (!this._glyphShaped) return;
@@ -490,8 +485,7 @@ export class OlShelfButton extends LitElement {
 
     _renderIcon() {
         const on = this._on;
-        // Keyed so a change makes a fresh element and its enter animation
-        // runs; the outgoing copy sits over it until its own animation ends.
+        // Keyed so a change makes a fresh element and its enter animation runs.
         const outgoing = this._outgoing;
         const outgoingGlyph = outgoing
             ? keyed(outgoing, html`<ol-icon class="glyph glyph--out" name=${outgoing} @animationend=${this._onGlyphOut} @animationcancel=${this._onGlyphOut}></ol-icon>`)
@@ -564,8 +558,7 @@ export class OlShelfButton extends LitElement {
         if (!this.userKey) return this._onLoggedOut(e);
         // The shelf we emit only comes back down as a property a tick later, so
         // a second click before the request lands would toggle twice on the
-        // server while the button shows one change. Unknown state is the same
-        // risk: the toggle would be a guess.
+        // server while the button shows one change. Unknown state is the same risk.
         if (this._pending || this.pending) return;
         const previous = this.shelf ?? null;
         // On a shelf → clicking removes; otherwise → Want to Read.

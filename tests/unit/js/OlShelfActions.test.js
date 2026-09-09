@@ -648,7 +648,7 @@ describe('ol-shelf-actions hide-rating', () => {
 describe('ol-shelf-actions pending', () => {
     // Posting the shelf a book is already on removes it, so a click before the
     // state is known could undo a save. Held, not disabled: disabling the
-    // focused row would drop focus to the document.
+    // focused row would drop focus.
     test('marks the shelf and rating groups busy and ignores their clicks', async() => {
         stubFetch();
         const el = await mount({ pending: true });
@@ -1039,8 +1039,7 @@ describe('ol-shelf-actions check-in pane', () => {
             expect(notReadLink(await openPane({ readDate: '2025', eventId: 12 }))).not.toBeNull();
         });
 
-        // Someone who just tapped Already Read is here to date the read, not
-        // to undo the tap; the main button is a step away if they meant to.
+        // Someone who just tapped Already Read is here to date the read, not to undo it.
         test('is not offered right after shelving the book', async() => {
             stubFetch();
             const el = await mount();

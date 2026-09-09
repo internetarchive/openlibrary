@@ -28,7 +28,7 @@ test.describe('Book (Work) page @smoke', () => {
         await page.goto(WORK_URL);
         const button = page.locator('ol-shelf-button[variant="split"]').first();
         await expect(button).toBeAttached();
-        // No reader, so no popover: the trigger stands alone and a click goes to login.
+        // No reader, so a click goes to login.
         await expect(button).not.toHaveAttribute('user-key');
         await button.locator('.main').click();
         await page.waitForURL(/\/account\/login/);
@@ -52,8 +52,7 @@ test.describe('Book (Work) page @smoke', () => {
             await page.goto(WORK_URL);
             const button = page.locator('ol-shelf-button[variant="split"]').first();
             await expect(button).toBeAttached();
-            // The server rendered the reader in, with their state, so nothing
-            // is fetched after load and the popover is wired up.
+            // Rendered with the reader and their state: nothing to fetch, popover wired up.
             await expect(button).toHaveAttribute('user-key', /^\/people\/.+/);
             await expect(button).toHaveAttribute('data-hydrated');
             await expect(button.locator('ol-shelf-actions')).toBeAttached();

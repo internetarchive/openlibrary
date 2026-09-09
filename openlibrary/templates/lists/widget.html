@@ -22,8 +22,7 @@ $else:
   $:render_template('my_books/dropper', page, async_load=async_load)
 
 $if ctx.user:
-  $# The lists this book is on. With a work, lists/active-showcase.js fills it
-  $# from the seed keys; otherwise the legacy dropper JS does.
+  $# With a work, lists/active-showcase.js fills this from the seed keys; otherwise the legacy dropper JS does.
   $ seed_keys = [key for key in [work and work.key, edition and edition.key] if key]
   <ul class="listLists already-lists" $:cond(work, 'data-seed-keys="%s"' % json_encode(seed_keys).replace('"', '&quot;'))>
     $if async_load:

@@ -4,17 +4,14 @@ import { a11yCheck, expectNoViolations } from './a11y';
 import { collectConsoleErrors, login } from './helpers';
 
 /**
- * <ol-shelf-button> against the real server. The jsdom suites
- * (tests/unit/js/OlShelfButton.test.js, book-state.test.js) stub every
- * request, so the two things they cannot prove land here: a click on the book
- * page reaches the reading log and the page reopens on that shelf, and the
- * carousel buttons that the server renders without a reader get their state
- * from one ReadingState.json request.
+ * <ol-shelf-button> against the real server: what the jsdom suites cannot
+ * prove. A click on the book page reaches the reading log and the page
+ * reopens on that shelf; carousel buttons rendered without a reader get
+ * their state from one ReadingState.json request.
  */
 
-// A work of this spec's own, since it changes the reader's shelves while the
-// other specs scan theirs in parallel. OL20600W (Gulliver's Travels) is in
-// the dev DB seed data; OL27448W (The Lord of the Rings) is the production fallback.
+// A work of this spec's own, since it changes the reader's shelves while other
+// specs scan theirs in parallel. OL20600W is in the dev seed; OL27448W is prod.
 const WORK_URL = process.env.OL_BASE_URL?.startsWith('https')
     ? '/works/OL27448W'
     : '/works/OL20600W';
@@ -22,7 +19,7 @@ const WORK_OLID = WORK_URL.split('/').pop()!;
 
 const WANT_TO_READ = '1';
 
-/** Take a work off whatever shelf it is on, so a test starts (and ends) clean. */
+/** Take a work off whatever shelf it is on. */
 async function clearShelf(page: Page, olid: string): Promise<void> {
     const response = await page.request.post(`/works/${olid}/bookshelves.json`, {
         form: { bookshelf_id: '-1' },
@@ -80,12 +77,32 @@ test.describe('ol-shelf-button', () => {
             await page.reload();
             await expect(page.locator('ol-shelf-button[variant="split"]').first()).not.toHaveAttribute('shelf');
         });
+
+        test('book page: the click that closes the menu does not land on the page beneath', async ({ page }) => {
+            // The popover sets block-outside-clicks; only a real browser can prove the hit-testing.
+            await page.goto(WORK_URL);
+            const button = page.locator('ol-shelf-button[variant="split"]').first();
+            await expect(button.locator('ol-shelf-actions')).toBeAttached();
+            await button.locator('.more').click();
+            await expect(button).toHaveAttribute('open');
+
+            // A click on the logo link closes the menu but stays on this page.
+            const logo = page.locator('.logo-component a[href="/"]');
+            const box = (await logo.boundingBox())!;
+            await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+
+            await expect(button).not.toHaveAttribute('open');
+            await expect(page).toHaveURL(new RegExp(`${WORK_URL}\\b`));
+
+            // With the guard gone, the same click follows the link.
+            await logo.click();
+            await expect(page).toHaveURL(/\/$/);
+        });
     });
 
     test.describe('carousel hydration', () => {
-        // The home page's carousels load lazily and their cards are cached
-        // across readers, so they arrive without a user key or state. Solr has
-        // to be up for a carousel to have cards at all.
+        // Home-page carousel cards are cached across readers, so they arrive without
+        // a user key or state. Solr has to be up for a carousel to have cards at all.
         const CAROUSEL_BUTTON = '.book-cover-wrapper > ol-shelf-button[variant="icon"]';
 
         test('anonymous: carousel buttons render, and nothing is fetched', async ({ page }) => {

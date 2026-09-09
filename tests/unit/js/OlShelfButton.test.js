@@ -329,8 +329,7 @@ describe('ol-shelf-button pass-through to the popover', () => {
 });
 
 describe('ol-shelf-button pending', () => {
-    // The main half toggles: with the shelf unknown it would be guessing, and
-    // a wrong guess posts the shelf the book is on, which removes it.
+    // With the shelf unknown the main half's toggle would be a guess, and a wrong guess removes the book.
     test('the main half does nothing until the state is known', async() => {
         stubFetch();
         const el = await mount({ userKey: '/people/tester', pending: true });
