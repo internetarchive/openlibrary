@@ -138,10 +138,25 @@ describe('changes made elsewhere', () => {
     });
 
     // A partial picture would let the popover act on the shelf but not the date.
-    test('an unknown book stays unknown', () => {
+    test('an unknown book stays unknown until intent is shown', () => {
         const modal = attached();
         document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf: 1, rating: null } }));
         expect(modal._readingState.has('OL1W')).toBe(false);
+        expect(calls).toHaveLength(0);
+    });
+
+    test('once intent is shown, a change to an unknown book fetches it whole', async() => {
+        const modal = attached();
+        modal._onShelfIntent();
+        await tick();
+        const emma = { shelf: 3, rating: 5, read_date: '2026-08-01', event_id: 21 };
+        stubFetch({ works: { OL3W: emma } });
+        modal._results = [...WORKS, { key: '/works/OL3W', title: 'Emma' }];
+        document.dispatchEvent(new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL3W', shelf: 3, rating: 5 } }));
+        await tick();
+        expect(calls).toHaveLength(1);
+        expect(decodeURIComponent(calls[0])).toContain('work_ids=OL3W');
+        expect(modal._readingState.get('OL3W')).toEqual(emma);
     });
 
     test('stops listening once detached', async() => {

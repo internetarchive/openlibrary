@@ -1493,11 +1493,16 @@ export class SearchModal extends LitElement {
         this._readingState = new Map([...this._readingState, ...Object.entries(works)]);
     }
 
-    // Only a known book; an unknown one stays pending and is fetched whole later.
+    // Only a known book is patched. An unknown one is fetched whole instead,
+    // once intent is shown: a patch alone would let the popover act on the
+    // shelf without knowing the date.
     _patchShelfState(key, patch) {
         const olid = olidOf(key);
         const current = this._readingState.get(olid);
-        if (!current) return;
+        if (!current) {
+            if (this._shelfStateWanted) this._loadShelfState();
+            return;
+        }
         this._readingState = new Map(this._readingState).set(olid, { ...current, ...patch });
     }
 
