@@ -11,7 +11,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 # directly, but it's still useful for somethings (eg editions have a custom
 # sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe = frozenset(["type:work"])
+    universe = frozenset(["type:edition"])
     all_fields = frozenset(
         {
             "key",

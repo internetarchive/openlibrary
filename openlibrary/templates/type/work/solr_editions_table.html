@@ -1,0 +1,40 @@
+$def with (work, results, page=1, limit=20, elapsed=0.0)
+
+$var title: $_('Editions of %(work_title)s', work_title=work.title)
+
+<div id="contentHead">
+    <h1>
+        <a href="$work.key">$work.title</a> &mdash; $_("Solr Editions Table")
+    </h1>
+    $if results and results.num_found:
+        <p class="small sansserif">
+            $ungettext('Showing %(count)s edition from Solr.', 'Showing %(count)s editions from Solr.', results.num_found, count=commify(results.num_found))
+            $if work.edition_count:
+                ($_("Work total:") $commify(work.edition_count))
+        </p>
+</div>
+
+<div id="contentBody">
+    $if results and results.error:
+        <div class="red">
+            <strong>$_("Solr Error:") $results.error</strong>
+        </div>
+
+    $if results and not results.error:
+        $if not results.num_found:
+            <center>
+                <div class="red" style="margin: 2em 0;">$_('No editions matched your query or filter criteria.')</div>
+            </center>
+        $else:
+            $:render_template("type/work/editions_datatable", work, editions=results.editions)
+
+            $if results.num_found > limit:
+                $:macros.OlPagination(page, ceil(results.num_found / limit))
+
+    <!-- Solr Performance Benchmark Info for Admins / Testing -->
+    <div class="clearfix" style="margin-top: 20px;"></div>
+    <div class="small sansserif benchmark-info">
+        $# detect-missing-i18n-skip-line
+        <span class="adminOnly">Getting list of editions from Solr took $("%.3f" % elapsed) seconds</span>
+    </div>
+</div>
