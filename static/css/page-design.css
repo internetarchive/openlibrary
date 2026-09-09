@@ -1621,6 +1621,14 @@ fieldset.ds-demo-row {
   }
 }
 
+/* Three columns once the shell is near its max width, so the figures stay
+   figure-sized instead of growing into billboards. */
+@media (min-width: 1200px) {
+  .ds-principles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .ds-principles .ds-principle {
   padding-bottom: 0;
   margin-bottom: 0;
@@ -1681,7 +1689,7 @@ fieldset.ds-demo-row {
   color: var(--color-text);
 }
 
-.ds-principle__calls-title {
+.ds-principle__example-title {
   margin: 0 0 var(--spacing-stack-xs);
   font-size: var(--font-size-overline);
   font-weight: var(--font-weight-overline);
@@ -1690,11 +1698,12 @@ fieldset.ds-demo-row {
   color: var(--color-text-muted);
 }
 
-.ds-principle__calls {
+.ds-principle__example {
   max-width: 78ch;
   margin: 0;
   font-size: var(--font-size-body-medium);
-  color: var(--color-text);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
 }
 
 .ds-tensions {

@@ -8,8 +8,8 @@
 {% macro body() %}
     <section class="ds-section ds-principles-intro">
         <p class="ds-lead">
-            What the system is going for, and where it will have to choose. Each principle comes with the hard calls it creates:
-            places where both directions are reasonable and the principle is what tips the decision.
+            What the system is going for, and where it will have to choose. Each principle comes with a place where both
+            directions are reasonable and the principle tips the decision.
         </p>
     </section>
     <div class="ds-principles">
@@ -21,18 +21,14 @@
                 <div class="ds-principle__number">{{ "%02d" | format(loop.index) }}</div>
                 <h2 class="ds-principle__title">{{ principle.title }}</h2>
                 <p class="ds-principle__blurb">{{ principle.blurb }}</p>
-                <h3 class="ds-principle__calls-title">Hard calls</h3>
-                <ul class="ds-prose-list ds-principle__calls">
-                    {% for call in principle.hard_calls %}
-                        <li>{{ call }}</li>
-                    {% endfor %}
-                </ul>
+                <h3 class="ds-principle__example-title">Example</h3>
+                <p class="ds-principle__example">{{ principle.example }}</p>
             </section>
         {% endfor %}
     </div>
     <section class="ds-section" id="tensions">
         <h2 class="ds-section__title">Tensions</h2>
-        <p class="ds-section__blurb">Most hard calls above are one principle pulling against another. The pairs that keep coming up, and how we resolve them so far.</p>
+        <p class="ds-section__blurb">The pairs that keep coming up, and how we resolve them so far.</p>
         <dl class="ds-tensions">
             {% for tension in tensions %}
                 <div class="ds-tensions__row">

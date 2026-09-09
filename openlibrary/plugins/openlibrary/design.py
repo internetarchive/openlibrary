@@ -60,7 +60,7 @@ SECTIONS = (
 class Principle:
     """One entry on the Principles section.
 
-    ``hard_calls`` are the scenarios where the principle pulls against another
+    ``example`` is a scenario where the principle pulls against another
     reasonable choice — the point of the page is those, not the slogans. The
     figure for each row lives in principles.html.jinja, keyed by ``id``.
     """
@@ -68,7 +68,7 @@ class Principle:
     id: str
     title: str
     blurb: str
-    hard_calls: tuple[str, ...]
+    example: str
 
 
 PRINCIPLES = (
@@ -77,36 +77,26 @@ PRINCIPLES = (
         "Tools before brand",
         "We are building the workbench first and the storefront later. Every decision right now should make a control clearer, "
         "faster, or more consistent. Identity work is deferred, not rejected.",
-        (
-            (
-                "A big illustrated hero on the home page would look great and is on-brand for a library. It also spends effort on the one "
-                "page librarians spend the least time on, and introduces a visual language we haven't committed to."
-            ),
-        ),
+        "A big illustrated hero on the home page would look great and is on-brand for a library. It also spends effort on the one "
+        "page librarians spend the least time on, and introduces a visual language we haven't committed to.",
     ),
     Principle(
         "keep-the-paper",
         "Keep the paper",
-        "The beige canvas is the site's memory. We evolve it into a warm neutral ramp instead of replacing it with white, so a "
-        "returning visitor still recognizes the place. Raised surfaces go lighter, sunken go deeper, but the ground stays paper.",
-        (
-            (
-                "A dense edit form is easier to scan on pure white. Keeping the paper canvas is continuity. Switching the whole form to "
-                "white is legibility. The middle path, a white card on paper, costs a border and some air."
-            ),
-        ),
+        "Our palette comes from paper, and paper comes from books. The beige canvas is not sacred as a background, but it is the "
+        "root of the color theme: every neutral, from the lightest raised surface to the darkest ink, descends from that warm "
+        "family. The theme can keep evolving as long as it stays recognizably related to what came before.",
+        "A dense edit form is easier to scan on white. A cold, clinical white breaks the family. A white that still leans warm, or "
+        "a white card on the paper canvas, keeps it. Both are on-principle; pick between them for legibility, not for which one "
+        "gets to be the background.",
     ),
     Principle(
         "quiet-surface",
         "Quiet surface, quick hands",
         "Polished, not extravagant. Flat controls, one accent, muted status colors, no gradients, no ornament. The interface should "
         "be forgettable so the books and the work are not.",
-        (
-            (
-                "A moment that deserves celebration, like finishing a reading goal or a big import. A quiet toast is on-principle and a "
-                "little cold. A flourish is warm and off-principle. Which moments earn an exception, if any?"
-            ),
-        ),
+        "A moment that deserves celebration, like finishing a reading goal or a big import. A quiet toast is on-principle and a "
+        "little cold. A flourish is warm and off-principle.",
     ),
     Principle(
         "everything-answers-back",
@@ -114,104 +104,63 @@ PRINCIPLES = (
         "A pointer landing, a key pressed, a click made: each gets an immediate, visible response. Hover snaps in with no "
         "transition. Press squeezes. Selection changes instantly. The site should feel like it is listening even when the server "
         "is slow.",
-        (
-            (
-                "A soft hover fade looks more refined when you watch it in a prototype or a demo. Under your own cursor it reads as lag. "
-                "We chose snap because it feels faster in the hand. Designers new to the system will keep proposing the fade."
-            ),
-        ),
+        "A soft hover fade looks more refined when you watch it in a prototype or a demo. Under your own cursor it reads as lag. "
+        "We chose snap because it feels faster in the hand.",
     ),
     Principle(
         "never-hide-the-wait",
         "Never hide the wait",
         "Loading, saving, and progress are part of the UI, not a failure state. Every request over about 100 ms shows something: a "
-        "spinner in the control, a skeleton in the region, a progress bar for the page. Slow and honest beats fast-looking and "
-        "blank.",
-        (
-            (
-                "A request that is usually 80 ms but sometimes 2 s. Showing a spinner every time causes flicker on the fast path. "
-                "Delaying it means the slow path looks frozen for the delay. Pick a threshold and live with the flicker or the gap."
-            ),
-        ),
+        "spinner, a skeleton, or a progress bar. Slow and honest beats fast-looking and blank.",
+        "A request that is usually 80 ms but sometimes 2 s. Showing a spinner every time flickers on the fast path. Delaying it "
+        "leaves the slow path frozen. Pick a threshold and live with the flicker or the gap.",
     ),
     Principle(
         "motion-is-information",
         "Motion is information",
         "Animate only what changed: something entering, leaving, moving, or changing state. Durations are short, curves are "
         "decisive, exits are faster than entries. Nothing moves to be pretty. Reduced motion is honored everywhere.",
-        (
-            (
-                "A subject page hero with a staged reveal would add atmosphere. It is also 600 ms of the user waiting to read. Editorial "
-                "pages are the most tempting place to break this rule."
-            ),
-        ),
+        "A subject page hero with a staged reveal would add atmosphere. It is also 600 ms of the user waiting to read. Editorial "
+        "pages are the most tempting place to break this rule.",
     ),
     Principle(
         "dense-on-the-desk",
         "Dense on the desk",
-        "Roomy in the hand, dense on the desk. Desktop is a workbench for people who spend hours here. "
-        "Controls are compact, more fits per screen, secondary actions are "
-        "one click away rather than buried. Mobile gets larger targets and simpler layouts, but the desktop layout is not a "
-        "stretched phone.",
-        (
-            (
-                "44 px touch targets on desktop are safer for accessibility and worse for density. Our medium control is 32 px. Where is "
-                "the floor, and does it differ by pointer?"
-            ),
-        ),
+        "Desktop is a workbench for people who spend hours here. Controls are compact, more fits per screen, secondary actions are "
+        "one click away rather than buried. Mobile gets larger targets and simpler layouts, but desktop is not a stretched phone.",
+        "44 px touch targets on desktop are safer for accessibility and worse for density. Our medium control is 32 px.",
     ),
     Principle(
         "keyboard-first-class",
         "Keyboard is a first-class pointer",
         "Editors and librarians live on the keyboard. Every control is reachable by Tab, every action has a visible focus ring, "
         "forms submit on Enter, and focus never gets lost inside a shadow root or an overlay.",
-        (
-            (
-                "Keyboard shortcuts speed up power users and are invisible to everyone else. Adding them means also adding a way to "
-                "discover them, and that is UI we then have to design."
-            ),
-            (
-                "An affordance that only appears on hover, like an inline edit pencil, is clean and unreachable by keyboard. Showing it "
-                "always is noisy. Showing it on focus-within is the usual answer and still needs a hint for keyboard users to find it."
-            ),
-        ),
+        "Keyboard shortcuts speed up power users and are invisible to everyone else. Adding them means also adding a way to "
+        "discover them, which is more UI to design.",
     ),
     Principle(
         "one-way-to-say-it",
         "One way to say each thing",
-        "One selected look, one hover mechanism per surface type, one scrim, one icon set, one spacing scale. When two components "
-        "disagree, one of them is wrong. Fewer patterns is the point, even when the second pattern is nicer.",
-        (
-            (
-                "A purpose-built component like the scorecard looks better tuned than the shared one. Every bespoke piece is a debt the "
-                "next person inherits. Allow it only when the shared component can't be extended."
-            ),
-        ),
+        "One selected look, one hover mechanism, one icon set. When two components disagree, one of them is wrong. Fewer patterns "
+        "is the point, even when the second pattern is nicer.",
+        "A purpose-built component like the scorecard looks better tuned than the shared one. Every bespoke piece is a debt the "
+        "next person inherits. Allow it only when the shared component can't be extended.",
     ),
     Principle(
         "nothing-shifts",
         "Nothing shifts",
         "Layout stability is a feature. No weight change on hover or selection, tabular numbers for anything that counts, reserved "
-        "space for content that is loading, sticky headers that don't cover anchors. A page that jumps feels broken even when it "
-        "isn't.",
-        (
-            (
-                "Reserving space for a region that might come back empty leaves a hole. Not reserving it means a jump when it fills. For "
-                "carousels and availability data we usually can't know in advance."
-            ),
-        ),
+        "space for content that is loading. A page that jumps feels broken even when it isn't.",
+        "Reserving space for a region that might come back empty leaves a hole. Not reserving it means a jump when it fills. For "
+        "carousels and availability data we usually can't know in advance.",
     ),
     Principle(
         "accessible-is-the-floor",
         "Accessible is the floor",
         "Contrast is tested in CI. Text is at least 4.5:1, control edges at least 3:1, motion respects the OS setting, and "
-        "semantics come from native elements first. A decorative tier exists for dividers and inert chrome, and only there.",
-        (
-            (
-                "Hairline dividers between result rows look better below 3:1. At full weight the list reads as a spreadsheet. We allow "
-                "extra-subtle for repeating separators, and someone will reach for it on a control border."
-            ),
-        ),
+        "semantics come from native elements first.",
+        "Hairline dividers between result rows look better below 3:1. At full weight the list reads as a spreadsheet. We allow "
+        "extra-subtle for repeating separators, and someone will reach for it on a control border.",
     ),
 )
 
@@ -232,8 +181,7 @@ TENSIONS = (
     ),
     Tension(
         "Density vs. accessibility",
-        "Compact controls and hairline dividers serve the librarian's screen. Target sizes and contrast serve everyone. Contrast is "
-        "non-negotiable and tested; size floors differ by pointer type.",
+        "Compact controls and hairline dividers serve the librarian's screen. Contrast is non-negotiable and tested; size floors differ by pointer type.",
     ),
     Tension(
         "Honesty vs. calm",
@@ -242,8 +190,7 @@ TENSIONS = (
     ),
     Tension(
         "One system vs. the special case",
-        "Editorial pages, celebrations, and purpose-built tools all want exceptions. Exceptions are allowed only where the shared "
-        "component can't be extended, and they are documented as exceptions.",
+        "Editorial pages, celebrations, and purpose-built tools all want exceptions. Exceptions are allowed only where the shared component can't be extended.",
     ),
 )
 
