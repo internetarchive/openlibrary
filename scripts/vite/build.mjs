@@ -21,14 +21,13 @@
  * Flags accept space or `=` form (`--only css`, `--only=css`).
  * `--only` accepts a comma-separated list (`--only js,css`).
  *
- * Env:
- *   BUILD_DIR overrides the outDir for single-group runs.
- *   The Makefile uses this for atomic *_new dirs.
- *   JS_OUT_DIR, CSS_OUT_DIR, COMPONENTS_OUT_DIR override each group.
+ * One-shot builds stage into static/build/<job>_new and, only after every
+ * selected job succeeds, swap each staging dir over its live dir
+ * (static/build/<job>). Watch builds write straight to the live dirs.
  */
 import { build } from "vite";
 import vue from "@vitejs/plugin-vue";
-import { readdirSync } from "node:fs";
+import { readdirSync, renameSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { renderBuiltAssetUrl } from "../../vite-asset-urls.mjs";
@@ -55,8 +54,8 @@ Groups use distinct outDirs: static/build/css, static/build/js,
 static/build/components/production. --only accepts a comma-separated
 list to run a subset (e.g. --only js,css).
 
-Env: BUILD_DIR overrides the outDir for single-job --only runs (used by the
-Makefile for atomic *_new dirs). FORCE_POLLING=true helps file
+Env: One-shot builds stage into static/build/<job>_new and swap over the
+live dirs only after every selected job succeeds. FORCE_POLLING=true helps file
 watchers on bind mounts (see npm run watch-polling).`);
     process.exit(0);
 }
@@ -93,20 +92,21 @@ function baseConfig() {
     };
 }
 
-function outDirFor(name, fallback) {
-    if (process.env.BUILD_DIR && selectedJobs.size === 1) {
-        // Single-job run (Makefile atomic dir or old npm script).
-        // Vue/Lit group keeps the `/production` suffix.
-        // With multiple jobs BUILD_DIR is ambiguous, so fall through
-        // to the per-group overrides/defaults.
-        const single = [...selectedJobs][0];
-        return single === "components" ? join(resolve(process.env.BUILD_DIR), "production") : resolve(process.env.BUILD_DIR);
-    }
-    const override = process.env[`${name}_OUT_DIR`];
-    if (override) {
-        return resolve(override);
-    }
-    return resolve(root, fallback);
+const BUILD_ROOT = join(root, "static/build");
+
+// Staging (<job>_new) and live (<job>) directories per job.
+// One-shot builds write to staging. After every selected job succeeds,
+// each staging dir is renamed over its live dir. Watch builds write
+// straight to the live dirs and never stage, delete, or rename.
+const JOBS = {
+    css: { staging: join(BUILD_ROOT, "css_new"), live: join(BUILD_ROOT, "css") },
+    js: { staging: join(BUILD_ROOT, "js_new"), live: join(BUILD_ROOT, "js") },
+    components: { staging: join(BUILD_ROOT, "components_new"), live: join(BUILD_ROOT, "components") },
+};
+
+function outDirForJob(job, subdir = "") {
+    const base = isWatch ? JOBS[job].live : JOBS[job].staging;
+    return subdir ? join(base, subdir) : base;
 }
 
 // -----------------------------------------------------------------
@@ -125,7 +125,7 @@ function getCssConfig() {
     return {
         ...baseConfig(),
         build: {
-            outDir: outDirFor("CSS", "static/build/css"),
+            outDir: outDirForJob("css"),
             emptyOutDir: true,
             copyPublicDir: false,
             cssMinify: mode !== "development",
@@ -145,8 +145,7 @@ function getCssConfig() {
 /*
  * AGPLv3 license header/footer (GNU LibreJS magnet comment). Applied via
  * `output.postBanner` / `output.postFooter` so every emitted file carries
- * the license after minification. This replaces the Makefile's shell loop
- * (which prepended the header to every .js file post-build).
+ * the license after minification.
  */
 const AGPL_LICENSE_HEADER = "// @license magnet:?xt=urn:btih:0b31508aeb0634b347b8270c7bee4d411b5d4109&dn=agpl-3.0.txt AGPL-v3.0";
 const AGPL_LICENSE_FOOTER = "\n// @license-end";
@@ -163,8 +162,7 @@ function commonJsBuildOptions() {
         // Mirror package.json's browserslist. The binding constraint is Safari
         // 11.1 / iOS 11.3. Oxc lowers syntax (optional chaining, nullish
         // coalescing, …) to that floor; API polyfills are covered by the explicit
-        // core-js import at the top of main.js (replaces babel
-        // useBuiltIns:'usage').
+        // core-js import at the top of main.js.
         target: ["safari11.1", "ios11.3"],
         // Vite only warns about big chunks; `bundlesize` (CI) is the real gate.
         chunkSizeWarningLimit: 3000,
@@ -187,8 +185,9 @@ function getJsEsmConfig(outDir) {
         build: {
             ...commonJsBuildOptions(),
             outDir,
-            // The Makefile clears the *_new dir before the run.
-            // Keep false so IIFE outputs survive next to ESM outputs.
+            // The ESM and IIFE builds share this dir, and staging starts empty.
+            // Keep false so the IIFE files survive next to the ESM files, and
+            // watch rebuilds never wipe the other build's output.
             emptyOutDir: false,
             watch: watchOption,
             rolldownOptions: {
@@ -234,7 +233,7 @@ function getVueNames() {
         .map((name) => name.replace(/\.vue$/, ""));
 }
 
-// In-memory entries for Vue files. No tmp files on disk.
+// Vue entries live only in memory.
 function virtualVuePlugin() {
     return {
         name: "virtual-vue-wc-entries",
@@ -266,8 +265,8 @@ function virtualVuePlugin() {
 function getComponentsConfig() {
     const input = { "ol-components": resolve(root, "openlibrary/components/lit/index.js") };
     for (const name of getVueNames()) {
-        // Output `[name].js` keeps Vue names as `ol-<Name>.js`
-        // and Lit as `ol-components.js`. Both match current output.
+        // `[name].js` emits Vue as `ol-<Name>.js` and Lit as `ol-components.js`.
+        // Pages load those filenames directly, so keep this pattern.
         input[`ol-${name}`] = `virtual:vue-wc:${name}`;
     }
 
@@ -276,7 +275,7 @@ function getComponentsConfig() {
         plugins: [vue({ customElement: true }), virtualVuePlugin()],
         build: {
             target: ["es2019", "safari13"],
-            outDir: outDirFor("COMPONENTS", "static/build/components/production"),
+            outDir: outDirForJob("components", "production"),
             emptyOutDir: true,
             copyPublicDir: false,
             chunkSizeWarningLimit: 600,
@@ -299,10 +298,9 @@ async function runCss() {
 }
 
 async function runJs() {
-    const outDir = outDirFor("JS", "static/build/js");
-    // Run ESM first, then IIFE files. They share one outDir.
-    // Parallel runs risk one build that clears the dir
-    // while the other build writes files.
+    const outDir = outDirForJob("js");
+    // Run ESM first, then the IIFE files. The three builds share one
+    // outDir, so keep them sequential instead of parallel.
     await build(getJsEsmConfig(outDir));
     const iifeJobs = [
         ["sw", resolve(root, "openlibrary/plugins/openlibrary/js/service-worker.js")],
@@ -339,14 +337,21 @@ async function run() {
     console.log(`Build start (mode: ${mode}${isWatch ? ", watch" : ""}): ${jobs.map(([name]) => name).join(", ")}`);
 
     if (isWatch) {
-        // Watchers never settle; keep the process alive.
+        // Watchers never settle; build straight into the live dirs and keep
+        // the process alive. Never stage, delete, or rename in watch mode.
         await Promise.all(jobs.map(([, fn]) => fn()));
         return;
     }
 
-    // Groups use distinct outDirs, so groups can run at the same time.
-    // allSettled (not all) so one job failing doesn't mask errors in the
-    // others — CI gets every failure in a single run.
+    // Fresh staging dirs up front; the live tree stays untouched until every
+    // selected job has succeeded.
+    for (const [name] of jobs) {
+        rmSync(JOBS[name].staging, { recursive: true, force: true });
+    }
+
+    // Each group writes to its own staging dir, so the groups run in parallel.
+    // allSettled waits for every job, so one failure masks no other failure.
+    // CI then shows all failures in a single run.
     const results = await Promise.allSettled(jobs.map(([, fn]) => fn()));
     let hasFailure = false;
     results.forEach((res, i) => {
@@ -356,7 +361,14 @@ async function run() {
         }
     });
     if (hasFailure) {
+        console.error("Build failed; live directories left untouched.");
         process.exit(1);
+    }
+
+    // All jobs succeeded: swap each staging dir over its live dir.
+    for (const [name] of jobs) {
+        rmSync(JOBS[name].live, { recursive: true, force: true });
+        renameSync(JOBS[name].staging, JOBS[name].live);
     }
     console.log("All builds done.");
 }

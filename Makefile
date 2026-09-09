@@ -11,9 +11,12 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 .PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
 
-all: git css js components icons i18n
+all: git frontend i18n
 
-frontend: css js components icons
+frontend: node_modules icons
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
+	node scripts/vite/build.mjs
 
 node_modules: package-lock.json package.json
 ifeq ($(LOCAL_DEV),true)
@@ -21,28 +24,15 @@ ifeq ($(LOCAL_DEV),true)
 endif
 
 css: node_modules
-	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new node scripts/vite/build.mjs --only css
-	mkdir -p $(BUILD)/css
-	rm -rf $(BUILD)/css
-	mv $(BUILD)/css_new $(BUILD)/css
+	node scripts/vite/build.mjs --only css
 
 js: node_modules
-	rm -rf $(BUILD)/js_new
-	mkdir -p $(BUILD)/js_new
-	BUILD_DIR=$(BUILD)/js_new node scripts/vite/build.mjs --only js
-	mkdir -p $(BUILD)/js
-	rm -rf $(BUILD)/js
-	mv $(BUILD)/js_new $(BUILD)/js
+	node scripts/vite/build.mjs --only js
 
 components: node_modules icons
 	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
 	npx cem analyze
-	mkdir -p $(BUILD)/components_new
-	BUILD_DIR=$(BUILD)/components_new node scripts/vite/build.mjs --only components
-	mkdir -p $(BUILD)/components
-	rm -rf $(BUILD)/components
-	mv $(BUILD)/components_new $(BUILD)/components
+	node scripts/vite/build.mjs --only components
 
 lit-components: components
 
