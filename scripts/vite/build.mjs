@@ -339,7 +339,10 @@ async function run() {
     if (isWatch) {
         // Watchers never settle; build straight into the live dirs and keep
         // the process alive. Never stage, delete, or rename in watch mode.
-        await Promise.all(jobs.map(([, fn]) => fn()));
+        const results = await Promise.allSettled(jobs.map(([, fn]) => fn()));
+        const failed = results.filter((r) => r.status === "rejected");
+        if (failed.length) throw new Error(failed.map((r) => r.reason).join("\n"));
+        jobs.forEach(([n]) => console.log(`${n} watching...`));
         return;
     }
 
