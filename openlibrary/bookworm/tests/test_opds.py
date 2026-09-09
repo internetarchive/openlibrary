@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from openlibrary.bookworm.opds import Feed, Link, Publication, extract_local_id, to_import_record
 
 SAMPLES = Path(__file__).parent / "samples"
@@ -87,3 +89,72 @@ def test_no_cover_field_emitted():
             rec = to_import_record(pub, feed)
             assert rec is not None, f"{name}: record should parse"
             assert "cover" not in rec, f"{name}: cover should be omitted"
+
+
+def test_lenny_borrow_acquisition_is_not_discarded():
+    """A borrowable Lenny publication must import with its acquisition.
+
+    Only `buy` and `open-access` were mapped, so a publication whose only
+    acquisition link was `acquisition/borrow` produced an import record with no
+    `acquisitions` at all — measured at 70 of 95 publications on
+    lennyforlibraries.org (2026-09-04). Nothing downstream can render what was
+    never imported. See #13552.
+
+    The sample is a real publication captured from the live feed.
+    """
+    rec = to_import_record(_pubs("lenny_borrow")[0], LENNY)
+    assert rec is not None, "a borrowable publication produced no import record"
+    acq = rec["acquisitions"]
+    assert len(acq) == 1, f"expected one acquisition, got {acq}"
+    assert acq[0]["provider_name"] == "lenny"
+    assert acq[0]["data"]["access"] == "borrow"
+    assert acq[0]["data"]["url"].endswith("/borrow")
+
+
+def test_lenny_borrow_keeps_availability_and_auth_document():
+    """`properties.availability` says whether the book can be borrowed right
+    now, and `properties.authenticate` points at the provider's OPDS
+    Authentication Document — where a patron is sent to log in. Both are needed
+    for a borrow CTA, and both would be lost if only the flat fields were kept.
+    """
+    rec = to_import_record(_pubs("lenny_borrow")[0], LENNY)
+    data = rec["acquisitions"][0]["data"]
+    assert data["availability"] == "available"
+    props = data["link"]["properties"]
+    assert props["authenticate"]["href"].endswith("/oauth/implicit")
+
+
+def test_borrow_rel_is_recognised_as_an_acquisition_link():
+    pub = Publication(
+        links=[
+            Link(rel="http://opds-spec.org/acquisition/borrow", href="https://x/borrow"),
+            Link(rel="self", href="https://x/opds/1"),
+        ]
+    )
+    assert [link.rel for link in pub.acquisition_links()] == ["http://opds-spec.org/acquisition/borrow"]
+
+
+@pytest.mark.parametrize(
+    ("flag", "local_id", "expected"),
+    [
+        (True, "51008637", "OL51008637M"),
+        (False, "51008637", None),
+        (True, "not-a-number", None),
+    ],
+)
+def test_names_the_ol_edition_only_when_the_feed_says_so(flag, local_id, expected):
+    """``local_id_is_ol_edition`` is what makes a record name its edition.
+
+    Without it the record carries only a title and a provider id, and the
+    catalog is left to infer the edition from the title -- against every
+    same-title edition in the catalog. With it the record answers outright.
+    Guarded on the id being numeric, since ``OL<not-a-number>M`` is not a key.
+    """
+    feed = Feed(provider_name="lenny", id_strategy="self_link", local_id_is_ol_edition=flag)
+    pub = Publication(
+        metadata={"title": "The Art of War", "author": {"name": "Sun Tzu"}},
+        links=[{"rel": "self", "href": f"https://example.org/opds/{local_id}"}],
+    )
+    record = to_import_record(pub, feed)
+    assert record is not None
+    assert record.get("openlibrary") == expected

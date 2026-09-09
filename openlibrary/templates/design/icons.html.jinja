@@ -101,7 +101,7 @@
                 Import the element once, then use it like any other tag — including inside your own shadow
                 root. Size it from your component's CSS; stroke width follows the size unless you set
                 <code>--ol-icon-stroke-width</code>. The import is only for modules inside the Lit bundle;
-                code bundled by webpack already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
+                code in the page-JS bundle already has <code>&lt;ol-icon&gt;</code> registered site-wide and must
                 <em>not</em> import it, or the second <code>customElements.define()</code> throws and takes the
                 rest of the Lit bundle down with it.
             </p>

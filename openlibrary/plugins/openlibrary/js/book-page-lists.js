@@ -50,7 +50,7 @@ export async function initListsSection(elem) {
 function initPrivateButtonsAfterLoad(container) {
     const privateButtons = container.querySelectorAll('.list-follow-card__private-button');
     if (privateButtons.length > 0) {
-        import(/* webpackChunkName: "private-buttons" */ './private-button')
+        import('./private-button')
             .then(module => {
                 module.initPrivateButtons(privateButtons);
             });
