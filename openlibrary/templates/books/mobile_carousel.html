@@ -41,8 +41,6 @@ $def render_carousel_cover(book, lazy, index):
     $ byline = ''
 
   $ modifier = ''
-  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
-  $ edition_olid = url.split('/')[-1] if url.startswith('/books/') else None
 
   $ last_book = ''
   $if index==4:
@@ -69,12 +67,8 @@ $def render_carousel_cover(book, lazy, index):
               <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
           </div>
       </a>
-      $if work_key:
-        $# No user-key or state: book-state.js fills both in, as on the desktop card.
-        <ol-shelf-button variant="icon" work-key="$work_key" book-title="$title"
-          $if edition_olid:
-            edition-key="$edition_olid"
-          ></ol-shelf-button>
+      $# Cached across readers, so no user or state: book-state.js fills both in.
+      $:shelf_button_for(book, variant='icon', cached=True)
      </div>
     </div>
   </div>

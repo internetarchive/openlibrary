@@ -58,26 +58,7 @@ $code:
 $# layout: 'grid' puts the shelf button on the cover as a badge, like a carousel
 $# card; anything else keeps the labelled split in the CTA column. list_books.js
 $# moves it between the two slots when the reader flips the layout.
-$ shelf_button = None
-$if include_dropper:
-  $ edition_key = None
-  $if doc_type == 'solr_edition':
-    $ edition_key = selected_ed['key']
-  $elif doc_type == 'infogami_edition':
-    $ edition_key = doc.key
-  $elif doc_type == 'solr_work':
-    $if doc.get('logged_edition'):
-      $# Prefer logged_edition set when user added book
-      $ edition_key = doc.get('logged_edition')
-    $else:
-      $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
-      $if edition_key:
-        $ edition_key = '/books/%s' % edition_key
-  $ work_key = (edition_work and edition_work.key) if doc_type == 'infogami_edition' else doc.key
-  $if work_key:
-    $ work_title = edition_work.get('title', '') if doc_type == 'infogami_edition' else doc.get('title', '')
-    $ state = (reading_state if reading_state is not None else reading_state_for([doc])).get(work_key) or {}
-    $ shelf_button = render_jinja_template('my_books/shelf_button.html.jinja', variant=('icon' if layout == 'grid' else 'split'), work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state)
+$ shelf_button = shelf_button_for(doc, variant=('icon' if layout == 'grid' else 'split'), reading_state=reading_state) if include_dropper else None
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
@@ -292,7 +273,7 @@ $if include_dropper:
             </div>
           $else:
             $# An orphaned edition has no work to shelve; the legacy dropper still offers its lists.
-            $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
+            $:render_template('my_books/dropper', doc, async_load=True)
 
         $if rating:
           $:rating

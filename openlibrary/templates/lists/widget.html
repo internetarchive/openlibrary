@@ -15,8 +15,7 @@ $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else p
 $ edition = page if page.key.startswith("/books/") else None
 
 $if work:
-  $ state = reading_state_for([work]).get(work.key) or {}
-  $:render_jinja_template('my_books/shelf_button.html.jinja', variant='split', work_key=work.key, title=work.get('title', ''), edition_key=edition and edition.key, user_key=(ctx.user and ctx.user.key) or '', state=state)
+  $:shelf_button_for(page)
 $else:
   $# Authors and orphaned editions have no work to shelve; the legacy dropper still offers its lists.
   $:render_template('my_books/dropper', page, async_load=async_load)

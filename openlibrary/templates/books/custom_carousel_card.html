@@ -5,17 +5,6 @@ $ cover_host = '//covers.openlibrary.org'
 $ url = book.get('key') or book.url
 $ title = book.get("title", "")
 
-$# The work behind this card: a work doc is its own, an edition doc had it
-$# handed over by the carousel, an edition record (a loan) points at it.
-$code:
-  work_key = book.get('work_key')
-  if not work_key and str(url).startswith('/works/'):
-      work_key = url
-  if not work_key and book.get('works'):
-      first_work = book['works'][0]
-      work_key = first_work.key if hasattr(first_work, 'key') else first_work.get('key')
-  edition_olid = url.split('/')[-1] if str(url).startswith('/books/') else None
-
 $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
 $if hasattr(book, 'get_cover_url') and book.get_cover_url('M'):
   $ cover_url = book.get_cover_url('M')
@@ -90,12 +79,8 @@ $else:
               <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
           </div>
       </a>
-      $if work_key:
-        $# No user-key or state: the card is cached across readers; book-state.js fills both in.
-        <ol-shelf-button variant="icon" work-key="$work_key" book-title="$title"
-          $if edition_olid:
-            edition-key="$edition_olid"
-          ></ol-shelf-button>
+      $# Cached across readers, so no user or state: book-state.js fills both in.
+      $:shelf_button_for(book, variant='icon', cached=True)
     </div>
   </div>
 
