@@ -58,7 +58,7 @@ def main(args):
     init(args.config)
 
     # Find min new_id (for upper limit)
-    max_upper_bound = args.upper_bound if args.upper_bound else find_upper_bound()
+    max_upper_bound = args.upper_bound or find_upper_bound()
 
     # Backfill new IDs in batches
     lower_bound = args.lower_bound
