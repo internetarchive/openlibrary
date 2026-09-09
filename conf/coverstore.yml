@@ -5,6 +5,13 @@ db_parameters:
     db: "coverstore"
     host: db
 
+# Direct access to the Open Library database for isbn/olid/oclc lookups.
+# When unset, lookups fall back to HTTP calls to ol_url (openlibrary.org).
+ol_db_parameters:
+    dbn: "postgres"
+    db: "openlibrary"
+    host: db
+
 data_root: "/var/lib/coverstore"
 default_image: "static/images/empty.gif"
 

@@ -98,6 +98,30 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  # FastAPI reimplementation of coverstore; 100% API compatible with the
+  # legacy `covers` service above.
+  covers-fastapi:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.covers-fastapi
+    environment:
+      - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
+    expose:
+      - 7075
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:7075/health', timeout=2)"]
+      interval: 30s
+      start_period: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   infobase:
     image: "${OLIMAGE:-oldev:latest}"
     environment:

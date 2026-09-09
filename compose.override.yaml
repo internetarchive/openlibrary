@@ -145,7 +145,15 @@ services:
         target: /openlibrary/vendor
         volume:
           nocopy: true
+      - covers-data:/var/lib/coverstore
       - ${OL_MOUNT_DIR:-.}:/openlibrary
+
+  covers-fastapi:
+    ports:
+      - ${COVERS_FASTAPI_PORT:-18075}:7075
+    volumes:
+      - ./conf:/openlibrary/conf:ro
+      - covers-data:/var/lib/coverstore
 
   infobase:
     build:
@@ -237,3 +245,4 @@ volumes:
   ol-build:
   ol-nodemodules:
   ol-postgres:
+  covers-data:

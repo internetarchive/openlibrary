@@ -47,12 +47,23 @@ def get_property_id(name):
 
 
 def query(key, value):
-    key_id = get_property_id(key)
+    if key == "isbn_":
+        # 'isbn_' is an alias understood by the openlibrary.org API; the raw
+        # table has separate isbn_10 and isbn_13 properties.
+        key_ids = [key_id for key_id in (get_property_id("isbn_13"), get_property_id("isbn_10")) if key_id is not None]
+    else:
+        key_id = get_property_id(key)
+        key_ids = [key_id] if key_id is not None else []
+
+    if not key_ids:
+        return []
 
     db = get_db()
     rows = db.query(
-        "SELECT thing.key FROM thing, edition_str WHERE thing.id=edition_str.thing_id AND key_id=$key_id AND value=$value ORDER BY thing.last_modified LIMIT 10",
-        vars=locals(),
+        "SELECT thing.key FROM thing, edition_str"
+        " WHERE thing.id=edition_str.thing_id AND key_id IN $key_ids AND value=$value"
+        " ORDER BY thing.last_modified LIMIT 10",
+        vars={"key_ids": key_ids, "value": value},
     )
     return [row.key for row in rows]
 
