@@ -5373,6 +5373,15 @@ msgstr ""
 msgid "I didn’t read this"
 msgstr ""
 
+#: my_books/shelf_button_i18n.html
+#, python-format
+msgid "Moved to %(shelf)s"
+msgstr ""
+
+#: my_books/shelf_button_i18n.html
+msgid "Undo"
+msgstr ""
+
 #: my_books/check_ins/check_in_form.html
 msgid "January"
 msgstr ""

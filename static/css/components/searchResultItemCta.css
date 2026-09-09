@@ -16,6 +16,23 @@
 .searchResultItemCTA ol-shelf-button {
   margin-top: 5px;
 }
+/* A row whose book has left the shelf this page lists stays, and says so. */
+.shelf-moved-note {
+  margin: var(--spacing-stack-xs) 0 0;
+  font-size: var(--font-size-body-small);
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.shelf-moved-note__undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
 /* @width-breakpoint-tablet */
 @media only screen and (min-width: 768px) {
   .searchResultItem .searchResultItemCTA {

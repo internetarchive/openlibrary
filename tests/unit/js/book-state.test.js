@@ -7,11 +7,14 @@ import '../../../openlibrary/components/lit/OlShelfButton.js';
 import { BATCH_SIZE, hydrate, initBookState, readLabels, resetBookState } from '../../../openlibrary/plugins/openlibrary/js/book-state.js';
 
 let calls;
+let posts;
 
 function stubFetch(works = {}, { status = 200 } = {}) {
     calls = [];
-    global.fetch = jest.fn(async(url) => {
-        calls.push(new URL(String(url)));
+    posts = [];
+    global.fetch = jest.fn(async(url, init) => {
+        if (init?.method === 'POST') posts.push({ url: String(url), body: init.body });
+        else calls.push(new URL(String(url)));
         return { ok: status < 400, status, json: async() => ({ user_key: '/people/tester', works }) };
     });
 }
@@ -184,5 +187,102 @@ describe('initBookState', () => {
         expect(late.labels).toEqual(LABELS);
         expect(late.userKey).toBe('/people/tester');
         expect(late.shelf).toBe(4);
+    });
+});
+
+describe('a page that lists one shelf', () => {
+    // The reading log's Currently Reading page: sidebar counts, the heading,
+    // and one row whose book is on that shelf.
+    const shelfPage = (buttonAttrs = 'data-hydrated shelf="2"') => `
+        <span class="li-count" data-shelf-count="2">27</span>
+        <span class="li-count" data-shelf-count="3">194</span>
+        <h2 data-shelf-count="2">Currently Reading (27)</h2>
+        <ul class="list-books" data-shelf="2">
+            <li class="searchResultItem">
+                ${button('/works/OL1W', buttonAttrs)}
+                <div class="searchResultItemCTA"><div class="searchResultItemCTA__shelf"></div></div>
+            </li>
+        </ul>`;
+    const change = (shelf, rating = null) => document.dispatchEvent(
+        new CustomEvent('ol-book-state-change', { detail: { key: '/works/OL1W', shelf, rating } }),
+    );
+    const note = () => document.querySelector('.shelf-moved-note');
+    const noteText = () => note()?.querySelector('.shelf-moved-note__text').textContent;
+    const count = id => document.querySelector(`span[data-shelf-count="${id}"]`).textContent;
+
+    test('a book that leaves the shelf keeps its row, marked, and the counts follow', () => {
+        stubFetch();
+        page({ buttons: shelfPage() });
+        initBookState();
+        change(3);
+        expect(noteText()).toBe('Moved to Already Read');
+        expect(note().getAttribute('role')).toBe('status');
+        expect(note().parentElement.className).toBe('searchResultItemCTA__shelf');
+        expect([count(2), count(3)]).toEqual(['26', '195']);
+        expect(document.querySelector('h2').textContent).toBe('Currently Reading (26)');
+
+        // Off every shelf: the same note, reworded; only one of them.
+        change(null);
+        expect(noteText()).toBe('Removed from shelf');
+        expect(document.querySelectorAll('.shelf-moved-note')).toHaveLength(1);
+        expect([count(2), count(3)]).toEqual(['26', '194']);
+    });
+
+    test('back on the shelf, the mark goes and the counts return', () => {
+        stubFetch();
+        page({ buttons: shelfPage() });
+        initBookState();
+        change(3);
+        change(2);
+        expect(note()).toBeNull();
+        expect([count(2), count(3)]).toEqual(['27', '194']);
+    });
+
+    test('Undo puts the book back on the shelf and posts it', async() => {
+        stubFetch();
+        page({ buttons: shelfPage() });
+        initBookState();
+        change(3, 4);
+        note().querySelector('.shelf-moved-note__undo').click();
+        // Optimistic, like the button: the row and counts move before the request lands.
+        expect(all()[0].shelf).toBe(2);
+        expect(all()[0].rating).toBe(4);
+        expect(note()).toBeNull();
+        expect(count(2)).toBe('27');
+        await tick();
+        expect(posts).toHaveLength(1);
+        expect(posts[0].url).toContain('/works/OL1W/bookshelves.json');
+        expect(posts[0].body.get('bookshelf_id')).toBe('2');
+    });
+
+    test('a failed Undo rolls the row back', async() => {
+        stubFetch({}, { status: 500 });
+        page({ buttons: shelfPage() });
+        initBookState();
+        change(3);
+        note().querySelector('.shelf-moved-note__undo').click();
+        await tick();
+        await tick();
+        expect(all()[0].shelf).toBe(3);
+        expect(noteText()).toBe('Moved to Already Read');
+        expect(count(2)).toBe('26');
+    });
+
+    test('a button whose state was never known moves no counts', () => {
+        stubFetch();
+        page({ buttons: shelfPage('') });
+        initBookState();
+        change(3);
+        expect([count(2), count(3)]).toEqual(['27', '194']);
+        // The row still says where the book went.
+        expect(noteText()).toBe('Moved to Already Read');
+    });
+
+    test('a page with no shelf of its own is left alone', () => {
+        stubFetch();
+        page({ buttons: `<ul class="list-books"><li class="searchResultItem">${button('/works/OL1W', 'data-hydrated shelf="2"')}</li></ul>` });
+        initBookState();
+        change(3);
+        expect(note()).toBeNull();
     });
 });

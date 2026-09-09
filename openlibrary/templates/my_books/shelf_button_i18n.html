@@ -1,8 +1,9 @@
 $def with ()
 $# Labels for <ol-shelf-button> and <ol-shelf-actions>, rendered once per page
 $# by site/body.html and handed out by book-state.js. Keys and English strings
-$# must match DEFAULT_LABELS in OlShelfButton.js and OlShelfActions.js. A
-$# plural set carries one form per CLDR category; the component picks by count.
+$# must match DEFAULT_LABELS in OlShelfButton.js and OlShelfActions.js, and
+$# NOTE_LABELS in book-state.js. A plural set carries one form per CLDR
+$# category; the component picks by count.
 $code:
   labels = {
       # OlShelfButton.js
@@ -57,5 +58,8 @@ $code:
       "day": _("Day"),
       "saveDate": _("Save"),
       "didNotRead": _("I didn’t read this"),
+      # book-state.js
+      "movedTo": _("Moved to %(shelf)s"),
+      "undo": _("Undo"),
   }
 <input type="hidden" name="shelf-button-i18n-strings" value="$json_encode(labels)">

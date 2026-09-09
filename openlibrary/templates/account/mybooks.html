@@ -11,13 +11,16 @@ $def year_span(year, use_local_year=False):
 <div class="mybooks-details-specific">
 
   $code:
+      SHELF_IDS = {"want-to-read": 1, "currently-reading": 2, "already-read": 3, "stopped-reading": 4}
       def compact_carousel(data):
           key, title, url = data
           books = mybooks[key].docs
           count = mybooks[key].total_results
           return render_template("books/custom_carousel", **{
               "books": books,
-              "title": title if key == "loans" else "%s (%d)" % (title, count),
+              "title": title,
+              "count": None if key == "loans" else count,
+              "shelf": SHELF_IDS.get(key),
               "url": url,
               "key": key,
               "min_books": 1,
@@ -62,7 +65,9 @@ $code:
         count = mybooks[key].total_results
         return render_template("books/mobile_carousel", **{
             "books": books,
-            "title": title if key == "loans" else "%s (%d)" % (title, count),
+            "title": title,
+            "count": None if key == "loans" else count,
+            "shelf": SHELF_IDS.get(key),
             "url": url,
             "key": key,
             "min_books": 1,
