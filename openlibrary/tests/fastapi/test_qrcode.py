@@ -47,4 +47,6 @@ class TestQRCodeEndpoint:
     def test_only_get_is_registered(self, fastapi_client):
         response = fastapi_client.post("/qrcode", data={"path": "/books/OL1M"})
 
-        assert response.status_code == 405
+        # A non-GET request has no FastAPI handler and falls through to the
+        # web.py proxy, which is stubbed to 404 in tests.
+        assert response.status_code == 404

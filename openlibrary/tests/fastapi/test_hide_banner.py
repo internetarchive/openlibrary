@@ -99,5 +99,7 @@ class TestHideBannerEndpoint:
         get_response = fastapi_client.get("/hide_banner")
         json_suffix_response = fastapi_client.post("/hide_banner.json", json={"cookie-name": "wrong-path-banner"})
 
-        assert get_response.status_code == 405
+        # A GET request has no FastAPI handler and falls through to the
+        # web.py proxy, which is stubbed to 404 in tests.
+        assert get_response.status_code == 404
         assert json_suffix_response.status_code == 404
