@@ -130,14 +130,17 @@
   height: 40px;
 }
 
-/* Avatar or fallback glyph inside the account/menu ghost button; flex-shrink
-   keeps it from squashing beside the hamburger glyph. */
+/* Avatar inside the account/menu ghost button. Circular to match the glyph it
+   falls back to, so the two states have the same silhouette; object-fit crops
+   rather than squashes, since archive.org serves portraits and landscapes
+   alongside squares. flex-shrink keeps it whole beside the hamburger glyph. */
 .header-bar .header-dropdown .account__icon,
 .header-bar .hamburger-component .account__icon {
   border: 2px solid var(--account-icon-border);
-  border-radius: 4px;
+  border-radius: 50%;
   width: 30px;
   height: 30px;
+  object-fit: cover;
   flex-shrink: 0;
 }
 
