@@ -1,20 +1,32 @@
-$def with (publishing_history)
+$def with (publishing_history=None, async_load=False, key=None)
 
-<div class="head">
-    <h2 class="inline">
-      $_("Publishing History")
-    </h2>
-    <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
-    <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-    <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject.")</span>
-</div>
-
-<script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(publishing_history)</script>
-
-<div class="chart">
-    <div class="chartYaxis">$_("Editions Published")</div>
-    <div id="chartPubHistory" class="thisChart">
-        <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+<div id="subjectPublishingHistory" data-async-load="$json_encode(async_load)" data-key="$json_encode(key)">
+    <div class="head">
+        <h2 class="inline">
+          $_("Publishing History")
+        </h2>
+        <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+        $if not async_load:
+            <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+            <span class="count chartUnzoom">&nbsp;$_('This graph charts editions published on this subject.')</span>
     </div>
-    <div class="chartXaxis">$_("Year of Publication")</div>
+
+    $if async_load:
+        <div class="chart">
+            <span class="loadingIndicator"></span>
+            <span class="small async-partial-retry hidden">$_("Something went wrong.") <a href="#" class="retry-btn">$_("Retry")</a></span>
+        </div>
+    $else:
+        <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(publishing_history)</script>
+
+        <div class="chart">
+            <div class="chartYaxis">$_("Editions Published")</div>
+            <div id="chartPubHistory" class="thisChart">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+            <div class="chartXaxis">$_("Year of Publication")</div>
+        </div>
+        $# .chart floats on desktop widths (chart.css); clear it inside this
+        $# wrapper so the wrapper's own box isn't collapsed to just .head.
+        <div class="clearfix"></div>
 </div>

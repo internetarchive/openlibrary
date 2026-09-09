@@ -7154,10 +7154,6 @@ msgstr "전체 기간 가장 많이 평가된 책"
 msgid "We couldn't find any books about"
 msgstr "다음에 관한 책을 찾을 수 없습니다:"
 
-#: swagger/swaggerui.html
-msgid "OpenAPI"
-msgstr "OpenAPI"
-
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format

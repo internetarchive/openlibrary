@@ -7,7 +7,7 @@
 
 /* When a page has been starred, this allows you to clear your rating */
 .star-messaging {
-  color: var(--mid-grey);
+  color: var(--color-text-muted);
   background: none;
   display: block;
   border: 0;
@@ -27,7 +27,7 @@
 }
 
 .review .review-btn {
-  border-left: 1px solid var(--lighter-grey);
+  border-left: 1px solid var(--color-border-subtle);
   width: 35px;
   height: 35px;
 }

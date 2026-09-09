@@ -17,6 +17,37 @@ Tests hit `http://localhost:8080` by default. Point them elsewhere with `OL_BASE
 Two projects are configured so nothing runs twice: `desktop` runs everything
 except `@mobile`, and `mobile` runs only `@mobile`.
 
+## Logged-in tests
+
+Most specs check pages anonymously, then again inside a
+`test.describe('when logged in')` block. `login(page)` in `helpers.ts` posts to
+`/account/login.json`, which drops the session cookie into the browser
+context, so the next `page.goto()` is already authenticated:
+
+```javascript
+import { collectConsoleErrors, login } from './helpers';
+
+test.describe('when logged in', () => {
+    test.beforeEach(({ page }) => login(page));
+
+    test('loads', async ({ page }) => { /* ... */ });
+});
+```
+
+Against the local stack it uses the seeded `openlibrary` / `openlibrary`
+patron. Against any other host set credentials, or logged-in tests skip:
+
+| Variable | Used for |
+|---|---|
+| `OL_E2E_USERNAME` / `OL_E2E_PASSWORD` | `login()` session helper (infogami username + password) |
+| `OL_E2E_S3_ACCESS` / `OL_E2E_S3_SECRET` | `login()` with IA S3 keys instead |
+| `OL_E2E_EMAIL` | tests that drive the login form, which authenticates against IA by email |
+
+The dev mock IA auth (`docker/mockservices/main.py`) accepts any email with any
+non-empty password, so it can't tell a wrong password from a right one — except
+the sentinel `bad_password`, which it rejects. Use that when a test needs the
+login-failure path.
+
 ### Watching them run
 
 ```bash

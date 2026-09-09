@@ -2,30 +2,28 @@
   font-size: var(--font-size-body-medium);
   border-radius: 8px;
   padding: 8px;
+  border: 1px solid;
 }
 .ol-message,
 .ol-message--info {
-  background-color: var(--blue-100);
-  color: var(--blue-600);
-  border: 1px solid currentColor;
+  background-color: var(--color-info-bg);
+  color: var(--color-info-fg);
+  border-color: var(--color-info-border);
 }
 .ol-message--warning {
-  /* hue/saturation from --orange: hsl(32, 100%, 61%) */
-  background-color: hsl(32, 100%, 90%);
-  color: hsl(32, 100%, 35%);
-  border: 1px solid currentColor;
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+  border-color: var(--color-warning-border);
 }
 .ol-message--success {
-  /* hue/saturation from --olive: hsl(81, 39%, 35%) */
-  background-color: hsl(81, 39%, 90%);
-  color: hsl(81, 39%, 35%);
-  border: 1px solid currentColor;
+  background-color: var(--color-success-bg);
+  color: var(--color-success-fg);
+  border-color: var(--color-success-border);
 }
 .ol-message--error {
-  /* hue/saturation from --red: hsl(8, 78%, 49%) */
-  background-color: hsl(8, 78%, 90%);
-  color: hsl(8, 78%, 35%);
-  border: 1px solid currentColor;
+  background-color: var(--color-error-bg);
+  color: var(--color-error-fg);
+  border-color: var(--color-error-border);
 }
 .ol-message h1,
 .ol-message h2,

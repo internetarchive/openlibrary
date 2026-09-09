@@ -417,7 +417,8 @@ function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
     inputBox.name = `${name}#${inputBoxes.length}`;
-    inputBox.type = 'text';
+    inputBox.type = 'url';
+    inputBox.placeholder = 'https://...';
     inputBoxes[inputBoxes.length-1].after(inputBox);
 }
 

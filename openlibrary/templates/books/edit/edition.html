@@ -455,7 +455,7 @@ $ })
                 $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
                 $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
 
-                $:render_component('IdentifiersInput', attrs=dict(id_config_string=edition_config.identifiers, assigned_ids_string=book.get_identifiers().values(), input_prefix='edition--identifiers', output_selector='#hiddenEditionIdentifiers', multiple='true', popular_ids=popular,admin=str(is_privileged_user)))
+                $:render_component('IdentifiersInput', attrs={'id-config-string': edition_config.identifiers, 'assigned-ids-string': book.get_identifiers().values(), 'input-prefix': 'edition--identifiers', 'output-selector': '#hiddenEditionIdentifiers', 'multiple': 'true', 'popular-ids': popular, 'admin': str(is_privileged_user)})
             </div>
         </div>
     </div>

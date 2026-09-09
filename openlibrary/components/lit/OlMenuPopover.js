@@ -59,8 +59,8 @@ export class OlMenuPopover extends LitElement {
             font-family: var(--font-family-body);
         }
 
-        /* No trigger styles here: the default trigger is a light-DOM
-           <ol-button>, painted by the global ol-button.css. */
+        /* No trigger styles here: the default trigger is an <ol-button>,
+           which paints itself. */
 
         .panel {
             display: flex;
@@ -80,7 +80,7 @@ export class OlMenuPopover extends LitElement {
         .menu-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
-            color: var(--accessible-grey);
+            color: var(--color-text-muted);
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.04em;
@@ -182,8 +182,9 @@ export class OlMenuPopover extends LitElement {
     }
 
     /**
-     * Build the default trigger in light DOM so ol-button.css can paint it —
-     * that sheet can't cross a shadow boundary.
+     * Build the default trigger as a real light-DOM child, so it is
+     * structurally identical to a consumer-supplied trigger (slotted, focusable
+     * from the page, and styled by ol-button itself).
      *
      * @returns {void}
      */

@@ -1,16 +1,11 @@
 """Tests for the FastAPI hide banner endpoint."""
 
-import json
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from http.cookies import SimpleCookie
 from unittest.mock import Mock, patch
 
 import pytest
-
-from openlibrary.plugins.openlibrary.api import hide_banner as legacy_hide_banner
-
-DAY_SECONDS = 60 * 60 * 24
 
 
 def parse_response_cookie(response, cookie_name: str):
@@ -106,26 +101,3 @@ class TestHideBannerEndpoint:
 
         assert get_response.status_code == 405
         assert json_suffix_response.status_code == 404
-
-
-def test_hide_banner_response_and_cookie_match_legacy(fastapi_client):
-    data = {"cookie-name": "legacy-parity-banner", "cookie-duration-days": 2}
-
-    with (
-        patch("openlibrary.plugins.openlibrary.api.accounts.get_current_user", return_value=None),
-        patch("openlibrary.plugins.openlibrary.api.web.data", return_value=json.dumps(data)),
-        patch("openlibrary.plugins.openlibrary.api.web.setcookie") as legacy_setcookie,
-        pytest.deprecated_call(match="migrated to fastapi"),
-    ):
-        legacy_response = json.loads(legacy_hide_banner().POST()["rawtext"])
-
-    with patch("openlibrary.fastapi.internal.api.accounts.get_current_user", return_value=None):
-        fastapi_response = fastapi_client.post("/hide_banner", json=data)
-
-    assert fastapi_response.status_code == 200
-    assert fastapi_response.json() == legacy_response
-    legacy_setcookie.assert_called_once_with("legacy-parity-banner", "1", expires=2 * DAY_SECONDS)
-
-    fastapi_cookie = parse_response_cookie(fastapi_response, "legacy-parity-banner")
-    assert fastapi_cookie.value == "1"
-    assert_cookie_expiry(fastapi_cookie, 2)

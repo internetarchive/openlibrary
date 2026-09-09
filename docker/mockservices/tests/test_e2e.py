@@ -64,6 +64,8 @@ class TestXauthn:
         assert body["success"] is True
         assert body["values"]["token"]
         assert body["values"]["email"] == "test@example.com"
+        # Every dev login resolves to the seeded admin account.
+        assert body["values"]["screenname"] == "openlibrary"
 
     def test_authenticate_fails_without_password(self):
         resp = _post(
@@ -74,6 +76,16 @@ class TestXauthn:
         body = resp.json()
         assert body["success"] is False
         assert body["values"]["reason"]
+
+    def test_authenticate_fails_with_sentinel_bad_password(self):
+        resp = _post(
+            "/services/xauthn/",
+            params={"op": "authenticate"},
+            json={"email": "test@example.com", "password": "bad_password"},
+        )
+        body = resp.json()
+        assert body["success"] is False
+        assert body["values"]["reason"] == "bad_password"
 
     def test_info(self):
         resp = _post("/services/xauthn/", params={"op": "info"}, json={})
@@ -198,3 +210,18 @@ class TestLoanChangesFeed:
     def test_missing_action_returns_422(self):
         resp = _get("/services/loans/loan/")
         assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Matomo mock — the parts that need a live container.
+#
+# Everything else about this endpoint is covered by test_matomo_inprocess.py,
+# which serves the same app on a loopback port and therefore also runs in CI.
+# Only keep tests here that genuinely require the deployed container.
+# ---------------------------------------------------------------------------
+
+
+class TestMatomoMock:
+    def test_rejects_unimplemented_methods(self):
+        resp = _post("/matomo/index.php", data={"method": "SitesManager.getAllSites", "token_auth": "t"})
+        assert resp.json()["result"] == "error"

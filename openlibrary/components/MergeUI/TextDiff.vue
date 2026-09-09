@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show_diffs">
+  <div v-if="showDiffs">
     <span
       v-for="(part, i) in diff"
       :key="i"
@@ -16,9 +16,15 @@ import {diffChars, diffWordsWithSpace} from 'diff';
 
 export default {
     props: {
-        left: String,
-        right: String,
-        show_diffs: Boolean,
+        left: {
+            type: String,
+            default: ''
+        },
+        right: {
+            type: String,
+            default: ''
+        },
+        showDiffs: Boolean,
         resolution: {
             default: 'char',
             validator: val => ['char', 'word'].includes(val),

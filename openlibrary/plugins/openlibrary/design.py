@@ -1,9 +1,9 @@
 """The Open Library design system docs at /developers/design.
 
-Three sections share one shell: Components (the landing section), Foundations
-(design tokens), and Playground. Each section is one long browsable page — the
-goal is density, so an engineer can scan everything available before picking
-something.
+Four sections share one shell: Components (the landing section), Foundations
+(design tokens), Icons, and Playground. Each section is one long browsable page
+— the goal is density, so an engineer can scan everything available before
+picking something.
 
 Three things here are derived rather than hand-maintained, which is what keeps
 the page from drifting as the system grows:
@@ -30,7 +30,6 @@ logger = logging.getLogger("openlibrary.design")
 # `npx cem analyze` (see custom-elements-manifest.config.mjs), which
 # `make lit-components` runs. Generated, not committed — see .gitignore.
 MANIFEST_PATH = Path(__file__).parents[2] / "components" / "lit" / "custom-elements.json"
-CSS_COMPONENTS_DIR = Path(__file__).parents[3] / "static" / "css" / "components"
 
 
 @dataclass(frozen=True)
@@ -49,6 +48,7 @@ class Section:
 SECTIONS = (
     Section("components", "Components", has_code=True),
     Section("foundations", "Foundations"),
+    Section("icons", "Icons", has_code=True),
     Section("playground", "Playground"),
 )
 
@@ -59,20 +59,17 @@ class Component:
 
     ``partial`` names a Jinja template defining a ``demos()`` macro holding the
     component's write-up. A row with no ``tag`` is a class-based CSS component,
-    which has no manifest entry and so renders without an API table.
+    which has no manifest entry and so renders without an API table. Clear
+    ``api_table`` for a row that is documented in full somewhere else.
     """
 
     id: str
     title: str
-    use_when: str
     partial: str
     group: str = ""
     tag: str = ""
     avoid: str = ""
-    # Which files under static/css/components/ this row documents — a Lit
-    # component's own stylesheet, or the class definitions behind a CSS one.
-    # Used for the coverage report, so the page can show its gaps.
-    css_files: tuple[str, ...] = ()
+    api_table: bool = True
 
 
 COMPONENTS = (
@@ -80,16 +77,13 @@ COMPONENTS = (
     Component(
         "button",
         "Button",
-        "Any clickable action. The default choice — reach for this before a raw <button>.",
         "design/components/button.html.jinja",
         group="Actions",
         tag="ol-button",
-        css_files=("ol-button",),
     ),
     Component(
         "toggle",
         "Toggle",
-        "Flipping a single setting on or off, applied immediately.",
         "design/components/toggle.html.jinja",
         group="Actions",
         tag="ol-toggle",
@@ -98,7 +92,6 @@ COMPONENTS = (
     Component(
         "segmented-control",
         "Segmented Control",
-        "Choosing one of two to four mutually exclusive views, all labels visible at once.",
         "design/components/segmented-control.html.jinja",
         group="Actions",
         tag="ol-segmented-control",
@@ -107,7 +100,6 @@ COMPONENTS = (
     Component(
         "chip",
         "Chip",
-        "A compact, pill-shaped tag or filter, often colored by the kind of thing it names.",
         "design/components/chip.html.jinja",
         group="Actions",
         tag="ol-chip",
@@ -115,7 +107,6 @@ COMPONENTS = (
     Component(
         "chip-group",
         "Chip Group",
-        "Laying out a wrapping row of chips with consistent spacing.",
         "design/components/chip-group.html.jinja",
         group="Actions",
         tag="ol-chip-group",
@@ -123,7 +114,6 @@ COMPONENTS = (
     Component(
         "pagination",
         "Pagination",
-        "Moving through a paged result set, by page number or by arrows alone.",
         "design/components/pagination.html.jinja",
         group="Actions",
         tag="ol-pagination",
@@ -132,7 +122,6 @@ COMPONENTS = (
     Component(
         "tooltip",
         "Tooltip",
-        "A short, non-essential hint shown on hover or focus.",
         "design/components/tooltip.html.jinja",
         group="Overlays",
         tag="ol-tooltip",
@@ -141,7 +130,6 @@ COMPONENTS = (
     Component(
         "popover",
         "Popover",
-        "Arbitrary content anchored to a trigger — menus, forms, rich detail.",
         "design/components/popover.html.jinja",
         group="Overlays",
         tag="ol-popover",
@@ -149,7 +137,6 @@ COMPONENTS = (
     Component(
         "select-popover",
         "Select Popover",
-        "Picking several options from a long, optionally searchable list.",
         "design/components/select-popover.html.jinja",
         group="Overlays",
         tag="ol-select-popover",
@@ -157,7 +144,6 @@ COMPONENTS = (
     Component(
         "options-popover",
         "Options Popover",
-        "Picking exactly one option from a short list, like a sort order.",
         "design/components/options-popover.html.jinja",
         group="Overlays",
         tag="ol-options-popover",
@@ -165,7 +151,6 @@ COMPONENTS = (
     Component(
         "menu-popover",
         "Menu Popover",
-        "Acting on one of a short list of choices — a sort menu, or anything that navigates.",
         "design/components/menu-popover.html.jinja",
         group="Overlays",
         tag="ol-menu-popover",
@@ -174,16 +159,22 @@ COMPONENTS = (
     Component(
         "dialog",
         "Dialog",
-        "An interruption that must be dealt with before the page continues.",
         "design/components/dialog.html.jinja",
         group="Overlays",
         tag="ol-dialog",
+    ),
+    Component(
+        "drawer",
+        "Drawer",
+        "design/components/drawer.html.jinja",
+        group="Overlays",
+        tag="ol-drawer",
+        avoid="A centered interruption is a Dialog. A panel anchored to its trigger is a Popover.",
     ),
     # --- Feedback --------------------------------------------------------
     Component(
         "toast",
         "Toast",
-        "Confirming that something happened, without interrupting the reader.",
         "design/components/toast.html.jinja",
         group="Feedback",
         tag="ol-toast",
@@ -192,7 +183,6 @@ COMPONENTS = (
     Component(
         "banner",
         "Banner",
-        "A persistent, page-level announcement or call to action.",
         "design/components/banner.html.jinja",
         group="Feedback",
         tag="ol-banner",
@@ -200,15 +190,12 @@ COMPONENTS = (
     Component(
         "message",
         "Message",
-        "Inline status next to the thing it describes — info, success, warning, error.",
         "design/components/message.html.jinja",
         group="Feedback",
-        css_files=("ol-message", "flash-messages"),
     ),
     Component(
         "scorecard",
         "Scorecard",
-        "Breaking a quality score into the checks that produced it.",
         "design/components/scorecard.html.jinja",
         group="Feedback",
         tag="ol-scorecard",
@@ -217,7 +204,6 @@ COMPONENTS = (
     Component(
         "carousel",
         "Carousel",
-        "A horizontal, paged row of items — book covers, cards, shelves.",
         "design/components/carousel.html.jinja",
         group="Content",
         tag="ol-carousel",
@@ -225,7 +211,6 @@ COMPONENTS = (
     Component(
         "read-more",
         "Read More",
-        "Truncating long prose to a fixed height or line count, expandable in place.",
         "design/components/read-more.html.jinja",
         group="Content",
         tag="ol-read-more",
@@ -233,69 +218,27 @@ COMPONENTS = (
     Component(
         "markdown-editor",
         "Markdown Editor",
-        "Rich editing over a plain <textarea> that stays the source of truth.",
         "design/components/markdown-editor.html.jinja",
         group="Content",
         tag="ol-markdown-editor",
     ),
+    # A stub on purpose: icons have a section of their own, and this row exists
+    # so someone scanning the component list finds them rather than concluding
+    # there is nothing.
+    Component(
+        "icon",
+        "Icon",
+        "design/components/icon.html.jinja",
+        group="Content",
+        tag="ol-icon",
+        api_table=False,
+    ),
 )
 
-# CSS files that document nothing reusable: page-specific styles, vendor
-# overrides, and layout shims. Excluded from the coverage report so the
-# "undocumented" list stays a real to-do list rather than permanent noise.
-NOT_COMPONENTS = frozenset(
-    {
-        "admin-table",
-        "chart",
-        "chart-stats",
-        "diff",
-        "donate",
-        "edit-toolbar",
-        "edit-toolbar--tablet",
-        "footer",
-        "header",
-        "header-bar",
-        "header-bar--desktop",
-        "header-bar--js",
-        "header-bar--tablet",
-        "jquery.autocomplete",
-        "librarian-dashboard",
-        "manage-covers",
-        "merge-form",
-        "merge-request-table",
-        "metadata-form",
-        "mybooks",
-        "mybooks-details",
-        "mybooks-dropper",
-        "mybooks-list",
-        "mybooks-menu",
-        "observationStats",
-        "pd-dashboard",
-        "preview",
-        "readerStats",
-        "readinglog-stats",
-        "team",
-        "throbber",
-        "ui-dialog",
-        "ui-tabs",
-        "work--tablet",
-    }
-)
-
-# Legacy class-based components, deliberately undocumented: a write-up would
-# only advertise what the web components replaced. Excluded like NOT_COMPONENTS.
-LEGACY_CSS = frozenset(
-    {
-        "buttonBtn",
-        "buttonCta",
-        "buttonGhost",
-        "buttonLink",
-        "buttonsAndLinks",
-        "link-box",
-        "loading-indicator",
-        "widget-box",
-    }
-)
+# Icon sources, one SVG per icon, grouped into folders by provenance. The file
+# names are the icon names, so the gallery globs them rather than reading a
+# generated list that could drift.
+ICON_SRC_DIR = Path(__file__).parents[3] / "static" / "icons" / "src"
 
 
 def _clean_default(value):
@@ -380,15 +323,15 @@ def load_components():
 
 
 @cache
-def undocumented_css_components() -> list[str]:
-    """CSS component files that no registry row covers, so the page can report
-    its own coverage gaps instead of implying the list is complete."""
-    documented = {name for component in COMPONENTS for name in component.css_files}
-    try:
-        on_disk = {path.stem for path in CSS_COMPONENTS_DIR.glob("*.css")}
-    except OSError:
-        return []
-    return sorted(on_disk - documented - NOT_COMPONENTS - LEGACY_CSS)
+def load_icons() -> list[str]:
+    """The sorted icon names, taken from the source SVG file names.
+
+    Cached because the set is fixed for the life of the process. A missing
+    directory renders an empty gallery rather than 500ing.
+    """
+    if not (names := sorted(path.stem for path in ICON_SRC_DIR.glob("*/*.svg"))):
+        logger.warning("No icon sources found at %s — the icon gallery will be empty.", ICON_SRC_DIR)
+    return names
 
 
 def _component_groups() -> tuple[tuple[str, list[Component]], ...]:
@@ -413,7 +356,7 @@ class DesignContext:
     groups: tuple[tuple[str, list[Component]], ...] = COMPONENT_GROUPS
     api: dict = field(default_factory=dict)
     token_categories: list = field(default_factory=list)
-    undocumented: list[str] = field(default_factory=list)
+    icons: list[str] = field(default_factory=list)
 
 
 def build_context(section_id: str) -> DesignContext:
@@ -422,9 +365,13 @@ def build_context(section_id: str) -> DesignContext:
     if section_id == "foundations":
         context.token_categories = load_token_categories()
     elif section_id == "components":
-        # Playground renders neither, so it pays for neither.
+        # Playground renders no API tables, so it pays for none.
         context.api = load_components()
-        context.undocumented = undocumented_css_components()
+    elif section_id == "icons":
+        context.icons = load_icons()
+        # <ol-icon> is one of three ways to draw a glyph, so the Icons section
+        # carries its API table too — the Components row only points here.
+        context.api = load_components()
     return context
 
 
@@ -436,7 +383,7 @@ class design(delegate.page):
 
 
 class design_section(delegate.page):
-    path = r"/developers/design/(components|foundations|playground)"
+    path = r"/developers/design/(components|foundations|icons|playground)"
 
     def GET(self, section_id):
         return render_template("design", build_context(section_id))

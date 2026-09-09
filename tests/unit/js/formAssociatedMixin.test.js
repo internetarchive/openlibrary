@@ -102,12 +102,35 @@ describe('FormAssociatedMixin', () => {
         expect(el._internals.setFormValue).toHaveBeenLastCalledWith(null);
     });
 
-    test('formDisabledCallback mirrors the browser disabled state onto the host', () => {
+    test('formDisabledCallback is tracked separately from disabled; isDisabled reports either', () => {
         const el = document.createElement('face-toggle');
+        expect(el.isDisabled).toBe(false);
+        // A <fieldset disabled> ancestor must not write back into `disabled`:
+        // the reflected attribute would keep the element disabled after the
+        // fieldset is re-enabled (the browser sees no state change to report).
         el.formDisabledCallback(true);
-        expect(el.disabled).toBe(true);
-        el.formDisabledCallback(false);
         expect(el.disabled).toBe(false);
+        expect(el.isDisabled).toBe(true);
+        el.formDisabledCallback(false);
+        expect(el.isDisabled).toBe(false);
+        // The consumer's own disabled still counts.
+        el.disabled = true;
+        expect(el.isDisabled).toBe(true);
+    });
+
+    test('willUpdate reflects disabled onto the host attribute before render', () => {
+        const el = document.createElement('face-toggle');
+        document.body.appendChild(el);
+        el.disabled = true;
+        el.willUpdate(new Map([['disabled', false]]));
+        expect(el.hasAttribute('disabled')).toBe(true);
+        el.disabled = false;
+        el.willUpdate(new Map([['disabled', true]]));
+        expect(el.hasAttribute('disabled')).toBe(false);
+        // Untouched when disabled didn't change.
+        el.setAttribute('disabled', '');
+        el.willUpdate(new Map([['checked', false]]));
+        expect(el.hasAttribute('disabled')).toBe(true);
     });
 
     test('delegates form and labels to ElementInternals', () => {

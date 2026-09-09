@@ -32,7 +32,7 @@ h1 {
 body,
 p,
 li {
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 body {
   font-size: 100%;
@@ -54,10 +54,10 @@ hr {
 }
 li {
   list-style: none;
-  color: var(--dark-grey);
+  color: var(--color-text);
 }
 a:link {
-  color: var(--link-blue);
+  color: var(--color-link);
   text-decoration: underline;
 }
 a:hover {
@@ -77,7 +77,7 @@ h4,
 h5,
 h6 {
   font-family: var(--font-family-body);
-  color: var(--grey);
+  color: var(--color-text-secondary);
   font-weight: 600;
 }
 div.head {

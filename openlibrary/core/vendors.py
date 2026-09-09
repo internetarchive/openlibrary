@@ -23,7 +23,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
-from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.async_utils import async_bridge, cache_per_event_loop
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -32,7 +32,7 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 session = requests.Session()
-async_session = httpx.AsyncClient()
+get_async_session = cache_per_event_loop(httpx.AsyncClient)
 
 BETTERWORLDBOOKS_API_URL = "https://products.bwbcontent.com/service.aspx?IncludeAmazon=True&ItemId="
 affiliate_server_url = None
@@ -605,11 +605,11 @@ async def get_amazon_metadata_async(
     https://webservices.amazon.com/paapi5/documentation/get-items.html
 
     Canonical async implementation: makes the HTTP round-trip to the affiliate
-    server with the shared httpx ``async_session`` so it never blocks the event
-    loop. Results are cached in memcache for a week; bare ``None`` results
-    (e.g. a 503 throttle from the affiliate server) are not cached, so the next
-    call retries — matching the historical "only the value None will cause
-    re-cache" behaviour.
+    server with a shared per-loop httpx client (see ``get_async_session``) so
+    it never blocks the event loop. Results are cached in memcache for a week;
+    bare ``None`` results (e.g. a 503 throttle from the affiliate server) are
+    not cached, so the next call retries — matching the historical "only the
+    value None will cause re-cache" behaviour.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
@@ -639,7 +639,7 @@ async def get_amazon_metadata_async(
     try:
         priority = "true" if high_priority else "false"
         stage = "true" if stage_import else "false"
-        r = await async_session.get(
+        r = await get_async_session().get(
             f"http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}",
             timeout=timeout,
         )
@@ -814,7 +814,7 @@ async def _get_betterworldbooks_metadata(
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
-    response = await async_session.get(url, timeout=3)
+    response = await get_async_session().get(url, timeout=3)
     if response.status_code != requests.codes.ok:
         return {"error": response.text, "code": response.status_code}
     text = response.text

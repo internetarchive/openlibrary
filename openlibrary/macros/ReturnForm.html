@@ -1,4 +1,4 @@
-$def with (ocaid, expiry)
+$def with (ocaid, expiry, analytics_track=None)
 
 $ i18n_strings = {
   $ "confirm_return": _("Really return this book?")
@@ -10,7 +10,13 @@ $ i18n_strings = {
   class="return-form"
   data-i18n="$json_encode(i18n_strings)"
 >
-  <input class="cta-btn cta-btn--vanilla" type="submit" value="$_('Return book')" />
+  <input
+    class="cta-btn cta-btn--vanilla"
+    type="submit"
+    value="$_('Return book')"
+    $if analytics_track:
+      data-ol-link-track="$analytics_track"
+  />
   <input type="hidden" name="action" value="return" />
   <input type="hidden" name="redirect" value="$request.fullpath" />
   $:macros.FormatExpiry(expiry)

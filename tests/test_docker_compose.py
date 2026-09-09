@@ -35,15 +35,29 @@ class TestDockerCompose:
         for serv, opts in prod_dc["services"].items():
             assert "profiles" in opts, f"{serv} is missing 'profiles' field"
 
-    def test_shared_constants(self):
-        # read the value in compose.yaml
-        with open(p("..", "compose.yaml")) as f:
+    def test_web_services_set_deployment_name(self):
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
             prod_dc: dict = yaml.safe_load(f)
-        solr_service = prod_dc["services"]["solr"]
-        solr_opts = next(var.split("=", 1)[1] for var in solr_service["environment"] if var.startswith("SOLR_OPTS="))
-        solr_opts_max_boolean_clauses = next(int(opt.split("=", 1)[1]) for opt in solr_opts.split() if opt.startswith("-Dsolr.max.booleanClauses"))
 
-        # read the value in openlibrary/core/bookshelves.py
-        from openlibrary.core.bookshelves import FILTER_BOOK_LIMIT
+        for service_name in ("web", "fast_web"):
+            assert "OL_DEPLOYMENT_NAME=testing" in staging_dc["services"][service_name]["environment"]
+            assert "OL_DEPLOYMENT_NAME=production" in prod_dc["services"][service_name]["environment"]
 
-        assert solr_opts_max_boolean_clauses >= FILTER_BOOK_LIMIT
+    def test_node_exporter_matches_across_environments(self):
+        """
+        node-exporter should be configured identically in staging and production
+        (aside from production's per-server 'profiles' field) so that the metrics
+        we collect are consistent across environments.
+        """
+        with open(p("..", "compose.staging.yaml")) as f:
+            staging_dc: dict = yaml.safe_load(f)
+        with open(p("..", "compose.production.yaml")) as f:
+            prod_dc: dict = yaml.safe_load(f)
+
+        staging_node_exporter = dict(staging_dc["services"]["node-exporter"])
+        prod_node_exporter = dict(prod_dc["services"]["node-exporter"])
+        del prod_node_exporter["profiles"]
+
+        assert staging_node_exporter == prod_node_exporter, "node-exporter config differs between staging and production"

@@ -3,7 +3,6 @@ Open Library Plugin.
 """
 
 import datetime
-import functools
 import gzip
 import json
 import logging
@@ -15,7 +14,6 @@ import sys
 from time import time
 from urllib.parse import parse_qs, quote, urlencode
 
-import requests
 import web
 import yaml
 
@@ -25,8 +23,7 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
-from openlibrary.core.features import features as ol_features
-from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.jinja import SiteLayoutTemplate, render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -56,8 +53,9 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.openlibrary.nav import BROWSE_FEATURED_COUNT, browse_links
 from openlibrary.plugins.openlibrary.stats import increment_error_count
-from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10
 from openlibrary.utils.sentry import get_sentry
 
 
@@ -373,20 +371,6 @@ class robotstxt(delegate.page):
         is_dev = get_ol_env().LOCAL_DEV or web.ctx.host != "openlibrary.org"
         robots_file = "norobots.txt" if is_dev else "robots.txt"
         return web.ok(open(f"static/{robots_file}").read())
-
-
-@functools.cache
-def fetch_ia_js(filename: str) -> str:
-    return requests.get(f"https://archive.org/includes/{filename}").text
-
-
-class ia_js_cdn(delegate.page):
-    path = r"/cdn/archive.org/(donate\.js|athena\.js)"
-
-    def GET(self, filename):
-        web.header("Content-Type", "text/javascript")
-        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
-        return web.ok(fetch_ia_js(filename))
 
 
 class serviceworker(delegate.page):
@@ -1047,7 +1031,7 @@ def internalerror():
     if sentry.enabled:
         sentry_event_id = sentry.capture_exception_webpy()
 
-    if features.is_enabled("debug"):
+    if get_ol_env().LOCAL_DEV or features.is_enabled("debug"):
         raise web.debugerror()
     else:
         msg = render.site(
@@ -1125,14 +1109,10 @@ def setup_template_globals():
             "next": next,
             "sorted": sorted,
             "zip": zip,
-            "tuple": tuple,
             "hash": hash,
             "urlquote": quote,
             "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
-            "isbn_10_to_isbn_13": isbn_10_to_isbn_13,
-            "NEWLINE": "\n",
             "random": random.Random(),
-            "choose_random_from": random.choice,
             "get_lang": lambda: web.ctx.lang,
             "get_supported_languages": get_supported_languages,
             "ceil": math.ceil,
@@ -1140,11 +1120,12 @@ def setup_template_globals():
             "get_book_provider": get_book_provider,
             "get_book_provider_by_name": get_book_provider_by_name,
             "get_cover_url": get_cover_url,
-            "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
             "get_ol_env": get_ol_env,
             "get_deployment_name": get_deployment_name,
+            "browse_links": browse_links,
+            "BROWSE_FEATURED_COUNT": BROWSE_FEATURED_COUNT,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
@@ -1177,12 +1158,15 @@ def setup():
         sentry,
         stats,
         status,
-        swagger,
     )
 
     template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
     macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
     i18n.load_strings("openlibrary/plugins/openlibrary")
+
+    # Infogami wraps every page in its Templetor ``site`` template; serve
+    # the site layout from Jinja instead.
+    template.render.add_source({"site": SiteLayoutTemplate()})
 
     sentry.setup()
     home.setup()
@@ -1192,7 +1176,6 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
-    swagger.setup()
     partials.setup()
     import_ui.setup()
 

@@ -8,7 +8,7 @@
   font-size: 1.5em;
   font-family: var(--font-family-title);
   font-weight: normal;
-  color: var(--dark-grey);
+  color: var(--color-text);
   margin: 0 0 var(--spacing-stack-sm);
 }
 .lists-page-cta p {

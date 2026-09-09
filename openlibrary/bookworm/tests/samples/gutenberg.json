@@ -1,0 +1,134 @@
+[
+  {
+    "metadata": {
+      "@type": "http://schema.org/Book",
+      "identifier": "https://www.gutenberg.org/ebooks/67979",
+      "title": "The Blue Castle: a novel",
+      "language": "en",
+      "author": {
+        "name": "Montgomery, L. M. (Lucy Maud)",
+        "sortAs": "Montgomery, L. M. (Lucy Maud)"
+      }
+    },
+    "links": [
+      {
+        "rel": "self",
+        "href": "https://opds-test.pglaf.org/opds/publications?id=67979",
+        "type": "application/opds-publication+json"
+      },
+      {
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "href": "https://www.gutenberg.org/cache/epub/67979/pg67979-images-3.epub",
+        "type": "application/epub+zip",
+        "length": 652976,
+        "title": "EPUB3 (E-readers incl. Send-to-Kindle)"
+      }
+    ],
+    "images": [
+      {
+        "href": "https://www.gutenberg.org/cache/epub/67979/pg67979.cover.medium.jpg",
+        "type": "image/jpeg",
+        "width": 200,
+        "height": 288,
+        "rel": "http://opds-spec.org/image"
+      },
+      {
+        "href": "https://www.gutenberg.org/cache/epub/67979/pg67979.cover.small.jpg",
+        "type": "image/jpeg",
+        "width": 66,
+        "height": 95,
+        "rel": "http://opds-spec.org/image/thumbnail"
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "@type": "http://schema.org/Book",
+      "identifier": "https://www.gutenberg.org/ebooks/59828",
+      "title": "The String of Pearls: Or, The Barber of Fleet Street. A Domestic Romance.",
+      "language": "en",
+      "author": [
+        {
+          "name": "Rymer, James Malcolm",
+          "sortAs": "Rymer, James Malcolm"
+        },
+        {
+          "name": "Prest, Thomas Peckett",
+          "sortAs": "Prest, Thomas Peckett"
+        }
+      ]
+    },
+    "links": [
+      {
+        "rel": "self",
+        "href": "https://opds-test.pglaf.org/opds/publications?id=59828",
+        "type": "application/opds-publication+json"
+      },
+      {
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "href": "https://www.gutenberg.org/cache/epub/59828/pg59828-images-3.epub",
+        "type": "application/epub+zip",
+        "length": 12359715,
+        "title": "EPUB3 (E-readers incl. Send-to-Kindle)"
+      }
+    ],
+    "images": [
+      {
+        "href": "https://www.gutenberg.org/cache/epub/59828/pg59828.cover.medium.jpg",
+        "type": "image/jpeg",
+        "width": 200,
+        "height": 288,
+        "rel": "http://opds-spec.org/image"
+      },
+      {
+        "href": "https://www.gutenberg.org/cache/epub/59828/pg59828.cover.small.jpg",
+        "type": "image/jpeg",
+        "width": 66,
+        "height": 95,
+        "rel": "http://opds-spec.org/image/thumbnail"
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "@type": "http://schema.org/Book",
+      "identifier": "https://www.gutenberg.org/ebooks/62215",
+      "title": "Le Fant\u00f4me de l'Op\u00e9ra",
+      "language": "fr",
+      "author": {
+        "name": "Leroux, Gaston",
+        "sortAs": "Leroux, Gaston"
+      }
+    },
+    "links": [
+      {
+        "rel": "self",
+        "href": "https://opds-test.pglaf.org/opds/publications?id=62215",
+        "type": "application/opds-publication+json"
+      },
+      {
+        "rel": "http://opds-spec.org/acquisition/open-access",
+        "href": "https://www.gutenberg.org/cache/epub/62215/pg62215-images-3.epub",
+        "type": "application/epub+zip",
+        "length": 446631,
+        "title": "EPUB3 (E-readers incl. Send-to-Kindle)"
+      }
+    ],
+    "images": [
+      {
+        "href": "https://www.gutenberg.org/cache/epub/62215/pg62215.cover.medium.jpg",
+        "type": "image/jpeg",
+        "width": 200,
+        "height": 288,
+        "rel": "http://opds-spec.org/image"
+      },
+      {
+        "href": "https://www.gutenberg.org/cache/epub/62215/pg62215.cover.small.jpg",
+        "type": "image/jpeg",
+        "width": 66,
+        "height": 95,
+        "rel": "http://opds-spec.org/image/thumbnail"
+      }
+    ]
+  }
+]

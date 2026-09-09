@@ -24,7 +24,7 @@
         :class="{ selected: selected[record.key]}"
         :cell-selected="isCellUsed"
         :merged="merge ? merge.record : null"
-        :show_diffs="show_diffs"
+        :show-diffs="showDiffs"
       >
         <template #pre>
           <td
@@ -107,9 +107,15 @@ export default {
         MergeRow
     },
     props: {
-        olids: Array,
-        show_diffs: Boolean,
-        primary: String
+        olids: {
+            type: Array,
+            required: true
+        },
+        showDiffs: Boolean,
+        primary: {
+            type: String,
+            default: ''
+        }
     },
     data() {
         return {

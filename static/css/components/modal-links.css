@@ -27,10 +27,10 @@
   line-height: 12px;
 }
 
+/* Sized by the icon system (size="lg"): the old 2em box reads oversized and thin
+   as a stroke glyph, so only spacing is set here. */
 .modal-links .icon-link__image {
-  width: 2em;
-  height: 2em;
-  object-fit: contain;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* mobile */
@@ -42,11 +42,6 @@
 
   .modal-links .icon-link {
     padding: 0;
-  }
-
-  .modal-links .icon-link__image {
-    width: 2.2em;
-    height: 2.2em;
   }
 
   .modal-links .icon-link__text {

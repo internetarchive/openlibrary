@@ -15,7 +15,6 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
-from typing import TYPE_CHECKING
 
 import web
 
@@ -23,10 +22,6 @@ from openlibrary.accounts.model import OpenLibraryAccount
 
 from . import helpers as h
 from . import lending
-from .sendmail import sendmail_with_template
-
-if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Edition
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -82,9 +77,6 @@ class WaitingLoan(dict):
             return max(0.0, delta_hours)
         return 0.0
 
-    def is_expired(self) -> bool:
-        return self["status"] == "available" and self["expiry"] < datetime.datetime.utcnow().isoformat()
-
     def dict(self) -> dict:
         """Converts this object into JSON-able dict.
 
@@ -135,15 +127,6 @@ class WaitingLoan(dict):
             return result[0]
         return None
 
-    @classmethod
-    def prune_expired(cls, identifier: str | None = None) -> None:
-        """Deletes the expired loans from database and returns WaitingLoan objects
-        for each deleted row.
-
-        If book_key is specified, it deletes only the expired waiting loans of that book.
-        """
-        return
-
     def delete(self) -> None:
         """Delete this waiting loan from database."""
         # db.delete("waitingloan", where="id=$id", vars=self)
@@ -181,96 +164,3 @@ def get_waitinglist_for_user(user_key: str) -> list[WaitingLoan]:
         waitlist.extend(WaitingLoan.query(userid=account.itemname))
     waitlist.extend(WaitingLoan.query(userid=lending.userkey2userid(user_key)))
     return waitlist
-
-
-def is_user_waiting_for(user_key: str, book_key: str) -> bool:
-    """Returns True if the user is waiting for specified book."""
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        return WaitingLoan.find(user_key, book.ocaid) is not None
-    return False
-
-
-def join_waitinglist(user_key: str, book_key: str, itemname: str | None = None) -> None:
-    """Adds a user to the waiting list of given book.
-
-    It is done by creating a new record in the store.
-    """
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        WaitingLoan.new(user_key=user_key, identifier=book.ocaid, itemname=itemname)
-
-
-def leave_waitinglist(user_key: str, book_key: str, itemname: str | None = None) -> None:
-    """Removes the given user from the waiting list of the given book."""
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        w = WaitingLoan.find(user_key, book.ocaid, itemname=itemname)
-        if w:
-            w.delete()
-
-
-def on_waitinglist_update(identifier: str) -> None:
-    """Triggered when a waiting list is updated."""
-    waitinglist = WaitingLoan.query(identifier=identifier)
-    if waitinglist:
-        book = _get_book(identifier)
-        checkedout = lending.is_loaned_out(identifier)
-        # If some people are waiting and the book is checked out,
-        # send email to the person who borrowed the book.
-        #
-        # If the book is not checked out, inform the first person
-        # in the waiting list
-        if not checkedout:
-            sendmail_book_available(book)
-
-
-def update_ebook(ebook_key: str, **data) -> None:
-    ebook = web.ctx.site.store.get(ebook_key) or {}
-    # update ebook document.
-    ebook2 = dict(ebook, _key=ebook_key, type="ebook")
-    ebook2.update(data)
-    if ebook != ebook2:  # save if modified
-        web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
-
-
-def sendmail_book_available(book: Edition) -> None:
-    """Informs the first person in the waiting list that the book is available.
-
-    Safe to call multiple times. This'll make sure the email is sent only once.
-    """
-    wl = book.get_waitinglist()
-    if wl and wl[0]["status"] == "available" and not wl[0].get("available_email_sent"):
-        record = wl[0]
-        user = record.get_user()
-        if not user:
-            return
-        email = user.get_email()
-        sendmail_with_template(
-            "email/waitinglist_book_available",
-            to=email,
-            user=user,
-            book=book,
-            waitinglist_record=record,
-        )
-        record.update(available_email_sent=True)
-        logger.info(
-            "%s is available, send email to the first person in WL. wl-size=%s",
-            book.key,
-            len(wl),
-        )
-
-
-def update_all_ebooks() -> None:
-    rows = WaitingLoan.query(limit=10000)
-    identifiers = {row["identifier"] for row in rows}
-
-    loan_keys = web.ctx.site.store.keys(type="/type/loan", limit=-1)
-
-    for k in loan_keys:
-        id = k[len("loan-") :]
-        # would have already been updated
-        if id in identifiers:
-            continue
-        logger.info("updating ebooks/" + id)
-        update_ebook("ebooks/" + id, borrowed="true", wl_size=0)

@@ -1,4 +1,4 @@
-$def with (q_param, search_response, get_doc, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
+$def with (q_param, search_response, works, param, page, rows, readable_count, author_suggestions, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -57,6 +57,7 @@ $ bodyclass.append('search-page')
             label="$_('Language')"
             placeholder="$_('Search languages…')"
             unselected-heading="$_('Languages')"
+            loading-label="$_('Loading…')"
             aria-label="$_('Filter by language')"
           ></ol-select-popover>
 
@@ -79,7 +80,7 @@ $ bodyclass.append('search-page')
         $# lets the chip's clear-URL (changequery) preserve q and other filters.
         $# The partials path (partials.py) does the same via parsed_qs.
         <span class="selected-search-facets-container">
-            $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
+            $:render_selected_search_facets(param, search_response, q_param, query=param).html
         </span>
 
         $# num_found_exact is false only when Solr stopped counting early,
@@ -148,8 +149,6 @@ $ bodyclass.append('search-page')
               <span class="search-results-section-label__count">$results_stats</span>
             </h2>
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
-            $ works = [get_doc(d) for d in search_response.docs]
-            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
@@ -169,7 +168,7 @@ $ bodyclass.append('search-page')
 
 
 $if not search_response.error and param and len(search_response.docs):
-    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
+    $:render_search_facets(param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
     $if search_response.time and ctx.user and ctx.user.is_admin():

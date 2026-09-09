@@ -224,7 +224,9 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
         resp = execute_solr_query(
             "/export",
             {
-                "q": " OR ".join(f'key:"{key}"' for key in keys_to_fetch),
+                # {!terms f=key} uses Solr's TermsQuery, which avoids the
+                # maxBooleanClauses limit an OR-joined query hits at large key counts.
+                "q": "{!terms f=key}" + ",".join(keys_to_fetch),
                 "fl": ",".join(solr_fields),
                 "sort": "key asc",
             },

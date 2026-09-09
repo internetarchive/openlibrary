@@ -5,7 +5,7 @@
   >
     <SavedTags
       :all-selected-values="allSelectedValues"
-      :work-key="work_key"
+      :work-key="workKey"
       :username="username"
     />
     <CategorySelector
@@ -23,7 +23,7 @@
       :multi-select="selectedObservation.multi_choice"
       :values="selectedObservation.values"
       :all-selected-values="allSelectedValues"
-      :work-key="work_key"
+      :work-key="workKey"
       :username="username"
     />
   </div>
@@ -72,7 +72,7 @@ export default {
          * @example
          * /works/OL123W
          */
-        work_key: {
+        workKey: {
             type: String,
             required: true
         },

@@ -369,7 +369,7 @@ def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
             return_value=False,
         ),
         patch(
-            "openlibrary.plugins.openlibrary.home.caching_prethread",
+            "openlibrary.utils.request_context.caching_prethread",
             return_value=None,
         ),
     ):

@@ -6,12 +6,16 @@ $ url = book.get('key') or book.url
 $ title = book.get("title", "")
 
 $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
-$if book.get('cover_url'):
+$if hasattr(book, 'get_cover_url') and book.get_cover_url('M'):
+  $ cover_url = book.get_cover_url('M')
+$elif book.get('cover_url'):
   $ cover_url = book.get('cover_url')
 $elif cover_id and cover_id != -1:
   $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
 $elif book.get('ia'):
   $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+$elif book.get('ocaid'):
+  $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ocaid'), fallback_cover)
 $elif book.get('cover_edition_key'):
   $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
 $else:
@@ -30,24 +34,68 @@ $else:
   $ byline = ''
 
 <div class="book carousel__item">
+  $ loan = book.get('loan')
   <div class="book-cover">
-    <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
-      $if cover_url:
-        <img class="bookcover" loading="lazy"
-          title="$('%s%s'%(title,byline))"
-          alt="$('%s%s'%(title,byline))"
-        $if lazy and layout == 'carousel':
-          data-lazy="$(cover_url)"
-          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+    <div class="book-cover-wrapper">
+       $if loan:
+         $ wlsize = book.get_waitinglist_size() if hasattr(book, 'get_waitinglist_size') else 0
+         $ has_expiry = loan.get('expiry')
+         $ is_bookreader = loan.get('resource_type') == 'bookreader'
+         $if has_expiry or wlsize or not is_bookreader:
+           <div class="loan-overlay-badge">
+             $if has_expiry:
+               $:macros.FormatExpiry(loan.get('expiry'))
+             $if wlsize:
+               <div class="loan-overlay-badge__waitlist">
+                 $ungettext("1 person waiting", "%(count)d people waiting", wlsize, count=wlsize)
+               </div>
+             $if not is_bookreader:
+               <div class="loan-overlay-badge__not-bookreader">
+                 $if loan.get('expiry') is None:
+                   <span class="loan-overlay-badge__not-downloaded">$_("Not yet downloaded.")</span><br/>
+                   <a href="$loan.get('loan_link')" class="loan-overlay-badge__download-link">$_("Download Now")</a>
+                 $else:
+                   <span style="opacity: 0.9;">$_("Return via ADE")</span>
+               </div>
+           </div>
+       $elif key == "loans":
+         <div class="loan-overlay-badge loan-overlay-badge--expired">
+           <span class="loan-overlay-badge__expired-label">$_("Loan Expired")</span>
+         </div>
+      <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
+        $if cover_url:
+          <img class="bookcover" loading="lazy"
+            title="$('%s%s'%(title,byline))"
+            alt="$('%s%s'%(title,byline))"
+          $if lazy and layout == 'carousel':
+            data-lazy="$(cover_url)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+          $else:
+            src="$(cover_url)"/>
         $else:
-          src="$(cover_url)"/>
-      $else:
-        <div class="carousel__item__blankcover"  title="$(title)">
-          <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
-          $if author_names:
-            <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
-        </div>
-    </a>
+          <div class="carousel__item__blankcover"  title="$(title)">
+            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            $if author_names:
+              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+          </div>
+      </a>
+    </div>
   </div>
-  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
+
+  <div class="ol-action-row">
+    <div class="ol-macro-wrapper">
+      $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=(secondary_action and not loan), analytics_override="BookCarousel|{action}Click|%s" % key)
+    </div>
+
+    $if loan and loan.get('resource_type') == 'bookreader':
+      <div class="ol-return-wrapper cta-button-group">
+        <form action="/borrow/ia/$(loan.get('ocaid'))" method="post" class="return-form" data-i18n="$json_encode({'confirm_return': _('Really return this book?')})">
+          <input type="hidden" name="action" value="return" />
+          <input type="hidden" name="redirect" value="$request.fullpath" />
+          <button type="submit" class="cta-btn cta-btn--available" title="$_('Return book')" aria-label="$_('Return book')" data-ol-link-track="BookCarousel|ReturnClick|$key">
+            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M288-192v-72h288q50 0 85-35t35-85q0-50-35-85t-85-35H330l93 93-51 51-180-180 180-180 51 51-93 93h246q80 0 136 56t56 136q0 80-56 136t-136 56H288Z"/></svg>
+          </button>
+        </form>
+      </div>
+  </div>
 </div>

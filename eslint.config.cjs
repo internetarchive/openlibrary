@@ -14,8 +14,10 @@ module.exports = [
       "conf/",
       "config/",
       "docker/",
+      "docs/wiki/",
       "infogami/",
       "node_modules/",
+      "openlibrary/components/lit/icons.generated.js",
       "scripts/",
       "static/build/",
       "build/",
@@ -33,10 +35,10 @@ module.exports = [
   {
     files: [
       "webpack.config.js",
-      "webpack.config.css.js",
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
+      "stylelint/*.cjs",
     ],
     languageOptions: {
       sourceType: "script",
@@ -55,6 +57,7 @@ module.exports = [
     files: [
       "openlibrary/components/vite.config.mjs",
       "openlibrary/components/vite-lit.config.mjs",
+      "vite-css.config.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
@@ -133,6 +136,11 @@ module.exports = [
           ignores: ["Bookshelf", "Shelf"],
         },
       ],
+      "vue/require-prop-types": "error",
+      "vue/require-explicit-emits": "error",
+      "vue/require-default-prop": "error",
+      "vue/no-v-html": "error",
+      "vue/no-template-shadow": "error",
       // jQuery deprecated rules
       "no-jquery/no-box-model": "warn",
       "no-jquery/no-browser": "warn",

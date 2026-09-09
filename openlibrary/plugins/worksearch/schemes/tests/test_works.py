@@ -146,3 +146,19 @@ def test_q_to_solr_params_edition_key(query, edQuery):
     params_d = dict(params)
     assert params_d["userWorkQuery"] == query
     assert params_d["userEdQuery"] == edQuery
+
+
+def test_q_to_solr_params_local_params_fq_not_rewritten_for_editions():
+    """A local-params fq (e.g. {!terms f=key}...) isn't a field:value facet filter and shouldn't be parsed as one for the editions subquery."""
+    web.ctx.lang = "en"
+    s = WorkSearchScheme()
+
+    with patch("openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc") as mock_fn:
+        mock_fn.return_value = "eng"
+        params = s.q_to_solr_params(
+            "*:*",
+            {"editions:[subquery]"},
+            [("fq", "{!terms f=key}/works/OL192489W")],
+        )
+    editions_fq_values = [v for k, v in params if k == "editions.fq"]
+    assert not any("OL192489W" in v for v in editions_fq_values)
