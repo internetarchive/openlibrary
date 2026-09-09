@@ -1608,7 +1608,7 @@ fieldset.ds-demo-row {
    inside drop theirs so the columns don't end on staggered hairlines. */
 .ds-principles {
   display: grid;
-  gap: var(--spacing-stack-xl) var(--spacing-inline-xl);
+  gap: var(--spacing-section-gap-desktop) var(--spacing-section-gap);
   padding-bottom: var(--spacing-stack-xl);
   margin-bottom: var(--spacing-stack-xl);
   border-bottom: var(--border-divider);
@@ -1727,20 +1727,24 @@ fieldset.ds-demo-row {
 }
 
 /* 01 Tools before brand: the brand sheet out of focus, and a bench of real
-   controls at 1x in front of it. */
+   controls at 1x in front of it. The bench shrinks to its controls and sits
+   centred, wrapping to rows only when the column is too narrow for one. */
 .ds-fig--tools {
   background: var(--color-background);
 }
 
 .ds-fig__bench {
   position: absolute;
-  right: 6cqw;
-  bottom: 12%;
-  left: 6cqw;
+  top: 50%;
+  left: 50%;
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-inline-md);
   align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 88cqw;
+  translate: -50% -50%;
   padding: var(--spacing-inset-lg);
   background: var(--color-surface);
   border: var(--border-card);
@@ -1798,7 +1802,7 @@ fieldset.ds-demo-row {
 }
 
 .ds-fig__sheet--sunken {
-  top: 8%;
+  top: 10%;
   left: 14cqw;
   background: var(--color-surface-sunken);
 }
@@ -1810,7 +1814,7 @@ fieldset.ds-demo-row {
 }
 
 .ds-fig__sheet--raised {
-  top: 30%;
+  top: 28%;
   left: 40cqw;
   background: var(--color-surface-raised);
   box-shadow: var(--box-shadow-overlay);
@@ -1915,12 +1919,12 @@ fieldset.ds-demo-row {
 
 .ds-fig__skeleton {
   position: absolute;
-  top: 40%;
+  top: 50%;
   left: 8cqw;
   display: flex;
   flex-direction: column;
   gap: 2.4cqw;
-  width: 44cqw;
+  width: 38cqw;
 }
 
 .ds-fig__bone {
@@ -1944,20 +1948,26 @@ fieldset.ds-demo-row {
 
 .ds-fig__wait-button {
   position: absolute;
-  top: 44%;
+  top: 42%;
   right: 8cqw;
-  transform: scale(3);
+  transform: scale(2.5);
   transform-origin: 100% 0;
 }
 
 /* 06 Motion is information: the enter curve against linear, and the
-   duration scale as bars. */
+   duration scale as bars, laid out as one centred pair. */
+.ds-fig--motion {
+  display: flex;
+  gap: 7cqw;
+  align-items: stretch;
+  justify-content: center;
+  padding: 6cqw 4cqw;
+}
+
 .ds-fig__curve {
-  position: absolute;
-  top: 14%;
-  left: 8cqw;
-  width: 34cqw;
-  height: 72%;
+  flex: none;
+  width: 30cqw;
+  height: auto;
   overflow: visible;
 }
 
@@ -1978,8 +1988,6 @@ fieldset.ds-demo-row {
 }
 
 .ds-fig__durations {
-  position: absolute;
-  inset: 16% 8cqw 16% 52cqw;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1993,7 +2001,7 @@ fieldset.ds-demo-row {
 
 .ds-fig__duration-bar {
   flex: none;
-  width: calc(var(--ds-fig-ms) / 400 * 60%);
+  width: calc(var(--ds-fig-ms) / 400 * 20cqw);
   height: 1.4cqw;
   background: var(--color-primary);
   border-radius: var(--border-radius-pill);
@@ -2128,12 +2136,9 @@ fieldset.ds-demo-row {
 /* 10 Nothing shifts: the same tabs marking the current one with weight, then
    with color. The guide hangs off the stable row's last tab. */
 .ds-fig--shift {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 5cqw;
-  align-items: flex-start;
-  justify-content: center;
-  padding-left: 10cqw;
+  place-content: center;
   font-family: var(--font-family-sans);
   font-size: 6cqw;
   line-height: 1;
@@ -2228,7 +2233,7 @@ fieldset.ds-demo-row {
      curve, then rests; the rests take most of the cycle. Three sheets a third
      of a cycle apart, so one is always about to move. */
   .ds-fig--paper .ds-fig__sheet {
-    top: 8%;
+    top: 10%;
     left: 14cqw;
     background: var(--color-surface);
     animation: ds-fig-deck 7.5s var(--ease-enter) infinite;
@@ -2329,7 +2334,7 @@ fieldset.ds-demo-row {
 
   41%,
   66.6% {
-    translate: 13cqw 7cqw;
+    translate: 13cqw 4cqw;
     rotate: -0.5deg;
     scale: 1;
     z-index: var(--z-index-local-2);
@@ -2339,7 +2344,7 @@ fieldset.ds-demo-row {
 
   74%,
   92% {
-    translate: 26cqw 14cqw;
+    translate: 26cqw 8cqw;
     rotate: 1.5deg;
     scale: 1;
     z-index: var(--z-index-local-3);
@@ -2349,7 +2354,7 @@ fieldset.ds-demo-row {
   }
 
   100% {
-    translate: 38cqw 6cqw;
+    translate: 38cqw 2cqw;
     rotate: 7deg;
     scale: 1.03;
     z-index: var(--z-index-local-3);

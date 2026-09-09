@@ -86,9 +86,9 @@ PRINCIPLES = (
         "Our palette comes from paper, and paper comes from books. The beige canvas is not sacred as a background, but it is the "
         "root of the color theme: every neutral, from the lightest raised surface to the darkest ink, descends from that warm "
         "family. The theme can keep evolving as long as it stays recognizably related to what came before.",
-        "A dense edit form is easier to scan on white. A cold, clinical white breaks the family. A white that still leans warm, or "
-        "a white card on the paper canvas, keeps it. Both are on-principle; pick between them for legibility, not for which one "
-        "gets to be the background.",
+        "What visual recognition we have rests on a handful of cues, and the warm neutrals are the strongest of them. A returning "
+        "user finds their way around a rearranged home page easily enough; a page that has gone cold reads as somewhere else "
+        "before they read a word. That makes the canvas the cheapest thing to swap and the most expensive thing to lose.",
     ),
     Principle(
         "quiet-surface",
@@ -119,7 +119,7 @@ PRINCIPLES = (
         "motion-is-information",
         "Motion is information",
         "Animate only what changed: something entering, leaving, moving, or changing state. Durations are short, curves are "
-        "decisive, exits are faster than entries. Nothing moves to be pretty. Reduced motion is honored everywhere.",
+        "decisive, exits are faster than entries. Reduced motion is honored everywhere.",
         "A subject page hero with a staged reveal would add atmosphere. It is also 600 ms of the user waiting to read. Editorial "
         "pages are the most tempting place to break this rule.",
     ),
