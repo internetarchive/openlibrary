@@ -1,3 +1,4 @@
+import $ from 'jquery';
 /**
  * Defines functionality related to the Reading Check-Ins components.
  * @module my-books/MyBooksDropper/CheckInComponents

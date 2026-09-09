@@ -1008,7 +1008,7 @@ div#searchResults .SRPCoverBlank a {
 
 /* Avatar: a person-icon placeholder layered behind the author photo. The photo */
 /* covers it when it loads; a missing photo (?default=false 404) is hidden by */
-/* index.js, revealing the icon. Mirrors the modal's .result__avatar. */
+/* main.js, revealing the icon. Mirrors the modal's .result__avatar. */
 .search-author-suggestion .sas-avatar {
   position: relative;
   display: flex;
