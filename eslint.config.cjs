@@ -1,6 +1,9 @@
 const js = require("@eslint/js");
 const vuePlugin = require("eslint-plugin-vue");
 const globals = require("globals");
+// NOTE: .babelrc is test/lint-only (babel-jest + this parser). The production
+// page-JS build uses Vite/Oxc with explicit core-js imports in
+// openlibrary/plugins/openlibrary/js/main.js (see vite-js-shared.mjs).
 const babelParser = require("@babel/eslint-parser");
 
 /** @type {import('eslint').Linter.Config[]} */
