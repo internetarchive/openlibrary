@@ -20,6 +20,11 @@
   margin-top: var(--spacing-stack-md);
 }
 
+/* Space below the shelf button in reading log list rows. */
+.searchResultItemCTA .star-rating-form {
+  margin-top: var(--spacing-stack-sm);
+}
+
 .review {
   display: flex;
   scroll-margin-top: 100px;
