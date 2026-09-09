@@ -267,7 +267,7 @@ AVAILABILITY_VARIANTS = [
         "is_lendable": False,
         "is_previewable": True,
     },
-    # 1. "Borrow" (CDL available to borrow / browse)
+    # 1. "Browse" (CDL available to browse *and* borrow; OL favors browse)
     {
         "status": "borrow_available",
         "is_readable": False,
@@ -276,7 +276,19 @@ AVAILABILITY_VARIANTS = [
         "available_to_browse": True,
         "is_previewable": True,
     },
-    # 2. "Join Waitlist" (All copies on loan, waitlist open)
+    # 2. "Borrow" (14-day CDL borrow only; this title is not offered for browse).
+    #    Needed as its own variant because user_can_borrow_edition_async() checks
+    #    available_to_browse first, so a title with both flags always renders the
+    #    browse CTA and the borrow CTA would otherwise be unreachable in dev.
+    {
+        "status": "borrow_available",
+        "is_readable": False,
+        "is_lendable": True,
+        "available_to_borrow": True,
+        "available_to_browse": False,
+        "is_previewable": True,
+    },
+    # 3. "Join Waitlist" (All copies on loan, waitlist open)
     {
         "status": "borrow_unavailable",
         "is_readable": False,
@@ -287,7 +299,7 @@ AVAILABILITY_VARIANTS = [
         "num_waitlist": 3,
         "is_previewable": True,
     },
-    # 3. "Checked Out" (All copies on loan, waitlist closed)
+    # 4. "Checked Out" (All copies on loan, waitlist closed)
     {
         "status": "borrow_unavailable",
         "is_readable": False,
@@ -297,14 +309,14 @@ AVAILABILITY_VARIANTS = [
         "available_to_waitlist": False,
         "is_previewable": True,
     },
-    # 4. "Preview Only" (Previewable on BookReader)
+    # 5. "Preview Only" (Previewable on BookReader)
     {
         "status": "preview_only",
         "is_readable": False,
         "is_lendable": False,
         "is_previewable": True,
     },
-    # 5. "Print Disabled" / DAISY (Restricted to print-disabled patrons)
+    # 6. "Print Disabled" / DAISY (Restricted to print-disabled patrons)
     {
         "status": "printdisabled",
         "is_readable": False,
@@ -312,7 +324,7 @@ AVAILABILITY_VARIANTS = [
         "is_printdisabled": True,
         "is_previewable": False,
     },
-    # 6. "Locate" (No digital copies on IA)
+    # 7. "Locate" (No digital copies on IA)
     {
         "status": "error",
         "is_readable": False,
