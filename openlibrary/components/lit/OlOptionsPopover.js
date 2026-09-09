@@ -111,11 +111,28 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
 
         .item-row {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: var(--spacing-inline-md);
+            box-sizing: border-box;
+            /* One height across every menu row; a described or wrapping row
+               grows past it. */
+            min-height: var(--menu-row-height);
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
+        }
+
+        /* A description makes the row multi-line, so the radio rides the label
+           rather than the whole box. */
+        .item-row:has(.item-description) {
+            align-items: flex-start;
+        }
+
+        /* Nudged onto the label's optical centre, which centring can't do
+           once the row is top-aligned. */
+        .item-row:has(.item-description) .item-radio {
+            margin-top: 2px;
         }
 
         /* Nested options are a subset of the option above them; indent the
@@ -148,8 +165,8 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
             flex-shrink: 0;
             width: 16px;
             height: 16px;
-            margin: 2px 0 0;
-            accent-color: var(--primary-blue);
+            margin: 0;
+            accent-color: var(--color-primary);
             cursor: pointer;
         }
 
@@ -260,7 +277,6 @@ export class OlOptionsPopover extends FormAssociatedMixin(LitElement) {
     render() {
         return html`
             <ol-popover
-                placement="bottom-start"
                 aria-label="${ifDefined(this.getAttribute('aria-label') || this.label || undefined)}"
                 @ol-popover-open=${this._onPopoverOpen}
                 @ol-popover-close=${this._onPopoverClose}
