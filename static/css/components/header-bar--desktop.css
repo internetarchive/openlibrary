@@ -72,15 +72,6 @@
   order: 6;
 }
 
-.header-bar .app-drawer {
-  top: 0;
-  height: 100%;
-}
-
-.header-bar .mask-menu {
-  top: 0;
-}
-
 .header-bar.mobile {
   display: none;
 }

@@ -185,6 +185,11 @@ class importapi:
         if not edition:
             return self.error("unknown-error", "Failed to parse import data")
 
+        # Acquisitions ride along on the import record. ImportBot posts feed
+        # records to this (privileged) endpoint, so the guard against arbitrary
+        # callers minting acquisitions from unregistered feeds is enforced
+        # downstream in add_book.load. #12844
+
         try:
             reply = add_book.load(edition, save=not preview)
             # TODO: If any records have been created, return a 201, otherwise 200

@@ -9,9 +9,10 @@ import time
 import urllib
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import web
+from markupsafe import Markup, escape
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -23,17 +24,20 @@ from infogami.utils.view import (
 )
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount, parse_s3_cookie
-from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
     models,  # noqa: F401 side effects may be needed
     stats,
     vendors,
 )
+from openlibrary.core.jinja import render_jinja_template
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
+
+if TYPE_CHECKING:
+    from openlibrary.fastapi.utils import FlashType
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -134,7 +138,7 @@ class BorrowRedirect:
 
     url: str
     permanent: bool = False  # False -> 303 See Other, True -> 301 Moved Permanently
-    flash: tuple[str, str] | None = None  # (type, message), e.g. ("error", "...")
+    flash: tuple[FlashType, str] | None = None  # (type, message), e.g. ("error", "...")
     clear_login_cookie: bool = False
 
 
@@ -143,7 +147,7 @@ class BorrowNotFound:
     pass
 
 
-BorrowOutcome = BorrowRedirect | BorrowNotFound
+BorrowOutcome = BorrowRedirect | BorrowNotFound | str  # str = rendered interstitial HTML
 
 
 async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | None, fastapi: bool = False) -> BorrowOutcome:  # noqa: PLR0912, PLR0915
@@ -179,10 +183,13 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         and acquisitions[0].access == "open-access"
     ):
         stats.increment("ol.loans.webbook")
-        return render_template(
-            "interstitial",
+        raw_name = acquisitions[0].provider_name or ""
+        book_provider = Markup("<strong>") + escape(raw_name.replace("_", " ").title()) + Markup("</strong>") if raw_name else Markup("")
+        return render_jinja_template(
+            "interstitial.html.jinja",
             url=acquisitions[0].url,
-            provider_name=acquisitions[0].provider_name,
+            book_provider=book_provider,
+            wait=5,
             fastapi=fastapi,
         )
 
@@ -236,6 +243,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         user.update_loan_status()
         title = edition.title or _("this book")
 
+        flash: tuple[FlashType, str]
         if user.has_borrowed(edition):
             flash = ("error", _("Unable to return %s. Please try again later or contact info@archive.org.") % title)
         else:

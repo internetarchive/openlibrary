@@ -86,6 +86,13 @@ const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // to /search is still allowed for it (handled by the length-only gates).
 const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
 
+// A drag the trigger should accept: it carries plain text (a text selection
+// or a URL) and is not an ILE book selection, which stores JSON as text/plain.
+function isTextDrag(dataTransfer) {
+    const types = Array.from(dataTransfer?.types || []);
+    return types.includes('text/plain') && !types.includes('application/x.ile+json');
+}
+
 export class SearchModal extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
@@ -816,12 +823,25 @@ export class SearchModal extends LitElement {
             e.preventDefault();
             this._openModal();
         });
-        // Open the modal when text is dragged over the trigger so the patron
-        // can complete the drop into the search input. Without this the modal
-        // never opens during a drag (clicking ends the drag) and the drop is lost.
+        // preventDefault (required for 'drop' to fire on this element at all)
+        // and show the "copy" cursor so the drag doesn't look rejected while
+        // hovering over the trigger. Non-text drags (files, images, ILE book
+        // selections) are left alone so they can't open an empty modal.
         trigger.addEventListener('dragover', (e) => {
+            if (!isTextDrag(e.dataTransfer)) return;
             e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+        // Open the modal on drop (not dragover, which fires continuously and
+        // would pop the modal open before the patron has committed to the
+        // drop) and forward the dropped text into the search input.
+        trigger.addEventListener('drop', (e) => {
+            if (!isTextDrag(e.dataTransfer)) return;
+            e.preventDefault();
+            const text = e.dataTransfer.getData('text/plain');
+            if (!text) return;
             if (!this.open) this._openModal('drag');
+            this._applyDroppedText(text);
         });
     }
 
@@ -1462,6 +1482,12 @@ export class SearchModal extends LitElement {
         e.preventDefault();
         const text = e.dataTransfer.getData('text/plain');
         if (!text) return;
+        this._applyDroppedText(text);
+    }
+
+    // Shared by the search-input's own @drop and the trigger button's drop
+    // handler (which opens the modal first, then forwards the text here).
+    _applyDroppedText(text) {
         this._query = text;
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = text;

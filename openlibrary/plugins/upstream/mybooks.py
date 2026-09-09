@@ -25,14 +25,13 @@ from openlibrary.core.lending import add_availability, get_loan_history_data, ge
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import current_year
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import caching_prethread, site
 
 if TYPE_CHECKING:
     from web.template import TemplateResult

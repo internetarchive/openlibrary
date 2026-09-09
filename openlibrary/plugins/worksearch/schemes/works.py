@@ -382,7 +382,6 @@ class WorkSearchScheme(SearchScheme):
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 "edition_key": "key",
-                "text": "text",
                 # Display data
                 "title": "title",
                 "title_suggest": "title_suggest",
@@ -537,8 +536,10 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(("editions.ol.label", "EDITION_MATCH"))
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
-                # See qf in work_query
-                qf="text alternative_title^4 author_name^4 chapter^4",
+                # See qf in work_query. Edition docs only carry a subset of
+                # the work-level fields (see EditionSolrBuilder.build()), so
+                # this only lists fields that are actually populated on them.
+                qf="title subtitle publisher isbn oclc lccn ia key author_key alternative_title^4 author_name^4 author_alternative_name^4 chapter^4",
                 # Reading from the url parameter userEdQuery. This lets us avoid
                 # having to try to escape the query in order to fit inside this
                 # other query.

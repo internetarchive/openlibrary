@@ -121,12 +121,8 @@ def build_inventory() -> list[Template]:
     return sorted(set(templates), key=lambda t: (t.kind, t.relpath, t.name))
 
 
-def build_corpus() -> dict[str, str]:
-    """Read every git-tracked source file (hermetic: untracked scratch files
-    can't change the verdict).  ``--recurse-submodules`` is load-bearing --
-    references like ``render.viewpage`` live in vendor/infogami (make git).
-    """
-    files = (
+def _git_tracked_files() -> list[str]:
+    return (
         subprocess.run(
             ["git", "ls-files", "--recurse-submodules", "-z"],
             cwd=REPO_ROOT,
@@ -136,11 +132,38 @@ def build_corpus() -> dict[str, str]:
         .stdout.decode()
         .split("\0")
     )
+
+
+def _infogami_disk_files() -> list[str]:
+    """List infogami files from disk when git can't see them."""
+    root = REPO_ROOT / "vendor" / "infogami"
+    if not root.is_dir():
+        return []
+    files: list[str] = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix not in CORPUS_SUFFIXES:
+            continue
+        rel = path.relative_to(REPO_ROOT).as_posix()
+        if rel not in CORPUS_SKIP_FILES:
+            files.append(rel)
+    return sorted(files)
+
+
+def build_corpus() -> dict[str, str]:
+    """Scan every git-tracked source file. Untracked files don't count.
+
+    Refs like ``render.viewpage`` live in vendor/infogami, so run ``make git``.
+    In worktrees without submodule metadata, read those files from disk.
+    """
+    files = _git_tracked_files()
+    if not any(rel.startswith("vendor/infogami/") for rel in files):
+        files.extend(_infogami_disk_files())
     if not any(rel.startswith("vendor/infogami/") for rel in files):
         raise RuntimeError(
-            "git ls-files returned no vendor/infogami files -- the submodule "
-            "is not initialized. Run `make git` (git submodule update --init) "
-            "so the scan can see infogami's template references."
+            "git ls-files returned no vendor/infogami files and no usable "
+            "infogami checkout exists on disk. Run `make git` "
+            "(git submodule update --init) so the scan can see infogami's "
+            "template references."
         )
     corpus: dict[str, str] = {}
     for rel in files:

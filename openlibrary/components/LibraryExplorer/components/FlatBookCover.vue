@@ -43,6 +43,7 @@ export default {
             validator: val => ['image', 'text'].includes(val)
         }
     },
+    emits: ['load'],
 
     computed: {
         byline() {

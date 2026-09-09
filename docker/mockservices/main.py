@@ -390,6 +390,111 @@ async def amazon_get_items(request: Request) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# Matomo Reporting API  (Core Vitals retention scoring, issue #11956)
+# POST /matomo/index.php
+#
+# matomo.archive.org is restricted to IA's network, so retention scoring is
+# otherwise untestable locally. Point the client at this instead:
+#   MATOMO_URL=http://mockservices:8090/matomo
+#
+# Returns visits in the shape Live.getLastVisitsDetails does. The part worth
+# mocking faithfully is the wire format: `dimension1` is a FLAT field on the
+# visit -- this endpoint never returns the `customDimensions` structure it looks
+# like it should -- and engagement lives in `actionDetails` as a mix of `event`
+# and `action` entries. Newest-first ordering and `minTimestamp` filtering are
+# honoured so paging and window behaviour can be exercised against it.
+# ---------------------------------------------------------------------------
+
+MATOMO_COHORTS = ["visitor", "d0", "d1+", "d7+", "d14+", "d30+", "d90+"]
+
+# Deliberately a different length from MATOMO_COHORTS (7) so cohorts and events
+# do not advance in lockstep -- otherwise `visitor` would always carry the same
+# event and most cohort/event pairs would never appear in the feed.
+MATOMO_SAMPLE_EVENTS = [
+    ("CTAClick", "Read"),
+    ("CTAClick", "Borrow"),
+    ("ReadingLog", "WantToRead"),
+    ("MainNav", "MyBooks"),
+    # Real traffic a consumer's schema may have no row for; included so callers
+    # can assert unmapped events are ignored rather than fatal.
+    ("SearchModal", "Open"),
+]
+
+# Fixed at import, and deliberately NOT derived from the caller's
+# `minTimestamp`: if visit times are built from the filter then every visit is
+# after it by construction, the mock can never disagree with the filter, and the
+# one property `minTimestamp` exists to enforce becomes untestable. Two days back
+# so the feed sits comfortably inside a client's maximum window while still being
+# old enough that "since a minute ago" correctly returns nothing.
+MATOMO_MOCK_EPOCH = int((datetime.now(UTC) - timedelta(days=2)).timestamp())
+MATOMO_MOCK_VISITS = 12
+# Seconds between consecutive visits in the fake feed.
+MATOMO_MOCK_INTERVAL = 60
+
+
+def _matomo_visit(index: int) -> dict:
+    """One synthetic visit, fully determined by `index`."""
+    cohort = MATOMO_COHORTS[index % len(MATOMO_COHORTS)]
+    category, action = MATOMO_SAMPLE_EVENTS[index % len(MATOMO_SAMPLE_EVENTS)]
+    timestamp = MATOMO_MOCK_EPOCH + index * MATOMO_MOCK_INTERVAL
+    return {
+        "idVisit": str(index),
+        # Flat, exactly as the real API returns it.
+        "dimension1": cohort,
+        "visitorId": f"visitor{index:04d}",
+        "userId": None,
+        "firstActionTimestamp": timestamp,
+        "serverTimestamp": timestamp,
+        "actionDetails": [
+            {"type": "event", "eventCategory": category, "eventAction": action},
+            {"type": "action", "url": f"https://openlibrary.org/works/OL{index}W/Mock_Book"},
+        ],
+    }
+
+
+def _matomo_form_int(form, key: str, default: int) -> int:
+    """Read an int from a form body.
+
+    Starlette types form values as `str | UploadFile`, hence the str() before
+    int(); a non-numeric value is a caller error and should surface as one.
+    """
+    raw = form.get(key, default)
+    try:
+        return int(str(raw))
+    except TypeError, ValueError:
+        raise ValueError(f"{key} must be an integer, got {raw!r}") from None
+
+
+@app.post("/matomo/index.php")
+async def matomo_api(request: Request) -> JSONResponse:
+    form = await request.form()
+    method = str(form.get("method", ""))
+
+    if not form.get("token_auth"):
+        return JSONResponse({"result": "error", "message": "Requests to the API must be authenticated"})
+
+    if method != "Live.getLastVisitsDetails":
+        return JSONResponse({"result": "error", "message": f"Mock does not implement {method}"})
+
+    try:
+        limit = _matomo_form_int(form, "filter_limit", 500)
+        offset = _matomo_form_int(form, "filter_offset", 0)
+        since = _matomo_form_int(form, "minTimestamp", 0)
+    except ValueError as exc:
+        logger.warning("Invalid Matomo API request parameters", exc_info=exc)
+        return JSONResponse({"result": "error", "message": "Invalid request parameters"})
+    if limit < 1 or offset < 0:
+        return JSONResponse({"result": "error", "message": "filter_limit must be >= 1 and filter_offset >= 0"})
+
+    # Filter on the feed's own timestamps, so `minTimestamp` is actually honoured
+    # and a narrower window really does return fewer visits. Newest first, which
+    # is the order the real endpoint uses and what makes paging overlap possible.
+    feed = [v for v in (_matomo_visit(i) for i in range(MATOMO_MOCK_VISITS)) if v["firstActionTimestamp"] >= since]
+    feed.reverse()
+    return JSONResponse(feed[offset : offset + limit])
+
+
+# ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
 

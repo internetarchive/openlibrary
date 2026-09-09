@@ -253,7 +253,9 @@ class status_deploy(delegate.page):
         outcome = trigger_rebuild(state.prs)
         if outcome == "failed":
             return _json_error("deploy_failed")
+        user = get_current_user()
         state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+        state.deployed_by = user.key.split("/")[-1] if user else ""
         # What this build puts on the box: active PRs only, the same filter
         # trigger_rebuild sends. Recorded so a later removal has a set to be
         # missing from — nothing else survives one.
@@ -485,6 +487,7 @@ class TestingPR(BaseModel):
 class TestingState(BaseModel):
     last_deploy_at: str  # ISO timestamp, empty if never deployed
     prs: list[TestingPR] = Field(default_factory=list)
+    deployed_by: str = ""  # OL username of whoever clicked the last deploy; empty if never
     # Set only when Jenkins accepted a build; self-expires after _DEPLOY_WINDOW.
     deploy_started_at: str = ""
     # {pr number: title} of what the last deploy actually built — what
@@ -539,6 +542,7 @@ class TestingStatus(BaseModel):
     """
 
     last_deploy_at: str  # ISO timestamp, empty if never deployed
+    deployed_by: str = ""  # OL username of whoever clicked the last deploy; empty if never
     deploy_started_at: str  # ISO timestamp of the last deploy Jenkins accepted; empty if never
     deploying: bool  # whether a build is presumed still running (a time window, not a result)
     has_pending: bool  # whether there are pending changes ready to deploy
@@ -619,6 +623,7 @@ def build_testing_status(state: TestingState, drift_info: dict, merge_conflicts:
     prs.sort(key=lambda row: row.pr)
     return TestingStatus(
         last_deploy_at=last_deploy,
+        deployed_by=state.deployed_by,
         deploy_started_at=state.deploy_started_at,
         deploying=_is_deploying(state),
         pending_changes=pending_changes,

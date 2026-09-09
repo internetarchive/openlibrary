@@ -6,10 +6,10 @@ import random
 import web
 
 from infogami import config  # noqa: F401 side effects may be needed
-from infogami.infobase.client import storify
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
-from openlibrary.core import admin, cache, env, ia, lending
+from infogami.utils.view import render_template
+from openlibrary.core import admin, cache, env
+from openlibrary.core.carousels import get_carousel_data
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import (
     convert_iso_to_marc,
@@ -18,24 +18,9 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
-from openlibrary.utils.request_context import (
-    req_context,
-    set_context_from_legacy_web_py,
-)
+from openlibrary.utils.request_context import caching_prethread, req_context
 
 logger = logging.getLogger("openlibrary.home")
-
-CAROUSELS_PRESETS = {
-    "preset:comics": (
-        '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") '
-        'OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR '
-        'creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson")'
-        'OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))'
-    ),
-    "preset:authorsalliance_mitpress": (
-        "(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress))"
-    ),
-}
 
 
 def get_homepage(devmode):
@@ -50,11 +35,13 @@ def get_homepage(devmode):
     # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
+    carousel_data = get_carousel_data()
     page = render_template(
         "home/index",
         stats=stats,
         blog_posts=blog_posts,
         featured_subjects=featured_subjects,
+        carousel_data=carousel_data,
     )
     # Convert to a dict so it can be cached
     return dict(page)
@@ -83,32 +70,6 @@ def get_cached_homepage():
         mc(devmode)
 
     return page
-
-
-# Because of caching, memcache will call `get_homepage` on another thread! So we
-# need a way to carry some information to that computation on the other thread.
-# We do that by using a python closure. The outer function is executed on the main
-# thread, so all the web.* stuff is correct. The inner function is executed on the
-# other thread, so all the web.* stuff will be dummy.
-def caching_prethread():
-    from openlibrary.plugins.openlibrary.code import is_bot
-
-    # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = req_context.get().lang
-    host = web.ctx.host
-    _is_bot = is_bot()
-
-    def main():
-        # Leaving this in since this is a bit strange, but you can see it clearly
-        # in action with this debug line:
-        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
-        delegate.fakeload()
-        web.ctx.lang = lang
-        web.ctx.is_bot = _is_bot
-        web.ctx.host = host
-        set_context_from_legacy_web_py()
-
-    return main
 
 
 class home(delegate.page):
@@ -160,25 +121,6 @@ class random_book(delegate.page):
 
         keys = get_random_borrowable_ebook_keys(1000, language=user_lang)
         raise web.seeother(random.choice(keys))
-
-
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None, safe_mode=True):
-    if "env" not in web.ctx:
-        delegate.fakeload()
-
-    elif query in CAROUSELS_PRESETS:
-        query = CAROUSELS_PRESETS[query]
-
-    limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(
-        limit=limit,
-        subject=subject,
-        sorts=sorts,
-        query=query,
-        safe_mode=safe_mode,
-    )
-    formatted_books = [format_book_data(book, False) for book in books if book != "error"]
-    return formatted_books
 
 
 def get_featured_subjects():
@@ -273,71 +215,6 @@ def get_cached_featured_subjects():
         timeout=dateutil.HOUR_SECS,
         prethread=caching_prethread(),
     )()
-
-
-@public
-def generic_carousel(
-    query=None,
-    subject=None,
-    sorts=None,
-    limit=None,
-    timeout=None,
-    safe_mode=True,
-):
-    memcache_key = "home.ia_carousel_books"
-    cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books,
-        memcache_key,
-        timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
-        prethread=caching_prethread(),
-    )
-    books = cached_ia_carousel_books(
-        query=query,
-        subject=subject,
-        sorts=sorts,
-        limit=limit,
-        safe_mode=safe_mode,
-    )
-    if not books:
-        books = cached_ia_carousel_books.update(
-            query=query,
-            subject=subject,
-            sorts=sorts,
-            limit=limit,
-            safe_mode=safe_mode,
-        )[0]
-    return storify(books) if books else books
-
-
-def format_book_data(book, fetch_availability=True):
-    d = web.storage()
-    d.key = book.get("key")
-    d.url = book.url()
-    d.title = book.title or None
-    d.ocaid = book.get("ocaid")
-    d.eligibility = book.get("eligibility", {})
-    d.availability = book.get("availability", {})
-
-    def get_authors(doc):
-        return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
-
-    work = book.works and book.works[0]
-    d.authors = get_authors(work or book)
-    d.work_key = work.key if work else book.key
-
-    if cover := book.get_cover():
-        d.cover_url = cover.url("M")
-    elif d.ocaid:
-        d.cover_url = "https://archive.org/services/img/%s" % d.ocaid
-
-    if fetch_availability and d.ocaid:
-        collections = ia.get_metadata(d.ocaid).get("collection", [])
-
-        if "inlibrary" in collections:
-            d.borrow_url = book.url("/borrow")
-        else:
-            d.read_url = book.url("/borrow")
-    return d
 
 
 def setup():

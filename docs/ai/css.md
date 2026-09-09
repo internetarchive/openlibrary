@@ -1,6 +1,6 @@
 # CSS
 
-Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via Vite (`vite-css.config.mjs`) to `static/build/css/`. See [CSS Build: Webpack → Vite Migration](css-vite-migration.md) for the build details.
+Conventions and workflow for writing CSS in Open Library. CSS source lives in `static/css/`, compiled via Vite (`vite-css.config.mjs`) to `static/build/css/`.
 
 ## Naming: BEM
 
