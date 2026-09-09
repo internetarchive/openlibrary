@@ -66,8 +66,9 @@ export const DEFAULT_LABELS = {
  *     is already on removes it, so a guess could undo a save
  * @prop {String} placement - ol-popover placement for the actions panel;
  *     unset uses its default
- * @prop {Boolean} hideRating - Drop the popover's stars. For surfaces that
- *     already show a rating control for the same book
+ * @prop {Boolean} hideRating - Always drop the popover's stars. Without it
+ *     the popover drops them itself while a visible star form for the same
+ *     book is on the page
  * @prop {Object} labels - Translated strings, merged over DEFAULT_LABELS
  *
  * @fires ol-book-state-change - The shelf or rating changed, optimistically or

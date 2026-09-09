@@ -102,6 +102,9 @@ const PANES = ['main', 'lists', 'checkIn'];
  *     is already on removes it, so a guess could undo a save
  * @prop {Object} labels   - Translated strings (see DEFAULT_LABELS)
  * @prop {String} placement - ol-popover placement; unset uses its default
+ * @prop {Boolean} hideRating - Always drop the stars. Without it they go on
+ *     their own whenever a visible `.star-rating-form` for the same book is
+ *     on the page, checked at each open
  *
  * @fires ol-book-state-change - After a shelf or rating change is accepted by
  *     the server. detail: { key, shelf, rating }
@@ -130,6 +133,7 @@ export class OlShelfActions extends LitElement {
         placement: { type: String },
         hideRating: { type: Boolean, attribute: 'hide-rating' },
         pending: { type: Boolean, reflect: true },
+        _starsElsewhere: { state: true },
         _pane: { state: true },
         _snap: { state: true },
         _trackHeight: { state: true },
@@ -712,6 +716,7 @@ export class OlShelfActions extends LitElement {
         this.userKey = '';
         this.labels = {};
         this.hideRating = false;
+        this._starsElsewhere = false;
         this._warm = false;
         // Capture-phase, so the panes exist before ol-popover's own trigger
         // handling measures the panel.
@@ -748,11 +753,29 @@ export class OlShelfActions extends LitElement {
      * panel's measured size before it fires `ol-popover-open`.
      */
     _warmUp = () => {
-        if (this._warm) return;
+        // Checked on every open, not once: a layout toggle can hide or show
+        // the row's star form between two opens of the same popover.
+        const starsElsewhere = this._findStarsElsewhere();
+        const changed = starsElsewhere !== this._starsElsewhere;
+        this._starsElsewhere = starsElsewhere;
+        if (this._warm && !changed) return;
         this._warm = true;
         this.requestUpdate();
         this.performUpdate();
     };
+
+    /**
+     * A visible star form for this book elsewhere on the page makes the
+     * popover's stars a second control for the same thing, so they go.
+     * `checkVisibility` sees through hidden ancestors; the fallback catches
+     * `display: none` on the form itself, which is what the grid layout does.
+     */
+    _findStarsElsewhere() {
+        const key = this.book?.key;
+        if (!key) return false;
+        return [...document.querySelectorAll(`.star-rating-form[data-work-key="${key}"]`)]
+            .some(form => (form.checkVisibility ? form.checkVisibility() : form.getClientRects().length > 0));
+    }
 
     /** Open the popover without a trigger click; the split button's main half does this for a book on a reading shelf. */
     open() {
@@ -843,7 +866,7 @@ export class OlShelfActions extends LitElement {
                     </button>
                 `)}
             </div>
-            ${this.hideRating ? nothing : html`
+            ${this.hideRating || this._starsElsewhere ? nothing : html`
                 <div class="group rating" aria-busy=${this._held}>
                     ${this._renderStars()}
                 </div>

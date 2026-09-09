@@ -645,6 +645,45 @@ describe('ol-shelf-actions hide-rating', () => {
     });
 });
 
+describe('ol-shelf-actions stars elsewhere', () => {
+    // jsdom does no layout, so the form says whether it is visible.
+    function starForm(workKey, visible) {
+        const form = document.createElement('form');
+        form.className = 'star-rating-form';
+        form.dataset.workKey = workKey;
+        form.checkVisibility = () => visible;
+        document.body.appendChild(form);
+        return form;
+    }
+
+    test('drops the stars while a visible star form for the book is on the page', async() => {
+        stubFetch();
+        starForm(BOOK.key, true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).toBeNull();
+        expect(qa(el, '.group.shelves .row')).toHaveLength(4);
+    });
+
+    test('keeps the stars when that form is hidden, or is for another book', async() => {
+        stubFetch();
+        starForm(BOOK.key, false);
+        starForm('/works/OL2W', true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).not.toBeNull();
+    });
+
+    test('checks again on the next open, so a layout toggle is honoured', async() => {
+        stubFetch();
+        const form = starForm(BOOK.key, true);
+        const el = await mount();
+        expect(q(el, '.group.rating')).toBeNull();
+        form.checkVisibility = () => false;
+        el.open();
+        await tick(el);
+        expect(q(el, '.group.rating')).not.toBeNull();
+    });
+});
+
 describe('ol-shelf-actions pending', () => {
     // Posting the shelf a book is already on removes it, so a click before the
     // state is known could undo a save. Held, not disabled: disabling the

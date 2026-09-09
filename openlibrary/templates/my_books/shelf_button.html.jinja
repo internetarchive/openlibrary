@@ -4,5 +4,5 @@
   book-state.js not to fetch it again.
 #}
 {% set state = state or {} %}
-<ol-shelf-button variant="{{ variant }}" work-key="{{ work_key }}" book-title="{{ title }}" data-hydrated {%- if edition_key %} edition-key="{{ edition_key.split('/')[-1] }}"{% endif %} {%- if user_key %} user-key="{{ user_key }}"{% endif %} {%- if state.get('shelf') %} shelf="{{ state['shelf'] }}"{% endif %} {%- if state.get('rating') %} rating="{{ state['rating'] }}"{% endif %} {%- if state.get('read_date') %} read-date="{{ state['read_date'] }}" event-id="{{ state['event_id'] }}"{% endif %} {%- if hide_rating %} hide-rating{% endif %}>
+<ol-shelf-button variant="{{ variant }}" work-key="{{ work_key }}" book-title="{{ title }}" data-hydrated {%- if edition_key %} edition-key="{{ edition_key.split('/')[-1] }}"{% endif %} {%- if user_key %} user-key="{{ user_key }}"{% endif %} {%- if state.get('shelf') %} shelf="{{ state['shelf'] }}"{% endif %} {%- if state.get('rating') %} rating="{{ state['rating'] }}"{% endif %} {%- if state.get('read_date') %} read-date="{{ state['read_date'] }}" event-id="{{ state['event_id'] }}"{% endif %}>
 </ol-shelf-button>

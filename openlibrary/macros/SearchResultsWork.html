@@ -77,8 +77,7 @@ $if include_dropper:
   $if work_key:
     $ work_title = edition_work.get('title', '') if doc_type == 'infogami_edition' else doc.get('title', '')
     $ state = (reading_state if reading_state is not None else reading_state_for([doc])).get(work_key) or {}
-    $# The row's own star form is hidden in grid by CSS, so there the popover keeps its stars.
-    $ shelf_button = render_jinja_template('my_books/shelf_button.html.jinja', variant=('icon' if layout == 'grid' else 'split'), work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state, hide_rating=bool(rating) and layout != 'grid')
+    $ shelf_button = render_jinja_template('my_books/shelf_button.html.jinja', variant=('icon' if layout == 'grid' else 'split'), work_key=work_key, title=work_title, edition_key=edition_key, user_key=(ctx.user and ctx.user.key) or '', state=state)
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
