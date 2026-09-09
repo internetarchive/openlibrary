@@ -5,7 +5,7 @@
  * Builds the Open Library JavaScript. There are two configs because the
  * three webpack entries need two different output formats:
  *
- *   vite-js.config.mjs       -> `all` (index.js) as **ESM** so that the ~55
+ *   vite-js.config.mjs       -> `all` (main.js) as **ESM** so that the ~55
  *                               `import()` chunks can be code-split. Rollup /
  *                               Vite cannot emit IIFE/UMD for a code-splitting
  *                               build, so `all.js` moves from a classic
@@ -15,11 +15,9 @@
  *                               neither code-splits).
  *
  * Shared options (outDir, sourcemaps, targets, AGPL license header/footer, …)
- * live in vite-js-shared.mjs and chunk naming in vite-js-chunk-names.mjs; this
- * file only wires them together. jquery-ui's AMD interop needs no plugin —
- * explicit wrapper modules handle it (openlibrary/plugins/openlibrary/js/jquery-ui-*).
- *
- * The webpack-parity harness lives in scripts/js-build-parity.sh.
+ * live in vite-js-shared.mjs; this file only wires them together. jquery-ui's
+ * AMD interop needs no plugin — explicit wrapper modules handle it
+ * (openlibrary/plugins/openlibrary/js/jquery-ui-*).
  *
  * Usage:
  *   BUILD_DIR=static/build/js npx vite build -c vite-js.config.mjs
@@ -28,7 +26,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { commonBuildOptions, AGPL_LICENSE_HEADER, AGPL_LICENSE_FOOTER } from './vite-js-shared.mjs';
-import { chunkName } from './vite-js-chunk-names.mjs';
 import { renderBuiltAssetUrl } from './vite-asset-urls.mjs';
 
 export default defineConfig(({ mode }) => ({
@@ -65,7 +62,7 @@ export default defineConfig(({ mode }) => ({
                 postBanner: AGPL_LICENSE_HEADER,
                 postFooter: AGPL_LICENSE_FOOTER,
                 entryFileNames: '[name].js',
-                chunkFileNames: (info) => `${chunkName(info)}.[hash].js`,
+                chunkFileNames: '[name].[hash].js',
                 assetFileNames: '[name].[hash][extname]',
             },
         },

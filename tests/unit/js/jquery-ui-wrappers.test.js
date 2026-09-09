@@ -1,9 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import {
-    chunkName,
-    CHUNK_NAME_MAP,
-} from 'vite-js-chunk-names.mjs';
 
 describe('jquery-ui wrapper modules', () => {
     // The explicit jquery-ui-*.js bootstrap modules replace the old
@@ -59,30 +55,5 @@ describe('jquery-ui wrapper modules', () => {
             const rel = resolved.slice(JQ.length + 1) + (resolved.endsWith('.js') ? '' : '.js');
             expect(files.has(rel)).toBe(true);
         }
-    });
-});
-
-describe('chunkName', () => {
-    test('remaps via CHUNK_NAME_MAP', () => {
-        expect(chunkName({ name: 'edit' })).toBe('user-website');
-        expect(chunkName({ name: 'modals' })).toBe('modal-links');
-        expect(chunkName({ name: 'readinglog_stats' })).toBe('readinglog-stats');
-    });
-
-    test('names the app entry (index.js) "main"', () => {
-        const info = { name: 'js', facadeModuleId: '/repo/openlibrary/plugins/openlibrary/js/index.js' };
-        expect(chunkName(info)).toBe('main');
-    });
-
-    test('falls back to the facade module basename', () => {
-        expect(chunkName({ facadeModuleId: '/repo/openlibrary/plugins/openlibrary/js/tabs.js' })).toBe('tabs');
-    });
-
-    test('defaults to the name when present', () => {
-        expect(chunkName({ name: 'tabs' })).toBe('tabs');
-    });
-
-    test('covers every key the config maps', () => {
-        expect(Object.keys(CHUNK_NAME_MAP).length).toBeGreaterThan(10);
     });
 });

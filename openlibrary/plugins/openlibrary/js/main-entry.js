@@ -1,8 +1,8 @@
 /**
  * Thin ESM entry for the `all` bundle.
  *
- * The real app (index.js) is imported dynamically so it becomes a *chunk*
- * rather than the entry. If index.js were the entry, rolldown would hoist
+ * The real app (main.js) is imported dynamically so it becomes a *chunk*
+ * rather than the entry. If main.js were the entry, rolldown would hoist
  * modules shared with lazy chunks (utils.js, …) into the entry, and those lazy
  * chunks would then `import … from "./all.js"`. Because the entry is also
  * served via `<script src="all.js?v=…">`, that re-import has a *different URL*
@@ -12,4 +12,4 @@
  *
  * See vite-js.config.mjs.
  */
-import('./index.js');
+import('./main.js');

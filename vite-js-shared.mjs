@@ -40,7 +40,7 @@ export function commonBuildOptions({ mode }) {
         // Mirror package.json's browserslist. The binding constraint is Safari
         // 11.1 / iOS 11.3. Oxc lowers syntax (optional chaining, nullish
         // coalescing, …) to that floor; API polyfills are covered by the explicit
-        // core-js import at the top of index.js (replaces babel
+        // core-js import at the top of main.js (replaces babel
         // useBuiltIns:'usage').
         target: ['safari11.1', 'ios11.3'],
         // Vite only warns about big chunks; `bundlesize` (CI) is the real gate,

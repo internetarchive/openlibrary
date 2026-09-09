@@ -105,8 +105,7 @@
     ],
     "moduleNameMapper": {
       "\\.css$": "<rootDir>/tests/unit/js/styleMock.js",
-      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js",
-      "^vite-js-chunk-names\\.mjs$": "<rootDir>/vite-js-chunk-names.mjs"
+      "sinon": "<rootDir>/node_modules/sinon/pkg/sinon.js"
     },
     "setupFiles": [
       "<rootDir>/tests/unit/js/setup.js"

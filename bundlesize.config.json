@@ -21,11 +21,11 @@
       "maxSize": "4KB"
     },
     {
-      "path": "static/build/js/modal-links.*.js",
+      "path": "static/build/js/modals.*.js",
       "maxSize": "7KB"
     },
     {
-      "path": "static/build/js/user-website.*.js",
+      "path": "static/build/js/edit.*.js",
       "maxSize": "7KB"
     },
     {
@@ -33,11 +33,11 @@
       "maxSize": "2KB"
     },
     {
-      "path": "static/build/js/readinglog-stats.*.js",
+      "path": "static/build/js/readinglog_stats.*.js",
       "maxSize": "137KB"
     },
     {
-      "path": "static/build/js/goodreads-import.*.js",
+      "path": "static/build/js/goodreads_import.*.js",
       "maxSize": "2KB"
     },
     {

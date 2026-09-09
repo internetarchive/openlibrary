@@ -57,7 +57,6 @@ module.exports = [
       "vite-css.config.mjs",
       "vite-js.config.mjs",
       "vite-js-iife.config.mjs",
-      "vite-js-chunk-names.mjs",
       "vite-js-shared.mjs",
       "vite-asset-urls.mjs",
       "custom-elements-manifest.config.mjs",
@@ -121,9 +120,9 @@ module.exports = [
         "error",
         {
           // The webpackChunkName magic comments were removed in the Vite
-          // migration; they are dead under Vite (chunk names come from
-          // CHUNK_NAME_MAP in vite-js-chunk-names.mjs). Flag any that slip
-          // back in so the cleanup stays enforced.
+          // migration; they are dead under Vite (chunks are named after
+          // their imported file). Flag any that slip back in so the
+          // cleanup stays enforced.
           terms: ["webpackChunkName"],
           location: "anywhere",
         },
