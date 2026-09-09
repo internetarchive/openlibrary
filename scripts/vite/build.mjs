@@ -361,8 +361,7 @@ async function run() {
         }
     });
     if (hasFailure) {
-        console.error("Build failed; live directories left untouched.");
-        process.exit(1);
+        throw new Error("Build failed; live directories left untouched.");
     }
 
     // All jobs succeeded: swap each staging dir over its live dir.
