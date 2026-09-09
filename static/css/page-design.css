@@ -1642,7 +1642,7 @@ fieldset.ds-demo-row {
    cropping differently at every width. */
 .ds-fig {
   position: relative;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 9 / 4;
   overflow: hidden;
   background: var(--color-surface);
   border: var(--border-card);
