@@ -65,7 +65,7 @@ def main(args):
     iterations = 0
     while lower_bound < max_upper_bound and not was_shutdown_requested():
         if iterations % 10 == 0 and args.wal_threshold:
-            if args.wal_threshold * (1024**3) > get_wal_dir_size():
+            if args.wal_threshold * (1024**3) < get_wal_dir_size():
                 print("WAL directory has grown larger than threshold.  Stopping script.", flush=True)
                 break
         start = time.perf_counter()
