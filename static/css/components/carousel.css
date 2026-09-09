@@ -55,15 +55,6 @@
   box-sizing: border-box;
 }
 
-/* :focus state for when selected */
-/* e.g. "pick one of existing covers" on change cover. */
-/* Is .selected redundant? */
-.carousel__item:focus,
-.carousel__item.selected {
-  border: 5px solid var(--orange);
-  outline: 0;
-}
-
 .carousel.carousel--grid .carousel__item {
   margin: 0; /* Handled by grid gap */
 }
