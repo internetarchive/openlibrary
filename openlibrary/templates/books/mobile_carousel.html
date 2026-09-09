@@ -1,4 +1,9 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False)
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, count=None, shelf=None)
+
+$ count_markup = ''
+$if count is not None:
+  $ count_markup = ' (<span data-shelf-count="%d">%d</span>)' % (shelf, count) if shelf else ' (%d)' % count
+
 
 
 $def render_carousel_cover(book, lazy, index):
@@ -37,6 +42,7 @@ $def render_carousel_cover(book, lazy, index):
 
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+  $ edition_olid = url.split('/')[-1] if url.startswith('/books/') else None
 
   $ last_book = ''
   $if index==4:
@@ -45,6 +51,7 @@ $def render_carousel_cover(book, lazy, index):
 
   <div class="book showcase__item">
     <div class="book-cover mobile">
+     <div class="book-cover-wrapper">
       <a class="mybooks mobile nopadding" href="$(url)">
         $if cover_url:
           <img class="bookcover mobile $(last_book)" loading="lazy"
@@ -62,6 +69,13 @@ $def render_carousel_cover(book, lazy, index):
               <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
           </div>
       </a>
+      $if work_key:
+        $# No user-key or state: book-state.js fills both in, as on the desktop card.
+        <ol-shelf-button variant="icon" work-key="$work_key" book-title="$title"
+          $if edition_olid:
+            edition-key="$edition_olid"
+          ></ol-shelf-button>
+     </div>
     </div>
   </div>
 
@@ -70,7 +84,7 @@ $if test or (books and len(books) >= min_books):
     <div class="carousel-section" style="overflow: hidden">
       $if title and url:
         <div class="carousel-section-header">
-          <a name="$key" href="$url">$title$:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")</a>
+          <a name="$key" href="$url">$title$:count_markup$:macros.icon("chevron-right", size="sm", extra_class="icon-link__image li-count")</a>
         </div>
       <div class="mybooks-mobile">
         <div class="showcase showcase--$key">
