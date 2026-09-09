@@ -1,6 +1,6 @@
 /*
  * Keep root-absolute url(/static/...) unchanged in CSS that JavaScript
- * imports. This gives the same result as webpack `url:false`.
+ * imports.
  *
  * Problem
  * =======
@@ -10,7 +10,7 @@
  *
  * The standalone CSS build has base "/". It writes these urls unchanged.
  * The JS builds set `base: '/static/build/js/'`. Code-split chunks need
- * this base to load correctly. It matches webpack output.publicPath. But
+ * this base to load correctly. But
  * Vite joins the base to each public url:
  *
  *   /static/build/js/ + /static/images/... = /static/build/js/static/images/...

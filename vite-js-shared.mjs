@@ -43,8 +43,7 @@ export function commonBuildOptions({ mode }) {
         // core-js import at the top of main.js (replaces babel
         // useBuiltIns:'usage').
         target: ['safari11.1', 'ios11.3'],
-        // Vite only warns about big chunks; `bundlesize` (CI) is the real gate,
-        // replacing webpack's `performance.hints: 'error'`.
+        // Vite only warns about big chunks; `bundlesize` (CI) is the real gate.
         chunkSizeWarningLimit: 3000,
         watch: forcePolling ? { chokidar: { usePolling: true, interval: 1000 } } : null,
     };

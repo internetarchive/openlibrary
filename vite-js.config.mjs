@@ -1,9 +1,9 @@
 /*
- * Vite config to replace webpack.config.js — JS bundles.
- * =====================================================================
+ * Vite config for the JS bundles.
+ * ===============================
  *
  * Builds the Open Library JavaScript. There are two configs because the
- * three webpack entries need two different output formats:
+ * three entries need two different output formats:
  *
  *   vite-js.config.mjs       -> `all` (main.js) as **ESM** so that the ~55
  *                               `import()` chunks can be code-split. Rollup /
@@ -34,13 +34,13 @@ export default defineConfig(({ mode }) => ({
     // changes /static/images/x.svg to /static/build/js/static/images/x.svg.
     // The server then returns 404. See vite-asset-urls.mjs.
     experimental: { renderBuiltUrl: renderBuiltAssetUrl },
-    // webpack `output.publicPath: "/static/build/js/"` parity. Without this the
+    // Chunk urls must live under /static/build/js/. Without this the
     // dynamic-import chunks and their preload <link>s are resolved against `/`
     // (Vite's default base) and 404 — the entry is served at /static/build/js/,
     // not at the site root. Only the ESM build needs it: sw.js/partnerLib.js
     // (IIFE) don't code-split, so they never emit chunk URLs.
     base: '/static/build/js/',
-    // webpack `url:false` parity for root-absolute url(/static/...) — see the
+    // Leave root-absolute url(/static/...) unprocessed — see the
     // comment in vite-css.config.mjs. Every JS-imported stylesheet uses
     // root-absolute urls; leaving them unprocessed avoids Vite inlining them
     // as data URIs or rewriting/copying them (which breaks nginx-served paths).
