@@ -1537,7 +1537,8 @@ export class OlShelfActions extends LitElement {
      * field of the create form, or the first list. On mobile (ol-popover's
      * tray breakpoint) a text field would raise the soft keyboard over the
      * lists they came here to see, so take the back button instead; the pane
-     * the focus came from is inert now and would strand it.
+     * the focus came from is inert now and would strand it. Opening and
+     * closing the create form go through here too, for the same reason.
      */
     _focusListsPane() {
         const pane = `.pane:nth-child(${PANES.indexOf('lists') + 1})`;
@@ -1701,7 +1702,7 @@ export class OlShelfActions extends LitElement {
     async _startCreate() {
         this._creating = true;
         await this.updateComplete;
-        this.shadowRoot.querySelector('form.field .input')?.focus({ preventScroll: true });
+        this._focusListsPane();
     }
 
     async _cancelCreate() {
@@ -1709,7 +1710,7 @@ export class OlShelfActions extends LitElement {
         if (this._firstList) return this._backToMain();
         this._creating = false;
         await this.updateComplete;
-        this.shadowRoot.querySelector('.field .input')?.focus({ preventScroll: true });
+        this._focusListsPane();
     }
 
     async _onCreateSubmit(e) {

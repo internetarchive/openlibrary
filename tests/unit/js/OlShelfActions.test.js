@@ -1366,6 +1366,50 @@ describe('ol-shelf-actions screen reader and keyboard', () => {
         expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .list-row input'));
     });
 
+    test('opening the create form lands on the name field', async() => {
+        stubFetch();
+        const el = await mount();
+        q(el, '.group.lists-entry .row').click();
+        await tick(el);
+        q(el, '.lists-header ol-button').click();
+        await tick(el);
+        expect(el.shadowRoot.activeElement).toBe(q(el, 'form.field .input'));
+    });
+
+    describe('on mobile', () => {
+        // ol-popover's tray breakpoint; the soft keyboard would cover the pane.
+        const mobile = query => ({
+            matches: query === '(max-width: 767px)', media: query,
+            addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
+        });
+        let desktop;
+        beforeEach(() => { desktop = window.matchMedia; window.matchMedia = mobile; });
+        afterEach(() => { window.matchMedia = desktop; });
+        // The tray's scroll lock restores the page position on close; jsdom has no scrollTo.
+        beforeAll(() => { window.scrollTo = () => {}; });
+
+        test('the lists pane opens on Back, not the filter', async() => {
+            stubFetch();
+            padLists();
+            const el = await mount();
+            q(el, '.group.lists-entry .row').click();
+            await tick(el);
+            expect(q(el, '.pane:nth-child(2) .input')).not.toBeNull();
+            expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .back'));
+        });
+
+        test('the create form does not raise the keyboard', async() => {
+            stubFetch();
+            const el = await mount();
+            q(el, '.group.lists-entry .row').click();
+            await tick(el);
+            q(el, '.lists-header ol-button').click();
+            await tick(el);
+            expect(q(el, 'form.field .input')).not.toBeNull();
+            expect(el.shadowRoot.activeElement).toBe(q(el, '.pane:nth-child(2) .back'));
+        });
+    });
+
     test('list item counts are pluralised', async() => {
         stubFetch();
         const el = await mount();
