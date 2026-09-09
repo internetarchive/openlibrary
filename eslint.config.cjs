@@ -20,7 +20,7 @@ module.exports = [
       "infogami/",
       "node_modules/",
       "openlibrary/components/lit/icons.generated.js",
-      "scripts/",
+      "scripts/gh_scripts/",
       "static/build/",
       "build/",
       "coverage/",
@@ -57,6 +57,7 @@ module.exports = [
     files: [
       "vite-asset-urls.mjs",
       "custom-elements-manifest.config.mjs",
+      "scripts/vite/**/*.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
