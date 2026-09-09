@@ -1,16 +1,16 @@
 /*
- * Vite config to replace webpack.config.css.js
- * ============================================
+ * Vite config for the CSS build
+ * =============================
  *
  * Compiles static/css entries (tokens, ol-components, page-*.css) to
- * standalone minified CSS files, mirroring webpack.config.css.js:
+ * standalone minified CSS files:
  *
  *   - entry: static/css/tokens.css, static/css/ol-components.css, static/css/page-*.css
- *   - @import resolution (css-loader import:true) -> Vite handles natively (postcss-import)
- *   - minification (css-minimizer-webpack-plugin) -> esbuild via cssMinify
- *   - url() passthrough (webpack url:false) -> see the publicDir comment below
- *   - no JS output (webpack's RemoveJSAssetsPlugin) -> Vite 8 omits the stub
- *     JS chunk for pure-CSS entries natively, so no plugin needed
+ *   - @import resolution -> Vite handles natively (postcss-import)
+ *   - minification -> LightningCSS via cssMinify
+ *   - url() passthrough -> see the publicDir comment below
+ *   - no JS output -> Vite 8 omits the stub JS chunk for pure-CSS entries
+ *     natively, so no plugin needed
  *
  * Usage:
  *   npx vite build -c vite-css.config.mjs
@@ -27,7 +27,6 @@ const outDir = resolve(process.env.BUILD_DIR || 'static/build/css');
 // docker (and other environments without working file watchers) set this via `npm run watch-polling`.
 const forcePolling = process.env.FORCE_POLLING === 'true';
 
-// Same entry discovery as webpack.config.css.js
 const cssFiles = readdirSync('./static/css')
     .filter((name) => name.startsWith('page-') && name.endsWith('.css'));
 
@@ -41,9 +40,9 @@ cssFiles.forEach((file) => {
 });
 
 /*
- * webpack `url: false` parity: leave root-absolute url(/static/...) exactly as
- * written. Vite has no such flag — it would inline small /static/ assets as
- * base64 data URIs and rewrite the rest, breaking the paths nginx serves
+ * Leave root-absolute url(/static/...) exactly as written. Vite would
+ * otherwise inline small /static/ assets as base64 data URIs and rewrite the
+ * rest, breaking the paths nginx serves
  * directly. Setting `publicDir: '.'` makes every root-absolute url() resolve
  * to a *public asset*, the one class Vite deliberately leaves unprocessed
  * (public urls are keyed relative to publicDir, so only the project root
@@ -53,10 +52,10 @@ cssFiles.forEach((file) => {
  * file is left untouched — that's the contract here.
  */
 export default defineConfig(({ mode }) => ({
-    // webpack `url: false` parity for root-absolute urls — see the comment above.
+    // Leave root-absolute urls unprocessed — see the comment above.
     publicDir: '.',
-    // Don't clear the shared terminal in `npm run watch`, where webpack and
-    // Vite log to the same screen (Vite clears the screen on build by default).
+    // Don't clear the shared terminal in `npm run watch`
+    // (Vite clears the screen on build by default).
     clearScreen: false,
     build: {
         outDir,

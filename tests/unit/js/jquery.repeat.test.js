@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
