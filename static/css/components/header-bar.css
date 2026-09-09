@@ -136,8 +136,8 @@
    alongside squares. flex-shrink keeps it whole beside the hamburger glyph. */
 .header-bar .header-dropdown .account__icon,
 .header-bar .hamburger-component .account__icon {
-  border: 2px solid var(--account-icon-border);
-  border-radius: 50%;
+  border: var(--border-width-thick) solid var(--color-border-muted);
+  border-radius: var(--border-radius-avatar);
   width: 30px;
   height: 30px;
   object-fit: cover;
