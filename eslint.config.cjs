@@ -52,14 +52,9 @@ module.exports = [
     },
   },
 
-  // Configuration for Vite config files (ES modules)
+  // Configuration for Vite shared modules (ES modules)
   {
     files: [
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
-      "vite-css.config.mjs",
-      "vite-js.config.mjs",
-      "vite-js-iife.config.mjs",
       "vite-js-shared.mjs",
       "vite-asset-urls.mjs",
       "custom-elements-manifest.config.mjs",

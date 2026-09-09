@@ -11,9 +11,9 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 .PHONY: all clean distclean git css js components lit-components icons i18n lint frontend
 
-all: git css js components icons lit-components i18n
+all: git css js components icons i18n
 
-frontend: css js components icons lit-components
+frontend: css js components icons
 
 node_modules: package-lock.json package.json
 ifeq ($(LOCAL_DEV),true)
@@ -22,7 +22,7 @@ endif
 
 css: node_modules
 	mkdir -p $(BUILD)/css_new
-	BUILD_DIR=$(BUILD)/css_new npx vite build -c vite-css.config.mjs
+	BUILD_DIR=$(BUILD)/css_new node scripts/vite/build.mjs --only css
 	mkdir -p $(BUILD)/css
 	rm -rf $(BUILD)/css
 	mv $(BUILD)/css_new $(BUILD)/css
@@ -30,28 +30,21 @@ css: node_modules
 js: node_modules
 	rm -rf $(BUILD)/js_new
 	mkdir -p $(BUILD)/js_new
-	BUILD_DIR=$(BUILD)/js_new npx vite build -c vite-js.config.mjs
-	BUILD_DIR=$(BUILD)/js_new IIFE_ENTRY=sw npx vite build -c vite-js-iife.config.mjs
-	BUILD_DIR=$(BUILD)/js_new IIFE_ENTRY=partnerLib npx vite build -c vite-js-iife.config.mjs
+	BUILD_DIR=$(BUILD)/js_new node scripts/vite/build.mjs --only js
 	mkdir -p $(BUILD)/js
 	rm -rf $(BUILD)/js
 	mv $(BUILD)/js_new $(BUILD)/js
 
-components: node_modules
+components: node_modules icons
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
 	mkdir -p $(BUILD)/components_new
-	BUILD_DIR=$(BUILD)/components_new npx vite build -c openlibrary/components/vite.config.mjs
+	BUILD_DIR=$(BUILD)/components_new node scripts/vite/build.mjs --only components
 	mkdir -p $(BUILD)/components
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
-lit-components: node_modules icons
-	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
-	npx cem analyze
-	mkdir -p $(BUILD)/lit-components_new
-	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
-	mkdir -p $(BUILD)/lit-components
-	rm -rf $(BUILD)/lit-components
-	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
+lit-components: components
 
 icons:
 	# Build the icon sprite and the Lit glyph module from static/icons/src/.

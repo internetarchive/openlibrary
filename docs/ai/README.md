@@ -197,10 +197,10 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** CSS files in `static/css/`, compiled via Vite (`vite-css.config.mjs`). Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
-- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via Vite (`vite-js.config.mjs` + `vite-js-iife.config.mjs`) to `static/build/js/`.
-- **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
-- **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
+- **CSS:** CSS files in `static/css/`, compiled via `scripts/vite/build.mjs` (`--only css`) to `static/build/css/`. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
+- **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via `scripts/vite/build.mjs` (`--only js`) to `static/build/js/`.
+- **Vue components:** `openlibrary/components/*.vue`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
+- **Lit web components:** `openlibrary/components/lit/`, built with `scripts/vite/build.mjs` (`--only components`) to `static/build/components/production/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
 ### Browser Support

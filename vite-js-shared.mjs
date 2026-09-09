@@ -1,10 +1,10 @@
 /*
- * Shared pieces for the JS build configs (vite-js.config.mjs +
- * vite-js-iife.config.mjs).
+ * Shared pieces for the JS builds in scripts/vite/build.mjs
+ * (ESM `all` + IIFE `sw` + IIFE `partnerLib`).
  *
- * Both configs build to the same directory and share all build options except
- * entries, output format, and the extra transform plugins — keep that common
- * boilerplate here so the two configs only state what actually differs.
+ * All three entries build to the same directory and share all build options
+ * except entries, output format, and the extra transform plugins — keep that
+ * common boilerplate here so the orchestrator only states what differs.
  *
  */
 import { resolve } from 'path';
@@ -31,7 +31,7 @@ export function commonBuildOptions({ mode }) {
     return {
         outDir: JS_OUT_DIR,
         // Don't empty the dir: sw.js/partnerLib.js are appended by
-        // vite-js-iife.config.mjs, and in watch mode an `emptyOutDir: true`
+        // vite-js-iife entries in scripts/vite/build.mjs, and in watch mode an `emptyOutDir: true`
         // rebuild would wipe them. The Makefile owns directory cleanliness.
         emptyOutDir: false,
         copyPublicDir: false,
