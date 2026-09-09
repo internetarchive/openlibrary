@@ -1,7 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { keyed } from 'lit/directives/keyed.js';
 import { translate } from './utils/labels.js';
 import { SHELF, SHELF_LABEL, SHELF_ICON_FILLED, SHELF_EVENT, setShelf, redirectToLogin } from './utils/books-api.js';
 import { showToast } from './OlToastRegion.js';
@@ -108,8 +107,6 @@ export class OlShelfButton extends LitElement {
         listsOnly: { type: Boolean, attribute: 'lists-only', reflect: true },
         pending: { type: Boolean, reflect: true },
         _announce: { state: true },
-        _icon: { state: true },
-        _outgoing: { state: true },
     };
 
     static styles = css`
@@ -280,59 +277,6 @@ export class OlShelfButton extends LitElement {
             color: var(--color-text);
         }
 
-        /* Glyph swap: the old one shrinks and blurs out over the new one growing
-           in, like ol-button's label and spinner. One duration for both, so
-           neither is cut short when the outgoing layer is dropped. */
-        .glyph--in {
-            animation: glyph-in 0.24s ease both;
-        }
-
-        .glyph--out {
-            position: absolute;
-            inset: 0;
-            margin: auto;
-            pointer-events: none;
-            animation: glyph-out 0.24s ease both;
-        }
-
-        @keyframes glyph-in {
-            from {
-                opacity: 0;
-                transform: scale(0.4);
-                filter: blur(3px);
-            }
-        }
-
-        @keyframes glyph-out {
-            to {
-                opacity: 0;
-                transform: scale(0.8);
-                filter: blur(2px);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .glyph--in {
-                animation-name: glyph-fade-in;
-            }
-
-            .glyph--out {
-                animation-name: glyph-fade-out;
-            }
-
-            @keyframes glyph-fade-in {
-                from {
-                    opacity: 0;
-                }
-            }
-
-            @keyframes glyph-fade-out {
-                to {
-                    opacity: 0;
-                }
-            }
-        }
-
         .save:hover {
             transform: scale(1.08);
         }
@@ -432,25 +376,11 @@ export class OlShelfButton extends LitElement {
         this.listsOnly = false;
         this.pending = false;
         this._announce = '';
-        this._icon = 'bookmark';
-        this._outgoing = '';
     }
 
-    /**
-     * Pick the badge's glyph. After first paint a change keeps the old glyph
-     * as an outgoing layer so the swap animates; a rollback animates too.
-     */
-    willUpdate() {
-        if (!this._glyphShaped) return;
-        const icon = this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
-        if (icon === this._icon) return;
-        if (this.hasUpdated) this._outgoing = this._icon;
-        this._icon = icon;
-    }
-
-    /** Drop the outgoing layer once it has left, or if its animation is cut off. */
-    _onGlyphOut() {
-        this._outgoing = '';
+    /** The badge's glyph: the shelf's own once shelved, a list-plus in lists-only mode. */
+    get _icon() {
+        return this.listsOnly ? 'list-plus' : this._on ? SHELF_ICON_FILLED[this.shelf] : 'bookmark';
     }
 
     t(key, vars) {
@@ -506,11 +436,6 @@ export class OlShelfButton extends LitElement {
         const on = this._on;
         const title = this.bookTitle;
         const label = this.listsOnly ? this.t('addToListFor', { title }) : on ? this.t('saved', { title }) : this.t('save', { title });
-        // Keyed so a change makes a fresh element and its enter animation runs.
-        const outgoing = this._outgoing;
-        const outgoingGlyph = outgoing
-            ? keyed(outgoing, html`<ol-icon class="glyph glyph--out" name=${outgoing} @animationend=${this._onGlyphOut} @animationcancel=${this._onGlyphOut}></ol-icon>`)
-            : nothing;
         return this._withActions(html`
             <button
                 type="button"
@@ -518,7 +443,7 @@ export class OlShelfButton extends LitElement {
                 class="save ${classMap({ 'save--on': on })}"
                 aria-label=${label}
                 @click=${this.userKey ? undefined : this._onLoggedOut}
-            >${keyed(this._icon, html`<ol-icon class="glyph ${classMap({ 'glyph--in': Boolean(outgoing) })}" name=${this._icon}></ol-icon>`)}${outgoingGlyph}</button>
+            ><ol-icon class="glyph" name=${this._icon}></ol-icon></button>
         `);
     }
 

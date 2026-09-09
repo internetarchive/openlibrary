@@ -107,29 +107,17 @@ describe('ol-shelf-button shapes', () => {
         expect(q(stopped, 'ol-icon').getAttribute('name')).toBe('circle-pause-filled');
     });
 
-    test('a glyph change keeps the old one as an outgoing layer until its animation ends', async() => {
+    test('a glyph change swaps the icon in place, with no outgoing layer', async() => {
         const el = await mount({ variant: 'icon' });
-        // First paint: nothing to hand over from.
-        expect(el.shadowRoot.querySelectorAll('ol-icon').length).toBe(1);
-
         el.shelf = SHELF.ALREADY_READ;
         await el.updateComplete;
         const glyphs = el.shadowRoot.querySelectorAll('ol-icon');
-        expect([...glyphs].map((g) => g.getAttribute('name'))).toEqual(['circle-check-filled', 'bookmark']);
-        expect(glyphs[0].classList.contains('glyph--in')).toBe(true);
-        expect(glyphs[1].classList.contains('glyph--out')).toBe(true);
+        expect(glyphs.length).toBe(1);
+        expect(glyphs[0].getAttribute('name')).toBe('circle-check-filled');
 
-        glyphs[1].dispatchEvent(new Event('animationend'));
-        await el.updateComplete;
-        expect(el.shadowRoot.querySelectorAll('ol-icon').length).toBe(1);
-        expect(q(el, 'ol-icon').classList.contains('glyph--in')).toBe(false);
-
-        // A change mid-swap hands over from the glyph that was showing, not the one already leaving.
-        el.shelf = SHELF.STOPPED_READING;
-        await el.updateComplete;
         el.shelf = null;
         await el.updateComplete;
-        expect([...el.shadowRoot.querySelectorAll('ol-icon')].map((g) => g.getAttribute('name'))).toEqual(['bookmark', 'circle-pause-filled']);
+        expect(q(el, 'ol-icon').getAttribute('name')).toBe('bookmark');
     });
 
     test('reflects the shelf, so the page\'s CSS can tell a saved book apart', async() => {
