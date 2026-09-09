@@ -370,7 +370,12 @@ async def loans(request: Request) -> JSONResponse:
         if action in ("borrow_book", "browse_book") and identifier:
             loan_id = next(_next_loan_uid)
             now = datetime.now(UTC)
-            until_str = (now + timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
+            # Match IA's real loan periods: browse is a 1-hour read, borrow is a
+            # 14-day CDL loan. The expiry is patron-visible (macros.FormatExpiry
+            # on the loans page and carousel cards), so giving browse 14 days
+            # would render the wrong thing in the UI dev is trying to preview.
+            loan_period = timedelta(hours=1) if action == "browse_book" else timedelta(days=14)
+            until_str = (now + loan_period).strftime("%Y-%m-%d %H:%M:%S")
             loan_obj = {
                 "_key": f"/loans/{loan_id}",
                 "id": loan_id,
