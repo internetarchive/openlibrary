@@ -754,6 +754,13 @@ export class OlShelfActions extends LitElement {
         this.performUpdate();
     };
 
+    /** Open the popover without a trigger click; the split button's main half does this for a book on a reading shelf. */
+    open() {
+        this._warmUp();
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover && !popover.open) popover.open = true;
+    }
+
     /** @param {string} name */
     _renderPane(name) {
         if (name === 'lists') return this._renderLists();

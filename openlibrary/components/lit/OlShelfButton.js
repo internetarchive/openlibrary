@@ -30,9 +30,12 @@ export const DEFAULT_LABELS = {
  * shelf's own glyph, solid.
  *
  * All three open the same `<ol-shelf-actions>` popover; the split variant adds
- * a main half that toggles between Want to Read and off without opening
- * anything. Signed out, every shape sends the visitor to log in with the
- * intent remembered.
+ * a main half that toggles Want to Read on and off without opening anything.
+ * Once the book is on one of the three reading shelves the main half opens the
+ * popover instead: those shelves carry dates, ratings and goal progress, so
+ * leaving one goes through the menu, which takes Already Read via its date
+ * pane. Signed out, every shape sends the visitor to log in with the intent
+ * remembered.
  *
  * **Stateless by design.** It never writes to `shelf` or `rating` itself — it
  * emits `ol-book-state-change` and the surface that owns the book applies it,
@@ -537,6 +540,10 @@ export class OlShelfButton extends LitElement {
         }));
     }
 
+    _openActions() {
+        this.shadowRoot.querySelector('ol-shelf-actions')?.open();
+    }
+
     _onPopoverOpen() {
         this.toggleAttribute('open', true);
     }
@@ -561,8 +568,9 @@ export class OlShelfButton extends LitElement {
         // server while the button shows one change. Unknown state is the same risk.
         if (this._pending || this.pending) return;
         const previous = this.shelf ?? null;
-        // On a shelf → clicking removes; otherwise → Want to Read.
-        const target = previous ?? SHELF.WANT_TO_READ;
+        if (previous !== null && previous !== SHELF.WANT_TO_READ) return this._openActions();
+        // Want to Read is a bookmark: one tap on, one tap off.
+        const target = SHELF.WANT_TO_READ;
         const next = previous === null ? SHELF.WANT_TO_READ : null;
         this._emitState(next);
         // The pressed state flips when the surface hands the shelf back down;

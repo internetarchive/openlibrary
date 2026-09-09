@@ -199,9 +199,9 @@ describe('ol-shelf-button state changes', () => {
         expect(post.init.body.get('edition_id')).toBe('OL1M');
     });
 
-    test('clicking main while on a shelf removes it', async() => {
+    test('clicking main while on Want to Read removes it', async() => {
         stubFetch();
-        const el = await mount({ shelf: SHELF.ALREADY_READ, rating: 5, userKey: '/people/tester' });
+        const el = await mount({ shelf: SHELF.WANT_TO_READ, rating: 5, userKey: '/people/tester' });
         const seen = [];
         el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
 
@@ -211,8 +211,27 @@ describe('ol-shelf-button state changes', () => {
         await new Promise(r => setTimeout(r, 0));
         // The removal is a POST against the shelf the book is already on.
         const post = fetchCalls.find(c => c.url.endsWith('/works/OL1W/bookshelves.json'));
-        expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.ALREADY_READ));
+        expect(post.init.body.get('bookshelf_id')).toBe(String(SHELF.WANT_TO_READ));
     });
+
+    // Leaving a reading shelf goes through the menu, which routes Already Read
+    // via its date pane; one tap on the main half must not delete check-ins.
+    test.each([SHELF.CURRENTLY_READING, SHELF.ALREADY_READ, SHELF.STOPPED_READING])(
+        'clicking main while on shelf %i opens the menu and posts nothing', async(shelf) => {
+            stubFetch();
+            const el = await mount({ shelf, userKey: '/people/tester' });
+            const seen = [];
+            el.addEventListener('ol-book-state-change', e => seen.push(e.detail));
+
+            q(el, '.main').click();
+            await new Promise(r => setTimeout(r, 0));
+
+            expect(seen).toEqual([]);
+            expect(fetchCalls.filter(c => c.url.endsWith('/works/OL1W/bookshelves.json'))).toHaveLength(0);
+            const popover = q(el, 'ol-shelf-actions').shadowRoot.querySelector('ol-popover');
+            expect(popover.open).toBe(true);
+        },
+    );
 
     test('a second click before the request lands is dropped', async() => {
         stubFetch();
