@@ -8,4 +8,4 @@ $ _x = ctx.setdefault('cssfile', 'design')
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('full-width')
 
-$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, principles=data.principles, tensions=data.tensions, api=data.api, token_categories=data.token_categories, icons=data.icons)
+$:render_jinja_template("design/layout.html.jinja", section=data.section, sections=data.sections, groups=data.groups, principles=data.principles, tensions=data.tensions, api=data.api, token_categories=data.token_categories, user_key=data.user_key, reading_state=data.reading_state, icons=data.icons)
