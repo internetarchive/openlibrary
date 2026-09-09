@@ -141,6 +141,14 @@
   flex-shrink: 0;
 }
 
+/* The no-avatar fallback is a glyph, not a framed photo: it matches the avatar's
+   footprint but skips its border. */
+.header-bar .hamburger-component .account__icon-glyph {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
 /* Pending-merge count, pinned to the top-right corner of the account/menu
    ghost button (the trigger is its positioning context). */
 .header-bar .header-dropdown .mr-notifications,

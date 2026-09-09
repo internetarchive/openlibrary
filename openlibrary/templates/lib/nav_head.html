@@ -92,9 +92,9 @@ $ shows_merge_count = ctx.user and ctx.user.is_super_librarian_or_higher()
         $ ia_id = get_internet_archive_id(ctx.user.key)
         $if ia_id:
           <img class="account__icon" src="https://archive.org/services/img/$(ia_id)" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-          <span class="account__icon-fallback" hidden>$:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon")</span>
+          <span class="account__icon-fallback" hidden>$:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph")</span>
         $else:
-          $:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon")
+          $:macros.icon("circle-user-round", size="lg", label=_("My account"), extra_class="account__icon-glyph")
         $if shows_merge_count and cached_get_counts_by_mode(mode='open') > 0:
           <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
       $# Decorative — the button carries the accessible name.
