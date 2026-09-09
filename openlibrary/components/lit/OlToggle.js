@@ -21,7 +21,7 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @property {String} name - Form field name. When set and the toggle is
  *   checked, it submits with the enclosing `<form>` (see FormAssociatedMixin).
  * @property {String} value - Value submitted when checked. Default "on".
- * @property {String} variant - Omit for the default (plain) toggle, or
+ * @property {"button"} variant - Omit for the default (plain) toggle, or
  *   "button" for a bordered, raised container styled like
  *   ol-button[variant="secondary"] (subtle drop shadow, inset specular edge on
  *   hover) that fills with a soft blue tint when checked.

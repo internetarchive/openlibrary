@@ -9,7 +9,7 @@ import time
 import urllib
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import web
 from markupsafe import Markup, escape
@@ -35,6 +35,9 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
+
+if TYPE_CHECKING:
+    from openlibrary.fastapi.utils import FlashType
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -135,7 +138,7 @@ class BorrowRedirect:
 
     url: str
     permanent: bool = False  # False -> 303 See Other, True -> 301 Moved Permanently
-    flash: tuple[str, str] | None = None  # (type, message), e.g. ("error", "...")
+    flash: tuple[FlashType, str] | None = None  # (type, message), e.g. ("error", "...")
     clear_login_cookie: bool = False
 
 
@@ -240,6 +243,7 @@ async def handle_borrow_async(key: str, i: BorrowParams, *, s3_cookie: str | Non
         user.update_loan_status()
         title = edition.title or _("this book")
 
+        flash: tuple[FlashType, str]
         if user.has_borrowed(edition):
             flash = ("error", _("Unable to return %s. Please try again later or contact info@archive.org.") % title)
         else:

@@ -54,12 +54,17 @@ export const DEFAULT_STRINGS = {
     behindMany: '%s commits behind %s',
     neverDeployed: 'Never deployed',
     deployingStarted: 'Deploying, started %s',
+    deployingStartedBy: 'Deploying, started %s by %s',
     deployingStage: 'Deploying, started %s — %s',
+    deployingStageBy: 'Deploying, started %s — %s by %s',
     deploySucceeded: 'Deploy succeeded %s',
+    deploySucceededBy: 'Deploy succeeded %s by %s',
     deployFailed: 'Deploy failed %s',
+    deployFailedBy: 'Deploy failed %s by %s',
     deployFailedTrigger: 'Could not start the deploy — Jenkins did not accept the build.',
     deployUnconfigured: 'Deploy is not configured on this instance — nothing was deployed.',
     lastDeploy: 'Last deploy %s',
+    lastDeployBy: 'Last deploy %s by %s',
     viewJenkins: 'View Jenkins',
     noPrs: 'No PRs in testing set.'
 };
@@ -80,22 +85,10 @@ export function decodeAndParseJSON(str) {
 }
 
 /**
- * Return the same-origin JSON endpoint for the current deployment.
- *
- * The testing site exposes FastAPI behind /_fast; local development proxies
- * the unprefixed path through web.py to the FastAPI container.
- */
-export function testingStatusUrl(location) {
-    return location.hostname === 'testing.openlibrary.org'
-        ? '/_fast/status/testing.json'
-        : '/status/testing.json';
-}
-
-/**
  * Fetch the testing-environment state.
  */
-export async function getTestingStatus(location = window.location) {
-    const response = await fetch(testingStatusUrl(location), {
+export async function getTestingStatus() {
+    const response = await fetch('/status/testing.json', {
         headers: { Accept: 'application/json' },
         credentials: 'same-origin'
     });

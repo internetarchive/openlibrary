@@ -7,8 +7,9 @@ import { getNextKeyboardFocusIndex } from './utils/keyboard-nav.js';
  *
  * @element ol-pagination
  *
- * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
- *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {"full" | "arrows"} mode - Display mode: "full" (default) shows page numbers
+ *                       with arrows, "arrows" shows only previous/next arrows (useful
+ *                       when total is unknown)
  * @prop {"small" | "medium"} size - Default: "medium". Heights track the shared
  *                                  control-height tokens, so a same-size button lines up.
  * @prop {Number} totalPages - Total number of pages (required for "full" mode)

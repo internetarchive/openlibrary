@@ -31,13 +31,28 @@ export function lockBodyScroll() {
         right: document.body.style.right,
         width: document.body.style.width,
         overflow: document.body.style.overflow,
+        paddingRight: document.body.style.paddingRight,
+        boxSizing: document.body.style.boxSizing,
     };
+
+    // Pinning <body> removes the document scrollbar. On platforms with classic
+    // (space-consuming) scrollbars, reclaiming its width would shift the page.
+    // Measure it now and hold that width as padding so nothing moves. Overlay
+    // scrollbars (default on macOS/iOS) measure 0, so this is a no-op there.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
     document.body.style.position = 'fixed';
     document.body.style.top = `-${savedScrollY}px`;
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+        // border-box so the padding subtracts from width:100% instead of
+        // widening the body past the viewport.
+        document.body.style.boxSizing = 'border-box';
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
 }
 
 /**

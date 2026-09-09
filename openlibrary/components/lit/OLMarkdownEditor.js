@@ -73,6 +73,14 @@ export class OLMarkdownEditor extends LitElement {
     };
 
     static styles = css`
+    :host {
+      display: block;
+      /* As a flex/grid item, an unbreakable code line must not set the
+         minimum width — the pre scrolls instead of widening the host. */
+      min-width: 0;
+      max-width: 100%;
+    }
+
     .loading-placeholder {
       color: var(--light-grey);
       pointer-events: none;

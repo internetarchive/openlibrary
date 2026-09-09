@@ -19,7 +19,7 @@ import './OlIcon.js';
  * @prop {String} moreText - Label for the expand toggle (default: "Read more")
  * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
  * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
- * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {"medium" | "small"} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
  *
  * @slot - The collapsible content
  *

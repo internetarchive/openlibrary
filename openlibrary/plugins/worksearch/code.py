@@ -20,7 +20,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.lending import add_availability_async
+from openlibrary.core.lending import add_availability, add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -652,8 +652,6 @@ class SearchResponse:
 def get_doc(doc: SolrDocument):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
-
-    called from work_search template
     """
     result = web.storage(
         key=doc["key"],
@@ -885,10 +883,13 @@ class search(delegate.page):
         q_joined = " ".join(q_list)
         author_suggestions = derive_authors(search_response.docs, q_joined)
 
+        works = [get_doc(doc) for doc in search_response.docs]
+        add_availability([(w.get("editions") or [None])[0] or w for w in works])
+
         return render.work_search(
             q_joined,
             search_response,
-            get_doc,
+            works,
             param,
             page,
             rows,

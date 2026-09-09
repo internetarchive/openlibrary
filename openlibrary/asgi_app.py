@@ -16,7 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
-from openlibrary.core.env import get_ol_env
+from openlibrary.core.env import get_deployment_name, get_ol_env
 from openlibrary.fastapi import proxy
 from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
@@ -269,20 +269,16 @@ def create_app() -> FastAPI | None:
 
     _include_routers(app)
 
-    # Only enable fallback proxy in LOCAL_DEV. The previous check
-    # `get_deployment_name() == "testing"` was evaluated at startup when
-    # `web.ctx.host` is empty, so it always returned "development" and
-    # never enabled the proxy on testing — and when it did run it wasn't
-    # per-request, so homepage returned 404. Reverted port swap
-    # (web:8080, fast_web:18080) until per-request detection is verified.
-    # TODO: re-enable for testing with per-request host check:
-    #   host = request.headers.get("host", "").split(":")[0]
-    #   if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
-    #       raise HTTPException(404)
-    if get_ol_env().LOCAL_DEV:
+    # FastAPI is the front door for local dev and testing; proxy the rest to
+    # web.py (production keeps web.py on :8080, so the proxy stays off). Outside
+    # local dev, serve only the real testing host.
+    if get_ol_env().LOCAL_DEV or get_deployment_name() == "testing":
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
         async def fallback(request: Request, path: str) -> Response:
+            host = request.headers.get("host", "").split(":")[0]
+            if not get_ol_env().LOCAL_DEV and host != "testing.openlibrary.org":
+                raise HTTPException(status_code=404)
             if request.headers.get("X-Proxied-By") == "FastAPI":
                 raise HTTPException(status_code=404)
             return await proxy.proxy_to_webpy(request)

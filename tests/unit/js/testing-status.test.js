@@ -9,7 +9,6 @@ import {
     getTestingStatus,
     postAction,
     sprintf,
-    testingStatusUrl,
     timeAgo
 } from '../../../openlibrary/components/TestingEnvironment/utils.js';
 
@@ -34,18 +33,12 @@ describe('Testing Environment utils', () => {
         delete global.fetch;
     });
 
-    test('uses the FastAPI proxy only on the testing host', () => {
-        expect(testingStatusUrl({ hostname: 'localhost' })).toBe('/status/testing.json');
-        expect(testingStatusUrl({ hostname: 'testing.openlibrary.org' })).toBe('/_fast/status/testing.json');
-        expect(testingStatusUrl({ hostname: 'openlibrary.org' })).toBe('/status/testing.json');
-    });
-
     test('fetches JSON with same-origin credentials', async() => {
         const payload = { prs: [pr] };
         const response = { ok: true, json: jest.fn().mockResolvedValue(payload) };
         global.fetch = jest.fn().mockResolvedValue(response);
 
-        await expect(getTestingStatus({ hostname: 'localhost' })).resolves.toBe(payload);
+        await expect(getTestingStatus()).resolves.toBe(payload);
         expect(global.fetch).toHaveBeenCalledWith('/status/testing.json', {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin'
@@ -82,7 +75,7 @@ describe('Testing Environment utils', () => {
     test('rejects failed fetches and posts', async() => {
         global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
 
-        await expect(getTestingStatus({ hostname: 'localhost' })).rejects.toThrow('500');
+        await expect(getTestingStatus()).rejects.toThrow('500');
         await expect(postAction('/status/remove', {})).rejects.toThrow('failed');
     });
 
@@ -90,6 +83,15 @@ describe('Testing Environment utils', () => {
         expect(sprintf('%s change will be applied', 3)).toBe('3 change will be applied');
         expect(sprintf('%s commits behind %s', 4, 'abc1234')).toBe('4 commits behind abc1234');
         expect(sprintf('%s selected', 2)).toBe('2 selected');
+    });
+
+    test('deploy-status strings carry the deployer username variant', () => {
+        expect(sprintf(DEFAULT_STRINGS.deployingStartedBy, '2 minutes ago', 'openlibrary'))
+            .toBe('Deploying, started 2 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.deploySucceededBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Deploy succeeded 5 minutes ago by openlibrary');
+        expect(sprintf(DEFAULT_STRINGS.lastDeployBy, '5 minutes ago', 'openlibrary'))
+            .toBe('Last deploy 5 minutes ago by openlibrary');
     });
 
     test('detects the favicon environment', () => {
