@@ -16,12 +16,28 @@ code sends (see openlibrary/accounts/model.py, openlibrary/core/lending.py),
 not just what's convenient to construct.
 """
 
+import importlib.util
 import os
+import pathlib
+from datetime import datetime, timedelta
 
 import pytest
 import requests
 
 MOCKSERVICES_URL = os.environ.get("MOCKSERVICES_URL", "http://mockservices:8090")
+MOCKSERVICES_MAIN = pathlib.Path(__file__).parents[1] / "main.py"
+
+
+def _availability_variants():
+    """Read the variant table from main.py by path (it is not an installed
+    package) so the coverage assertion tracks the table instead of hardcoding a
+    count that goes stale the moment a variant is added."""
+    spec = importlib.util.spec_from_file_location("ol_mockservices_main", MOCKSERVICES_MAIN)
+    if spec is None or spec.loader is None:  # pragma: no cover - defensive
+        pytest.fail(f"could not load {MOCKSERVICES_MAIN}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.AVAILABILITY_VARIANTS
 
 
 def _get(path, **kwargs):
@@ -211,6 +227,23 @@ class TestLoansLifecycle:
         history_items = history_resp.json().get("history", {}).get("items", [])
         assert any(item["identifier"] == book_id for item in history_items)
 
+    def test_browse_is_an_hour_and_borrow_is_two_weeks(self):
+        """The loan expiry is patron-visible (macros.FormatExpiry), so browse
+        and borrow must not report the same period -- otherwise a dev previewing
+        the browse flow sees a 14-day expiry that IA would never return."""
+        periods = {}
+        for action in ("browse_book", "borrow_book"):
+            loan = _post(
+                "/services/loans/loan/",
+                data={"action": action, "identifier": f"period_{action}", "userid": "@period_user"},
+            ).json()["result"]["loan"]
+            created = datetime.strptime(loan["created"], "%Y-%m-%d %H:%M:%S")
+            until = datetime.strptime(loan["until"], "%Y-%m-%d %H:%M:%S")
+            periods[action] = until - created
+
+        assert periods["browse_book"] == timedelta(hours=1)
+        assert periods["borrow_book"] == timedelta(days=14)
+
 
 class TestAvailability:
     def test_availability_get(self):
@@ -234,6 +267,71 @@ class TestAvailability:
         resp1 = _get("/services/availability/", params={"identifier": "fixed_book_id"})
         resp2 = _get("/services/availability/", params={"identifier": "fixed_book_id"})
         assert resp1.json()["responses"]["fixed_book_id"] == resp2.json()["responses"]["fixed_book_id"]
+
+    def test_every_variant_is_reachable(self):
+        """Two consecutive identical calls would also pass for a memoized
+        random pick. What actually matters is that sweeping identifiers
+        exposes every variant -- otherwise a CTA state silently becomes
+        impossible to preview, which is the whole point of the matrix."""
+        seen = set()
+        for i in range(400):
+            item_id = f"variant_sweep_{i}"
+            st = _get("/services/availability/", params={"identifier": item_id}).json()["responses"][item_id]
+            seen.add(
+                (
+                    st["status"],
+                    st.get("available_to_browse"),
+                    st.get("available_to_borrow"),
+                    st.get("available_to_waitlist"),
+                )
+            )
+        expected = len(_availability_variants())
+        assert len(seen) == expected, f"expected all {expected} variants to be reachable, saw {len(seen)}"
+
+    def test_browse_and_borrow_ctas_are_both_reachable(self):
+        """user_can_borrow_edition_async() checks available_to_browse before
+        available_to_borrow, so a variant setting both only ever renders the
+        browse CTA. At least one variant must offer borrow without browse or
+        the Borrow CTA is unreachable in dev."""
+        offers = set()
+        for i in range(400):
+            item_id = f"cta_sweep_{i}"
+            st = _get("/services/availability/", params={"identifier": item_id}).json()["responses"][item_id]
+            if not st.get("is_lendable"):
+                continue
+            if st.get("available_to_browse"):
+                offers.add("browse")
+            elif st.get("available_to_borrow"):
+                offers.add("borrow")
+        assert offers == {"browse", "borrow"}, f"expected both CTAs to be reachable, got {offers or 'neither'}"
+
+
+class TestGroundtruthAvailability:
+    """get_groundtruth_availability_async() posts action=availability to the
+    *loans* endpoint and reads `lending_status` -- a different code path from
+    /services/availability/, and the one user_can_borrow_edition_async()
+    actually depends on."""
+
+    def test_groundtruth_returns_lending_status(self):
+        resp = _post("/services/loans/loan/", params={"action": "availability", "identifier": "gtbook"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "ok"
+        assert body["lending_status"]["identifier"] == "gtbook"
+        assert "is_lendable" in body["lending_status"]
+
+    def test_groundtruth_agrees_with_availability_endpoint(self):
+        """The two endpoints must not disagree: a book the CTA logic thinks is
+        borrowable but the bulk API calls unavailable would be indistinguishable
+        from a real IA inconsistency."""
+        for i in range(25):
+            item_id = f"agreement_{i}"
+            bulk = _get("/services/availability/", params={"identifier": item_id}).json()["responses"][item_id]
+            groundtruth = _post(
+                "/services/loans/loan/",
+                params={"action": "availability", "identifier": item_id},
+            ).json()["lending_status"]
+            assert bulk == groundtruth, f"{item_id}: bulk={bulk} groundtruth={groundtruth}"
 
 
 def test_borrow_status():
