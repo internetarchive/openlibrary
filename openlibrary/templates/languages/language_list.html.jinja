@@ -1,5 +1,5 @@
 <ul class="locale-options {{ classes | default('') }}">
-    {% for lang in get_supported_languages().values() %}
+    {% for lang in layout.supported_languages %}
         <li><a href="#"
    lang="{{ lang['code'] }}"
    data-lang-id="{{ lang['code'] }}"

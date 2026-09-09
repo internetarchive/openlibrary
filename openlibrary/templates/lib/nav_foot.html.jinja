@@ -85,10 +85,9 @@
             <div id="legal-details">
                 <span>{{ _("Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>") | safe }}</span>
             </div>
-            {% set git_rev_hash = get_git_revision_short_hash() %}
-            {% if git_rev_hash %}
+            {% if layout.git_rev_hash %}
                 <div id="version-details">
-                    <span class="version">{{ _('version <a href="https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s">%(git_rev_hash)s</a>', git_rev_hash=git_rev_hash) | safe }}</span>
+                    <span class="version">{{ _('version <a href="https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s">%(git_rev_hash)s</a>', git_rev_hash=layout.git_rev_hash) | safe }}</span>
                 </div>
             {% endif %}
         </div>
