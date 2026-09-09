@@ -377,12 +377,6 @@
   }
 }
 
-/* Normalize cover image height so CTA buttons align across all cards in a row. */
-.list-books--grid .searchResultItem:not(.sri--w-main),
-.list-books--grid .searchResultItem .sri__main {
-  height: 100%;
-}
-
 /* `width: auto` so the box hugs the drawn cover and the shelf badge in
    .book-cover-wrapper lands on its corner, not in the letterbox. */
 .list-books--grid .searchResultItem .bookcover :where(img) {

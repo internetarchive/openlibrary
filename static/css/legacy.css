@@ -1509,7 +1509,6 @@ ul.list-books span.resultType {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   margin: 0;
 }
 
