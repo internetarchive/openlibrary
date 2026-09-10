@@ -1,0 +1,178 @@
+/**
+ * Typography
+ * ==========
+ * Every text token in one place: the primitives (families, the size ramp,
+ * weights, line heights) first, then the roles that combine them. A role is
+ * one token per property, applied together: a consumer sets each property
+ * from its token rather than picking one and hard-coding the rest.
+ */
+
+/**
+ * 1. Primitives
+ * -------------
+ * Raw values. Rarely used directly in components; reference a role token.
+ */
+
+/**
+ * Font families
+ * =============
+ * Schibsted Grotesk and Literata are self-hosted webfonts (static/css/fonts/)
+ * that only render on pages whose bundle imports them; everywhere else the
+ * stacks fall through to the system fonts they always used. Schibsted covers
+ * Latin and Latin Extended only, so Greek, Cyrillic and the rest fall through
+ * to the system sans, with Noto Sans behind that.
+ */
+:root {
+  --font-family-sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-serif: Literata, Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  --font-family-mono: "Lucida Console", "Courier New", monospace;
+}
+
+/**
+ * Font sizes
+ * ==========
+ * The size ramp, in the display / headline / title / label / body vocabulary.
+ * Elements and roles pick a step from here.
+ */
+:root {
+  --font-size-display-large: 57px;
+  --font-size-display-medium: 40px;
+  --font-size-display-small: 36px;
+
+  --font-size-headline-large: 32px;
+  --font-size-headline-medium: 28px;
+  --font-size-headline-small: 24px;
+
+  --font-size-title-large: 22px;
+  --font-size-title-medium: 16px;
+  --font-size-title-small: 14px;
+
+  --font-size-label-large: 14px;
+  --font-size-label-medium: 12px;
+  --font-size-label-small: 11px;
+
+  --font-size-body-large: 16px;
+  --font-size-body-medium: 14px;
+  --font-size-body-small: 12px;
+}
+
+/* Display sizes are set for wide columns; on a phone they overwhelm the measure
+   and break titles into too many lines. Each steps down to the next value on
+   the ramp above, so the scale stays consistent. */
+/* --width-breakpoint-tablet */
+@media only screen and (max-width: 768px) {
+  :root {
+    --font-size-display-large: 45px;
+    --font-size-display-medium: 36px;
+    --font-size-display-small: 28px;
+  }
+}
+
+/**
+ * Font weights
+ * ============
+ * Four steps, matching the 400–700 range the variable webfonts cover.
+ * Off-scale values in legacy rules (650, 300) snap to the nearest step when
+ * migrated. Fall back to a primitive only where no role fits.
+ */
+:root {
+  --font-weight-regular: 400; /* body copy, the default */
+  --font-weight-medium: 500; /* quiet emphasis: overlines, large headings */
+  --font-weight-semibold: 600; /* small headings and labels that must stand apart from copy */
+  --font-weight-bold: 700; /* strong emphasis, table headers */
+}
+
+/**
+ * Line heights
+ * ============
+ * Unitless, so leading scales with the font size. Smaller for impact (big
+ * headings) and scanning (dense UI text); larger for reading.
+ */
+:root {
+  --line-height-single: 1; /* single-line UI (only when you clamp/won't wrap) */
+  --line-height-tight: 1.2; /* big headings, compact UI */
+  --line-height-snug: 1.35; /* headings, metadata, dense UI text */
+  --line-height-normal: 1.5; /* body default (accessibility-friendly baseline) */
+  --line-height-relaxed: 1.65; /* long descriptions / reading */
+  --line-height-loose: 1.8; /* very long-form reading / large line lengths */
+}
+
+/**
+ * 2. Roles
+ * --------
+ * Text styles named for the job the text does. A role gains a token for a
+ * property once two or more consumers hand-code the same value for it, so
+ * some roles below carry a single property for now.
+ */
+
+/**
+ * Heading
+ * =======
+ * Section headings, h1–h3. Medium weight in body ink; the size ramp carries
+ * the hierarchy per element, so the role has no size token.
+ */
+:root {
+  --font-family-heading: var(--font-family-sans);
+  --font-weight-heading: var(--font-weight-medium);
+  --line-height-heading: var(--line-height-snug); /* also result and work titles that wrap */
+}
+
+/**
+ * Subheading
+ * ==========
+ * h4–h6. These sit at body sizes, so semibold is what separates them from
+ * copy; don't lighten them to match the heading role.
+ */
+:root {
+  --font-family-subheading: var(--font-family-sans);
+  --font-weight-subheading: var(--font-weight-semibold);
+}
+
+/**
+ * Overline
+ * ========
+ * The small all-caps heading over a group: popover section headings
+ * ("Sort by"), search-modal result groups ("Top results"), design-page nav
+ * groups. Sits on --font-size-label-medium at a medium weight, and tracks
+ * slightly tight so the caps read as one word rather than a row of letters.
+ */
+:root {
+  --font-size-overline: var(--font-size-label-medium);
+  --font-weight-overline: var(--font-weight-medium);
+  --letter-spacing-overline: 0.02em;
+  --text-transform-overline: uppercase;
+}
+
+/**
+ * Families by role
+ * ================
+ * Which stack each kind of text uses. These fold into full role blocks above
+ * as the roles gain a second property.
+ */
+:root {
+  --font-family-body: var(--font-family-sans); /* body text, paragraphs, lists */
+  --font-family-code: Menlo, "Lucida Console", "Courier New", monospace; /* code, pre, inline code */
+  --font-family-title: var(--font-family-serif); /* large text in banners and hero sections, book titles */
+  --font-family-subtitle: var(--font-family-serif); /* small text in banners and hero sections, book subtitles */
+  --font-family-quote: var(--font-family-serif); /* quotes */
+  --font-family-button: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* buttons; still the system stack until ol-button is checked on webfont pages */
+}
+
+/**
+ * Line heights by role
+ * ====================
+ * Which leading each kind of text uses. These fold into full role blocks
+ * above as the roles gain a second property.
+ */
+:root {
+  --line-height-display: var(--line-height-tight); /* hero sections, very large titles */
+  --line-height-title: var(--line-height-snug); /* result titles / work titles (often wrap) */
+  --line-height-body: var(--line-height-normal); /* paragraphs, default text */
+  --line-height-meta: var(--line-height-snug); /* bylines, counts, timestamps, secondary text (search cards) */
+  --line-height-blurb: var(--line-height-snug); /* short snippet, often in narrow containers (list item notes in grid) */
+  --line-height-list: var(--line-height-snug); /* multi-line lists of links/subjects (subject pages) */
+  --line-height-table: var(--line-height-snug); /* edition detail grids / data tables */
+  --line-height-code: var(--line-height-normal); /* code, pre */
+  --line-height-control: var(--line-height-tight); /* buttons, form labels, nav items (wrapping allowed) */
+  --line-height-chip: 1.1; /* badges/tags/pills */
+}
