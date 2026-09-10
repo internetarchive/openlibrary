@@ -26,11 +26,11 @@ describe('fetchFacetCounts', () => {
     ];
 
     beforeEach(() => {
-        jest.resetAllMocks();
+        vi.resetAllMocks();
     });
 
     test('calls /search/facets.json with field + forwarded search params', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async() => MOCK_FLAT,
         });
@@ -47,7 +47,7 @@ describe('fetchFacetCounts', () => {
     test('strips an existing filter on the field being counted', async() => {
         // Solr ANDs an fq on the faceted field, so forwarding language=eng would
         // zero out every other language and strand the patron on one choice.
-        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
 
         await fetchFacetCounts('language', new URLSearchParams('q=tolkien&language=eng&public_scan=true'));
 
@@ -60,7 +60,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('strips both spellings of the author filter when counting author_facet', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
 
         await fetchFacetCounts('author_facet', new URLSearchParams('q=rings&author_facet=OL9A&author_key=OL9A'));
 
@@ -70,7 +70,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('does not mutate the caller\'s params', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
+        global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async() => MOCK_FLAT });
 
         const params = new URLSearchParams('q=tolkien&language=eng');
         await fetchFacetCounts('language', params);
@@ -78,7 +78,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('returns a flat array when the API responds with a flat array', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async() => MOCK_FLAT,
         });
@@ -89,7 +89,7 @@ describe('fetchFacetCounts', () => {
 
     test('unwraps a field-keyed map when the API responds with the multi-field shape', async() => {
         const multiShape = { language: MOCK_FLAT, author_facet: [] };
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async() => multiShape,
         });
@@ -99,7 +99,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('returns [] when a field-keyed map does not contain the requested field', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
             json: async() => ({ author_facet: [{ value: 'Tolkien', count: 12 }] }),
         });
@@ -109,7 +109,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('throws on a non-2xx HTTP response', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 });
+        global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
 
         await expect(
             fetchFacetCounts('language', new URLSearchParams('q=foo'))
@@ -117,7 +117,7 @@ describe('fetchFacetCounts', () => {
     });
 
     test('propagates network errors', async() => {
-        global.fetch = jest.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+        global.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
 
         await expect(
             fetchFacetCounts('language', new URLSearchParams('q=foo'))
@@ -230,21 +230,21 @@ describe('mergeFacetCounts', () => {
 describe('openWhenCountsReady', () => {
     /** Stands in for the ol-select-popover and its request-open event. */
     function requestOpenEvent({ focusFirst = false } = {}) {
-        const popover = { show: jest.fn() };
+        const popover = { show: vi.fn() };
         return {
             currentTarget: popover,
             detail: { focusFirst },
-            preventDefault: jest.fn(),
+            preventDefault: vi.fn(),
             popover,
         };
     }
 
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     test('holds the panel shut until the load resolves', async() => {
@@ -275,7 +275,7 @@ describe('openWhenCountsReady', () => {
         await Promise.resolve();
         expect(e.popover.show).not.toHaveBeenCalled();
 
-        jest.advanceTimersByTime(FACET_OPEN_BUDGET_MS);
+        vi.advanceTimersByTime(FACET_OPEN_BUDGET_MS);
         await done;
         expect(e.popover.show).toHaveBeenCalledTimes(1);
     });
@@ -291,7 +291,7 @@ describe('openWhenCountsReady', () => {
         const e = requestOpenEvent();
         await openWhenCountsReady(e, () => Promise.resolve());
 
-        jest.advanceTimersByTime(FACET_OPEN_BUDGET_MS * 2);
+        vi.advanceTimersByTime(FACET_OPEN_BUDGET_MS * 2);
         expect(e.popover.show).toHaveBeenCalledTimes(1);
     });
 });

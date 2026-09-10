@@ -26,7 +26,7 @@ async function mount(markup) {
 
 afterEach(() => {
     document.body.innerHTML = '';
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
 });
 
 describe('rendering', () => {
@@ -65,7 +65,7 @@ describe('rendering', () => {
     });
 
     test('warns and renders nothing for an unknown name', async() => {
-        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
         const icon = await mount('<ol-icon name="not-an-icon"></ol-icon>');
 

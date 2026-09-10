@@ -1,8 +1,8 @@
 import { ListBooks } from '../../../openlibrary/plugins/openlibrary/js/list_books.js';
 
 // Must be `mock`-prefixed: jest hoists the factory above the declarations.
-const mockTrackEvent = jest.fn();
-jest.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
+const mockTrackEvent = vi.fn();
+vi.mock('../../../openlibrary/plugins/openlibrary/js/ol.analytics.js', () => ({
     trackEvent: (...args) => mockTrackEvent(...args),
 }));
 

@@ -176,7 +176,7 @@ describe('initSearchFacets', () => {
     });
 
     test('shows a fallback message when the partials request fails', async() => {
-        global.fetch = jest.fn().mockResolvedValue({ok: false, status: 503});
+        global.fetch = vi.fn().mockResolvedValue({ok: false, status: 503});
 
         await initSearchFacets(document.getElementById('searchFacets'));
 
@@ -186,9 +186,9 @@ describe('initSearchFacets', () => {
     });
 
     test('shows a fallback message instead of rendering a plain-text sidebar payload', async() => {
-        global.fetch = jest.fn().mockResolvedValue({
+        global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: jest.fn().mockResolvedValue({
+            json: vi.fn().mockResolvedValue({
                 title: 'Search results',
                 sidebar: 'Unable to render this page.',
             }),

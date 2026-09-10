@@ -55,7 +55,7 @@ beforeEach(() => {
 
 afterEach(() => {
     document.body.innerHTML = '';
-    jest.useRealTimers();
+    vi.useRealTimers();
 });
 
 /** Total track width for `count` items at the harness's item size. */
@@ -311,7 +311,7 @@ describe('navigation', () => {
     it('leaves scroll behavior to CSS rather than forcing it in JS', async() => {
         // Omitting `behavior` is what lets the reduced-motion query apply.
         const { el, scroller } = await mountCarousel(18);
-        const spy = jest.fn();
+        const spy = vi.fn();
         scroller.scrollTo = spy;
         el.goToPage(1);
         expect(spy).toHaveBeenCalledWith(expect.not.objectContaining({ behavior: expect.anything() }));
@@ -321,7 +321,7 @@ describe('navigation', () => {
 describe('page-change event', () => {
     it('fires once the scroller settles, not during the scroll', async() => {
         const { el, scrollTo, settle } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         await scrollTo(el._pageOffsets[1]);
@@ -334,7 +334,7 @@ describe('page-change event', () => {
 
     it('reports only the final page after a multi-page fling', async() => {
         const { el, scrollTo, settle, maxScroll } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         await scrollTo(el._pageOffsets[1]);
@@ -348,7 +348,7 @@ describe('page-change event', () => {
 
     it('stays quiet when the scroll settles back on the same page', async() => {
         const { el, scrollTo, settle } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         await scrollTo(4);
@@ -364,7 +364,7 @@ describe('page-change event without native scrollend', () => {
     beforeEach(() => {
         supported = OlCarousel._supportsScrollEnd;
         OlCarousel._supportsScrollEnd = false;
-        jest.useFakeTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
@@ -373,29 +373,29 @@ describe('page-change event without native scrollend', () => {
 
     it('falls back to a debounced scroll timer', async() => {
         const { el, scrollTo } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         await scrollTo(el._pageOffsets[1]);
         expect(handler).not.toHaveBeenCalled();
 
-        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        vi.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail.page).toBe(1);
     });
 
     it('keeps deferring while the scroll is still moving', async() => {
         const { el, scrollTo, maxScroll } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         await scrollTo(el._pageOffsets[1]);
-        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
+        vi.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
         await scrollTo(maxScroll);
-        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
+        vi.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay - 20);
         expect(handler).not.toHaveBeenCalled();
 
-        jest.advanceTimersByTime(40);
+        vi.advanceTimersByTime(40);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail.page).toBe(2);
     });
@@ -432,7 +432,7 @@ describe('page announcements', () => {
 describe('near-end event', () => {
     it('fires on settle within two pages of the end, not before', async() => {
         const { el, scrollTo, settle } = await mountCarousel(18);   // 3 pages
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-near-end', handler);
 
         await settle();                                             // page 0
@@ -446,7 +446,7 @@ describe('near-end event', () => {
 
     it('does not fire twice for the same item count', async() => {
         const { el, scrollTo, settle, maxScroll } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-near-end', handler);
 
         await scrollTo(el._pageOffsets[1]);
@@ -458,7 +458,7 @@ describe('near-end event', () => {
 
     it('re-arms once items are appended', async() => {
         const { el, scrollTo, settle, appendItems } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-near-end', handler);
 
         await scrollTo(el._pageOffsets[1]);
@@ -476,7 +476,7 @@ describe('near-end event', () => {
 
     it('fires again immediately when an append leaves the rail still near its end', async() => {
         const { el, scrollTo, settle, maxScroll, appendItems } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-near-end', handler);
 
         await scrollTo(maxScroll);
@@ -489,7 +489,7 @@ describe('near-end event', () => {
     });
 
     it('fires on first render when the rail is too short to fill the buffer', async() => {
-        const handler = jest.fn();
+        const handler = vi.fn();
         document.addEventListener('ol-carousel-near-end', handler);
         await mountCarousel(12);                                    // 2 pages
         expect(handler).toHaveBeenCalledTimes(1);
@@ -601,11 +601,11 @@ describe('mouse drag', () => {
 
     beforeEach(() => {
         now = 0;
-        jest.spyOn(performance, 'now').mockImplementation(() => now);
+        vi.spyOn(performance, 'now').mockImplementation(() => now);
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     /** Press, move through {x, dt} steps, release. */
@@ -639,7 +639,7 @@ describe('mouse drag', () => {
 
     it('captures the pointer only once travel exceeds the slop', async() => {
         const { scroller } = await mountCarousel(18);
-        scroller.setPointerCapture = jest.fn();
+        scroller.setPointerCapture = vi.fn();
 
         // Sub-slop jitter: never captured, so the release click keeps its
         // real target and slotted buttons and links stay clickable.
@@ -670,7 +670,7 @@ describe('mouse drag', () => {
 
     it('lets a plain click through', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const clickSpy = jest.fn();
+        const clickSpy = vi.fn();
         el.children[0].addEventListener('click', clickSpy);
 
         drag(scroller, 500, [{ x: 496, dt: 16 }]);   // 4px — a twitchy click
@@ -683,7 +683,7 @@ describe('mouse drag', () => {
 
     it('swallows exactly one click after a real drag', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const clickSpy = jest.fn();
+        const clickSpy = vi.fn();
         el.children[0].addEventListener('click', clickSpy);
 
         drag(scroller, 500, [{ x: 470, dt: 16 }]);   // 30px — a real drag
@@ -697,7 +697,7 @@ describe('mouse drag', () => {
 
     it('swallows the click when grabbing a moving rail, even without movement', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const clickSpy = jest.fn();
+        const clickSpy = vi.fn();
         el.children[0].addEventListener('click', clickSpy);
 
         // Rest the rail between page offsets, as it sits mid-settle.
@@ -755,7 +755,7 @@ describe('mouse drag', () => {
 
     it('does not report a page change mid-drag, only after the settle', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         scroller.dispatchEvent(pointerEvent('pointerdown', { x: 0 }));
@@ -813,19 +813,19 @@ describe('mouse drag without native scrollend', () => {
     beforeEach(() => {
         supported = OlCarousel._supportsScrollEnd;
         OlCarousel._supportsScrollEnd = false;
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         now = 0;
-        jest.spyOn(performance, 'now').mockImplementation(() => now);
+        vi.spyOn(performance, 'now').mockImplementation(() => now);
     });
 
     afterEach(() => {
         OlCarousel._supportsScrollEnd = supported;
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     it('does not arm the settle fallback while dragging', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const handler = jest.fn();
+        const handler = vi.fn();
         el.addEventListener('ol-carousel-page-change', handler);
 
         scroller.dispatchEvent(pointerEvent('pointerdown', { x: 0 }));
@@ -833,13 +833,13 @@ describe('mouse drag without native scrollend', () => {
         scroller.dispatchEvent(pointerEvent('pointermove', { x: -1230 }));
         // The scroll the write causes must not schedule a fallback settle.
         scroller.dispatchEvent(new Event('scroll'));
-        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        vi.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
         expect(handler).not.toHaveBeenCalled();
 
         now += 200;
         scroller.dispatchEvent(pointerEvent('pointermove', { x: -1231 }));
         scroller.dispatchEvent(pointerEvent('pointerup', { x: -1231, buttons: 0 }));
-        jest.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
+        vi.advanceTimersByTime(OlCarousel._scrollEndFallbackDelay + 10);
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler.mock.calls[0][0].detail.page).toBe(1);
     });
@@ -950,7 +950,7 @@ describe('keyboard focus', () => {
 
     it('does not move when the focused card is already on the page', async() => {
         const { el, scroller } = await mountCarousel(18);
-        const scrollSpy = jest.spyOn(scroller, 'scrollTo');
+        const scrollSpy = vi.spyOn(scroller, 'scrollTo');
         const link = linkIn(el, 2, true);
         link.dispatchEvent(new FocusEvent('focusin', { bubbles: true, composed: true }));
         await el.updateComplete;

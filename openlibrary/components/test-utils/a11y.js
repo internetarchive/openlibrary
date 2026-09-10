@@ -33,7 +33,7 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
         '(max-width: 767px)': mobile,
         '(hover: hover) and (pointer: fine)': hover,
     };
-    window.matchMedia = jest.fn().mockImplementation((query) => {
+    window.matchMedia = vi.fn().mockImplementation((query) => {
         if (!(query in answers)) {
             throw new Error(`stubMatchMedia has no answer for "${query}". Add it to the map in test-utils/a11y.js.`);
         }
@@ -41,11 +41,11 @@ export function stubMatchMedia({ mobile = false, reducedMotion = true, hover = t
             matches: answers[query],
             media: query,
             onchange: null,
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            dispatchEvent: jest.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            dispatchEvent: vi.fn(),
         };
     });
 }

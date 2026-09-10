@@ -78,7 +78,7 @@ describe('FocusableHostMixin', () => {
         document.body.appendChild(el);
 
         const trigger = el.shadowRoot.querySelector('.trigger');
-        const spy = jest.spyOn(trigger, 'focus');
+        const spy = vi.spyOn(trigger, 'focus');
 
         el.focus({ preventScroll: true });
 
@@ -92,8 +92,8 @@ describe('FocusableHostMixin', () => {
 
         const trigger = el.shadowRoot.querySelector('.trigger');
         const other = el.shadowRoot.querySelector('.other');
-        const triggerSpy = jest.spyOn(trigger, 'focus');
-        const otherSpy = jest.spyOn(other, 'focus');
+        const triggerSpy = vi.spyOn(trigger, 'focus');
+        const otherSpy = vi.spyOn(other, 'focus');
 
         expect(() => el.focus()).not.toThrow();
         // We don't programmatically focus a specific inner element — that's
