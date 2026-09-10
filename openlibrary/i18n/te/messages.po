@@ -5901,14 +5901,10 @@ msgstr ""
 "href=\"//archive.org/\">archive.org</a> మరియు <a href=\"//archive-it.org"
 "\">archive-it.org</a> ఉన్నాయి"
 
-#: lib/nav_foot.html
+#: lib/nav_foot.html.jinja
 #, python-format
-msgid ""
-"version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr ""
-"వెర్షన్ <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
+msgstr "వెర్షన్ <a href=\"https://github.com/internetarchive/openlibrary/commit/%(git_rev_hash)s\">%(git_rev_hash)s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
