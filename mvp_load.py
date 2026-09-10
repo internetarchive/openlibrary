@@ -4,10 +4,10 @@ mvp_load.py — Load Solr docs JSONL to isolated Solr on 8984
 Batched POST /update?commitWithin=60000, final commit.
 Never touches prod 8983.
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import time
 from pathlib import Path
@@ -39,9 +39,9 @@ async def solr_insert(docs, batch=BATCH):
             try:
                 resp.raise_for_status()
             except Exception as e:
-                print(f"Batch {i//batch} POST failed: {e} {resp.text[:500]}")
+                print(f"Batch {i // batch} POST failed: {e} {resp.text[:500]}")
                 raise
-            print(f"Batch {i//batch+1}/{(total+batch-1)//batch} POST {len(chunk)} docs {elapsed:.2f}s status={resp.status_code}")
+            print(f"Batch {i // batch + 1}/{(total + batch - 1) // batch} POST {len(chunk)} docs {elapsed:.2f}s status={resp.status_code}")
         # commit
         print("Committing...", flush=True)
         resp = await client.get(f"{SOLR_BASE}/update", params={"commit": "true"})

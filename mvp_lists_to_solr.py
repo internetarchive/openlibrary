@@ -213,7 +213,7 @@ def main():  # noqa: PLR0915
                     if isinstance(subjects, str):
                         try:
                             subjects = json.loads(subjects)
-                        except (json.JSONDecodeError, TypeError):
+                        except json.JSONDecodeError, TypeError:
                             subjects = [subjects]
                     if subjects:
                         doc["subject"] = subjects

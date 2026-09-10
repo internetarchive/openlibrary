@@ -75,9 +75,7 @@ def main() -> None:
     rows: list[tuple[str, int]] = []
     last = -1
     while True:
-        batch = cur.execute(
-            "SELECT olid, total FROM data WHERE olid > ? ORDER BY olid LIMIT 200000", [last]
-        ).fetchall()
+        batch = cur.execute("SELECT olid, total FROM data WHERE olid > ? ORDER BY olid LIMIT 200000", [last]).fetchall()
         if not batch:
             break
         last = batch[-1][0]
@@ -88,9 +86,7 @@ def main() -> None:
     print(f"[osp] {len(rows):,} candidate works from {args.osp_db}")
 
     con = duckdb.connect()
-    con.execute(
-        f"CREATE OR REPLACE TEMP TABLE gold_keys AS SELECT key AS k FROM read_parquet(['{args.gold}'])"
-    )
+    con.execute(f"CREATE OR REPLACE TEMP TABLE gold_keys AS SELECT key AS k FROM read_parquet(['{args.gold}'])")
     # ghost guard: ACTUALLY drop keys absent from gold (atomic updates would create stub docs)
     con.execute(
         """
@@ -99,12 +95,8 @@ def main() -> None:
         """,
         [[k for k, _ in rows], [t for _, t in rows]],
     )
-    kept = con.execute(
-        "SELECT c.k, c.total FROM cand c SEMI JOIN gold_keys g ON c.k = g.k ORDER BY c.k"
-    ).fetchall()
-    print(
-        f"[osp] {len(kept):,} in gold; skipping {len(rows) - len(kept):,} absent (ghost guard)"
-    )
+    kept = con.execute("SELECT c.k, c.total FROM cand c SEMI JOIN gold_keys g ON c.k = g.k ORDER BY c.k").fetchall()
+    print(f"[osp] {len(kept):,} in gold; skipping {len(rows) - len(kept):,} absent (ghost guard)")
     rows = kept
 
     if args.dry_run:
@@ -114,8 +106,7 @@ def main() -> None:
 
     asyncio.run(post_rows(rows, f"{args.solr.rstrip('/')}/update", args.batch, args.concurrency))
     if not args.no_commit:
-        r = httpx.post(f"{args.solr.rstrip('/')}/update", params={"commit": "true"},
-                       headers={"Content-Type": "application/json"}, content=b"{}", timeout=300)
+        r = httpx.post(f"{args.solr.rstrip('/')}/update", params={"commit": "true"}, headers={"Content-Type": "application/json"}, content=b"{}", timeout=300)
         r.raise_for_status()
         print("[commit] done", flush=True)
 

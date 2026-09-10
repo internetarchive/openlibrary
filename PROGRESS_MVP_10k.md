@@ -122,4 +122,3 @@ DC Estimate full 14.4M: build 7.78h total 17.60h vs previous 20.58h (build 8.11h
 
 
 [2026-08-22 06:00:00] D+C+A test (initializer per-worker DuckDB): mvp_gold_DCA2.py D+C+A 10k total 234.93s build 229.52s 43.6 docs/s vs D+C 43.98s build 19.44s 514 docs/s => 0.19x slower total, 0.08x build. Per-worker DuckDB contention (18× scanning 4.6G) outweighs pickle saved for 10k. For 14.4M est 94h vs 17.6h. Proposal A not beneficial at 10k scale; filtered pickle per chunk (D+C) already handles IPC.
-

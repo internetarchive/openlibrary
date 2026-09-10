@@ -42,11 +42,7 @@ HEADERS = {"x-application-id": "ol-solr"}
 
 def get_ocaids(bronze_editions: str, limit: int) -> list[str]:
     con = duckdb.connect()
-    sql = (
-        "SELECT DISTINCT trim(json_extract_string(JSON, '$.ocaid')) AS ocaid "
-        f"FROM '{bronze_editions}' "
-        "WHERE ocaid IS NOT NULL AND ocaid != '' ORDER BY ocaid"
-    )
+    sql = f"SELECT DISTINCT trim(json_extract_string(JSON, '$.ocaid')) AS ocaid FROM '{bronze_editions}' WHERE ocaid IS NOT NULL AND ocaid != '' ORDER BY ocaid"
     if limit:
         sql += f" LIMIT {limit}"
     print(f"Collecting distinct ocaids from {bronze_editions} ...")

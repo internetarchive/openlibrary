@@ -10,16 +10,17 @@ Usage:
 
 Estimates full 14.4M via linear extrapolate from sample.
 """
+
 import argparse
 import asyncio
 import os
 import time
 from pathlib import Path
 
+import duckdb
 import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
-import duckdb
 
 BRONZE_WORKS = Path("lake/bronze/works.parquet")
 SILVER_EDITIONS = Path("lake/silver/editions.parquet")
@@ -33,6 +34,7 @@ START_AT = "/works/OL1W"
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.updater.work import WorkSolrUpdater
 
+
 class FakeDataProvider(DataProvider):
     def __init__(self, works_by_key, editions_by_work, authors_by_key):
         super().__init__()
@@ -44,17 +46,34 @@ class FakeDataProvider(DataProvider):
         for lst in editions_by_work.values():
             for ed in lst:
                 self.cache[ed["key"]] = ed
+
     async def get_document(self, key):
         return self.cache.get(key) or self.authors_by_key.get(key) or self.works_by_key.get(key) or {"key": key, "type": {"key": "/type/delete"}}
+
     def get_editions_of_work(self, work):
         return self.editions_by_work.get(work["key"], [])
-    def preload_editions_of_works(self, k): pass
-    def preload_cover_dimensions(self): pass
-    def get_cover_dimensions(self, cid): return None
-    def get_work_ratings(self, k): return None
-    def get_work_reading_log(self, k): return None
-    async def get_trending_data(self, k): return {}
-    def find_redirects(self, k): return []
+
+    def preload_editions_of_works(self, k):
+        pass
+
+    def preload_cover_dimensions(self):
+        pass
+
+    def get_cover_dimensions(self, cid):
+        return None
+
+    def get_work_ratings(self, k):
+        return None
+
+    def get_work_reading_log(self, k):
+        return None
+
+    async def get_trending_data(self, k):
+        return {}
+
+    def find_redirects(self, k):
+        return []
+
 
 async def build_gold(limit: int, out_path: Path):
     t0 = time.time()
@@ -63,7 +82,7 @@ async def build_gold(limit: int, out_path: Path):
     print(f"Sampling {limit} works from {BRONZE_WORKS} START_AT {START_AT}")
     t1 = time.time()
     rows = con.execute(f"SELECT Key, JSON FROM '{BRONZE_WORKS}' WHERE Key >= '{START_AT}' ORDER BY Key LIMIT {limit}").fetchall()
-    print(f"Works sample {len(rows)} in {time.time()-t1:.2f}s first {rows[0][0]}")
+    print(f"Works sample {len(rows)} in {time.time() - t1:.2f}s first {rows[0][0]}")
     works = [orjson.loads(r[1]) for r in rows]
     work_keys = [r[0] for r in rows]
     work_keys_set = set(work_keys)
@@ -72,18 +91,28 @@ async def build_gold(limit: int, out_path: Path):
     t2 = time.time()
     con.execute("CREATE TEMP TABLE sample_keys (Key VARCHAR)")
     con.executemany("INSERT INTO sample_keys VALUES (?)", [(k,) for k in work_keys])
-    edition_rows = con.execute(f"SELECT JSON FROM '{SILVER_EDITIONS}' JOIN sample_keys s ON silver.work_key = s.Key".replace("silver", str(SILVER_EDITIONS)) if False else f"SELECT e.JSON FROM '{SILVER_EDITIONS}' e JOIN sample_keys s ON e.work_key = s.Key").fetchall()
+    edition_rows = con.execute(
+        f"SELECT JSON FROM '{SILVER_EDITIONS}' JOIN sample_keys s ON silver.work_key = s.Key".replace("silver", str(SILVER_EDITIONS))
+        if False
+        else f"SELECT e.JSON FROM '{SILVER_EDITIONS}' e JOIN sample_keys s ON e.work_key = s.Key"
+    ).fetchall()
     # Actually use silver path
     # Re-run correctly
     con.execute("DROP TABLE sample_keys")
-    con.execute("CREATE TEMP TABLE sample_keys2 AS SELECT Key FROM (SELECT Key FROM 'lake/bronze/works.parquet' WHERE Key >= '/works/OL1W' ORDER BY Key LIMIT 10000) ".replace("10000", str(limit)))
+    con.execute(
+        "CREATE TEMP TABLE sample_keys2 AS SELECT Key FROM (SELECT Key FROM 'lake/bronze/works.parquet' WHERE Key >= '/works/OL1W' ORDER BY Key LIMIT 10000) ".replace(
+            "10000", str(limit)
+        )
+    )
     # simpler: reuse rows
     # For now use python fallback for editions? Use DuckDB silver
     t2 = time.time()
     con2 = duckdb.connect()
     # Use silver join
-    edition_rows = con2.execute(f"SELECT e.JSON FROM '{SILVER_EDITIONS}' e JOIN (SELECT Key FROM '{BRONZE_WORKS}' WHERE Key >= '{START_AT}' ORDER BY Key LIMIT {limit}) s ON e.work_key = s.Key").fetchall()
-    print(f"Editions query {len(edition_rows)} in {time.time()-t2:.2f}s")
+    edition_rows = con2.execute(
+        f"SELECT e.JSON FROM '{SILVER_EDITIONS}' e JOIN (SELECT Key FROM '{BRONZE_WORKS}' WHERE Key >= '{START_AT}' ORDER BY Key LIMIT {limit}) s ON e.work_key = s.Key"
+    ).fetchall()
+    print(f"Editions query {len(edition_rows)} in {time.time() - t2:.2f}s")
     editions = [orjson.loads(r[0]) for r in edition_rows]
     editions_by_work = {k: [] for k in work_keys}
     for ed in editions:
@@ -107,7 +136,7 @@ async def build_gold(limit: int, out_path: Path):
     con3.execute("CREATE TEMP TABLE ak (Key VARCHAR)")
     con3.executemany("INSERT INTO ak VALUES (?)", [(k,) for k in author_keys])
     author_rows = con3.execute(f"SELECT a.JSON FROM '{BRONZE_AUTHORS}' a JOIN ak ON a.Key = ak.Key").fetchall()
-    print(f"Authors query {len(author_rows)} in {time.time()-t3:.2f}s")
+    print(f"Authors query {len(author_rows)} in {time.time() - t3:.2f}s")
     authors = {orjson.loads(r[0])["key"]: orjson.loads(r[0]) for r in author_rows}
 
     # Transform
@@ -120,19 +149,21 @@ async def build_gold(limit: int, out_path: Path):
         upd, _ = await updater.update_key(w)
         docs.extend(upd.adds)
     build_time = time.time() - t_build
-    print(f"Transform {len(docs)} docs build {build_time:.2f}s {len(docs)/build_time:.1f} docs/s")
+    print(f"Transform {len(docs)} docs build {build_time:.2f}s {len(docs) / build_time:.1f} docs/s")
 
     # Write Gold parquet
     t4 = time.time()
     # Define gold schema: flatten SolrDocument to parquet
     # Use pyarrow to write all docs as JSON string + extracted columns for demo
     # Keep full doc as JSON plus key column for DuckDB pushdown
-    table = pa.table({
-        "key": [d.get("key") for d in docs],
-        "doc_json": [orjson.dumps(d).decode() for d in docs],
-        "title": [d.get("title") for d in docs],
-        "edition_count": [d.get("edition_count") for d in docs],
-    })
+    table = pa.table(
+        {
+            "key": [d.get("key") for d in docs],
+            "doc_json": [orjson.dumps(d).decode() for d in docs],
+            "title": [d.get("title") for d in docs],
+            "edition_count": [d.get("edition_count") for d in docs],
+        }
+    )
     pq.write_table(table, out_path, compression="zstd")
     write_time = time.time() - t4
     size = out_path.stat().st_size / 1e6
@@ -145,8 +176,11 @@ async def build_gold(limit: int, out_path: Path):
     est_transform = (full / limit) * build_time
     est_write = (full / limit) * write_time
     est_total = est_transform + est_write + 60  # + sample overhead
-    print(f"Estimate full {full} via linear extrapolate: transform {est_transform/3600:.2f}h + write {est_write/3600:.2f}h + overhead ~ {est_total/3600:.2f}h total")
+    print(
+        f"Estimate full {full} via linear extrapolate: transform {est_transform / 3600:.2f}h + write {est_write / 3600:.2f}h + overhead ~ {est_total / 3600:.2f}h total"
+    )
     return total, build_time, write_time
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

@@ -24,14 +24,9 @@ import duckdb
 def prepare(bronze_works: str, silver_editions: str, bronze_authors: str, limit: int, start_at: str):
     con = duckdb.connect()
     t0 = time.time()
-    con.execute(
-        f"CREATE TEMP TABLE sample_keys AS SELECT Key, JSON FROM '{bronze_works}' "
-        f"WHERE Key >= '{start_at}' ORDER BY Key LIMIT {limit}"
-    )
+    con.execute(f"CREATE TEMP TABLE sample_keys AS SELECT Key, JSON FROM '{bronze_works}' WHERE Key >= '{start_at}' ORDER BY Key LIMIT {limit}")
     rows = con.execute("SELECT Key, JSON FROM sample_keys ORDER BY Key").fetchall()
-    edition_rows = con.execute(
-        f"SELECT e.work_key, e.JSON FROM '{silver_editions}' e JOIN sample_keys s ON e.work_key = s.Key"
-    ).fetchall()
+    edition_rows = con.execute(f"SELECT e.work_key, e.JSON FROM '{silver_editions}' e JOIN sample_keys s ON e.work_key = s.Key").fetchall()
     works = [json.loads(r[1]) for r in rows]
     work_keys = [r[0] for r in rows]
     editions_by_work = {k: [] for k in work_keys}
@@ -49,9 +44,7 @@ def prepare(bronze_works: str, silver_editions: str, bronze_authors: str, limit:
                 ak = a["key"]
             if ak:
                 author_keys.add(ak)
-    author_rows = con.execute(
-        f"SELECT JSON FROM '{bronze_authors}' WHERE Key = ANY(?)", [list(author_keys)]
-    ).fetchall()
+    author_rows = con.execute(f"SELECT JSON FROM '{bronze_authors}' WHERE Key = ANY(?)", [list(author_keys)]).fetchall()
     authors = {}
     for (j,) in author_rows:
         doc = json.loads(j)
@@ -65,9 +58,7 @@ def load_ia_lite(path: str | None) -> dict[str, dict]:
         return {}
     con = duckdb.connect()
     out = {}
-    for ident, colls, ari in con.execute(
-        f"SELECT identifier, collections, ari FROM read_parquet('{path}')"
-    ).fetchall():
+    for ident, colls, ari in con.execute(f"SELECT identifier, collections, ari FROM read_parquet('{path}')").fetchall():
         out[ident] = {
             "identifier": ident,
             "collection": json.loads(colls),
@@ -81,7 +72,6 @@ def load_ia_lite(path: str | None) -> dict[str, dict]:
 def prepare_chunk(chunks_path: str, chunk_index: int, bronze_works: str, silver_editions: str, bronze_authors: str):
     """Load one chunk exactly like rust_solr chunk mode: numeric-id window over bucketed
     works/editions plus orphan editions (-> fake works /works/OLxxxM)."""
-    import re
 
     con = duckdb.connect()
     t0 = time.time()
@@ -90,8 +80,7 @@ def prepare_chunk(chunks_path: str, chunk_index: int, bronze_works: str, silver_
     lo, hi = int(c["lo"]), int(c["hi"])
 
     work_rows = con.execute(
-        f"SELECT Key, JSON FROM '{bronze_works}' "
-        f"WHERE CAST(regexp_extract(Key, '^/works/OL(\\d+)W$', 1) AS BIGINT) BETWEEN {lo} AND {hi} ORDER BY Key"
+        f"SELECT Key, JSON FROM '{bronze_works}' WHERE CAST(regexp_extract(Key, '^/works/OL(\\d+)W$', 1) AS BIGINT) BETWEEN {lo} AND {hi} ORDER BY Key"
     ).fetchall()
     works = [json.loads(j) for _, j in work_rows]
     work_keys = [k for k, _ in work_rows]
@@ -117,9 +106,7 @@ def prepare_chunk(chunks_path: str, chunk_index: int, bronze_works: str, silver_
         orphan_files += sorted(str(p) for p in Path(f"{ol_base}/orphans_bucketed").glob(f"bucket={b}/*.parquet"))
     if orphan_files:
         file_list = ",".join(f"'{f}'" for f in orphan_files)
-        orows = con.execute(
-            f"SELECT JSON FROM read_parquet([{file_list}]) WHERE id BETWEEN {lo} AND {hi}"
-        ).fetchall()
+        orows = con.execute(f"SELECT JSON FROM read_parquet([{file_list}]) WHERE id BETWEEN {lo} AND {hi}").fetchall()
         for (j,) in orows:
             orphan_editions.append(json.loads(j))
     print(f"Chunk [{lo},{hi}]: {len(works)} works, {len(orphan_editions)} orphan editions ({time.time() - t0:.1f}s)")
@@ -139,9 +126,7 @@ def prepare_chunk(chunks_path: str, chunk_index: int, bronze_works: str, silver_
                 ak = a["key"]
             if ak:
                 author_keys.add(ak)
-    author_rows = con.execute(
-        f"SELECT JSON FROM '{bronze_authors}' WHERE Key = ANY(?)", [list(author_keys)]
-    ).fetchall()
+    author_rows = con.execute(f"SELECT JSON FROM '{bronze_authors}' WHERE Key = ANY(?)", [list(author_keys)]).fetchall()
     authors = {}
     for (j,) in author_rows:
         doc = json.loads(j)
@@ -178,14 +163,11 @@ def main():
                 for ed in lst:
                     self.cache[ed["key"]] = ed
             # series docs so WorkSolrUpdater resolves series names like prod
-            import glob as _glob
 
             other = Path(args.bronze_works).parent / "other.parquet"
             if other.exists():
                 con2 = duckdb.connect()
-                for (j,) in con2.execute(
-                    f"SELECT JSON FROM read_parquet(['{other}']) WHERE Type = '/type/series'"
-                ).fetchall():
+                for (j,) in con2.execute(f"SELECT JSON FROM read_parquet(['{other}']) WHERE Type = '/type/series'").fetchall():
                     d = json.loads(j)
                     self.cache[d["key"]] = d
 
@@ -225,9 +207,7 @@ def main():
             args.chunks, args.chunk_index, args.bronze_works, args.silver_editions, args.bronze_authors
         )
     else:
-        works, editions_by_work, authors = prepare(
-            args.bronze_works, args.silver_editions, args.bronze_authors, args.limit, args.start_at
-        )
+        works, editions_by_work, authors = prepare(args.bronze_works, args.silver_editions, args.bronze_authors, args.limit, args.start_at)
         orphan_editions = []
 
     async def run():

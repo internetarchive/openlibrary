@@ -34,13 +34,11 @@ def main() -> None:
     t0 = time.time()
 
     con = duckdb.connect()
-    total, orphans = con.execute(
-        f"SELECT count(*), count_if(work_key IS NULL) FROM '{src}'"
-    ).fetchone()
+    total, orphans = con.execute(f"SELECT count(*), count_if(work_key IS NULL) FROM '{src}'").fetchone()
     print(f"silver editions: {total:,} rows, {orphans:,} orphans")
 
-    con.execute(f"SET memory_limit='4GB'")
-    con.execute(f"SET preserve_insertion_order=false")
+    con.execute("SET memory_limit='4GB'")
+    con.execute("SET preserve_insertion_order=false")
     con.execute(
         f"""
         COPY (
