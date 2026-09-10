@@ -11,6 +11,7 @@ from urllib.parse import urlencode
 
 import requests
 import web
+
 from infogami.infobase import client
 from infogami.utils import types
 

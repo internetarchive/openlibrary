@@ -5,9 +5,9 @@ Capture some of the unintuitive aspects of Storage, Things, and Works
 from unittest.mock import patch
 
 import web
-from infogami.infobase import client
 
 import openlibrary.core.lists.model as list_model
+from infogami.infobase import client
 from openlibrary.core.cache import _get_cache
 from openlibrary.mocks.mock_infobase import MockSite
 from openlibrary.utils.request_context import site as site_context
