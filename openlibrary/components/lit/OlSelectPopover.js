@@ -111,6 +111,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         :host {
             display: inline-block;
             font-family: var(--font-family-body);
+
+            /* Sizing for the panel below, declared here rather than on .panel
+               itself: the panel is slotted into <ol-popover>, whose tray
+               clears these so the content fills the full-bleed sheet, and an
+               override only reaches it by inheriting past the tray. */
+            --ol-popover-content-max-width: 360px;
+            --ol-popover-content-max-height: min(70vh, 480px);
         }
 
         /* The default trigger is an <ol-button> injected as a light-DOM child
@@ -124,8 +131,8 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             display: flex;
             flex-direction: column;
             min-width: 240px;
-            max-width: min(90vw, 360px);
-            max-height: min(70vh, 480px);
+            max-width: var(--ol-popover-content-max-width);
+            max-height: var(--ol-popover-content-max-height);
         }
 
         /* ── Filter input ────────────────────────────────────────── */
