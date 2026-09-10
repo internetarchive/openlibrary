@@ -78,22 +78,46 @@ class mybooks_home(delegate.page):
             # Dictionary mapping dedup_key -> (book, timestamp, is_active)
             merged_books: dict[str, tuple[Any, float, bool]] = {}
 
-            # Process active loans first
-            for loan in myloans:
-                book_key = loan["book"]
-                if book := site.get().get(book_key):
-                    for _ in range(5):
-                        if getattr(getattr(book, "type", None), "key", None) == "/type/redirect":
-                            book_key = book.location
-                            book = site.get().get(book_key)
-                        else:
-                            break
-                    if book:
-                        book.loan = loan
-                        works = getattr(book, "works", None)
-                        work_key = works[0].key if works and len(works) > 0 else book.key
-                        loaned_at = loan.get("loaned_at") or 0.0
-                        merged_books[work_key] = (book, float(loaned_at), True)
+            # Batch-fetch all loan book keys in one request.
+            book_keys = [loan["book"] for loan in myloans if loan.get("book")]
+            unique_keys = list(dict.fromkeys(book_keys))
+            fetched = site.get().get_many(unique_keys) if unique_keys else []
+            book_map: dict[str, Any] = {b.key: b for b in fetched}
+
+            # Resolve /type/redirect chains in batches (up to 5 hops).
+            # {loan_index: resolved_book_key} — tracks where each loan ends up.
+            loan_target: dict[int, str] = {}
+            for idx, loan in enumerate(myloans):
+                if loan.get("book") and loan["book"] in book_map:
+                    loan_target[idx] = loan["book"]
+
+            for _ in range(5):
+                unresolved = {
+                    idx: book_map[target].location
+                    for idx, target in loan_target.items()
+                    if getattr(getattr(book_map[target], "type", None), "key", None) == "/type/redirect"
+                }
+                if not unresolved:
+                    break
+                redirect_keys = list(dict.fromkeys(unresolved.values()))
+                redirect_books = site.get().get_many(redirect_keys)
+                redirect_map = {rb.key: rb for rb in redirect_books}
+                for idx, target_key in unresolved.items():
+                    if resolved := redirect_map.get(target_key):
+                        book_map[target_key] = resolved
+                        loan_target[idx] = target_key
+                    else:
+                        del loan_target[idx]
+
+            # Build merged_books from resolved loans.
+            for idx, loan in enumerate(myloans):
+                if idx in loan_target:
+                    book = book_map[loan_target[idx]]
+                    book.loan = loan
+                    works = getattr(book, "works", None)
+                    work_key = works[0].key if works and len(works) > 0 else book.key
+                    loaned_at = loan.get("loaned_at") or 0.0
+                    merged_books[work_key] = (book, float(loaned_at), True)
 
             # Ownership gate, not just "is logged in": mb.username comes from the
             # URL, while mb.me is the session. get_loan_history_data() resolves S3
