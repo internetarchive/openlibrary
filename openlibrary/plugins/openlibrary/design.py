@@ -98,8 +98,8 @@ PRINCIPLES = (
     Principle(
         "quiet-surface",
         "Quiet surface, quick hands",
-        "Polished, not extravagant. Flat controls, one accent, muted status colors, no gradients, no ornament. The interface should "
-        "be forgettable so the books and the work are not.",
+        "Polished, not extravagant. Flat controls, one accent, muted status colors, gradients and ornament used sparingly. The "
+        "interface should be forgettable so the books and the work are not.",
         "A moment that deserves celebration, like finishing a reading goal or a big import. A quiet toast is on-principle and a "
         "little cold. A flourish is warm and off-principle.",
     ),
