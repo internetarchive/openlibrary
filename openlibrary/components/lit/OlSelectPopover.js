@@ -186,7 +186,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
         .group {
             list-style: none;
             margin: 0;
-            padding: var(--spacing-inset-xs) 0;
+            padding: var(--menu-row-inset) 0;
         }
 
         /* Pinned above the suggestions scroll region, like the filter input.
@@ -222,7 +222,13 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             box-sizing: border-box;
             /* One height across every menu row. */
             min-height: var(--menu-row-height);
-            padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+            /* Inset from the panel edge so the hover fill reads as a pill
+               rather than a band running edge to edge. The padding gives back
+               what the margin takes, so the checkbox column stays at 16px. */
+            margin-inline: var(--menu-row-inset);
+            padding-block: var(--spacing-inset-xs);
+            padding-inline: var(--menu-row-padding-inline);
+            border-radius: var(--border-radius-button);
             line-height: var(--line-height-control);
             cursor: pointer;
             user-select: none;
@@ -239,16 +245,9 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
             background: var(--color-hover-overlay);
         }
 
-        .item--selected .item-row {
-            background: var(--color-control-selected-bg);
-            color: var(--color-link);
-            font-weight: 600;
-        }
-
-        .item--selected .item-row:focus-within,
-        .item--selected .item-row:hover {
-            background: var(--color-control-selected-bg-hover);
-        }
+        /* No selected-row styling: the checkbox is the state, and the selected
+           group pins the chosen items to the top of the panel. A tint on top of
+           both only makes the row look hovered. */
 
         .item-checkbox {
             flex-shrink: 0;
@@ -622,7 +621,7 @@ export class OlSelectPopover extends FormAssociatedMixin(LitElement) {
     _renderItem(item) {
         const isSelected = (this.selected || []).includes(item.value);
         return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
+            <li class="item">
                 <label class="item-row">
                     <input
                         type="checkbox"

@@ -61,11 +61,6 @@
   /* stylelint-enable declaration-block-no-duplicate-properties */
 }
 
-.header-bar .auth-component li button,
-.header-bar .auth-component li a {
-  color: var(--color-text);
-}
-
 .header-bar .dropdown-menu {
   text-align: left;
   background-color: var(--light-beige);

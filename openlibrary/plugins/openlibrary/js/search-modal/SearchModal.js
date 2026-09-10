@@ -295,26 +295,11 @@ export class SearchModal extends LitElement {
             padding: var(--spacing-md) 0;
         }
 
+        /* A ghost ol-button, so it paints itself; only its place in the row
+           lives here. */
         .clear-all {
             margin-left: auto;
-            padding: 3px var(--spacing-sm);
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
-            font: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .clear-all:hover { background: var(--lightest-grey); }
-        }
-
-        .clear-all:focus-visible {
-            outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
+            flex-shrink: 0;
         }
 
         /* ── Filter button row ─────────────────────────────────────── */
@@ -1097,11 +1082,11 @@ export class SearchModal extends LitElement {
                     @ol-select-popover-change=${this._onLanguagesChange}
                 ></ol-select-popover>
                 ${showClearAll ? html`
-                    <button
-                        type="button"
+                    <ol-button
+                        variant="ghost"
                         class="clear-all"
                         @click=${this._clearAllFilters}
-                    >${this._i18n.clearAll}</button>
+                    >${this._i18n.clearAll}</ol-button>
                 ` : nothing}
             </div>
         `;
