@@ -4,10 +4,10 @@ mvp_transform.py — Transform sampled works/editions/authors to Solr docs
 Uses FakeDataProvider (in-mem) + WorkSolrUpdater (same code as prod).
 Stubs ratings/reading_log/cover/ia_metadata per MVP scope (skip IA).
 """
+
 from __future__ import annotations
 
 import asyncio
-import json
 import time
 from pathlib import Path
 
@@ -114,14 +114,13 @@ async def transform():
             errors += 1
         t_build += time.time() - t1
         if (idx + 1) % 1000 == 0:
-            print(f"Transformed {idx+1}/{len(works)} docs={len(docs)}", flush=True)
+            print(f"Transformed {idx + 1}/{len(works)} docs={len(docs)}", flush=True)
 
     print(f"Transform done: {len(docs)} docs, build time {t_build:.2f}s", flush=True)
 
     # Write jsonl
     with open(OUT_DOCS, "wb") as out:
-        for d in docs:
-            out.write(orjson.dumps(d) + b"\n")
+        out.writelines(orjson.dumps(d) + b"\n" for d in docs)
     print(f"Wrote {OUT_DOCS} {len(docs)} docs", flush=True)
 
     elapsed = time.time() - t0

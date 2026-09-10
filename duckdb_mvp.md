@@ -67,4 +67,3 @@ touch PROGRESS_MVP_10k.md && echo "# MVP Progress $(date)" >> PROGRESS_MVP_10k.m
 
 ## Next
 If `MVP` wins, extend to `ratings/cover/ia` + `1M` `streaming` + `iceberg/parquet lake`.
-

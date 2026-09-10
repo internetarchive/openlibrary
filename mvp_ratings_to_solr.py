@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import json as _json
 import math
 import subprocess
@@ -76,7 +75,7 @@ async def post_batches_async(batches: list[list[dict]], update_url: str, concurr
                         )
                         res.raise_for_status()
                         break
-                    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as e:
+                    except httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError:
                         if attempt == 2:
                             raise
                         await asyncio.sleep(2**attempt)
@@ -101,7 +100,7 @@ def post_batches_sync(batches: list[list[dict]], update_url: str) -> tuple[int, 
                     )
                     res.raise_for_status()
                     break
-                except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as e:
+                except httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError:
                     if attempt == 2:
                         raise
                     time.sleep(2**attempt)
@@ -119,10 +118,12 @@ def main():  # noqa: PLR0915
     ap.add_argument("--no-commit", action="store_true")
     ap.add_argument("--skip-ratings", action="store_true")
     ap.add_argument("--skip-reading-log", action="store_true")
-    ap.add_argument("--gold", default="/mnt/HC_Volume_106672133/openlibrary/lake_full/gold/rust_full.parquet",
-                    help="gold parquet; work keys not present here are SKIPPED so atomic updates never create ghost stub docs")
-    ap.add_argument("--cleanup-ghosts", action="store_true",
-                    help="delete already-indexed stub docs whose keys are absent from gold, then exit")
+    ap.add_argument(
+        "--gold",
+        default="/mnt/HC_Volume_106672133/openlibrary/lake_full/gold/rust_full.parquet",
+        help="gold parquet; work keys not present here are SKIPPED so atomic updates never create ghost stub docs",
+    )
+    ap.add_argument("--cleanup-ghosts", action="store_true", help="delete already-indexed stub docs whose keys are absent from gold, then exit")
     ap.add_argument("--concurrency", type=int, default=8, help="concurrent POSTs (1=sync, >1=async) bench 8 optimal on 4c")
     ap.add_argument("--bench", action="store_true", help="sweep concurrency 1,2,4,8,16 on --limit sample")
     args = ap.parse_args()
@@ -195,11 +196,10 @@ def main():  # noqa: PLR0915
                 payload = xml.encode()
                 for attempt in range(3):
                     try:
-                        r = client.post(update_url, params={"commitWithin": "60000"}, content=payload,
-                                        headers={"Content-Type": "application/xml"})
+                        r = client.post(update_url, params={"commitWithin": "60000"}, content=payload, headers={"Content-Type": "application/xml"})
                         r.raise_for_status()
                         break
-                    except Exception as exc:
+                    except Exception:
                         if attempt == 2:
                             print(f"[cleanup] failing chunk head: {chunk[:3]}", flush=True)
                             raise
@@ -229,9 +229,7 @@ def main():  # noqa: PLR0915
         print("[ratings] aggregating...", flush=True)
         q0 = time.time()
         # ghost guard: keys absent from gold are skipped — atomic updates would create stub docs
-        con.execute(
-            f"CREATE OR REPLACE TEMP TABLE gold_keys AS SELECT key AS k FROM read_parquet(['{args.gold}'])"
-        )
+        con.execute(f"CREATE OR REPLACE TEMP TABLE gold_keys AS SELECT key AS k FROM read_parquet(['{args.gold}'])")
         cur = con.execute(f"""
             SELECT WorkKey,
                    count(*) FILTER (WHERE Rating=1) AS c1,

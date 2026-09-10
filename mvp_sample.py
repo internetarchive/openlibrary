@@ -10,6 +10,7 @@ Outputs:
   authors.json — dict author_key -> author_dict
 Logs to PROGRESS_MVP_10k.md
 """
+
 from __future__ import annotations
 
 import csv
@@ -231,7 +232,7 @@ def python_collect_editions_and_authors_single_pass(work_keys_set, author_keys, 
                         if end == -1:
                             skipped_prefilter += 1
                             continue
-                        wkey_candidate = json_str[idx : end]
+                        wkey_candidate = json_str[idx:end]
                     else:
                         # idx points to '"/works/OL', skip leading quote
                         idx += 1  # skip opening quote
@@ -275,7 +276,10 @@ def python_collect_editions_and_authors_single_pass(work_keys_set, author_keys, 
                             continue
                     authors[key] = doc
     elapsed = time.time() - start
-    print(f"Single-pass{' PREFILTER' if prefilter else ''} collected {edition_count} editions and {len(authors)}/{len(needed_authors)} authors in {elapsed:.2f}s (scanned {scanned} lines, parsed {parsed_editions}, skipped_prefilter {skipped_prefilter})", file=sys.stderr)
+    print(
+        f"Single-pass{' PREFILTER' if prefilter else ''} collected {edition_count} editions and {len(authors)}/{len(needed_authors)} authors in {elapsed:.2f}s (scanned {scanned} lines, parsed {parsed_editions}, skipped_prefilter {skipped_prefilter})",
+        file=sys.stderr,
+    )
     return editions_by_work, authors
 
 
@@ -316,8 +320,7 @@ def main():
         print(f"Parquet write failed: {e}", file=sys.stderr)
         # fallback jsonl
         with open(OUT_SAMPLE_JSONL, "w") as out:
-            for k, j in rows:
-                out.write(orjson.dumps({"key": k, "json": j}).decode() + "\n")
+            out.writelines(orjson.dumps({"key": k, "json": j}).decode() + "\n" for k, j in rows)
 
     # Also save works.json for transform (list of dicts)
     works_dicts = []
@@ -354,7 +357,7 @@ def main():
         print(f"Using SINGLE-PASS for editions+authors... prefilter={use_prefilter}", file=sys.stderr)
         t_ed = time.time()
         editions_by_work, authors = python_collect_editions_and_authors_single_pass(work_keys_set, author_keys_all, prefilter=use_prefilter)
-        print(f"Single-pass phase took {time.time()-t_ed:.2f}s", file=sys.stderr)
+        print(f"Single-pass phase took {time.time() - t_ed:.2f}s", file=sys.stderr)
     else:
         print("Using TWO-PASS (legacy)...", file=sys.stderr)
         editions_by_work = python_collect_editions_authors(work_keys_set)
@@ -371,10 +374,7 @@ def main():
 
     elapsed = time.time() - t0
     # Log to progress
-    msg = (
-        f"Sample done: works={len(works_dicts)} editions={total_editions} authors={len(authors)} "
-        f"elapsed={elapsed:.2f}s OL_DUMP={OL_DUMP}"
-    )
+    msg = f"Sample done: works={len(works_dicts)} editions={total_editions} authors={len(authors)} elapsed={elapsed:.2f}s OL_DUMP={OL_DUMP}"
     print(msg, file=sys.stderr)
     log_progress(msg)
     # Also write summary counts

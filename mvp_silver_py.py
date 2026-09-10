@@ -3,16 +3,19 @@
 mvp_silver_py.py — Build silver editions.work_key via pyarrow streaming (more robust than DuckDB COPY)
 Reads lake/bronze/editions.parquet batches, extracts work_key via orjson, writes lake/silver/editions.parquet
 """
+
+import json
 import time
 from pathlib import Path
-import pyarrow.parquet as pq
-import pyarrow as pa
+
 import orjson
-import json
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 BRONZE = Path("lake/bronze/editions.parquet")
 SILVER = Path("lake/silver/editions.parquet")
 SILVER.parent.mkdir(parents=True, exist_ok=True)
+
 
 def extract_work_key(json_str):
     # Fast prefilter then orjson
@@ -21,7 +24,7 @@ def extract_work_key(json_str):
     # Quick string find for /works/OL
     idx = json_str.find('"/works/OL')
     if idx == -1:
-        idx = json_str.find('/works/OL')
+        idx = json_str.find("/works/OL")
         if idx == -1:
             return None
         # fallback parse
@@ -40,6 +43,7 @@ def extract_work_key(json_str):
         return w.get("key")
     return None
 
+
 def main():
     print(f"Reading {BRONZE}")
     pf = pq.ParquetFile(BRONZE)
@@ -50,7 +54,7 @@ def main():
     schema = None
     written = 0
     for rg in range(pf.num_row_groups):
-        batch = pf.read_row_group(rg, columns=["Type","Key","Rev","LastModified","JSON"])
+        batch = pf.read_row_group(rg, columns=["Type", "Key", "Rev", "LastModified", "JSON"])
         # batch is Table
         # Extract work_key
         json_col = batch.column("JSON").to_pylist()
@@ -64,16 +68,18 @@ def main():
         writer.write_table(table)
         written += len(table)
         if rg % 20 == 0:
-            print(f"RG {rg}/{pf.num_row_groups} written {written} elapsed {time.time()-t0:.1f}s")
+            print(f"RG {rg}/{pf.num_row_groups} written {written} elapsed {time.time() - t0:.1f}s")
     if writer:
         writer.close()
-    elapsed = time.time()-t0
-    print(f"Done written {written} in {elapsed:.1f}s size {SILVER.stat().st_size/1e9:.2f}GB")
+    elapsed = time.time() - t0
+    print(f"Done written {written} in {elapsed:.1f}s size {SILVER.stat().st_size / 1e9:.2f}GB")
     # Verify
     import duckdb
-    con=duckdb.connect()
-    cnt=con.execute(f"SELECT count(*) FROM '{SILVER}'").fetchone()[0]
+
+    con = duckdb.connect()
+    cnt = con.execute(f"SELECT count(*) FROM '{SILVER}'").fetchone()[0]
     print(f"Verify count {cnt}")
+
 
 if __name__ == "__main__":
     main()

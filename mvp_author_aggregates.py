@@ -32,9 +32,9 @@ import time
 
 import duckdb
 import httpx
+import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
-import orjson
 
 SUBJECT_FACETS = ["subject_facet", "time_facet", "person_facet", "place_facet"]
 
@@ -73,17 +73,23 @@ def tune(con: duckdb.DuckDBPyConnection):
     con.execute("SET threads=4")
 
 
-SLIM_SCHEMA_WA = pa.schema([
-    ("wkey", pa.string()), ("akey", pa.string()), ("ec", pa.int64()),
-    ("title", pa.string()), ("subtitle", pa.string()), ("is_fake", pa.bool_()),
-])
+SLIM_SCHEMA_WA = pa.schema(
+    [
+        ("wkey", pa.string()),
+        ("akey", pa.string()),
+        ("ec", pa.int64()),
+        ("title", pa.string()),
+        ("subtitle", pa.string()),
+        ("is_fake", pa.bool_()),
+    ]
+)
 SLIM_SCHEMA_F = pa.schema([("wkey", pa.string()), ("fld", pa.string()), ("val", pa.string())])
-
 
 
 def rows_to_table(rows, schema):
     cols = list(zip(*rows))
     return pa.Table.from_arrays([pa.array(c, type=f.type) for c, f in zip(cols, schema)], schema=schema)
+
 
 def stream_slim(gold_files: list[str], out_dir: str):
     """One streaming pass over gold parts -> slim sidecar parquets (no giant-JSON ops in DuckDB).
@@ -92,6 +98,7 @@ def stream_slim(gold_files: list[str], out_dir: str):
     frequencies, not array-occurrence counts.
     """
     import os
+
     wa_dir, f_dir = os.path.join(out_dir, "wa"), os.path.join(out_dir, "facets")
     os.makedirs(wa_dir, exist_ok=True)
     os.makedirs(f_dir, exist_ok=True)
@@ -100,8 +107,7 @@ def stream_slim(gold_files: list[str], out_dir: str):
     n_parts = len(gold_files)
     wa_writer = pq.ParquetWriter(os.path.join(wa_dir, "slim.parquet"), SLIM_SCHEMA_WA, compression="zstd")
     f_writer = pq.ParquetWriter(os.path.join(f_dir, "slim.parquet"), SLIM_SCHEMA_F, compression="zstd")
-    fields = [("subject_facet", SUBJECT_FACETS[0]), ("time_facet", SUBJECT_FACETS[1]),
-              ("person_facet", SUBJECT_FACETS[2]), ("place_facet", SUBJECT_FACETS[3])]
+    fields = [("subject_facet", SUBJECT_FACETS[0]), ("time_facet", SUBJECT_FACETS[1]), ("person_facet", SUBJECT_FACETS[2]), ("place_facet", SUBJECT_FACETS[3])]
     try:
         for i, part in enumerate(gold_files):
             pf = pq.ParquetFile(part)
@@ -287,11 +293,9 @@ def build_from_slim(con: duckdb.DuckDBPyConnection, slim_dir: str, ratings: str,
     n = con.execute("SELECT count(*) FROM agg_final").fetchone()[0]
     BUILD_TOTAL[0] = n
     print(f"[final] agg_final built: {n:,} authors {time.time() - t0:.1f}s", flush=True)
-    dump = os.environ.get("AGG_DUMP")
-    if dump:
+    if dump := os.environ.get("AGG_DUMP"):
         con.execute(f"COPY agg_final TO '{dump}' (FORMAT PARQUET, COMPRESSION ZSTD)")
         print(f"[final] dumped to {dump}", flush=True)
-
 
 
 # Table kept for validation-time lookups (wa equivalent over all gold): rebuilt lazily per query.
@@ -389,7 +393,7 @@ async def validate(con: duckdb.DuckDBPyConnection, solr: str, n: int, authors_pa
 
     # authors owning fake works can't be validated against the pre-oracle index
     con.execute(
-        f"""
+        """
         CREATE OR REPLACE TEMP TABLE fake_authors AS
         SELECT DISTINCT unnest(from_json(json_extract(doc_json,'$.author_key[*]'),'["VARCHAR"]')) AS ak
         FROM read_parquet(['/mnt/HC_Volume_106672133/openlibrary/lake_full/gold/rust_full.parquet'])
@@ -433,10 +437,20 @@ async def validate(con: duckdb.DuckDBPyConnection, solr: str, n: int, authors_pa
             return a == b
 
         for f in (
-            "work_count", "ratings_average", "ratings_sortable", "ratings_count",
-            "ratings_count_1", "ratings_count_2", "ratings_count_3", "ratings_count_4",
-            "ratings_count_5", "readinglog_count", "want_to_read_count",
-            "currently_reading_count", "already_read_count", "stopped_reading_count",
+            "work_count",
+            "ratings_average",
+            "ratings_sortable",
+            "ratings_count",
+            "ratings_count_1",
+            "ratings_count_2",
+            "ratings_count_3",
+            "ratings_count_4",
+            "ratings_count_5",
+            "readinglog_count",
+            "want_to_read_count",
+            "currently_reading_count",
+            "already_read_count",
+            "stopped_reading_count",
         ):
             pv, rv = py_doc.get(f), ours[f]["set"]
             pv = pv if pv is not None else 0

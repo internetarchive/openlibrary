@@ -7,7 +7,7 @@ boundaries {n, lo, hi} so every chunk maps to a contiguous bucket range.
 
 Usage: python3 mvp_partition_works.py [CHUNK_SIZE=20000]
 """
-import gzip
+
 import os
 import re
 import sys
@@ -16,6 +16,7 @@ import time
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+
 
 def _valid_parquet(p):
     try:
@@ -73,17 +74,17 @@ for rg in range(pf.num_row_groups):
         written_this_rg += len(g)
     assert written_this_rg == tbl.num_rows, f"rg {rg}: wrote {written_this_rg} != {tbl.num_rows}"
     if rg % 20 == 0:
-        print(f"rg {rg}/{pf.num_row_groups} elapsed {time.time()-t0:.0f}s buckets {len(counts)}", flush=True)
+        print(f"rg {rg}/{pf.num_row_groups} elapsed {time.time() - t0:.0f}s buckets {len(counts)}", flush=True)
 
 ids_all = np.sort(np.concatenate(all_ids))
-print(f"total ids {len(ids_all)} unique {len(np.unique(ids_all))} in {time.time()-t0:.0f}s")
+print(f"total ids {len(ids_all)} unique {len(np.unique(ids_all))} in {time.time() - t0:.0f}s")
 
 # chunk boundaries over sorted unique ids
 uniq = np.unique(ids_all)
 chunks = []
 for i in range(0, len(uniq), CHUNK):
     part = uniq[i : i + CHUNK]
-    chunks.append({"n": int(len(part)), "lo": int(part[0]), "hi": int(part[-1])})
+    chunks.append({"n": len(part), "lo": int(part[0]), "hi": int(part[-1])})
 out_json = f"lake/silver/chunks_{CHUNK}.json"
 with open(out_json, "w") as f:
     import json

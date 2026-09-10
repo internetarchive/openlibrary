@@ -8,8 +8,8 @@ Usage:
   python mvp.py --no-load         # sample+transform without solr load
   python mvp.py                   # full pipeline sample+transform+load
 """
+
 import argparse
-import asyncio
 import subprocess
 import sys
 import time

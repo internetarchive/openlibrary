@@ -219,4 +219,3 @@ This is a critical blocker that prevents completion of the install-jenkins-plugi
 
 ### Prevention
 Ensure that Jenkins version is verified and upgraded before attempting plugin installation. The mission should validate that the upgrade-jenkins-image feature actually results in the expected Jenkins version running before proceeding to plugin installation.
-
