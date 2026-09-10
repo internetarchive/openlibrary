@@ -1264,7 +1264,6 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
-        from openlibrary.core.lending import get_loans_of_user
         from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 
         i = web.input(page=1)
@@ -1273,10 +1272,9 @@ class account_loans(delegate.page):
         except ValueError:
             page = 1
         user = accounts.get_current_user()
-        user.update_loan_status()
+        docs = user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
-        docs = get_loans_of_user(user.key)
         loan_history_data = get_loan_history_data(username, page=page)
         featured_subjects = get_cached_featured_subjects()
 
