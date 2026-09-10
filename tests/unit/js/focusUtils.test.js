@@ -7,7 +7,7 @@ import {
     isFocusable,
 } from '../../../openlibrary/components/lit/utils/focus-utils.js';
 
-// jsdom (used by jest-environment-jsdom 26) implements neither layout nor
+// jsdom implements neither layout nor
 // `Element.checkVisibility`. We mock checkVisibility on individual elements
 // in the visibility tests below — the runtime helper prefers it when present.
 

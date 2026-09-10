@@ -3,7 +3,7 @@ import { FocusableHostMixin } from '../../../openlibrary/components/lit/utils/fo
 // We test the mixin against a stand-in for LitElement: a plain HTMLElement
 // subclass that satisfies the parts of the contract the mixin reads from
 // (`shadowRootOptions`, `connectedCallback`, `focus`). This keeps the test
-// independent of a Lit transform in Jest.
+// independent of a Lit transform in the test runner.
 class MockBase extends HTMLElement {
     static shadowRootOptions = { mode: 'open' };
 

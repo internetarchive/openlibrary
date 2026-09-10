@@ -51,6 +51,7 @@
     "@tiptap/starter-kit": "^3.20.4",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vitest/coverage-v8": "^5.0.0",
+    "axe-core": "^4.13.0",
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
@@ -64,7 +65,6 @@
     "flot": "0.8.3",
     "globals": "^15.14.0",
     "isbn3": "1.2.19",
-    "jest-axe": "^10.0.0",
     "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.14.2",
@@ -98,7 +98,6 @@
   "engines": {
     "node": "^24.0.0"
   },
-
   "overrides": {
     "@ericblade/quagga2": {
       "form-data": "4.0.5",

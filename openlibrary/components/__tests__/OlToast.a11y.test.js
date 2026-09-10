@@ -4,11 +4,8 @@
  * Renders the real component so axe inspects its actual shadow DOM: the
  * role/aria-live pairing per type, and the close button's accessible name.
  */
-import { toHaveNoViolations } from 'jest-axe';
 import { checkA11y, cleanup, mount, nextFrames, setupComponentEnv } from '../test-utils/a11y.js';
 import '../lit/OlToast.js';
-
-expect.extend(toHaveNoViolations);
 
 beforeEach(() => setupComponentEnv());
 afterEach(cleanup);

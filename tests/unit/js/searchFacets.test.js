@@ -1,8 +1,5 @@
 /**
  * Unit tests for fetchFacetCounts() and mergeFacetCounts() (searchFacets.js),
- * shared by the /search filter bar and the header search modal.
- *
- * Run with: jest (or vitest — both work without config changes)
  *
  * Issue: #13060  —  feat(search): Wire facet droppers to context-aware counts
  */

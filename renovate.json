@@ -49,7 +49,7 @@
     },
     {
       "matchPackageNames": [
-        "jest",
+        "vitest",
         "bundlesize2",
         "sinon",
         "stylelint",
