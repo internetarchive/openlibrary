@@ -3,7 +3,7 @@ const vuePlugin = require("eslint-plugin-vue");
 const globals = require("globals");
 // NOTE: .babelrc is test/lint-only (babel-jest + this parser). The production
 // page-JS build uses Vite/Oxc with explicit core-js imports in
-// openlibrary/plugins/openlibrary/js/main.js (see vite-js-shared.mjs).
+// openlibrary/plugins/openlibrary/js/main.js (see scripts/vite/build.mjs).
 const babelParser = require("@babel/eslint-parser");
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -20,7 +20,7 @@ module.exports = [
       "infogami/",
       "node_modules/",
       "openlibrary/components/lit/icons.generated.js",
-      "scripts/",
+      "scripts/gh_scripts/",
       "static/build/",
       "build/",
       "coverage/",
@@ -52,17 +52,12 @@ module.exports = [
     },
   },
 
-  // Configuration for Vite config files (ES modules)
+  // Configuration for Vite shared modules (ES modules)
   {
     files: [
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
-      "vite-css.config.mjs",
-      "vite-js.config.mjs",
-      "vite-js-iife.config.mjs",
-      "vite-js-shared.mjs",
       "vite-asset-urls.mjs",
       "custom-elements-manifest.config.mjs",
+      "scripts/vite/**/*.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
