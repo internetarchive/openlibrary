@@ -3,22 +3,48 @@
 <!DOCTYPE html>
 <html lang="{{ layout.lang }}">
     {{ render_templetor_template("site/head", title=page.title) }}
-    {{ render_templetor_template("site/body", page) }}
-    {% if layout.show_ol_shell %}
-        <div class="clearfix"></div>
-        {% include "lib/nav_foot.html.jinja" %}
-    {% endif %}
-    {% if layout.is_debug %}
-        {% include "site/stats.html.jinja" %}
-    {% endif %}
-    {% if not layout.is_bot %}
-        <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
-    {% endif %}
-    <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
-    <script src="{{ static_url('build/lit-components/production/ol-components.js') }}"
-            type="module"></script>
-    <div class="analytics-stats-time-calculator"
-         data-time="{{ layout.total_time_ms }}"></div>
-</body>
+    <body class="{{ layout.body_class }}"
+          {% if layout.body_attrs %} {{ layout.body_attrs | safe }}{% endif %}>
+        <script>
+            // Provide a signal that JS will load
+            document.body.className += ' client-js';
+        </script>
+        <span id="top"></span>
+        <div id="offline-info">{{ _("It looks like you're offline.") }}</div>
+        {% if layout.show_ol_shell %}
+            {% include "site/alert.html.jinja" %}
+            {{ render_templetor_template('lib/nav_head', None) }}
+        {% endif %}
+        <main{% if layout.show_ol_shell %} id="test-body-mobile"{% endif %}>
+            {% if layout.show_ol_shell %}
+                {% if layout.flash_messages %}
+                    <div class="flash-messages">
+                        {% for flash in layout.flash_messages %}
+                            <div class="{{ flash['type'] }}"><span>{{ flash['message'] }}</span></div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if layout.show_announcement_banner %}
+                    {% include "site/banner.html.jinja" %}
+                {% endif %}
+            {% endif %}
+            {{ page | safe }}
+        </main>
+        {% if layout.show_ol_shell %}
+            <div class="clearfix"></div>
+            {% include "lib/nav_foot.html.jinja" %}
+        {% endif %}
+        {% if layout.is_debug %}
+            {% include "site/stats.html.jinja" %}
+        {% endif %}
+        {% if not layout.is_bot %}
+            <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+        {% endif %}
+        <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
+        <script src="{{ static_url('build/lit-components/production/ol-components.js') }}"
+                type="module"></script>
+        <div class="analytics-stats-time-calculator"
+             data-time="{{ layout.total_time_ms }}"></div>
+    </body>
 </html>
 {# djlint:on H016,H030 #}
