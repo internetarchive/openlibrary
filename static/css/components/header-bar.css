@@ -715,11 +715,12 @@
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
-  /* Match the nav ghost buttons: full text color for the label, muted for
-     the glyph, so the whole header row reads as one set of controls. */
+  /* Match the nav ghost buttons: the row's shared type size, full text color
+     for the label, muted for the glyph, so the whole header row reads as one
+     set of controls. */
   color: var(--color-text);
   font-family: inherit;
-  font-size: var(--font-size-label-large);
+  font-size: var(--header-control-font-size);
   font-weight: normal;
   cursor: pointer;
 }
