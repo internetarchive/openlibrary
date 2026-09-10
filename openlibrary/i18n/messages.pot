@@ -650,6 +650,10 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+#: site.html.jinja
+msgid "It looks like you're offline."
+msgstr ""
+
 #: status.html
 msgid "Open Library server status"
 msgstr ""
@@ -4473,7 +4477,7 @@ msgstr ""
 msgid "Terms of Service"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Donate"
 msgstr ""
 
@@ -4613,7 +4617,7 @@ msgstr ""
 msgid "Open Library on GitHub"
 msgstr ""
 
-#: lib/nav_foot.html.jinja site/alert.html
+#: lib/nav_foot.html.jinja site/alert.html.jinja
 msgid "Change Website Language"
 msgstr ""
 
@@ -5933,12 +5937,8 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: site/alert.html
+#: site/alert.html.jinja
 msgid "Internet Archive logo"
-msgstr ""
-
-#: site/body.html
-msgid "It looks like you're offline."
 msgstr ""
 
 #: site/head.html
