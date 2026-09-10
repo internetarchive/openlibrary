@@ -272,6 +272,11 @@ function getComponentsConfig() {
 
     return {
         ...baseConfig(),
+        // Entries are served from this path. Without a base, the modulepreload
+        // links `__vite__mapDeps` emits for code-split chunks resolve to
+        // `/assets/...` and 404. renderBuiltUrl keeps /static/ public urls intact.
+        base: "/static/build/components/production/",
+        experimental: { renderBuiltUrl: renderBuiltAssetUrl },
         plugins: [vue({ customElement: true }), virtualVuePlugin()],
         build: {
             target: ["es2019", "safari13"],

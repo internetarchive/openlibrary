@@ -10,6 +10,7 @@
     "watch:css": "node scripts/vite/build.mjs --only css --watch --mode development",
     "watch:lit-manifest": "npx cem analyze --watch",
     "watch:components": "node scripts/vite/build.mjs --only components --watch --mode development",
+    "watch:lit-components": "echo 'warning: watch:lit-components is deprecated, use watch:components instead' && npm run watch:components",
     "build": "node scripts/vite/build.mjs",
     "build-assets": "make js && make css && make components && make icons",
     "build-assets:css": "make css",
