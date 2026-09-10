@@ -4,8 +4,9 @@
   document any single component.
 #}
 {% import "design/_example.html.jinja" as ex %}
-{% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content')] %}
+{% set CHECKS = [('control-alignment', 'Control alignment'), ('control-states', 'Control states'), ('density', 'Density'), ('long-content', 'Long content'), ('rtl', 'Right-to-left')] %}
 {% set SELECT_ITEMS = "[{\"value\":\"en\",\"label\":\"English\"},{\"value\":\"es\",\"label\":\"Spanish\"},{\"value\":\"fr\",\"label\":\"French\"}]" %}
+{% set RTL_SELECT_ITEMS = "[{\"value\":\"ar\",\"label\":\"العربية\"},{\"value\":\"he\",\"label\":\"עברית\"},{\"value\":\"fa\",\"label\":\"فارسی\"},{\"value\":\"ur\",\"label\":\"اردو\"}]" %}
 {% macro nav() %}
     <ul class="ds__nav-list">
         {% for id, title in CHECKS %}<li><a href="#{{ id }}">{{ title }}</a></li>{% endfor %}
@@ -66,7 +67,8 @@
     </div>
 {% endmacro %}
 {% macro body() %}
-    <article class="ds-section" id="control-alignment">
+    <article class="ds-section control-alignment--guides-hidden"
+             id="control-alignment">
         <h2 class="ds-section__title">Control alignment</h2>
         <p class="ds-section__blurb">
             Each control sets <code>height</code> (not vertical padding) from the same token with
@@ -78,7 +80,7 @@
             the check for whether it still reads as aligned.
         </p>
         <div class="control-alignment__guides-toggle">
-            <ol-toggle id="control-alignment-guides" checked accessible-label="Show guide lines" label="Guide lines">
+            <ol-toggle id="control-alignment-guides" accessible-label="Show guide lines" label="Guide lines">
             </ol-toggle>
         </div>
         <h3 class="ds-group__title">Small — <code>--control-height-small</code></h3>
@@ -155,11 +157,7 @@
                     Fiction
                 </ol-chip>
             </div>
-            <div>
-                <ol-chip variant="neutral">
-                    Fiction
-                </ol-chip>
-            </div>
+            <div class="ds-state-grid__none">No disabled state</div>
             <div>
                 <ol-segmented-control accessible-label="State default">
                     <ol-segment value="a">
@@ -263,4 +261,189 @@
             </ol-toggle>
         </div>
     </section>
+    <article class="ds-section" id="rtl">
+        <h2 class="ds-section__title">Right-to-left</h2>
+        <p class="ds-section__blurb">
+            The same components under <code>dir="rtl"</code>, carrying Arabic and Hebrew. Anything laid out
+            with logical properties (<code>margin-inline-start</code>, <code>padding-inline</code>,
+            <code>inset-inline-end</code>) mirrors on its own; anything set with <code>left</code> or
+            <code>right</code> does not. Flip the direction and compare: an icon, chevron, or close button
+            stuck on the wrong side, text that still aligns left, a popover that opens away from its
+            trigger, or a Latin title and number that scramble inside an Arabic sentence is a bug.
+        </p>
+        <div class="rtl-check__controls">
+            <ol-segmented-control id="rtl-check-direction" value="rtl" accessible-label="Text direction">
+                <ol-segment value="rtl">
+                    RTL
+                </ol-segment>
+                <ol-segment value="ltr">
+                    LTR
+                </ol-segment>
+            </ol-segmented-control>
+        </div>
+        <div class="rtl-check" id="rtl-check" dir="rtl" lang="ar">
+            <h3 class="ds-group__title" dir="ltr" lang="en">Book page</h3>
+            <div class="ds-example__output rtl-check__book">
+                <div class="rtl-check__cover" aria-hidden="true"></div>
+                <div class="rtl-check__record">
+                    <h4 class="rtl-check__title">ألف ليلة وليلة</h4>
+                    <p class="rtl-check__subtitle">حكايات شهرزاد كاملة في ثلاثة مجلدات</p>
+                    <p class="rtl-check__byline">
+                        <a href="#rtl">مؤلف مجهول</a>، ترجمة <a href="#rtl">أنطوان غالان</a> · الطبعة الثالثة، 1835
+                    </p>
+                    <ol-chip-group>
+                        <ol-chip variant="subject" size="small">
+                            أدب عربي
+                        </ol-chip>
+                        <ol-chip variant="genre" size="small">
+                            حكايات شعبية
+                        </ol-chip>
+                        <ol-chip variant="place" size="small">
+                            بغداد
+                        </ol-chip>
+                        <ol-chip variant="language" size="small" selected>
+                            العربية
+                        </ol-chip>
+                        <ol-chip variant="neutral" size="small" count="1,204">
+                            إصدارات
+                        </ol-chip>
+                    </ol-chip-group>
+                    <div class="ds-demo-row">
+                        <ol-button variant="primary">
+                            اقرأ الآن
+                        </ol-button>
+                        <ol-button variant="secondary">
+                            أريد أن أقرأ
+                        </ol-button>
+                        <ol-toggle variant="button" label="المتاح للقراءة فقط" sublabel="٤٫٦ مليون">
+                        </ol-toggle>
+                    </div>
+                    <ol-read-more more-text="اقرأ المزيد" less-text="اقرأ أقل">
+                        <p>
+                            مجموعة من الحكايات الشعبية التي جُمعت على مدى قرون، تروي فيها شهرزاد قصة كل ليلة
+                            لتؤجل حكم الإعدام. تتضمن الطبعة الإنجليزية الأولى <bdi lang="en">The Arabian Nights' Entertainments</bdi>
+                            التي صدرت عام 1706، ثم ترجمة <bdi lang="en">Richard Burton</bdi> الكاملة في 16 مجلدًا بين
+                            عامي 1885 و1888. ضمّت الترجمات اللاحقة حكايات لم ترد في المخطوطات العربية الأصلية،
+                            مثل علاء الدين وعلي بابا والأربعين لصًا. تُعد هذه الحكايات من أكثر النصوص تأثيرًا في
+                            الأدب العالمي، وقد أُعيدت صياغتها في المسرح والسينما والموسيقى مرات لا تُحصى، وما زالت
+                            تُقرأ اليوم بلغات كثيرة وفي طبعات متنوعة تناسب القراء من كل الأعمار.
+                            وتختلف الطبعات اختلافًا كبيرًا في عدد الحكايات وترتيبها، إذ لا توجد نسخة واحدة معتمدة؛
+                            فبعضها يقتصر على مئتي ليلة، وبعضها يبلغ الألف بإضافة حكايات من مصادر أخرى. وقد اعتمدت
+                            طبعة بولاق الصادرة في القاهرة عام 1835 مرجعًا لكثير من الترجمات الحديثة، وهي الطبعة
+                            التي يستند إليها هذا السجل.
+                            أما المخطوطة السورية المحفوظة في المكتبة الوطنية الفرنسية، وهي أقدم ما وصلنا من النص،
+                            فلا تتجاوز مئتين وثمانين ليلة، وقد اعتمدها محسن مهدي في طبعته النقدية عام 1984، فكانت
+                            أساسًا لترجمة <bdi lang="en">Husain Haddawy</bdi> الإنجليزية التي صدرت بعدها بست سنوات.
+                            ولا يزال الجدل قائمًا حول أصل الحكايات: أهي هندية أم فارسية أم عربية خالصة؟ والأرجح أنها
+                            نشأت في الهند، وانتقلت إلى فارس باسم «هزار أفسانه»، ثم عُرّبت في بغداد في العصر العباسي،
+                            وأضيفت إليها طبقات من الحكايات المصرية في القاهرة المملوكية، فجاءت على صورتها التي
+                            نعرفها اليوم مزيجًا من ثقافات عدة وقرون متعاقبة.
+                        </p>
+                    </ol-read-more>
+                    <ol-banner variant="warning">
+                        <span>هذه الطبعة تحتوي على 3 أخطاء استيراد لم تُحل بعد. <a href="#rtl">راجع السجل</a></span>
+                    </ol-banner>
+                </div>
+            </div>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Toolbar</h3>
+            <div class="ds-example__output ds-pattern-bar">
+                <ol-button size="small" variant="secondary">
+                    تصفية
+                </ol-button>
+                <ol-segmented-control size="small" accessible-label="طريقة العرض">
+                    <ol-segment value="grid">
+                        شبكة
+                    </ol-segment>
+                    <ol-segment value="list">
+                        قائمة
+                    </ol-segment>
+                </ol-segmented-control>
+                <ol-select-popover label="اللغة" search-threshold="999" aria-label="تصفية حسب اللغة" items='{{ RTL_SELECT_ITEMS }}'>
+                    <ol-button slot="trigger" size="small" variant="secondary">
+                        اللغة
+                    </ol-button>
+                </ol-select-popover>
+                <ol-pagination size="small" total-pages="12" current-page="3" label-pagination="ترقيم الصفحات">
+                </ol-pagination>
+                <span class="ds-pattern-bar__spacer"></span>
+                <ol-button size="small" variant="primary">
+                    تطبيق
+                </ol-button>
+            </div>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Form</h3>
+            <form class="ds-example__output rtl-check__form"
+                  onsubmit="event.preventDefault();">
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-title">العنوان</label>
+                    <input id="rtl-check-title"
+                           class="rtl-check__input"
+                           type="text"
+                           value="ألف ليلة وليلة">
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-isbn">الرقم الدولي الموحد للكتاب <span class="rtl-check__hint">(ISBN)</span></label>
+                    <input id="rtl-check-isbn"
+                           class="rtl-check__input"
+                           type="text"
+                           dir="ltr"
+                           value="978-0-14-044938-1">
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-lang">لغة الطبعة</label>
+                    <select id="rtl-check-lang" class="rtl-check__input">
+                        <option>العربية</option>
+                        <option lang="he">עברית</option>
+                        <option lang="fa">فارسی</option>
+                        <option lang="en">English</option>
+                    </select>
+                </div>
+                <div class="rtl-check__field">
+                    <label class="ds-demo-label" for="rtl-check-notes">ملاحظات</label>
+                    <textarea id="rtl-check-notes" class="ds-demo-textarea" rows="3">نسخة مترجمة عن الطبعة الفرنسية، مع مقدمة للمترجم.</textarea>
+                </div>
+                <div class="rtl-check__field">
+                    <ol-toggle label="إشعاري عند تعديل هذا السجل" sublabel="بريد إلكتروني أسبوعي" checked>
+                    </ol-toggle>
+                </div>
+                <div class="rtl-check__actions">
+                    <ol-button variant="primary" type="submit">
+                        حفظ
+                    </ol-button>
+                    <ol-button variant="secondary">
+                        إلغاء
+                    </ol-button>
+                </div>
+            </form>
+            <h3 class="ds-group__title" dir="ltr" lang="en">Hebrew</h3>
+            <div class="ds-example__output rtl-check__book" lang="he">
+                <div class="rtl-check__cover" aria-hidden="true"></div>
+                <div class="rtl-check__record">
+                    <h4 class="rtl-check__title">סיפור על אהבה וחושך</h4>
+                    <p class="rtl-check__byline">
+                        מאת <a href="#rtl">עמוס עוז</a> · כתר, 2002 · 593 עמודים
+                    </p>
+                    <ol-chip-group>
+                        <ol-chip variant="author" size="small">
+                            עמוס עוז
+                        </ol-chip>
+                        <ol-chip variant="place" size="small">
+                            ירושלים
+                        </ol-chip>
+                        <ol-chip variant="language" size="small">
+                            עברית
+                        </ol-chip>
+                    </ol-chip-group>
+                    <div class="ol-message ol-message--success">השינויים נשמרו. <bdi lang="en">Solr</bdi> יתעדכן תוך כמה דקות.</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                const root = document.getElementById('rtl-check');
+                document.getElementById('rtl-check-direction').addEventListener('ol-segmented-control-change', (e) => {
+                    root.setAttribute('dir', e.detail.value);
+                });
+            })();
+        </script>
+    </article>
 {% endmacro %}
