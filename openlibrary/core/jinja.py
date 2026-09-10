@@ -112,6 +112,13 @@ def get_jinja_env() -> Environment:
     # system primitive any template may need.
     env.globals["icon"] = _icon
 
+    # static_url is used by many templates (site shell, nav, macros) so it
+    # is a true Jinja global, like icon. Import here to avoid circular
+    # import at module load time.
+    from openlibrary.plugins.upstream.code import static_url
+
+    env.globals["static_url"] = static_url
+
     # A force-escape filter that works even under autoescape=True.
     # Jinja2's built-in ``escape``/``e`` filter is a no-op when autoescaping
     # is already active because the template output is wrapped in ``Markup``
@@ -132,12 +139,3 @@ def get_jinja_env() -> Environment:
     # ``install_gettext_callables`` auto-registers ``_``, ``gettext``, and
     # ``ngettext`` in ``env.globals`` — no manual globals registration needed.
     return env
-
-
-class SiteLayoutTemplate:
-    """``site`` pile entry whose ``filename`` satisfies saferender()'s error path."""
-
-    filename = "openlibrary/templates/site.html.jinja"
-
-    def __call__(self, page: Any) -> str:
-        return render_jinja_template("site.html.jinja", page=page)
