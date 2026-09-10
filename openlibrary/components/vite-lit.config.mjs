@@ -22,8 +22,8 @@ export default defineConfig({
         // Output directory for built files
         outDir: join(BUILD_DIR, '/production'),
 
-        // Rollup-specific options
-        rollupOptions: {
+        // Rolldown-specific options
+        rolldownOptions: {
             input: {
                 'ol-components': 'openlibrary/components/lit/index.js'
             },

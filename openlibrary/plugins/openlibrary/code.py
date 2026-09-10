@@ -23,7 +23,8 @@ from openlibrary.core.batch_imports import (
     batch_import,
 )
 from openlibrary.core.env import get_deployment_name, get_ol_env
-from openlibrary.core.jinja import SiteLayoutTemplate, render_jinja_template
+from openlibrary.core.jinja import render_jinja_template
+from openlibrary.core.layout import SiteLayoutTemplate
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -1059,6 +1060,28 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
+def get_supported_languages() -> dict[str, dict[str, str]]:
+    return {
+        "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
+        "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
+        "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
+        "en": {"code": "en", "localized": _("English"), "native": "English"},
+        "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
+        "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
+        "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
+        "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
+        "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
+        "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
+        "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
+        "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
+        "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
+        "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
+        "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
+        "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
+        "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
+    }
+
+
 def is_bot():
     """Check if the current request is from a bot."""
     return req_context.get().is_bot
@@ -1081,27 +1104,6 @@ def setup_template_globals():
         get_book_provider_by_name,
         get_cover_url,
     )
-
-    def get_supported_languages():
-        return {
-            "ar": {"code": "ar", "localized": _("Arabic"), "native": "العربية"},
-            "cs": {"code": "cs", "localized": _("Czech"), "native": "Čeština"},
-            "de": {"code": "de", "localized": _("German"), "native": "Deutsch"},
-            "en": {"code": "en", "localized": _("English"), "native": "English"},
-            "es": {"code": "es", "localized": _("Spanish"), "native": "Español"},
-            "fr": {"code": "fr", "localized": _("French"), "native": "Français"},
-            "hi": {"code": "hi", "localized": _("Hindi"), "native": "हिंदी"},
-            "hr": {"code": "hr", "localized": _("Croatian"), "native": "Hrvatski"},
-            "it": {"code": "it", "localized": _("Italian"), "native": "Italiano"},
-            "ko": {"code": "ko", "localized": _("Korean"), "native": "한국어"},
-            "pt": {"code": "pt", "localized": _("Portuguese"), "native": "Português"},
-            "ro": {"code": "ro", "localized": _("Romanian"), "native": "Română"},
-            "sc": {"code": "sc", "localized": _("Sardinian"), "native": "Sardu"},
-            "te": {"code": "te", "localized": _("Telugu"), "native": "తెలుగు"},
-            "uk": {"code": "uk", "localized": _("Ukrainian"), "native": "Українська"},
-            "zh": {"code": "zh", "localized": _("Chinese"), "native": "中文"},
-            "tl": {"code": "tl", "localized": _("Filipino"), "native": "Filipino"},
-        }
 
     web.template.Template.globals.update(
         {
