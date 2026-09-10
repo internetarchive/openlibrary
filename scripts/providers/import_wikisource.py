@@ -1,9 +1,8 @@
 """
 To Run:
 
-uv pip install -r requirements_scripts.txt && \
-    PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml && \
-    uv pip uninstall -y -r requirements_scripts.txt
+uv sync --extra scripts && \
+    PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml
 """
 
 import itertools

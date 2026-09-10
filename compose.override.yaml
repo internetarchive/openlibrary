@@ -21,6 +21,8 @@ services:
       - ol-build:/openlibrary/static/build
       # Persistent volume mount for node_modules
       - ol-nodemodules:/openlibrary/node_modules
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - ol-venv:/openlibrary/.venv
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -49,6 +51,12 @@ services:
       - type: volume
         source: ol-vendor
         target: /openlibrary/vendor
+        volume:
+          nocopy: true
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - type: volume
+        source: ol-venv
+        target: /openlibrary/.venv
         volume:
           nocopy: true
       # Persistent volume mount for generated css and js
@@ -107,6 +115,12 @@ services:
         target: /openlibrary/vendor
         volume:
           nocopy: true
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - type: volume
+        source: ol-venv
+        target: /openlibrary/.venv
+        volume:
+          nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
@@ -145,6 +159,12 @@ services:
         target: /openlibrary/vendor
         volume:
           nocopy: true
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - type: volume
+        source: ol-venv
+        target: /openlibrary/.venv
+        volume:
+          nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   infobase:
@@ -164,6 +184,12 @@ services:
       - type: volume
         source: ol-vendor
         target: /openlibrary/vendor
+        volume:
+          nocopy: true
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - type: volume
+        source: ol-venv
+        target: /openlibrary/.venv
         volume:
           nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -205,6 +231,12 @@ services:
         target: /openlibrary/node_modules
         volume:
           nocopy: true
+      # Persistent volume mount for .venv (installed via uv in the image)
+      - type: volume
+        source: ol-venv
+        target: /openlibrary/.venv
+        volume:
+          nocopy: true
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
@@ -236,4 +268,5 @@ volumes:
   ol-vendor:
   ol-build:
   ol-nodemodules:
+  ol-venv:
   ol-postgres:

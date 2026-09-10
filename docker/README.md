@@ -80,13 +80,13 @@ For example, to access Solr admin, go to <http://localhost:8983/solr/admin/>
 
 These instructions are for contributors who have **already** built Open Library using Docker, but may have made or pulled changes to their codebase that conflict with what's baked into the image.
 
-Building the Open Library project can take a while and most of its images don't change often, so we only want to rebuild them when necessary. When a docker image is created, its dependencies (`pip`, `npm`, `apt-get`) are frozen in time and will be inherited by any container based from it.
+Building the Open Library project can take a while and most of its images don't change often, so we only want to rebuild them when necessary. When a docker image is created, its dependencies (`uv`, `npm`, `apt-get`) are frozen in time and will be inherited by any container based from it.
 
 Occasionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/css that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
 
 | Change                                                          | Fix                                                                                                                                                                                                         |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: `docker compose build home`                                                                                                                                             |
+| **`uv` python package dependencies** (in `pyproject.toml`) | rebuild just the `home` image with: `docker compose build home`                                                                                                                                             |
 | **`npm` packages**                                              | run `docker compose run --rm home npm install --no-audit` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)                                                                 |
 | **`js`, `vue`, `css`** and other static front-end assets        | perform a complete rebuild of assets using `docker compose run --rm home npm run build-assets`, or follow the [Frontend Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html) to rebuild only certain asset types. |
 

@@ -1,5 +1,5 @@
 # To enable this pre-commit hook run:
-# `pip install pre-commit` or `brew install pre-commit`
+# `uv tool install pre-commit` or `brew install pre-commit`
 # Then run `pre-commit install`
 
 # Learn more about this config here: https://pre-commit.com/

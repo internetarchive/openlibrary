@@ -23,33 +23,18 @@ jobs:
         with:
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version-file: pyproject.toml
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
-      - if: "contains(matrix.python-version, '-dev')"
-        run: |
-          sudo apt-get update
-          # https://lxml.de/installation.html#requirements
-          sudo apt-get install -y libxml2 libxslt-dev
+      - name: Read Python version
+        id: pyversion
+        run: echo "version=$(cat .python-version)" >> "$GITHUB_OUTPUT"
       - name: Install uv
         uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+          python-version: ${{ steps.pyversion.outputs.version }}
+      - name: Verify lockfile is up to date
+        run: uv lock --check
       - name: Install dependencies
-        env:
-          UV_SYSTEM_PYTHON: 1
-        run: |
-          # Try to upgrade pip, setuptools, and wheel
-          uv pip install --upgrade pip setuptools wheel || {
-            echo "pip is broken or missing, reinstalling..."
-            curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-            python get-pip.py
-            rm -f get-pip.py
-            uv pip install --upgrade pip setuptools wheel
-          }
-          uv pip install -r requirements_test.txt
+        run: uv sync --frozen --extra test
       - run: make git
       - name: Run make i18n
         run: |

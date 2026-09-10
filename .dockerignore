@@ -7,5 +7,6 @@ config
 build
 **.pyc
 **__pycache__
+.venv
 venv/
 node_modules
