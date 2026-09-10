@@ -22,9 +22,9 @@
  * sized to be comfortably tappable rather than to line up beside a button. One
  * height across every menu/popover row keeps them scannable.
  *
- * Applied as `min-height` — a row with a description or a wrapping label grows
- * past it — so keep the row's own vertical padding under the height, or the
- * padding sets it instead and rows drift apart again.
+ * Applied as `min-height`, never a fixed `height` — a row with a description or
+ * a wrapping label grows past it — so keep the row's own vertical padding under
+ * the height, or the padding sets it instead and rows drift apart again.
  *
  * A row is inset from its panel by `--menu-row-inset` and rounded, so its hover
  * fill reads as a pill rather than a band running to the panel's edges. The
