@@ -864,7 +864,7 @@ class User(models.User):
         """Update the status of this user's loans."""
         loans = lending.get_loans_of_user(self.key)
         for loan in loans:
-            lending.sync_loan(loan["ocaid"])
+            lending.sync_loan(loan["ocaid"], loan)
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()
