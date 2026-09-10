@@ -430,7 +430,7 @@
       var(--header-bar-gradient-end)
     );
     padding: var(--spacing-inset-xs) 0;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
+    border-bottom: 1px solid var(--color-border-muted);
     z-index: var(--z-index-level-3);
   }
 
@@ -441,10 +441,6 @@
 
   .header-bar .search-component {
     height: 44px;
-  }
-
-  .header-bar.mobile {
-    padding: var(--spacing-inset-sm) 0;
   }
 }
 
