@@ -253,7 +253,6 @@
   flex-basis: 100%;
   padding: 0;
   font-size: var(--header-control-font-size);
-  font-weight: 500;
 }
 
 /* stylelint-disable selector-max-specificity */
@@ -452,7 +451,9 @@
 /* ── Header nav controls ─────────────────────────────────────
  * The header renders before the Lit bundle hydrates, so these controls can't
  * be <ol-button>s. The two classes below reproduce the ghost and primary
- * variants in the light DOM; keep them in step with OLButton.js.
+ * variants in the light DOM; keep them in step with OLButton.js. The explicit
+ * `font-weight: normal` is one of them: <ol-button> declares no weight, so it
+ * renders at the page's, and a native <button> would otherwise take the UA's.
  */
 
 /* Ghost — the header's low-emphasis controls (My Books, Browse, Log In):
@@ -471,7 +472,7 @@
   color: var(--color-text);
   font-family: inherit;
   font-size: var(--header-control-font-size);
-  font-weight: 500;
+  font-weight: normal;
   text-decoration: none;
   cursor: pointer;
   /* Hover is instant (see docs/ai/design.md); only the :active press animates. */
@@ -514,7 +515,7 @@
   color: var(--white);
   font-family: inherit;
   font-size: var(--header-control-font-size);
-  font-weight: 500;
+  font-weight: normal;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
@@ -719,7 +720,7 @@
   color: var(--color-text);
   font-family: inherit;
   font-size: var(--font-size-label-large);
-  font-weight: 500;
+  font-weight: normal;
   cursor: pointer;
 }
 
