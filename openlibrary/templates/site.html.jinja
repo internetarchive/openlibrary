@@ -1,3 +1,24 @@
-{{ render_templetor_template("site/head", title=page.title) }}
-{{ render_templetor_template("site/body", page) }}
-{{ render_templetor_template("site/footer", page) }}
+{# djlint:off H016,H030 #}
+{# TODO: Remove H016/H030 ignore after migrating site/head.html to Jinja (head currently rendered via Templetor) #}
+<!DOCTYPE html>
+<html lang="{{ layout.lang }}">
+    {{ render_templetor_template("site/head", title=page.title) }}
+    {{ render_templetor_template("site/body", page) }}
+    {% if layout.show_ol_shell %}
+        <div class="clearfix"></div>
+        {% include "lib/nav_foot.html.jinja" %}
+    {% endif %}
+    {% if layout.is_debug %}
+        {% include "site/stats.html.jinja" %}
+    {% endif %}
+    {% if not layout.is_bot %}
+        <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+    {% endif %}
+    <script src="{{ static_url('build/js/all.js') }}" type="module"></script>
+    <script src="{{ static_url('build/lit-components/production/ol-components.js') }}"
+            type="module"></script>
+    <div class="analytics-stats-time-calculator"
+         data-time="{{ layout.total_time_ms }}"></div>
+</body>
+</html>
+{# djlint:on H016,H030 #}
