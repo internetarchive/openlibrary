@@ -14,8 +14,16 @@
 #     the list and pinned to commit, then the full list is built.
 #     If no state file exists yet, one is created from the branches-file.
 
-TESTING_STATE_FILE="_testing-prs.json"
+SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
+WORK_DIR=$(pwd)
+TESTING_STATE_FILE="$WORK_DIR/_testing-prs.json"
+TRANSCRIPT_FILE=$(mktemp "${TMPDIR:-/tmp}/dev-merged-status.XXXXXX")
+CONFLICTS_FILE="$WORK_DIR/_testing-merge-conflicts.json"
 NEW_BRANCH=${2:-$1}
+
+# Capture this run so the post-deploy analyzer can read the complete transcript.
+# The merge command remains authoritative; analyzer failures are ignored.
+exec > >(tee "$TRANSCRIPT_FILE") 2>&1
 
 # --- Phase 1: if a branches file was provided, add/update those PRs in the state ---
 if [[ -n "$2" ]]; then
@@ -85,6 +93,7 @@ if [[ -f "$TESTING_STATE_FILE" ]]; then
         fi
         git merge "$pinned_sha"
         if [[ $(git ls-files -u) ]]; then
+            conflict_files=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ' ')
             git merge --abort
             echo "Merge conflict for PR #$pr_num (pinned $pinned_sha) — skipping"
         fi
@@ -104,3 +113,10 @@ fi
 
 echo "---"
 echo "Complete; $NEW_BRANCH created (SHA: $(git rev-parse --short HEAD))"
+
+# Conflict analysis is advisory metadata. Never let it affect the deploy result.
+python3 scripts/analyze_merge_conflicts.py \
+    --status-file "$TRANSCRIPT_FILE" \
+    --state-file "$TESTING_STATE_FILE" \
+    --output-file "$CONFLICTS_FILE" || true
+rm -f "$TRANSCRIPT_FILE"

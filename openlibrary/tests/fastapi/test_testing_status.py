@@ -124,83 +124,53 @@ async def test_get_drift_info_fetches_prs_concurrently():
 
 
 def test_build_testing_status_marks_merge_conflicts():
-    """Rows whose merge failed on the last deploy carry the merge_conflict flag."""
+    """Rows whose merge failed on the last deploy carry the merge_conflict flag and conflict_with."""
     state = _make_state(prs=[_make_pr(pr_number=13269), _make_pr(pr_number=13238, added_at="2026-08-01T00:00:00+00:00")])
-    result = status_module.build_testing_status(state, {}, merge_conflicts=frozenset({13269}))
+    result = status_module.build_testing_status(state, {}, merge_conflicts={13269: [13208]})
 
     by_pr = {pr.pr: pr for pr in result.prs}
     assert by_pr[13269].merge_conflict is True
+    assert by_pr[13269].conflict_with == [13208]
     assert by_pr[13238].merge_conflict is False
+    assert by_pr[13238].conflict_with == []
 
 
-def test_merge_conflicted_prs_reads_deploy_status_file():
-    """Both the deploy script's summary and git's message mark a PR conflicted."""
-    dms = status_module.DevMergedStatus(
-        git_status="x",
-        pr_statuses=[
-            status_module.PRStatus(pull_line="origin pull/13208/head  # A", status="Already up to date.", body=""),
-            # The real deploy-script summary (scripts/make-integration-branch.sh).
-            status_module.PRStatus(
-                pull_line="origin pull/13370/head  # B",
-                status="Merge conflict for PR #13370 (pinned 0e710e2b7cd80fa8dcb05d1ccb941ab9d83e23a5) — skipping",
-                body="",
-            ),
-            # git's own merge output, when the transcript captures it.
-            status_module.PRStatus(
-                pull_line="origin pull/12914/head  # C",
-                status="Automatic merge failed; fix conflicts and then commit the result.",
-                body="",
-            ),
-            status_module.PRStatus(pull_line="origin pull/13220/head  # D", status="Merge made by the 'ort' strategy.", body=""),
-        ],
-        footer="",
-    )
-    with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms):
-        assert status_module._merge_conflicted_prs() == frozenset({13370, 12914})
+@pytest.mark.asyncio
+async def test_conflict_analysis_runs_once_per_transcript_version(tmp_path, monkeypatch):
+    status_file = tmp_path / "_dev-merged_status.txt"
+    state_file = tmp_path / "_testing-prs.json"
+    conflicts_file = tmp_path / "_testing-merge-conflicts.json"
+    status_file.write_text("transcript")
+    state_file.write_text("{}")
+    monkeypatch.setattr(status_module, "TESTING_STATE_FILE", state_file)
+    monkeypatch.setattr(status_module, "TESTING_CONFLICTS_FILE", conflicts_file)
+    monkeypatch.setattr(status_module, "_CONFLICT_ANALYSIS_VERSION", None)
+    calls = []
 
-    with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=None):
-        assert status_module._merge_conflicted_prs() == frozenset()
+    def analyze(*args):
+        calls.append(args)
 
+    with patch("openlibrary.plugins.openlibrary.status.Path", wraps=status_module.Path), patch("scripts.analyze_merge_conflicts.main", side_effect=analyze):
+        # The helper uses the conventional working-directory transcript path.
+        monkeypatch.chdir(tmp_path)
+        await status_module._ensure_merge_conflicts_analyzed()
+        await status_module._ensure_merge_conflicts_analyzed()
 
-def test_merge_conflicted_prs_falls_back_to_pr_number_in_message():
-    """A summary line with no parseable pull_line still names its PR."""
-    dms = status_module.DevMergedStatus(
-        git_status="x",
-        pr_statuses=[
-            status_module.PRStatus(
-                pull_line="Some branch title",
-                status="Merge conflict for PR #13370 (pinned 0e710e2b) — skipping",
-                body="",
-            )
-        ],
-        footer="",
-    )
-    with patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms):
-        assert status_module._merge_conflicted_prs() == frozenset({13370})
+    assert len(calls) == 1
 
 
 def test_load_testing_status_async_wires_merge_conflicts():
     """The async loader passes the deploy-status conflicts into the built rows."""
     state = _make_state()
-    dms = status_module.DevMergedStatus(
-        git_status="x",
-        pr_statuses=[
-            status_module.PRStatus(
-                pull_line="origin pull/13269/head  # A",
-                status="Automatic merge failed; fix conflicts and then commit the result.",
-                body="",
-            )
-        ],
-        footer="",
-    )
     with (
         patch("openlibrary.plugins.openlibrary.status._load_testing_state", return_value=state),
         patch("openlibrary.plugins.openlibrary.status._get_drift_info_async", return_value=({}, False)),
-        patch("openlibrary.plugins.openlibrary.status.get_dev_merged_status", return_value=dms),
+        patch("openlibrary.plugins.openlibrary.status._merge_conflicted_prs", return_value={13269: [13208]}),
     ):
         result = asyncio.run(status_module.load_testing_status_async())
 
     assert result.prs[0].merge_conflict is True
+    assert result.prs[0].conflict_with == [13208]
 
 
 def test_load_testing_status_returns_none_without_state():
@@ -882,6 +852,7 @@ def test_testing_status_endpoint(fastapi_client, mock_authenticated_user, mock_m
                 "is_new": True,
                 "live_now": False,
                 "merge_conflict": False,
+                "conflict_with": [],
                 "action": "add",
                 "in_set": True,
             }
